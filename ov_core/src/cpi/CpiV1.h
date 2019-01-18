@@ -73,7 +73,7 @@ public:
      * @param[in] w_m_1 second imu gyroscope measurement
      * @param[in] a_m_1 second imu acceleration measurement
      *
-     * We will first analytically integrate our measurements and Jacobians.
+     * We will first analytically integrate our meansurements and Jacobians.
      * Then we perform numerical integration for our measurement covariance.
      */
     void feed_IMU(double t_0, double t_1, Eigen::Matrix<double,3,1> w_m_0, Eigen::Matrix<double,3,1> a_m_0,

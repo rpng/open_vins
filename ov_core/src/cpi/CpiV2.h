@@ -95,7 +95,7 @@ public:
      * @param[in] w_m_1 second imu gyroscope measurement
      * @param[in] a_m_1 second imu acceleration measurement
      *
-     * We will first analytically integrate our measurement means.
+     * We will first analytically integrate our meansurement.
      * We can numerically or analytically integrate our bias jacobians.
      * Then we perform numerical integration for our measurement covariance.
      */
