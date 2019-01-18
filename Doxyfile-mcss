@@ -1,0 +1,15 @@
+@INCLUDE                = Doxyfile
+GENERATE_HTML           = NO
+GENERATE_XML            = YES
+XML_PROGRAMLISTING      = NO
+
+##! HTML_EXTRA_STYLESHEET = \
+##!     https://fonts.googleapis.com/css?family=Libre+Baskerville:400,400i,700,700i%7CSource+Code+Pro:400,400i,600 \
+##!     ../css/m-light+doxygen.compiled.css
+##! M_THEME_COLOR           = #cb4b16
+##! M_FAVICON               = favicon-light.png
+
+
+##! M_LINKS_NAVBAR1 = pages annotated files
+##! M_LINKS_NAVBAR2 = \
+##!     "<a href=\"https://github.com/mosra/m.css\">GitHub</a>"

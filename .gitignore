@@ -1,0 +1,6 @@
+cmake-build-debug
+build
+Build
+*.*~
+.idea
+doxgen_generated
