@@ -114,7 +114,7 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_r
     //===================================================================================
     //===================================================================================
 
-    // Perform extraction
+    // Perform extraction (doing this is parallel is actually slower on my machine -pgeneva)
     cv::aruco::detectMarkers(img0,aruco_dict,corners[cam_id_left],ids_aruco[cam_id_left],aruco_params,rejects[cam_id_left]);
     cv::aruco::detectMarkers(img1,aruco_dict,corners[cam_id_right],ids_aruco[cam_id_right],aruco_params,rejects[cam_id_right]);
     rT2 =  boost::posix_time::microsec_clock::local_time();

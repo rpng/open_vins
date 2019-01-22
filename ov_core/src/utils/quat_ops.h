@@ -1,31 +1,8 @@
-#pragma once
-/*
- * MIT License
- * Copyright (c) 2018 Kevin Eckenhoff
- * Copyright (c) 2018 Patrick Geneva
- * Copyright (c) 2018 Guoquan Huang
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
+#ifndef OV_CORE_QUAT_OPS_H
+#define OV_CORE_QUAT_OPS_H
 
 /**
- * @file
+ * @file JPL quaternion math utilities
  * @brief JPL quaternion math utilities
  *
  * @section Summary
@@ -70,11 +47,7 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wdeprecated-declarations"
-#include <Eigen/Core>
-#pragma GCC diagnostic pop
-#include <Eigen/Dense>
+#include <Eigen/Eigen>
 
 
 using namespace std;
@@ -222,7 +195,7 @@ inline Eigen::Matrix<double, 4, 1> quat_multiply(const Eigen::Matrix<double, 4, 
  * @param[in] w_x skew-symmetric matrix
  * @return 3x1 vector portion of skew
  *
- * See @refitem skew_x() for details.
+ * See skew_x() for details.
  */
 inline Eigen::Matrix<double, 3, 1> vee(const Eigen::Matrix<double, 3, 3>& w_x) {
     Eigen::Matrix<double, 3, 1> w;
@@ -330,3 +303,6 @@ inline Eigen::Matrix<double,4,1> Inv(Eigen::Matrix<double,4,1> q){
 
 }
 
+
+
+#endif /* OV_CORE_QUAT_OPS_H */

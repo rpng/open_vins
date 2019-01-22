@@ -10,6 +10,6 @@ XML_PROGRAMLISTING      = NO
 ##! M_FAVICON               = favicon-light.png
 
 
-##! M_LINKS_NAVBAR1 = pages annotated
+##! M_LINKS_NAVBAR1 = pages annotated files
 ##! M_LINKS_NAVBAR2 = \
 ##!     "<a href=\"https://github.com/\">GitHub</a>"

@@ -126,9 +126,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_rig
     std::vector<cv::KeyPoint> pts_right_new = pts_last[cam_id_right];
 
     // Lets track temporally
-    boost::thread t_ll = boost::thread(&ExtractorKLT::perform_matching, this, boost::cref(img_last[cam_id_left]), boost::cref(img_left),
+    boost::thread t_ll = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_last[cam_id_left]), boost::cref(img_left),
                                        boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new), boost::ref(mask_ll));
-    boost::thread t_rr = boost::thread(&ExtractorKLT::perform_matching, this, boost::cref(img_last[cam_id_right]), boost::cref(img_right),
+    boost::thread t_rr = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_last[cam_id_right]), boost::cref(img_right),
                                        boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new), boost::ref(mask_rr));
 
     // Wait till both threads finish
@@ -319,6 +319,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     }
 
     // TODO: Project points from the left frame into the right frame
+    // TODO: this will not work for large baseline systems...
     std::vector<cv::KeyPoint> kpts1_new;
     std::vector<cv::Point2f> pts1_new;
     kpts1_new = kpts0_new;
@@ -329,13 +330,14 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
         return;
 
     // Now do KLT tracking to get the valid projections
+    // Note: we have a pretty big window size here since our projection might be bad
+    // Note: but this might cause failure in cases of repeated textures (eg. checkerboard)
     int pyr_levels = 3;
     std::vector<uchar> mask;
     std::vector<float> error;
-    cv::Size win_size(11, 11);
-    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 20, 0.01);
+    cv::Size win_size(50, 50);
+    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01);
     cv::calcOpticalFlowPyrLK(img0, img1, pts0_new, pts1_new, mask, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
-
 
     // Loop through and record only ones that are valid
     for(size_t i=0; i<pts0_new.size(); i++) {
@@ -352,7 +354,6 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
             ids1.push_back(currid);
         }
     }
-
 
 }
 

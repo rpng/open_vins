@@ -145,9 +145,9 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &
     std::vector<cv::DMatch> matches_ll, matches_rr;
 
     // Lets match temporally
-    boost::thread t_ll = boost::thread(&ExtractorDESC::robust_match, this, boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new),
+    boost::thread t_ll = boost::thread(&TrackDescriptor::robust_match, this, boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new),
                                        boost::ref(desc_last[cam_id_left]), boost::ref(desc_left_new), boost::ref(matches_ll));
-    boost::thread t_rr = boost::thread(&ExtractorDESC::robust_match, this, boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new),
+    boost::thread t_rr = boost::thread(&TrackDescriptor::robust_match, this, boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new),
                                        boost::ref(desc_last[cam_id_right]), boost::ref(desc_right_new), boost::ref(matches_rr));
 
     // Wait till both threads finish
