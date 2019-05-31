@@ -1,0 +1,43 @@
+
+/**
+
+
+@page getting-started Getting started
+
+
+Welcome to the Open VINS project!
+The following guides will guide new users through downloading of the software and running on datasets that we support.
+Additionally, we provide information on how to get your own sensors running on our system and have a guide on how we perform calibration.
+Please feel free to open an issue if you find any missing or areas that could be clarified.
+
+
+@section highlevel High-level overview
+
+From a high level the system is build of a few features.
+At the core we have the `ov_core` which contains a lot of standard computer vision algorithms and utilities that anybody can use.
+Specifically it stores the following large components:
+
+- Sparse feature visual tracking (KLT and descriptor-based)
+- Fundamental math types used to represent states
+- Initialization procedures
+- Multi-sensor simulator that generates synthetic measurements
+
+
+This `ov_core` library is used by the `ov_msckf` system which contains our filter-based estimator.
+Within this we have the state, its manager, type system, prediction, and update algorithms.
+We encourage users to look at the specific documentation for a detailed view of what we support. 
+
+
+
+
+
+
+@section getting-started-more Getting started guides
+
+-   @subpage gs-tutorial --- @copybrief gs-tutorial
+-   @subpage gs-datasets --- @copybrief gs-datasets
+-   @subpage gs-calibration --- @copybrief gs-calibration
+
+
+
+*/
