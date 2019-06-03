@@ -1,0 +1,22 @@
+
+/* don't indent each paragraph since we frequently use equations */
+main p {
+    text-indent: 0rem !important;
+}
+
+
+/* if we have two paragraphs after each other, then indent */
+main p + p {
+    text-indent: 1.5rem !important;
+}
+
+/* if we have paragraph after header, then indent */
+main h1 + p, h2 + p, h3 + p {
+    text-indent: 1.5rem !important;
+}
+
+
+/* math equations by default have some extra space at the top */
+div .m-math {
+    margin-top: -1.5rem;
+}

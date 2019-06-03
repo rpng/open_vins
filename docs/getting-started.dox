@@ -1,4 +1,3 @@
-
 /**
 
 
@@ -34,9 +33,9 @@ We encourage users to look at the specific documentation for a detailed view of 
 
 @section getting-started-more Getting started guides
 
--   @subpage gs-tutorial --- @copybrief gs-tutorial
--   @subpage gs-datasets --- @copybrief gs-datasets
--   @subpage gs-calibration --- @copybrief gs-calibration
+-   @subpage gs-tutorial --- Simple tutorial on getting Open VINS running out of the box.
+-   @subpage gs-datasets --- Links to supported datasets and configuration files
+-   @subpage gs-calibration --- Guide to how to calibration your own visual-inertial sensors.
 
 
 

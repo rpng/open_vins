@@ -2,7 +2,6 @@
 
 
 @page gs-datasets Supported Datasets
-@brief Links to supported datasets and configuration files
 
 
 @section data-euroc The EuRoC MAV Dataset

@@ -1,0 +1,182 @@
+/**
+
+
+@page update-null MSCKF Nullspace Projection
+
+
+@section derivation Nullspace projection
+
+Lets look at naively solving for the measurement covariance matrix \f$\mathbf{P}_{zz}\f$.
+We assume we have already linearized the measurement feature equations, so we have a Jacobian in respect to the state and feature position.
+We can find \f$\mathbf{P}_{zz}\f$ as follows:
+
+\f{align*}{
+    \mathbf{P}_{zz}
+    &= \mathbb{E}\left[
+    (\mathbf{z}_m - \hat{\mathbf{z}}_m)(\mathbf{z}_m - \hat{\mathbf{z}}_m)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{H}_{x}\tilde{\mathbf{x}}_{k}+\mathbf{H}_{f}{}^G\tilde{\mathbf{p}}_f+\mathbf{n}_k)
+    (\mathbf{H}_{x}\tilde{\mathbf{x}}_{k}+\mathbf{H}_{f}{}^G\tilde{\mathbf{p}}_f+\mathbf{n}_k)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\Big[
+    \mathbf{H}_{x}\tilde{\mathbf{x}}_{k}\tilde{\mathbf{x}}_{k}^\top\mathbf{H}_{x}^\top
+    +\mathbf{H}_{x}\tilde{\mathbf{x}}_{k}{}^G\tilde{\mathbf{p}}_f^\top\mathbf{H}_{f}^\top
+    +\textcolor{red}{\mathbf{H}_{x}\tilde{\mathbf{x}}_{k}\mathbf{n}_k^\top} \nonumber\\[3px]
+    &\hspace{3cm}+
+    \mathbf{H}_{f}{}^G\tilde{\mathbf{p}}_f\tilde{\mathbf{x}}_{k}^\top\mathbf{H}_{x}^\top
+    +\mathbf{H}_{f}{}^G\tilde{\mathbf{p}}_f{}^G\tilde{\mathbf{p}}_f^\top\mathbf{H}_{f}^\top
+    +\mathbf{H}_{f}{}^G\tilde{\mathbf{p}}_f\mathbf{n}_k^\top \nonumber\\[3px]
+    &\hspace{3cm}+
+    \textcolor{red}{\mathbf{n}_k\tilde{\mathbf{x}}_{k}^\top\mathbf{H}_{x}^\top}
+    +\mathbf{n}_k{}^G\tilde{\mathbf{p}}_f^\top\mathbf{H}_{f}^\top
+    +\mathbf{n}_k\mathbf{n}_k^\top
+    \Big] \\[5px]
+\empty
+    &=
+    \mathbf{H}_x\mathbb{E}\Big[\tilde{\mathbf{x}}_{k}\tilde{\mathbf{x}}_{k}^\top\Big]\mathbf{H}_x^\top
+    +\mathbf{H}_x\mathbb{E}\Big[\tilde{\mathbf{x}}_{k}{}^G\tilde{\mathbf{p}}_f^\top\Big]\mathbf{H}_f^\top
+    +\mathbf{H}_f\mathbb{E}\Big[{}^G\tilde{\mathbf{p}}_f\tilde{\mathbf{x}}_{k}^\top\Big]\mathbf{H}_x^\top
+    + \mathbf{H}_f\mathbb{E}\Big[{}^G\tilde{\mathbf{p}}_f{}^G\tilde{\mathbf{p}}_f^\top\Big]\mathbf{H}_f^\top \nonumber\\[3px]
+    &\hspace{3.2cm}+
+    \mathbf{H}_f\mathbb{E}\Big[{}^G\tilde{\mathbf{p}}_f\mathbf{n}_k^\top\Big]
+    +\mathbb{E}\Big[\mathbf{n}_k{}^G\tilde{\mathbf{p}}_f^\top\Big]\mathbf{H}_f^\top 
+    +\mathbb{E}\Big[\mathbf{n}_k\mathbf{n}_k^\top\Big] \\[5px]
+\empty
+    &=
+    \mathbf{H}_x \mathbf{P}_{xx}\mathbf{H}_x^\top
+    +\mathbf{H}_x \mathbf{P}_{xf}\mathbf{H}_f^\top
+    +\mathbf{H}_f \mathbf{P}_{fx}\mathbf{H}_x^\top
+    + \mathbf{H}_f \mathbf{P}_{ff}\mathbf{H}_f^\top \nonumber\\[3px]
+    &\hspace{2.3cm}+
+    \mathbf{H}_f \mathbf{P}_{fn}
+    +\mathbf{P}_{nf} \mathbf{H}_f^\top 
+    +\mathbf{R}_d
+\f}
+
+
+The problem here is that we do not know what the prior feature covariance and it is coupled with both the state, itself, and the state noise (\f$\mathbf{P}_{xf}\f$,\f$\mathbf{P}_{ff}\f$, and \f$\mathbf{P}_{nf}\f$).
+We are only estimating the state covariance, thus do not have any records of this.
+This motivates the need for a method to remove the feature location \f${}^G\tilde{\mathbf{p}}_f\f$ from our measurement equation (thus removing the correlation between the measurement and its error).
+
+
+We start with our measurement residual function and to remove the "sensivity" to feature error we compute and apply the left nullspace of the Jacobian \f$\mathbf{H}_{f}\f$.
+We can compute it using QR decomposition as follows:
+
+
+\f{align*}{
+    \mathbf{H}_{f} = 
+    \begin{bmatrix} \mathbf{Q_1} & \mathbf{Q_2} \end{bmatrix}
+    \begin{bmatrix} \mathbf{R_1} \\ \mathbf{0} \end{bmatrix}
+    = \mathbf{Q_1}\mathbf{R_1}
+\f}
+
+
+Looking at the error state, and multiplying by the nullspace of the feature Jacobian we have:
+
+\f{align*}{
+    \tilde{\mathbf{z}}_m
+    &\approx 
+    \mathbf{H}_{x} \tilde{\mathbf{x}}_{k}
+    + \mathbf{H}_{f} {}^G\tilde{\mathbf{p}}_f + \mathbf{n}_k \\[5px]
+\empty
+    \tilde{\mathbf{z}}_m
+    &\approx 
+    \mathbf{H}_{x} \tilde{\mathbf{x}}_{k}
+    + \mathbf{Q_1}\mathbf{R_1}{}^G\tilde{\mathbf{p}}_f + \mathbf{n}_k \\[5px]
+\empty
+    \mathbf{Q_2}^\top\tilde{\mathbf{z}}_m
+    &\approx 
+    \mathbf{Q_2}^\top\mathbf{H}_{x} \tilde{\mathbf{x}}_{k}
+    + \textcolor{red}{\mathbf{Q_2}^\top\mathbf{Q_1}\mathbf{R_1} {}^G\tilde{\mathbf{p}}_f} + \mathbf{Q_2}^\top\mathbf{n}_k \\[5px]
+\empty
+    \mathbf{Q_2}^\top\tilde{\mathbf{z}}_m
+    &\approx 
+    \mathbf{Q_2}^\top\mathbf{H}_{x} \tilde{\mathbf{x}}_{k} + \mathbf{Q_2}^\top\mathbf{n}_k \\[5px]
+\empty
+    \tilde{\mathbf{z}}_o
+    &\approx 
+    \mathbf{H}_{o}\tilde{\mathbf{x}}_{k} + \mathbf{n}_o
+\f}
+
+
+
+We can compute the new size of these covariances by looking at the properties of the nullspace.
+
+
+
+\f{align*}{
+    \textrm{size}(\mathbf{H}_{f}) &= 2n\times3 \textrm{~~where~}n\textrm{~is the number of uv observations of this feature} \\[5px]
+    \textrm{size}({}^G\tilde{\mathbf{p}}_f) &= 3\times1 \\[5px]
+    \textrm{size}(\mathbf{H}_{x}) &= 2n\times15+6c \textrm{~~where~}c\textrm{~is the number of clones} \\[5px]
+    \textrm{size}(\tilde{\mathbf{x}}_{k}) &= 15+6c\times1 \textrm{~~where~}c\textrm{~is the number of clones}
+\f}
+
+
+Looking at the left nullspace we have the following:
+
+
+\f{align*}{
+    \mathbf{x}^\top\mathbf{H}_{f} &=\mathbf{0}^\top \\[5px]
+    (1\times2n)(2n\times3) &= (1\times3) \\[5px]
+    \textrm{rank}(\mathbf{H}_{f}) &\leq \textrm{min}(2n,3) = 3 \textrm{~~where equality holds in most cases} \\[5px]
+    \textrm{nullity}(\mathbf{H}_{f}) &= \textrm{size}(\mathbf{x}) - \textrm{rank}(\mathbf{H}_{f}) \\
+    &= 2n-3  \textrm{~~assuming we have full rank}
+\f}
+
+
+
+Thus we can say the following about our sizes when the nullspace is applied:
+
+
+\f{align*}{
+    \mathbf{Q_2}^\top\tilde{\mathbf{z}}_m
+    &\approx 
+    \mathbf{Q_2}^\top\mathbf{H}_{x} \tilde{\mathbf{x}}_{k} + \mathbf{Q_2}^\top\mathbf{n}_k \\[5px]
+\empty
+    (2n-3\times2n)(2n\times1)
+    &=
+    (2n-3\times2n)(2n\times15+6c)(15+6c\times1) \\
+    &\hspace{3.5cm}+ (2n-3\times2n)(2n\times1) \nonumber\\[5px]
+\empty
+    \tilde{\mathbf{z}}_o
+    &\approx 
+    \mathbf{H}_{o}\tilde{\mathbf{x}}_{k} + \mathbf{n}_o \\[5px]
+\empty
+    (2n-3\times1)
+    &= 
+    (2n-3\times15+6c)(15+6c\times1) + (2n-3\times1)
+\f}
+
+
+
+\f{align*}{
+    \hat{\mathbf{x}}_{k|z} 
+    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k} \mathbf{H}_o^\top (\mathbf{H}_o \mathbf{P}_{k} \mathbf{H}_o^\top + \mathbf{R}_o)^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\[5px]
+    \mathbf{P}_{xx|z} 
+    &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}_o^\top (\mathbf{H}_o \mathbf{P}_{k} \mathbf{H}_o^\top + \mathbf{R}_o)^{-1} \mathbf{H}_o\mathbf{P}_{k}^\top
+\f}
+
+
+
+
+
+
+@section implementation Implementation
+
+Using Eigen 3 library we have the following which will first perform QR decomposition afterwhich we can grab the nullspace.
+Here we know that the size of \f$\mathbf{Q}_1\f$ is a 3x3 since that is the size of our feature state \f$\mathbf{H}_f\f$.
+
+@code{.cpp}
+Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(H_f.rows(), H_f.cols());
+qr.compute(H_f);
+Eigen::MatrixXd Q = qr.householderQ();
+Eigen::MatrixXd Q1 = Q.block(0,0,3,3);
+Eigen::MatrixXd Q2 = Q.block(0,3,Q.rows(),Q.cols()-3);
+@endcode
+
+
+
+
+
+*/

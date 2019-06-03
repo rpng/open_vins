@@ -1,0 +1,35 @@
+/**
+
+
+@page update-feat Feature Bearing Update
+
+
+@section model Feature Measurement Equation
+
+
+Consider a 3D feature that has been tracked over a window of poses in a camera.
+At each timestep we have a uv measurement of this feature on the image plane.
+This
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+*/
