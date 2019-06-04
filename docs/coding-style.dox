@@ -1,15 +1,11 @@
 /**
 
 
-@page coding-style Coding style
-@brief Coding style and best practices to preserve maintainability and
-consistent style across whole project.
-
+@page coding-style Coding Style
 
 
 
 @section coding-style-overview Overview
-
 
 Please note that if you have a good excuse to either break the rules or modify
 them, feel free to do it (and update this guide accordingly, if appropriate).
@@ -30,6 +26,10 @@ In general, the main aim of this style is:
 
 
 
+@section coding-style-naming Naming Conventions
+
+
+TODO: need to talk here about how we do our frames, and other variables.
 
 
 

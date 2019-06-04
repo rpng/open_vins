@@ -9,7 +9,45 @@
 
 Consider a 3D feature that has been tracked over a window of poses in a camera.
 At each timestep we have a uv measurement of this feature on the image plane.
-This
+We can define the following measurement:
+
+\f{align*}{
+    \mathbf{z}_m &= \mathbf{z}_k + \mathbf{n}_k
+\f}
+
+where \f$\mathbf{z}_m\f$ is a single uv measurement on the image plane from a given camera that has some pixel noise  \f$\mathbf{n}_k\f$.
+We now can write how this is a function of the state as follows:
+
+
+\f{align*}{
+    \mathbf{z}_m
+    &=w(\mathbf{z}'_k, ~\boldsymbol\zeta) + \mathbf{n}_k \\
+    &=w(\pi({}^{C_k}\mathbf{p}_f), ~\boldsymbol\zeta) + \mathbf{n}_k \\
+    &=w(\pi(r({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})), ~\boldsymbol\zeta) + \mathbf{n}_k \\
+    &=w(\pi(r(f(\boldsymbol\lambda),~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})), ~\boldsymbol\zeta) + \mathbf{n}_k
+\f}
+
+
+where we have defined the following functions:
+
+
+- \f$\mathbf{z}_k = w(\mathbf{z}'_k, ~\boldsymbol\zeta)\f$ : is the undistort function that takes normalized coordinates and maps it into raw distorted uv coordinates
+- \f$\mathbf{z}'_k=\pi({}^{C_k}\mathbf{p}_f)\f$ : is the projection function that takes a 3D point in the image and converts it into the normalized uv coordinates
+- \f${}^{C_k}\mathbf{p}_f=r({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})\f$ : maps a feature in the global frame into the current camera frame
+- \f${}^{G}\mathbf{p}_f=f(\boldsymbol\lambda)\f$ : converts from a feature representation to a 3D feature in the global frame
+
+
+For each of t
+
+
+
+@section 
+
+
+
+
+
+
 
 
 

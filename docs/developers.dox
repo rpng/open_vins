@@ -23,8 +23,8 @@
     - http://www.doxygen.nl/manual/formulas.html
     - https://mcss.mosra.cz/css/components/#math
     - https://mcss.mosra.cz/css/components/
-- Use the inline commands for latex `\f$ formula here \f$`
-- Use block to have equation centered on page `\f[ biog formula \f]`
+- Use the inline commands for latex `\f $ <formula_here> \f $` (no space between f and $)
+- Use block to have equation centered on page `\f [ <big_formula_here> \f ]` (no space between f and [])
 
 
 
