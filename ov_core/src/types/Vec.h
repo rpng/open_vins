@@ -5,8 +5,6 @@
 #ifndef PROJECT_VEC_H
 #define PROJECT_VEC_H
 
-#endif //PROJECT_VEC_H
-
 #include "Type.h"
 
 class Vec: public Type {
@@ -32,3 +30,5 @@ public:
 
 
 };
+
+#endif //PROJECT_VEC_H

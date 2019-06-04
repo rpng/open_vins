@@ -5,22 +5,20 @@
 #ifndef PROJECT_JPLPOSE_H
 #define PROJECT_JPLPOSE_H
 
-#endif //PROJECT_JPLPOSE_H
-
 #include "utils/quat_ops.h"
 #include "JPLQuat.h"
 #include "Vec.h"
 
-class JPLPose : public Type{
+class PoseJPL : public Type{
 
 public:
 
-    JPLPose() : Type(6){
+    PoseJPL() : Type(6){
         q = new JPLQuat();
         p = new Vec(3);
     }
 
-    ~JPLPose() { }
+    ~PoseJPL() { }
 
     void update(const Eigen::VectorXd dx){
 
@@ -61,7 +59,7 @@ public:
     }
 
     Type* clone(){
-        Type* Clone= new JPLPose();
+        Type* Clone= new PoseJPL();
         Clone->set_value(value());
         Clone->set_fej(fej());
         return Clone;
@@ -104,3 +102,5 @@ protected:
     Vec *p;
 
 };
+
+#endif //PROJECT_JPLPOSE_H

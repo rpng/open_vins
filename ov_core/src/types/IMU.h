@@ -8,14 +8,14 @@
 #endif //PROJECT_JPLQUAT_H
 
 #include "utils/quat_ops.h"
-#include "JPLPose.h"
+#include "PoseJPL.h"
 
 class IMU : public Type{
 
 public:
 
     IMU() : Type(15){
-        pose = new JPLPose();
+        pose = new PoseJPL();
         v = new Vec(3);
         bg = new Vec(3);
         ba = new Vec(3);
@@ -33,7 +33,7 @@ public:
         dq << .5*dx.block(0,0,3,1) , 1.0;
         dq= dq/dq.norm();
 
-        newX.block(0,0,4,1) = quat_multiply(_value, dq);
+        newX.block(0,0,4,1) = quat_multiply(dq, _value);
         newX.block(4,0,3,1) += dx.block(3,0,3,1);
 
         newX.block(7,0,3,1) += dx.block(6,0,3,1);
@@ -136,7 +136,7 @@ public:
 
 protected:
 
-    JPLPose *pose;
+    PoseJPL *pose;
     Vec *v;
     Vec *bg;
     Vec *ba;
