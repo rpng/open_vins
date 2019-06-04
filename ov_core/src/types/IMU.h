@@ -26,7 +26,7 @@ public:
         _bg = new Vec(3);
         _ba = new Vec(3);
 
-        Eigen::Matrix<double,15,1> imu0;
+        Eigen::Matrix<double,16,1> imu0;
         imu0.setZero();
         imu0(3) = 1.0;
 

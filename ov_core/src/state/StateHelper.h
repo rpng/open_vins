@@ -14,6 +14,95 @@ class StateHelper{
 
 public:
 
+     /** @brief Marginalizes Type marg, properly modifying the ordering/covariances in the state
+      *  @param state Pointer to state
+      *  @param marg Pointer to variable to marginalize
+      */
+     static void marginalize(State* state, Type* marg){
+
+        // Check if the current state has the GPS enabled
+        if(std::find(state->variables().begin(),state->variables().end(),marg) == state->variables().end()) {
+            std::cerr << "CovManager::marginalize() - Called on variable that is not in the state" << std::endl;
+            std::cerr << "CovManager::marginalize() - Marginalization, does NOT work on sub-variables yet..." << std::endl;
+            std::exit(EXIT_FAILURE);
+        }
+
+        //Generic covariance has this form for x_1, x_m, x_2. If we want to remove x_m:
+        //
+        //  P_(x_1,x_1) P(x_1,x_m) P(x_1,x_2)
+        //  P_(x_m,x_1) P(x_m,x_m) P(x_m,x_2)
+        //  P_(x_2,x_1) P(x_2,x_m) P(x_2,x_2)
+        //
+        //  to
+        //
+        //  P_(x_1,x_1) P(x_1,x_2)
+        //  P_(x_2,x_1) P(x_2,x_2)
+        //
+        // i.e. x_1 goes from 0 to marg_id, x_2 goes from marg_id+marg_size to Cov.rows()
+        //in the original covariance
+
+        int marg_size= marg->size();
+        int marg_id= marg->id();
+
+        Eigen::MatrixXd Cov_new( state->nVars()-marg_size, state->nVars()-marg_size);
+
+        int x2_size= state->nVars()-marg_id- marg_size;
+
+        //P_(x_1,x_1)
+        Cov_new.block(0,0,marg_id,marg_id)= state->Cov().block(0,0,marg_id,marg_id);
+
+        //P_(x_1,x_2)
+        Cov_new.block(0,marg_id,marg_id,x2_size)= state->Cov().block(0,marg_id+marg_size,marg_id,x2_size);
+
+        //P_(x_2,x_1)
+        Cov_new.block(marg_id,0,x2_size,marg_id)= Cov_new.block(0,marg_id,marg_id,x2_size).transpose();
+
+        //P(x_2,x_2)
+        Cov_new.block(marg_id,marg_id,x2_size,x2_size)= state->Cov().block(marg_id+marg_size,marg_id+marg_size,x2_size,x2_size);
+
+
+        //Now set new covariance
+        state->Cov() = Cov_new;
+
+
+        //Now we keep the remaining variables and update their ordering
+        //Note: DOES NOT SUPPORT MARGINALIZING SUBVARIABLES YET!!!!!!!
+        std::vector<Type*> remaining_variables;
+        for (size_t i=0; i < state->variables().size(); i++){
+            //Only keep non-marginal states
+            if (state->variables(i) != marg){
+                if (state->variables(i)->id() > marg_id){
+                    //If the variable is "beyond" the marginal one in ordering, need
+                    //to "move it forward"
+                    state->variables(i)->set_local_id(state->variables(i)->id()- marg_size);
+                }
+                remaining_variables.push_back(state->variables(i));
+            }
+        }
+
+        delete marg;
+
+
+        //Now set variables as the remaining ones
+        state->variables() = remaining_variables;
+
+    }
+
+    /** @brief Remove the oldest clone, if we have more then the max clone count!!
+    *   Note: the marginalizer should have already deleted the clone
+    *   Note: so we just need to remove the pointer to it
+    *   @param state Pointer to state
+    */
+    static void marginalize_old_clone(State* state) {
+
+        if (state->nClones() > state->options().max_clone_size) {
+            double margTime = state->margtimestep();
+            StateHelper::marginalize(state, state->get_clone(margTime));
+            state->erase_clone(margTime);
+        }
+
+    }
+
     /**
     * @brief Clones "variable to clone" and places it at end of covariance
     * @param state Pointer to state
@@ -23,11 +112,11 @@ public:
 
         //Get total size of new cloned variables, and the old covariance size
         int total_size = variable_to_clone->size();
-        int old_size = (int)state->Cov().rows();
-        int new_loc = (int)state->Cov().rows();
+        int old_size = (int)state->nVars();
+        int new_loc = (int)state->nVars();
 
         // Resize both our covariance to the new size
-        state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->Cov().rows()+total_size,state->Cov().rows()+total_size));
+        state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->nVars()+total_size,state->nVars()+total_size));
 
         // What is the new state, and variable we inserted
         const std::vector<Type*> new_variables = state->variables();
@@ -37,7 +126,7 @@ public:
         for (size_t k=0; k < state->variables().size(); k++){
 
             // Skip this if it is not the same
-            Type* type_check = state->variables()[k]->check_if_same_variable(variable_to_clone);
+            Type* type_check = state->variables(k)->check_if_same_variable(variable_to_clone);
             if (type_check == nullptr)
                 continue;
 
@@ -90,7 +179,7 @@ public:
         assert(H.rows() == res.rows());
 
 
-        Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->Cov().rows(), res.rows());
+        Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->nVars(), res.rows());
 
         std::vector <int> H_id;
         std::vector <bool> H_is_active;
@@ -166,7 +255,7 @@ public:
 
         Eigen::MatrixXd H_Linv = H_L.inverse();
 
-        Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->Cov().rows(), res.rows());
+        Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->nVars(), res.rows());
 
         std::vector <int> H_id;
         std::vector <bool> H_is_active;
@@ -206,10 +295,10 @@ public:
         // Covariance of the variable/landmark that will be initialized
         Eigen::MatrixXd P_LL = H_Linv*M.selfadjointView<Eigen::Upper>()*H_Linv.transpose();
 
-        size_t oldSize = state->Cov().rows();
+        size_t oldSize = state->nVars();
 
-        state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->Cov().rows()+new_variable->size(),
-                state->Cov().rows()+new_variable->size()));
+        state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->nVars()+new_variable->size(),
+                state->nVars()+new_variable->size()));
 
         state->Cov().block(0, oldSize, oldSize, new_variable->size()).noalias() = -M_a*H_Linv.transpose();
         state->Cov().block(oldSize, 0, new_variable->size(), oldSize) = state->Cov().block(0, oldSize, oldSize, new_variable->size()).transpose();
@@ -221,7 +310,7 @@ public:
         new_variable->update(H_Linv*res);
 
         // Now collect results, and add it to the state variables
-        new_variable->set_local_id((int)(state->Cov().rows()-new_variable->size()));
+        new_variable->set_local_id((int)(state->nVars()-new_variable->size()));
         state->insert_variable(new_variable);
 
 
@@ -277,7 +366,7 @@ public:
 
         //===========================================
         // Finally, initialize it in our state
-        invertible_initialize(state, new_variable, H_order, Hxinit, H_finit,
+        StateHelper::invertible_initialize(state, new_variable, H_order, Hxinit, H_finit,
                                           Rinit, resinit);
 
         //Update with updating portion
@@ -308,7 +397,7 @@ public:
 
         // Check that it was a valid cast
         if(pose == nullptr) {
-            ROS_ERROR("INVALID OBJECT RETURNED FROM MARGINALIZER, EXITING!#!@#!@#");
+            //ROS_ERROR("INVALID OBJECT RETURNED FROM MARGINALIZER, EXITING!#!@#!@#");
             exit(EXIT_FAILURE);
         }
 

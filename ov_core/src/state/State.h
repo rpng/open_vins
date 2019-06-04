@@ -11,10 +11,10 @@
 #include "Options.h"
 #include <map>
 
-class Landmark;
-
 /** @brief Class which manages the filter state
 */
+
+class Landmark;
 
 class State{
 
@@ -31,52 +31,7 @@ public:
      * @brief Initializes pointers and covariance
      * TODO: Read initial values and covariance from options
      */
-    void initialize_variables(){
-
-        double current_id = 0;
-        _imu = new IMU();
-        _imu->set_local_id(current_id);
-        insert_variable(_imu);
-
-        current_id += 15;
-
-        //Camera to IMU time offset
-        _calib_dt_CAMtoIMU = new Vec(1);
-        if (_options.do_calib_camera_timeoffset){
-            _calib_dt_CAMtoIMU->set_local_id(current_id);
-            insert_variable(_calib_dt_CAMtoIMU);
-            current_id++;
-        }
-
-        for (size_t i = 0; i < _options.num_cameras; i++){
-            //Allocate pose
-            PoseJPL *pose = new PoseJPL();
-            //Allocate intrinsics
-            Vec *intrin = new Vec(8);
-
-            //Add these to the corresponding maps
-            _calib_IMUtoCAM.insert({i, pose});
-            _cam_intrinsics.insert({i, intrin});
-
-            //If calibrating camera-imu pose, add to variables
-            if (_options.do_calib_camera_pose){
-                pose->set_local_id(current_id);
-                current_id += 6;
-                insert_variable(pose);
-            }
-            //If calibrating camera intrinsics, add to variables
-            if (_options.do_calib_camera_intrinsics){
-                intrin->set_local_id(current_id);
-                current_id += 8;
-                insert_variable(intrin);
-            }
-        }
-
-        _Cov = Eigen::MatrixXd::Zero(current_id, current_id);
-
-
-
-    }
+    void initialize_variables();
 
 
     /** @brief Access IMU pointer
@@ -99,6 +54,13 @@ public:
         return _variables;
     }
 
+    /** @brief Access variables in state by index in variables vector
+     * Index in variables vector
+     */
+    Type* variables(size_t i){
+        return _variables[i];
+    }
+
     /** @brief Insert new variable
      *  @param newType Variable to insert
      */
@@ -111,34 +73,7 @@ public:
     * That only includes the ones specified with all cross terms
     * @param small_variables Vector of variables whose marginal covariance is desired
     */
-    Eigen::MatrixXd get_marginal_covariance(const std::vector<Type*> &small_variables){
-
-        // Calculate the marginal covariance size we need ot make our matrix
-        int cov_size=0;
-        for (size_t i=0; i < small_variables.size(); i++){
-            cov_size += small_variables[i]->size();
-        }
-
-        // Construct our return covariance
-        Eigen::MatrixXd Small_cov(cov_size,cov_size);
-
-        // For each variable, lets copy over all other variable cross terms
-        // Note: this copies over itself to when i_index=k_index
-        int i_index=0;
-        for (size_t i=0; i < small_variables.size(); i++){
-            int k_index=0;
-            for (size_t k=0;  k < small_variables.size(); k++){
-                Small_cov.block(i_index, k_index, small_variables[i]->size(),small_variables[k]->size()) =
-                        _Cov.block(small_variables[i]->id(), small_variables[k]->id(), small_variables[i]->size(),
-                                small_variables[k]->size());
-                k_index += small_variables[k]->size();
-            }
-            i_index += small_variables[i]->size();
-        }
-
-        // Return the covariance
-        return Small_cov;
-    }
+    Eigen::MatrixXd get_marginal_covariance(const std::vector<Type*> &small_variables);
 
     /**
      * @brief Given an update vector, updates each variable
@@ -158,6 +93,7 @@ public:
     void insert_clone(double timestamp, PoseJPL* pose){
         _clones_IMU.insert({timestamp, pose});
     }
+
 
     /// Access current timestamp
     double timestamp(){
@@ -180,6 +116,43 @@ public:
      */
     PoseJPL* get_clone(double timestamp){
         return _clones_IMU[timestamp];
+    }
+
+    /// Get size of covariance
+    size_t nVars(){
+        return _Cov.rows();
+    }
+
+    /// Get current number of clones
+    size_t nClones(){
+        return _clones_IMU.size();
+    }
+
+    /// Get marginal timestep
+    double margtimestep() {
+        double time = INFINITY;
+        for(std::pair<const double,PoseJPL*>& clone_imu : _clones_IMU) {
+            if(clone_imu.first < time) {
+                time = clone_imu.first;
+            }
+        }
+        return time;
+    }
+
+    /**
+     * Erases clone associated with timestamp
+     * @param timestamp Timestamp of clone to erase
+     */
+    void erase_clone(double timestamp){
+        _clones_IMU.erase(timestamp);
+    }
+
+    /**
+     * Set the current timestamp of the filter
+     * @param timestamp New timestamp
+     */
+    void set_timestamp(double timestamp){
+        _timestamp = timestamp;
     }
 
 protected:
@@ -215,7 +188,7 @@ protected:
     /// Camera intrinsics
     std::map<size_t,Vec*> _cam_intrinsics;
 
-
+    /// Vector of variables
     std::vector<Type*> _variables;
 
 

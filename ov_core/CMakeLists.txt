@@ -67,7 +67,9 @@ add_library(ov_core
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp
         src/track/TrackKLT.cpp
-        src/types/Type.h src/types/Vec.h src/types/JPLQuat.h src/types/PoseJPL.h src/types/IMU.h src/state/State.h)
+        src/state/State.cpp
+        src/state/Propagator.cpp
+        )
 target_link_libraries(ov_core ${thirdparty_libraries})
 
 

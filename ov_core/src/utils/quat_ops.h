@@ -303,6 +303,60 @@ inline Eigen::Matrix<double,4,1> Inv(Eigen::Matrix<double,4,1> q){
 
 }
 
+/**
+ * \brief equation (48) of trawny tech report
+ */
+inline Eigen::Matrix<double,4,4> Omega(Eigen::Matrix<double,3,1> w ){
+    Eigen::Matrix<double,4,4> mat;
+    mat.block(0,0,3,3) = -skew_x(w);
+    mat.block(3,0,1,3) = -w.transpose();
+    mat.block(0,3,3,1) = w;
+    mat(3,3) = 0;
+    return mat;
+};
+
+/**
+ * \brief Normalizes a quaternion to make sure it is unit norm
+ */
+inline Eigen::Matrix<double,4,1> quatnorm(Eigen::Matrix<double,4,1> q_t) {
+    if (q_t(3,0) <0){
+        q_t*=-1;
+    }
+    return q_t/q_t.norm();
+};
+
+/**
+ * Computes left Jacobian of SO(3)
+ * @param w axis-angle
+ */
+
+inline Eigen::Matrix<double,3,3> Jl_so3(Eigen::Matrix<double,3,1> w ){
+
+    double theta= w.norm();
+
+    if (theta < 1e-12){
+        return Eigen::MatrixXd::Identity(3,3);
+    }
+    else{
+        Eigen::Matrix<double,3,1> a= w/theta;
+        Eigen::Matrix<double,3,3> J= sin(theta)/theta*Eigen::MatrixXd::Identity(3,3)+ (1-sin(theta)/theta)*a*a.transpose()+
+                                     ((1-cos(theta))/theta)*skew_x(a);
+        return J;
+
+    }
+};
+
+/**
+ * Computes right Jacobian of SO(3)
+ * @param w axis-angle
+ */
+inline Eigen::Matrix<double,3,3> Jr_so3(Eigen::Matrix<double,3,1> w ){
+
+    return Jl_so3(-w);
+};
+
+
+
 
 
 #endif /* OV_CORE_QUAT_OPS_H */
