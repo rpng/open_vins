@@ -7,54 +7,93 @@
 
 #include <Eigen/Dense>
 
+/**
+ * @brief Base class for estimated variables.
+ *
+ * This class is used how variables are represented or updated (e.g., vectors or quaternions)
+ *
+*/
 class Type {
 
 public:
+
+    /**
+    * @brief Default constructor for our Type
+    * @param size_ degrees of freedom of variable (i.e., the size of the error state)
+    */
+
 
     Type(int size_){_size= size_;}
 
     virtual ~Type() { };
 
-    //Set id of variable in covariance
+    /**
+    * @brief Sets id used to track location of variable in the filter covariance
+    * @param new_id entry in filter covariance corresponding to this variable
+    */
     virtual void set_local_id(int new_id){
         _id= new_id;
     }
 
+    /**
+    * @brief Access to variable id
+    */
     int id(){
         return _id;
     }
 
+    /**
+    * @brief Access to variable size
+    */
     int size(){
         return _size;
     }
 
-    //Update estimate using local perturbation 0
+    /**
+    * @brief Update variable due to perturbation of error state
+     * @param dx Perturbation used to update the variable through a defined "boxplus" operation
+    */
     virtual void update(const Eigen::VectorXd dx) = 0;
 
-    //Returns the estimate
+    /**
+    * @brief Access variable's estimate
+    */
     virtual Eigen::VectorXd value() const{
         return _value;
     }
 
-    //Returns the first estimate for fej
+    /**
+    * @brief Access variable's first-estimate
+    */
     virtual Eigen::VectorXd fej() const{
         return _fej;
     }
 
-    //Sets the value of the estimate
+    /**
+    * @brief Overwrite value of state's estimate
+    * @param new_value New value that will overwrite state's value
+    */
     virtual void set_value(const Eigen::VectorXd new_value){
         _value = new_value;
     }
 
-    //Sets the value of the estimate
+    /**
+    * @brief Overwrite value of first-estimate
+    * @param new_value New value that will overwrite state's fej
+    */
     virtual void set_fej(const Eigen::VectorXd new_value){
         _fej = new_value;
     }
 
+    /**
+    * @brief Create a clone of this variable
+    */
     virtual Type* clone()=0;
 
-    //Used to find if variable is this one. Returns nullptr if not.
-    // Overloaded to find subvariables as well
+    /**
+    * @brief Determine if "check" is the same variable
+    * @param check Type pointer to compare to
+    */
     virtual Type* check_if_same_variable(const Type* check){
         if (check == this){
             return this;
@@ -66,10 +105,16 @@ public:
 
 protected:
 
+    /// First-estimate
     Eigen::VectorXd _fej;
+
+    /// Current best estimate
     Eigen::VectorXd _value;
 
+    /// Location of error state in covariance
     int _id = -1;
+
+    /// Dimension of error state
     int _size = -1;
 
 
