@@ -33,7 +33,7 @@ Stacking these measurements, we define a single large measurement:
 We then perform the standard linearization with respect to the current state and new variable:
 
 \f{align*}{
-    \mathbf{r} = \mathbf{z}-\mathbf{h}\left(\hat{\mathbf{x}}, \hat{f}\right) = \mathbf{H}_x \tilde{\mathbf{x}} +\mathbf{H}_f
+    \mathbf{r} = \mathbf{z}-\mathbf{h}(\hat{\mathbf{x}}, \hat{f}) = \mathbf{H}_x \tilde{\mathbf{x}} +\mathbf{H}_f
     \tilde{\mathbf{f}} + \mathbf{n}
 \f}
 
@@ -67,7 +67,7 @@ the first subsystem:
 We can then compute the update due to this measurement:
 
 \f{align*}{
-    \mathbb{E}\left(\tilde{\mathbf{f}}\right) = \mathbf{H}_{f1}^{-1}\left(\mathbf{r}_1\right)
+    \mathbb{E}[\tilde{\mathbf{f}}] = \mathbf{H}_{f1}^{-1}(\mathbf{r}_1)
 \f}
 
 Note that this is equivalent to a Gauss Newton step of the MLE formed by fixing the estimate of \f$\mathbf{x}\f$ and optimizing

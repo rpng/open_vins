@@ -38,9 +38,6 @@ namespace ov_core {
         /// Timestamps of each UV measurement (mapped by camera ID)
         std::unordered_map<size_t, std::vector<double>> timestamps;
 
-        /// Triangulated inverse position of this feature, in the anchor frame
-        Eigen::Vector3d p_invFinA;
-
         /// Triangulated position of this feature, in the anchor frame
         Eigen::Vector3d p_FinA;
 

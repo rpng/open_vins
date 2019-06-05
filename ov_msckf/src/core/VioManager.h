@@ -5,6 +5,7 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
+#include "utils/FeatureInitializer.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"

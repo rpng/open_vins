@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.8)
 project(ov_msckf)
 
 # Include our cmake files
-set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
+#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 # Find catkin (the ROS build system)
 find_package(catkin REQUIRED COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core)

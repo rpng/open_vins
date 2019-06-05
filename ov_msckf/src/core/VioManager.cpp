@@ -61,6 +61,9 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     //===================================================================================
     //===================================================================================
 
+    // Debug message
+    ROS_INFO("=====================================");
+    ROS_INFO("CAMERA PARAMETERS:");
 
     // Camera intrincs that we will load in
     std::unordered_map<size_t,bool> camera_fisheye;
@@ -117,14 +120,42 @@ VioManager::VioManager(ros::NodeHandle &nh) {
         // Debug printing
         cout << "cam_" << i << "K:" << endl << cam_k << endl;
         cout << "cam_" << i << "d:" << endl << cam_d.transpose() << endl;
-        cout << "T_C" << i << "toI:" << endl << T_CtoI << endl;
+        cout << "T_C" << i << "toI:" << endl << T_CtoI << endl << endl;
 
     }
 
+    // Debug message
+    ROS_INFO("=====================================");
 
     //===================================================================================
     //===================================================================================
     //===================================================================================
+
+    // Load config values for our feature initializer
+    FeatureInitializerOptions featinit_options;
+    nh.param<int>("fi_max_runs", featinit_options.max_runs, 20);
+    nh.param<double>("fi_init_lamda", featinit_options.init_lamda, 1e-3);
+    nh.param<double>("fi_max_lamda", featinit_options.max_lamda, 1e10);
+    nh.param<double>("fi_min_dx", featinit_options.min_dx, 1e-6);
+    nh.param<double>("fi_min_dcost", featinit_options.min_dcost, 1e-6);
+    nh.param<double>("fi_lam_mult", featinit_options.lam_mult, 10);
+    nh.param<double>("fi_min_dist", featinit_options.min_dist, 0.25);
+    nh.param<double>("fi_max_dist", featinit_options.max_dist, 40);
+    nh.param<double>("fi_max_baseline", featinit_options.max_baseline, 40);
+    nh.param<double>("fi_max_cond_number", featinit_options.max_cond_number, 1000);
+
+    // Debug, print to the console!
+    ROS_INFO("FEATURE INITIALIZER PARAMETERS:");
+    ROS_INFO("\t- max runs: %d", featinit_options.max_runs);
+    ROS_INFO("\t- init lambda: %e", featinit_options.init_lamda);
+    ROS_INFO("\t- max lambda: %.4f", featinit_options.max_lamda);
+    ROS_INFO("\t- min final dx: %.4f", featinit_options.min_dx);
+    ROS_INFO("\t- min delta cost: %.4f", featinit_options.min_dcost);
+    ROS_INFO("\t- lambda multiple: %.4f", featinit_options.lam_mult);
+    ROS_INFO("\t- closest feature dist: %.4f", featinit_options.min_dist);
+    ROS_INFO("\t- furthest feature dist: %.4f", featinit_options.max_dist);
+    ROS_INFO("\t- max baseline ratio: %.4f", featinit_options.max_baseline);
+    ROS_INFO("\t- max condition number: %.4f", featinit_options.max_cond_number);
 
     // Parameters for our extractor
     int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist, sfm_window, sfm_min_feat;
@@ -142,7 +173,6 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<bool>("downsize_aruco", do_downsizing, true);
     nh.param<int>("init_sfm_window", sfm_window, 10);
     nh.param<int>("init_sfm_min_feat", sfm_min_feat, 15);
-
 
     // Debug, print to the console!
     ROS_INFO("TRACKING PARAMERTERS:");
@@ -170,7 +200,6 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<double>("accelerometer_noise_density", imu_noises.sigma_a, 2.0000e-3);
     nh.param<double>("gyroscope_random_walk", imu_noises.sigma_wb, 1.9393e-05);
     nh.param<double>("accelerometer_random_walk", imu_noises.sigma_ab, 3.0000e-03);
-
 
     // If downsampling aruco, then double our noise values
     sigma_norm_pxaruco = (do_downsizing) ? 2*sigma_norm_pxaruco : sigma_norm_pxaruco;
