@@ -9,6 +9,7 @@ HTML_EXTRA_STYLESHEET = \
     docs/css/custom.css
 
 
+
 ## No need to expose to-do list or bug list in public docs.
 GENERATE_TODOLIST      = NO
 GENERATE_BUGLIST       = NO
@@ -36,7 +37,7 @@ ALIASES += \
 ##! M_FAVICON               = favicon-dark.png
 
 
-##! M_LINKS_NAVBAR1 = pages annotated files
+##! M_LINKS_NAVBAR1 = pages namespaceov__core namespaceov__msckf annotated
 ##! M_LINKS_NAVBAR2 = \
-##!     "<a href=\"https://github.com/\">GitHub</a>"
+##!     "<a href=\"https://github.com/rpng/open_vins/">GitHub</a>"
 ##! M_SEARCH_DOWNLOAD_BINARY = NO

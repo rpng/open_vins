@@ -23,6 +23,8 @@
 #include "track/TrackDescriptor.h"
 #include "track/TrackAruco.h"
 
+using namespace ov_core;
+
 // Our feature extractor
 TrackBase* extractor;
 

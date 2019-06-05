@@ -1,6 +1,9 @@
 #include "TrackAruco.h"
 
 
+using namespace ov_core;
+
+
 void TrackAruco::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
     // Start timing
