@@ -68,6 +68,7 @@ add_library(ov_core_lib
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp
         src/track/TrackKLT.cpp
+        src/utils/FeatureInitializer.cpp
 )
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
 
