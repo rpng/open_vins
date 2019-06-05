@@ -45,7 +45,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     gravity << vec_gravity.at(0),vec_gravity.at(1),vec_gravity.at(2);
 
     // Debug, print to the console!
-    ROS_INFO("FILTER PARAMERTERS:");
+    ROS_INFO("FILTER PARAMETERS:");
     ROS_INFO("\t- do fej: %d", state_options.do_fej);
     ROS_INFO("\t- do imu avg: %d", state_options.imu_avg);
     ROS_INFO("\t- calibrate cam to imu: %d", state_options.do_calib_camera_pose);
@@ -175,7 +175,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<int>("init_sfm_min_feat", sfm_min_feat, 15);
 
     // Debug, print to the console!
-    ROS_INFO("TRACKING PARAMERTERS:");
+    ROS_INFO("TRACKING PARAMETERS:");
     ROS_INFO("\t- use klt: %d", use_klt);
     ROS_INFO("\t- use aruco: %d", use_aruco);
     ROS_INFO("\t- max track features: %d", num_pts);
@@ -214,6 +214,17 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- sigma_wb: %.4f", imu_noises.sigma_wb);
     ROS_INFO("\t- sigma_ab: %.4f", imu_noises.sigma_ab);
 
+    // Load inertial state initialize parameters
+    double init_window_time, init_imu_thresh;
+    nh.param<double>("init_window_time", init_window_time, 0.5);
+    nh.param<double>("init_imu_thresh", init_imu_thresh, 1.0);
+
+    // Debug print out
+    ROS_INFO("INITIALIZATION PARAMETERS:");
+    ROS_INFO("\t- init_window_time: %.4f", init_window_time);
+    ROS_INFO("\t- init_imu_thresh: %.4f", init_imu_thresh);
+
+
     //===================================================================================
     //===================================================================================
     //===================================================================================
@@ -234,6 +245,9 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     // Initialize our state propagator
     propagator = new Propagator(imu_noises,gravity);
 
+    // Our state initialize
+    initializer = new InertialInitializer(gravity,init_window_time, init_imu_thresh);
+
 
     // TODO: make the updaters here
 
@@ -250,9 +264,9 @@ void VioManager::feed_measurement_imu(double timestamp, Eigen::Matrix<double,3,1
     propagator->feed_imu(timestamp,wm,am);
 
     // Push back to our initializer
-    //if(!is_initialized_vio) {
-    //    initializer_state->feed_imu(timestamp, wm, am);
-    //}
+    if(!is_initialized_vio) {
+        initializer->feed_imu(timestamp, wm, am);
+    }
 
 }
 
@@ -270,8 +284,12 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
         trackARUCO->feed_monocular(timestamp, img0, cam_id);
     }
 
-
-    // TODO: check for initialization
+    // If we do not have VIO initialization, then try to initialize
+    // TODO: Or if we are trying to reset the system, then do that here!
+    if(!is_initialized_vio) {
+        bool success = try_to_initialize();
+        if(!success) return;
+    }
 
 
     // TODO: call on our propagate and update function
@@ -293,8 +311,12 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
         trackARUCO->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     }
 
-
-    // TODO: check for initialization
+    // If we do not have VIO initialization, then try to initialize
+    // TODO: Or if we are trying to reset the system, then do that here!
+    if(!is_initialized_vio) {
+        bool success = try_to_initialize();
+        if(!success) return;
+    }
 
 
     // TODO: call on our propagate and update function
@@ -304,6 +326,45 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
 
 
+bool VioManager::try_to_initialize() {
+
+
+        // Returns from our initializer
+        double time0;
+        Eigen::Matrix<double, 4, 1> q_GtoI0;
+        Eigen::Matrix<double, 3, 1> b_w0, v_I0inG, b_a0, p_I0inG;
+
+        // Try to initialize the system
+        is_initialized_vio = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG);
+
+        // Return if it failed
+        if (!is_initialized_vio) {
+            return false;
+        }
+
+        // Make big vector (q,p,v,bg,ba), and update our state
+        // Note: start from zero position, as this is what our covariance is based off of
+        Eigen::Matrix<double,16,1> imu_val;
+        imu_val.block(0,0,4,1) = q_GtoI0;
+        imu_val.block(4,0,3,1) << 0,0,0;
+        imu_val.block(7,0,3,1) = v_I0inG;
+        imu_val.block(10,0,3,1) = b_w0;
+        imu_val.block(13,0,3,1) = b_a0;
+        //imu_val.block(10,0,3,1) << 0,0,0;
+        //imu_val.block(13,0,3,1) << 0,0,0;
+        state->imu()->set_value(imu_val);
+        state->set_timestamp(time0);
+
+        // Else we are good to go, print out our stats
+        ROS_INFO("\033[0;32m[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\033[0m",state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3));
+        ROS_INFO("\033[0;32m[INIT]: bias gyro = %.4f, %.4f, %.4f\033[0m",state->imu()->bias_g()(0),state->imu()->bias_g()(1),state->imu()->bias_g()(2));
+        ROS_INFO("\033[0;32m[INIT]: velocity = %.4f, %.4f, %.4f\033[0m",state->imu()->vel()(0),state->imu()->vel()(1),state->imu()->vel()(2));
+        ROS_INFO("\033[0;32m[INIT]: bias accel = %.4f, %.4f, %.4f\033[0m",state->imu()->bias_a()(0),state->imu()->bias_a()(1),state->imu()->bias_a()(2));
+        ROS_INFO("\033[0;32m[INIT]: position = %.4f, %.4f, %.4f\033[0m",state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2));
+        return true;
+
+
+}
 
 
 

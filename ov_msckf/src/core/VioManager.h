@@ -5,6 +5,7 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
+#include "init/InertialInitializer.h"
 #include "utils/FeatureInitializer.h"
 
 #include "state/Propagator.h"
@@ -73,6 +74,17 @@ namespace ov_msckf {
     protected:
 
 
+        /**
+         * @brief This function will try to initialize the state.
+         *
+         * This should call on our initalizer and try to init the state.
+         * In the future we should call the structure-from-motion code from here.
+         * This function could also be repurposed to re-initialize the system after failure.         *
+         * @return True if we have successfully initialized
+         */
+        bool try_to_initialize();
+
+
         /// Our master state object :D
         State* state;
 
@@ -85,7 +97,11 @@ namespace ov_msckf {
         /// Our aruoc tracker
         TrackBase* trackARUCO = nullptr;
 
+        /// State initializer
+        InertialInitializer* initializer;
 
+        /// Boolean if we are initialized or not
+        bool is_initialized_vio = false;
 
     };
 

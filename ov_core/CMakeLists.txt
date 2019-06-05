@@ -64,6 +64,7 @@ list(APPEND thirdparty_libraries
 # Make the core library
 ##################################################
 add_library(ov_core_lib
+        src/init/InertialInitializer.cpp
         src/track/TrackBase.cpp
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp

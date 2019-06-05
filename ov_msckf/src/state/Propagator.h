@@ -77,8 +77,7 @@ namespace ov_msckf {
          * @param noises imu noise characteristics (continuous time)
          * @param gravity Global gravity of the system (normally [0,0,9.81])
          */
-        Propagator(NoiseManager noises, Eigen::Matrix<double, 3, 1> gravity) : _noises(noises),
-                                                                               _gravity(gravity) {
+        Propagator(NoiseManager noises, Eigen::Matrix<double, 3, 1> gravity) : _noises(noises), _gravity(gravity) {
             _noises.sigma_w_2 = std::pow(_noises.sigma_w,2);
             _noises.sigma_a_2 = std::pow(_noises.sigma_a,2);
             _noises.sigma_wb_2 = std::pow(_noises.sigma_wb,2);
