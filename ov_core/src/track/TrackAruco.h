@@ -6,101 +6,108 @@
 
 #include "TrackBase.h"
 
-
 /**
- * @brief Tracking of OpenCV Aruoc tags.
- *
- * This class handles the tracking of [OpenCV Aruco tags](https://github.com/opencv/opencv_contrib/tree/master/modules/aruco).
- * We track the top left corner of the tag as compared to the pose of the tag or any other corners.
- * Right now we hardcode the dictionary to be `cv::aruco::DICT_6X6_25`, so please generate tags in this family of tags.
+ * @namespace ov_core
+ * @brief Core algorithms for Open VINS
  */
-class TrackAruco : public TrackBase
-{
-
-public:
+namespace ov_core {
 
     /**
-     * @brief Public default constructor
-     * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-     * @param camera_d  map of camera_id => 4x1 camera distortion parameters
-     * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
+     * @brief Tracking of OpenCV Aruoc tags.
+     *
+     * This class handles the tracking of [OpenCV Aruco tags](https://github.com/opencv/opencv_contrib/tree/master/modules/aruco).
+     * We track the top left corner of the tag as compared to the pose of the tag or any other corners.
+     * Right now we hardcode the dictionary to be `cv::aruco::DICT_6X6_25`, so please generate tags in this family of tags.
      */
-    TrackAruco(std::map<size_t,Eigen::Matrix3d> camera_k,
-               std::map<size_t,Eigen::Matrix<double,4,1>> camera_d,
-               std::map<size_t,bool> camera_fisheye):
-            TrackBase(camera_k,camera_d,camera_fisheye), max_tag_id(1024), do_downsizing(false) {
-        aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-        aruco_params = cv::aruco::DetectorParameters::create();
-    }
+    class TrackAruco : public TrackBase {
 
-    /**
-     * @brief Public constructor with configuration variables
-     * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-     * @param camera_d  map of camera_id => 4x1 camera distortion parameters
-     * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
-     * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
-     * @param do_downsizing we can scale the image by 1/2 to increase Aruco tag extraction speed
-     */
-    explicit TrackAruco(std::map<size_t,Eigen::Matrix3d> camera_k,
-                        std::map<size_t,Eigen::Matrix<double,4,1>> camera_d,
-                        std::map<size_t,bool> camera_fisheye, int numaruco, bool do_downsizing):
-            TrackBase(camera_k,camera_d,camera_fisheye,0,numaruco),max_tag_id(numaruco), do_downsizing(do_downsizing) {
-        aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-        aruco_params = cv::aruco::DetectorParameters::create();
-    }
+    public:
 
-    /**
-     * @brief Process a new monocular image
-     * @param timestamp timestamp the new image occurred at
-     * @param img new cv:Mat grayscale image
-     * @param cam_id the camera id that this new image corresponds too
-     */
-    void feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) override;
+        /**
+         * @brief Public default constructor
+         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
+         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
+         */
+        TrackAruco(std::map<size_t, Eigen::Matrix3d> camera_k,
+                   std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                   std::map<size_t, bool> camera_fisheye) :
+                TrackBase(camera_k, camera_d, camera_fisheye), max_tag_id(1024), do_downsizing(false) {
+            aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+            aruco_params = cv::aruco::DetectorParameters::create();
+        }
 
-    /**
-     * @brief Process new stereo pair of images
-     * @param timestamp timestamp this pair occured at (stereo is synchronised)
-     * @param img_left first grayscaled image
-     * @param img_right second grayscaled image
-     * @param cam_id_left first image camera id
-     * @param cam_id_right second image camera id
-     */
-    void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) override;
+        /**
+         * @brief Public constructor with configuration variables
+         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
+         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
+         * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
+         * @param do_downsizing we can scale the image by 1/2 to increase Aruco tag extraction speed
+         */
+        explicit TrackAruco(std::map<size_t, Eigen::Matrix3d> camera_k,
+                            std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                            std::map<size_t, bool> camera_fisheye, int numaruco, bool do_downsizing) :
+                TrackBase(camera_k, camera_d, camera_fisheye, 0, numaruco), max_tag_id(numaruco),
+                do_downsizing(do_downsizing) {
+            aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+            aruco_params = cv::aruco::DetectorParameters::create();
+        }
 
+        /**
+         * @brief Process a new monocular image
+         * @param timestamp timestamp the new image occurred at
+         * @param img new cv:Mat grayscale image
+         * @param cam_id the camera id that this new image corresponds too
+         */
+        void feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) override;
 
-    /**
-     * @brief We override the display equation so we can show the tags we extract.
-     * @param img_out image to which we will overlayed features on
-     * @param r1,g1,b1 first color to draw in
-     * @param r2,g2,b2 second color to draw in
-     */
-    void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
-
-
-protected:
-
-    // Timing variables
-    boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
-
-    // Max tag ID we should extract from (i.e., number of aruco tags starting from zero)
-    int max_tag_id;
-
-    // If we should downsize the image
-    bool do_downsizing;
-
-    // Our dictionary that we will extract aruco tags with
-    cv::Ptr<cv::aruco::Dictionary> aruco_dict;
-
-    // Parameters the opencv extractor uses
-    cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
-
-    // Our tag IDs and corner we will get from the extractor
-    std::map<size_t,std::vector<int>> ids_aruco;
-    std::map<size_t,std::vector<std::vector<cv::Point2f>>> corners, rejects;
+        /**
+         * @brief Process new stereo pair of images
+         * @param timestamp timestamp this pair occured at (stereo is synchronised)
+         * @param img_left first grayscaled image
+         * @param img_right second grayscaled image
+         * @param cam_id_left first image camera id
+         * @param cam_id_right second image camera id
+         */
+        void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left,
+                         size_t cam_id_right) override;
 
 
-};
+        /**
+         * @brief We override the display equation so we can show the tags we extract.
+         * @param img_out image to which we will overlayed features on
+         * @param r1,g1,b1 first color to draw in
+         * @param r2,g2,b2 second color to draw in
+         */
+        void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
 
+
+    protected:
+
+        // Timing variables
+        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+
+        // Max tag ID we should extract from (i.e., number of aruco tags starting from zero)
+        int max_tag_id;
+
+        // If we should downsize the image
+        bool do_downsizing;
+
+        // Our dictionary that we will extract aruco tags with
+        cv::Ptr<cv::aruco::Dictionary> aruco_dict;
+
+        // Parameters the opencv extractor uses
+        cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
+
+        // Our tag IDs and corner we will get from the extractor
+        std::map<size_t, std::vector<int>> ids_aruco;
+        std::map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
+
+
+    };
+
+}
 
 
 #endif /* OV_CORE_TRACK_ARUCO_H */

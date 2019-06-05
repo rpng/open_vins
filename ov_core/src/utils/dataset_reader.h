@@ -29,109 +29,113 @@
 
 using namespace std;
 
-
-/// Our groundtruth states loaded, see load_gt_file()
-std::map<double,Eigen::Matrix<double,17,1>> gt_states;
-
-
 /**
- * @brief Load a ASL format groundtruth file
- * @param path Path to the CSV file of groundtruth data
- *
- * Here we will try to load a groundtruth file that is in the ASL/EUROCMAV format.
- * If we can't open the file, or it is in the wrong format we will error and exit the program.
- * See get_gt_state() for a way to get the groundtruth state at a given timestep
+ * @namespace ov_core
+ * @brief Core algorithms for Open VINS
  */
-void load_gt_file(std::string path) {
+namespace ov_core {
 
-    // Open the file
-    std::ifstream file;
-    std::string line;
-    file.open(path);
+    /// Our groundtruth states loaded, see load_gt_file()
+    std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
 
-    // Check that it was successfull
-    if (!file) {
-        ROS_ERROR("ERROR: Unable to open groundtruth file...");
-        ROS_ERROR("ERROR: %s",path.c_str());
-        std::exit(EXIT_FAILURE);
-    }
+    /**
+     * @brief Load a ASL format groundtruth file
+     * @param path Path to the CSV file of groundtruth data
+     *
+     * Here we will try to load a groundtruth file that is in the ASL/EUROCMAV format.
+     * If we can't open the file, or it is in the wrong format we will error and exit the program.
+     * See get_gt_state() for a way to get the groundtruth state at a given timestep
+     */
+    void load_gt_file(std::string path) {
 
-    // Skip the first line as it is just the header
-    std::getline(file, line);
+        // Open the file
+        std::ifstream file;
+        std::string line;
+        file.open(path);
 
-    // Loop through each line in the file
-    while(std::getline(file, line) && ros::ok()) {
-        // Loop variables
-        int i = 0;
-        std::istringstream s(line);
-        std::string field;
-        Eigen::Matrix<double,17,1> temp;
-        // Loop through this line
-        while (getline(s,field,',')) {
-            // Ensure we are in the range
-            if(i > 16) {
-                ROS_ERROR("ERROR: Invalid groudtruth line, too long!");
-                ROS_ERROR("ERROR: %s",line.c_str());
-                std::exit(EXIT_FAILURE);
-            }
-            // Save our groundtruth state value
-            temp(i,0) = std::atof(field.c_str());
-            i++;
+        // Check that it was successfull
+        if (!file) {
+            ROS_ERROR("ERROR: Unable to open groundtruth file...");
+            ROS_ERROR("ERROR: %s", path.c_str());
+            std::exit(EXIT_FAILURE);
         }
-        // Append to our groundtruth map
-        gt_states.insert({1e-9*temp(0,0),temp});
+
+        // Skip the first line as it is just the header
+        std::getline(file, line);
+
+        // Loop through each line in the file
+        while (std::getline(file, line) && ros::ok()) {
+            // Loop variables
+            int i = 0;
+            std::istringstream s(line);
+            std::string field;
+            Eigen::Matrix<double, 17, 1> temp;
+            // Loop through this line
+            while (getline(s, field, ',')) {
+                // Ensure we are in the range
+                if (i > 16) {
+                    ROS_ERROR("ERROR: Invalid groudtruth line, too long!");
+                    ROS_ERROR("ERROR: %s", line.c_str());
+                    std::exit(EXIT_FAILURE);
+                }
+                // Save our groundtruth state value
+                temp(i, 0) = std::atof(field.c_str());
+                i++;
+            }
+            // Append to our groundtruth map
+            gt_states.insert({1e-9 * temp(0, 0), temp});
+        }
+        file.close();
     }
-    file.close();
+
+
+    /**
+     * @brief Gets the 16x1 groundtruth state at a given timestep
+     * @param timestep timestep we want to get the groundtruth for
+     * @param imustate groundtruth state [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
+     * @return true if we found the state, false otherwise
+     */
+    bool get_gt_state(double timestep, Eigen::Matrix<double, 17, 1> &imustate) {
+
+        // Check that we even have groundtruth loaded
+        if (gt_states.empty()) {
+            ROS_ERROR_THROTTLE(5,
+                               "Groundtruth data loaded is empty, make sure you call load before asking for a state.");
+            return false;
+        }
+
+        // Check that we have the timestamp in our GT file
+        if (gt_states.find(timestep) == gt_states.end()) {
+            ROS_WARN_THROTTLE(5, "Unable to find %.6f timestamp in GT file, wrong GT file loaded???", timestep);
+            return false;
+        }
+
+        // Get the GT state vector
+        Eigen::Matrix<double, 17, 1> state = gt_states[timestep];
+
+        // Our "fixed" state vector from the ETH GT format [q,p,v,bg,ba]
+        imustate(0, 0) = state(5, 0); //quat
+        imustate(1, 0) = state(6, 0);
+        imustate(2, 0) = state(7, 0);
+        imustate(3, 0) = state(4, 0);
+        imustate(4, 0) = state(1, 0); //pos
+        imustate(5, 0) = state(2, 0);
+        imustate(6, 0) = state(3, 0);
+        imustate(7, 0) = state(8, 0); //vel
+        imustate(8, 0) = state(9, 0);
+        imustate(9, 0) = state(10, 0);
+        imustate(10, 0) = state(11, 0); //bg
+        imustate(11, 0) = state(12, 0);
+        imustate(12, 0) = state(13, 0);
+        imustate(13, 0) = state(14, 0); //ba
+        imustate(14, 0) = state(15, 0);
+        imustate(15, 0) = state(16, 0);
+
+        // Success!
+        return true;
+    }
+
 }
-
-
-
-/**
- * @brief Gets the 16x1 groundtruth state at a given timestep
- * @param timestep timestep we want to get the groundtruth for
- * @param imustate groundtruth state [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
- * @return true if we found the state, false otherwise
- */
-bool get_gt_state(double timestep, Eigen::Matrix<double,17,1>& imustate) {
-
-    // Check that we even have groundtruth loaded
-    if(gt_states.empty()) {
-        ROS_ERROR_THROTTLE(5,"Groundtruth data loaded is empty, make sure you call load before asking for a state.");
-        return false;
-    }
-
-    // Check that we have the timestamp in our GT file
-    if(gt_states.find(timestep) == gt_states.end()) {
-        ROS_WARN_THROTTLE(5,"Unable to find %.6f timestamp in GT file, wrong GT file loaded???",timestep);
-        return false;
-    }
-
-    // Get the GT state vector
-    Eigen::Matrix<double,17,1> state = gt_states[timestep];
-
-    // Our "fixed" state vector from the ETH GT format [q,p,v,bg,ba]
-    imustate(0,0) = state(5,0); //quat
-    imustate(1,0) = state(6,0);
-    imustate(2,0) = state(7,0);
-    imustate(3,0) = state(4,0);
-    imustate(4,0) = state(1,0); //pos
-    imustate(5,0) = state(2,0);
-    imustate(6,0) = state(3,0);
-    imustate(7,0) = state(8,0); //vel
-    imustate(8,0) = state(9,0);
-    imustate(9,0) = state(10,0);
-    imustate(10,0) = state(11,0); //bg
-    imustate(11,0) = state(12,0);
-    imustate(12,0) = state(13,0);
-    imustate(13,0) = state(14,0); //ba
-    imustate(14,0) = state(15,0);
-    imustate(15,0) = state(16,0);
-
-    // Success!
-    return true;
-}
-
-
 
 
 #endif /* OV_CORE_DATASET_READER_H */

@@ -1,27 +1,28 @@
-//
-// Created by keck on 6/4/19.
-//
-
 #include "State.h"
 
-Eigen::MatrixXd State::get_marginal_covariance(const std::vector<Type*> &small_variables){
+
+using namespace ov_core;
+using namespace ov_msckf;
+
+
+Eigen::MatrixXd State::get_marginal_covariance(const std::vector<Type *> &small_variables) {
 
     // Calculate the marginal covariance size we need ot make our matrix
-    int cov_size=0;
-    for (size_t i=0; i < small_variables.size(); i++){
+    int cov_size = 0;
+    for (size_t i = 0; i < small_variables.size(); i++) {
         cov_size += small_variables[i]->size();
     }
 
     // Construct our return covariance
-    Eigen::MatrixXd Small_cov(cov_size,cov_size);
+    Eigen::MatrixXd Small_cov(cov_size, cov_size);
 
     // For each variable, lets copy over all other variable cross terms
     // Note: this copies over itself to when i_index=k_index
-    int i_index=0;
-    for (size_t i=0; i < small_variables.size(); i++){
-        int k_index=0;
-        for (size_t k=0;  k < small_variables.size(); k++){
-            Small_cov.block(i_index, k_index, small_variables[i]->size(),small_variables[k]->size()) =
+    int i_index = 0;
+    for (size_t i = 0; i < small_variables.size(); i++) {
+        int k_index = 0;
+        for (size_t k = 0; k < small_variables.size(); k++) {
+            Small_cov.block(i_index, k_index, small_variables[i]->size(), small_variables[k]->size()) =
                     _Cov.block(small_variables[i]->id(), small_variables[k]->id(), small_variables[i]->size(),
                                small_variables[k]->size());
             k_index += small_variables[k]->size();
@@ -33,7 +34,8 @@ Eigen::MatrixXd State::get_marginal_covariance(const std::vector<Type*> &small_v
     return Small_cov;
 }
 
-void State::initialize_variables(){
+
+void State::initialize_variables() {
 
     double current_id = 0;
     _imu = new IMU();
@@ -44,13 +46,13 @@ void State::initialize_variables(){
 
     //Camera to IMU time offset
     _calib_dt_CAMtoIMU = new Vec(1);
-    if (_options.do_calib_camera_timeoffset){
+    if (_options.do_calib_camera_timeoffset) {
         _calib_dt_CAMtoIMU->set_local_id(current_id);
         insert_variable(_calib_dt_CAMtoIMU);
         current_id++;
     }
 
-    for (size_t i = 0; i < _options.num_cameras; i++){
+    for (size_t i = 0; i < _options.num_cameras; i++) {
         //Allocate pose
         PoseJPL *pose = new PoseJPL();
         //Allocate intrinsics
@@ -61,13 +63,13 @@ void State::initialize_variables(){
         _cam_intrinsics.insert({i, intrin});
 
         //If calibrating camera-imu pose, add to variables
-        if (_options.do_calib_camera_pose){
+        if (_options.do_calib_camera_pose) {
             pose->set_local_id(current_id);
             current_id += 6;
             insert_variable(pose);
         }
         //If calibrating camera intrinsics, add to variables
-        if (_options.do_calib_camera_intrinsics){
+        if (_options.do_calib_camera_intrinsics) {
             intrin->set_local_id(current_id);
             current_id += 8;
             insert_variable(intrin);
@@ -76,6 +78,6 @@ void State::initialize_variables(){
 
     _Cov = Eigen::MatrixXd::Zero(current_id, current_id);
 
-
-
 }
+
+
