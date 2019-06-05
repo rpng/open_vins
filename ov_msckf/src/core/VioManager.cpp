@@ -27,7 +27,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
 
 
-    
+
 
 }
 

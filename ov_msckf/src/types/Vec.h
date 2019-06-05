@@ -1,7 +1,3 @@
-//
-// Created by keck on 5/23/19.
-//
-
 #ifndef OV_MSCKF_TYPE_VEC_H
 #define OV_MSCKF_TYPE_VEC_H
 

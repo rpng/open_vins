@@ -1,0 +1,308 @@
+/**
+
+
+@page update Update Derivations
+
+@section general General Bayesian Update
+
+Given a new measurement \f$\mathbf{z}_m\f$ we would like to update our mean and covariance (updates our distribution).
+To do this, we create the distribution of the current state given this new measurement distribution.
+Expanding this distribution using Bayes Rule we have the following:
+
+\f{align*}{
+    p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
+    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m | \mathbf{z}_{0..i-1})}
+\f}
+
+
+where we know that the measurement \f$\mathbf{z}_m\f$'s noise is *independent* of the state,
+but the measurement itself is defined as a function of the state,
+which we know is *dependent* on the previous measurements (i.e., we will see that \f$p(\mathbf{z}_m | \mathbf{z}_{0..i-1})\f$ will have a distribution in respect to the state).
+Now we would like to calculate this new Gaussian distribution that the new state (given the new measurement \f$\mathbf{z}_m\f$) follows.
+To do so, we solve for the top and bottom Gaussian distributions, noting that we are using a multivariate Gaussian distribution not a 1D Gaussian distribution, and then combine:
+
+
+\f{align*}{
+    p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1}) =
+        \frac{1}{\sqrt{(2\pi)^{n+m}|{\mathbf{P}_{yy}}|}}e^{-\frac{1}{2}(\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})}
+\f}
+
+\f{align*}{
+     p(\mathbf{z}_m | \mathbf{z}_{0..i-1}) =
+        \frac{1}{\sqrt{(2\pi)^{m}|{\mathbf{P}_{zz}}|}}e^{-\frac{1}{2}(\mathbf{z}_m-\hat{\mathbf{z}}_m)^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}_m)}
+\f}
+
+
+where \f$n\f$ and \f$m\f$ are the size of the state and measurement vectors, respectively, and the following:
+
+\f{align*}{
+    \mathbf{P}_{yy} &= \begin{bmatrix}
+    \mathbf{P}_{xx} & \mathbf{P}_{xz} \\
+    \mathbf{P}_{zx} & \mathbf{P}_{zz}
+    \end{bmatrix} \\[5px]
+    \mathbf{y} &= \begin{bmatrix}
+    \mathbf{x}_k \\
+    \mathbf{z}_k
+    \end{bmatrix}
+\f}
+
+
+Combining the two in Bayes Rule, we get the following:
+
+\f{align*}{
+    p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
+    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m | \mathbf{z}_{0..i-1})} \\[5px]
+    &= \frac{1}{\sqrt{(2\pi)^{n}|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|}} \times \nonumber\\
+    &\hspace{0.5cm}\mathrm{exp}\left(
+    {-\frac{1}{2}\left[
+    (\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})
+    -
+    (\mathbf{z}_m-\hat{\mathbf{z}}_m)^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}_m)
+    \right]}
+    \right)
+\f}
+
+First we can simplify the denominator term \f$|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|\f$ to find what our covariance is for the new distribution.
+
+
+\f{align*}{
+    |{\mathbf{P}_{yy}}| = \Big|{\begin{bmatrix}
+    \mathbf{P}_{xx} & \mathbf{P}_{xz} \\
+    \mathbf{P}_{zx} & \mathbf{P}_{zz}
+    \end{bmatrix}}\Big|
+    = \Big|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}\Big|\ \Big|{\mathbf{P}_{zz}}\Big|
+\f}
+
+
+This was derived in [The Matrix Reference Manual](http://www.ee.ic.ac.uk/hp/staff/dmb/matrix/intro.html) proof (3.1) and is only valid when \f$\mathbf{P}_{zz}\f$ is invertible.
+From here we can now divide by \f$|{\mathbf{P}_{zz}}|\f$ to get the final value for our new distribution covariance.
+
+\f{align*}{
+    \frac{|{\mathbf{P}_{yy}}|}{|{\mathbf{P}_{zz}}|}
+    = \frac{\Big|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}\Big|\Big|{\mathbf{P}_{zz}}\Big|}{|{\mathbf{P}_{zz}}|}
+    = \Big|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}\Big|
+\f}
+
+
+Next we can look at combining the values in the exponential to convert it into a recognizable Gaussian distribution form.
+We write the exponential as follows using the residuals \f$\mathbf{r}_x\f$,\f$\mathbf{r}_z\f$,\f$\mathbf{r}_y\f$ and the inverse of a block matrix (see [The Matrix Reference Manual](http://www.ee.ic.ac.uk/hp/staff/dmb/matrix/intro.html) inverse matrix property section):
+
+\f{align*}{
+    &= (\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})
+    -
+    (\mathbf{z}_m-\hat{\mathbf{z}}_m)^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}_m) \\[5px]
+    &= \mathbf{r}_y^\top\mathbf{P}_{yy}^{-1}\mathbf{r}_y
+    -
+    \mathbf{r}_z^\top\mathbf{P}_{zz}^{-1}\mathbf{r}_z \\[5px]
+    &=
+    \begin{bmatrix}
+    \mathbf{r}_x \\
+    \mathbf{r}_z
+    \end{bmatrix}^\top
+    \begin{bmatrix}
+    \mathbf{P}_{xx} & \mathbf{P}_{xz} \\
+    \mathbf{P}_{zx} & \mathbf{P}_{zz}
+    \end{bmatrix}^{-1}
+    \begin{bmatrix}
+    \mathbf{r}_x \\
+    \mathbf{r}_z
+    \end{bmatrix}
+    -
+    \mathbf{r}_z^\top\mathbf{P}_{zz}^{-1}\mathbf{r}_z \\[5px]
+    &=
+    \begin{bmatrix}
+    \mathbf{r}_x \\
+    \mathbf{r}_z
+    \end{bmatrix}^\top
+    \begin{bmatrix}
+    \mathbf{Q} & -\mathbf{Q}\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1} \\
+    -\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}\mathbf{Q} & \mathbf{P}_{zz}^{-1}+\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}\mathbf{Q}\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}
+    \end{bmatrix}
+    \begin{bmatrix}
+    \mathbf{r}_x \\
+    \mathbf{r}_z
+    \end{bmatrix}
+    -
+    \mathbf{r}_z^\top\mathbf{P}_{zz}^{-1}\mathbf{r}_z \\[5px]
+    &\hspace{8cm} \mathrm{where} ~ \mathbf{Q}= (\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx})^{-1} \nonumber\\[5px]
+    &=
+    \mathbf{r}_x^\top\mathbf{Q}\mathbf{r}_x
+    -\mathbf{r}_x^\top\mathbf{Q}\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z
+    -\mathbf{r}_z^\top\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}\mathbf{Q}\mathbf{r}_x \nonumber\\
+    &\hspace{4.6cm}+\mathbf{r}_z^\top(
+    \textcolor{red}{\mathbf{P}_{zz}^{-1}}+\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}\mathbf{Q}\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}
+    )\mathbf{r}_z
+    -\textcolor{red}{\mathbf{r}_z^\top\mathbf{P}_{zz}^{-1}\mathbf{r}_z} \\[5px]
+    &=
+    \mathbf{r}_x^\top\mathbf{Q}\mathbf{r}_x
+    -\mathbf{r}_x^\top\mathbf{Q}[\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_x]
+    -[\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z]^\top\mathbf{Q}\mathbf{r}_x
+    +[\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z]^\top\mathbf{Q}[\mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z] \\[5px]
+    &=
+    (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z)^\top
+    \mathbf{Q}
+    (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z) \\[5px]
+    &=
+    (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z)^\top
+    (\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx})^{-1}
+    (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z)
+\f}
+
+
+where \f$(\mathbf{P}_{zz}^{-1})^\top = \mathbf{P}_{zz}^{-1}\f$ since all square covariance matrices are symmetric.
+Not losing sight of the original goal, we can now construct the new Gaussian distribution as follows:
+
+
+\f{align*}{
+    p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
+    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m) | \mathbf{z}_{0..i-1}} \\[5px]
+    &= \frac{1}{\sqrt{(2\pi)^{n}|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}}|} \times \nonumber\\
+    &\hspace{0.5cm}\mathrm{exp}\left(
+    {-\frac{1}{2}\left[
+    (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z)^\top
+    (\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx})^{-1}
+    (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z)
+    \right]}
+    \right) \nonumber
+\f}
+
+
+This gets us the following new mean and covariance:
+
+\f{align*}{
+    \hat{\mathbf{x}}_{k|z} &= \hat{\mathbf{x}}_k + \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\
+    \mathbf{P}_{xx|z} &= \mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}
+\f}
+
+
+
+
+@section linear-meas Linear Measurement Update
+
+
+The key idea of the [Extended Kalman Filter](https://en.wikipedia.org/wiki/Extended_Kalman_filter) is that we linearize our non-linear measurements about the current estimate so that we can fuse their information in a linear update.
+Thus, in general, we only need to consider the case that we have linear measurement of our state with some measurement noise.
+We can define the measurement and its expectation as follows:
+
+
+\f{align*}{
+    \mathbf{z}_m
+    &= \mathbf{z}_k + \mathbf{n}_k \\[5px]
+    &= \mathbf{H}\mathbf{x}_k + \mathbf{n}_k \\[5px]
+    \mathbb{E}[\mathbf{z}_m]
+    &=
+    \mathbb{E}[\mathbf{H}\mathbf{x}_k + \mathbf{n}_k]\\[5px]
+    \hat{\mathbf{z}}_m
+    &= \mathbf{H}\hat{\mathbf{x}}_k + 0
+\f}
+
+
+Given a measurement that is a linear function of the state we can derive what the joint and prior distributions.
+We use the definition of the expectation of error squared to give us our covariances.
+The derivation is as follows:
+
+
+\f{align*}{
+    \mathbf{P}_{zz}
+    &= \mathbb{E}\left[
+    (\mathbf{z}_m - \hat{\mathbf{z}}_m)(\mathbf{z}_m - \hat{\mathbf{z}}_m)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{H}\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}\hat{\mathbf{x}}_k)
+    (\mathbf{H}\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}\hat{\mathbf{x}}_k)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k) + \mathbf{n}_k)
+    (\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k) + \mathbf{n}_k)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    \mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top
+    +
+    \textcolor{red}{\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    \mathbf{n}_k^\top} \right.\nonumber\\
+    &\hspace{4cm}+
+    \textcolor{red}{\mathbf{n}_k
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top}
+    +
+    \left.
+    \mathbf{n}_k
+    \mathbf{n}_k^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    \mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top
+    +
+    \mathbf{n}_k
+    \mathbf{n}_k^\top
+    \right] \\[5px]
+    &= 
+    \mathbf{H}~\mathbb{E}\left[(\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\right]\mathbf{H}^\top
+    +
+    ~\mathbb{E}\left[\mathbf{n}_k\mathbf{n}_k^\top\right] \\[5px]
+    &= 
+    \mathbf{H}\mathbf{P}_{xx}\mathbf{H}^\top + \mathbf{R}_{d}
+\f}
+
+
+where \f$\mathbf{R}_{d}\f$ is the *discrete* measurement noise matrix, \f$\mathbf{H}\f$ is the measurement Jacobian mapping the state into the measurement domain, and \f$\mathbf{P}_{xx}\f$ is the current state covariance.
+Note that terms with only a single noise value go to zero after taking the expectation.
+
+
+\f{align*}{
+    \mathbf{P}_{xz}
+    &= \mathbb{E}\left[
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)(\mathbf{z}_m - \hat{\mathbf{z}}_m)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    (\mathbf{H}\mathbf{x}_k + \mathbf{w}_k - \mathbf{H}\hat{\mathbf{x}}_k)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    (\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k) + \mathbf{w}_k)^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)(\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top
+    +(\mathbf{x}_k - \hat{\mathbf{x}}_k)\mathbf{w}_k^\top
+    \right] \\[5px]
+    &= \mathbb{E}\left[
+    (\mathbf{x}_k - \hat{\mathbf{x}}_k)(\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\right]\mathbf{H}^\top
+    +
+    \textcolor{red}{\mathbb{E}\left[(\mathbf{x}_k - \hat{\mathbf{x}}_k)\mathbf{w}_k^\top
+    \right]} \\[5px]
+    &= \mathbf{P}_{xx}\mathbf{H}^\top
+\f}
+
+
+This gives the following equations that can be used for the update step:
+
+
+\f{align*}{
+    \hat{\mathbf{x}}_{k|z} 
+    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\[5px]
+    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1}(\mathbf{z}_m - \mathbf{H}\hat{\mathbf{x}}_k) \\[5px]
+    &= \hat{\mathbf{x}}_k + \mathbf{K}\mathbf{r}_z \\[5px]
+    \mathbf{P}_{xx|z} 
+    &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1} (\mathbf{P}_{k}\mathbf{H}^\top)^\top \\[5px]
+    &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1} \mathbf{H}\mathbf{P}_{k}^\top
+\f}
+
+
+
+
+
+
+@section update-examples Update Equations and Derivations
+
+-   @subpage update-feat --- Measurement equations and derivation for 3D feature point
+-   @subpage update-delay --- How to perform delayed initialization
+-   @subpage update-null --- MSCKF nullspace projection
+-   @subpage update-compress --- MSCKF measurement compression
+
+
+
+
+
+*/

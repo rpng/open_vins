@@ -1,0 +1,51 @@
+/**
+
+
+@page gs-datasets Supported Datasets
+
+
+@section data-euroc The EuRoC MAV Dataset
+
+
+| Dataset Name | Length | Link Dataset | Link Groundtruth | Link Calibration |
+|-------------:|--------|--------------|------------------|------------------|
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+
+
+
+
+
+@section data-tumvi TUM Visual-Inertial Dataset
+
+
+| Dataset Name | Length | Link Dataset | Link Groundtruth | Link Calibration |
+|-------------:|--------|--------------|------------------|------------------|
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+
+
+
+
+
+@section data-rpng RPNG Dataset
+
+
+| Dataset Name | Length | Link Dataset | Link Groundtruth | Link Calibration |
+|-------------:|--------|--------------|------------------|------------------|
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+|              |        |              |                  |                  |
+
+
+
+
+*/
