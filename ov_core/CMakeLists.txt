@@ -23,6 +23,7 @@ message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 catkin_package(
         CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge
         INCLUDE_DIRS src
+        LIBRARIES ov_core_lib
 )
 
 # Try to compile with c++11
@@ -62,19 +63,19 @@ list(APPEND thirdparty_libraries
 ##################################################
 # Make the core library
 ##################################################
-add_library(ov_core
+add_library(ov_core_lib
         src/track/TrackBase.cpp
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp
         src/track/TrackKLT.cpp
 )
-target_link_libraries(ov_core ${thirdparty_libraries})
+target_link_libraries(ov_core_lib ${thirdparty_libraries})
 
 
 ##################################################
 # Make binary files!
 ##################################################
 add_executable(test_tracking src/test_tracking.cpp)
-target_link_libraries(test_tracking ov_core ${thirdparty_libraries})
+target_link_libraries(test_tracking ov_core_lib ${thirdparty_libraries})
 
 

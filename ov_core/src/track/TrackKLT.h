@@ -31,9 +31,9 @@ namespace ov_core {
          * @param camera_d  map of camera_id => 4x1 camera distortion parameters
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackKLT(std::map<size_t, Eigen::Matrix3d> camera_k,
-                 std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                 std::map<size_t, bool> camera_fisheye) :
+        TrackKLT(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                 std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                 std::unordered_map<size_t, bool> camera_fisheye) :
                 TrackBase(camera_k, camera_d, camera_fisheye), threshold(10), grid_x(8), grid_y(5), min_px_dist(30) {}
 
         /**
@@ -48,9 +48,9 @@ namespace ov_core {
          * @param gridy size of grid in the y-direction / v-direction
          * @param minpxdist features need to be at least this number pixels away from each other
          */
-        explicit TrackKLT(std::map<size_t, Eigen::Matrix3d> camera_k,
-                          std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                          std::map<size_t, bool> camera_fisheye,
+        explicit TrackKLT(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                          std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                          std::unordered_map<size_t, bool> camera_fisheye,
                           int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, int minpxdist) :
                 TrackBase(camera_k, camera_d, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
                 grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
@@ -87,8 +87,7 @@ namespace ov_core {
          * Will try to always have the "max_features" being tracked through KLT at each timestep.
          * Passed images should already be grayscaled.
          */
-        void
-        perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0);
+        void perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0);
 
         /**
          * @brief Detects new features in the current stereo pair

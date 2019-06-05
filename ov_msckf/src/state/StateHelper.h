@@ -120,7 +120,7 @@ namespace ov_msckf {
          * @param state Pointer to state
          */
         static void marginalize_old_clone(State *state) {
-            if (state->nClones() > state->options().max_clone_size) {
+            if ((int)state->nClones() > state->options().max_clone_size) {
                 double margTime = state->margtimestep();
                 StateHelper::marginalize(state, state->get_clone(margTime));
                 // Note that the marginalizer should have already deleted the clone

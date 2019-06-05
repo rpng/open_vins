@@ -75,11 +75,14 @@ namespace ov_msckf {
         /// Our master state object :D
         State* state;
 
+        /// Propagator of our state
+        Propagator* propagator;
+
         /// Our sparse feature tracker (klt or descriptor)
-        TrackBase* trackFEATS;
+        TrackBase* trackFEATS = nullptr;
 
         /// Our aruoc tracker
-        TrackBase* trackARUCO;
+        TrackBase* trackARUCO = nullptr;
 
 
 

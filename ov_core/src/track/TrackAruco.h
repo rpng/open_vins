@@ -29,9 +29,9 @@ namespace ov_core {
          * @param camera_d  map of camera_id => 4x1 camera distortion parameters
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackAruco(std::map<size_t, Eigen::Matrix3d> camera_k,
-                   std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                   std::map<size_t, bool> camera_fisheye) :
+        TrackAruco(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                   std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                   std::unordered_map<size_t, bool> camera_fisheye) :
                 TrackBase(camera_k, camera_d, camera_fisheye), max_tag_id(1024), do_downsizing(false) {
             aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
             aruco_params = cv::aruco::DetectorParameters::create();
@@ -45,9 +45,9 @@ namespace ov_core {
          * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
          * @param do_downsizing we can scale the image by 1/2 to increase Aruco tag extraction speed
          */
-        explicit TrackAruco(std::map<size_t, Eigen::Matrix3d> camera_k,
-                            std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                            std::map<size_t, bool> camera_fisheye, int numaruco, bool do_downsizing) :
+        explicit TrackAruco(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                            std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                            std::unordered_map<size_t, bool> camera_fisheye, int numaruco, bool do_downsizing) :
                 TrackBase(camera_k, camera_d, camera_fisheye, 0, numaruco), max_tag_id(numaruco),
                 do_downsizing(do_downsizing) {
             aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
@@ -70,8 +70,7 @@ namespace ov_core {
          * @param cam_id_left first image camera id
          * @param cam_id_right second image camera id
          */
-        void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left,
-                         size_t cam_id_right) override;
+        void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) override;
 
 
         /**
@@ -101,8 +100,8 @@ namespace ov_core {
         cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
 
         // Our tag IDs and corner we will get from the extractor
-        std::map<size_t, std::vector<int>> ids_aruco;
-        std::map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
+        std::unordered_map<size_t, std::vector<int>> ids_aruco;
+        std::unordered_map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
 
 
     };

@@ -101,9 +101,9 @@ int main(int argc, char** argv)
     Eigen::Matrix<double,4,1> cam0_d = Eigen::Matrix<double,4,1>::Zero();
 
     // Create our n-camera vectors
-    std::map<size_t,bool> camera_fisheye;
-    std::map<size_t,Eigen::Matrix3d> camera_k;
-    std::map<size_t,Eigen::Matrix<double,4,1>> camera_d;
+    std::unordered_map<size_t,bool> camera_fisheye;
+    std::unordered_map<size_t,Eigen::Matrix3d> camera_k;
+    std::unordered_map<size_t,Eigen::Matrix<double,4,1>> camera_d;
     camera_fisheye.insert({0,false});
     camera_k.insert({0,cam0_k});
     camera_d.insert({0,cam0_d});

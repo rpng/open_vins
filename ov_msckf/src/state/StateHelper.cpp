@@ -206,7 +206,7 @@ void StateHelper::initialize(State *state, Type *new_variable, const std::vector
     // Part of the Kalman Gain K = M*S^{-1}
 
     size_t new_var_size = new_variable->size();
-    assert (new_var_size == H_L.cols());
+    assert((int)new_var_size == H_L.cols());
 
     Eigen::JacobiRotation<double> tempHo_GR;
     for (int n = 0; n < H_L.cols(); ++n) {

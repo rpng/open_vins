@@ -2,9 +2,9 @@
 #define OV_CORE_TRACK_BASE_H
 
 
-#include <map>
 #include <iostream>
 #include <thread>
+#include <unordered_map>
 
 #include <ros/ros.h>
 #include <boost/thread.hpp>
@@ -46,9 +46,9 @@ namespace ov_core {
          * @param camera_d  map of camera_id => 4x1 camera distortion parameters
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackBase(std::map<size_t, Eigen::Matrix3d> camera_k,
-                  std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                  std::map<size_t, bool> camera_fisheye) :
+        TrackBase(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                  std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                  std::unordered_map<size_t, bool> camera_fisheye) :
                 database(new FeatureDatabase()), num_features(200) {
             // Save the camera parameters
             this->camera_k = camera_k;
@@ -86,9 +86,9 @@ namespace ov_core {
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
          */
-        TrackBase(std::map<size_t, Eigen::Matrix3d> camera_k,
-                  std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                  std::map<size_t, bool> camera_fisheye,
+        TrackBase(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                  std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                  std::unordered_map<size_t, bool> camera_fisheye,
                   int numfeats, int numaruco) :
                 database(new FeatureDatabase()), num_features(numfeats) {
             // Our current feature ID should be larger then the number of aruco tags we have
@@ -238,28 +238,28 @@ namespace ov_core {
 
         // Our camera information (used to undistort our added UV coordinates)
         // NOTE: we do NOT undistort and rectify the image as this takes a lot of time
-        std::map<size_t, Eigen::Matrix3d> camera_k;
-        std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d;
+        std::unordered_map<size_t, Eigen::Matrix3d> camera_k;
+        std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d;
 
         // If we are a fisheye model or not
-        std::map<size_t, bool> camera_fisheye;
+        std::unordered_map<size_t, bool> camera_fisheye;
 
         // Camera intrinsics in OpenCV format
-        std::map<size_t, cv::Matx33d> camera_k_OPENCV;
-        std::map<size_t, cv::Vec4d> camera_d_OPENCV;
+        std::unordered_map<size_t, cv::Matx33d> camera_k_OPENCV;
+        std::unordered_map<size_t, cv::Vec4d> camera_d_OPENCV;
 
         // number of features we should try to track frame to frame
         int num_features;
 
         // Last set of images
-        std::map<size_t, cv::Mat> img_last;
+        std::unordered_map<size_t, cv::Mat> img_last;
 
         // Last set of tracked points
-        std::map<size_t, std::vector<cv::KeyPoint>> pts_last;
+        std::unordered_map<size_t, std::vector<cv::KeyPoint>> pts_last;
 
         // Set of IDs of each current feature in the database
         size_t currid = 0;
-        std::map<size_t, std::vector<size_t>> ids_last;
+        std::unordered_map<size_t, std::vector<size_t>> ids_last;
 
 
     };

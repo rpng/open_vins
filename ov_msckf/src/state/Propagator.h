@@ -45,14 +45,26 @@ namespace ov_msckf {
          */
         struct NoiseManager {
 
+            /// Gyro white noise
+            double sigma_w;
+
             /// Gyro white noise covariance
             double sigma_w_2;
+
+            /// Gyro random walk
+            double sigma_wb;
 
             /// Gyro random walk covariance
             double sigma_wb_2;
 
+            /// Accel white noise
+            double sigma_a;
+
             /// Accel white noise covariance
             double sigma_a_2;
+
+            /// Accel random walk
+            double sigma_ab;
 
             /// Accel random walk covariance
             double sigma_ab_2;
@@ -66,7 +78,12 @@ namespace ov_msckf {
          * @param gravity Global gravity of the system (normally [0,0,9.81])
          */
         Propagator(NoiseManager noises, Eigen::Matrix<double, 3, 1> gravity) : _noises(noises),
-                                                                               _gravity(gravity) {}
+                                                                               _gravity(gravity) {
+            _noises.sigma_w_2 = std::pow(_noises.sigma_w,2);
+            _noises.sigma_a_2 = std::pow(_noises.sigma_a,2);
+            _noises.sigma_wb_2 = std::pow(_noises.sigma_wb,2);
+            _noises.sigma_ab_2 = std::pow(_noises.sigma_ab,2);
+        }
 
 
         /**

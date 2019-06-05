@@ -2,8 +2,8 @@
 #define OV_MSCKF_STATE_H
 
 
-#include <map>
 #include <vector>
+#include <unordered_map>
 
 #include "types/IMU.h"
 #include "types/Vec.h"
@@ -105,12 +105,12 @@ namespace ov_msckf {
         }
 
         /// Access options struct
-        StateOptions &options() {
+        StateOptions& options() {
             return _options;
         }
 
         /// Access to IMU type
-        IMU *imu() {
+        IMU* imu() {
             return _imu;
         }
 
@@ -119,24 +119,47 @@ namespace ov_msckf {
             return _Cov;
         }
 
-        /// Access imu-camera time offset type
-        Vec *calib_dt_CAMtoIMU() {
-            return _calib_dt_CAMtoIMU;
-        }
-
-        /// Access to a given clone
-        PoseJPL *get_clone(double timestamp) {
-            return _clones_IMU.at(timestamp);
-        }
-
         /// Get size of covariance
         size_t nVars() {
             return _Cov.rows();
         }
 
+        /// Access imu-camera time offset type
+        Vec* calib_dt_CAMtoIMU() {
+            return _calib_dt_CAMtoIMU;
+        }
+
+        /// Access to a given clone
+        PoseJPL* get_clone(double timestamp) {
+            return _clones_IMU.at(timestamp);
+        }
+
+        /// Access to all current clones in the state
+        std::unordered_map<double, PoseJPL*> get_clones() {
+            return _clones_IMU;
+        }
+
         /// Get current number of clones
         size_t nClones() {
             return _clones_IMU.size();
+        }
+
+        /// Access to a given camera extrinsics
+        PoseJPL* get_calib_IMUtoCAM(size_t id) {
+            assert((int)id<_options.num_cameras);
+            return _calib_IMUtoCAM.at(id);
+        }
+
+        /// Access to a given camera intrinsics
+        Vec* get_intrinsics_CAM(size_t id) {
+            assert((int)id<_options.num_cameras);
+            return _cam_intrinsics.at(id);
+        }
+
+        /// Access to a given camera intrinsics
+        bool& get_model_CAM(size_t id) {
+            assert((int)id<_options.num_cameras);
+            return _cam_intrinsics_model.at(id);
         }
 
 
@@ -151,20 +174,23 @@ namespace ov_msckf {
         /// Pointer to the "active" IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)
         IMU *_imu;
 
-        /// Calibration poses for each camera (R_ItoC, p_IinC)
-        std::map<size_t, PoseJPL*> _calib_IMUtoCAM;
+        /// Map between imaging times and clone poses (q_GtoIi, p_IiinG)
+        std::unordered_map<double, PoseJPL*> _clones_IMU;
 
         /// Our current set of SLAM features (3d positions)
         //std::map<size_t, Landmark*> _features_SLAM;
 
-        /// Map between imaging times and clone poses (q_GtoIi, p_IiinG)
-        std::map<double, PoseJPL*> _clones_IMU;
-
         /// Time offset base IMU to camera (t_imu = t_cam + t_off)
         Vec *_calib_dt_CAMtoIMU;
 
+        /// Calibration poses for each camera (R_ItoC, p_IinC)
+        std::unordered_map<size_t, PoseJPL*> _calib_IMUtoCAM;
+
         /// Camera intrinsics
-        std::map<size_t, Vec*> _cam_intrinsics;
+        std::unordered_map<size_t, Vec*> _cam_intrinsics;
+
+        /// What distortion model we are using (false=radtan, true=fisheye)
+        std::unordered_map<size_t, bool> _cam_intrinsics_model;
 
         /// Covariance of all active variables
         Eigen::MatrixXd _Cov;

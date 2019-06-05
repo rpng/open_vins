@@ -12,10 +12,12 @@ using namespace ov_msckf;
 VioManager::VioManager(ros::NodeHandle &nh) {
 
 
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
 
     // Load our state options
     StateOptions state_options;
-
     nh.param<bool>("use_fej", state_options.do_fej, false);
     nh.param<bool>("use_imuavg", state_options.imu_avg, false);
     nh.param<bool>("calib_cam_extrinsics", state_options.do_calib_camera_pose, false);
@@ -25,11 +27,254 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<int>("max_slam", state_options.max_slam_features, 0);
     nh.param<int>("max_cameras", state_options.num_cameras, 1);
 
+    // Enforce that if we are doing stereo tracking, we have two cameras
+    if(state_options.num_cameras < 1) {
+        ROS_ERROR("VioManager(): Specified number of cameras needs to be greater than zero");
+        ROS_ERROR("VioManager(): num cameras = %d", state_options.num_cameras);
+        std::exit(EXIT_FAILURE);
+    }
 
+    // Create the state!!
+    state = new State(state_options);
+
+    // Global gravity
+    Eigen::Matrix<double,3,1> gravity;
+    std::vector<double> vec_gravity;
+    std::vector<double> vec_gravity_default = {0.0,0.0,9.81};
+    nh.param<std::vector<double>>("gravity", vec_gravity, vec_gravity_default);
+    gravity << vec_gravity.at(0),vec_gravity.at(1),vec_gravity.at(2);
+
+    // Debug, print to the console!
+    ROS_INFO("FILTER PARAMERTERS:");
+    ROS_INFO("\t- do fej: %d", state_options.do_fej);
+    ROS_INFO("\t- do imu avg: %d", state_options.imu_avg);
+    ROS_INFO("\t- calibrate cam to imu: %d", state_options.do_calib_camera_pose);
+    ROS_INFO("\t- calibrate cam intrinsics: %d", state_options.do_calib_camera_intrinsics);
+    ROS_INFO("\t- calibrate cam imu timeoff: %d", state_options.do_calib_camera_timeoffset);
+    ROS_INFO("\t- max clones: %d", state_options.max_clone_size);
+    ROS_INFO("\t- max slam: %d", state_options.max_slam_features);
+    ROS_INFO("\t- max cameras: %d", state_options.num_cameras);
+    ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
+
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
+
+    // Camera intrincs that we will load in
+    std::unordered_map<size_t,bool> camera_fisheye;
+    std::unordered_map<size_t,Eigen::Matrix3d> camera_k;
+    std::unordered_map<size_t,Eigen::Matrix<double,4,1>> camera_d;
+
+    // Loop through through, and load each of the cameras
+    for(int i=0; i<state->options().num_cameras; i++) {
+
+        // If our distortions are fisheye or not!
+        bool is_fisheye;
+        nh.param<bool>("cam"+std::to_string(i)+"_is_fisheye", is_fisheye, false);
+        state->get_model_CAM(i) = is_fisheye;
+
+        // Camera intrinsic properties
+        Eigen::Matrix3d cam_k;
+        Eigen::Matrix<double,4,1> cam_d;
+        std::vector<double> matrix_k, matrix_d;
+        std::vector<double> matrix_k_default = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
+        std::vector<double> matrix_d_default = {0.0,0.0,0.0,0.0};
+        nh.param<std::vector<double>>("cam"+std::to_string(i)+"_k", matrix_k, matrix_k_default);
+        nh.param<std::vector<double>>("cam"+std::to_string(i)+"_d", matrix_d, matrix_d_default);
+        cam_k << matrix_k.at(0),matrix_k.at(1),matrix_k.at(2),matrix_k.at(3),matrix_k.at(4),matrix_k.at(5),matrix_k.at(6),matrix_k.at(7),matrix_k.at(8);
+        cam_d << matrix_d.at(0),matrix_d.at(1),matrix_d.at(2),matrix_d.at(3);
+
+        // Stack the focal lengths, camera center, and distortion into our state representation
+        Eigen::Matrix<double,8,1> intrinsics;
+        intrinsics << cam_k(0,0), cam_k(1,1), cam_k(0,2), cam_k(1,2), cam_d;
+        state->get_intrinsics_CAM(i)->set_value(intrinsics);
+
+        // Our camera extrinsics transform
+        Eigen::Matrix4d T_CtoI;
+        std::vector<double> matrix_TCtoI;
+        std::vector<double> matrix_TtoI_default = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+
+        // Read in from ROS, and save into our eigen mat
+        nh.param<std::vector<double>>("T_C"+std::to_string(i)+"toI", matrix_TCtoI, matrix_TtoI_default);
+        T_CtoI << matrix_TCtoI.at(0),matrix_TCtoI.at(1),matrix_TCtoI.at(2),matrix_TCtoI.at(3),
+                matrix_TCtoI.at(4),matrix_TCtoI.at(5),matrix_TCtoI.at(6),matrix_TCtoI.at(7),
+                matrix_TCtoI.at(8),matrix_TCtoI.at(9),matrix_TCtoI.at(10),matrix_TCtoI.at(11),
+                matrix_TCtoI.at(12),matrix_TCtoI.at(13),matrix_TCtoI.at(14),matrix_TCtoI.at(15);
+
+        // Load these into our state
+        Eigen::Matrix<double,7,1> cam_eigen;
+        cam_eigen.block(0,0,4,1) = rot_2_quat(T_CtoI.block(0,0,3,3).transpose());
+        cam_eigen.block(4,0,3,1) = -T_CtoI.block(0,0,3,3).transpose()*T_CtoI.block(0,3,3,1);
+        state->get_calib_IMUtoCAM(i)->set_value(cam_eigen);
+
+        // Append to our maps for our feature trackers
+        camera_fisheye.insert({i,is_fisheye});
+        camera_k.insert({i,cam_k});
+        camera_d.insert({i,cam_d});
+
+        // Debug printing
+        cout << "cam_" << i << "K:" << endl << cam_k << endl;
+        cout << "cam_" << i << "d:" << endl << cam_d.transpose() << endl;
+        cout << "T_C" << i << "toI:" << endl << T_CtoI << endl;
+
+    }
+
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
+    // Parameters for our extractor
+    int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist, sfm_window, sfm_min_feat;
+    double knn_ratio;
+    bool use_klt, use_aruco, do_downsizing;
+    nh.param<bool>("use_klt", use_klt, true);
+    nh.param<bool>("use_aruco", use_aruco, true);
+    nh.param<int>("num_pts", num_pts, 500);
+    nh.param<int>("num_aruco", num_aruco, 1024);
+    nh.param<int>("fast_threshold", fast_threshold, 10);
+    nh.param<int>("grid_x", grid_x, 10);
+    nh.param<int>("grid_y", grid_y, 8);
+    nh.param<int>("min_px_dist", min_px_dist, 10);
+    nh.param<double>("knn_ratio", knn_ratio, 0.85);
+    nh.param<bool>("downsize_aruco", do_downsizing, true);
+    nh.param<int>("init_sfm_window", sfm_window, 10);
+    nh.param<int>("init_sfm_min_feat", sfm_min_feat, 15);
+
+
+    // Debug, print to the console!
+    ROS_INFO("TRACKING PARAMERTERS:");
+    ROS_INFO("\t- use klt: %d", use_klt);
+    ROS_INFO("\t- use aruco: %d", use_aruco);
+    ROS_INFO("\t- max track features: %d", num_pts);
+    ROS_INFO("\t- max aruco tags: %d", num_aruco);
+    ROS_INFO("\t- grid size: %d x %d", grid_x, grid_y);
+    ROS_INFO("\t- fast threshold: %d", fast_threshold);
+    ROS_INFO("\t- min pixel distance: %d", min_px_dist);
+    ROS_INFO("\t- downsize aruco image: %d", do_downsizing);
+
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
+    // Our noise values for both feature tracks and inertial sensor
+    Propagator::NoiseManager imu_noises;
+    double sigma_norm_pxmsckf,sigma_norm_pxslam, sigma_norm_pxaruco;
+    nh.param<double>("sigma_norm_pxmsckf", sigma_norm_pxmsckf, 0.002);
+    nh.param<double>("sigma_norm_pxslam", sigma_norm_pxslam, 0.002);
+    nh.param<double>("sigma_norm_pxaruco", sigma_norm_pxaruco, 0.002);
+    nh.param<double>("gyroscope_noise_density", imu_noises.sigma_w, 1.6968e-04);
+    nh.param<double>("accelerometer_noise_density", imu_noises.sigma_a, 2.0000e-3);
+    nh.param<double>("gyroscope_random_walk", imu_noises.sigma_wb, 1.9393e-05);
+    nh.param<double>("accelerometer_random_walk", imu_noises.sigma_ab, 3.0000e-03);
+
+
+    // If downsampling aruco, then double our noise values
+    sigma_norm_pxaruco = (do_downsizing) ? 2*sigma_norm_pxaruco : sigma_norm_pxaruco;
+
+    // Debug print out
+    ROS_INFO("SENSOR NOISES:");
+    ROS_INFO("\t- sigma_norm_pxmsckf: %.4f", sigma_norm_pxmsckf);
+    ROS_INFO("\t- sigma_norm_pxslam: %.4f", sigma_norm_pxslam);
+    ROS_INFO("\t- sigma_norm_pxaruco: %.4f", sigma_norm_pxaruco);
+    ROS_INFO("\t- sigma_w: %.4f", imu_noises.sigma_w);
+    ROS_INFO("\t- sigma_a: %.4f", imu_noises.sigma_a);
+    ROS_INFO("\t- sigma_wb: %.4f", imu_noises.sigma_wb);
+    ROS_INFO("\t- sigma_ab: %.4f", imu_noises.sigma_ab);
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
+
+    // Lets make a feature extractor
+    if(use_klt) {
+        trackFEATS = new TrackKLT(camera_k,camera_d,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
+    } else {
+        trackFEATS = new TrackDescriptor(camera_k,camera_d,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
+    }
+
+    // Initialize our aruco tag extractor
+    if(use_aruco) {
+        trackARUCO = new TrackAruco(camera_k,camera_d,camera_fisheye,num_aruco,do_downsizing);
+    }
+
+    // Initialize our state propagator
+    propagator = new Propagator(imu_noises,gravity);
+
+
+    // TODO: make the updaters here
 
 
 
 }
+
+
+
+
+void VioManager::feed_measurement_imu(double timestamp, Eigen::Matrix<double,3,1> wm, Eigen::Matrix<double,3,1> am) {
+
+    // Push back to our propagator
+    propagator->feed_imu(timestamp,wm,am);
+
+    // Push back to our initializer
+    //if(!is_initialized_vio) {
+    //    initializer_state->feed_imu(timestamp, wm, am);
+    //}
+
+}
+
+
+
+
+
+void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, size_t cam_id) {
+
+    // Feed our trackers
+    trackFEATS->feed_monocular(timestamp, img0, cam_id);
+
+    // If aruoc is avalible, the also pass to it
+    if(trackARUCO != nullptr) {
+        trackARUCO->feed_monocular(timestamp, img0, cam_id);
+    }
+
+
+    // TODO: check for initialization
+
+
+    // TODO: call on our propagate and update function
+
+
+}
+
+
+
+
+
+void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
+
+    // Feed our trackers
+    trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
+
+    // If aruoc is avalible, the also pass to it
+    if(trackARUCO != nullptr) {
+        trackARUCO->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
+    }
+
+
+    // TODO: check for initialization
+
+
+    // TODO: call on our propagate and update function
+
+
+}
+
+
+
 
 
 

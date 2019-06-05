@@ -30,10 +30,10 @@ namespace ov_core {
          * @param camera_d  map of camera_id => 4x1 camera distortion parameters
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackDescriptor(std::map<size_t, Eigen::Matrix3d> camera_k,
-                        std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                        std::map<size_t, bool> camera_fisheye) :
-                TrackBase(camera_k, camera_d, camera_fisheye), threshold(10), grid_x(8), grid_y(5), knn_ratio(0.75) {}
+        TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                        std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                        std::unordered_map<size_t, bool> camera_fisheye) :
+                        TrackBase(camera_k, camera_d, camera_fisheye), threshold(10), grid_x(8), grid_y(5), knn_ratio(0.75) {}
 
         /**
          * @brief Public constructor with configuration variables
@@ -47,13 +47,12 @@ namespace ov_core {
          * @param gridy size of grid in the y-direction / v-direction
          * @param knnratio matching ratio needed (smaller value forces top two descriptors during match to be more different)
          */
-        explicit TrackDescriptor(std::map<size_t, Eigen::Matrix3d> camera_k,
-                                 std::map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
-                                 std::map<size_t, bool> camera_fisheye,
-                                 int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, double knnratio)
-                :
-                TrackBase(camera_k, camera_d, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
-                grid_x(gridx), grid_y(gridy), knn_ratio(knnratio) {}
+        explicit TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
+                                 std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+                                 std::unordered_map<size_t, bool> camera_fisheye,
+                                 int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, double knnratio) :
+                                 TrackBase(camera_k, camera_d, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
+                                 grid_x(gridx), grid_y(gridy), knn_ratio(knnratio) {}
 
         /**
          * @brief Process a new monocular image
@@ -144,8 +143,6 @@ namespace ov_core {
         // Our orb extractor
         cv::Ptr<cv::ORB> orb0 = cv::ORB::create();
         cv::Ptr<cv::ORB> orb1 = cv::ORB::create();
-        cv::Ptr<cv::xfeatures2d::FREAK> freak0 = cv::xfeatures2d::FREAK::create();
-        cv::Ptr<cv::xfeatures2d::FREAK> freak1 = cv::xfeatures2d::FREAK::create();
 
         // Our descriptor matcher
         cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
@@ -160,7 +157,7 @@ namespace ov_core {
         double knn_ratio;
 
         // Descriptor matrices
-        std::map<size_t, cv::Mat> desc_last;
+        std::unordered_map<size_t, cv::Mat> desc_last;
 
 
     };

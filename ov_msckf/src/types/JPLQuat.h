@@ -68,7 +68,7 @@ namespace ov_msckf {
         */
         void set_value(const Eigen::VectorXd new_value) override {
 
-            assert(new_value.rows() == 7);
+            assert(new_value.rows() == 4);
 
             _value = new_value;
 
@@ -88,7 +88,7 @@ namespace ov_msckf {
         */
         void set_fej(const Eigen::VectorXd new_value) override {
 
-            assert(new_value.rows() == 7);
+            assert(new_value.rows() == 4);
 
             _fej = new_value;
 
