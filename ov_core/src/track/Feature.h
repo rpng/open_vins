@@ -2,7 +2,7 @@
 #define OV_CORE_FEATURE_H
 
 
-#include <map>
+#include <unordered_map>
 #include <vector>
 #include <Eigen/Eigen>
 
@@ -30,13 +30,13 @@ namespace ov_core {
         bool to_delete;
 
         /// UV coordinates that this feature has been seen from (mapped by camera ID)
-        std::map<size_t, std::vector<Eigen::Vector2f>> uvs;
+        std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs;
 
         /// UV normalized coordinates that this feature has been seen from (mapped by camera ID)
-        std::map<size_t, std::vector<Eigen::Vector2f>> uvs_norm;
+        std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs_norm;
 
         /// Timestamps of each UV measurement (mapped by camera ID)
-        std::map<size_t, std::vector<double>> timestamps;
+        std::unordered_map<size_t, std::vector<double>> timestamps;
 
         /// Triangulated inverse position of this feature, in the anchor frame
         Eigen::Vector3d p_invFinA;
