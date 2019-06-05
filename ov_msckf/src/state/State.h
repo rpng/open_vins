@@ -1,7 +1,3 @@
-//
-// Created by keck on 6/3/19.
-//
-
 #ifndef OV_MSCKF_STATE_H
 #define OV_MSCKF_STATE_H
 

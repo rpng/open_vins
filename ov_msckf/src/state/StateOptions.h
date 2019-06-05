@@ -30,13 +30,13 @@ namespace ov_msckf {
         bool do_calib_camera_timeoffset = false;
 
         /// Max clone size of sliding window
-        size_t max_clone_size = 8;
+        int max_clone_size = 8;
 
         /// Max number of estimated SLAM features
-        size_t max_slam_features = 0;
+        int max_slam_features = 0;
 
         /// Number of cameras
-        size_t num_cameras = 1;
+        int num_cameras = 1;
 
     };
 
