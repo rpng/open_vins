@@ -67,6 +67,7 @@ add_library(ov_msckf
         src/state/StateHelper.cpp
         src/state/Propagator.cpp
         src/core/VioManager.cpp
+        src/update/UpdaterHelper.cpp
 )
 target_link_libraries(ov_msckf ${thirdparty_libraries})
 

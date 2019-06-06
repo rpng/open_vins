@@ -140,7 +140,7 @@ namespace ov_msckf {
         }
 
         /// Get current number of clones
-        size_t nClones() {
+        size_t n_clones() {
             return _clones_IMU.size();
         }
 

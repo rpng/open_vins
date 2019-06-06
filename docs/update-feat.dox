@@ -146,7 +146,7 @@ We have the compound Jacobian in respect to the normalized coordinates as follow
 \empty
     \frac{\partial xy'}{\partial r} &= \begin{bmatrix} -\frac{x}{r^2}\theta_d \\ -\frac{y}{r^2}\theta_d \end{bmatrix} \\
 \empty
-    \frac{\partial r}{\partial xy} &= \begin{bmatrix} 2x & 2y \end{bmatrix} \\
+    \frac{\partial r}{\partial xy} &= \begin{bmatrix} \frac{x}{r} & \frac{y}{r} \end{bmatrix} \\
 \empty
     \frac{\partial xy'}{\partial \theta_d} &= \begin{bmatrix} \frac{x}{r} \\ \frac{y}{r} \end{bmatrix} \\
 \empty
@@ -207,6 +207,12 @@ We have the following transformation:
     +{}^{C}\mathbf{p}_I
 \f}
 
+We can take the derivative in respect to the feature in the global frame:
+\f{align*}{
+\frac{\partial r(\cdot)}{\partial {}^{G}\mathbf{p}_f} &= {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}
+\f}
+
+
 
 We can take the derivative in respect to the IMU state \f${I_k}\f$ as follows:
 \f{align*}{
@@ -217,7 +223,7 @@ We can take the derivative in respect to the IMU state \f${I_k}\f$ as follows:
 
 If we are doing online calibration, we can take the derivatives in respect to the IMU to CAM transformation also:
 \f{align*}{
-\frac{\partial r(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= \mathbf{I}_{3\times 3} \\
+\frac{\partial r(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= \left\lfloor {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor  \\
 \frac{\partial r(\cdot)}{\partial {}^{C}\mathbf{p}_I} &= \mathbf{I}_{3\times 3}
 \f}
 
@@ -274,6 +280,12 @@ The Jacobian  in respect to the feature state is just the following:
 \end{bmatrix}
 \f}
 
+
+@subsection feat-rep-global-inv2 Global Inverse Depth (MSCKF VERSION)
+
+This representation has a singularity when the vertical z-distance goes to zero.
+Thus one should never represent this in a global frame, and instead should use the @ref feat-rep-anchor-inv2 representation.
+The anchored version doesn't have this issue if you represent the feature in a camera frame that it was seen from (which a feature should never have a non-positive z-direction).
 
 
 
@@ -354,6 +366,51 @@ If we are doing extrinsic calibration we also have the following Jacobians for t
     \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
     \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
+
+
+
+
+
+
+@subsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF VERSION)
+
+We may also define a simpler version of inverse depth, as is presented in the original MSCKF paper. The 3D position of the feature is then given by:
+
+\f{align*}{
+{}^{G}\mathbf{p}_f
+&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&=
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
+&=
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top\Bigg(\frac{1}{\rho}\begin{bmatrix} \alpha \\ \beta \\ 1 \end{bmatrix}-{}^{C}\mathbf{p}_{I}\Bigg) + {}^{G}\mathbf{p}_{I_a} \\
+\text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \alpha & \beta & \rho \end{bmatrix}^\top
+\f}
+
+The Jacobian in respect to the feature state is then:
+\f{align*}{
+\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+\begin{bmatrix}
+\frac{1}{\rho} & 0 & -\frac{1}{\rho^2}\alpha \\
+0 & \frac{1}{\rho} & -\frac{1}{\rho^2}\beta \\
+0 & 0 & -\frac{1}{\rho^2}
+\end{bmatrix}
+\f}
+
+
+We additionally have the following Jacobians in respect to the anchor state:
+\f{align*}{
+    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+\f}
+
+
+If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+\f{align*}{
+    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+\f}
+
 
 
 

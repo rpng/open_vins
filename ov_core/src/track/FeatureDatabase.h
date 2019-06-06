@@ -214,6 +214,7 @@ namespace ov_core {
         void get_frame_measurements(double timestamp, size_t cam_id_left, size_t cam_id_right,
                                     std::vector<size_t> &ids,
                                     std::vector<Eigen::Vector2f> &uvs0_n, std::vector<Eigen::Vector2f> &uvs1_n) {
+
             // Now lets loop through all features, and just make sure they are stereo tracks
             auto it = features_idlookup.begin();
             while (it != features_idlookup.end()) {
@@ -244,6 +245,7 @@ namespace ov_core {
                 }
                 it++;
             }
+
         }
 
 

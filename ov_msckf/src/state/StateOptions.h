@@ -14,6 +14,17 @@ namespace ov_msckf {
      */
     struct StateOptions {
 
+        /**
+         * @brief What feature representation our state can use
+         */
+        enum FeatureRepresentation {
+            GLOBAL_3D,
+            GLOBAL_FULL_INVERSE_DEPTH,
+            ANCHORED_3D,
+            ANCHORED_FULL_INVERSE_DEPTH,
+            ANCHORED_MSCKF_INVERSE_DEPTH
+        };
+
         /// Bool to determine whether or not to do first estimate Jacobians
         bool do_fej = false;
 
@@ -37,6 +48,9 @@ namespace ov_msckf {
 
         /// Number of cameras
         int num_cameras = 1;
+
+        /// What representation our features are in
+        FeatureRepresentation feat_representation = GLOBAL_3D;
 
     };
 

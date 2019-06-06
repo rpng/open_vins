@@ -43,6 +43,21 @@ namespace ov_msckf {
         ~IMU() {}
 
         /**
+         * @brief Sets id used to track location of variable in the filter covariance
+         *
+         * Note that we update the sub-variables also.
+         *
+         * @param new_id entry in filter covariance corresponding to this variable
+         */
+        void set_local_id(int new_id) override {
+            _id = new_id;
+            _pose->set_local_id(new_id);
+            _v->set_local_id(_pose->id()+_pose->size());
+            _bg->set_local_id(_v->id()+_v->size());
+            _ba->set_local_id(_bg->id()+_bg->size());
+        }
+
+        /**
         * @brief Performs update operation using JPLQuat update for orientation, then vector updates for
         * position, velocity, gyro bias, and accel bias (in that order).
          *

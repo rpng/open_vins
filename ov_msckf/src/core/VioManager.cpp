@@ -1,4 +1,5 @@
 #include "VioManager.h"
+#include "update/UpdaterHelper.h"
 
 
 
@@ -34,6 +35,22 @@ VioManager::VioManager(ros::NodeHandle &nh) {
         std::exit(EXIT_FAILURE);
     }
 
+    // Read in what representation our feature is
+    std::string feat_rep_str;
+    nh.param<std::string>("feat_representation", feat_rep_str, "GLOBAL_3D");
+    std::transform(feat_rep_str.begin(), feat_rep_str.end(),feat_rep_str.begin(), ::toupper);
+
+    // Set what representation we should be using
+    if(feat_rep_str == "GLOBAL_3D") state_options.feat_representation = StateOptions::FeatureRepresentation::GLOBAL_3D;
+    else if(feat_rep_str == "GLOBAL_FULL_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::GLOBAL_FULL_INVERSE_DEPTH;
+    else if(feat_rep_str == "ANCHORED_3D") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_3D;
+    else if(feat_rep_str == "ANCHORED_FULL_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_FULL_INVERSE_DEPTH;
+    else if(feat_rep_str == "ANCHORED_MSCKF_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_MSCKF_INVERSE_DEPTH;
+    else {
+        ROS_ERROR("VioManager(): invalid feature representation specified = %s", feat_rep_str.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
     // Create the state!!
     state = new State(state_options);
 
@@ -54,6 +71,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- max clones: %d", state_options.max_clone_size);
     ROS_INFO("\t- max slam: %d", state_options.max_slam_features);
     ROS_INFO("\t- max cameras: %d", state_options.num_cameras);
+    ROS_INFO("\t- feature representation: %s", feat_rep_str.c_str());
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
 
 
@@ -291,8 +309,8 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
         if(!success) return;
     }
 
-
-    // TODO: call on our propagate and update function
+    // Call on our propagate and update function
+    do_feature_propagate_update(timestamp);
 
 
 }
@@ -318,9 +336,8 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
         if(!success) return;
     }
 
-
-    // TODO: call on our propagate and update function
-
+    // Call on our propagate and update function
+    do_feature_propagate_update(timestamp);
 
 }
 
@@ -363,8 +380,111 @@ bool VioManager::try_to_initialize() {
         ROS_INFO("\033[0;32m[INIT]: position = %.4f, %.4f, %.4f\033[0m",state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2));
         return true;
 
+}
+
+
+
+void VioManager::do_feature_propagate_update(double timestamp) {
+
+
+    //===================================================================================
+    // State propagation, and clone augmentation
+    //===================================================================================
+
+    // Propagate the state forward to the current update time
+    // Also augment it with a new clone!
+    propagator->propagate_and_clone(state, timestamp);
+
+    // If we have not reached max clones, we should just return...
+    // This isn't super ideal, but it keeps the logic after this easier...
+    if((int)state->n_clones() < state->options().max_clone_size) {
+        ROS_INFO("waiting for enough clone states (%d of %d) ....",(int)state->n_clones(),state->options().max_clone_size);
+        return;
+    }
+
+
+    //===================================================================================
+    // MSCKF features and KLT tracks that are SLAM features
+    //===================================================================================
+
+
+    // Now, lets get all features that should be used for an update
+    std::vector<Feature*> feats_lost, feats_marg, feats_slam;
+    feats_lost = trackFEATS->get_feature_database()->features_not_containing_newer(state->timestamp());
+    feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep());
+
+    // We also need to make sure that the max tracks does not contain any lost features
+    // This could happen if the feature was lost in the last frame, but has a measurement at the marg timestep
+    auto it1 = feats_lost.begin();
+    while(it1 != feats_lost.end()) {
+        if(std::find(feats_marg.begin(),feats_marg.end(),(*it1)) != feats_marg.end()) {
+            //ROS_WARN("FOUND FEATURE THAT WAS IN BOTH feats_lost and feats_marg!!!!!!");
+            it1 = feats_lost.erase(it1);
+        } else {
+            it1++;
+        }
+    }
+
+
+    // TODO: do some SLAM feature logic here!!!!
+
+
+
+    // Concatenate our MSCKF feature arrays (i.e., ones not being used for slam updates)
+    std::vector<Feature*> featsup_MSCKF = feats_lost;
+    featsup_MSCKF.insert(featsup_MSCKF.end(), feats_marg.begin(), feats_marg.end());
+
+
+    //===================================================================================
+    // Now that we have a list of features, lets do the EKF update for MSCKF and SLAM!
+    //===================================================================================
+
+
+    // Pass them to our MSCKF updater
+    //updaterFeatMSCKF->update(*state, featsup_MSCKF);
+
+
+    //===================================================================================
+    // Update our visualization feature set, and clean up the old features
+    //===================================================================================
+
+    // Remove features that where used for the update from our extractors at the last timestep
+    // This allows for measurements to be used in the future if they failed to be used this time
+    // Note we need to do this before we feed a new image, as we want all new measurements to NOT be deleted
+    trackFEATS->get_feature_database()->cleanup();
+
+
+
+
+    //===================================================================================
+    // Cleanup, marginalize out what we don't need any more...
+    //===================================================================================
+
+
+    // Marginalize the oldest clone of the state if we are at max length
+    StateHelper::marginalize_old_clone(state);
+
 
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

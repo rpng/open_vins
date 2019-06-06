@@ -2,6 +2,9 @@
 #define OV_MSCKF_VIOMANAGER_H
 
 
+#include <string>
+#include <algorithm>
+
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
@@ -83,6 +86,13 @@ namespace ov_msckf {
          * @return True if we have successfully initialized
          */
         bool try_to_initialize();
+
+
+        /**
+         * @brief This will do the propagation and feature updates to the state
+         * @param timestamp The most recent timestamp we have tracked to
+         */
+        void do_feature_propagate_update(double timestamp);
 
 
         /// Our master state object :D

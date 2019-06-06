@@ -42,6 +42,19 @@ namespace ov_msckf {
         ~PoseJPL() {}
 
         /**
+         * @brief Sets id used to track location of variable in the filter covariance
+         *
+         * Note that we update the sub-variables also.
+         *
+         * @param new_id entry in filter covariance corresponding to this variable
+         */
+        void set_local_id(int new_id) override {
+            _id = new_id;
+            _q->set_local_id(new_id);
+            _p->set_local_id(new_id+_q->size());
+        }
+
+        /**
          * @brief Update q and p using a the JPLQuat update for orientation and vector update for position
          *
          * @param dx Correction vector (orientation then position)
