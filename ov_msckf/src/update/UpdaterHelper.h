@@ -1,5 +1,5 @@
-#ifndef OV_MSCKF_FEATURE_JACOBIANS_H
-#define OV_MSCKF_FEATURE_JACOBIANS_H
+#ifndef OV_MSCKF_UPDATER_HELPER_H
+#define OV_MSCKF_UPDATER_HELPER_H
 
 
 #include <Eigen/Eigen>
@@ -41,7 +41,7 @@ namespace ov_msckf {
         static void get_feature_jacobian_representation(State* state, Feature* feature, Eigen::Matrix<double,3,3> &H_f,
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
 
-        
+
         /**
          * @brief Will construct the "stacked" Jacobians for a single feature from all its measurements
          *
@@ -78,4 +78,4 @@ namespace ov_msckf {
 
 
 
-#endif //OV_MSCKF_FEATURE_JACOBIANS_H
+#endif //OV_MSCKF_UPDATER_HELPER_H

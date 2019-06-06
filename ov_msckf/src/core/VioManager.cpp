@@ -1,5 +1,4 @@
 #include "VioManager.h"
-#include "update/UpdaterHelper.h"
 
 
 
@@ -208,25 +207,16 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     //===================================================================================
     //===================================================================================
 
-    // Our noise values for both feature tracks and inertial sensor
+    // Our noise values for inertial sensor
     Propagator::NoiseManager imu_noises;
-    double sigma_norm_pxmsckf,sigma_norm_pxslam, sigma_norm_pxaruco;
-    nh.param<double>("sigma_norm_pxmsckf", sigma_norm_pxmsckf, 0.002);
-    nh.param<double>("sigma_norm_pxslam", sigma_norm_pxslam, 0.002);
-    nh.param<double>("sigma_norm_pxaruco", sigma_norm_pxaruco, 0.002);
     nh.param<double>("gyroscope_noise_density", imu_noises.sigma_w, 1.6968e-04);
     nh.param<double>("accelerometer_noise_density", imu_noises.sigma_a, 2.0000e-3);
     nh.param<double>("gyroscope_random_walk", imu_noises.sigma_wb, 1.9393e-05);
     nh.param<double>("accelerometer_random_walk", imu_noises.sigma_ab, 3.0000e-03);
 
-    // If downsampling aruco, then double our noise values
-    sigma_norm_pxaruco = (do_downsizing) ? 2*sigma_norm_pxaruco : sigma_norm_pxaruco;
 
     // Debug print out
-    ROS_INFO("SENSOR NOISES:");
-    ROS_INFO("\t- sigma_norm_pxmsckf: %.4f", sigma_norm_pxmsckf);
-    ROS_INFO("\t- sigma_norm_pxslam: %.4f", sigma_norm_pxslam);
-    ROS_INFO("\t- sigma_norm_pxaruco: %.4f", sigma_norm_pxaruco);
+    ROS_INFO("PROPAGATOR NOISES:");
     ROS_INFO("\t- sigma_w: %.4f", imu_noises.sigma_w);
     ROS_INFO("\t- sigma_a: %.4f", imu_noises.sigma_a);
     ROS_INFO("\t- sigma_wb: %.4f", imu_noises.sigma_wb);
@@ -241,6 +231,23 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("INITIALIZATION PARAMETERS:");
     ROS_INFO("\t- init_window_time: %.4f", init_window_time);
     ROS_INFO("\t- init_imu_thresh: %.4f", init_imu_thresh);
+
+
+    // Read in update parameters
+    UpdaterOptions msckf_options;
+    nh.param<double>("up_sigma_pxmsckf", msckf_options.sigma_pix, 1);
+    nh.param<int>("up_chi2_multipler", msckf_options.chi2_multipler, 5);
+    //nh.param<double>("up_sigma_pxslam", sigma_pxslam, 1);
+    //nh.param<double>("up_sigma_pxaruco", sigma_pxaruco, 1);
+
+    // If downsampling aruco, then double our noise values
+    //sigma_norm_pxaruco = (do_downsizing) ? 2*sigma_norm_pxaruco : sigma_norm_pxaruco;
+
+    ROS_INFO("MSCKFUPDATER PARAMETERS:");
+    ROS_INFO("\t- sigma_pxmsckf: %.4f", msckf_options.sigma_pix);
+    ROS_INFO("\t- sigma_pxslam: %.4f", msckf_options.sigma_pix);
+    ROS_INFO("\t- sigma_pxaruco: %.4f", msckf_options.sigma_pix);
+    ROS_INFO("\t- chi2_multipler: %d", msckf_options.chi2_multipler);
 
 
     //===================================================================================
@@ -266,9 +273,8 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     // Our state initialize
     initializer = new InertialInitializer(gravity,init_window_time, init_imu_thresh);
 
-
-    // TODO: make the updaters here
-
+    // Make the updater!
+    updaterMSCKF = new UpdaterMSCKF(msckf_options, featinit_options);
 
 
 }
@@ -441,7 +447,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
 
     // Pass them to our MSCKF updater
-    //updaterFeatMSCKF->update(*state, featsup_MSCKF);
+    updaterMSCKF->update(state, featsup_MSCKF);
 
 
     //===================================================================================
@@ -452,7 +458,6 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // This allows for measurements to be used in the future if they failed to be used this time
     // Note we need to do this before we feed a new image, as we want all new measurements to NOT be deleted
     trackFEATS->get_feature_database()->cleanup();
-
 
 
 

@@ -14,6 +14,7 @@
 #include "state/Propagator.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
+#include "update/UpdaterMSCKF.h"
 
 
 /**
@@ -112,6 +113,9 @@ namespace ov_msckf {
 
         /// Boolean if we are initialized or not
         bool is_initialized_vio = false;
+
+        /// Our MSCKF feature updater
+        UpdaterMSCKF* updaterMSCKF;
 
     };
 

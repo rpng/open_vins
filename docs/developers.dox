@@ -42,7 +42,7 @@
 4. Go into the documentation folder and build
     - `cd m.css/documentation/`
     - `python3.6 doxgen.py <path_to_Doxyfile-mcss>`
-5. If you run into errors ensure your python path is set to use the 3.6 libraries
+5. If you run into errors, ensure your python path is set to use the 3.6 libraries
     - ` export PYTHONPATH=/usr/local/lib/python3.6/dist-packages/`
 6. This should then build the documentation website
 7. Open the html page in the `doxgen_generated` folder

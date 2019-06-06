@@ -272,33 +272,11 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
         }
     }
 
-    feat->p_invFinA_MSCKF(0,0) = alpha;
-    feat->p_invFinA_MSCKF(1) = beta;
-    feat->p_invFinA_MSCKF(2) = rho;
-
-    // Revert to standard
+    // Revert to standard, and set to all
     feat->p_FinA(0) = alpha/rho;
     feat->p_FinA(1) = beta/rho;
     feat->p_FinA(2) = 1/rho;
-
-    // Feature inverse representation
-    // NOTE: This is not the MSCKF inverse form, but the standard form
-    // NOTE: Thus we go from p_FinA and convert it to this form
-    double i_rho = 1/feat->p_FinA.norm();
-    double i_phi = std::acos(i_rho*feat->p_FinA(2));
-    double i_theta = std::asin(i_rho*feat->p_FinA(1)/std::sin(i_phi));
-    feat->p_invFinA(0) = i_theta;
-    feat->p_invFinA(1) = i_phi;
-    feat->p_invFinA(2) = i_rho;
-
-    // Make sure our inverse is near our real one
-    Eigen::Vector3d p_FinA_frominverse;
-    p_FinA_frominverse <<
-        1/feat->p_invFinA(2)*cos(feat->p_invFinA(0))*sin(feat->p_invFinA(1)),
-        1/feat->p_invFinA(2)*sin(feat->p_invFinA(0))*sin(feat->p_invFinA(1)),
-        1/feat->p_invFinA(2)*cos(feat->p_invFinA(1));
-    assert((feat->p_FinA-p_FinA_frominverse).norm() < 1e-6);
-
+    feat->set_anchor_from_xyz(feat->p_FinA);
 
     // Get tangent plane to x_hat
     Eigen::HouseholderQR<Eigen::MatrixXd> qr(feat->p_FinA);
@@ -335,25 +313,7 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
 
     // Finally get position in global frame
     feat->p_FinG = R_GtoA.transpose()*feat->p_FinA + p_AinG;
-
-    // Feature inverse representation
-    // NOTE: This is not the MSCKF inverse form, but the standard form
-    // NOTE: Thus we go from p_FinA and convert it to this form
-    double g_rho = 1/feat->p_FinG.norm();
-    double g_phi = std::acos(g_rho*feat->p_FinG(2));
-    double g_theta = std::asin(g_rho*feat->p_FinG(1)/std::sin(g_phi));
-    feat->p_invFinG(0) = g_theta;
-    feat->p_invFinG(1) = g_phi;
-    feat->p_invFinG(2) = g_rho;
-
-
-    // Make sure our inverse is near our real one
-    Eigen::Vector3d p_FinG_frominverse;
-    p_FinG_frominverse <<
-            1/feat->p_invFinG(2)*cos(feat->p_invFinG(0))*sin(feat->p_invFinG(1)),
-            1/feat->p_invFinG(2)*sin(feat->p_invFinG(0))*sin(feat->p_invFinG(1)),
-            1/feat->p_invFinG(2)*cos(feat->p_invFinG(1));
-    assert((feat->p_FinG-p_FinG_frominverse).norm() < 1e-6);
+    feat->set_global_from_xyz(feat->p_FinG);
 
     // We are good!
     return true;
