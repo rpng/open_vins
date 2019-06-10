@@ -218,8 +218,10 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             Eigen::Matrix<double,3,3> R_GtoIi = clone_Ci->Rot();
             Eigen::Matrix<double,3,1> p_IiinG = clone_Ci->pos();
 
+            Eigen::Matrix<double,3,1> p_FinIi = R_GtoIi*(feature->p_FinG-p_IiinG);
+
             // Project the current feature into the current frame of reference
-            Eigen::Matrix<double,3,1> p_FinCi = R_ItoC*R_GtoIi*(feature->p_FinG-p_IiinG)+p_IinC;
+            Eigen::Matrix<double,3,1> p_FinCi = R_ItoC*p_FinIi+p_IinC;
             Eigen::Matrix<double,2,1> uv_norm;
             uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
 
@@ -303,9 +305,9 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
                 double r_2 = r*r;
                 double r_4 = r_2*r_2;
                 double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
-                double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+cam_d(7)*uv_norm(0)*uv_norm(1);
-                uv_dist(0) = cam_d(0)*uv_norm(0) + cam_d(2);
-                uv_dist(1) = cam_d(1)*uv_norm(1) + cam_d(3);
+                double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
+                uv_dist(0) = cam_d(0)*x1 + cam_d(2);
+                uv_dist(1) = cam_d(1)*y1 + cam_d(3);
 
                 // Jacobian of distorted pixel to normalized pixel
                 dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
@@ -351,7 +353,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
 
             // Derivative of p_FinCi in respect to camera clone state
             Eigen::Matrix<double,3,6> dpfc_dclone = Eigen::Matrix<double,3,6>::Zero();
-            dpfc_dclone.block(0,0,3,3) = R_ItoC*skew_x(R_GtoIi*(feature->p_FinG-p_IiinG));
+            dpfc_dclone.block(0,0,3,3).noalias() = R_ItoC*skew_x(p_FinIi);
             dpfc_dclone.block(0,3,3,3) = -dpfc_dpfg;
 
 
@@ -371,16 +373,16 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             Eigen::Matrix<double,2,3> dz_dpfg = dz_dpfc*dpfc_dpfg;
 
             // CHAINRULE: get the total feature Jacobian
-            H_f.block(2*c,0,2,3) = dz_dpfg*dpfg_dlambda;
+            H_f.block(2*c,0,2,3).noalias() = dz_dpfg*dpfg_dlambda;
 
             // CHAINRULE: get state clone Jacobian
-            H_x.block(2*c,map_hx[clone_Ci],2,clone_Ci->size()) = dz_dpfc*dpfc_dclone;
+            H_x.block(2*c,map_hx[clone_Ci],2,clone_Ci->size()).noalias() = dz_dpfc*dpfc_dclone;
 
 
             // CHAINRULE: loop through all extra states and add their
             // NOTE: we add the Jacobian here as we might be in the anchoring pose for this measurement
             for(size_t i=0; i<dpfg_dx_order.size(); i++) {
-                H_x.block(2*c,map_hx[dpfg_dx_order.at(i)],2,dpfg_dx_order.at(i)->size()) += dz_dpfg*dpfg_dx.at(i);
+                H_x.block(2*c,map_hx[dpfg_dx_order.at(i)],2,dpfg_dx_order.at(i)->size()).noalias() += dz_dpfg*dpfg_dx.at(i);
             }
 
 
@@ -397,7 +399,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
                 dpfc_dcalib.block(0,3,3,3) = Eigen::Matrix<double,3,3>::Identity();
 
                 // Chainrule it and add it to the big jacobian
-                H_x.block(2*c,map_hx[calibration],2,calibration->size()) += dz_dpfc*dpfc_dcalib;
+                H_x.block(2*c,map_hx[calibration],2,calibration->size()).noalias() += dz_dpfc*dpfc_dcalib;
 
             }
 

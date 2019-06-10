@@ -59,7 +59,6 @@ namespace ov_msckf {
             for (size_t i = 0; i < _variables.size(); i++) {
                 _variables[i]->update(dx.block(_variables[i]->id(), 0, _variables[i]->size(), 1));
             }
-            std::cout << "dx " << std::endl << dx.transpose() << std::endl;
         }
 
         /**
