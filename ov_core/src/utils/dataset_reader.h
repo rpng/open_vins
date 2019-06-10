@@ -48,6 +48,9 @@ namespace ov_core {
      */
     void load_gt_file(std::string path) {
 
+        // Clear any old data
+        gt_states.clear();
+
         // Open the file
         std::ifstream file;
         std::string line;

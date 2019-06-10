@@ -193,7 +193,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     std::cout << "res_big - " << res_big.norm() << std::endl;
     std::cout << "R_big - " << R_big.norm() << std::endl;
     std::cout << "good feats - " << feature_vec.size() << std::endl;
-    sleep(3);
+    //sleep(3);
 
 
 }

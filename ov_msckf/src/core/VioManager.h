@@ -73,6 +73,31 @@ namespace ov_msckf {
         void feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1);
 
 
+        /// If we are initialized or not
+        bool intialized() {
+            return is_initialized_vio;
+        }
+
+        /// Accessor to get the current state
+        State* get_state() {
+            return state;
+        }
+
+        /// Get feature tracker
+        TrackBase* get_track_feat() {
+            return trackFEATS;
+        }
+
+        /// Get aruco feature tracker
+        TrackBase* get_track_aruco() {
+            return trackARUCO;
+        }
+
+        /// Returns 3d features used in the last update
+        std::vector<Eigen::Vector3d> get_good_features_MSCKF() {
+            return good_features_MSCKF;
+        }
+
 
 
     protected:
@@ -116,6 +141,9 @@ namespace ov_msckf {
 
         /// Our MSCKF feature updater
         UpdaterMSCKF* updaterMSCKF;
+
+        /// Good features that where used in the last update
+        std::vector<Eigen::Vector3d> good_features_MSCKF;
 
     };
 

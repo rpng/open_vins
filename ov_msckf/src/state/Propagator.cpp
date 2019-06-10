@@ -14,7 +14,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
     vector<IMUDATA> prop_data;
 
     // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
-    double t_off_new = state->calib_dt_CAMtoIMU()->value()(0,0);
+    double t_off_new = state->calib_dt_CAMtoIMU()->value()(0);
 
     //===================================================================================
     //===================================================================================
@@ -216,13 +216,6 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
     // Position: just velocity times dt, with the acceleration integrated twice
     Eigen::Matrix<double,3,1> new_p = imu->pos() + imu->vel()*dt + 0.5*R_Gtoi.transpose()*a_hat*dt*dt - 0.5*_gravity*dt*dt;
-
-    // Indexing within Jacobian
-    //int th_id = 0;
-    //int p_id = 3;
-    //int v_id = 6;
-    //int bg_id = 9;
-    //int ba_id = 12;
 
     // Get the locations of each entry of the imu state
     int th_id = state->imu()->q()->id()-state->imu()->id();

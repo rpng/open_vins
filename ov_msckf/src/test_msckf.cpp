@@ -14,14 +14,14 @@
 #include <tf/transform_broadcaster.h>
 
 #include "core/VioManager.h"
+#include "core/RosVisualizer.h"
 
 
 using namespace ov_msckf;
 
 
-
-int system_mode;
 VioManager* sys;
+RosVisualizer* viz;
 
 
 
@@ -36,6 +36,7 @@ int main(int argc, char** argv)
 
     // Create our VIO system
     sys = new VioManager(nh);
+    viz = new RosVisualizer(nh, sys);
 
 
     //===================================================================================
@@ -67,7 +68,10 @@ int main(int argc, char** argv)
     ROS_INFO("bag duration: %.1f",bag_durr);
 
     // Read in what mode we should be processing in (0=mono, 1=stereo)
+    int system_mode, max_cameras;
     nh.param<int>("system_mode", system_mode, 0);
+    nh.param<int>("max_cameras", max_cameras, 1);
+    system_mode = (max_cameras==1) ? 0 : system_mode;
 
 
     //===================================================================================
@@ -110,6 +114,12 @@ int main(int argc, char** argv)
     cv::Mat img0_buffer, img1_buffer;
     double time = time_init.toSec();
     double time_buffer = time_init.toSec();
+
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
 
     // Step through the rosbag
     for (const rosbag::MessageInstance& m : view) {
@@ -184,16 +194,10 @@ int main(int argc, char** argv)
         if(system_mode==0 && has_left) {
             // process once we have initialized with the GT
             sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
+            // visualize
+            viz->visualize();
             // reset bools
             has_left = false;
-            // publish this new state
-            //if(sys->is_initalized_vio()) {
-            //    publish_state();
-            //    publish_feats();
-            //    publish_gpsinfo();
-            //}
-            //publish_images();
-            //publish_gt();
             // move buffer forward
             time_buffer = time;
             img0_buffer = img0.clone();
@@ -204,17 +208,11 @@ int main(int argc, char** argv)
         if(system_mode==1 && has_left && has_right) {
             // process once we have initialized with the GT
             sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);
+            // visualize
+            viz->visualize();
             // reset bools
             has_left = false;
             has_right = false;
-            // publish this new state
-            //if(sys->is_initalized_vio()) {
-            //    publish_state();
-            //    publish_feats();
-            //    publish_gpsinfo();
-            //}
-            //publish_images();
-            //publish_gt();
             // move buffer forward
             time_buffer = time;
             img0_buffer = img0.clone();

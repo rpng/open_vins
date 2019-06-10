@@ -2,8 +2,8 @@
 
 
     <!-- MASTER NODE! -->
-<!--    <node name="test_msckf" pkg="ov_msckf" type="test_msckf" output="screen" clear_params="true" required="true">-->
-        <node name="test_msckf" pkg="ov_msckf" type="test_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run --args">
+    <node name="test_msckf" pkg="ov_msckf" type="test_msckf" output="screen" clear_params="true" required="true">
+<!--        <node name="test_msckf" pkg="ov_msckf" type="test_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
         <!-- bag topics -->
         <param name="topic_imu"      type="string" value="/imu0" />
@@ -17,7 +17,7 @@
         <!--<param name="path_gt"     type="string" value="$(find msckf_data)/euroc_mav/V1_02_medium.csv" />-->
         <!--<param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_03_difficult.bag" />-->
         <!--<param name="path_gt"     type="string" value="$(find msckf_data)/euroc_mav/V1_03_difficult.csv" />-->
-        <param name="bag_start"   type="int"  value="0" />
+        <param name="bag_start"   type="int"  value="5" />
         <param name="bag_durr"    type="int"  value="-1" />
 
 
@@ -29,7 +29,7 @@
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="0" />
-        <param name="max_cameras"            type="int"    value="2" />
+        <param name="max_cameras"            type="int"    value="1" />
         <param name="feat_representation"    type="string" value="GLOBAL_3D" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
 
@@ -57,7 +57,7 @@
 
 
         <!-- camera intrinsics -->
-        <param name="system_mode"     type="int"  value="1" /> <!-- 0: mono, 1: stereo -->
+        <param name="system_mode"     type="int"  value="0" /> <!-- 0: mono, 1: stereo -->
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <rosparam param="cam0_k">[458.654,0.0,367.215,0.0,457.296,248.375,0.0,0.0,1.0]</rosparam>

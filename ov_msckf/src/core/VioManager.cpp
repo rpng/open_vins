@@ -243,8 +243,8 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     ROS_INFO("MSCKFUPDATER PARAMETERS:");
     ROS_INFO("\t- sigma_pxmsckf: %.4f", msckf_options.sigma_pix);
-    ROS_INFO("\t- sigma_pxslam: %.4f", msckf_options.sigma_pix);
-    ROS_INFO("\t- sigma_pxaruco: %.4f", msckf_options.sigma_pix);
+    //ROS_INFO("\t- sigma_pxslam: %.4f", msckf_options.sigma_pix);
+    //ROS_INFO("\t- sigma_pxaruco: %.4f", msckf_options.sigma_pix);
     ROS_INFO("\t- chi2_multipler: %d", msckf_options.chi2_multipler);
 
 
@@ -457,6 +457,13 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     //===================================================================================
     // Update our visualization feature set, and clean up the old features
     //===================================================================================
+
+
+    // Save all the MSCKF features used in the update
+    good_features_MSCKF.clear();
+    for(Feature* feat : featsup_MSCKF) {
+        good_features_MSCKF.push_back(feat->p_FinG);
+    }
 
     // Remove features that where used for the update from our extractors at the last timestep
     // This allows for measurements to be used in the future if they failed to be used this time
