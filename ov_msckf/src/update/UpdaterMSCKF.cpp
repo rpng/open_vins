@@ -14,6 +14,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // 1. Clean all feature measurements and make sure they all have valid clone times
     auto it0 = feature_vec.begin();
+
     while(it0 != feature_vec.end()) {
 
         // Clean the feature
@@ -27,6 +28,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
         // Remove if we don't have enough
         if(ct_meas < 3) {
+            (*it0)->to_delete = true;
             it0 = feature_vec.erase(it0);
         } else {
             it0++;

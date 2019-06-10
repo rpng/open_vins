@@ -48,7 +48,6 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, Feature* f
     Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature->anchor_cam_id)->pos();
 
 
-    std::cout << "feature->anchor_clone_timestamp- " << feature->anchor_clone_timestamp << std::endl;
     // Anchor pose orientation
     Eigen::Matrix<double,3,3> R_GtoA = (state->options().do_fej)? state->get_clone(feature->anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature->anchor_clone_timestamp)->Rot();
     Eigen::Matrix<double,3,3> R_CtoG = R_GtoA.transpose()*R_ItoC.transpose();
@@ -198,6 +197,13 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
     res = Eigen::VectorXd::Zero(2*total_meas);
     H_f = Eigen::MatrixXd::Zero(2*total_meas,3);
     H_x = Eigen::MatrixXd::Zero(2*total_meas,total_hx);
+
+    // Derivative of p_FinG in respect to feature representation. This only needs to be computed once
+    // and thus we pull it out of the loop
+    Eigen::Matrix<double,3,3> dpfg_dlambda;
+    std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> dpfg_dx;
+    std::vector<Type*> dpfg_dx_order;
+    UpdaterHelper::get_feature_jacobian_representation(state, feature, dpfg_dlambda, dpfg_dx, dpfg_dx_order);
 
     // Loop through each camera for this feature
     for (auto const& pair : feature->timestamps) {
@@ -357,13 +363,6 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             Eigen::Matrix<double,3,6> dpfc_dclone = Eigen::Matrix<double,3,6>::Zero();
             dpfc_dclone.block(0,0,3,3).noalias() = R_ItoC*skew_x(p_FinIi);
             dpfc_dclone.block(0,3,3,3) = -dpfc_dpfg;
-
-
-            // Derivative of p_FinIi in respect to feature representation
-            Eigen::Matrix<double,3,3> dpfg_dlambda;
-            std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> dpfg_dx;
-            std::vector<Type*> dpfg_dx_order;
-            UpdaterHelper::get_feature_jacobian_representation(state, feature, dpfg_dlambda, dpfg_dx, dpfg_dx_order);
 
 
             //=========================================================================
