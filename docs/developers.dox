@@ -31,19 +31,22 @@
 @section developers-building Building the documentation site
 
 1. Clone the m.css repository which has scripts to build
-2. https://github.com/mosra/m.css
-3. You will need to install python3.6
+    - `git clone https://github.com/mosra/m.css`
+    - Ensure that it is **not** in the same folder as your open_vins
+    - This repository contains the script that will generate our documentation
+2. You will need to install python3.6
     - `sudo add-apt-repository ppa:deadsnakes/ppa`
     - `sudo apt-get update`
     - `sudo apt-get install python3.6`
     - `curl https://bootstrap.pypa.io/get-pip.py | sudo python3.6`
     - `sudo -H pip3.6 install jinja2 Pygments`
     - `sudo apt install texlive-base texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended`
-4. Go into the documentation folder and build
+3. Go into the documentation folder and build
     - `cd m.css/documentation/`
-    - `python3.6 doxgen.py <path_to_Doxyfile-mcss>`
-5. If you run into errors, ensure your python path is set to use the 3.6 libraries
+    - `python3.6 doxygen.py <path_to_Doxyfile-mcss>`
+4. If you run into errors, ensure your python path is set to use the 3.6 libraries
     - ` export PYTHONPATH=/usr/local/lib/python3.6/dist-packages/`
+5. You might need to comment out the `enable_async=True` flag in the doxygen.py file
 6. This should then build the documentation website
 7. Open the html page in the `doxgen_generated` folder
 
