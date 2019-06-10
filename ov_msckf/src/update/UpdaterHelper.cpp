@@ -221,10 +221,10 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             //=========================================================================
             //=========================================================================
 
-            // Get current clone state
-            PoseJPL* clone_Ci = state->get_clone(feature->timestamps[pair.first].at(m));
-            Eigen::Matrix<double,3,3> R_GtoIi = clone_Ci->Rot();
-            Eigen::Matrix<double,3,1> p_IiinG = clone_Ci->pos();
+            // Get current IMU clone state
+            PoseJPL* clone_Ii = state->get_clone(feature->timestamps[pair.first].at(m));
+            Eigen::Matrix<double,3,3> R_GtoIi = clone_Ii->Rot();
+            Eigen::Matrix<double,3,1> p_IiinG = clone_Ii->pos();
 
             Eigen::Matrix<double,3,1> p_FinIi = R_GtoIi*(feature->p_FinG-p_IiinG);
 
@@ -377,7 +377,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             H_f.block(2*c,0,2,3).noalias() = dz_dpfg*dpfg_dlambda;
 
             // CHAINRULE: get state clone Jacobian
-            H_x.block(2*c,map_hx[clone_Ci],2,clone_Ci->size()).noalias() = dz_dpfc*dpfc_dclone;
+            H_x.block(2*c,map_hx[clone_Ii],2,clone_Ii->size()).noalias() = dz_dpfc*dpfc_dclone;
 
 
             // CHAINRULE: loop through all extra states and add their

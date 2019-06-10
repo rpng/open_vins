@@ -11,8 +11,8 @@
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
 
         <!-- bag parameters -->
-        <param name="path_bag"    type="string" value="/home/keck/datasets/eth/V1_01_easy.bag" />
-        <param name="path_gt"     type="string" value="/home/keck/datasets/eth/V1_01_easy.csv" />
+        <param name="path_bag"    type="string" value="/home/keck/datasets/eth/V1_03_difficult.bag" />
+        <param name="path_gt"     type="string" value="/home/keck/datasets/eth/v1_03_truth.csv" />
         <!--<param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />-->
         <!--<param name="path_gt"     type="string" value="$(find msckf_data)/euroc_mav/V1_02_medium.csv" />-->
         <!--<param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_03_difficult.bag" />-->
@@ -23,13 +23,13 @@
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="false" />
-        <param name="use_imuavg"             type="bool"   value="false" />
+        <param name="use_imuavg"             type="bool"   value="true" />
         <param name="calib_cam_extrinsics"   type="bool"   value="false" />
         <param name="calib_cam_intrinsics"   type="bool"   value="false" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="0" />
-        <param name="max_cameras"            type="int"    value="1" />
+        <param name="max_cameras"            type="int"    value="2" />
         <param name="feat_representation"    type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="init_window_time"       type="double" value="0.5" />
         <param name="init_imu_thresh"        type="double" value="1.0" />
@@ -37,7 +37,7 @@
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
-        <param name="num_pts"          type="int"    value="400" />
+        <param name="num_pts"          type="int"    value="200" />
         <param name="fast_threshold"   type="int"    value="10" />
         <param name="grid_x"           type="int"    value="10" />
         <param name="grid_y"           type="int"    value="8" />
@@ -50,8 +50,8 @@
         <param name="downsize_aruco"   type="bool"   value="true" />
 
         <!-- sensor noise values / update -->
-        <param name="up_sigma_pxmsckf"             type="double"   value="1" />
-        <param name="up_chi2_multipler"            type="double"   value="5" />
+        <param name="up_sigma_pxmsckf"             type="double"   value="3" />
+        <param name="up_chi2_multipler"            type="double"   value="1" />
         <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />
         <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
         <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
