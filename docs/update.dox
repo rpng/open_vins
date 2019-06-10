@@ -3,9 +3,23 @@
 
 @page update Update Derivations
 
-@section general General Bayesian Update
+@section basics Basics of minimum mean square error (MMSE) estimation
 
-Given a new measurement \f$\mathbf{z}_m\f$ we would like to update our mean and covariance (updates our distribution).
+Consider the following static state estimation problem: 
+Given a prior distribution (probability density function or pdf) for a Gaussian random vector 
+\f$ \mathbf x\sim \mathcal N (\hat{\mathbf x}^\ominus, \mathbf P_{xx}^\ominus)\f$  and a new measurement  
+\f$\mathbf{z}_m = \mathbf z + \mathbf n = \mathbf h(\mathbf x) + \mathbf n \f$, 
+corrupted by zero-mean Gaussian noise \f$ \mathbf n \sim \mathcal N(\mathbf 0, \mathbf R)\f$,
+we want to compute the first two (central) moments of the posterior pdf \f$ p(\mathbf x|\mathbf z_m)\f$;
+that is, generally (given a nonlinear measurement model), we approxiamte the posterior pdf as:
+\f$ p(\mathbf x|\mathbf z_m) \simeq \mathcal N (\hat{\mathbf x}^\oplus, \mathbf P_{xx}^\oplus)\f$.
+
+
+
+
+
+@section patrick .....Patrick's tutorial.....
+
 To do this, we create the distribution of the current state given this new measurement distribution.
 Expanding this distribution using Bayes Rule we have the following:
 
@@ -173,7 +187,6 @@ This gets us the following new mean and covariance:
     \hat{\mathbf{x}}_{k|z} &= \hat{\mathbf{x}}_k + \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\
     \mathbf{P}_{xx|z} &= \mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}
 \f}
-
 
 
 
