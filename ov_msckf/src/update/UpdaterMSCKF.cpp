@@ -198,11 +198,6 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     // 6. With all good features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
     std::cout << "state has been updated " << std::endl;
-    std::cout << "Hx_big - " << Hx_big.norm() << std::endl;
-    std::cout << "res_big - " << res_big.norm() << std::endl;
-    std::cout << "R_big - " << R_big.norm() << std::endl;
-    std::cout << "good feats - " << feature_vec.size() << std::endl;
-    std::cout << "_options.sigma_pix_sq- " << _options.sigma_pix_sq << std::endl;
 
 }
 
