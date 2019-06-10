@@ -138,7 +138,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
         // Get the next state Jacobian and noise Jacobian for this IMU reading
         Eigen::Matrix<double, 15, 15> F = Eigen::Matrix<double, 15, 15>::Zero();
         Eigen::Matrix<double, 15, 15> Qdi = Eigen::Matrix<double, 15, 15>::Zero();
-        predict_and_compute(state, prop_data.at(i), prop_data.at(i+1), F, Qdi);
+        predict_and_compute(state, prop_data.at(i), prop_data.at(i + 1), F, Qdi);
 
         // Next we should propagate our IMU covariance
         // Pii' = F*Pii*F.transpose() + G*Q*G.transpose()
@@ -148,7 +148,6 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
         // NOTE: Q_summed = Phi_i*Q_summed*Phi_i^T + G*Q_i*G^T
         Phi_summed = F * Phi_summed;
         Qd_summed = F * Qd_summed * F.transpose() + Qdi;
-
     }
 
     // Last angular velocity (used for cloning when estimating time offset)
@@ -158,8 +157,11 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
     assert(state->imu()->id()==0);
 
     // Do the update to the covariance with our "summed" state transition and IMU noise addition...
-    auto Cov = state->Cov();
+
+
+    auto &Cov = state->Cov();
     size_t imu_id = state->imu()->id();
+    assert(imu_id == 0);
     Cov.block(imu_id,0,15, state->n_vars()) = Phi_summed*Cov.block(imu_id,0,15, state->n_vars());
     Cov.block(0,imu_id, state->n_vars(),15) = Cov.block(0,imu_id, state->n_vars(),15)*Phi_summed.transpose();
     Cov.block(imu_id,imu_id,15,15) += Qd_summed;

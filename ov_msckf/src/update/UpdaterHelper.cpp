@@ -27,7 +27,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, Feature* f
 
         // Construct the Jacobian
         H_f.resize(3,3);
-        H_f << -(1.0/rho)*sin_th*cos_phi, (1.0/rho)*cos_th*cos_phi, -(1.0/(rho*rho))*cos_th*sin_phi,
+        H_f << -(1.0/rho)*sin_th*sin_phi, (1.0/rho)*cos_th*cos_phi, -(1.0/(rho*rho))*cos_th*sin_phi,
                 (1.0/rho)*cos_th*sin_phi, (1.0/rho)*sin_th*cos_phi, -(1.0/(rho*rho))*sin_th*sin_phi,
                 0.0, -(1.0/rho)*sin_phi, -(1.0/(rho*rho))*cos_phi;
         return;
@@ -87,7 +87,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, Feature* f
 
         // Jacobian of anchored 3D position wrt inverse depth parameters
         Eigen::Matrix<double,3,3> d_pfinA_dpinv;
-        d_pfinA_dpinv << -(1.0/rho)*sin_th*cos_phi, (1.0/rho)*cos_th*cos_phi, -(1.0/(rho*rho))*cos_th*sin_phi,
+        d_pfinA_dpinv << -(1.0/rho)*sin_th*sin_phi, (1.0/rho)*cos_th*cos_phi, -(1.0/(rho*rho))*cos_th*sin_phi,
                 (1.0/rho)*cos_th*sin_phi, (1.0/rho)*sin_th*cos_phi, -(1.0/(rho*rho))*sin_th*sin_phi,
                 0.0, -(1.0/rho)*sin_phi, -(1.0/(rho*rho))*cos_phi;
         H_f = R_CtoG*d_pfinA_dpinv;
@@ -234,7 +234,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             if(state->get_model_CAM(pair.first)) {
 
                 // Calculate distorted coordinates for fisheye
-                double r = uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1);
+                double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
                 double theta = std::atan(r);
                 double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
                 double x1 = uv_norm(0)*theta_d/r;
@@ -296,32 +296,36 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
 
             } else {
 
+
+
                 // Calculate distorted coordinates for radial
-                double r = uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1);
-                double x1 = uv_norm(0)*(1+cam_d(4)*r*r+cam_d(5)*r*r*r*r)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r*r+2*uv_norm(0)*uv_norm(0));
-                double y1 = uv_norm(1)*(1+cam_d(4)*r*r+cam_d(5)*r*r*r*r)+2*cam_d(6)*(r*r+2*uv_norm(1)*uv_norm(1))+cam_d(7)*uv_norm(0)*uv_norm(1);
+                double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+                double r_2 = r*r;
+                double r_4 = r_2*r_2;
+                double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
+                double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+cam_d(7)*uv_norm(0)*uv_norm(1);
                 uv_dist(0) = cam_d(0)*uv_norm(0) + cam_d(2);
                 uv_dist(1) = cam_d(1)*uv_norm(1) + cam_d(3);
 
                 // Jacobian of distorted pixel to normalized pixel
-                dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r*r+cam_d(5)*r*r*r*r)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
+                dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
                 dz_dzn(0,1) = cam_d(0)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
                 dz_dzn(0,1) = cam_d(1)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
-                dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r*r+cam_d(5)*r*r*r*r)+(2*cam_d(4)*uv_norm(1)*uv_norm(1)+4*cam_d(5)*uv_norm(1)*uv_norm(1)*r)+2*cam_d(7)*uv_norm(0)+(2*cam_d(6)*uv_norm(1)+4*cam_d(6)*uv_norm(1)));
+                dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(1)*uv_norm(1)+4*cam_d(5)*uv_norm(1)*uv_norm(1)*r)+2*cam_d(7)*uv_norm(0)+(2*cam_d(6)*uv_norm(1)+4*cam_d(6)*uv_norm(1)));
 
                 // Compute the Jacobian in respect to the intrinsics if we are calibrating
                 if(state->options().do_calib_camera_intrinsics) {
                     dz_dzeta(0,0) = x1;
                     dz_dzeta(0,2) = 1;
-                    dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*r*r;
-                    dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*r*r*r*r;
+                    dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*r_2;
+                    dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*r_4;
                     dz_dzeta(0,6) = 2*cam_d(0)*uv_norm(0)*uv_norm(1);
-                    dz_dzeta(0,7) = cam_d(0)*(r*r+2*uv_norm(0)*uv_norm(0));
+                    dz_dzeta(0,7) = cam_d(0)*(r_2+2*uv_norm(0)*uv_norm(0));
                     dz_dzeta(1,1) = y1;
                     dz_dzeta(1,3) = 1;
-                    dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*r*r;
-                    dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*r*r*r*r;
-                    dz_dzeta(1,6) = cam_d(1)*(r*r+2*uv_norm(1)*uv_norm(1));
+                    dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*r_2;
+                    dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*r_4;
+                    dz_dzeta(1,6) = cam_d(1)*(r_2+2*uv_norm(1)*uv_norm(1));
                     dz_dzeta(1,7) = 2*cam_d(1)*uv_norm(0)*uv_norm(1);
                 }
 
@@ -416,6 +420,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
 void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res) {
 
     // Apply the left nullspace of H_f to all variables
+
     Eigen::JacobiRotation<double> tempHo_GR;
     for (int n = 0; n < H_f.cols(); ++n) {
         for (int m = (int) H_f.rows() - 1; m > n; m--) {
@@ -431,14 +436,12 @@ void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::Matri
     }
 
     // The H_f jacobian max rank is 3, thus size of the left nullspace is Hf.rows()-3
-    H_f = H_f.block(H_f.cols(),0,H_f.rows()-H_f.cols(),H_f.cols());
+    //H_f = H_f.block(H_f.cols(),0,H_f.rows()-H_f.cols(),H_f.cols());
     H_x = H_x.block(H_f.cols(),0,H_x.rows()-H_f.cols(),H_x.cols());
     res = res.block(H_f.cols(),0,res.rows()-H_f.cols(),res.cols());
 
-    // Sanity checks
-    assert(H_f.rows()==H_x.rows());
-    assert(H_f.rows()==res.rows());
-
+    // Sanity check
+    assert(H_x.rows()==res.rows());
 }
 
 

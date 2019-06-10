@@ -31,7 +31,7 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
         current_it += meas_var->size();
     }
 
-    auto Cov = state->Cov();
+    auto &Cov = state->Cov();
 
     //==========================================================
     //==========================================================
@@ -150,6 +150,8 @@ void StateHelper::marginalize(State *state, Type *marg) {
 
     //Now set new covariance
     state->Cov() = Cov_new;
+
+    assert(state->Cov().rows() == Cov_new.rows());
 
 
     //Now we keep the remaining variables and update their ordering
@@ -358,7 +360,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
 void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w) {
 
     auto imu = state->imu();
-    auto Cov = state->Cov();
+    auto &Cov = state->Cov();
 
     // Call on our marginalizer to clone, it will add it to our vector of types
     // NOTE: this will clone the clone pose to the END of the covariance...
