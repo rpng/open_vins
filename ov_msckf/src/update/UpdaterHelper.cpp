@@ -47,6 +47,8 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, Feature* f
     Eigen::Matrix<double,3,3> R_ItoC = state->get_calib_IMUtoCAM(feature->anchor_cam_id)->Rot();
     Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature->anchor_cam_id)->pos();
 
+
+    std::cout << "feature->anchor_clone_timestamp- " << feature->anchor_clone_timestamp << std::endl;
     // Anchor pose orientation
     Eigen::Matrix<double,3,3> R_GtoA = (state->options().do_fej)? state->get_clone(feature->anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature->anchor_clone_timestamp)->Rot();
     Eigen::Matrix<double,3,3> R_CtoG = R_GtoA.transpose()*R_ItoC.transpose();

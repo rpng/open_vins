@@ -74,6 +74,7 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
         }
     }
     feat->anchor_cam_id = anchor_most_meas;
+    feat->anchor_clone_timestamp = feat->timestamps[feat->anchor_cam_id].at(0);
 
     // Our linear system matrices
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2*total_meas, 3);
