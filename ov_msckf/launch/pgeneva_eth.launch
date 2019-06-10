@@ -31,6 +31,8 @@
         <param name="max_slam"               type="int"    value="0" />
         <param name="max_cameras"            type="int"    value="1" />
         <param name="feat_representation"    type="string" value="GLOBAL_3D" />
+        <param name="init_window_time"       type="double" value="0.5" />
+        <param name="init_imu_thresh"        type="double" value="1.0" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
 
         <!-- tracker/extractor properties -->
