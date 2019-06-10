@@ -68,16 +68,16 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         // Triangulate the feature and remove if it fails
         bool success = initializer_feat->single_triangulation(*it1, clones_cam);
         if(!success) {
+            (*it1)->to_delete = true;
             it1 = feature_vec.erase(it1);
-            std::cout << "failed triangulation - " << (*it1)->featid << std::endl;
             continue;
         }
 
         // Gauss-newton refine the feature
         success = initializer_feat->single_gaussnewton(*it1, clones_cam);
         if(!success) {
+            (*it1)->to_delete = true;
             it1 = feature_vec.erase(it1);
-            std::cout << "failed gauss newton - " << (*it1)->featid << std::endl;
             continue;
         }
         it1++;
@@ -139,6 +139,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
         // Check if we should delete or not
         if(chi2 > _options.chi2_multipler*chi2_check) {
+            (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
             std::cout << "chi2 failed - " << chi2 << " > " << _options.chi2_multipler*chi2_check << std::endl;
             continue;
@@ -168,10 +169,18 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     }
 
+    // We have appended all features to our Hx_big, res_big
+    // Delete it so we do not reuse information
+    for (size_t f=0; f < feature_vec.size(); f++){
+        feature_vec[f]->to_delete = true;
+    }
+
     // Return if we don't have anything and resize our matrices
     if(ct_meas < 1) {
         return;
     }
+    assert(ct_meas<=max_meas_size);
+    assert(ct_jacob<=max_hx_size);
     res_big.conservativeResize(ct_meas,1);
     Hx_big.conservativeResize(ct_meas,ct_jacob);
 
@@ -182,11 +191,9 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         return;
     }
 
+
     // Our noise is isotropic, so make it here after our compression
     Eigen::MatrixXd R_big = _options.sigma_pix_sq*Eigen::MatrixXd::Identity(res_big.rows(),res_big.rows());
-
-    std::cout << "_options.sigma_pix_sq- " << _options.sigma_pix_sq << std::endl;
-
 
     // 6. With all good features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
@@ -195,6 +202,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     std::cout << "res_big - " << res_big.norm() << std::endl;
     std::cout << "R_big - " << R_big.norm() << std::endl;
     std::cout << "good feats - " << feature_vec.size() << std::endl;
+    std::cout << "_options.sigma_pix_sq- " << _options.sigma_pix_sq << std::endl;
 
 }
 

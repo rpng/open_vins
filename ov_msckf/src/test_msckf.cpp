@@ -67,11 +67,9 @@ int main(int argc, char** argv)
     ROS_INFO("bag start: %.1f",bag_start);
     ROS_INFO("bag duration: %.1f",bag_durr);
 
-    // Read in what mode we should be processing in (0=mono, 1=stereo)
-    int system_mode, max_cameras;
-    nh.param<int>("system_mode", system_mode, 0);
+    // Read in what mode we should be processing in (1=mono, 2=stereo)
+    int max_cameras;
     nh.param<int>("max_cameras", max_cameras, 1);
-    system_mode = (max_cameras==1) ? 0 : system_mode;
 
 
     //===================================================================================
@@ -191,7 +189,7 @@ int main(int argc, char** argv)
 
 
         // If we are in monocular mode, then we should process the left if we have it
-        if(system_mode==0 && has_left) {
+        if(max_cameras==1 && has_left) {
             // process once we have initialized with the GT
             sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
             // visualize
@@ -205,7 +203,7 @@ int main(int argc, char** argv)
 
 
         // If we are in stereo mode and have both left and right, then process
-        if(system_mode==1 && has_left && has_right) {
+        if(max_cameras==2 && has_left && has_right) {
             // process once we have initialized with the GT
             sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);
             // visualize

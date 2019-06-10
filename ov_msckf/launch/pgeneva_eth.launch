@@ -29,7 +29,7 @@
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="0" />
-        <param name="max_cameras"            type="int"    value="1" />
+        <param name="max_cameras"            type="int"    value="2" />
         <param name="feat_representation"    type="string" value="GLOBAL_3D" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
 
@@ -57,7 +57,6 @@
 
 
         <!-- camera intrinsics -->
-        <param name="system_mode"     type="int"  value="0" /> <!-- 0: mono, 1: stereo -->
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <rosparam param="cam0_k">[458.654,0.0,367.215,0.0,457.296,248.375,0.0,0.0,1.0]</rosparam>
