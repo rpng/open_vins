@@ -27,6 +27,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
         // Remove if we don't have enough
         if(ct_meas < 3) {
+            (*it0)->to_delete = true;
             it0 = feature_vec.erase(it0);
         } else {
             it0++;
@@ -135,6 +136,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         } else {
             boost::math::chi_squared chi_squared_dist(res.rows());
             chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
+            std::cout << "chi2_check over the residual limit - " << res.rows() << std::endl;
         }
 
         // Check if we should delete or not

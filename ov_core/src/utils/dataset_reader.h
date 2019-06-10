@@ -35,18 +35,17 @@ using namespace std;
  */
 namespace ov_core {
 
-    /// Our groundtruth states loaded, see load_gt_file()
-    std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
 
     /**
      * @brief Load a ASL format groundtruth file
      * @param path Path to the CSV file of groundtruth data
+     * @param gt_states Will be filled with groundtruth states
      *
      * Here we will try to load a groundtruth file that is in the ASL/EUROCMAV format.
      * If we can't open the file, or it is in the wrong format we will error and exit the program.
      * See get_gt_state() for a way to get the groundtruth state at a given timestep
      */
-    void load_gt_file(std::string path) {
+    void load_gt_file(std::string path, std::map<double, Eigen::Matrix<double, 17, 1>>& gt_states) {
 
         // Clear any old data
         gt_states.clear();
@@ -93,23 +92,40 @@ namespace ov_core {
 
 
     /**
-     * @brief Gets the 16x1 groundtruth state at a given timestep
+     * @brief Gets the 17x1 groundtruth state at a given timestep
      * @param timestep timestep we want to get the groundtruth for
      * @param imustate groundtruth state [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
+     * @param gt_states Should be loaded with groundtruth states, see load_gt_file() for details
      * @return true if we found the state, false otherwise
      */
-    bool get_gt_state(double timestep, Eigen::Matrix<double, 17, 1> &imustate) {
+    static bool get_gt_state(double timestep, Eigen::Matrix<double, 17, 1> &imustate, std::map<double, Eigen::Matrix<double, 17, 1>>& gt_states) {
 
         // Check that we even have groundtruth loaded
         if (gt_states.empty()) {
-            ROS_ERROR_THROTTLE(5,
-                               "Groundtruth data loaded is empty, make sure you call load before asking for a state.");
+            ROS_ERROR_THROTTLE(5, "Groundtruth data loaded is empty, make sure you call load before asking for a state.");
             return false;
         }
 
+        // Loop through gt states and find the closest time stamp
+        double closest_time = INFINITY;
+        auto it0 = gt_states.begin();
+        while(it0 != gt_states.end() && ros::ok()) {
+            if(std::abs(it0->first-timestep) < std::abs(closest_time-timestep)) {
+                closest_time = it0->first;
+            }
+            it0++;
+        }
+
+        // If close to this timestamp, then use it
+        if(std::abs(closest_time-timestep) < 0.005) {
+            //ROS_INFO("init DT = %.4f", std::abs(closest_time-timestep));
+            //ROS_INFO("timestamp = %.15f", closest_time);
+            timestep = closest_time;
+        }
+
         // Check that we have the timestamp in our GT file
-        if (gt_states.find(timestep) == gt_states.end()) {
-            ROS_WARN_THROTTLE(5, "Unable to find %.6f timestamp in GT file, wrong GT file loaded???", timestep);
+        if(gt_states.find(timestep) == gt_states.end()) {
+            ROS_WARN_THROTTLE(5,"Unable to find %.6f timestamp in GT file, wrong GT file loaded???",timestep);
             return false;
         }
 
@@ -117,22 +133,23 @@ namespace ov_core {
         Eigen::Matrix<double, 17, 1> state = gt_states[timestep];
 
         // Our "fixed" state vector from the ETH GT format [q,p,v,bg,ba]
-        imustate(0, 0) = state(5, 0); //quat
-        imustate(1, 0) = state(6, 0);
-        imustate(2, 0) = state(7, 0);
-        imustate(3, 0) = state(4, 0);
-        imustate(4, 0) = state(1, 0); //pos
-        imustate(5, 0) = state(2, 0);
-        imustate(6, 0) = state(3, 0);
-        imustate(7, 0) = state(8, 0); //vel
-        imustate(8, 0) = state(9, 0);
-        imustate(9, 0) = state(10, 0);
-        imustate(10, 0) = state(11, 0); //bg
-        imustate(11, 0) = state(12, 0);
-        imustate(12, 0) = state(13, 0);
-        imustate(13, 0) = state(14, 0); //ba
-        imustate(14, 0) = state(15, 0);
-        imustate(15, 0) = state(16, 0);
+        imustate(0, 0) = timestep; //time
+        imustate(1, 0) = state(5, 0); //quat
+        imustate(2, 0) = state(6, 0);
+        imustate(3, 0) = state(7, 0);
+        imustate(4, 0) = state(4, 0);
+        imustate(5, 0) = state(1, 0); //pos
+        imustate(6, 0) = state(2, 0);
+        imustate(7, 0) = state(3, 0);
+        imustate(8, 0) = state(8, 0); //vel
+        imustate(9, 0) = state(9, 0);
+        imustate(10, 0) = state(10, 0);
+        imustate(11, 0) = 0;//state(11, 0); //bg
+        imustate(12, 0) = 0;//state(12, 0);
+        imustate(13, 0) = 0;//state(13, 0);
+        imustate(14, 0) = 0;//state(14, 0); //ba
+        imustate(15, 0) = 0;//state(15, 0);
+        imustate(16, 0) = 0;//state(16, 0);
 
         // Success!
         return true;

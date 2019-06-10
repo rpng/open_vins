@@ -73,6 +73,27 @@ namespace ov_msckf {
         void feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1);
 
 
+        /**
+         * @brief Given a state, this will initialize our IMU state.
+         * @param imustate State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
+         */
+        void initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
+
+            // Initialize the system
+            state->imu()->set_value(imustate.block(1,0,16,1));
+            state->set_timestamp(imustate(0,0));
+            is_initialized_vio = true;
+
+            // Print what we init'ed with
+            ROS_INFO("\033[0;32m[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\033[0m");
+            ROS_INFO("\033[0;32m[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\033[0m",state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3));
+            ROS_INFO("\033[0;32m[INIT]: bias gyro = %.4f, %.4f, %.4f\033[0m",state->imu()->bias_g()(0),state->imu()->bias_g()(1),state->imu()->bias_g()(2));
+            ROS_INFO("\033[0;32m[INIT]: velocity = %.4f, %.4f, %.4f\033[0m",state->imu()->vel()(0),state->imu()->vel()(1),state->imu()->vel()(2));
+            ROS_INFO("\033[0;32m[INIT]: bias accel = %.4f, %.4f, %.4f\033[0m",state->imu()->bias_a()(0),state->imu()->bias_a()(1),state->imu()->bias_a()(2));
+            ROS_INFO("\033[0;32m[INIT]: position = %.4f, %.4f, %.4f\033[0m",state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2));
+        }
+
+
         /// If we are initialized or not
         bool intialized() {
             return is_initialized_vio;
@@ -146,7 +167,7 @@ namespace ov_msckf {
         std::vector<Eigen::Vector3d> good_features_MSCKF;
 
         // Timing variables
-        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5;
+        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6;
 
         // Track how much distance we have traveled
         double timelastupdate = -1;

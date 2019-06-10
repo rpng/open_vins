@@ -17,6 +17,7 @@
 
 
 #include "VioManager.h"
+#include "utils/dataset_reader.h"
 
 
 /**
@@ -89,7 +90,10 @@ namespace ov_msckf {
         double summed_rmse_pos = 0.0;
         size_t summed_number = 0;
 
-        // FOr path viz
+        // Our groundtruth states
+        std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
+
+        // For path viz
         unsigned int poses_seq_gt = 0;
         vector<geometry_msgs::PoseStamped> poses_gt;
 
