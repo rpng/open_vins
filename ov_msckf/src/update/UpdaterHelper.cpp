@@ -303,7 +303,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
 
 
                 // Calculate distorted coordinates for radial
-                double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+                double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
                 double r_2 = r*r;
                 double r_4 = r_2*r_2;
                 double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));

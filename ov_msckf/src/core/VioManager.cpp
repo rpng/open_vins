@@ -298,6 +298,9 @@ void VioManager::feed_measurement_imu(double timestamp, Eigen::Matrix<double,3,1
 
 void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, size_t cam_id) {
 
+    // Start timing
+    rT1 =  boost::posix_time::microsec_clock::local_time();
+
     // Feed our trackers
     trackFEATS->feed_monocular(timestamp, img0, cam_id);
 
@@ -305,6 +308,7 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
     if(trackARUCO != nullptr) {
         trackARUCO->feed_monocular(timestamp, img0, cam_id);
     }
+    rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // If we do not have VIO initialization, then try to initialize
     // TODO: Or if we are trying to reset the system, then do that here!
@@ -325,6 +329,9 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
 
 void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
 
+    // Start timing
+    rT1 =  boost::posix_time::microsec_clock::local_time();
+
     // Feed our trackers
     trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
 
@@ -332,6 +339,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
     if(trackARUCO != nullptr) {
         trackARUCO->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     }
+    rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // If we do not have VIO initialization, then try to initialize
     // TODO: Or if we are trying to reset the system, then do that here!
@@ -398,6 +406,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Propagate the state forward to the current update time
     // Also augment it with a new clone!
     propagator->propagate_and_clone(state, timestamp);
+    rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // If we have not reached max clones, we should just return...
     // This isn't super ideal, but it keeps the logic after this easier...
@@ -447,11 +456,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // Pass them to our MSCKF updater
     updaterMSCKF->update(state, featsup_MSCKF);
-
-
-    ROS_INFO("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)",state->imu()->quat()(0),state->imu()->quat()(1),
-             state->imu()->quat()(2),state->imu()->quat()(3),state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2),0.0);
-
+    rT4 =  boost::posix_time::microsec_clock::local_time();
 
 
     //===================================================================================
@@ -479,6 +484,33 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // Marginalize the oldest clone of the state if we are at max length
     StateHelper::marginalize_old_clone(state);
+    rT5 =  boost::posix_time::microsec_clock::local_time();
+
+
+    //===================================================================================
+    // Debug info, and stats tracking
+    //===================================================================================
+
+
+    // Timing information
+    ROS_INFO("\u001b[34m[TIME]: %.4f seconds for tracking\u001b[0m",(rT2-rT1).total_microseconds() * 1e-6);
+    ROS_INFO("\u001b[34m[TIME]: %.4f seconds for propagation\u001b[0m",(rT3-rT2).total_microseconds() * 1e-6);
+    ROS_INFO("\u001b[34m[TIME]: %.4f seconds for MSCKF update (%d features)\u001b[0m",(rT4-rT3).total_microseconds() * 1e-6, (int)good_features_MSCKF.size());
+    ROS_INFO("\u001b[34m[TIME]: %.4f seconds for marginalization (%d clones in state)\u001b[0m",(rT5-rT4).total_microseconds() * 1e-6, (int)state->n_clones());
+    ROS_INFO("\u001b[34m[TIME]: %.4f seconds for total\u001b[0m",(rT5-rT1).total_microseconds() * 1e-6);
+
+
+    // Update our distance traveled
+    if(state->get_clones().find(timelastupdate) != state->get_clones().end()) {
+        Eigen::Matrix<double,3,1> dx = state->imu()->pos() - state->get_clone(timelastupdate)->pos();
+        distance += dx.norm();
+    }
+    timelastupdate = timestamp;
+
+    // Debug, print our current state
+    ROS_INFO("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)",
+            state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3),
+            state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2),distance);
 
 
 }

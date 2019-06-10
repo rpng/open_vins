@@ -161,8 +161,7 @@ void StateHelper::marginalize(State *state, Type *marg) {
         //Only keep non-marginal states
         if (state->variables(i) != marg) {
             if (state->variables(i)->id() > marg_id) {
-                //If the variable is "beyond" the marginal one in ordering, need
-                //to "move it forward"
+                //If the variable is "beyond" the marginal one in ordering, need to "move it forward"
                 state->variables(i)->set_local_id(state->variables(i)->id() - marg_size);
             }
             remaining_variables.push_back(state->variables(i));

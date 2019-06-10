@@ -109,13 +109,17 @@ void RosVisualizer::publish_state() {
 
     // Loop through each camera calibration and publish it
     for(const auto &calib : state->get_calib_IMUtoCAMs()) {
+        // need to flip the transform to the IMU frame
+        Eigen::Vector4d q_CtoI = Inv(calib.second->quat());
+        Eigen::Vector3d p_IinC = -calib.second->Rot().transpose()*calib.second->pos();
+        // publish
         tf::StampedTransform trans;
         trans.stamp_ = ros::Time::now();
         trans.frame_id_ = "imu";
         trans.child_frame_id_ = "cam"+std::to_string(calib.first);
-        tf::Quaternion quat(calib.second->quat()(0),calib.second->quat()(1),calib.second->quat()(2),calib.second->quat()(3));
+        tf::Quaternion quat(q_CtoI(0),q_CtoI(1),q_CtoI(2),q_CtoI(3));
         trans.setRotation(quat);
-        tf::Vector3 orig(calib.second->pos()(0),calib.second->pos()(1),calib.second->pos()(2));
+        tf::Vector3 orig(p_IinC(0),p_IinC(1),p_IinC(2));
         trans.setOrigin(orig);
         mTfBr->sendTransform(trans);
     }
