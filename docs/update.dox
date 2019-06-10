@@ -155,7 +155,7 @@ Not losing sight of the original goal, we can now construct the new Gaussian dis
 
 \f{align*}{
     p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
-    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m) | \mathbf{z}_{0..i-1}} \\[5px]
+    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m | \mathbf{z}_{0..i-1})} \\[5px]
     &= \frac{1}{\sqrt{(2\pi)^{n}|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}}|} \times \nonumber\\
     &\hspace{0.5cm}\mathrm{exp}\left(
     {-\frac{1}{2}\left[
