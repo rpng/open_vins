@@ -52,18 +52,6 @@ namespace ov_msckf {
 
 
         /**
-         * @brief For a given set of variables, this will this will calculate a smaller covariance.
-         *
-         * That only includes the ones specified with all crossterms.
-         * Thus the size of the return will be the summed dimension of all the passed variables.
-         * Normal use for this is a chi-squared check before update (where you don't need the full covariance).
-         *
-         * @param small_variables Vector of variables whose marginal covariance is desired
-         * @return marginal covariance of the passed variables
-         */
-        Eigen::MatrixXd get_marginal_covariance(const std::vector<Type *> &small_variables);
-
-        /**
          * @brief Given an update vector for the **entire covariance**, updates each variable
          * @param dx Correction vector for the entire filter state
          */
@@ -71,6 +59,7 @@ namespace ov_msckf {
             for (size_t i = 0; i < _variables.size(); i++) {
                 _variables[i]->update(dx.block(_variables[i]->id(), 0, _variables[i]->size(), 1));
             }
+            std::cout << "dx " << std::endl << dx.transpose() << std::endl;
         }
 
         /**
@@ -120,7 +109,7 @@ namespace ov_msckf {
         }
 
         /// Get size of covariance
-        size_t nVars() {
+        size_t n_vars() {
             return _Cov.rows();
         }
 
@@ -148,6 +137,11 @@ namespace ov_msckf {
         PoseJPL* get_calib_IMUtoCAM(size_t id) {
             assert((int)id<_options.num_cameras);
             return _calib_IMUtoCAM.at(id);
+        }
+
+        /// Access to all current extrinsic calibration between IMU and each camera
+        std::unordered_map<size_t, PoseJPL*> get_calib_IMUtoCAMs() {
+            return _calib_IMUtoCAM;
         }
 
         /// Access to a given camera intrinsics

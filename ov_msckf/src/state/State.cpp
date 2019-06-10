@@ -5,35 +5,6 @@ using namespace ov_core;
 using namespace ov_msckf;
 
 
-Eigen::MatrixXd State::get_marginal_covariance(const std::vector<Type *> &small_variables) {
-
-    // Calculate the marginal covariance size we need ot make our matrix
-    int cov_size = 0;
-    for (size_t i = 0; i < small_variables.size(); i++) {
-        cov_size += small_variables[i]->size();
-    }
-
-    // Construct our return covariance
-    Eigen::MatrixXd Small_cov(cov_size, cov_size);
-
-    // For each variable, lets copy over all other variable cross terms
-    // Note: this copies over itself to when i_index=k_index
-    int i_index = 0;
-    for (size_t i = 0; i < small_variables.size(); i++) {
-        int k_index = 0;
-        for (size_t k = 0; k < small_variables.size(); k++) {
-            Small_cov.block(i_index, k_index, small_variables[i]->size(), small_variables[k]->size()) =
-                    _Cov.block(small_variables[i]->id(), small_variables[k]->id(), small_variables[i]->size(),
-                               small_variables[k]->size());
-            k_index += small_variables[k]->size();
-        }
-        i_index += small_variables[i]->size();
-    }
-
-    // Return the covariance
-    return Small_cov;
-}
-
 
 void State::initialize_variables() {
 

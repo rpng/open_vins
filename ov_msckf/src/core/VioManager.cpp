@@ -175,11 +175,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- max condition number: %.4f", featinit_options.max_cond_number);
 
     // Parameters for our extractor
-    int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist, sfm_window, sfm_min_feat;
+    int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
     bool use_klt, use_aruco, do_downsizing;
     nh.param<bool>("use_klt", use_klt, true);
-    nh.param<bool>("use_aruco", use_aruco, true);
+    nh.param<bool>("use_aruco", use_aruco, false);
     nh.param<int>("num_pts", num_pts, 500);
     nh.param<int>("num_aruco", num_aruco, 1024);
     nh.param<int>("fast_threshold", fast_threshold, 10);
@@ -188,8 +188,6 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<int>("min_px_dist", min_px_dist, 10);
     nh.param<double>("knn_ratio", knn_ratio, 0.85);
     nh.param<bool>("downsize_aruco", do_downsizing, true);
-    nh.param<int>("init_sfm_window", sfm_window, 10);
-    nh.param<int>("init_sfm_min_feat", sfm_min_feat, 15);
 
     // Debug, print to the console!
     ROS_INFO("TRACKING PARAMETERS:");
@@ -436,6 +434,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
 
 
+
     // Concatenate our MSCKF feature arrays (i.e., ones not being used for slam updates)
     std::vector<Feature*> featsup_MSCKF = feats_lost;
     featsup_MSCKF.insert(featsup_MSCKF.end(), feats_marg.begin(), feats_marg.end());
@@ -448,6 +447,11 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // Pass them to our MSCKF updater
     updaterMSCKF->update(state, featsup_MSCKF);
+
+
+    ROS_INFO("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)",state->imu()->quat()(0),state->imu()->quat()(1),
+             state->imu()->quat()(2),state->imu()->quat()(3),state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2),0.0);
+
 
 
     //===================================================================================

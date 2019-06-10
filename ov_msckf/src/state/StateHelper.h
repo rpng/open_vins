@@ -37,6 +37,17 @@ namespace ov_msckf {
         static void EKFUpdate(State *state, const std::vector<Type *> &H_order, const Eigen::MatrixXd &H,
                               const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
+        /**
+        * @brief For a given set of variables, this will this will calculate a smaller covariance.
+        *
+        * That only includes the ones specified with all crossterms.
+        * Thus the size of the return will be the summed dimension of all the passed variables.
+        * Normal use for this is a chi-squared check before update (where you don't need the full covariance).
+        *
+        * @param small_variables Vector of variables whose marginal covariance is desired
+        * @return marginal covariance of the passed variables
+        */
+        static Eigen::MatrixXd get_marginal_covariance(State *state, const std::vector<Type *> &small_variables);
 
         /**
          * @brief Marginalizes a variable, properly modifying the ordering/covariances in the state

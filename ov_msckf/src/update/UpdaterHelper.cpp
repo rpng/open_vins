@@ -116,7 +116,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, Feature* f
 
 
 
-void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::MatrixXd &res, std::vector<Type*> &x_order) {
+void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<Type*> &x_order) {
 
     // Total number of measurements for this feature
     int total_meas = 0;
@@ -136,12 +136,14 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
         // If doing calibration extrinsics
         if(state->options().do_calib_camera_pose) {
             map_hx.insert({calibration,total_hx});
+            x_order.push_back(calibration);
             total_hx += calibration->size();
         }
 
         // If doing calibration intrinsics
         if(state->options().do_calib_camera_intrinsics) {
             map_hx.insert({distortion,total_hx});
+            x_order.push_back(distortion);
             total_hx += distortion->size();
         }
 
@@ -152,6 +154,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             PoseJPL *clone_Ci = state->get_clone(feature->timestamps[pair.first].at(m));
             if(map_hx.find(clone_Ci) == map_hx.end()) {
                 map_hx.insert({clone_Ci,total_hx});
+                x_order.push_back(clone_Ci);
                 total_hx += clone_Ci->size();
             }
 
@@ -168,6 +171,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
         PoseJPL *clone_Ai = state->get_clone(feature->anchor_clone_timestamp);
         if(map_hx.find(clone_Ai) == map_hx.end()) {
             map_hx.insert({clone_Ai,total_hx});
+            x_order.push_back(clone_Ai);
             total_hx += clone_Ai->size();
         }
 
@@ -177,6 +181,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
             PoseJPL *clone_calib = state->get_calib_IMUtoCAM(feature->anchor_cam_id);
             if(map_hx.find(clone_calib) == map_hx.end()) {
                 map_hx.insert({clone_calib,total_hx});
+                x_order.push_back(clone_calib);
                 total_hx += clone_calib->size();
             }
         }
@@ -188,9 +193,9 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
 
     // Allocate our residual and Jacobians
     int c = 0;
-    res = Eigen::MatrixXd(2*total_meas,1);
-    H_f = Eigen::MatrixXd(2*total_meas,3);
-    H_x = Eigen::MatrixXd(2*total_meas,total_hx);
+    res = Eigen::VectorXd::Zero(2*total_meas);
+    H_f = Eigen::MatrixXd::Zero(2*total_meas,3);
+    H_x = Eigen::MatrixXd::Zero(2*total_meas,total_hx);
 
     // Loop through each camera for this feature
     for (auto const& pair : feature->timestamps) {
@@ -408,7 +413,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, Feature* feature, Ei
 }
 
 
-void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::MatrixXd &res) {
+void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res) {
 
     // Apply the left nullspace of H_f to all variables
     Eigen::JacobiRotation<double> tempHo_GR;
@@ -435,3 +440,46 @@ void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::Matri
     assert(H_f.rows()==res.rows());
 
 }
+
+
+
+
+void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::VectorXd &res) {
+
+
+    // Do measurement compression through givens rotations
+    Eigen::JacobiRotation<double> tempHo_GR;
+    for (int n=0; n<H_x.cols(); ++n) {
+        for (int m=(int)H_x.rows()-1; m>n; m--) {
+            // Givens matrix G
+            tempHo_GR.makeGivens(H_x(m-1,n), H_x(m,n));
+            // Multiply G to the corresponding lines (m-1,m) in each matrix
+            // Note: we only apply G to the nonzero cols [n:Ho.cols()-n-1], while
+            //       it is equivalent to applying G to the entire cols [0:Ho.cols()-1].
+            (H_x.block(m-1,n,2,H_x.cols()-n)).applyOnTheLeft(0,1,tempHo_GR.adjoint());
+            (res.block(m-1,0,2,1)).applyOnTheLeft(0,1,tempHo_GR.adjoint());
+        }
+    }
+
+    // Find rank of the system
+    int r = 0;
+    bool found_rank = false;
+    int n = (int)H_x.cols();
+    while (!found_rank && r < n+1 && r < H_x.rows()) {
+        double eps = H_x.block(r, 0, 1, H_x.cols()).squaredNorm();
+        if (eps < 1e-20) {
+            found_rank = true;
+        } else {
+            r++;
+        }
+    }
+
+    // Construct the smaller jacobian and residual after measurement compression
+    H_x.conservativeResize(r, H_x.cols());
+    res.conservativeResize(r, res.cols());
+
+
+}
+
+
+

@@ -52,7 +52,7 @@ namespace ov_msckf {
          * @param[out] res Measurement residual for this feature
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_full(State* state, Feature* feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::MatrixXd &res, std::vector<Type*> &x_order);
+        static void get_feature_jacobian_full(State* state, Feature* feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<Type*> &x_order);
 
 
         /**
@@ -66,7 +66,19 @@ namespace ov_msckf {
          * @param H_x State jacobian
          * @param res Measurement residual
          */
-        static void nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::MatrixXd &res);
+        static void nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res);
+
+
+        /**
+         * @brief This will perform measurement compression
+         *
+         * Please see the @ref update-compress for details on how this works.
+         * Note that this is done **in place** so all matrices will be different after a function call.
+         *
+         * @param H_x State jacobian
+         * @param res Measurement residual
+         */
+        static void measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::VectorXd &res);
 
 
 

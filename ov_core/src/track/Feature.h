@@ -3,6 +3,7 @@
 
 
 #include <vector>
+#include <iostream>
 #include <unordered_map>
 #include <Eigen/Eigen>
 
@@ -75,7 +76,7 @@ namespace ov_core {
             // NOTE: Thus we go from p_FinA and convert it to this form
             double a_rho = 1/p_FinA.norm();
             double a_phi = std::acos(a_rho*p_FinA(2));
-            double a_theta = std::asin(a_rho*p_FinA(1)/std::sin(a_phi));
+            double a_theta = std::atan2(p_FinA(1),p_FinA(0));
             p_invFinA(0) = a_theta;
             p_invFinA(1) = a_phi;
             p_invFinA(2) = a_rho;
@@ -100,7 +101,8 @@ namespace ov_core {
             // NOTE: Thus we go from p_FinG and convert it to this form
             double g_rho = 1/p_FinG.norm();
             double g_phi = std::acos(g_rho*p_FinG(2));
-            double g_theta = std::asin(g_rho*p_FinG(1)/std::sin(g_phi));
+            //double g_theta = std::asin(g_rho*p_FinG(1)/std::sin(g_phi));
+            double g_theta = std::atan2(p_FinG(1),p_FinG(0));
             p_invFinG(0) = g_theta;
             p_invFinG(1) = g_phi;
             p_invFinG(2) = g_rho;

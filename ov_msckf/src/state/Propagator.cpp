@@ -160,8 +160,8 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
     // Do the update to the covariance with our "summed" state transition and IMU noise addition...
     auto Cov = state->Cov();
     size_t imu_id = state->imu()->id();
-    Cov.block(imu_id,0,15,state->nVars()) = Phi_summed*Cov.block(imu_id,0,15,state->nVars());
-    Cov.block(0,imu_id,state->nVars(),15) = Cov.block(0,imu_id,state->nVars(),15)*Phi_summed.transpose();
+    Cov.block(imu_id,0,15, state->n_vars()) = Phi_summed*Cov.block(imu_id,0,15, state->n_vars());
+    Cov.block(0,imu_id, state->n_vars(),15) = Cov.block(0,imu_id, state->n_vars(),15)*Phi_summed.transpose();
     Cov.block(imu_id,imu_id,15,15) += Qd_summed;
 
     // Ensure the covariance is symmetric

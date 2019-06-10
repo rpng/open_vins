@@ -64,14 +64,16 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
     // Total number of measurements
     // Also set the first measurement to be the anchor frame
     int total_meas = 0;
-    bool anchor_set = false;
+    size_t anchor_most_meas = 0;
+    size_t most_meas = 0;
     for (auto const& pair : feat->timestamps) {
         total_meas += (int)pair.second.size();
-        if(!anchor_set) {
-            feat->anchor_cam_id = pair.first;
-            anchor_set = true;
+        if(pair.second.size() > most_meas) {
+            anchor_most_meas = pair.first;
+            most_meas = pair.second.size();
         }
     }
+    feat->anchor_cam_id = anchor_most_meas;
 
     // Our linear system matrices
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2*total_meas, 3);
@@ -129,13 +131,15 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
 
     // If we have a bad condition number, or it is too close
     // Then set the flag for bad (i.e. set z-axis to nan)
-    if (std::abs(condA) > _options.max_cond_number || p_f(2,0) < _options.min_dist || p_f(2,0) > _options.max_dist){
+    if (std::abs(condA) > _options.max_cond_number || p_f(2,0) < _options.min_dist || p_f(2,0) > _options.max_dist || std::isnan(p_f.norm())){
         return false;
     }
 
     // Store it in our feature object
     feat->p_FinA = p_f;
     feat->p_FinG = R_GtoA.transpose()*feat->p_FinA + p_AinG;
+    feat->set_anchor_from_xyz(feat->p_FinA);
+    feat->set_global_from_xyz(feat->p_FinG);
     return true;
 
 }
@@ -276,7 +280,6 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
     feat->p_FinA(0) = alpha/rho;
     feat->p_FinA(1) = beta/rho;
     feat->p_FinA(2) = 1/rho;
-    feat->set_anchor_from_xyz(feat->p_FinA);
 
     // Get tangent plane to x_hat
     Eigen::HouseholderQR<Eigen::MatrixXd> qr(feat->p_FinA);
@@ -306,14 +309,16 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
     // 2. If the feature is invalid
     // 3. If the baseline ratio is large
     if(feat->p_FinA(2) < _options.min_dist
-        || feat->p_FinA(2) > _options.max_dist ||
-        (feat->p_FinA.norm() / base_line_max) > _options.max_baseline) {
+        || feat->p_FinA(2) > _options.max_dist
+        || (feat->p_FinA.norm() / base_line_max) > _options.max_baseline
+        || std::isnan(feat->p_FinA.norm())) {
         return false;
     }
 
     // Finally get position in global frame
     feat->p_FinG = R_GtoA.transpose()*feat->p_FinA + p_AinG;
     feat->set_global_from_xyz(feat->p_FinG);
+    feat->set_anchor_from_xyz(feat->p_FinA);
 
     // We are good!
     return true;

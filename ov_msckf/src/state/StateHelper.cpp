@@ -19,7 +19,7 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     assert(H.rows() == res.rows());
 
 
-    Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->nVars(), res.rows());
+    Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->n_vars(), res.rows());
 
     std::vector<int> H_id;
     std::vector<bool> H_is_active;
@@ -50,7 +50,7 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     //==========================================================
     //==========================================================
     // Get covariance of the envolved terms
-    Eigen::MatrixXd P_small = state->get_marginal_covariance(H_order);
+    Eigen::MatrixXd P_small = StateHelper::get_marginal_covariance(state, H_order);
 
     // S = H*Cov*H' + R
     Eigen::MatrixXd S(R.rows(), R.rows());
@@ -71,6 +71,38 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     state->update(K * res);
 
 }
+
+
+
+Eigen::MatrixXd StateHelper::get_marginal_covariance(State *state, const std::vector<Type *> &small_variables) {
+
+    // Calculate the marginal covariance size we need ot make our matrix
+    int cov_size = 0;
+    for (size_t i = 0; i < small_variables.size(); i++) {
+        cov_size += small_variables[i]->size();
+    }
+
+    // Construct our return covariance
+    Eigen::MatrixXd Small_cov(cov_size, cov_size);
+
+    // For each variable, lets copy over all other variable cross terms
+    // Note: this copies over itself to when i_index=k_index
+    int i_index = 0;
+    for (size_t i = 0; i < small_variables.size(); i++) {
+        int k_index = 0;
+        for (size_t k = 0; k < small_variables.size(); k++) {
+            Small_cov.block(i_index, k_index, small_variables[i]->size(), small_variables[k]->size()) =
+                    state->_Cov.block(small_variables[i]->id(), small_variables[k]->id(), small_variables[i]->size(), small_variables[k]->size());
+            k_index += small_variables[k]->size();
+        }
+        i_index += small_variables[i]->size();
+    }
+
+    // Return the covariance
+    return Small_cov;
+}
+
+
 
 
 void StateHelper::marginalize(State *state, Type *marg) {
@@ -99,9 +131,9 @@ void StateHelper::marginalize(State *state, Type *marg) {
     int marg_size = marg->size();
     int marg_id = marg->id();
 
-    Eigen::MatrixXd Cov_new(state->nVars() - marg_size, state->nVars() - marg_size);
+    Eigen::MatrixXd Cov_new(state->n_vars() - marg_size, state->n_vars() - marg_size);
 
-    int x2_size = state->nVars() - marg_id - marg_size;
+    int x2_size = state->n_vars() - marg_id - marg_size;
 
     //P_(x_1,x_1)
     Cov_new.block(0, 0, marg_id, marg_id) = state->Cov().block(0, 0, marg_id, marg_id);
@@ -148,11 +180,11 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
 
     //Get total size of new cloned variables, and the old covariance size
     int total_size = variable_to_clone->size();
-    int old_size = (int) state->nVars();
-    int new_loc = (int) state->nVars();
+    int old_size = (int) state->n_vars();
+    int new_loc = (int) state->n_vars();
 
     // Resize both our covariance to the new size
-    state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->nVars() + total_size, state->nVars() + total_size));
+    state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->n_vars() + total_size, state->n_vars() + total_size));
 
     // What is the new state, and variable we inserted
     const std::vector<Type *> new_variables = state->variables();
@@ -259,7 +291,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
 
     Eigen::MatrixXd H_Linv = H_L.inverse();
 
-    Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->nVars(), res.rows());
+    Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->n_vars(), res.rows());
 
     std::vector<int> H_id;
     std::vector<bool> H_is_active;
@@ -289,7 +321,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     //==========================================================
     //==========================================================
     //Get covariance of this small jacobian
-    Eigen::MatrixXd P_small = state->get_marginal_covariance(H_order);
+    Eigen::MatrixXd P_small = StateHelper::get_marginal_covariance(state, H_order);
 
     // M = H_R*Cov*H_R' + R
     Eigen::MatrixXd M(H_R.rows(), H_R.rows());
@@ -299,10 +331,10 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     // Covariance of the variable/landmark that will be initialized
     Eigen::MatrixXd P_LL = H_Linv * M.selfadjointView<Eigen::Upper>() * H_Linv.transpose();
 
-    size_t oldSize = state->nVars();
+    size_t oldSize = state->n_vars();
 
-    state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->nVars() + new_variable->size(),
-                                                              state->nVars() + new_variable->size()));
+    state->Cov().conservativeResizeLike(Eigen::MatrixXd::Zero(state->n_vars() + new_variable->size(),
+                                                              state->n_vars() + new_variable->size()));
 
     state->Cov().block(0, oldSize, oldSize, new_variable->size()).noalias() = -M_a * H_Linv.transpose();
     state->Cov().block(oldSize, 0, new_variable->size(), oldSize) = state->Cov().block(0, oldSize, oldSize, new_variable->size()).transpose();
@@ -314,7 +346,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     new_variable->update(H_Linv * res);
 
     // Now collect results, and add it to the state variables
-    new_variable->set_local_id((int) (state->nVars() - new_variable->size()));
+    new_variable->set_local_id((int) (state->n_vars() - new_variable->size()));
     state->insert_variable(new_variable);
 
 
