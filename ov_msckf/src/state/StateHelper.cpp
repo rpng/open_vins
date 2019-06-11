@@ -1,5 +1,6 @@
 #include "StateHelper.h"
 #include "State.h"
+#include <boost/math/distributions/chi_squared.hpp>
 
 
 using namespace ov_core;
@@ -231,8 +232,8 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
 
 
 
-void StateHelper::initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
-                             Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res) {
+bool StateHelper::initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
+                             Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult) {
 
     //==========================================================
     //==========================================================
@@ -257,25 +258,46 @@ void StateHelper::initialize(State *state, Type *new_variable, const std::vector
 
 
     //Separate into initializing and updating portions
+
+    //Invertible initializing system
     Eigen::MatrixXd Hxinit = H_R.block(0, 0, new_var_size, H_R.cols());
-    Eigen::MatrixXd Hup = H_R.block(new_var_size, 0, H_R.rows() - new_var_size, H_R.cols());
-
     Eigen::MatrixXd H_finit = H_L.block(0, 0, new_var_size, new_var_size);
-
     Eigen::VectorXd resinit = res.block(0, 0, new_var_size, 1);
-    Eigen::VectorXd resup = res.block(new_var_size, 0, res.rows() - new_var_size, 1);
-
     Eigen::MatrixXd Rinit = R.block(0, 0, new_var_size, new_var_size);
+
+
+    //Nullspace projected updating system
+    Eigen::MatrixXd Hup = H_R.block(new_var_size, 0, H_R.rows() - new_var_size, H_R.cols());
+    Eigen::VectorXd resup = res.block(new_var_size, 0, res.rows() - new_var_size, 1);
     Eigen::MatrixXd Rup = R.block(new_var_size, new_var_size, R.rows() - new_var_size, R.rows() - new_var_size);
+
+    //Do mahalanobis distance testing
+    Eigen::MatrixXd P_up = get_marginal_covariance(state, H_order);
+
+    assert(Rup.rows() == Hup.rows());
+    assert(Hup.cols() == P_up.cols());
+    Eigen::MatrixXd S = Hup*P_up*Hup.transpose()+Rup;
+
+    double chi2 = resup.dot(S.llt().solve(resup));
+
+    boost::math::chi_squared chi_squared_dist(res.rows());
+    double chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
+
+    if (chi2 > chi_2_mult*chi2_check){
+        return false;
+    }
 
     //===========================================
     // Finally, initialize it in our state
     StateHelper::initialize_invertible(state, new_variable, H_order, Hxinit, H_finit, Rinit, resinit);
 
+
     //Update with updating portion
     if (Hup.rows() > 0) {
         StateHelper::EKFUpdate(state, H_order, Hup, resup, Rup);
     }
+
+    return true;
 
 }
 
@@ -394,6 +416,5 @@ void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w
     }
 
 }
-
 
 

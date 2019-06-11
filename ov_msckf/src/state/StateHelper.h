@@ -3,6 +3,7 @@
 
 
 #include "State.h"
+#include "types/Landmark.h"
 
 
 /**
@@ -88,8 +89,8 @@ namespace ov_msckf {
          * @param R Covariance of initializing measurements (isotropic)
          * @param res Residual of initializing measurements
          */
-        static void initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
-                               Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res);
+        static bool initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
+                               Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult);
 
 
         /**
@@ -139,6 +140,24 @@ namespace ov_msckf {
                 state->erase_clone(margTime);
             }
         }
+
+        /** @brief Marginalize bad SLAM features
+         *  @param state Pointer to state
+         */
+        static void marginalize_slam(State* state) {
+            // Remove SLAM features that have their marginalization flag set
+            // We also check that we do not remove any aruoctag landmarks
+            auto it0 = state->features_SLAM().begin();
+            while(it0 != state->features_SLAM().end()) {
+                if((*it0).second->should_marg) {
+                    StateHelper::marginalize(state, (*it0).second);
+                    it0 = state->features_SLAM().erase(it0);
+                } else {
+                    it0++;
+                }
+            }
+        }
+
 
 
     private:

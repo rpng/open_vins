@@ -20,6 +20,7 @@ using namespace ov_core;
  */
 namespace ov_msckf {
 
+    class Landmark;
 
     /**
      * @brief State of our filter
@@ -155,6 +156,16 @@ namespace ov_msckf {
             return _cam_intrinsics_model.at(id);
         }
 
+        /// Add a SLAM feature
+        void insert_SLAM_feature(size_t featid, Landmark* landmark){
+            _features_SLAM.insert({featid, landmark});
+        }
+
+        /// Access SLAM features
+        std::unordered_map<size_t, Landmark*> &features_SLAM(){
+            return _features_SLAM;
+        }
+
 
     protected:
 
@@ -171,7 +182,7 @@ namespace ov_msckf {
         std::unordered_map<double, PoseJPL*> _clones_IMU;
 
         /// Our current set of SLAM features (3d positions)
-        //std::map<size_t, Landmark*> _features_SLAM;
+        std::unordered_map<size_t, Landmark*> _features_SLAM;
 
         /// Time offset base IMU to camera (t_imu = t_cam + t_off)
         Vec *_calib_dt_CAMtoIMU;

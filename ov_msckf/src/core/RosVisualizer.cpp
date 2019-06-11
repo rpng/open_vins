@@ -189,6 +189,39 @@ void RosVisualizer::publish_features() {
     // Publish
     pub_points_msckf.publish(cloud);
 
+
+    // Get our good features
+    std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
+
+    // Declare message and sizes
+    sensor_msgs::PointCloud2 cloud_SLAM;
+    cloud_SLAM.header.frame_id = "global";
+    cloud_SLAM.header.stamp = ros::Time::now();
+    cloud_SLAM.width  = 3*feats_slam.size();
+    cloud_SLAM.height = 1;
+    cloud_SLAM.is_bigendian = false;
+    cloud_SLAM.is_dense = false; // there may be invalid points
+
+    // Setup pointcloud fields
+    sensor_msgs::PointCloud2Modifier modifier_SLAM(cloud_SLAM);
+    modifier_SLAM.setPointCloud2FieldsByString(1,"xyz");
+    modifier_SLAM.resize(3*feats_slam.size());
+
+    // Iterators
+    sensor_msgs::PointCloud2Iterator<float> out_x_SLAM(cloud_SLAM, "x");
+    sensor_msgs::PointCloud2Iterator<float> out_y_SLAM(cloud_SLAM, "y");
+    sensor_msgs::PointCloud2Iterator<float> out_z_SLAM(cloud_SLAM, "z");
+
+    // Fill our iterators
+    for(const auto &pt : feats_slam) {
+        *out_x_SLAM = pt(0); ++out_x_SLAM;
+        *out_y_SLAM = pt(1); ++out_y_SLAM;
+        *out_z_SLAM = pt(2); ++out_z_SLAM;
+    }
+
+    // Publish
+    pub_points_slam.publish(cloud_SLAM);
+
 }
 
 

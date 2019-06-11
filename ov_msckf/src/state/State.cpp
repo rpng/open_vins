@@ -58,4 +58,3 @@ void State::initialize_variables() {
 
 }
 
-

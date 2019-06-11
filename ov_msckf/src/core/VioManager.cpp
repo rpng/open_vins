@@ -1,4 +1,5 @@
 #include "VioManager.h"
+#include "types/Landmark.h"
 
 
 
@@ -273,6 +274,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Make the updater!
     updaterMSCKF = new UpdaterMSCKF(msckf_options, featinit_options);
+    updaterSLAM = new UpdaterSLAM(msckf_options, featinit_options);
 
 
 }
@@ -439,7 +441,65 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     }
 
 
-    // TODO: do some SLAM feature logic here!!!!
+    //Find tracks that have reached max length, these can be made into SLAM features
+    std::vector<Feature*> feats_maxtracks;
+    auto it2 = feats_marg.begin();
+    while(it2 != feats_marg.end()) {
+
+        bool reached_max = false;
+        for (auto cams: (*it2)->timestamps){
+            if (cams.second.size() > state->options().max_clone_size){
+                reached_max = true;
+                break;
+            }
+        }
+
+        if(reached_max) {
+            feats_maxtracks.push_back(*it2);
+            it2 = feats_marg.erase(it2);
+        } else {
+            it2++;
+        }
+    }
+
+    // Append a new SLAM feature if we have the room to do so
+    if(state->options().max_slam_features > 0 && (int)state->features_SLAM().size() < state->options().max_slam_features) {
+        // Get the total amount to add, then the max amount that we can add given our marginalize feature array
+        int amount_to_add = state->options().max_slam_features-(int)state->features_SLAM().size();
+        int valid_amount = (amount_to_add > (int)feats_maxtracks.size())? (int)feats_maxtracks.size() : amount_to_add;
+        // If we have at least 1 that we can add, lets add it!
+        // Note: we remove them from the feat_marg array since we don't want to reuse information...
+        if(valid_amount > 0) {
+            feats_slam.insert(feats_slam.end(), feats_maxtracks.end()-valid_amount, feats_maxtracks.end());
+            feats_maxtracks.erase(feats_maxtracks.end()-valid_amount, feats_maxtracks.end());
+        }
+    }
+
+    // Loop through current SLAM features, we have tracks of them, grab them for this update!
+    // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
+    // Note: these types of klt slam features seem to *degrade* the estimator performance....
+    for (std::pair<const size_t, Landmark*> &landmark : state->features_SLAM()) {
+        Feature* feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->featid());
+        if(feat2 != nullptr) feats_slam.push_back(feat2);
+        if(feat2 == nullptr) landmark.second->should_marg = true;
+    }
+
+    // Lets marginalize out all old SLAM features here
+    // These are ones that where not successfully tracked into the current frame
+    // We do *NOT* marginalize out our aruco tags
+    StateHelper::marginalize_slam(state);
+
+    // Separate our SLAM features into new ones, and old ones
+    std::vector<Feature*> feats_slam_DELAYED, feats_slam_UPDATE;
+    for(size_t i=0; i<feats_slam.size(); i++) {
+        if(state->features_SLAM().find(feats_slam.at(i)->featid) != state->features_SLAM().end()) {
+            feats_slam_UPDATE.push_back(feats_slam.at(i));
+            //ROS_INFO("[UPDATE-SLAM]: found old feature %d (%d measurements)",(int)feats_slam.at(i)->featid,(int)feats_slam.at(i)->timestamps_left.size());
+        } else {
+            feats_slam_DELAYED.push_back(feats_slam.at(i));
+            //ROS_INFO("[UPDATE-SLAM]: new feature ready %d (%d measurements)",(int)feats_slam.at(i)->featid,(int)feats_slam.at(i)->timestamps_left.size());
+        }
+    }
 
 
 
@@ -447,12 +507,15 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Concatenate our MSCKF feature arrays (i.e., ones not being used for slam updates)
     std::vector<Feature*> featsup_MSCKF = feats_lost;
     featsup_MSCKF.insert(featsup_MSCKF.end(), feats_marg.begin(), feats_marg.end());
+    featsup_MSCKF.insert(featsup_MSCKF.end(), feats_maxtracks.begin(), feats_maxtracks.end());
 
 
     //===================================================================================
     // Now that we have a list of features, lets do the EKF update for MSCKF and SLAM!
     //===================================================================================
 
+    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
+    updaterSLAM->update(state, feats_slam_UPDATE);
 
     // Pass them to our MSCKF updater
     updaterMSCKF->update(state, featsup_MSCKF);
@@ -481,6 +544,8 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Cleanup, marginalize out what we don't need any more...
     //===================================================================================
 
+    //First do anchor change if we are about to lose an anchor pose
+    updaterSLAM->change_anchors(state);
 
     // Marginalize the oldest clone of the state if we are at max length
     StateHelper::marginalize_old_clone(state);

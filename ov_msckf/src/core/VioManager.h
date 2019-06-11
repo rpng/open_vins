@@ -15,6 +15,8 @@
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "update/UpdaterMSCKF.h"
+#include "update/UpdaterSLAM.h"
+#include "types/Landmark.h"
 
 
 /**
@@ -99,6 +101,17 @@ namespace ov_msckf {
         }
 
 
+        /// Returns 3d SLAM features
+        std::vector<Eigen::Vector3d> get_features_SLAM() {
+            std::vector<Eigen::Vector3d> slam_feats;
+
+            for (auto &f : state->features_SLAM()){
+                slam_feats.push_back(f.second->get_global_xyz(state));
+            }
+            return slam_feats;
+        }
+
+
 
     protected:
 
@@ -141,6 +154,9 @@ namespace ov_msckf {
 
         /// Our MSCKF feature updater
         UpdaterMSCKF* updaterMSCKF;
+
+        /// Our MSCKF feature updater
+        UpdaterSLAM* updaterSLAM;
 
         /// Good features that where used in the last update
         std::vector<Eigen::Vector3d> good_features_MSCKF;

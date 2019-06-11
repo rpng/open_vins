@@ -143,7 +143,6 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         if(chi2 > _options.chi2_multipler*chi2_check) {
             (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
-            std::cout << "chi2 failed - " << chi2 << " > " << _options.chi2_multipler*chi2_check << std::endl;
             continue;
         }
 
