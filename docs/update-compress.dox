@@ -80,7 +80,7 @@ Thus we can use the above equation as our Jacobian in our update step.
 
 \f{align*}{
     \hat{\mathbf{x}}_{k|z} 
-    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k} \mathbf{H}_n^\top (\mathbf{H}_n \mathbf{P}_{k} \mathbf{H}_n^\top + \mathbf{R}_n)^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\[5px]
+    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k} \mathbf{H}_n^\top (\mathbf{H}_n \mathbf{P}_{k} \mathbf{H}_n^\top + \mathbf{R}_n)^{-1}(\mathbf{z}_n - \hat{\mathbf{z}}_n) \\[5px]
 \empty
     \mathbf{P}_{xx|z} 
     &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}_n^\top (\mathbf{H}_n \mathbf{P}_{k} \mathbf{H}_n^\top + \mathbf{R}_n)^{-1} \mathbf{H}_n\mathbf{P}_{k}^\top

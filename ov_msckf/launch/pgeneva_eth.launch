@@ -12,7 +12,7 @@
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
-        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
+<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />-->
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />-->
 <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_02_medium.csv" />-->
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_03_difficult.bag" />-->
