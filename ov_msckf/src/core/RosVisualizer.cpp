@@ -35,6 +35,12 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app) : _nh(nh), _a
     pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
     ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
 
+    // Load groundtruth if we have it
+    if (nh.hasParam("path_gt")) {
+        std::string path_to_gt;
+        nh.param<std::string>("path_gt", path_to_gt, "");
+        load_gt_file(path_to_gt, gt_states);
+    }
 
 }
 
@@ -55,6 +61,9 @@ void RosVisualizer::visualize() {
 
     // publish points
     publish_features();
+
+    // Publish gt if we have it
+    publish_groundtruth();
 
 }
 
@@ -226,7 +235,90 @@ void RosVisualizer::publish_features() {
 
 
 
+void RosVisualizer::publish_groundtruth() {
 
+    // Return if we don't have gt states
+    if(gt_states.empty())
+        return;
+
+    // Check that we have the timestamp in our GT file [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
+    Eigen::Matrix<double,17,1> state_gt;
+    if(!get_gt_state(_app->get_state()->timestamp(), state_gt, gt_states)) {
+        return;
+    }
+
+    // Get the GT and system state state
+    Eigen::Matrix<double,16,1> state_ekf = _app->get_state()->imu()->value();
+
+    // Create pose of IMU
+    geometry_msgs::PoseStamped poseIinM;
+    poseIinM.header.stamp = ros::Time(_app->get_state()->timestamp());
+    poseIinM.header.seq = poses_seq_gt;
+    poseIinM.header.frame_id = "global";
+    poseIinM.pose.orientation.x = state_gt(1,0);
+    poseIinM.pose.orientation.y = state_gt(2,0);
+    poseIinM.pose.orientation.z = state_gt(3,0);
+    poseIinM.pose.orientation.w = state_gt(4,0);
+    poseIinM.pose.position.x = state_gt(5,0);
+    poseIinM.pose.position.y = state_gt(6,0);
+    poseIinM.pose.position.z = state_gt(7,0);
+    pub_posegt.publish(poseIinM);
+
+    // Append to our pose vector
+    poses_gt.push_back(poseIinM);
+
+    // Create our path (imu)
+    nav_msgs::Path arrIMU;
+    arrIMU.header.stamp = ros::Time::now();
+    arrIMU.header.seq = poses_seq_gt;
+    arrIMU.header.frame_id = "global";
+    arrIMU.poses = poses_gt;
+    pub_pathgt.publish(arrIMU);
+
+    // Move them forward in time
+    poses_seq_gt++;
+
+    // Publish our transform on TF
+    tf::StampedTransform trans;
+    trans.stamp_ = ros::Time::now();
+    trans.frame_id_ = "global";
+    trans.child_frame_id_ = "truth";
+    tf::Quaternion quat(state_gt(1,0),state_gt(2,0),state_gt(3,0),state_gt(4,0));
+    trans.setRotation(quat);
+    tf::Vector3 orig(state_gt(5,0),state_gt(6,0),state_gt(7,0));
+    trans.setOrigin(orig);
+    mTfBr->sendTransform(trans);
+
+    //==========================================================================
+    //==========================================================================
+
+    // Difference between positions
+    double dx = state_ekf(4,0)-state_gt(5,0);
+    double dy = state_ekf(5,0)-state_gt(6,0);
+    double dz = state_ekf(6,0)-state_gt(7,0);
+    double rmse_pos = std::sqrt(dx*dx+dy*dy+dz*dz);
+
+    // Quaternion error
+    Eigen::Matrix<double,4,1> quat_gt,quat_st, quat_diff;
+    quat_gt << state_gt(1,0),state_gt(2,0),state_gt(3,0),state_gt(4,0);
+    quat_st << state_ekf(0,0),state_ekf(1,0),state_ekf(2,0),state_ekf(3,0);
+    quat_diff = quat_multiply(quat_st,Inv(quat_gt));
+    double rmse_ori = (180/M_PI)*2*quat_diff.block(0,0,3,1).norm();
+
+    // Update our average variables
+    summed_rmse_ori += rmse_ori;
+    summed_rmse_pos += rmse_pos;
+    summed_number++;
+
+    // Nice display for the user
+    ROS_INFO("\033[0;95merror to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m)\033[0m",rmse_ori,rmse_pos,summed_rmse_ori/summed_number,summed_rmse_pos/summed_number);
+
+    //==========================================================================
+    //==========================================================================
+
+
+
+}
 
 
 
