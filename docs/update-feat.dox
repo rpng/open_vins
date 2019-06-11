@@ -1,10 +1,12 @@
 /**
 
 
-@page update-feat Feature Bearing Update
+@page update-feat Camera Measurement Update
 @tableofcontents
 
-@section model General Measurement Equation
+
+
+@section model Perspective Projection (Bearing) Measurement Model
 
 
 Consider a 3D feature that has been tracked over a window of poses in a camera.
