@@ -23,6 +23,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<bool>("use_imuavg", state_options.imu_avg, false);
     nh.param<bool>("calib_cam_extrinsics", state_options.do_calib_camera_pose, false);
     nh.param<bool>("calib_cam_intrinsics", state_options.do_calib_camera_intrinsics, false);
+    nh.param<bool>("calib_cam_timeoffset", state_options.do_calib_camera_timeoffset, false);
     nh.param<bool>("calib_camimu_dt", state_options.do_calib_camera_timeoffset, false);
     nh.param<int>("max_clones", state_options.max_clone_size, 10);
     nh.param<int>("max_slam", state_options.max_slam_features, 0);
@@ -434,7 +435,9 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     std::vector<Feature*> feats_lost, feats_marg, feats_slam;
     feats_lost = trackFEATS->get_feature_database()->features_not_containing_newer(state->timestamp());
     feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep());
-    feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep());
+    if(trackARUCO != nullptr) {
+        feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep());
+    }
 
     // We also need to make sure that the max tracks does not contain any lost features
     // This could happen if the feature was lost in the last frame, but has a measurement at the marg timestep
@@ -554,8 +557,9 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // This allows for measurements to be used in the future if they failed to be used this time
     // Note we need to do this before we feed a new image, as we want all new measurements to NOT be deleted
     trackFEATS->get_feature_database()->cleanup();
-    trackARUCO->get_feature_database()->cleanup();
-
+    if(trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup();
+    }
 
     //===================================================================================
     // Cleanup, marginalize out what we don't need any more...
