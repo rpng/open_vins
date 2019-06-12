@@ -3,12 +3,13 @@
 
 
 #include <Eigen/Eigen>
-#include "track/Feature.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
+#include "feat/Feature.h"
+#include "feat/FeatureInitializer.h"
+#include "feat/FeatureInitializerOptions.h"
 #include "utils/quat_ops.h"
-#include "utils/FeatureInitializer.h"
-#include "utils/FeatureInitializerOptions.h"
+
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
 
@@ -74,14 +75,6 @@ namespace ov_msckf {
 
 
     protected:
-
-
-        /**
-         * @brief Given a feature this will remove all measurements that do not have a corresponding state clone.         *
-         * @param feature Feature with measurements we want to clean
-         */
-        void clean_feature(State *state, Feature* feature);
-
 
 
         /// Options used during update

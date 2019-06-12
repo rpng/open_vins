@@ -10,9 +10,12 @@ Given a prior distribution (probability density function or pdf) for a Gaussian 
 \f$ \mathbf x\sim \mathcal N (\hat{\mathbf x}^\ominus, \mathbf P_{xx}^\ominus)\f$ with dimension of \f$n\f$ and a new \f$m\f$ dimentional measurement \f$\mathbf{z}_m = \mathbf z + \mathbf n = \mathbf h(\mathbf x) + \mathbf n \f$, 
 which is corrupted by zero-mean white Gaussian noise independent of state, \f$ \mathbf n \sim \mathcal N(\mathbf 0, \mathbf R)\f$,
 we want to compute the first two (central) moments of the posterior pdf \f$ p(\mathbf x|\mathbf z_m)\f$;
-that is, generally (given a nonlinear measurement model), we approxiamte the posterior pdf as:
+that is, generally (given a nonlinear measurement model), we approximate the posterior pdf as:
 \f$ p(\mathbf x|\mathbf z_m) \simeq \mathcal N (\hat{\mathbf x}^\oplus, \mathbf P_{xx}^\oplus)\f$.
 By design, this is the (approximate) solution to the MMSE estimation problem [[Kay 1993]](http://users.isr.ist.utl.pt/~pjcro/temp/Fundamentals%20Of%20Statistical%20Signal%20Processing--Estimation%20Theory-Kay.pdf).
+
+
+@section conditional-pdf Conditional Probability Distribution
 
 To this end, we employ the Bayes Rule:
 
@@ -165,7 +168,7 @@ These are the fundamental equations for (linear) state estimation.
 
 
 
-@subsection linear-meas Linear measurement model
+@section linear-meas Linear measurement model
 
 As a special case, we consider a simple linear measurement model to illustrate the linear MMSE estimator:
 

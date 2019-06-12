@@ -445,15 +445,13 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     std::vector<Feature*> feats_maxtracks;
     auto it2 = feats_marg.begin();
     while(it2 != feats_marg.end()) {
-
         bool reached_max = false;
         for (auto cams: (*it2)->timestamps){
-            if (cams.second.size() > state->options().max_clone_size){
+            if ((int)cams.second.size() > state->options().max_clone_size){
                 reached_max = true;
                 break;
             }
         }
-
         if(reached_max) {
             feats_maxtracks.push_back(*it2);
             it2 = feats_marg.erase(it2);
@@ -479,7 +477,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
     // Note: these types of klt slam features seem to *degrade* the estimator performance....
     for (std::pair<const size_t, Landmark*> &landmark : state->features_SLAM()) {
-        Feature* feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->featid());
+        Feature* feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->_featid);
         if(feat2 != nullptr) feats_slam.push_back(feat2);
         if(feat2 == nullptr) landmark.second->should_marg = true;
     }

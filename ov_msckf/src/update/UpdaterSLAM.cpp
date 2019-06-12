@@ -12,13 +12,18 @@ using namespace ov_msckf;
 void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec) {
 
 
+    // 0. Get all timestamps our clones are at (and thus valid measurement times)
+    std::vector<double> clonetimes;
+    for(const auto& clone_imu : state->get_clones()) {
+        clonetimes.emplace_back(clone_imu.first);
+    }
+
     // 1. Clean all feature measurements and make sure they all have valid clone times
     auto it0 = feature_vec.begin();
-
     while(it0 != feature_vec.end()) {
 
         // Clean the feature
-        clean_feature(state, *it0);
+        (*it0)->clean_old_measurements(clonetimes);
 
         // Count how many measurements
         int ct_meas = 0;
@@ -59,9 +64,12 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
     }
 
 
+
     // TODO:!@#!@#!#!#!@#!@#!#!#!@#!#!@#!@#!#!@$!@#$!@$!@#!@#!@#!@#!@#!@!##@
     // TODO: Re-normalized image uvs here with the current best guess
     // TODO:!@#!@#!#!#!@#!@#!#!#!@#!#!@#!@#!#!@$!@#$!@$!@#!@#!@#!@#!@#!@!##@
+
+
 
     // 3. Try to triangulate all MSCKF or new SLAM features that have measurements
     auto it1 = feature_vec.begin();
@@ -90,6 +98,17 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
     auto it2 = feature_vec.begin();
     while(it2 != feature_vec.end()) {
 
+        // Convert our feature into our current format
+        UpdaterHelper::UpdaterHelperFeature feat;
+        feat.featid = (*it2)->featid;
+        feat.uvs = (*it2)->uvs;
+        feat.uvs_norm = (*it2)->uvs_norm;
+        feat.timestamps = (*it2)->timestamps;
+        feat.anchor_cam_id = (*it2)->anchor_cam_id;
+        feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
+        feat.p_FinA = (*it2)->p_FinA;
+        feat.p_FinG = (*it2)->p_FinG;
+
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
         Eigen::MatrixXd H_x;
@@ -97,43 +116,54 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         std::vector<Type*> Hx_order;
 
         // Get the Jacobian for this feature
-        UpdaterHelper::get_feature_jacobian_full(state, *it2, H_f, H_x, res, Hx_order);
+        UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
 
         //Create feature pointer
         Landmark* landmark = new Landmark();
-        landmark->set_from_feature(state, (*it2));
+        landmark->_featid = feat.featid;
+        landmark->_anchor_cam_id = feat.anchor_cam_id;
+        landmark->_anchor_clone_timestamp = feat.anchor_clone_timestamp;
+        landmark->set_from_global_xyz(state, feat.p_FinG);
 
+        // Measurement noise matrix
         Eigen::MatrixXd R = _options.sigma_pix_sq*Eigen::MatrixXd::Identity(res.rows(), res.rows());
 
-        //Try to initialize, delete new pointer if we failed
+        // Try to initialize, delete new pointer if we failed
         if (StateHelper::initialize(state, landmark, Hx_order, H_x, H_f, R, res, _options.chi2_multipler)){
             state->insert_SLAM_feature((*it2)->featid, landmark);
-        }
-        else{
+            (*it2)->to_delete = true;
+            it2++;
+        } else {
             delete landmark;
+            (*it2)->to_delete = true;
+            it2 = feature_vec.erase(it2);
         }
 
-        it2++;
-
     }
 
-    // We have appended all features to our Hx_big, res_big
-    // Delete it so we do not reuse information
-    for (size_t f=0; f < feature_vec.size(); f++){
-        feature_vec[f]->to_delete = true;
-    }
 }
+
+
+
+
+
 
 void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
 
+    // 0. Get all timestamps our clones are at (and thus valid measurement times)
+    std::vector<double> clonetimes;
+    for(const auto& clone_imu : state->get_clones()) {
+        clonetimes.emplace_back(clone_imu.first);
+    }
+
+
     // 1. Clean all feature measurements and make sure they all have valid clone times
     auto it0 = feature_vec.begin();
-
     while(it0 != feature_vec.end()) {
 
         // Clean the feature
-        clean_feature(state, *it0);
+        (*it0)->clean_old_measurements(clonetimes);
 
         // Count how many measurements
         int ct_meas = 0;
@@ -162,7 +192,6 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // Calculate max possible state size (i.e. the size of our covariance)
     size_t max_hx_size = state->n_vars();
-    //max_hx_size -= 3*state->get_slam_feats();
 
     // Large Jacobian and residual of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
@@ -179,11 +208,23 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     auto it2 = feature_vec.begin();
     while(it2 != feature_vec.end()) {
 
+        // Ensure we have the landmark and it is the same
+        assert(features_SLAM.find((*it2)->featid) != features_SLAM.end());
+        assert(features_SLAM.at((*it2)->featid)->_featid == (*it2)->featid);
 
-        Landmark* landmark = features_SLAM[(*it2)->featid];
-        assert(landmark != nullptr);
+        // Get our landmark from the state
+        Landmark* landmark = features_SLAM.at((*it2)->featid);
 
-        landmark->set_feature_from_landmark(state, *it2);
+        // Convert the state landmark into our current format
+        UpdaterHelper::UpdaterHelperFeature feat;
+        feat.featid = (*it2)->featid;
+        feat.uvs = (*it2)->uvs;
+        feat.uvs_norm = (*it2)->uvs_norm;
+        feat.timestamps = (*it2)->timestamps;
+        feat.anchor_cam_id = landmark->_anchor_cam_id;
+        feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
+        feat.p_FinA = landmark->get_anchor_xyz(state);
+        feat.p_FinG = landmark->get_global_xyz(state);
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
@@ -192,7 +233,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         std::vector<Type*> Hx_order;
 
         // Get the Jacobian for this feature
-        UpdaterHelper::get_feature_jacobian_full(state, *it2, H_f, H_x, res, Hx_order);
+        UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
 
         //Place Jacobians in one big Jacobian, since the landmark is already in our state vector
         Eigen::MatrixXd H_xf = H_x;
@@ -207,7 +248,6 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         Eigen::MatrixXd S = H_xf*P_marg*H_xf.transpose();
         S.diagonal() += _options.sigma_pix_sq*Eigen::VectorXd::Ones(S.rows());
         double chi2 = res.dot(S.llt().solve(res));
-
 
         // Get our threshold (we precompute up to 500 but handle the case that it is more)
         double chi2_check;
@@ -268,164 +308,118 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     Eigen::MatrixXd R_big = _options.sigma_pix_sq*Eigen::MatrixXd::Identity(res_big.rows(),res_big.rows());
 
 
-    std::cout << "Updating with- " << ct_meas << std::endl;
     // 6. With all good SLAM features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
+    std::cout << "updated with " << ct_meas << " slam measurements" << std::endl;
 
 }
 
 
 
 
-void UpdaterSLAM::clean_feature(State *state, Feature* feature) {
 
-    // Loop through each of the cameras we have
-    for(auto const &pair : feature->timestamps) {
+void UpdaterSLAM::change_anchors(State* state){
 
-        // Assert that we have all the parts of a measurement
-        assert(feature->timestamps[pair.first].size() == feature->uvs[pair.first].size());
-        assert(feature->timestamps[pair.first].size() == feature->uvs_norm[pair.first].size());
+    // If we do not have an anchored representation, just return
+    if (state->options().feat_representation == StateOptions::GLOBAL_3D ||
+        state->options().feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
+        return;
+    }
 
-        // Our iterators
-        auto it1 = feature->timestamps[pair.first].begin();
-        auto it2 = feature->uvs[pair.first].begin();
-        auto it3 = feature->uvs_norm[pair.first].begin();
 
-        // Loop through measurement times, remove ones that are not in our clone times
-        while (it1 != feature->timestamps[pair.first].end()) {
-            if (state->get_clones().find(*it1) == state->get_clones().end()) {
-                it1 = feature->timestamps[pair.first].erase(it1);
-                it2 = feature->uvs[pair.first].erase(it2);
-                it3 = feature->uvs_norm[pair.first].erase(it3);
-            } else {
-                ++it1;
-                ++it2;
-                ++it3;
-            }
+    // Return if we do not have enough clones
+    if ((int) state->n_clones() <= state->options().max_clone_size) {
+        return;
+    }
+
+    // Get the marginalization timestep, and change the anchor for any feature seen from it
+    // NOTE: for now we have anchor the feature in the same camera as it is before
+    // NOTE: this also does not change the representation of the feature at all right now
+    double marg_timestep = state->margtimestep();
+    for (auto &f : state->features_SLAM()){
+        assert(marg_timestep <= f.second->_anchor_clone_timestamp);
+        if (f.second->_anchor_clone_timestamp == marg_timestep){
+            perform_anchor_change(state, f.second, state->timestamp(), f.second->_anchor_cam_id);
         }
     }
 
 }
 
+
+
+
 void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id){
 
-    // Get temp features
-    Feature* old_feature = new Feature();
-    Feature* new_feature = new Feature();
 
-    landmark->set_feature_from_landmark(state, old_feature);
-
-    Eigen::Matrix<double,3,1> p_FinG = old_feature->p_FinG;
-
-    // Get old anchor clone
-    PoseJPL* old_clone = state->get_clone(old_feature->anchor_clone_timestamp);
-
-    // Get old anchor camera
-    PoseJPL* old_cam = state->get_calib_IMUtoCAM(old_feature->anchor_cam_id);
-
-    // Get new anchor clone
-    PoseJPL* new_clone = state->get_clone(new_anchor_timestamp);
-
-    //Get new anchor camera
-    PoseJPL* new_cam = state->get_calib_IMUtoCAM(new_cam_id);
-
-    //Compute new anchor estimate
-    Eigen::Matrix<double,3,1> p_FinAnew = new_cam->Rot()*new_clone->Rot()*(p_FinG-new_clone->pos())+new_cam->pos();
-
-    //Store new anchor clone and camera
-    new_feature->anchor_clone_timestamp = new_anchor_timestamp;
-    new_feature->anchor_cam_id = new_cam_id;
-
-    //Set new estimates in new feature
-    new_feature->set_global_from_xyz(p_FinG);
-    new_feature->set_anchor_from_xyz(p_FinAnew);
-    new_feature->featid = landmark->featid();
-
-    assert(old_clone != new_clone);
+    // Create current feature representation
+    UpdaterHelper::UpdaterHelperFeature old_feat;
+    old_feat.featid = landmark->_featid;
+    old_feat.anchor_cam_id = landmark->_anchor_cam_id;
+    old_feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
+    old_feat.p_FinA = landmark->get_anchor_xyz(state);
+    old_feat.p_FinG = landmark->get_global_xyz(state);
 
 
-    //Get Jacobians of p_FinG wrt old representation
+    // Get Jacobians of p_FinG wrt old representation
     Eigen::Matrix<double,3,3> H_f_old;
     std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> H_x_old;
     std::vector<Type*> x_order_old;
-
-    UpdaterHelper::get_feature_jacobian_representation(state, old_feature, H_f_old,
-                                                       H_x_old, x_order_old);
+    UpdaterHelper::get_feature_jacobian_representation(state, old_feat, H_f_old, H_x_old, x_order_old);
 
 
-    //Get Jacobians of p_FinG wrt new representation
+    // Create future feature representation
+    UpdaterHelper::UpdaterHelperFeature new_feat;
+    new_feat.featid = landmark->_featid;
+    new_feat.anchor_cam_id = new_cam_id;
+    new_feat.anchor_clone_timestamp = new_anchor_timestamp;
+    new_feat.p_FinA = landmark->get_anchor_xyz(state);
+    new_feat.p_FinG = landmark->get_global_xyz(state);
+
+
+    // Get Jacobians of p_FinG wrt new representation
     Eigen::Matrix<double,3,3> H_f_new;
     std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> H_x_new;
     std::vector<Type*> x_order_new;
+    UpdaterHelper::get_feature_jacobian_representation(state, new_feat, H_f_new, H_x_new, x_order_new);
 
-    UpdaterHelper::get_feature_jacobian_representation(state, new_feature, H_f_new,
-                                                      H_x_new, x_order_new);
 
     // Anchor change Jacobian
     Eigen::MatrixXd Phi(3, state->Cov().rows());
     Phi.setZero();
 
+    // Inverse of our new representation
+    // pf_new_error = Hfnew^{-1}*(Hfold*pf_olderror+Hxold*x_olderror+Hxnew*x_newerror)
     Eigen::Matrix<double,3,3> H_f_new_inv = H_f_new.inverse();
 
-    //Place Jacobians for old anchor
+    // Place Jacobians for old anchor
     for (size_t i = 0; i < H_x_old.size(); i++){
         Phi.block(0,x_order_old[i]->id(),3,x_order_old[i]->size()).noalias() += H_f_new_inv*H_x_old[i];
     }
-    //Place Jacobians for old feat
+
+    // Place Jacobians for old feat
     Phi.block(0, landmark->id(), 3,3) = H_f_new_inv*H_f_old;
 
-    //Place Jacobians for new anchor
+    // Place Jacobians for new anchor
     for (size_t i = 0; i < H_x_new.size(); i++){
         Phi.block(0,x_order_new[i]->id(),3,x_order_new[i]->size()).noalias() -= H_f_new_inv*H_x_new[i];
     }
 
+    // Perform covariance propagation
     auto &Cov = state->Cov();
-
     Eigen::Matrix<double,-1,3> Pxf = Cov*Phi.transpose();
     Eigen::Matrix<double,3,3> Pff = Phi*Pxf;
 
-    //Perform covariance propagation
+    // Replace the blocks in our covariance
     Cov.block(landmark->id(), 0, 3, Cov.rows()) = Pxf.transpose();
     Cov.block(0, landmark->id(), Cov.rows(), 3) = Pxf;
     Cov.block(landmark->id(),landmark->id(), 3, 3) = Pff;
+    Cov = 0.5*(Cov + Cov.transpose());
 
-    Cov = .5 * (Cov + Cov.transpose());
-
-    //Set state from new feature
-    landmark->set_from_feature(state, new_feature);
-
-
-    //Delete those temp features
-    delete old_feature;
-    delete new_feature;
-
-
-}
-
-void UpdaterSLAM::change_anchors(State* state){
-
-
-    //If no anchors, do nothing
-    if (state->options().feat_representation == StateOptions::GLOBAL_3D ||
-            state->options().feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
-        return;
-    }
-
-    double margTime = -1;
-    if ((int) state->n_clones() > state->options().max_clone_size) {
-        margTime = state->margtimestep();
-    }
-    else{
-        return;
-    }
-
-
-    for (auto &f : state->features_SLAM()){
-        assert(state->margtimestep() <= f.second->anchor_clone_timestamp());
-        if (f.second->anchor_clone_timestamp() == margTime){
-            perform_anchor_change(state, f.second, state->timestamp(), f.second->anchor_cam_id());
-        }
-    }
+    // Set state from new feature
+    landmark->_featid = new_feat.featid;
+    landmark->_anchor_cam_id = new_feat.anchor_cam_id;
+    landmark->_anchor_clone_timestamp = new_feat.anchor_clone_timestamp;
+    landmark->set_from_global_xyz(state, new_feat.p_FinG);
 
 }
 

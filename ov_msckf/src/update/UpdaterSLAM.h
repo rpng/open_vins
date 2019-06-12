@@ -4,12 +4,13 @@
 
 #include <Eigen/Eigen>
 #include "types/Landmark.h"
-#include "track/Feature.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
+#include "feat/Feature.h"
+#include "feat/FeatureInitializer.h"
+#include "feat/FeatureInitializerOptions.h"
 #include "utils/quat_ops.h"
-#include "utils/FeatureInitializer.h"
-#include "utils/FeatureInitializerOptions.h"
+
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
 
@@ -28,7 +29,7 @@ namespace ov_msckf {
      * @brief Will compute the system for our sparse SLAM features and update the filter.
      *
      * This class is responsible for performing delayed feature initialization, SLAM update, and
-     * SLAM anchor change for anchored feature representations
+     * SLAM anchor change for anchored feature representations.
      */
     class UpdaterSLAM {
 
@@ -62,7 +63,6 @@ namespace ov_msckf {
         }
 
 
-
         /**
          * @brief Given tracked SLAM features, this will try to use them to update the state.
          *
@@ -70,6 +70,7 @@ namespace ov_msckf {
          * @param feature_vec Features that can be used for update
          */
         void update(State *state, std::vector<Feature*>& feature_vec);
+
 
         /**
          * @brief Given max track features, this will try to use them to initialize them in the state.
@@ -81,9 +82,11 @@ namespace ov_msckf {
 
 
         /**
-         * @brief Makes sure that if any clone is about to be marginalized, it
-         * changes anchor representation. By default, this will shift the anchor into the current
-         * frame and keep the camera calibration anchor the same
+         * @brief Will change SLAM feature anchors if it will be marginalized
+         *
+         * Makes sure that if any clone is about to be marginalized, it changes anchor representation.
+         * By default, this will shift the anchor into the newest IMU clone and keep the camera calibration anchor the same.
+         *
          * @param state State of the filter
          */
         void change_anchors(State *state);
@@ -91,23 +94,16 @@ namespace ov_msckf {
 
 
     protected:
+
+
         /**
          * @brief Shifts landmark anchor to new clone
          * @param state State of filter
          * @param landmark landmark whose anchor is being shifter
-         * @param new_clone new anchor IMU clone
-         * @param new_cam new anchor camera calibration
+         * @param new_anchor_timestamp Clone timestamp we want to move to
+         * @param new_cam_id Which camera frame we want to move to
          */
-
         void perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id);
-
-
-        /**
-         * @brief Given a feature this will remove all measurements that do not have a corresponding state clone.         *
-         * @param feature Feature with measurements we want to clean
-         */
-        void clean_feature(State *state, Feature* feature);
-
 
 
         /// Options used during update
@@ -118,7 +114,6 @@ namespace ov_msckf {
 
         /// Chi squared 95th percentile table (lookup would be size of residual)
         std::map<int, double> chi_squared_table;
-
 
 
 

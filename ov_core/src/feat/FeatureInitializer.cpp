@@ -139,8 +139,6 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
     // Store it in our feature object
     feat->p_FinA = p_f;
     feat->p_FinG = R_GtoA.transpose()*feat->p_FinA + p_AinG;
-    feat->set_anchor_from_xyz(feat->p_FinA);
-    feat->set_global_from_xyz(feat->p_FinG);
     return true;
 
 }
@@ -318,10 +316,6 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
 
     // Finally get position in global frame
     feat->p_FinG = R_GtoA.transpose()*feat->p_FinA + p_AinG;
-    feat->set_global_from_xyz(feat->p_FinG);
-    feat->set_anchor_from_xyz(feat->p_FinA);
-
-    // We are good!
     return true;
 
 }

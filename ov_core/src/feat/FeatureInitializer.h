@@ -1,10 +1,11 @@
 #ifndef OPEN_VINS_FEATUREINITIALIZER_H
 #define OPEN_VINS_FEATUREINITIALIZER_H
 
-#include "quat_ops.h"
-#include "track/Feature.h"
-#include "FeatureInitializerOptions.h"
 #include <unordered_map>
+
+#include "Feature.h"
+#include "FeatureInitializerOptions.h"
+#include "utils/quat_ops.h"
 
 /**
  * @namespace ov_core

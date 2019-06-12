@@ -12,13 +12,19 @@ using namespace ov_msckf;
 void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
 
+    // 0. Get all timestamps our clones are at (and thus valid measurement times)
+    std::vector<double> clonetimes;
+    for(const auto& clone_imu : state->get_clones()) {
+        clonetimes.emplace_back(clone_imu.first);
+    }
+
+
     // 1. Clean all feature measurements and make sure they all have valid clone times
     auto it0 = feature_vec.begin();
-
     while(it0 != feature_vec.end()) {
 
         // Clean the feature
-        clean_feature(state, *it0);
+        (*it0)->clean_old_measurements(clonetimes);
 
         // Count how many measurements
         int ct_meas = 0;
@@ -62,6 +68,8 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     // TODO:!@#!@#!#!#!@#!@#!#!#!@#!#!@#!@#!#!@$!@#$!@$!@#!@#!@#!@#!@#!@!##@
     // TODO: Re-normalized image uvs here with the current best guess
     // TODO:!@#!@#!#!#!@#!@#!#!#!@#!#!@#!@#!#!@$!@#$!@$!@#!@#!@#!@#!@#!@!##@
+
+
 
     // 3. Try to triangulate all MSCKF or new SLAM features that have measurements
     auto it1 = feature_vec.begin();
@@ -112,6 +120,17 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     auto it2 = feature_vec.begin();
     while(it2 != feature_vec.end()) {
 
+        // Convert our feature into our current format
+        UpdaterHelper::UpdaterHelperFeature feat;
+        feat.featid = (*it2)->featid;
+        feat.uvs = (*it2)->uvs;
+        feat.uvs_norm = (*it2)->uvs_norm;
+        feat.timestamps = (*it2)->timestamps;
+        feat.anchor_cam_id = (*it2)->anchor_cam_id;
+        feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
+        feat.p_FinA = (*it2)->p_FinA;
+        feat.p_FinG = (*it2)->p_FinG;
+
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
         Eigen::MatrixXd H_x;
@@ -119,7 +138,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         std::vector<Type*> Hx_order;
 
         // Get the Jacobian for this feature
-        UpdaterHelper::get_feature_jacobian_full(state, *it2, H_f, H_x, res, Hx_order);
+        UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
 
         // Nullspace project
         UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);
@@ -205,35 +224,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
 
 
-void UpdaterMSCKF::clean_feature(State *state, Feature* feature) {
 
-    // Loop through each of the cameras we have
-    for(auto const &pair : feature->timestamps) {
-
-        // Assert that we have all the parts of a measurement
-        assert(feature->timestamps[pair.first].size() == feature->uvs[pair.first].size());
-        assert(feature->timestamps[pair.first].size() == feature->uvs_norm[pair.first].size());
-
-        // Our iterators
-        auto it1 = feature->timestamps[pair.first].begin();
-        auto it2 = feature->uvs[pair.first].begin();
-        auto it3 = feature->uvs_norm[pair.first].begin();
-
-        // Loop through measurement times, remove ones that are not in our clone times
-        while (it1 != feature->timestamps[pair.first].end()) {
-            if (state->get_clones().find(*it1) == state->get_clones().end()) {
-                it1 = feature->timestamps[pair.first].erase(it1);
-                it2 = feature->uvs[pair.first].erase(it2);
-                it3 = feature->uvs_norm[pair.first].erase(it3);
-            } else {
-                ++it1;
-                ++it2;
-                ++it3;
-            }
-        }
-    }
-
-}
 
 
 

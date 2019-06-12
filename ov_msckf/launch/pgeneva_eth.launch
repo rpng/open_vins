@@ -12,12 +12,12 @@
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
-<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />-->
+        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />-->
 <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_02_medium.csv" />-->
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_03_difficult.bag" />-->
 <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_03_difficult.csv" />-->
-        <param name="bag_start"   type="int"    value="0" />
+        <param name="bag_start"   type="int"    value="7" />
         <param name="bag_durr"    type="int"    value="-1" />
 
 
@@ -28,7 +28,7 @@
         <param name="calib_cam_intrinsics"   type="bool"   value="false" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
-        <param name="max_slam"               type="int"    value="0" />
+        <param name="max_slam"               type="int"    value="50" />
         <param name="max_cameras"            type="int"    value="1" />
         <param name="feat_representation"    type="string" value="ANCHORED_3D" />
         <param name="init_window_time"       type="double" value="0.5" />

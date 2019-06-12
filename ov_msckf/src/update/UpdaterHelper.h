@@ -3,7 +3,7 @@
 
 
 #include <Eigen/Eigen>
-#include "track/Feature.h"
+#include "feat/Feature.h"
 #include "state/State.h"
 #include "state/StateOptions.h"
 #include "utils/quat_ops.h"
@@ -30,6 +30,38 @@ namespace ov_msckf {
 
 
         /**
+         * @brief Feature object that our UpdaterHelper leverages, has all measurements and means
+         */
+        struct UpdaterHelperFeature {
+
+            /// Unique ID of this feature
+            size_t featid;
+
+            /// UV coordinates that this feature has been seen from (mapped by camera ID)
+            std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs;
+
+            // UV normalized coordinates that this feature has been seen from (mapped by camera ID)
+            std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs_norm;
+
+            /// Timestamps of each UV measurement (mapped by camera ID)
+            std::unordered_map<size_t, std::vector<double>> timestamps;
+
+            /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
+            int anchor_cam_id = -1;
+
+            /// Timestamp of anchor clone
+            double anchor_clone_timestamp;
+
+            /// Triangulated position of this feature, in the anchor frame
+            Eigen::Vector3d p_FinA;
+
+            /// Triangulated position of this feature, in the global frame
+            Eigen::Vector3d p_FinG;
+
+        };
+
+
+        /**
          * @brief This gets the feature and state Jacobian in respect to the feature representation
          *
          * @param[in] state State of the filter system
@@ -38,7 +70,7 @@ namespace ov_msckf {
          * @param[out] H_x Extra Jacobians in respect to the state (for example anchored pose)
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_representation(State* state, Feature* feature, Eigen::Matrix<double,3,3> &H_f,
+        static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::Matrix<double,3,3> &H_f,
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
 
 
@@ -52,7 +84,7 @@ namespace ov_msckf {
          * @param[out] res Measurement residual for this feature
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_full(State* state, Feature* feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<Type*> &x_order);
+        static void get_feature_jacobian_full(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<Type*> &x_order);
 
 
         /**

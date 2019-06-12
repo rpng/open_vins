@@ -9,7 +9,6 @@
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
 #include "init/InertialInitializer.h"
-#include "utils/FeatureInitializer.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"
@@ -116,16 +115,14 @@ namespace ov_msckf {
             return trackARUCO;
         }
 
-        /// Returns 3d features used in the last update
+        /// Returns 3d features used in the last update in global frame
         std::vector<Eigen::Vector3d> get_good_features_MSCKF() {
             return good_features_MSCKF;
         }
 
-
-        /// Returns 3d SLAM features
+        /// Returns 3d SLAM features in the global frame
         std::vector<Eigen::Vector3d> get_features_SLAM() {
             std::vector<Eigen::Vector3d> slam_feats;
-
             for (auto &f : state->features_SLAM()){
                 slam_feats.push_back(f.second->get_global_xyz(state));
             }

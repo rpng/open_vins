@@ -5,7 +5,7 @@
 #include <vector>
 #include <Eigen/Eigen>
 
-#include "Feature.h"
+#include "feat/Feature.h"
 
 
 /**

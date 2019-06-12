@@ -8,7 +8,7 @@ in Mingyang Li's thesis, Visual-Inertial Odometry on Resource-Constrained System
 https://escholarship.org/content/qt4nn0j264/qt4nn0j264.pdf
 
 
-@section System Projection
+@section sys-project System Projection
 
 Consider the current state, \f$\mathbf{x}\f$, as well as a new variable we want to initialize, \f$\mathbf{f}\f$.
 To do this, we collect a series a measurements involving both our state and the new variable:
@@ -54,7 +54,10 @@ the covariance of the system noise is \f$\mathbf{R} = \sigma^2\mathbf{I}_m\f$ an
 dimension of \f$\tilde{\mathbf{f}}\f$ is k, then the covariance of the subsystem
 noises are \f$\mathbf{R}_1 = \sigma^2\mathbf{I}_k\f$, \f$\mathbf{R}_2 = \sigma^2\mathbf{I}_{m-k}\f$
 
-@section Initializing
+
+
+
+@section init Initializing
 
 Consider that the new measurement Jacobian is invertible, we can directly solve for the error on the new variable using
 the first subsystem:
