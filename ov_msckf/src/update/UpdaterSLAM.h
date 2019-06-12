@@ -42,13 +42,16 @@ namespace ov_msckf {
          * Our updater has a feature intializer which we use to initialize features as needed.
          * Also the options allow for one to tune the different parameters for update.
          *
-         * @param options Updater options (include measurement noise value)
+         * @param options_slam Updater options (include measurement noise value) for SLAM features
+         * @param options_aruco Updater options (include measurement noise value) for ARUCO features
          * @param feat_init_options Feature initializer options
          */
-        UpdaterSLAM(UpdaterOptions options, FeatureInitializerOptions feat_init_options) : _options(options){
+        UpdaterSLAM(UpdaterOptions options_slam, UpdaterOptions options_aruco, FeatureInitializerOptions feat_init_options)
+                    : _options_slam(options_slam), _options_aruco(options_aruco) {
 
             // Save our raw pixel noise squared
-            _options.sigma_pix_sq = std::pow(_options.sigma_pix,2);
+            _options_slam.sigma_pix_sq = std::pow(_options_slam.sigma_pix,2);
+            _options_aruco.sigma_pix_sq = std::pow(_options_aruco.sigma_pix,2);
 
             // Save our feature initializer
             initializer_feat = new FeatureInitializer(feat_init_options);
@@ -106,8 +109,11 @@ namespace ov_msckf {
         void perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id);
 
 
-        /// Options used during update
-        UpdaterOptions _options;
+        /// Options used during update for slam features
+        UpdaterOptions _options_slam;
+
+        // Options used during update for aruco features
+        UpdaterOptions _options_aruco;
 
         /// Feature initializer class object
         FeatureInitializer* initializer_feat;

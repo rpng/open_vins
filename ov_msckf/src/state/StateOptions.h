@@ -46,6 +46,9 @@ namespace ov_msckf {
         /// Max number of estimated SLAM features
         int max_slam_features = 0;
 
+        /// Max number of estimated ARUCO features
+        int max_aruco_features = 1024;
+
         /// Number of cameras
         int num_cameras = 1;
 

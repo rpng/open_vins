@@ -46,14 +46,6 @@ namespace ov_msckf {
 
 
         /**
-         * @brief Will return the position of the feature in the anchor frame of reference.
-         * @param state State of filter
-         * @return Position of feature in anchor frame
-         */
-        Eigen::Matrix<double,3,1> get_anchor_xyz(State *state);
-
-
-        /**
          * @brief Will set the current value based on the representation.
          * @param state State of filter
          * @param p_FinG Position of the feature in the global frame

@@ -124,9 +124,20 @@ namespace ov_msckf {
         std::vector<Eigen::Vector3d> get_features_SLAM() {
             std::vector<Eigen::Vector3d> slam_feats;
             for (auto &f : state->features_SLAM()){
+                if((int)f.first <= state->options().max_aruco_features) continue;
                 slam_feats.push_back(f.second->get_global_xyz(state));
             }
             return slam_feats;
+        }
+
+        /// Returns 3d ARUCO features in the global frame
+        std::vector<Eigen::Vector3d> get_features_ARUCO() {
+            std::vector<Eigen::Vector3d> aruco_feats;
+            for (auto &f : state->features_SLAM()){
+                if((int)f.first > state->options().max_aruco_features) continue;
+                aruco_feats.push_back(f.second->get_global_xyz(state));
+            }
+            return aruco_feats;
         }
 
 

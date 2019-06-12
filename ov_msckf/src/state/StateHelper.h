@@ -133,11 +133,11 @@ namespace ov_msckf {
          */
         static void marginalize_old_clone(State *state) {
             if ((int) state->n_clones() > state->options().max_clone_size) {
-                double margTime = state->margtimestep();
-                StateHelper::marginalize(state, state->get_clone(margTime));
+                double marginal_time = state->margtimestep();
+                StateHelper::marginalize(state, state->get_clone(marginal_time));
                 // Note that the marginalizer should have already deleted the clone
                 // Thus we just need to remove the pointer to it from our state
-                state->erase_clone(margTime);
+                state->erase_clone(marginal_time);
             }
         }
 
@@ -149,7 +149,7 @@ namespace ov_msckf {
             // We also check that we do not remove any aruoctag landmarks
             auto it0 = state->features_SLAM().begin();
             while(it0 != state->features_SLAM().end()) {
-                if((*it0).second->should_marg) {
+                if((*it0).second->should_marg && (int)(*it0).first > state->options().max_aruco_features) {
                     StateHelper::marginalize(state, (*it0).second);
                     it0 = state->features_SLAM().erase(it0);
                 } else {

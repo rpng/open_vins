@@ -69,6 +69,20 @@ void RosVisualizer::visualize() {
 
 
 
+void RosVisualizer::visualize_final() {
+
+
+    // TODO: publish our calibration final results
+
+
+    // Publish RMSE if we have it
+    if(!gt_states.empty()) {
+        ROS_INFO("\033[0;95mRMSE average: %.3f (deg) orientation\033[0m",summed_rmse_ori/summed_number);
+        ROS_INFO("\033[0;95mRMSE average: %.3f (m) position\033[0m",summed_rmse_pos/summed_number);
+    }
+
+}
+
 
 
 void RosVisualizer::publish_state() {
@@ -198,6 +212,8 @@ void RosVisualizer::publish_features() {
     // Publish
     pub_points_msckf.publish(cloud);
 
+    //====================================================================
+    //====================================================================
 
     // Get our good features
     std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
@@ -230,6 +246,41 @@ void RosVisualizer::publish_features() {
 
     // Publish
     pub_points_slam.publish(cloud_SLAM);
+
+    //====================================================================
+    //====================================================================
+
+    // Get our good features
+    std::vector<Eigen::Vector3d> feats_aruco = _app->get_features_ARUCO();
+
+    // Declare message and sizes
+    sensor_msgs::PointCloud2 cloud_ARUCO;
+    cloud_ARUCO.header.frame_id = "global";
+    cloud_ARUCO.header.stamp = ros::Time::now();
+    cloud_ARUCO.width  = 3*feats_aruco.size();
+    cloud_ARUCO.height = 1;
+    cloud_ARUCO.is_bigendian = false;
+    cloud_ARUCO.is_dense = false; // there may be invalid points
+
+    // Setup pointcloud fields
+    sensor_msgs::PointCloud2Modifier modifier_ARUCO(cloud_ARUCO);
+    modifier_ARUCO.setPointCloud2FieldsByString(1,"xyz");
+    modifier_ARUCO.resize(3*feats_aruco.size());
+
+    // Iterators
+    sensor_msgs::PointCloud2Iterator<float> out_x_ARUCO(cloud_ARUCO, "x");
+    sensor_msgs::PointCloud2Iterator<float> out_y_ARUCO(cloud_ARUCO, "y");
+    sensor_msgs::PointCloud2Iterator<float> out_z_ARUCO(cloud_ARUCO, "z");
+
+    // Fill our iterators
+    for(const auto &pt : feats_aruco) {
+        *out_x_ARUCO = pt(0); ++out_x_ARUCO;
+        *out_y_ARUCO = pt(1); ++out_y_ARUCO;
+        *out_z_ARUCO = pt(2); ++out_z_ARUCO;
+    }
+
+    // Publish
+    pub_points_aruco.publish(cloud_ARUCO);
 
 }
 

@@ -57,13 +57,17 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     Eigen::Matrix<double,3,3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
     Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
 
-    // Anchor pose orientation
-    Eigen::Matrix<double,3,3> R_GtoA = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature.anchor_clone_timestamp)->Rot();
-    Eigen::Matrix<double,3,3> R_CtoG = R_GtoA.transpose()*R_ItoC.transpose();
+    // Anchor pose orientation and position
+    Eigen::Matrix<double,3,3> R_GtoI = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature.anchor_clone_timestamp)->Rot();
+    Eigen::Matrix<double,3,1> p_IinG = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->pos_fej() : state->get_clone(feature.anchor_clone_timestamp)->pos();;
+    Eigen::Matrix<double,3,3> R_CtoG = R_GtoI.transpose()*R_ItoC.transpose();
+
+    // Calculate position of the feature in our anchor position
+    Eigen::Matrix<double,3,1> p_FinA = R_ItoC*R_GtoI*(feature.p_FinG-p_IinG)+p_IinC;
 
     // TODO: when using fej with SLAM need to replace the value of feature position
     Eigen::Matrix<double,3,6> H_anc;
-    H_anc.block(0,0,3,3).noalias() = -R_GtoA.transpose()*skew_x(R_ItoC.transpose()*(feature.p_FinA-p_IinC));
+    H_anc.block(0,0,3,3).noalias() = -R_GtoI.transpose()*skew_x(R_ItoC.transpose()*(p_FinA-p_IinC));
     H_anc.block(0,3,3,3).setIdentity();
 
     // Add anchor Jacobians to our return vector
@@ -73,7 +77,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     // Get calibration Jacobians (for anchor clone)
     if (state->options().do_calib_camera_pose){
         Eigen::Matrix<double,3,6> H_calib;
-        H_calib.block(0,0,3,3).noalias() = -R_CtoG*skew_x(feature.p_FinA-p_IinC);
+        H_calib.block(0,0,3,3).noalias() = -R_CtoG*skew_x(p_FinA-p_IinC);
         H_calib.block(0,3,3,3) = -R_CtoG;
         x_order.push_back(state->get_calib_IMUtoCAM(feature.anchor_cam_id));
         H_x.push_back(H_calib);
@@ -89,9 +93,9 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     if (state->options().feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH) {
 
         // Get inverse depth representation (should match what is in Landmark.cpp)
-        double a_rho = 1/feature.p_FinA.norm();
-        double a_phi = std::acos(a_rho*feature.p_FinA(2));
-        double a_theta = std::atan2(feature.p_FinA(1),feature.p_FinA(0));
+        double a_rho = 1/p_FinA.norm();
+        double a_phi = std::acos(a_rho*p_FinA(2));
+        double a_theta = std::atan2(p_FinA(1),p_FinA(0));
         Eigen::Matrix<double,3,1> p_invFinA;
         p_invFinA(0) = a_theta;
         p_invFinA(1) = a_phi;
@@ -118,9 +122,9 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
 
         // Get inverse depth representation (should match what is in Landmark.cpp)
         Eigen::Matrix<double,3,1> p_invFinA_MSCKF;
-        p_invFinA_MSCKF(0) = feature.p_FinA(0)/feature.p_FinA(2);
-        p_invFinA_MSCKF(1) = feature.p_FinA(1)/feature.p_FinA(2);
-        p_invFinA_MSCKF(2) = 1/feature.p_FinA(2);
+        p_invFinA_MSCKF(0) = p_FinA(0)/p_FinA(2);
+        p_invFinA_MSCKF(1) = p_FinA(1)/p_FinA(2);
+        p_invFinA_MSCKF(2) = 1/p_FinA(2);
 
         // Using the MSCKF version of inverse depth
         double alpha = p_invFinA_MSCKF(0,0);

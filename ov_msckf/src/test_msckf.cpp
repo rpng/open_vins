@@ -237,6 +237,9 @@ int main(int argc, char** argv)
 
     }
 
+    // Final visualization
+    viz->visualize_final();
+
     // Finally delete our system
     delete sys;
     delete viz;

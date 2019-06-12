@@ -11,14 +11,9 @@
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
 
         <!-- bag parameters -->
-        <param name="path_bag"    type="string" value="/home/keck/datasets/eth/V1_03_difficult.bag" />
-<!--        <param name="path_gt"     type="string" value="/home/keck/datasets/eth/v1_03_true.csv" />-->
-        <!--<param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />-->
-        <!--<param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_02_medium.csv" />-->
-        <!--<param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_03_difficult.bag" />-->
-        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_03_difficult.csv" />
-        <param name="bag_start"   type="int"  value="3" />
-        <param name="bag_durr"    type="int"  value="-1" />
+        <param name="path_bag"    type="string" value="/home/patrick/datasets/vi_sensor/aruco_room/aruco_room_2.bag" />
+        <param name="bag_start"   type="int"    value="0" />
+        <param name="bag_durr"    type="int"    value="-1" />
 
 
         <!-- world/filter parameters -->
@@ -28,16 +23,16 @@
         <param name="calib_cam_intrinsics"   type="bool"   value="false" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
-        <param name="max_slam"               type="int"    value="200" />
+        <param name="max_slam"               type="int"    value="0" />
         <param name="max_cameras"            type="int"    value="1" />
-        <param name="feat_representation"    type="string" value="GLOBAL_3D" />
+        <param name="feat_representation"    type="string" value="GLOBAL_FULL_INVERSE_DEPTH" />
         <param name="init_window_time"       type="double" value="0.5" />
-        <param name="init_imu_thresh"        type="double" value="1.0" />
+        <param name="init_imu_thresh"        type="double" value="2.0" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
-        <param name="num_pts"          type="int"    value="400" />
+        <param name="num_pts"          type="int"    value="200" />
         <param name="fast_threshold"   type="int"    value="10" />
         <param name="grid_x"           type="int"    value="10" />
         <param name="grid_y"           type="int"    value="8" />
@@ -45,17 +40,17 @@
         <param name="knn_ratio"        type="double" value="0.85" />
 
         <!-- aruco tag/mapping properties -->
-        <param name="use_aruco"        type="bool"   value="false" />
+        <param name="use_aruco"        type="bool"   value="true" />
         <param name="num_aruco"        type="int"    value="1024" />
-        <param name="downsize_aruco"   type="bool"   value="true" />
+        <param name="downsize_aruco"   type="bool"   value="false" />
 
         <!-- sensor noise values / update -->
         <param name="up_msckf_sigma_px"            type="double"   value="1" />
         <param name="up_msckf_chi2_multipler"      type="double"   value="3" />
         <param name="up_slam_sigma_px"             type="double"   value="1.5" />
         <param name="up_slam_chi2_multipler"       type="double"   value="3" />
-        <param name="up_aruco_sigma_px"            type="double"   value="0.8" />
-        <param name="up_aruco_chi2_multipler"      type="double"   value="3" />
+        <param name="up_aruco_sigma_px"            type="double"   value="1" />
+        <param name="up_aruco_chi2_multipler"      type="double"   value="20" />
         <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />
         <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
         <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
@@ -63,29 +58,29 @@
 
 
         <!-- camera intrinsics -->
-        <param name="cam1_is_fisheye" type="bool" value="false" />
         <param name="cam0_is_fisheye" type="bool" value="false" />
-        <rosparam param="cam0_k">[458.654,0.0,367.215,0.0,457.296,248.375,0.0,0.0,1.0]</rosparam>
-        <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05,0.0]</rosparam>
-        <rosparam param="cam1_k">[457.587,0.0,379.999,0.0,456.134,255.238,0.0,0.0,1.0]</rosparam>
-        <rosparam param="cam1_d">[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05,0.0]</rosparam>
+        <param name="cam1_is_fisheye" type="bool" value="false" />
+        <rosparam param="cam0_k">[470.0502737897896,0.0,405.80799445368035,0.0,468.7574814232544,245.2879780490104,0.0,0.0,1.0]</rosparam>
+        <rosparam param="cam0_d">[-0.292031518680717, 0.08753155838496009, 0.0009568457669165753, 2.3463489813256424e-05, 0.0]</rosparam>
+        <rosparam param="cam1_k">[472.98384780424163,0.0,382.1928744696835,0.0,471.9917417027018,268.2536666120421,0.0,0.0,1.0]</rosparam>
+        <rosparam param="cam1_d">[-0.2847596229068525, 0.07908861097045865, 0.0011071433505703875, 0.0005094909873658998, 0.0]</rosparam>
 
 
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">
             [
-            0.0148655429818, -0.999880929698, 0.00414029679422, -0.0216401454975,
-            0.999557249008, 0.0149672133247, 0.025715529948, -0.064676986768,
-            -0.0257744366974, 0.00375618835797, 0.999660727178, 0.00981073058949,
-            0.0, 0.0, 0.0, 1.0
+            -0.99997806, -0.00600501,  0.0027968,   0.03847796,
+            0.00601449, -0.99997615,  0.00339343, -0.0045601,
+            0.00277635,  0.00341018,  0.99999033,  0.00418038,
+            0.0,         0.0,         0.0,         1.0
             ]
         </rosparam>
         <rosparam param="T_C1toI">
             [
-            0.0125552670891, -0.999755099723, 0.0182237714554, -0.0198435579556,
-            0.999598781151, 0.0130119051815, 0.0251588363115, 0.0453689425024,
-            -0.0253898008918, 0.0179005838253, 0.999517347078, 0.00786212447038,
-            0.0, 0.0, 0.0, 1.0
+            -0.99984421, -0.00389232,  0.01721638, -0.07075565,
+            0.00394176, -0.9999882,   0.0028389,  -0.00418534,
+            0.01720512,  0.00290632,  0.99984776,  0.00388861,
+            0.0,         0.0,         0.0,         1.0
             ]
         </rosparam>
 

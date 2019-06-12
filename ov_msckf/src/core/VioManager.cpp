@@ -26,6 +26,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<bool>("calib_camimu_dt", state_options.do_calib_camera_timeoffset, false);
     nh.param<int>("max_clones", state_options.max_clone_size, 10);
     nh.param<int>("max_slam", state_options.max_slam_features, 0);
+    nh.param<int>("max_aruco", state_options.max_aruco_features, 1024);
     nh.param<int>("max_cameras", state_options.num_cameras, 1);
 
     // Enforce that if we are doing stereo tracking, we have two cameras
@@ -70,6 +71,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- calibrate cam imu timeoff: %d", state_options.do_calib_camera_timeoffset);
     ROS_INFO("\t- max clones: %d", state_options.max_clone_size);
     ROS_INFO("\t- max slam: %d", state_options.max_slam_features);
+    ROS_INFO("\t- max aruco: %d", state_options.max_aruco_features);
     ROS_INFO("\t- max cameras: %d", state_options.num_cameras);
     ROS_INFO("\t- feature representation: %s", feat_rep_str.c_str());
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
@@ -176,13 +178,12 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- max condition number: %.4f", featinit_options.max_cond_number);
 
     // Parameters for our extractor
-    int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
+    int num_pts, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
     bool use_klt, use_aruco, do_downsizing;
     nh.param<bool>("use_klt", use_klt, true);
     nh.param<bool>("use_aruco", use_aruco, false);
     nh.param<int>("num_pts", num_pts, 500);
-    nh.param<int>("num_aruco", num_aruco, 1024);
     nh.param<int>("fast_threshold", fast_threshold, 10);
     nh.param<int>("grid_x", grid_x, 10);
     nh.param<int>("grid_y", grid_y, 8);
@@ -195,7 +196,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- use klt: %d", use_klt);
     ROS_INFO("\t- use aruco: %d", use_aruco);
     ROS_INFO("\t- max track features: %d", num_pts);
-    ROS_INFO("\t- max aruco tags: %d", num_aruco);
+    ROS_INFO("\t- max aruco tags: %d", state->options().max_aruco_features);
     ROS_INFO("\t- grid size: %d x %d", grid_x, grid_y);
     ROS_INFO("\t- fast threshold: %d", fast_threshold);
     ROS_INFO("\t- min pixel distance: %d", min_px_dist);
@@ -234,19 +235,25 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Read in update parameters
     UpdaterOptions msckf_options;
-    nh.param<double>("up_sigma_pxmsckf", msckf_options.sigma_pix, 1);
-    nh.param<int>("up_chi2_multipler", msckf_options.chi2_multipler, 5);
-    //nh.param<double>("up_sigma_pxslam", sigma_pxslam, 1);
-    //nh.param<double>("up_sigma_pxaruco", sigma_pxaruco, 1);
+    UpdaterOptions slam_options;
+    UpdaterOptions aruco_options;
+    nh.param<double>("up_msckf_sigma_px", msckf_options.sigma_pix, 1);
+    nh.param<int>("up_msckf_chi2_multipler", msckf_options.chi2_multipler, 5);
+    nh.param<double>("up_slam_sigma_px", slam_options.sigma_pix, 1);
+    nh.param<int>("up_slam_chi2_multipler", slam_options.chi2_multipler, 5);
+    nh.param<double>("up_aruco_sigma_px", aruco_options.sigma_pix, 1);
+    nh.param<int>("up_aruco_chi2_multipler", aruco_options.chi2_multipler, 5);
 
     // If downsampling aruco, then double our noise values
-    //sigma_norm_pxaruco = (do_downsizing) ? 2*sigma_norm_pxaruco : sigma_norm_pxaruco;
+    aruco_options.sigma_pix = (do_downsizing) ? 2*aruco_options.sigma_pix : aruco_options.sigma_pix;
 
     ROS_INFO("MSCKFUPDATER PARAMETERS:");
     ROS_INFO("\t- sigma_pxmsckf: %.4f", msckf_options.sigma_pix);
-    //ROS_INFO("\t- sigma_pxslam: %.4f", msckf_options.sigma_pix);
-    //ROS_INFO("\t- sigma_pxaruco: %.4f", msckf_options.sigma_pix);
-    ROS_INFO("\t- chi2_multipler: %d", msckf_options.chi2_multipler);
+    ROS_INFO("\t- sigma_pxslam: %.4f", slam_options.sigma_pix);
+    ROS_INFO("\t- sigma_pxaruco: %.4f", aruco_options.sigma_pix);
+    ROS_INFO("\t- chi2_multipler msckf: %d", msckf_options.chi2_multipler);
+    ROS_INFO("\t- chi2_multipler slam: %d", slam_options.chi2_multipler);
+    ROS_INFO("\t- chi2_multipler aruco: %d", aruco_options.chi2_multipler);
 
 
     //===================================================================================
@@ -256,14 +263,14 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Lets make a feature extractor
     if(use_klt) {
-        trackFEATS = new TrackKLT(camera_k,camera_d,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
+        trackFEATS = new TrackKLT(camera_k,camera_d,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,min_px_dist);
     } else {
-        trackFEATS = new TrackDescriptor(camera_k,camera_d,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
+        trackFEATS = new TrackDescriptor(camera_k,camera_d,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,knn_ratio);
     }
 
     // Initialize our aruco tag extractor
     if(use_aruco) {
-        trackARUCO = new TrackAruco(camera_k,camera_d,camera_fisheye,num_aruco,do_downsizing);
+        trackARUCO = new TrackAruco(camera_k,camera_d,camera_fisheye,state->options().max_aruco_features,do_downsizing);
     }
 
     // Initialize our state propagator
@@ -274,7 +281,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Make the updater!
     updaterMSCKF = new UpdaterMSCKF(msckf_options, featinit_options);
-    updaterSLAM = new UpdaterSLAM(msckf_options, featinit_options);
+    updaterSLAM = new UpdaterSLAM(slam_options, aruco_options, featinit_options);
 
 
 }
@@ -427,6 +434,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     std::vector<Feature*> feats_lost, feats_marg, feats_slam;
     feats_lost = trackFEATS->get_feature_database()->features_not_containing_newer(state->timestamp());
     feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep());
+    feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep());
 
     // We also need to make sure that the max tracks does not contain any lost features
     // This could happen if the feature was lost in the last frame, but has a measurement at the marg timestep
@@ -440,18 +448,19 @@ void VioManager::do_feature_propagate_update(double timestamp) {
         }
     }
 
-
-    //Find tracks that have reached max length, these can be made into SLAM features
+    // Find tracks that have reached max length, these can be made into SLAM features
     std::vector<Feature*> feats_maxtracks;
     auto it2 = feats_marg.begin();
     while(it2 != feats_marg.end()) {
+        // See if any of our camera's reached max track
         bool reached_max = false;
-        for (auto cams: (*it2)->timestamps){
+        for (const auto &cams: (*it2)->timestamps){
             if ((int)cams.second.size() > state->options().max_clone_size){
                 reached_max = true;
                 break;
             }
         }
+        // If max track, then add it to our possible slam feature list
         if(reached_max) {
             feats_maxtracks.push_back(*it2);
             it2 = feats_marg.erase(it2);
@@ -460,10 +469,18 @@ void VioManager::do_feature_propagate_update(double timestamp) {
         }
     }
 
+    // Count how many aruco tags we have in our state
+    int curr_aruco_tags = 0;
+    auto it0 = state->features_SLAM().begin();
+    while(it0 != state->features_SLAM().end()) {
+        if ((int) (*it0).second->_featid <= state->options().max_aruco_features) curr_aruco_tags++;
+        it0++;
+    }
+
     // Append a new SLAM feature if we have the room to do so
-    if(state->options().max_slam_features > 0 && (int)state->features_SLAM().size() < state->options().max_slam_features) {
+    if(state->options().max_slam_features > 0 && (int)state->features_SLAM().size() < state->options().max_slam_features+curr_aruco_tags) {
         // Get the total amount to add, then the max amount that we can add given our marginalize feature array
-        int amount_to_add = state->options().max_slam_features-(int)state->features_SLAM().size();
+        int amount_to_add = (state->options().max_slam_features+curr_aruco_tags)-(int)state->features_SLAM().size();
         int valid_amount = (amount_to_add > (int)feats_maxtracks.size())? (int)feats_maxtracks.size() : amount_to_add;
         // If we have at least 1 that we can add, lets add it!
         // Note: we remove them from the feat_marg array since we don't want to reuse information...
@@ -477,6 +494,10 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
     // Note: these types of klt slam features seem to *degrade* the estimator performance....
     for (std::pair<const size_t, Landmark*> &landmark : state->features_SLAM()) {
+        if(trackARUCO != nullptr) {
+            Feature* feat1 = trackARUCO->get_feature_database()->get_feature(landmark.second->_featid);
+            if(feat1 != nullptr) feats_slam.push_back(feat1);
+        }
         Feature* feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->_featid);
         if(feat2 != nullptr) feats_slam.push_back(feat2);
         if(feat2 == nullptr) landmark.second->should_marg = true;
@@ -499,9 +520,6 @@ void VioManager::do_feature_propagate_update(double timestamp) {
         }
     }
 
-
-
-
     // Concatenate our MSCKF feature arrays (i.e., ones not being used for slam updates)
     std::vector<Feature*> featsup_MSCKF = feats_lost;
     featsup_MSCKF.insert(featsup_MSCKF.end(), feats_marg.begin(), feats_marg.end());
@@ -512,6 +530,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Now that we have a list of features, lets do the EKF update for MSCKF and SLAM!
     //===================================================================================
 
+    // Perform SLAM delay init and update
     updaterSLAM->delayed_init(state, feats_slam_DELAYED);
     updaterSLAM->update(state, feats_slam_UPDATE);
 
@@ -535,7 +554,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // This allows for measurements to be used in the future if they failed to be used this time
     // Note we need to do this before we feed a new image, as we want all new measurements to NOT be deleted
     trackFEATS->get_feature_database()->cleanup();
-
+    trackARUCO->get_feature_database()->cleanup();
 
 
     //===================================================================================

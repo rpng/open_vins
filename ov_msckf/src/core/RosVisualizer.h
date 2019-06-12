@@ -47,6 +47,11 @@ namespace ov_msckf {
          */
         void visualize();
 
+        /**
+         * @brief After the run has ended, print results
+         */
+        void visualize_final();
+
 
     protected:
 

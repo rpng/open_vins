@@ -52,9 +52,6 @@ namespace ov_msckf {
             /// Timestamp of anchor clone
             double anchor_clone_timestamp;
 
-            /// Triangulated position of this feature, in the anchor frame
-            Eigen::Vector3d p_FinA;
-
             /// Triangulated position of this feature, in the global frame
             Eigen::Vector3d p_FinG;
 

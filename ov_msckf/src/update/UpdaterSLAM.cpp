@@ -106,7 +106,6 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         feat.timestamps = (*it2)->timestamps;
         feat.anchor_cam_id = (*it2)->anchor_cam_id;
         feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
-        feat.p_FinA = (*it2)->p_FinA;
         feat.p_FinG = (*it2)->p_FinG;
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
@@ -126,10 +125,12 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         landmark->set_from_global_xyz(state, feat.p_FinG);
 
         // Measurement noise matrix
-        Eigen::MatrixXd R = _options.sigma_pix_sq*Eigen::MatrixXd::Identity(res.rows(), res.rows());
+        double sigma_pix_sq = ((int)feat.featid < state->options().max_aruco_features)? _options_aruco.sigma_pix_sq : _options_slam.sigma_pix_sq;
+        Eigen::MatrixXd R = sigma_pix_sq*Eigen::MatrixXd::Identity(res.rows(), res.rows());
 
         // Try to initialize, delete new pointer if we failed
-        if (StateHelper::initialize(state, landmark, Hx_order, H_x, H_f, R, res, _options.chi2_multipler)){
+        double chi2_multipler = ((int)feat.featid < state->options().max_aruco_features)? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
+        if (StateHelper::initialize(state, landmark, Hx_order, H_x, H_f, R, res, chi2_multipler)){
             state->insert_SLAM_feature((*it2)->featid, landmark);
             (*it2)->to_delete = true;
             it2++;
@@ -193,9 +194,10 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     // Calculate max possible state size (i.e. the size of our covariance)
     size_t max_hx_size = state->n_vars();
 
-    // Large Jacobian and residual of *all* features for this update
+    // Large Jacobian, residual, and measurement noise of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
     Eigen::MatrixXd Hx_big = Eigen::MatrixXd::Zero(max_meas_size, max_hx_size);
+    Eigen::MatrixXd R_big = Eigen::MatrixXd::Identity(max_meas_size,max_meas_size);
     std::unordered_map<Type*,size_t> Hx_mapping;
     std::vector<Type*> Hx_order_big;
     size_t ct_jacob = 0;
@@ -223,7 +225,6 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.timestamps = (*it2)->timestamps;
         feat.anchor_cam_id = landmark->_anchor_cam_id;
         feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
-        feat.p_FinA = landmark->get_anchor_xyz(state);
         feat.p_FinG = landmark->get_global_xyz(state);
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
@@ -246,7 +247,8 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         /// Chi2 distance check
         Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hxf_order);
         Eigen::MatrixXd S = H_xf*P_marg*H_xf.transpose();
-        S.diagonal() += _options.sigma_pix_sq*Eigen::VectorXd::Ones(S.rows());
+        double sigma_pix_sq = ((int)feat.featid < state->options().max_aruco_features)? _options_aruco.sigma_pix_sq : _options_slam.sigma_pix_sq;
+        S.diagonal() += sigma_pix_sq*Eigen::VectorXd::Ones(S.rows());
         double chi2 = res.dot(S.llt().solve(res));
 
         // Get our threshold (we precompute up to 500 but handle the case that it is more)
@@ -259,7 +261,8 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         }
 
         // Check if we should delete or not
-        if(chi2 > _options.chi2_multipler*chi2_check) {
+        double chi2_multipler = ((int)feat.featid < state->options().max_aruco_features)? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
+        if(chi2 > chi2_multipler*chi2_check) {
             (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
             continue;
@@ -282,6 +285,9 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
         }
 
+        // Our isotropic measurement noise
+        R_big.block(ct_meas,ct_meas,res.rows(),res.rows()) *= sigma_pix_sq;
+
         // Append our residual and move forward
         res_big.block(ct_meas,0,res.rows(),1) = res;
         ct_meas += res.rows();
@@ -303,10 +309,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     assert(ct_jacob<=max_hx_size);
     res_big.conservativeResize(ct_meas,1);
     Hx_big.conservativeResize(ct_meas,ct_jacob);
-
-    // Our noise is isotropic, so make it here after our compression
-    Eigen::MatrixXd R_big = _options.sigma_pix_sq*Eigen::MatrixXd::Identity(res_big.rows(),res_big.rows());
-
+    R_big.conservativeResize(ct_meas,ct_meas);
 
     // 6. With all good SLAM features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
@@ -325,7 +328,6 @@ void UpdaterSLAM::change_anchors(State* state){
         state->options().feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
         return;
     }
-
 
     // Return if we do not have enough clones
     if ((int) state->n_clones() <= state->options().max_clone_size) {
@@ -356,7 +358,6 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     old_feat.featid = landmark->_featid;
     old_feat.anchor_cam_id = landmark->_anchor_cam_id;
     old_feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
-    old_feat.p_FinA = landmark->get_anchor_xyz(state);
     old_feat.p_FinG = landmark->get_global_xyz(state);
 
 
@@ -372,7 +373,6 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     new_feat.featid = landmark->_featid;
     new_feat.anchor_cam_id = new_cam_id;
     new_feat.anchor_clone_timestamp = new_anchor_timestamp;
-    new_feat.p_FinA = landmark->get_anchor_xyz(state);
     new_feat.p_FinG = landmark->get_global_xyz(state);
 
 

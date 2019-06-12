@@ -128,7 +128,6 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.timestamps = (*it2)->timestamps;
         feat.anchor_cam_id = (*it2)->anchor_cam_id;
         feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
-        feat.p_FinA = (*it2)->p_FinA;
         feat.p_FinG = (*it2)->p_FinG;
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
