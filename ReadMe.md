@@ -49,7 +49,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## Credit / Licensing
 
-This code was written by the [Robot Perception and Navigation](https://sites.udel.edu/robot/) at the University of Delaware.
+This code was written by the [Robot Perception and Navigation Group (RPNG)](https://sites.udel.edu/robot/) at the University of Delaware.
 If you have any issues with the code please open an issue on our github page with relevant implementation details and references.
 For researchers that have leveraged this work, please cite the following:
 ```bibtex
