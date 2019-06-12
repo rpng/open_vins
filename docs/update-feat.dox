@@ -22,7 +22,7 @@ Consider a 3D feature is detected from the camera image at time \f$k\f$, whose \
 
 where \f$\mathbf n_k\f$ is the measurement noise and typically assumed to be zero-mean white Gaussian;
 \f$\mathbf z_{n,k}\f$ is the normalized undistorted uv measurement;
-\f$\boldsymbol\xi\f$  is the camera intrinsic parameters such as focal length and distortion parameters;
+\f$\boldsymbol\zeta\f$  is the camera intrinsic parameters such as focal length and distortion parameters;
 \f${}^{C_k}\mathbf{p}_f\f$ is the feature position in the current camera frame \f$\{C_k\}\f$;
 \f${}^{G}\mathbf{p}_f\f$ is the feature position in the global frame \f$\{G\}\f$;
 \f$\{ {}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k} \}\f$ denotes the current camera pose (position and orientation) in the global frame (or camera extrinsics);
@@ -31,8 +31,12 @@ In the above expression, we decompose the measurement fucntion into multiple con
 which map the states into the raw uv measurement on the image plane.
 It should be noted that 
 as we will perform intrinsic calibration along with extrinsic with different feature representations, the above camera measurement model is general.
-The high-level description of each function is given by:
+The high-level description of each function is given in the next section.
 
+
+
+
+@subsection model-table Measurement Function Overview
 
 | Function | Description |
 |---|---|
@@ -40,6 +44,29 @@ The high-level description of each function is given by:
 |\f$\mathbf{z}_{n,k}= \mathbf h_p({}^{C_k}\mathbf{p}_f)\f$| The projection function that takes a 3D point in the image and converts it into the normalized uv coordinates |
 |\f${}^{C_k}\mathbf{p}_f=\mathbf h_t({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})\f$ | Transforming a feature's position in the global frame into the current camera frame |
 | \f${}^{G}\mathbf{p}_f= \mathbf h_r(\boldsymbol\lambda,\cdots)\f$ | Converting from a feature representation to a 3D feature in the global frame |
+
+
+
+@subsection model-deriv Jacobian Computation
+
+Given the above nested functions, we can leverage the chainrule to find the total state Jacobian.
+Since our feature representation function \f$\mathbf h_r(\cdots)\f$ might also depend on the state, i.e. an anchoring pose, we need to carefully consider its additional derivatives.
+Consider the following example of our measurement in respect to a state \f$ \mathbf{x} \f$ Jacobian:
+
+\f{align*}{
+\frac{\partial \mathbf{z}_k}{\partial \mathbf{x}}
+=
+\frac{\partial \mathbf h_d (\cdot) }{\partial \mathbf{z}_{n,k}}
+\frac{\partial \mathbf h_p (\cdot) }{\partial {}^{C_k}\mathbf{p}_f}
+\frac{\partial \mathbf h_t (\cdot) }{\partial \mathbf{x}}
++
+\frac{\partial \mathbf h_d (\cdot) }{\partial \mathbf{z}_{n,k}}
+\frac{\partial \mathbf h_p (\cdot) }{\partial {}^{C_k}\mathbf{p}_f}
+\frac{\partial \mathbf h_t (\cdot) }{\partial {}^{G}\mathbf{p}_f}
+\frac{\partial \mathbf h_r (\cdot) }{\partial \mathbf{x}}
+\f}
+
+In the global feature representations, see @ref feat-rep section, the second term will be zero while the anchored representations it will need to be computed.
 
 
 
@@ -64,7 +91,7 @@ We first employ the radial distortion as in [OpenCV model](https://docs.opencv.o
 \f}
 
 
-where \f$ \mathbf{z}_{n,k} =\begin{bmatrix} x_n \\ y_n \end{bmatrix}\f$  are the normalized coordinates of the 3D feature and u and v are the distorted image coordinates on the image plane.
+where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$  are the normalized coordinates of the 3D feature and u and v are the distorted image coordinates on the image plane.
 The following distortion and camera intrinsic (focal length and image center) parameters are involved in the above distortion model, 
 which can be estimated online:
 
@@ -117,7 +144,7 @@ As fisheye or wide-angle lenses are widely used in practice, we here provide mat
     \theta &= atan(r)     
 \f}
 
-where \f$ \mathbf{z}_{n,k} =\begin{bmatrix} x_n \\ y_n \end{bmatrix}\f$ are the normalized coordinates of the 3D feature 
+where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$ are the normalized coordinates of the 3D feature 
 and u and v are the distorted image coordinates on the image plane.
 Clearly, the following distortion intrinsic paramters are used in the above model:
 
