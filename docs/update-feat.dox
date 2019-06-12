@@ -66,7 +66,7 @@ Consider the following example of our measurement in respect to a state \f$ \mat
 \frac{\partial \mathbf h_r (\cdot) }{\partial \mathbf{x}}
 \f}
 
-In the global feature representations, see @ref feat-rep section, the second term will be zero while the anchored representations it will need to be computed.
+In the global feature representations, see @ref feat-rep section, the second term will be zero while for the anchored representations it will need to be computed.
 
 
 
