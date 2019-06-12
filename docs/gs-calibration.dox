@@ -5,19 +5,19 @@
 
 
 
-@section calib-cam-static Camera intrinsic calibration
+@section gs-calib-cam-static Camera intrinsic calibration
 
 
 
 
 
-@section calib-imu-static IMU intrinsic calibration
+@section gs-calib-imu-static IMU intrinsic calibration
 
 
 
 
 
-@section calib-cam-dynamic Dynamic IMU-CAM calibration
+@section gs-calib-cam-dynamic Dynamic IMU-CAM calibration
 
 
 

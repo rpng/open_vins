@@ -1,7 +1,7 @@
 /**
 
 
-@page developers Developers guide
+@page dev-developers Developer guide
 
 
 @section developers-addpage Adding a website page
@@ -11,7 +11,6 @@
     gets listed at a proper place
 3.  If the page is not top-level, list it using @c \@subpage in its parent page
 4.  Add a @c \@brief documentation, if applicable
-5.  Populate it, see @ref coding-style for more information
 
 
 

@@ -4,27 +4,27 @@
 @page gs-tutorial Simple Tutorial
 
 
-@section data Dataset
+@section gs-data Dataset
 
 
 
 
 
 
-@section launch Configuration
+@section gs-launch Configuration
 
 
 
 
 
 
-@section viz Visualization
+@section gs-viz Visualization
 
 
 
 
 
-@section evaluation Evaluation
+@section gs-evaluation Evaluation
 
 
 
