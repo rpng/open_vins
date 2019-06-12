@@ -63,6 +63,6 @@ For researchers that have leveraged this work, please cite the following:
 ```
 
 
-The codebase is licensed under the [GNU General Public License v3 (GPL-3)](https://www.gnu.org/licenses/gpl-3.0.html).
+The codebase is licensed under the [GNU General Public License v3 (GPL-3)](https://www.gnu.org/licenses/gpl-3.0.txt).
 
 
