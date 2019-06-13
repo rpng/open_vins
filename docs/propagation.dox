@@ -15,7 +15,7 @@ of the system, and the measurements in continuous-time system can be modeled as:
      \mathbf{a}_m(t) &= \mathbf{a}(t)  + \mathbf{b}_\mathbf{a}(t) + \mathbf{n}_{\mathbf{a}}(t) - ^I_G\mathbf{R}(t)\mathbf{g}
 \f}
 
-where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are true rotational velocities and is translational accelerations in IMU coordinate,
+where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are true rotational velocity and translational acceleration in IMU coordinate,
 \f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\mathbf{a}\f$ are the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{r}}\f$ and \f$\mathbf{n}_{\mathbf{a}}\f$
 are white Gaussian noise processes, and \f$\mathbf{g}\f$ is the gravity vector expressed in the global frame.
 
@@ -33,6 +33,32 @@ Following the convention, we define IMU state vector \f$ \mathbf{x}_I\f$ at time
 where \f$^L_G\bar{q}\f$ is the unit quaternion representing the rotation global to IMU frame,
 and \f$^G\mathbf{p}_I\f$ is the position of IMU in global frame,
 and \f$^G\mathbf{v}\f$ is the velocity of IMU in global frame.
+
+In order to define the IMU error state, for the position, velocity, and biases the standard additive error definition is employed.
+For the orientation error, we use quaternion \f$\delta \bar{q}\f$ with quaternion multiplication \f$\otimes\f$, specifically:
+
+\f{align*}{
+    ^I_G\bar{q} &= \delta \bar{q} \otimes \text{}^I_G \hat{\bar{q}}\\
+    \delta \bar{q} &= \begin{bmatrix}
+    sin(\frac{1}{2}\text{}^I\tilde{\boldsymbol{\theta}})\\
+    cos(\frac{1}{2}\text{}^I\tilde{\theta}) \end{bmatrix}
+    \approx \begin{bmatrix}
+                \frac{1}{2}^I\tilde{\boldsymbol{\theta}}\\
+                1 \end{bmatrix}
+\f}
+
+where \f$^I\tilde{\boldsymbol{\theta}}\f$ and \f$^I\tilde{\theta}\f$ are \f$3 \times 1\f$ vector denoting the orientation errors about the three axes, and the norm of it.
+With the definition, the IMU error state is defined as a \f$15 \times 1\f$ vector:
+
+\f{align*}{
+    \tilde{\mathbf{x}}_I(t) = \begin{bmatrix}
+                          ^I\tilde{\boldsymbol{\theta}} \\
+                          ^G\tilde{\mathbf{p}}_I(t) \\
+                          ^G\tilde{\mathbf{v}}(t)\\
+                          \tilde{\mathbf{b}}_{\mathbf{g}}(t) \\
+                          \tilde{\mathbf{b}}_{\mathbf{a}}(t)
+                          \end{bmatrix}
+\f}
 
 
 @section conti_prop Continuous-time IMU propagation
@@ -94,7 +120,7 @@ Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and \f$\hat{\mathbf
 
 To summarize the continuous-time IMU propagation:
 \f{align*}{
-    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} &= \text{}^{I_{k+1}}_{k}\hat{\bar{q}} \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}} \\
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} &= \text{}^{I_{k+1}}_{I_k}\hat{\bar{q}} \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}} \\
     ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{v}}(\tau)} d\tau \\
     ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau)) + \mathbf{g}} d\tau \\
     \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k}\\
@@ -102,6 +128,12 @@ To summarize the continuous-time IMU propagation:
 \f}
 
 @section disc_prop Discrete-time IMU propagation
+
+Now we consider discrete-time system, which means we will not get \f$\boldsymbol{\omega}_m\f$ and \f$\mathbf{a}_m\f$ time-continuously.
+To use time-discrete measurements, we need to assume the measurements between the discrete time.
+For instance, the measurements can be assumed as constant during the time.
+We represent this with error state propagation and it is:
+
 
 
 */
