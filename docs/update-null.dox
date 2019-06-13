@@ -62,7 +62,7 @@ that is, we do not know what the prior feature covariance and it is coupled with
 This motivates the need for a method to remove the feature \f${}^G\tilde{\mathbf{p}}_f\f$ from the linearized measurement equation (thus removing the correlation between the measurement and its error).
 
 
-To this end, we start with the measurement residual function by removing the "sensivity" to feature error we compute and apply the left nullspace of the Jacobian \f$\mathbf{H}_{f}\f$. We can compute it using QR decomposition as follows:
+To this end, we start with the measurement residual function by removing the "sensitivity" to feature error we compute and apply the left nullspace of the Jacobian \f$\mathbf{H}_{f}\f$. We can compute it using QR decomposition as follows:
 
 \f{align*}{
     \mathbf{H}_{f} = 
