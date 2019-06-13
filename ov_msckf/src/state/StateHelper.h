@@ -45,6 +45,7 @@ namespace ov_msckf {
         * Thus the size of the return will be the summed dimension of all the passed variables.
         * Normal use for this is a chi-squared check before update (where you don't need the full covariance).
         *
+        * @param state Pointer to state
         * @param small_variables Vector of variables whose marginal covariance is desired
         * @return marginal covariance of the passed variables
         */
@@ -88,6 +89,7 @@ namespace ov_msckf {
          * @param H_L Jacobian of initializing measurements wrt new variable
          * @param R Covariance of initializing measurements (isotropic)
          * @param res Residual of initializing measurements
+         * @param chi_2_mult Value we should multiply the chi2 threshold by (larger means it will be accepted more measurements)
          */
         static bool initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
                                Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult);
