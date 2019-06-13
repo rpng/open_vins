@@ -13,7 +13,7 @@ Please feel free to open an issue if you find any missing or areas that could be
 @section highlevel High-level overview
 
 From a high level the system is build on a few key algorithms.
-At the core we have the `ov_core` which contains a lot of standard computer vision algorithms and utilities that anybody can use.
+At the core we have the ov_core which contains a lot of standard computer vision algorithms and utilities that anybody can use.
 Specifically it stores the following large components:
 
 - Sparse feature visual tracking (KLT and descriptor-based)
@@ -22,7 +22,7 @@ Specifically it stores the following large components:
 - Multi-sensor simulator that generates synthetic measurements
 
 
-This `ov_core` library is used by the `ov_msckf` system which contains our filter-based estimator.
+This ov_core library is used by the ov_msckf system which contains our filter-based estimator.
 Within this we have the state, its manager, type system, prediction, and update algorithms.
 We encourage users to look at the specific documentation for a detailed view of what we support. 
 

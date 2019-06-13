@@ -6,11 +6,12 @@
 
 @section developers-addpage Adding a website page
 
-1.  Add a `doc/pagename.dox` file, copy up-to-date license header.
-2.  If the page is top-level, list it in `doc/00-page-order.dox` to ensure it
+1. Add a `doc/pagename.dox` file, copy up-to-date license header.
+2. Add a @c \@page definition and title to your page
+3. If the page is top-level, list it in `doc/00-page-order.dox` to ensure it
     gets listed at a proper place
-3.  If the page is not top-level, list it using @c \@subpage in its parent page
-4.  Add a @c \@brief documentation, if applicable
+4. If the page is not top-level, list it using @c \@subpage in its parent page
+5. Leverage @c \@section and @c \@subsection to separate the page
 
 
 
@@ -46,7 +47,7 @@
     - ` export PYTHONPATH=/usr/local/lib/python3.6/dist-packages/`
 5. You might need to comment out the `enable_async=True` flag in the doxygen.py file
 6. This should then build the documentation website
-7. Open the html page in the `doxgen_generated/index.html` folder
+7. Open the html page `/open_vins/doxgen_generated/html/index.html` to view documentation
 
 
 
