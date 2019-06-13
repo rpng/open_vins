@@ -26,7 +26,9 @@ where \f$\mathbf n_k\f$ is the measurement noise and typically assumed to be zer
 \f${}^{C_k}\mathbf{p}_f\f$ is the feature position in the current camera frame \f$\{C_k\}\f$;
 \f${}^{G}\mathbf{p}_f\f$ is the feature position in the global frame \f$\{G\}\f$;
 \f$\{ {}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k} \}\f$ denotes the current camera pose (position and orientation) in the global frame (or camera extrinsics);
-and \f$\boldsymbol\lambda\f$ is the feature's parameters of different representations (other than position) such as inverse depth.
+and \f$\boldsymbol\lambda\f$ is the feature's parameters of different representations (other than position) such as simply a xyz position or an inverse depth with bearing.
+
+
 In the above expression, we decompose the measurement fucntion into multiple concatenated functions correponding to different operations,
 which map the states into the raw uv measurement on the image plane.
 It should be noted that 
