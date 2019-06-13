@@ -1,0 +1,69 @@
+/**
+
+
+@page gs-installing Install Guide
+
+
+@section gs-install-ros ROS Dependency
+
+Our codebase is built on top of the [Robot Operating System (ROS)](https://www.ros.org/) and has been tested building on Ubuntu 16.04 systems with ROS Kinetic Kame.
+We also recommend installing the [catkin_tools](https://github.com/catkin/catkin_tools) build for easy ROS building.
+Please see the official instructions [here](http://wiki.ros.org/kinetic/Installation/Ubuntu), which have also been copied below.
+
+@code{.shell-session}
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+sudo apt-get update
+sudo apt-get install ros-kinetic-desktop-full
+sudo apt-get install python-catkin-tools
+echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+@endcode
+
+
+
+@section gs-install-opencv OpenCV Dependency
+
+We leverage [OpenCV 3.4.6](https://opencv.org/) for this project and recommend you compile it from source.
+You can try linking to the one included with ROS but we have always had success with building from source to ensure we have all contributed OpenCV libraries.
+One should make sure you can see some of the "contrib" (e.g. xfeature2d) to ensure you have linked to the contrib modules.
+
+@code{.shell-session}
+git clone --branch 3.4.6 https://github.com/opencv/opencv/
+git clone --branch 3.4.6 https://github.com/opencv/opencv_contrib/
+mkdir opencv/build/
+cd opencv/build/
+cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules ..
+make -j8
+sudo make install
+@endcode
+
+
+
+
+@section gs-install-openvins Cloning Open VINS
+
+
+Now that we have ROS and OpenCV install we can setup a catkin workspace and build the project!
+If you did not install the catkin_tools build system, you should be able to build using the standard `catkin_make` command that is included with ROS.
+If you run into any problems please google search the issue first and if you are unable to find a solution please open an issue on our github page.
+After the build is successful please following the @ref gs-tutorial guide on getting a dataset and running the system.
+
+@code{.shell-session}
+mkdir -p ~/workspace/catkin_ws_ov/src/
+cd ~/workspace/catkin_ws_ov/src/
+git clone https://github.com/rpng/open_vins/
+cd ..
+catkin build
+@endcode
+
+
+
+
+
+
+
+
+
+
+*/

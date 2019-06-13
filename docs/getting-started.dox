@@ -33,6 +33,7 @@ We encourage users to look at the specific documentation for a detailed view of 
 
 @section getting-started-more Getting started guides
 
+-   @subpage gs-installing --- Install guide for Open VINS and dependencies
 -   @subpage gs-tutorial --- Simple tutorial on getting Open VINS running out of the box.
 -   @subpage gs-datasets --- Links to supported datasets and configuration files
 -   @subpage gs-calibration --- Guide to how to calibration your own visual-inertial sensors.
