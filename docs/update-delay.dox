@@ -3,17 +3,16 @@
 
 @page update-delay Delayed Feature Initialization
 
-We describe a method of delayed intialization of a 3D point feature as in [Visual-Inertial Odometry on Resource-Constrained Systems](https://escholarship.org/content/qt4nn0j264/qt4nn0j264.pdf).
-Specifically, 
-given a set of measurements inolving the state \f$\mathbf{x}\f$ and a new feature  \f$\mathbf{f}\f$, we want to optimally and efficiently initialize the feature.
+We describe a method of delayed initialization of a 3D point feature as in [Visual-Inertial Odometry on Resource-Constrained Systems](https://escholarship.org/content/qt4nn0j264/qt4nn0j264.pdf).
+Specifically, given a set of measurements involving the state \f$\mathbf{x}\f$ and a new feature  \f$\mathbf{f}\f$, we want to optimally and efficiently initialize the feature.
 
 \f{align*}{
     \mathbf{z}_i = \mathbf{h}_i\left(\mathbf{x}, \mathbf{f}\right) + \mathbf{n}_i
 \f}
 
-In general, we collect more than the minimum number of measurements at different times needed for initialization (i.e., delayed).
+In general, we collect more than the minimum number of measurements at different times needed for initialization (i.e. delayed).
 For example, although in principle we need two monocular images to initialize a 3D point feature, we often collect more than two images in order to obtain better initialization.
-To process all collected measurements, we stack them and peform linearization around some linearization points (estimates) denoted by \f$\hat{\mathbf x}\f$ and \f$\hat{\mathbf f}\f$:
+To process all collected measurements, we stack them and perform linearization around some linearization points (estimates) denoted by \f$\hat{\mathbf x}\f$ and \f$\hat{\mathbf f}\f$:
 
 \f{align*}{
     \mathbf{z} &= \begin{bmatrix} \mathbf{z}_1 \\
@@ -26,8 +25,7 @@ To process all collected measurements, we stack them and peform linearization ar
 \f}
 
 To efficiently compute the resulting augmented covariance matrix,
-we perform [Givens rotations](https://en.wikipedia.org/wiki/Givens_rotation) to zero-out rows in \f$\mathbf{H}_f\f$ with indices
-larger than the dimension of \f$\tilde{\mathbf{f}}\f$,
+we perform [Givens rotations](https://en.wikipedia.org/wiki/Givens_rotation) to zero-out rows in \f$\mathbf{H}_f\f$ with indices larger than the dimension of \f$\tilde{\mathbf{f}}\f$,
 and apply the same Givens rotations to \f$\mathbf{H}_x\f$ and \f$\mathbf{r}\f$.
 As a result of this operation, we have the following linear system:
 
@@ -38,7 +36,7 @@ As a result of this operation, we have the following linear system:
 \f}
 
 Note that the bottom system essentially is corresponding to the nullspace projection as in the MSCKF update and \f$\mathbf{H}_{f1}\f$ is generally invertible. 
-Note also that we assume the measurement noise is istropic; otherwise, we should first perform whitening to make it isotropic, which would save significant computations. 
+Note also that we assume the measurement noise is isotropic; otherwise, we should first perform whitening to make it isotropic, which would save significant computations. 
 So, if the original measurement noise covariance \f$\mathbf{R} = \sigma^2\mathbf{I}_m\f$ and the
 dimension of \f$\tilde{\mathbf{f}}\f$ is n, then the inferred measurement noise covariance will be 
 \f$\mathbf{R}_1 = \sigma^2\mathbf{I}_n\f$ and \f$\mathbf{R}_2 = \sigma^2\mathbf{I}_{m-n}\f$.
@@ -47,39 +45,38 @@ dimension of \f$\tilde{\mathbf{f}}\f$ is n, then the inferred measurement noise 
 Now we can directly solve for the error of the new feature based on the first subsystem:
 
 \f{align*}{
-    \tilde{\mathbf{f}} &= \mathbf{H}_{f1}^{-1}\left(\mathbf{r}_1-\mathbf{n}_1-\mathbf{H}_x\tilde{\mathbf{x}}\right) \\
+    \tilde{\mathbf{f}} &= \mathbf{H}_{f1}^{-1}(\mathbf{r}_1-\mathbf{n}_1-\mathbf{H}_x\tilde{\mathbf{x}}) \\
   \Rightarrow~ \mathbb{E}[\tilde{\mathbf{f}}] &= \mathbf{H}_{f1}^{-1}(\mathbf{r}_1)
 \f}
 
 where we assumed noise and state error are zero mean.
 We can update \f$\hat{\mathbf f}\f$ with this correction by \f$\hat{\mathbf f}+\mathbb{E}[\tilde{\mathbf{f}}]\f$.
-Note that this is equivalent to a Gauss Newton step for solving the corresponding MLE 
-formed by fixing the estimate of \f$\mathbf{x}\f$ and optimizing over the value of \f$\hat{\mathbf{f}}\f$, and should
-therefore be zero if we used such an optimization to come up with our initial estimate for the new variable. 
+Note that this is equivalent to a Gauss Newton step for solving the corresponding maximum likelihood estimation (MLE) formed by fixing the estimate of \f$\mathbf{x}\f$ and optimizing over the value of \f$\hat{\mathbf{f}}\f$, and should
+therefore be zero if we used such an optimization to come up with our initial estimate for the new variable.
 
 
-We now can compute the covariance of the new fearture as follows:
+We now can compute the covariance of the new feature as follows:
 
 \f{align*}{
-    \mathbf{P}_{ff}  &= \mathbb{E}\left[\left(\tilde{\mathbf{f}}-\mathbb{E}\left(\tilde{\mathbf{f}}\right)\right)
-    \left(\tilde{\mathbf{f}}-\mathbb{E}\left(\tilde{\mathbf{f}}\right)\right)^{\top}\right] \\
-    &= \mathbb{E}\left[\left(\mathbf{H}_{f1}^{-1}\left(-\mathbf{n}_1-\mathbf{H}_{x1}\tilde{\mathbf{x}}\right)\right)
-    \left(\mathbf{H}_{f1}^{-1}\left(-\mathbf{n}_1-\mathbf{H}_{x1}\tilde{\mathbf{x}}\right)\right)^{\top}\right] \\
-    &= \mathbf{H}_{f1}^{-1}\left(\mathbf{H}_{x1}\mathbf{P}_{xx}\mathbf{H}_{x1}^{\top} + \mathbf{R}_1\right)\mathbf{H}_{f1}^{-\top}
+    \mathbf{P}_{ff}  &= \mathbb{E}\Big[(\tilde{\mathbf{f}}-\mathbb{E}[\tilde{\mathbf{f}}])
+    (\tilde{\mathbf{f}}-\mathbb{E}[\tilde{\mathbf{f}}])^{\top}\Big] \\
+    &= \mathbb{E}\Big[(\mathbf{H}_{f1}^{-1}(-\mathbf{n}_1-\mathbf{H}_{x1}\tilde{\mathbf{x}}))
+    (\mathbf{H}_{f1}^{-1}(-\mathbf{n}_1-\mathbf{H}_{x1}\tilde{\mathbf{x}}))^{\top}\Big] \\
+    &= \mathbf{H}_{f1}^{-1}(\mathbf{H}_{x1}\mathbf{P}_{xx}\mathbf{H}_{x1}^{\top} + \mathbf{R}_1)\mathbf{H}_{f1}^{-\top}
 \f}
 
 and the cross correlation can be computed as:
 
 \f{align*}{
-    \mathbf{P}_{xf}  &= \mathbb{E}\left[\left(\tilde{\mathbf{x}}\right)
-    \left(\tilde{\mathbf{f}}-\mathbb{E}\left(\tilde{\mathbf{f}}\right)\right)^{\top}\right] \\
-    &= \mathbb{E}\left[\left(\tilde{\mathbf{x}}\right)
-           \left(\mathbf{H}_{f1}^{-1}\left(-\mathbf{n}_1-\mathbf{H}_{x1}\tilde{\mathbf{x}}\right)\right)^{\top}\right] \\
+    \mathbf{P}_{xf}  &= \mathbb{E}\Big[(\tilde{\mathbf{x}})
+    (\tilde{\mathbf{f}}-\mathbb{E}[\tilde{\mathbf{f}}])^{\top}\Big] \\
+    &= \mathbb{E}\Big[(\tilde{\mathbf{x}})
+           (\mathbf{H}_{f1}^{-1}(-\mathbf{n}_1-\mathbf{H}_{x1}\tilde{\mathbf{x}}))^{\top}\Big] \\
     &= -\mathbf{P}_{xx}\mathbf{H}_{x1}^{\top}\mathbf{H}_{f1}^{-\top}
 \f}
 
-These entries can then be placed in the correct location for the covariance. For example when initializing a new feature
-to the end of the state, the augmented covariance would be:
+These entries can then be placed in the correct location for the covariance.
+For example when initializing a new feature to the end of the state, the augmented covariance would be:
 
 \f{align*}{
     \mathbf{P}_{aug} = \begin{bmatrix} \mathbf{P}_{xx} & \mathbf{P}_{xf} \\
@@ -87,8 +84,7 @@ to the end of the state, the augmented covariance would be:
 \f}
 
 Note that this process does not update the estimate for \f$\mathbf{x}\f$. 
-However, after initialization, we can then use the second system to update our new state through a standard EKF update.
-
+However, after initialization, we can then use the second system, \f$\mathbf{r}_2\f$, \f$\mathbf{H}_{x2}\f$, and \f$\mathbf{n}_2\f$ to update our new state through a standard EKF update (see @ref linear-meas section).
 
 
 */
