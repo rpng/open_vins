@@ -4,11 +4,104 @@
 
 @page propagation Propagation
 
+@section model_prop Inertial Measurement Unit (IMU) measurements and state
+
+Instead of control input, inertial measurement unit (IMU) measurements are often used to propagate the system state.
+The IMU provides measurements of the rotational velocities \f$\boldsymbol{\omega}_m\f$ and translational accelerations \f$\mathbf{a}_m\f$
+of the system, and the measurements in continuous-time system can be modeled as:
+
+\f{align*}{
+    \boldsymbol{\omega}_m(t) &= \boldsymbol{\omega}(t) + \mathbf{b}_\mathbf{g}(t) + \mathbf{n}_{\mathbf{r}}(t)\\
+     \mathbf{a}_m(t) &= \mathbf{a}(t)  + \mathbf{b}_\mathbf{a}(t) + \mathbf{n}_{\mathbf{a}}(t) - ^I_G\mathbf{R}(t)\mathbf{g}
+\f}
+
+where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are true rotational velocities and is translational accelerations in IMU coordinate,
+\f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\mathbf{a}\f$ are the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{r}}\f$ and \f$\mathbf{n}_{\mathbf{a}}\f$
+are white Gaussian noise processes, and \f$\mathbf{g}\f$ is the gravity vector expressed in the global frame.
+
+Following the convention, we define IMU state vector \f$ \mathbf{x}_I\f$ at time \f$t\f$ as \f$16 \times 1\f$ vector:
+\f{align*}{
+    \mathbf{x}_I(t) = \begin{bmatrix}
+                          ^I_G\bar{q}(t) \\
+                          ^G\mathbf{p}_I(t) \\
+                          ^G\mathbf{v}(t)\\
+                          \mathbf{b}_{\mathbf{g}}(t) \\
+                          \mathbf{b}_{\mathbf{a}}(t)
+                          \end{bmatrix}
+\f}
+
+where \f$^L_G\bar{q}\f$ is the unit quaternion representing the rotation global to IMU frame,
+and \f$^G\mathbf{p}_I\f$ is the position of IMU in global frame,
+and \f$^G\mathbf{v}\f$ is the velocity of IMU in global frame.
 
 
-TODO: need to add derivations here.
-Woosik working on
+@section conti_prop Continuous-time IMU propagation
 
+[High-Precision, Consistent EKF-based Visual-Inertial Odometry](https://pdfs.semanticscholar.org/281b/8f6839e0864fb9f40890bb9b52115edbdc9d.pdf)
+
+[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)
+
+Now, the dynamic model can be described as:
+\f{align*}{
+    ^I_G\dot{\bar{q}}(t) &= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I(t + \delta t)}_G\bar{q} - \text{}^{I(t)}_G\bar{q})\\
+                         &= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I(t + \delta t)}_{L(t)}\bar{q} \otimes ^{I(t)}_{G}\bar{q}  - \bar{q}_0 \otimes \text{}^{I(t)}_G\bar{q})\\
+                         &= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I(t + \delta t)}_{L(t)}\bar{q}   - \bar{q}_0 ) \otimes \text{}^{I(t)}_{G}\bar{q}\\
+                         &\approx \lim_{\delta t \to 0} \frac{1}{\delta t}
+                         \Bigg (\begin{bmatrix} \frac{1}{2}\delta \boldsymbol{\theta}\\ 1 \end{bmatrix}
+                         -\begin{bmatrix} \mathbf{0} \boldsymbol{\theta}\\ 1 \end{bmatrix} \Bigg ) \otimes \text{}^{I(t)}_{G}\bar{q} \\
+                         &= \frac{1}{2} \begin{bmatrix} \boldsymbol{\omega}\\ 0 \end{bmatrix}  \otimes ^{I(t)}_{G}\bar{q}\\
+                         &= \frac{1}{2} \begin{bmatrix} -\lfloor \boldsymbol{\omega} \times \rfloor && \boldsymbol{\omega} \\
+                         -\boldsymbol{\omega}^T && 0 \end{bmatrix}   \text{}^{I(t)}_{G}\bar{q}\\
+                         &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega})  \text{}^{I(t)}_{G}\bar{q}\\
+           \iffalse              = \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}_m - \mathbf{b}_\mathbf{g} - \mathbf{n}_{\mathbf{r}})  \text{}^{I(t)}_{G}\bar{q}\\ \fi
+  ^G\dot{\mathbf{p}}_I(t) &=\text{} ^G\mathbf{v}(t)\\
+  ^G\dot{\mathbf{v}}(t) &=\text{} ^G_{I(t)}\mathbf{R}\mathbf{a}(t) + \text{}^G\mathbf{g}\\
+       \dot{\mathbf{b}}_{\mathbf{g}}(t) &= \mathbf{n}_{wg}\\
+       \dot{\mathbf{b}}_{\mathbf{a}}(t) &= \mathbf{n}_{wa}
+\f}
+Now, let us have access to the continuous-time measurements \f$\boldsymbol{\omega}_m(t)\f$ and \f$\mathbf{a}_m(t)\f$
+in the time interval \f$[t_k,t_{k+1}]\f$.
+We get estimated rotational velocity \f$\hat{\boldsymbol{\omega}}(t) = \boldsymbol{\omega}_m(t) - \hat{\boldsymbol{b}}_g(t)\f$,
+thus get differential equation:
+
+
+\f{align*}{
+    ^{I_t}_{I_k}\dot{\hat{\bar{q}}}(t) = \frac{1}{2} \boldsymbol{\Omega}(\hat{\boldsymbol{\omega}})  \text{}^{I_t}_{I_k}\hat{\bar{q}} ~~~~ t \in [t_k,t_{k+1}]
+\f}
+The estimation of relative orientation \f$\text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}\f$ can be computed from the differential equation, and the orientation estimation at \f$t_{k+1}\f$
+with given estimation at \f$t_{k}\f$ is:
+
+\f{align*}{
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} = \text{}^{I_{k+1}}_{k}\hat{\bar{q}} \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}}
+\f}
+
+The position \f$^G\hat{\mathbf{p}}_{k+1}\f$ and \f$^G\hat{\mathbf{v}}_{k+1}\f$ of IMU propagation is relatively straight forward as:
+
+\f{align*}{
+    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{v}}(\tau)} d\tau \\
+    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{a}}(\tau)} d\tau \\
+                             &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau)) + \mathbf{g}} d\tau
+\f}
+
+Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and \f$\hat{\mathbf{b}}_{\mathbf{a}}\f$ is also straight forward as:
+
+\f{align*}{
+    \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k} + \int_{t_{k+1}}^{t_{k}} {\hat{\mathbf{n}}_{wg}(\tau)} d\tau \\
+                                      &= \hat{\mathbf{b}}_{\mathbf{g},k}\\
+    \hat{\mathbf{b}}_{\mathbf{a},k+1} &= \hat{\mathbf{b}}_{\mathbf{a},k} + \int_{t_{k+1}}^{t_{k}} {\hat{\mathbf{n}}_{wa}(\tau)} d\tau \\
+                                      &= \hat{\mathbf{b}}_{\mathbf{a},k}
+\f}
+
+To summarize the continuous-time IMU propagation:
+\f{align*}{
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} &= \text{}^{I_{k+1}}_{k}\hat{\bar{q}} \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}} \\
+    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{v}}(\tau)} d\tau \\
+    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau)) + \mathbf{g}} d\tau \\
+    \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k}\\
+    \hat{\mathbf{b}}_{\mathbf{a},k+1} &= \hat{\mathbf{b}}_{\mathbf{a},k}
+\f}
+
+@section disc_prop Discrete-time IMU propagation
 
 
 */
