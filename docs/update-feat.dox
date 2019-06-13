@@ -29,7 +29,7 @@ where \f$\mathbf n_k\f$ is the measurement noise and typically assumed to be zer
 and \f$\boldsymbol\lambda\f$ is the feature's parameters of different representations (other than position) such as simply a xyz position or an inverse depth with bearing.
 
 
-In the above expression, we decompose the measurement fucntion into multiple concatenated functions correponding to different operations,
+In the above expression, we decompose the measurement function into multiple concatenated functions corresponding to different operations,
 which map the states into the raw uv measurement on the image plane.
 It should be noted that 
 as we will perform intrinsic calibration along with extrinsic with different feature representations, the above camera measurement model is general.
@@ -101,7 +101,7 @@ which can be estimated online:
 \boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & p_1 & p_2 \end{bmatrix}^\top
 \f}
 
-Note that we do not estimate the higher order (i.e., higher than fourth order) terms as in most offline calibration mehtods such as [Kalibr](https://github.com/ethz-asl/kalibr).
+Note that we do not estimate the higher order (i.e., higher than fourth order) terms as in most offline calibration methods such as [Kalibr](https://github.com/ethz-asl/kalibr).
 To estimate these intrinsic parameters (including the distortation parameters), the following Jacobian for these parameters is needed:
 
 \f{align*}{
@@ -148,7 +148,7 @@ As fisheye or wide-angle lenses are widely used in practice, we here provide mat
 
 where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$ are the normalized coordinates of the 3D feature 
 and u and v are the distorted image coordinates on the image plane.
-Clearly, the following distortion intrinsic paramters are used in the above model:
+Clearly, the following distortion intrinsic parameters are used in the above model:
 
 \f{align*}{
 \boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & k_3 & k_4 \end{bmatrix}^\top
@@ -258,8 +258,8 @@ We now can compute the following Jacobian with respect to the pertinent states:
 \f}
 
 where \f$\lfloor \mathbf a\times \rfloor \f$ denotes the  skew symmetric matrix of a vector \f$\mathbf a\f$ (see [Quatenion TR](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)).
-Note also that in above expression (as well as in ensuing derivations), there is a little abuse of noation; 
-that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotaiton angle vector.
+Note also that in above expression (as well as in ensuing derivations), there is a little abuse of notation; 
+that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotation angle vector.
 Moreover, if performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is needed:
 
 \f{align*}{
@@ -277,10 +277,10 @@ Moreover, if performing online extrinsic calibration, the Jacobian with respect 
 
 @section feat-rep Point Feature Representations
 
-There are two main parematerizations of a 3D point feature: 3D position (xyz) and inverse depth with bearing. 
+There are two main parameterizations of a 3D point feature: 3D position (xyz) and inverse depth with bearing. 
 Both of these can either be represented in the global frame or in an anchor frame of reference which adds a dependency on having an "anchor" pose where the feature is observed.
 To allow for a unified treatment of different feature parameterizations \f$\boldsymbol \lambda\f$ in our codebase, 
-we derive in detail the generic function \f${}^{G}\mathbf{p}_f=\mathbf f (\cdot)\f$ that maps different representations into global positioin.
+we derive in detail the generic function \f${}^{G}\mathbf{p}_f=\mathbf f (\cdot)\f$ that maps different representations into global position.
 
 
 @subsection feat-rep-global-xyz Global XYZ
@@ -294,7 +294,7 @@ As the canonical parameterization, the global position of a 3D point feature is 
 \text{where} &\quad \boldsymbol\lambda = {}^{G}\mathbf{p}_f = \begin{bmatrix} {}^Gx & {}^Gy & {}^Gz \end{bmatrix}^\top
 \f}
 
-It is clear that the Jacobian  with respect to the feature parameters is:
+It is clear that the Jacobian with respect to the feature parameters is:
 \f{align*}{
 \frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= \mathbf{I}_{3\times 3}
 \f}
@@ -323,11 +323,13 @@ The Jacobian  with respect to the feature parameters can be computed as:
 \f}
 
 
+@subsection feat-rep-global-inv2 Global Inverse Depth (MSCKF VERSION)
+
+
 Note that as this representation has a singularity when the z-distance goes to zero,
 it is not recommended to use in practice.
 Instead, one should use the @ref feat-rep-anchor-inv2 representation.
-The anchored version doesn't have this issue if you represent the feature in a camera frame that it was seen from (which a feature should never have a non-positive z-direction).
-
+The anchored version doesn't have this issue if features are represented in a camera frame that they where seen from (in which features should never have a non-positive z-direction).
 
 
 
@@ -418,9 +420,10 @@ The Jacobians with respect to the IMU-camera extrinsics are:
 
 
 
-@subsubsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF Version)
+@subsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF Version)
 
-Note that a simpler version of inverse depth was used in the [MSCKF paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.1085&rep=rep1&type=pdf):
+Note that a simpler version of inverse depth was used in the [MSCKF paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.1085&rep=rep1&type=pdf).
+This representation does not have the singularity if it is represented in a camera frame the feature was measured from.
 
 \f{align*}{
 {}^{G}\mathbf{p}_f

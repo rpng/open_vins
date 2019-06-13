@@ -7,12 +7,11 @@
 
 Consider the following static state estimation problem: 
 Given a prior distribution (probability density function or pdf) for a Gaussian random vector 
-\f$ \mathbf x\sim \mathcal N (\hat{\mathbf x}^\ominus, \mathbf P_{xx}^\ominus)\f$ with dimension of \f$n\f$ and a new \f$m\f$ dimentional measurement \f$\mathbf{z}_m = \mathbf z + \mathbf n = \mathbf h(\mathbf x) + \mathbf n \f$, 
-which is corrupted by zero-mean white Gaussian noise independent of state, \f$ \mathbf n \sim \mathcal N(\mathbf 0, \mathbf R)\f$,
-we want to compute the first two (central) moments of the posterior pdf \f$ p(\mathbf x|\mathbf z_m)\f$;
-that is, generally (given a nonlinear measurement model), we approximate the posterior pdf as:
+\f$ \mathbf x\sim \mathcal N (\hat{\mathbf x}^\ominus, \mathbf P_{xx}^\ominus)\f$ with dimension of \f$n\f$ and a new \f$m\f$ dimentional measurement \f$\mathbf{z}_m = \mathbf z + \mathbf n = \mathbf h(\mathbf x) + \mathbf n \f$ corrupted by zero-mean white Gaussian noise independent of state, \f$ \mathbf n \sim \mathcal N(\mathbf 0, \mathbf R)\f$,
+we want to compute the first two (central) moments of the posterior pdf \f$ p(\mathbf x|\mathbf z_m)\f$.
+Generally (given a nonlinear measurement model), we approximate the posterior pdf as:
 \f$ p(\mathbf x|\mathbf z_m) \simeq \mathcal N (\hat{\mathbf x}^\oplus, \mathbf P_{xx}^\oplus)\f$.
-By design, this is the (approximate) solution to the MMSE estimation problem [[Kay 1993]](http://users.isr.ist.utl.pt/~pjcro/temp/Fundamentals%20Of%20Statistical%20Signal%20Processing--Estimation%20Theory-Kay.pdf).
+By design, this is the (approximate) solution to the minimum mean square error (MMSE) estimation problem [[Kay 1993]](http://users.isr.ist.utl.pt/~pjcro/temp/Fundamentals%20Of%20Statistical%20Signal%20Processing--Estimation%20Theory-Kay.pdf).
 
 
 @section conditional-pdf Conditional Probability Distribution
@@ -23,7 +22,7 @@ To this end, we employ the Bayes Rule:
     p(\mathbf{x} | \mathbf{z}_m) = \frac{p(\mathbf{x},\mathbf{z}_m)}{p(\mathbf{z}_m)}    
 \f}
 
-In general, this conditional pdf cannot be computed analytically without imposing simplying assumptions.
+In general, this conditional pdf cannot be computed analytically without imposing simplifying assumptions.
 For the problem at hand, we first approximate (if indeed) \f$ p(\mathbf{z}_m) \simeq \mathcal N (\hat{\mathbf z}, \mathbf P_{zz}) \f$, 
 and then have the following joint Gaussian pdf (noting that joint of Gaussian pdfs is Gaussian):
 
@@ -31,7 +30,7 @@ and then have the following joint Gaussian pdf (noting that joint of Gaussian pd
 p(\mathbf{x},\mathbf{z}_m) = \mathcal N \left( \begin{bmatrix} \hat{\mathbf x}^\ominus \\ \mathbf z \end{bmatrix}, \begin{bmatrix}\mathbf P_{xx} & \mathbf P_{xz} \\ \mathbf P_{zx} & \mathbf P_{zz} \end{bmatrix} \right) =: \mathcal N(\hat{\mathbf y}, \mathbf P_{yy})
 \f}
 
-Substitution of these two Gaussians into the first equeation yields the following conditional Gaussian pdf:
+Substitution of these two Gaussians into the first equation yields the following conditional Gaussian pdf:
 
 \f{align*}{
     p(\mathbf{x} | \mathbf{z}_m) 
@@ -48,7 +47,7 @@ Substitution of these two Gaussians into the first equeation yields the followin
 \f}
 
 
-We now derive the conditional mean and covariance can be compuated as follows:
+We now derive the conditional mean and covariance can be computed as follows:
 First we simplify the denominator term \f$|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|\f$ in order to find the conditional covariance.
 
 \f{align*}{
