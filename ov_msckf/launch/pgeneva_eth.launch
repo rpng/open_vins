@@ -65,7 +65,7 @@
 
         <!-- camera intrinsics -->
         <param name="cam0_is_fisheye" type="bool" value="false" />
-        <param name="cam0_is_fisheye" type="bool" value="false" />
+        <param name="cam1_is_fisheye" type="bool" value="false" />
         <rosparam param="cam0_k">[458.654,0.0,367.215,0.0,457.296,248.375,0.0,0.0,1.0]</rosparam>
         <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05,0.0]</rosparam>
         <rosparam param="cam1_k">[457.587,0.0,379.999,0.0,456.134,255.238,0.0,0.0,1.0]</rosparam>
