@@ -256,7 +256,9 @@ We now can compute the following Jacobian with respect to the pertinent states:
 \f}
 
 where \f$\lfloor \mathbf a\times \rfloor \f$ denotes the  skew symmetric matrix of a vector \f$\mathbf a\f$ (see [Quatenion TR](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)).
-If performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is computed as:
+Note also that in above expression (as well as in ensuing derivations), there is a little abuse of noation; 
+that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotaiton angle vector.
+Moreover, if performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is needed:
 
 \f{align*}{
 \frac{\partial \mathbf h_t (\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= \left\lfloor {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor  \\
@@ -271,44 +273,46 @@ If performing online extrinsic calibration, the Jacobian with respect to the IMU
 
 
 
-@section feat-rep Feature Representations
+@section feat-rep Point Feature Representations
 
-To allow for multiple different types of feature representations, we define an arbitrary function that itself can be a function of the state and the chosen feature representation.
-The two representations that we leverage here are a 3D point and bearing with inverse depth.
-Both of these can either be represented in the global frame or in an anchor frame of reference which adds a dependency on having an "anchor" pose the feature is seen in.
+There are two main parematerizations of a 3D point feature: 3D position (xyz) and inverse depth with bearing. 
+Both of these can either be represented in the global frame or in an anchor frame of reference which adds a dependency on having an "anchor" pose where the feature is observed.
+To allow for a unified treatment of different feature parameterizations \f$\boldsymbol \lambda\f$ in our codebase, 
+we derive in detail the generic function \f${}^{G}\mathbf{p}_f=\mathbf f (\cdot)\f$ that maps different representations into global positioin.
+
 
 @subsection feat-rep-global-xyz Global XYZ
 
-For the global representation we have the following:
+As the canonical parameterization, the global position of a 3D point feature is simply given by its xyz coordinates in the global frame of  reference:
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda) \\
+&= \mathbf f(\boldsymbol\lambda) \\
 &= \begin{bmatrix} {}^Gx \\ {}^Gy \\ {}^Gz \end{bmatrix} \\
 \text{where} &\quad \boldsymbol\lambda = {}^{G}\mathbf{p}_f = \begin{bmatrix} {}^Gx & {}^Gy & {}^Gz \end{bmatrix}^\top
 \f}
 
-It is clear that the Jacobian  in respect to the feature state is just the following:
+It is clear that the Jacobian  with respect to the feature parameters is:
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= \mathbf{I}_{3\times 3}
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= \mathbf{I}_{3\times 3}
 \f}
 
 
 
 @subsection feat-rep-global-inv Global Inverse Depth
 
-For the global inverse representation we have the following:
+The global inverse-depth representation of a 3D point feature is given by (akin to spherical coordinates):
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda) \\
+&= \mathbf f(\boldsymbol\lambda) \\
 &= \frac{1}{\rho}\begin{bmatrix} \cos(\theta)\sin(\phi) \\ \sin(\theta)\sin(\phi) \\ \cos(\phi) \end{bmatrix} \\
 \text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \theta & \phi & \rho \end{bmatrix}^\top
 \f}
 
-The Jacobian  in respect to the feature state is just the following:
+The Jacobian  with respect to the feature parameters can be computed as:
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= 
 \begin{bmatrix}
 -\frac{1}{\rho}\sin(\theta)\sin(\phi) & \frac{1}{\rho}\cos(\theta)\cos(\phi) & -\frac{1}{\rho^2}\cos(\theta)\sin(\phi) \\
 \frac{1}{\rho}\cos(\theta)\sin(\phi) & \frac{1}{\rho}\sin(\theta)\cos(\phi) & -\frac{1}{\rho^2}\sin(\theta)\sin(\phi) \\
@@ -317,10 +321,9 @@ The Jacobian  in respect to the feature state is just the following:
 \f}
 
 
-@subsection feat-rep-global-inv2 Global Inverse Depth (MSCKF VERSION)
-
-This representation has a singularity when the vertical z-distance goes to zero.
-Thus one should never represent this in a global frame, and instead should use the @ref feat-rep-anchor-inv2 representation.
+Note that as this representation has a singularity when the z-distance goes to zero,
+it is not recommended to use in practice.
+Instead, one should use the @ref feat-rep-anchor-inv2 representation.
 The anchored version doesn't have this issue if you represent the feature in a camera frame that it was seen from (which a feature should never have a non-positive z-direction).
 
 
@@ -328,49 +331,52 @@ The anchored version doesn't have this issue if you represent the feature in a c
 
 @subsection feat-rep-anchor-xyz Anchored XYZ
 
-To "anchor" a feature, we say that it has been seen from some anchor pose which is in the camera sensor frame of reference.
-This would normally be the first pose that an observation of the feature was seen from.
-Thus, our feature measurement is a function of this anchor state as follows:
+We can represent a 3D point feature in some "anchor" frame (say some IMU local frame, \f$\{{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a}\}\f$), 
+which would normally be the IMU pose corresponding to the first camera frame where the feature was detected.
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I}) \\
 &=
-{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top( \boldsymbol\lambda -{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
 \text{where} &\quad \boldsymbol\lambda = {}^{C_a}\mathbf{p}_f = \begin{bmatrix} {}^{C_a}x & {}^{C_a}y & {}^{C_a}z \end{bmatrix}^\top
 \f}
 
-It is clear that the Jacobian in respect to the feature state is just the following:
+The Jacobian with respect to the feature state is given by:
+
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
 
 
-We additionally have the following Jacobians in respect to the anchor state:
+As the anchor pose is involved in this representation, its Jacobians are computed as:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
 \f}
 
 
-If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+Moreover, if performing extrinsic calibration, the following Jacobians with respect to the IMU-camera extrinsics are also needed:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
+
+
+
 
 
 
 
 @subsection feat-rep-anchor-inv Anchored Inverse Depth
 
-To "anchor" a feature, we say that it has been seen from some anchor pose which is in the camera sensor frame of reference.
-This would normally be the first pose that an observation of the feature was seen from.
-Thus, our feature measurement is a function of this anchor state as follows:
+In analogy to the global inverse depth case, we can employ the inverse-depth with bearing (akin to spherical coordinates) in the anchor frame, \f$\{{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a}\}\f$, to represent a 3D point feature:
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I}) \\
 &=
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
 &=
@@ -378,9 +384,10 @@ Thus, our feature measurement is a function of this anchor state as follows:
 \text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \theta & \phi & \rho \end{bmatrix}^\top
 \f}
 
-The Jacobian in respect to the feature state is exactly the same as the global representation with additional rotation matrices:
+The Jacobian with respect to the feature state is given by:
+
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= 
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \begin{bmatrix}
 -\frac{1}{\rho}\sin(\theta)\sin(\phi) & \frac{1}{\rho}\cos(\theta)\cos(\phi) & -\frac{1}{\rho^2}\cos(\theta)\sin(\phi) \\
@@ -390,31 +397,32 @@ The Jacobian in respect to the feature state is exactly the same as the global r
 \f}
 
 
-We additionally have the following Jacobians in respect to the anchor state:
+The Jacobians with respect to the anchor pose are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
 \f}
 
 
-If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+The Jacobians with respect to the IMU-camera extrinsics are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
 
 
 
 
 
+@subsubsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF Version)
 
-@subsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF VERSION)
-
-We may also define a simpler version of inverse depth, as is presented in the original MSCKF paper. The 3D position of the feature is then given by:
+Note that a simpler version of inverse depth was used in the [MSCKF paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.1085&rep=rep1&type=pdf):
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I})  \\
 &=
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
 &=
@@ -422,9 +430,10 @@ We may also define a simpler version of inverse depth, as is presented in the or
 \text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \alpha & \beta & \rho \end{bmatrix}^\top
 \f}
 
-The Jacobian in respect to the feature state is then:
+The Jacobian with respect to the feature state is:
+
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= 
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \begin{bmatrix}
 \frac{1}{\rho} & 0 & -\frac{1}{\rho^2}\alpha \\
@@ -434,17 +443,19 @@ The Jacobian in respect to the feature state is then:
 \f}
 
 
-We additionally have the following Jacobians in respect to the anchor state:
+The Jacobians with respect to the anchor state are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
 \f}
 
 
-If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+The Jacobians with respect to the IMU-camera extrinsics are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
 
 
