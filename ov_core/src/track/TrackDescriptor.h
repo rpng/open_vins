@@ -17,7 +17,7 @@ namespace ov_core {
      * @brief Descriptor-based visual tracking
      *
      * Here we use descriptor matching to track features from one frame to the next.
-     * We track both temporally, and across stereo pairs to get stereo contraints.
+     * We track both temporally, and across stereo pairs to get stereo constraints.
      * Right now we use ORB descriptors as we have found it is the fastest when computing descriptors.
      */
     class TrackDescriptor : public TrackBase {
@@ -95,6 +95,8 @@ namespace ov_core {
          * @param pts1 right vector of new keypoints
          * @param desc0 left vector of extracted descriptors
          * @param desc1 left vector of extracted descriptors
+         * @param cam_id0 id of the first camera
+         * @param cam_id1 id of the second camera
          * @param ids0 left vector of all new IDs
          * @param ids1 right vector of all new IDs
          *
@@ -105,8 +107,9 @@ namespace ov_core {
          */
         void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
                                       std::vector<cv::KeyPoint> &pts1,
-                                      cv::Mat &desc0, cv::Mat &desc1, std::vector<size_t> &ids0,
-                                      std::vector<size_t> &ids1);
+                                      cv::Mat &desc0, cv::Mat &desc1,
+                                      size_t cam_id0, size_t cam_id1,
+                                      std::vector<size_t> &ids0, std::vector<size_t> &ids1);
 
         /**
          * @brief Find matches between two keypoint+descriptor sets.
@@ -114,6 +117,8 @@ namespace ov_core {
          * @param pts1 second vector of keypoints
          * @param desc0 first vector of descriptors
          * @param desc1 second vector of decriptors
+         * @param id0 id of the first camera
+         * @param id1 id of the second camera
          * @param matches vector of matches that we have found
          *
          * This will perform a "robust match" between the two sets of points (slow but has great results).
@@ -122,7 +127,7 @@ namespace ov_core {
          * https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
          */
         void robust_match(std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> pts1,
-                          cv::Mat &desc0, cv::Mat &desc1, std::vector<cv::DMatch> &matches);
+                          cv::Mat &desc0, cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches);
 
         // Helper functions for the robust_match function
         // Original code is from the "RobustMatcher" in the opencv examples

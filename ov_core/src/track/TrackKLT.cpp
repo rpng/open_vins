@@ -33,7 +33,7 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     std::vector<cv::KeyPoint> pts_left_new = pts_last[cam_id];
 
     // Lets track temporally
-    perform_matching(img_last[cam_id],img,pts_last[cam_id],pts_left_new,mask_ll);
+    perform_matching(img_last[cam_id],img,pts_last[cam_id],pts_left_new,cam_id,cam_id,mask_ll);
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     //===================================================================================
@@ -130,9 +130,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_rig
 
     // Lets track temporally
     boost::thread t_ll = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_last[cam_id_left]), boost::cref(img_left),
-                                       boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new), boost::ref(mask_ll));
+                                       boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new), cam_id_left, cam_id_left, boost::ref(mask_ll));
     boost::thread t_rr = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_last[cam_id_right]), boost::cref(img_right),
-                                       boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new), boost::ref(mask_rr));
+                                       boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new), cam_id_right, cam_id_right, boost::ref(mask_rr));
 
     // Wait till both threads finish
     t_ll.join();
@@ -146,7 +146,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_rig
 
     // left to right matching
     std::vector<uchar> mask_lr;
-    perform_matching(img_left, img_right, pts_left_new, pts_right_new, mask_lr);
+    perform_matching(img_left, img_right, pts_left_new, pts_right_new, cam_id_left, cam_id_right, mask_lr);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -322,7 +322,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     }
 
     // TODO: Project points from the left frame into the right frame
-    // TODO: this will not work for large baseline systems...
+    // TODO: this will not work for large baseline systems.....
     std::vector<cv::KeyPoint> kpts1_new;
     std::vector<cv::Point2f> pts1_new;
     kpts1_new = kpts0_new;
@@ -363,6 +363,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
 
 void TrackKLT::perform_matching(const cv::Mat& img0, const cv::Mat& img1,
                                 std::vector<cv::KeyPoint>& kpts0, std::vector<cv::KeyPoint>& kpts1,
+                                size_t id0, size_t id1,
                                 std::vector<uchar>& mask_out) {
 
     // We must have equal vectors
@@ -395,9 +396,22 @@ void TrackKLT::perform_matching(const cv::Mat& img0, const cv::Mat& img1,
     cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 20, 0.01);
     cv::calcOpticalFlowPyrLK(img0, img1, pts0, pts1, mask_klt, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 
-    // Do RANSAC outlier rejection
+
+    // Normalize these points, so we can then do ransac
+    // We don't want to do ransac on distorted image uvs since the mapping is nonlinear
+    std::vector<cv::Point2f> pts0_n, pts1_n;
+    for(size_t i=0; i<pts0.size(); i++) {
+        pts0_n.push_back(undistort_point(pts0.at(i),id0));
+        pts1_n.push_back(undistort_point(pts1.at(i),id1));
+    }
+
+    // Do RANSAC outlier rejection (note since we normalized the max pixel error is now in the normalized cords)
     std::vector<uchar> mask_rsc;
-    cv::findFundamentalMat(pts0, pts1, cv::FM_RANSAC, 1, 0.999, mask_rsc);
+    double max_focallength_img0 = std::max(camera_k_OPENCV.at(id0)(0,0),camera_k_OPENCV.at(id0)(1,1));
+    double max_focallength_img1 = std::max(camera_k_OPENCV.at(id1)(0,0),camera_k_OPENCV.at(id1)(1,1));
+    double max_focallength = std::max(max_focallength_img0,max_focallength_img1);
+    cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1/max_focallength, 0.999, mask_rsc);
+
 
     // Loop through and record only ones that are valid
     for(size_t i=0; i<mask_klt.size(); i++) {

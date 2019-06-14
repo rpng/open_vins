@@ -33,7 +33,7 @@ namespace ov_core {
      * The feature tracks store both the raw (distorted) and undistorted/normalized values.
      * Right now we just support two camera models, see: undistort_point_brown() and undistort_point_fisheye().
      *
-     * This base class also handles most of the heavy lifting with the visualalization, but the sub-classes can override
+     * This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override
      * this and do their own logic if they want (i.e. the auroctag tracker has its own logic for visualization).
      */
     class TrackBase {
@@ -225,28 +225,32 @@ namespace ov_core {
             return pt_out;
         }
 
-        // Database with all our current features
+        /// Database with all our current features
         FeatureDatabase *database;
 
-        // If we are a fisheye model or not
+        /// If we are a fisheye model or not
         std::unordered_map<size_t, bool> camera_fisheye;
 
-        // Camera intrinsics in OpenCV format
+        /// Camera intrinsics in OpenCV format
         std::unordered_map<size_t, cv::Matx33d> camera_k_OPENCV;
+
+        /// Camera distortion in OpenCV format
         std::unordered_map<size_t, cv::Vec4d> camera_d_OPENCV;
 
-        // number of features we should try to track frame to frame
+        /// Number of features we should try to track frame to frame
         int num_features;
 
-        // Last set of images
-        std::unordered_map<size_t, cv::Mat> img_last;
+        /// Last set of images (use map so all trackers render in the same order)
+        std::map<size_t, cv::Mat> img_last;
 
-        // Last set of tracked points
+        /// Last set of tracked points
         std::unordered_map<size_t, std::vector<cv::KeyPoint>> pts_last;
 
-        // Set of IDs of each current feature in the database
-        size_t currid = 0;
+        /// Set of IDs of each current feature in the database
         std::unordered_map<size_t, std::vector<size_t>> ids_last;
+
+        /// Master ID for this tracker
+        size_t currid = 0;
 
 
     };

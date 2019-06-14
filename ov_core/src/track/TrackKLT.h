@@ -108,6 +108,8 @@ namespace ov_core {
          * @param img1 image we want to track too
          * @param pts0 starting points
          * @param pts1 points we have tracked
+         * @param id0 id of the first camera
+         * @param id1 id of the second camera
          * @param mask_out what points had valid tracks
          *
          * This will track features from the first image into the second image.
@@ -115,7 +117,7 @@ namespace ov_core {
          * If the second vector is non-empty, it will be used as an initial guess of where the keypoints are in the second image.
          */
         void perform_matching(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
-                              std::vector<cv::KeyPoint> &pts1, std::vector<uchar> &mask_out);
+                              std::vector<cv::KeyPoint> &pts1, size_t id0, size_t id1, std::vector<uchar> &mask_out);
 
         // Timing variables
         boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;

@@ -32,7 +32,7 @@ void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &img, size_t cam_
     std::vector<cv::DMatch> matches_ll;
 
     // Lets match temporally
-    robust_match(pts_last[cam_id],pts_new,desc_last[cam_id],desc_new,matches_ll);
+    robust_match(pts_last[cam_id],pts_new,desc_last[cam_id],desc_new,cam_id,cam_id,matches_ll);
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -122,6 +122,7 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &
         perform_detection_stereo(img_left, img_right,
                                  pts_last[cam_id_left], pts_last[cam_id_right],
                                  desc_last[cam_id_left], desc_last[cam_id_right],
+                                 cam_id_left, cam_id_right,
                                  ids_last[cam_id_left], ids_last[cam_id_right]);
         img_last[cam_id_left] = img_left.clone();
         img_last[cam_id_right] = img_right.clone();
@@ -135,7 +136,7 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &
 
     // First, extract new descriptors for this new image
     perform_detection_stereo(img_left, img_right, pts_left_new, pts_right_new,
-                             desc_left_new, desc_right_new, ids_left_new, ids_right_new);
+                             desc_left_new, desc_right_new, cam_id_left, cam_id_right, ids_left_new, ids_right_new);
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -148,9 +149,9 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &
 
     // Lets match temporally
     boost::thread t_ll = boost::thread(&TrackDescriptor::robust_match, this, boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new),
-                                       boost::ref(desc_last[cam_id_left]), boost::ref(desc_left_new), boost::ref(matches_ll));
+                                       boost::ref(desc_last[cam_id_left]), boost::ref(desc_left_new), cam_id_left, cam_id_left, boost::ref(matches_ll));
     boost::thread t_rr = boost::thread(&TrackDescriptor::robust_match, this, boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new),
-                                       boost::ref(desc_last[cam_id_right]), boost::ref(desc_right_new), boost::ref(matches_rr));
+                                       boost::ref(desc_last[cam_id_right]), boost::ref(desc_right_new), cam_id_right, cam_id_right, boost::ref(matches_rr));
 
     // Wait till both threads finish
     t_ll.join();
@@ -294,6 +295,7 @@ void TrackDescriptor::perform_detection_monocular(const cv::Mat& img0, std::vect
 void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1,
                                                std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
                                                cv::Mat &desc0, cv::Mat &desc1,
+                                               size_t cam_id0, size_t cam_id1,
                                                std::vector<size_t> &ids0, std::vector<size_t> &ids1) {
 
     // Assert that we need features
@@ -326,7 +328,7 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
 
     // Do matching from the left to the right image
     std::vector<cv::DMatch> matches;
-    robust_match(pts0_ext, pts1_ext, desc0_ext, desc1_ext, matches);
+    robust_match(pts0_ext, pts1_ext, desc0_ext, desc1_ext, cam_id0, cam_id1, matches);
 
     // For all good matches, lets append to our returned vectors
     for(size_t i=0; i<matches.size(); i++) {
@@ -347,7 +349,7 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
 }
 
 void TrackDescriptor::robust_match(std::vector<cv::KeyPoint>& pts0, std::vector<cv::KeyPoint> pts1,
-                                   cv::Mat& desc0, cv::Mat& desc1, std::vector<cv::DMatch>& matches) {
+                                   cv::Mat& desc0, cv::Mat& desc1, size_t id0, size_t id1, std::vector<cv::DMatch>& matches) {
 
     // Our 1to2 and 2to1 match vectors
     std::vector<std::vector<cv::DMatch> > matches0to1, matches1to0;
@@ -379,9 +381,20 @@ void TrackDescriptor::robust_match(std::vector<cv::KeyPoint>& pts0, std::vector<
     if(pts0_rsc.size() < 10)
         return;
 
-    // Do RANSAC outlier rejection
+    // Normalize these points, so we can then do ransac
+    // We don't want to do ransac on distorted image uvs since the mapping is nonlinear
+    std::vector<cv::Point2f> pts0_n, pts1_n;
+    for(size_t i=0; i<pts0_rsc.size(); i++) {
+        pts0_n.push_back(undistort_point(pts0_rsc.at(i),id0));
+        pts1_n.push_back(undistort_point(pts0_rsc.at(i),id1));
+    }
+
+    // Do RANSAC outlier rejection (note since we normalized the max pixel error is now in the normalized cords)
     std::vector<uchar> mask_rsc;
-    cv::findFundamentalMat(pts0_rsc, pts1_rsc, cv::FM_RANSAC, 1, 0.99, mask_rsc);
+    double max_focallength_img0 = std::max(camera_k_OPENCV.at(id0)(0,0),camera_k_OPENCV.at(id0)(1,1));
+    double max_focallength_img1 = std::max(camera_k_OPENCV.at(id1)(0,0),camera_k_OPENCV.at(id1)(1,1));
+    double max_focallength = std::max(max_focallength_img0,max_focallength_img1);
+    cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1/max_focallength, 0.999, mask_rsc);
 
     // Loop through all good matches, and only append ones that have passed RANSAC
     for(size_t i=0; i<matches_good.size(); i++) {
