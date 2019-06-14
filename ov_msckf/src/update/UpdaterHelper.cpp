@@ -275,16 +275,22 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
                 double theta = std::atan(r);
                 double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
-                double x1 = uv_norm(0)*theta_d/r;
-                double y1 = uv_norm(1)*theta_d/r;
+
+                // Handle when r is small (meaning our xy is near the camera center)
+                double inv_r = r > 1e-8 ? 1.0/r : 1;
+                double cdist = r > 1e-8 ? theta_d * inv_r : 1;
+
+                // Calculate distorted coordinates for fisheye
+                double x1 = uv_norm(0)*cdist;
+                double y1 = uv_norm(1)*cdist;
                 uv_dist(0) = cam_d(0)*x1 + cam_d(2);
                 uv_dist(1) = cam_d(1)*y1 + cam_d(3);
 
                 // If our r is small (meaning our xy is near the camera center) then don't distort
-                if(r < 1e-5) {
-                    uv_dist(0) = cam_d(0)*uv_norm(0) + cam_d(2);
-                    uv_dist(1) = cam_d(1)*uv_norm(1) + cam_d(3);
-                }
+                //if(r < 1e-5) {
+                //    uv_dist(0) = cam_d(0)*uv_norm(0) + cam_d(2);
+                //    uv_dist(1) = cam_d(1)*uv_norm(1) + cam_d(3);
+                //}
 
                 // Jacobian of distorted pixel to "normalized" pixel
                 Eigen::Matrix<double,2,2> duv_dxy1 = Eigen::Matrix<double,2,2>::Zero();
@@ -292,15 +298,15 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
 
                 // Jacobian of "normalized" pixel to normalized pixel
                 Eigen::Matrix<double,2,2> dxy1_dxy = Eigen::Matrix<double,2,2>::Zero();
-                dxy1_dxy << theta_d/r, 0, 0, theta_d/r;
+                dxy1_dxy << theta_d*inv_r, 0, 0, theta_d*inv_r;
 
                 // Jacobian of "normalized" pixel to r
                 Eigen::Matrix<double,2,1> dxy1_dr = Eigen::Matrix<double,2,1>::Zero();
-                dxy1_dr << -x1/r, -y1/r;
+                dxy1_dr << -uv_norm(0)*theta_d*inv_r*inv_r, -uv_norm(1)*theta_d*inv_r*inv_r;
 
                 // Jacobian of r pixel to normalized xy
                 Eigen::Matrix<double,1,2> dr_dxy = Eigen::Matrix<double,1,2>::Zero();
-                dxy1_dr << -uv_norm(0)/r, -uv_norm(1)/r;
+                dxy1_dr << -uv_norm(0)*inv_r, -uv_norm(1)*inv_r;
 
                 // Jacobian of "normalized" pixel to theta_d
                 Eigen::Matrix<double,2,1> dxy1_dthd = dr_dxy.transpose();
@@ -319,16 +325,16 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 if(state->options().do_calib_camera_intrinsics) {
                     dz_dzeta(0,0) = x1;
                     dz_dzeta(0,2) = 1;
-                    dz_dzeta(0,4) = cam_d(0)*uv_norm(0)/r*std::pow(theta,3);
-                    dz_dzeta(0,5) = cam_d(0)*uv_norm(0)/r*std::pow(theta,5);
-                    dz_dzeta(0,6) = cam_d(0)*uv_norm(0)/r*std::pow(theta,7);
-                    dz_dzeta(0,7) = cam_d(0)*uv_norm(0)/r*std::pow(theta,9);
+                    dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,3);
+                    dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,5);
+                    dz_dzeta(0,6) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,7);
+                    dz_dzeta(0,7) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,9);
                     dz_dzeta(1,1) = y1;
                     dz_dzeta(1,3) = 1;
-                    dz_dzeta(1,4) = cam_d(1)*uv_norm(1)/r*std::pow(theta,3);
-                    dz_dzeta(1,5) = cam_d(1)*uv_norm(1)/r*std::pow(theta,5);
-                    dz_dzeta(1,6) = cam_d(1)*uv_norm(1)/r*std::pow(theta,7);
-                    dz_dzeta(1,7) = cam_d(1)*uv_norm(1)/r*std::pow(theta,9);
+                    dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,3);
+                    dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,5);
+                    dz_dzeta(1,6) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,7);
+                    dz_dzeta(1,7) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,9);
                 }
 
 

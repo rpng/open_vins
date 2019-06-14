@@ -50,7 +50,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
         if(imu_data.at(i+1).timestamp > state->timestamp()+last_prop_time_offset && imu_data.at(i).timestamp <= state->timestamp()+last_prop_time_offset) {
             IMUDATA data = interpolate_data(imu_data.at(i),imu_data.at(i+1), state->timestamp()+last_prop_time_offset);
             prop_data.push_back(data);
-            //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,state->timestamp-prop_data.at(0).timestamp);
+            //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,state->timestamp()-prop_data.at(0).timestamp);
             continue;
         }
 
@@ -66,17 +66,18 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
         // END OF THE INTEGRATION PERIOD
         // If the current timestamp is greater then our update time
         // We should just "split" the NEXT IMU measurement to the update time,
-        // NOTE: we add the current time, and then the time at the end of the inverval (so we can get a dt)
+        // NOTE: we add the current time, and then the time at the end of the interval (so we can get a dt)
         // NOTE: we also break out of this loop, as this is the last IMU measurement we need!
         if(imu_data.at(i+1).timestamp > timestamp+t_off_new) {
             prop_data.push_back(imu_data.at(i));
+            //ROS_INFO("propagation #%d = CASE 3.1 = %.3f => %.3f", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-state->timestamp());
             // If the added IMU message doesn't end exactly at the camera time
             // Then we need to add another one that is right at the ending time
             if(prop_data.at(prop_data.size()-1).timestamp != timestamp+t_off_new) {
                 IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), timestamp+t_off_new);
                 prop_data.push_back(data);
+                //ROS_INFO("propagation #%d = CASE 3.2 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-state->timestamp());
             }
-            //ROS_INFO("propagation #%d = CASE 3 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-prop_data.at(0).timestamp);
             break;
         }
 
@@ -95,7 +96,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
 
     // If we did not reach the whole integration period (i.e., the last inertial measurement we have is smaller then the time we want to reach)
     // Then we should just "stretch" the last measurement to be the whole period
-    if(imu_data.at(imu_data.size()-1).timestamp < timestamp+t_off_new) {
+    if(imu_data.at(imu_data.size()-1).timestamp <= timestamp+t_off_new) {
         IMUDATA data = interpolate_data(imu_data.at(imu_data.size()-2),imu_data.at(imu_data.size()-1),timestamp+t_off_new);
         prop_data.push_back(data);
         //ROS_INFO("propagation #%d = CASE 4 = %.3f",(int)(imu_data.size()-1),data.timestamp-prop_data.at(0).timestamp);
@@ -113,7 +114,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
     }
 
     // Check that we have at least one measurement to propagate with
-    if(prop_data.empty()) {
+    if(prop_data.size() < 2) {
         std::cerr << "Propagator::propagate_and_clone(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
         std::cerr << "Propagator::propagate_and_clone(): IMU-CAMERA are likely messed up, check time offset value!!!" << std::endl;
         std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
@@ -138,7 +139,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
         // Get the next state Jacobian and noise Jacobian for this IMU reading
         Eigen::Matrix<double, 15, 15> F = Eigen::Matrix<double, 15, 15>::Zero();
         Eigen::Matrix<double, 15, 15> Qdi = Eigen::Matrix<double, 15, 15>::Zero();
-        predict_and_compute(state, prop_data.at(i), prop_data.at(i + 1), F, Qdi);
+        predict_and_compute(state, prop_data.at(i), prop_data.at(i+1), F, Qdi);
 
         // Next we should propagate our IMU covariance
         // Pii' = F*Pii*F.transpose() + G*Q*G.transpose()
@@ -151,19 +152,17 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
     }
 
     // Last angular velocity (used for cloning when estimating time offset)
-    Eigen::Matrix<double,3,1> last_w = prop_data.at(prop_data.size()-1).wm - state->imu()->bias_g();
+    Eigen::Matrix<double,3,1> last_w = prop_data.at(prop_data.size()-2).wm - state->imu()->bias_g();
 
     // For now assert that our IMU is at the top left of the covariance
     assert(state->imu()->id()==0);
 
     // Do the update to the covariance with our "summed" state transition and IMU noise addition...
-
-
     auto &Cov = state->Cov();
     size_t imu_id = state->imu()->id();
     assert(imu_id == 0);
-    Cov.block(imu_id,0,15, state->n_vars()) = Phi_summed*Cov.block(imu_id,0,15, state->n_vars());
-    Cov.block(0,imu_id, state->n_vars(),15) = Cov.block(0,imu_id, state->n_vars(),15)*Phi_summed.transpose();
+    Cov.block(imu_id,0,15,state->n_vars()) = Phi_summed*Cov.block(imu_id,0,15,state->n_vars());
+    Cov.block(0,imu_id,state->n_vars(),15) = Cov.block(0,imu_id,state->n_vars(),15)*Phi_summed.transpose();
     Cov.block(imu_id,imu_id,15,15) += Qd_summed;
 
     // Ensure the covariance is symmetric
@@ -183,11 +182,16 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
 void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
                                      Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd){
 
+    // Set them to zero
+    F.setZero();
+    Qd.setZero();
+
     auto imu = state->imu();
 
     // Time elapsed over interval
     double dt = data_plus.timestamp-data_minus.timestamp;
 
+    // Corrected imu measurements
     Eigen::Matrix<double,3,1> w_hat = data_minus.wm - imu->bias_g();
     Eigen::Matrix<double,3,1> a_hat = data_minus.am - imu->bias_a();
 
@@ -265,19 +269,21 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         F.block(v_id, v_id, 3, 3).setIdentity();
         F.block(v_id, ba_id, 3, 3) = -R_Gtoi.transpose() * dt;
         F.block(ba_id, ba_id, 3, 3).setIdentity();
-        F.block(p_id, th_id, 3, 3).noalias() = -0.5 *R_Gtoi.transpose() * skew_x(a_hat * dt * dt);
+        F.block(p_id, th_id, 3, 3).noalias() = -0.5 * R_Gtoi.transpose() * skew_x(a_hat * dt * dt);
         F.block(p_id, v_id, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
         F.block(p_id, ba_id, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
         F.block(p_id, p_id, 3, 3).setIdentity();
 
         G.block(th_id, 0, 3, 3) = -Exp(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
         G.block(bg_id, 3, 3, 3).setIdentity();
-        G.block(v_id, 6, 3, 3) = -imu->Rot().transpose() * dt;
+        G.block(v_id, 6, 3, 3) = -R_Gtoi.transpose() * dt;
         G.block(ba_id, 9, 3, 3).setIdentity();
-        G.block(p_id, 6, 3, 3) = -.5 * imu->Rot().transpose() * dt * dt;
+        G.block(p_id, 6, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
     }
 
-    // Get noise covariance matrix
+    // Construct our discrete noise covariance matrix
+    // Note that we need to convert our continuous time noises to discrete
+    // Equations (129) amd (130) of Trawny tech report
     Eigen::Matrix<double,12,12> Qc = Eigen::Matrix<double,12,12>::Zero();
     Qc.block(0,0,3,3) = _noises.sigma_w_2/dt*Eigen::Matrix<double,3,3>::Identity();
     Qc.block(3,3,3,3) = _noises.sigma_wb_2*dt*Eigen::Matrix<double,3,3>::Identity();

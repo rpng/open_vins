@@ -9,6 +9,9 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
+    // Histogram equalize
+    cv::equalizeHist(img, img);
+
     // If we didn't have any successful tracks last time, just extract this time
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id].empty()) {
@@ -93,10 +96,15 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 }
 
 
-void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) {
+void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_rightin, size_t cam_id_left, size_t cam_id_right) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Histogram equalize
+    cv::Mat img_left, img_right;
+    cv::equalizeHist(img_leftin, img_left);
+    cv::equalizeHist(img_rightin, img_right);
 
     // If we didn't have any successful tracks last time, just extract this time
     // This also handles, the tracking initalization on the first call to this extractor
@@ -234,6 +242,27 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_rig
 
 void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0) {
 
+    // Create a 2D occupancy grid for this current image
+    // Note that we scale this down, so that each grid point is equal to a set of pixels
+    // This means that we will reject points that less then grid_px_size points away then existing features
+    Eigen::MatrixXi grid_2d_current;
+    grid_2d_current.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    auto it0 = pts0.begin();
+    auto it2 = ids0.begin();
+    while(it0 != pts0.end()) {
+        // Get current left keypoint
+        cv::KeyPoint kpt = *it0;
+        // Check if this keypoint is near another point
+        if(grid_2d_current((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) == 1) {
+            it0 = pts0.erase(it0);
+            it2 = ids0.erase(it2);
+            continue;
+        }
+        // Else we are good, move forward to the next point
+        grid_2d_current((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
+        it0++;
+        it2++;
+    }
 
     // First compute how many more features we need to extract from this image
     int num_featsneeded = num_features - (int)pts0.size();
@@ -249,7 +278,7 @@ void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXd grid_2d;
+    Eigen::MatrixXi grid_2d;
     grid_2d.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
     for(auto& kpt : pts0) {
         grid_2d((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
@@ -286,6 +315,33 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
                                         std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
                                         std::vector<size_t> &ids0, std::vector<size_t> &ids1) {
 
+    // Create a 2D occupancy grid for this current image
+    // Note that we scale this down, so that each grid point is equal to a set of pixels
+    // This means that we will reject points that less then grid_px_size points away then existing features
+    Eigen::MatrixXi grid_2d_current;
+    grid_2d_current.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    auto it0 = pts0.begin();
+    auto it1 = pts1.begin();
+    auto it2 = ids0.begin();
+    auto it3 = ids1.begin();
+    while(it0 != pts0.end()) {
+        // Get current left keypoint
+        cv::KeyPoint kpt = *it0;
+        // Check if this keypoint is near another point
+        if(grid_2d_current((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) == 1) {
+            it0 = pts0.erase(it0);
+            it1 = pts1.erase(it1);
+            it2 = ids0.erase(it2);
+            it3 = ids1.erase(it3);
+            continue;
+        }
+        // Else we are good, move forward to the next point
+        grid_2d_current((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
+        it0++;
+        it1++;
+        it2++;
+        it3++;
+    }
 
     // First compute how many more features we need to extract from this image
     int num_featsneeded = num_features - (int)pts0.size();
@@ -302,7 +358,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXd grid_2d;
+    Eigen::MatrixXi grid_2d;
     grid_2d.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
     for(auto& kpt : pts0) {
         grid_2d((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
@@ -338,7 +394,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     int pyr_levels = 3;
     std::vector<uchar> mask;
     std::vector<float> error;
-    cv::Size win_size(50, 50);
+    cv::Size win_size(15, 15);
     cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01);
     cv::calcOpticalFlowPyrLK(img0, img1, pts0_new, pts1_new, mask, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 

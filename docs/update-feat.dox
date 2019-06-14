@@ -181,7 +181,7 @@ we can compute the following Jacobian with respect to the normalized coordinates
 \empty
     \frac{\partial xy}{\partial r} &= \begin{bmatrix} -\frac{x_n}{r^2}\theta_d \\ -\frac{y_n}{r^2}\theta_d \end{bmatrix} \\
 \empty
-    \frac{\partial r}{\partial x_ny_n} &= \begin{bmatrix} \frac{x_n}{r} & \frac{y_n}{r} \end{bmatrix} \\
+    \frac{\partial r}{\partial x_ny_n} &= \begin{bmatrix} -\frac{x_n}{r} & -\frac{y_n}{r} \end{bmatrix} \\
 \empty
     \frac{\partial xy}{\partial \theta_d} &= \begin{bmatrix} \frac{x_n}{r} \\ \frac{y_n}{r} \end{bmatrix} \\
 \empty

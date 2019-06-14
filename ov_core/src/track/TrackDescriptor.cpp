@@ -4,10 +4,14 @@
 using namespace ov_core;
 
 
-void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
+void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Histogram equalize
+    cv::Mat img;
+    cv::equalizeHist(imgin, img);
 
     // If we are the first frame (or have lost tracking), initialize our descriptors
     if(pts_last.find(cam_id)==pts_last.end() || pts_last[cam_id].empty()) {
@@ -112,10 +116,15 @@ void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &img, size_t cam_
 
 }
 
-void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) {
+void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_rightin, size_t cam_id_left, size_t cam_id_right) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Histogram equalize
+    cv::Mat img_left, img_right;
+    cv::equalizeHist(img_leftin, img_left);
+    cv::equalizeHist(img_rightin, img_right);
 
     // If we are the first frame (or have lost tracking), initialize our descriptors
     if(pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {

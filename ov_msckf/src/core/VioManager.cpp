@@ -385,10 +385,10 @@ bool VioManager::try_to_initialize() {
         imu_val.block(0,0,4,1) = q_GtoI0;
         imu_val.block(4,0,3,1) << 0,0,0;
         imu_val.block(7,0,3,1) = v_I0inG;
-        imu_val.block(10,0,3,1) = b_w0;
-        imu_val.block(13,0,3,1) = b_a0;
-        //imu_val.block(10,0,3,1) << 0,0,0;
-        //imu_val.block(13,0,3,1) << 0,0,0;
+        //imu_val.block(10,0,3,1) = b_w0;
+        //imu_val.block(13,0,3,1) = b_a0;
+        imu_val.block(10,0,3,1) << 0,0,0;
+        imu_val.block(13,0,3,1) << 0,0,0;
         state->imu()->set_value(imu_val);
         state->set_timestamp(time0);
 
@@ -613,6 +613,10 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     ROS_INFO("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)",
             state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3),
             state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2),distance);
+    ROS_INFO("bg = %.4f,%.4f,%.4f | ba = %.4f,%.4f,%.4f",
+             state->imu()->bias_g()(0),state->imu()->bias_g()(1),state->imu()->bias_g()(2),
+             state->imu()->bias_a()(0),state->imu()->bias_a()(1),state->imu()->bias_a()(2));
+
 
     // Debug for camera imu offset
     if(state->options().do_calib_camera_timeoffset) {
