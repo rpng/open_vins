@@ -5,85 +5,56 @@
 
 
 
-One of the most costly elements in a state update is the matrix multiplication.
-The idea of measurement compression is to reduce the size of the measurement Jacobian and residual.
-We can perform the following QR decomposition:
-
-
+One of the most costly opeerations in the EKF update is the matrix multiplication.
+To mitigate this issue, we perform the thin QR decomposition of the measurement Jacobian after nullspace projection:
 
 \f{align*}{
-    \mathbf{H}_{o} = 
+    \mathbf{H}_{o,k} = 
     \begin{bmatrix} \mathbf{Q_1} & \mathbf{Q_2} \end{bmatrix}
-    \begin{bmatrix} \mathbf{R_1} \\ \mathbf{0} \end{bmatrix}
+    \begin{bmatrix} \mathbf{R_1} \\ \mathbf{0} \end{bmatrix} = \mathbf Q_1 \mathbf R_1
 \f}
 
 
-This QR decomposition can be performed using standard methods or with [Givens rotations](https://en.wikipedia.org/wiki/Givens_rotation) as mentioned in the original MSCKF paper, but is still an \f$O(n^3)\f$ computation in both cases.
-We can then apply it as follows to the linearized measurement residuals:
-
+This QR decomposition can be performed again using [Givens rotations](https://en.wikipedia.org/wiki/Givens_rotation) (note that this operation in general is not cheap though).
+We apply this QR to the linearized measurement residuals to compress measurements:
 
 \f{align*}{
-    \tilde{\mathbf{z}}_o
-    &\approx 
-    \mathbf{H}_{o}\tilde{\mathbf{x}}_{k} + \mathbf{n}_o \\[5px]
+    \tilde{\mathbf{z}}_{o,k}
+    &\simeq 
+    \mathbf{H}_{o,k}\tilde{\mathbf{x}}_{k} + \mathbf{n}_o \\[5px]
 \empty
-    \tilde{\mathbf{z}}_o
-    &\approx 
-    \begin{bmatrix} \mathbf{Q_1} & \mathbf{Q_2} \end{bmatrix}
-    \begin{bmatrix} \mathbf{R_1} \\ \mathbf{0} \end{bmatrix}
-    \tilde{\mathbf{x}}_{k} + \mathbf{n}_o \\[5px]
+    \tilde{\mathbf{z}}_{o,k}
+    &\simeq 
+    \mathbf Q_1 \mathbf R_1  \tilde{\mathbf{x}}_{k} + \mathbf{n}_o \\[5px]
 \empty
-    \begin{bmatrix} \mathbf{Q_1}^\top \\ \mathbf{Q_2}^\top \end{bmatrix}
-    \tilde{\mathbf{z}}_o
-    &\approx
-    \textcolor{red}{
-    \begin{bmatrix} \mathbf{Q_1}^\top \\ \mathbf{Q_2}^\top \end{bmatrix}
-    \begin{bmatrix} \mathbf{Q_1} & \mathbf{Q_2} \end{bmatrix}
-    \begin{bmatrix} \mathbf{R_1} \\ \mathbf{0} \end{bmatrix}
-    \tilde{\mathbf{x}}_{k}} + 
-    \begin{bmatrix} \mathbf{Q_1}^\top \\ \mathbf{Q_2}^\top \end{bmatrix}
+    \mathbf{Q_1}^\top \tilde{\mathbf{z}}_{o,k}
+    &\simeq
+    \mathbf{Q_1}^\top \mathbf{Q_1} \mathbf{R_1}
+    \tilde{\mathbf{x}}_{k} + 
+    \mathbf{Q_1}^\top
     \mathbf{n}_o \\[5px]
 \empty
-    \begin{bmatrix} \mathbf{Q_1}^\top\tilde{\mathbf{z}}_o \\ \mathbf{Q_2}^\top\tilde{\mathbf{z}}_o \end{bmatrix}
-    &\approx
-    \begin{bmatrix} \mathbf{R_1} \\ \mathbf{0} \end{bmatrix}
-    \tilde{\mathbf{x}}_{k} + 
-    \begin{bmatrix} \mathbf{Q_1}^\top\mathbf{n}_o \\ \mathbf{Q_2}^\top\mathbf{n}_o \end{bmatrix}
-\f}
-
-
-
-We can see that nothing on the bottom is dependent on the state, thus is not useful to either compute, nor needed in the update.
-This means we get the following final equations:
-
-
-
-\f{align*}{
-    \mathbf{Q_1}^\top\tilde{\mathbf{z}}_o
-    &\approx
-    \mathbf{R_1} \tilde{\mathbf{x}}_{k} + 
-    \mathbf{Q_1}^\top\mathbf{n}_o \\[5px]
+    \mathbf{Q_1}^\top\tilde{\mathbf{z}}_{o,k} 
+    &\simeq
+    \mathbf{R_1}    \tilde{\mathbf{x}}_{k} + 
+    \mathbf{Q_1}^\top\mathbf{n}_o \\[5pt]
 \empty
-    \tilde{\mathbf{z}}_n
-    &\approx
-    \mathbf{H}_n \tilde{\mathbf{x}}_{k} + 
+\Rightarrow~    \tilde{\mathbf{z}}_{n,k}
+    &\simeq
+    \mathbf{H}_{n,k} \tilde{\mathbf{x}}_{k} + 
     \mathbf{n}_n
 \f}
 
 
-
-
-We can see that the final size (in worst case) will be the size of the state.
-Thus we can use the above equation as our Jacobian in our update step.
-
-
+As a result, the compressed measurement Jacobian will be of the size of the state,
+which will  signficantly reduce the EKF update cost:
 
 \f{align*}{
-    \hat{\mathbf{x}}_{k|z} 
-    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k} \mathbf{H}_n^\top (\mathbf{H}_n \mathbf{P}_{k} \mathbf{H}_n^\top + \mathbf{R}_n)^{-1}(\mathbf{z}_n - \hat{\mathbf{z}}_n) \\[5px]
+    \hat{\mathbf{x}}_{k|k} 
+    &= \hat{\mathbf{x}}_{k|k-1} + \mathbf{P}_{k|k-1} \mathbf{H}_{n,k}^\top (\mathbf{H}_{n,k} \mathbf{P}_{k|k-1} \mathbf{H}_{n,k}^\top + \mathbf{R}_n)^{-1}\tilde{\mathbf{z}}_{n,k} \\[5px]
 \empty
-    \mathbf{P}_{xx|z} 
-    &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}_n^\top (\mathbf{H}_n \mathbf{P}_{k} \mathbf{H}_n^\top + \mathbf{R}_n)^{-1} \mathbf{H}_n\mathbf{P}_{k}^\top
+    \mathbf{P}_{k|k} 
+    &= \mathbf{P}_{k|k-1} - \mathbf{P}_{k|k-1}\mathbf{H}_{n,k}^\top (\mathbf{H}_{n,k}\mathbf{P}_{k|k-1} \mathbf{H}_{n,k}^\top + \mathbf{R}_n)^{-1} \mathbf{H}_{n,k} \mathbf{P}_{k|k-1}^\top
 \f}
 
 
