@@ -24,7 +24,6 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<bool>("calib_cam_extrinsics", state_options.do_calib_camera_pose, false);
     nh.param<bool>("calib_cam_intrinsics", state_options.do_calib_camera_intrinsics, false);
     nh.param<bool>("calib_cam_timeoffset", state_options.do_calib_camera_timeoffset, false);
-    nh.param<bool>("calib_camimu_dt", state_options.do_calib_camera_timeoffset, false);
     nh.param<int>("max_clones", state_options.max_clone_size, 10);
     nh.param<int>("max_slam", state_options.max_slam_features, 0);
     nh.param<int>("max_aruco", state_options.max_aruco_features, 1024);
@@ -55,6 +54,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Create the state!!
     state = new State(state_options);
+
+    // Timeoffset from camera to IMU
+    double calib_camimu_dt;
+    nh.param<double>("calib_camimu_dt", calib_camimu_dt, 0.0);
+    state->calib_dt_CAMtoIMU()->value() << calib_camimu_dt;
 
     // Global gravity
     Eigen::Matrix<double,3,1> gravity;
@@ -559,11 +563,29 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Cleanup, marginalize out what we don't need any more...
     //===================================================================================
 
-    //First do anchor change if we are about to lose an anchor pose
+    // First do anchor change if we are about to lose an anchor pose
     updaterSLAM->change_anchors(state);
 
     // Marginalize the oldest clone of the state if we are at max length
     StateHelper::marginalize_old_clone(state);
+
+    // Finally if we are optimizing our intrinsics, update our trackers
+    if(state->options().do_calib_camera_intrinsics) {
+        // Get vectors arrays
+        std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib;
+        std::unordered_map<size_t, bool> camera_fisheye;
+        for(int i=0; i<state->options().num_cameras; i++) {
+            Vec* calib = state->get_intrinsics_CAM(i);
+            bool isfish = state->get_model_CAM(i);
+            camera_calib.insert({i,calib->value()});
+            camera_fisheye.insert({i,isfish});
+        }
+        // Update the trackers and their databases
+        trackFEATS->set_calibration(camera_calib, camera_fisheye, true);
+        if(trackARUCO != nullptr) {
+            trackARUCO->set_calibration(camera_calib, camera_fisheye, true);
+        }
+    }
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -591,6 +613,34 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     ROS_INFO("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)",
             state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3),
             state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2),distance);
+
+    // Debug for camera imu offset
+    if(state->options().do_calib_camera_timeoffset) {
+        ROS_INFO("camera-imu timeoffset = %.5f",state->calib_dt_CAMtoIMU()->value()(0));
+    }
+
+    // Debug for camera intrinsics
+    if(state->options().do_calib_camera_intrinsics) {
+        for(int i=0; i<state->options().num_cameras; i++) {
+            Vec* calib = state->get_intrinsics_CAM(i);
+            ROS_INFO("cam%d intrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f",(int)i,
+                     calib->value()(0),calib->value()(1),calib->value()(2),calib->value()(3),
+                     calib->value()(4),calib->value()(5),calib->value()(6),calib->value()(7));
+        }
+    }
+
+    // Debug for camera extrinsics
+    if(state->options().do_calib_camera_pose) {
+        for(int i=0; i<state->options().num_cameras; i++) {
+            PoseJPL* calib = state->get_calib_IMUtoCAM(i);
+            ROS_INFO("cam%d extrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f",(int)i,
+                     calib->quat()(0),calib->quat()(1),calib->quat()(2),calib->quat()(3),
+                     calib->pos()(0),calib->pos()(1),calib->pos()(2));
+        }
+    }
+
+
+
 
 
 }

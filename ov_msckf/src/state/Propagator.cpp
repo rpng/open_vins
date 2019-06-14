@@ -48,7 +48,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
         // And the current is not greater then it yet...
         // Then we should "split" our current IMU measurement
         if(imu_data.at(i+1).timestamp > state->timestamp()+last_prop_time_offset && imu_data.at(i).timestamp <= state->timestamp()+last_prop_time_offset) {
-            IMUDATA data = interpolate_data(imu_data.at(i),imu_data.at(i+1),state->timestamp()+last_prop_time_offset);
+            IMUDATA data = interpolate_data(imu_data.at(i),imu_data.at(i+1), state->timestamp()+last_prop_time_offset);
             prop_data.push_back(data);
             //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,state->timestamp-prop_data.at(0).timestamp);
             continue;
@@ -73,7 +73,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
             // If the added IMU message doesn't end exactly at the camera time
             // Then we need to add another one that is right at the ending time
             if(prop_data.at(prop_data.size()-1).timestamp != timestamp+t_off_new) {
-                IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i + 1), timestamp + t_off_new);
+                IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), timestamp+t_off_new);
                 prop_data.push_back(data);
             }
             //ROS_INFO("propagation #%d = CASE 3 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-prop_data.at(0).timestamp);

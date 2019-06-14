@@ -280,10 +280,17 @@ namespace ov_core {
         }
 
 
-    private:
+        /**
+         * @brief Returns the internal data (should not normally be used)
+         */
+        std::unordered_map<size_t, Feature *> get_internal_data() {
+            return features_idlookup;
+        }
+
+    protected:
 
 
-        // Our lookup array that allow use to query based on ID
+        /// Our lookup array that allow use to query based on ID
         std::unordered_map<size_t, Feature *> features_idlookup;
 
 

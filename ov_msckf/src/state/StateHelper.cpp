@@ -408,8 +408,7 @@ void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w
         dnc_dt.block(0, 0, 3, 1) = last_w;
         dnc_dt.block(3, 0, 3, 1) = imu->vel();
         // Augment covariance with time offset Jacobian
-        Cov.block(0, pose->id(), Cov.rows(), 6) += Cov.block(0, state->calib_dt_CAMtoIMU()->id(),
-                                                             Cov.rows(), 1) * dnc_dt.transpose();
+        Cov.block(0, pose->id(), Cov.rows(), 6) += Cov.block(0, state->calib_dt_CAMtoIMU()->id(), Cov.rows(), 1) * dnc_dt.transpose();
         Cov.block(pose->id(), 0, 6, Cov.rows()) += dnc_dt * Cov.block(state->calib_dt_CAMtoIMU()->id(), 0, 1, Cov.rows());
         Cov.block(pose->id(), pose->id(), 6, 6) += dnc_dt * Cov(state->calib_dt_CAMtoIMU()->id(),
                                                                 state->calib_dt_CAMtoIMU()->id()) * dnc_dt.transpose();

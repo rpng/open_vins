@@ -49,7 +49,7 @@ namespace ov_core {
                   std::unordered_map<size_t, bool> camera_fisheye) :
                 database(new FeatureDatabase()), num_features(200), currid(0) {
             // Set calibration params
-            set_calibration(camera_calib, camera_fisheye);
+            set_calibration(camera_calib, camera_fisheye, false);
         }
 
         /**
@@ -66,17 +66,20 @@ namespace ov_core {
             // Our current feature ID should be larger then the number of aruco tags we have
             currid = (size_t) numaruco + 1;
             // Set calibration params
-            set_calibration(camera_calib, camera_fisheye);
+            set_calibration(camera_calib, camera_fisheye, false);
         }
 
 
         /**
          * @brief Given a the camera intrinsic values, this will set what we should normalize points with.
+         * This will also update the feature database with corrected normalized values.
+         * Normally this would only be needed if we are optimizing our camera parameters, and thus should re-normalize.
          * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye Map of camera_id => bool if we should do radtan or fisheye distortion model
+         * @param correct_active If we should re-undistort active features in our database
          */
         void set_calibration(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                             std::unordered_map<size_t, bool> camera_fisheye) {
+                             std::unordered_map<size_t, bool> camera_fisheye, bool correct_active) {
 
             // Clear old maps
             camera_k_OPENCV.clear();
@@ -111,6 +114,32 @@ namespace ov_core {
 
             }
 
+            // If we are calibrating camera intrinsics our normalize coordinates will be stale
+            // This is because we appended them to the database with the current best guess *at that timestep*
+            // Thus here since we have a change in calibration, re-normalize all the features we have
+            if(correct_active) {
+
+                // Get all features in this database
+                std::unordered_map<size_t, Feature *> features_idlookup = database->get_internal_data();
+
+                // Loop through and correct each one
+                for(const auto& pair_feat : features_idlookup) {
+                    // Get our feature
+                    Feature *feat = pair_feat.second;
+                    // Loop through each camera for this feature
+                    for (auto const& meas_pair : feat->timestamps) {
+                        size_t camid = meas_pair.first;
+                        for(size_t m=0; m<feat->uvs.at(camid).size(); m++) {
+                            cv::Point2f pt(feat->uvs.at(camid).at(m)(0), feat->uvs.at(camid).at(m)(1));
+                            cv::Point2f pt_n = undistort_point(pt,camid);
+                            feat->uvs_norm.at(camid).at(m)(0) = pt_n.x;
+                            feat->uvs_norm.at(camid).at(m)(1) = pt_n.y;
+                        }
+                    }
+                }
+
+            }
+
 
         }
 
@@ -130,8 +159,7 @@ namespace ov_core {
          * @param cam_id_left first image camera id
          * @param cam_id_right second image camera id
          */
-        virtual void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left,
-                                 size_t cam_id_right) = 0;
+        virtual void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) = 0;
 
         /**
          * @brief Shows features extracted in the last image

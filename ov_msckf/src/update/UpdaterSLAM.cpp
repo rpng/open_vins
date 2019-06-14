@@ -63,14 +63,6 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
 
     }
 
-
-
-    // TODO:!@#!@#!#!#!@#!@#!#!#!@#!#!@#!@#!#!@$!@#$!@$!@#!@#!@#!@#!@#!@!##@
-    // TODO: Re-normalized image uvs here with the current best guess
-    // TODO:!@#!@#!#!#!@#!@#!#!#!@#!#!@#!@#!#!@$!@#$!@$!@#!@#!@#!@#!@#!@!##@
-
-
-
     // 3. Try to triangulate all MSCKF or new SLAM features that have measurements
     auto it1 = feature_vec.begin();
     while(it1 != feature_vec.end()) {
@@ -181,7 +173,6 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         }
 
     }
-
 
     // Calculate the max possible measurement size
     size_t max_meas_size = 0;
