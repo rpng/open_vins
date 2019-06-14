@@ -86,10 +86,9 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("=====================================");
     ROS_INFO("CAMERA PARAMETERS:");
 
-    // Camera intrincs that we will load in
+    // Camera intrinsics that we will load in
     std::unordered_map<size_t,bool> camera_fisheye;
-    std::unordered_map<size_t,Eigen::Matrix3d> camera_k;
-    std::unordered_map<size_t,Eigen::Matrix<double,4,1>> camera_d;
+    std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calibrations;
 
     // Loop through through, and load each of the cameras
     for(int i=0; i<state->options().num_cameras; i++) {
@@ -100,20 +99,16 @@ VioManager::VioManager(ros::NodeHandle &nh) {
         state->get_model_CAM(i) = is_fisheye;
 
         // Camera intrinsic properties
-        Eigen::Matrix3d cam_k;
-        Eigen::Matrix<double,4,1> cam_d;
+        Eigen::Matrix<double,8,1> cam_calib;
         std::vector<double> matrix_k, matrix_d;
-        std::vector<double> matrix_k_default = {1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0};
-        std::vector<double> matrix_d_default = {0.0,0.0,0.0,0.0};
+        std::vector<double> matrix_k_default = {458.654,457.296,367.215,248.375};
+        std::vector<double> matrix_d_default = {-0.28340811,0.07395907,0.00019359,1.76187114e-05};
         nh.param<std::vector<double>>("cam"+std::to_string(i)+"_k", matrix_k, matrix_k_default);
         nh.param<std::vector<double>>("cam"+std::to_string(i)+"_d", matrix_d, matrix_d_default);
-        cam_k << matrix_k.at(0),matrix_k.at(1),matrix_k.at(2),matrix_k.at(3),matrix_k.at(4),matrix_k.at(5),matrix_k.at(6),matrix_k.at(7),matrix_k.at(8);
-        cam_d << matrix_d.at(0),matrix_d.at(1),matrix_d.at(2),matrix_d.at(3);
+        cam_calib << matrix_k.at(0),matrix_k.at(1),matrix_k.at(2),matrix_k.at(3),matrix_d.at(0),matrix_d.at(1),matrix_d.at(2),matrix_d.at(3);
 
-        // Stack the focal lengths, camera center, and distortion into our state representation
-        Eigen::Matrix<double,8,1> intrinsics;
-        intrinsics << cam_k(0,0), cam_k(1,1), cam_k(0,2), cam_k(1,2), cam_d;
-        state->get_intrinsics_CAM(i)->set_value(intrinsics);
+        // Save this representation in our state
+        state->get_intrinsics_CAM(i)->set_value(cam_calib);
 
         // Our camera extrinsics transform
         Eigen::Matrix4d T_CtoI;
@@ -135,12 +130,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
         // Append to our maps for our feature trackers
         camera_fisheye.insert({i,is_fisheye});
-        camera_k.insert({i,cam_k});
-        camera_d.insert({i,cam_d});
+        camera_calibrations.insert({i,cam_calib});
 
         // Debug printing
-        cout << "cam_" << i << "K:" << endl << cam_k << endl;
-        cout << "cam_" << i << "d:" << endl << cam_d.transpose() << endl;
+        cout << "cam_" << i << "K:" << endl << cam_calib.block(0,0,4,1).transpose() << endl;
+        cout << "cam_" << i << "d:" << endl << cam_calib.block(4,0,4,1).transpose() << endl;
         cout << "T_C" << i << "toI:" << endl << T_CtoI << endl << endl;
 
     }
@@ -264,14 +258,14 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Lets make a feature extractor
     if(use_klt) {
-        trackFEATS = new TrackKLT(camera_k,camera_d,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,min_px_dist);
+        trackFEATS = new TrackKLT(camera_calibrations,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,min_px_dist);
     } else {
-        trackFEATS = new TrackDescriptor(camera_k,camera_d,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,knn_ratio);
+        trackFEATS = new TrackDescriptor(camera_calibrations,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,knn_ratio);
     }
 
     // Initialize our aruco tag extractor
     if(use_aruco) {
-        trackARUCO = new TrackAruco(camera_k,camera_d,camera_fisheye,state->options().max_aruco_features,do_downsizing);
+        trackARUCO = new TrackAruco(camera_calibrations,camera_fisheye,state->options().max_aruco_features,do_downsizing);
     }
 
     // Initialize our state propagator

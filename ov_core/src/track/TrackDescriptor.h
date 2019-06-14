@@ -26,19 +26,16 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                        std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                         std::unordered_map<size_t, bool> camera_fisheye) :
-                        TrackBase(camera_k, camera_d, camera_fisheye), threshold(10), grid_x(8), grid_y(5), knn_ratio(0.75) {}
+                        TrackBase(camera_calib, camera_fisheye), threshold(10), grid_x(8), grid_y(5), knn_ratio(0.75) {}
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
@@ -47,11 +44,10 @@ namespace ov_core {
          * @param gridy size of grid in the y-direction / v-direction
          * @param knnratio matching ratio needed (smaller value forces top two descriptors during match to be more different)
          */
-        explicit TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                                 std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        explicit TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                                  std::unordered_map<size_t, bool> camera_fisheye,
                                  int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, double knnratio) :
-                                 TrackBase(camera_k, camera_d, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
+                                 TrackBase(camera_calib, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
                                  grid_x(gridx), grid_y(gridy), knn_ratio(knnratio) {}
 
         /**

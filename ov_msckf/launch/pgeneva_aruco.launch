@@ -41,7 +41,7 @@
         <param name="knn_ratio"        type="double" value="0.85" />
 
         <!-- aruco tag/mapping properties -->
-        <param name="use_aruco"        type="bool"   value="false" />
+        <param name="use_aruco"        type="bool"   value="true" />
         <param name="num_aruco"        type="int"    value="1024" />
         <param name="downsize_aruco"   type="bool"   value="true" />
 
@@ -61,10 +61,10 @@
         <!-- camera intrinsics -->
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <param name="cam1_is_fisheye" type="bool" value="false" />
-        <rosparam param="cam0_k">[470.0502737897896,0.0,405.80799445368035,0.0,468.7574814232544,245.2879780490104,0.0,0.0,1.0]</rosparam>
-        <rosparam param="cam0_d">[-0.292031518680717, 0.08753155838496009, 0.0009568457669165753, 2.3463489813256424e-05, 0.0]</rosparam>
-        <rosparam param="cam1_k">[472.98384780424163,0.0,382.1928744696835,0.0,471.9917417027018,268.2536666120421,0.0,0.0,1.0]</rosparam>
-        <rosparam param="cam1_d">[-0.2847596229068525, 0.07908861097045865, 0.0011071433505703875, 0.0005094909873658998, 0.0]</rosparam>
+        <rosparam param="cam0_k">[470.0502737897896,468.7574814232544,405.80799445368035,245.2879780490104]</rosparam>
+        <rosparam param="cam0_d">[-0.292031518680717,0.08753155838496009,0.0009568457669165753,2.3463489813256424e-05]</rosparam>
+        <rosparam param="cam1_k">[472.98384780424163,471.9917417027018,382.1928744696835,268.2536666120421]</rosparam>
+        <rosparam param="cam1_d">[-0.2847596229068525,0.07908861097045865,0.0011071433505703875,0.0005094909873658998]</rosparam>
 
 
         <!-- camera extrinsics -->
