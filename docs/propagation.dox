@@ -4,6 +4,10 @@
 
 @page propagation Propagation
 
+TODO: \\
+JPL and Hamilton quaternions -  The key difference between the two conventions lies in the relation between the three imaginary bases. In Hamilton convention, ijk=−1, while JPL defines ijk=1.\\
+
+
 @section model_prop Inertial Measurement Unit (IMU) measurements and the states
 
 Instead of control input, inertial measurement unit (IMU) measurements are often used to propagate
@@ -22,7 +26,7 @@ acceleration in IMU coordinate, \f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\m
 the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{g}}\f$
 and \f$\mathbf{n}_{\mathbf{a}}\f$ are white Gaussian noise processes,
 and \f$^I_G\mathbf{R}\f$ denotes the rotation from global(\f$\mathbf{G}\f$) to IMU(\f$\mathbf{I}\f$) frame
-and \f$\mathbf{g}\f$ is
+and \f$\mathbf{g} = \begin{bmatrix} 9.81 ~~ 0 ~~ 0 \end{bmatrix}^\top\f$ is
 the gravity vector expressed in the global frame.
 
 
@@ -135,12 +139,12 @@ For more detailed derivations, refer [Indirect Kalman Filter for 3D Attitude Est
 
 Now, let us have the access to the continuous-time measurements \f$\boldsymbol{\omega}_m(t)\f$
 and \f$\mathbf{a}_m(t)\f$ in the time interval \f$t \in [t_k,t_{k+1}].\f$
-We get the estimated rotational velocity
-\f$\hat{\boldsymbol{\omega}}(t) = \boldsymbol{\omega}_m(t) - \hat{\boldsymbol{b}}_g(t)\f$ from
-the measurement, thus get differential equation:
+From the measurements we get the estimated rotational velocity and acceleration as
+\f$\hat{\boldsymbol{\omega}}(t) = \boldsymbol{\omega}_m(t) - \hat{\boldsymbol{b}}_g(t)\f$ and
+\f$\hat{\boldsymbol{a}}(t) = \boldsymbol{a}_m(t) - \hat{\boldsymbol{b}}_a(t) - ^I_G\hat{\mathbf{R}}(t)\mathbf{g}.\f$
 
-
-For the differential equation of quaternion, the solution has the general form
+We can first drive the propagation of the quaternion.
+From the differential equation of quaternion, the solution has the general form:
 
 \f{align*}{
     ^{I_{t}}_{G}\bar{q} = \boldsymbol{\Theta}(t,t_k)  \text{}^{I_{k}}_{G}\bar{q}
@@ -155,28 +159,50 @@ Differentiating and reordering the terms yields the governing equation for
     \Leftrightarrow \dot{\boldsymbol{\Theta}}(t,t_k) &=
     \text{}^{I_t}_G\dot{\bar{q}} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
 
-    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}) \text{ }^{I(t)}_{G}\bar{q}
-    \text{ }^{I(t)}_{G}\bar{q}^{-1}\\
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \text{ }^{I_t}_{G}\bar{q}
+    \text{ }^{I_k}_{G}\bar{q}^{-1}\\
 
-    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}) \boldsymbol{\Theta}(t,t_k)
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \boldsymbol{\Theta}(t,t_k)
 \f}
 with \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
-
+If \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ is constant over the the period
+\f$\Delta t = t_{k+1} - t_k\f$,
+then \f$\boldsymbol{\Omega}\f$ can be expressed as [Stochastic Models, Estimation, and Control](https://books.google.com/books?id=L_YVMUJKNQUC)
 
 
 
 \f{align*}{
-    ^{I_t}_{G}\dot{\hat{\bar{q}}} = \frac{1}{2} \boldsymbol{\Omega}(\hat{\boldsymbol{\omega}}(t))
-    \text{}^{I_t}_{G}\hat{\bar{q}}
+    \boldsymbol{\Theta}(t_{k+1},t_k)
+    &= \exp(\frac{1}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})\Delta t)\\
+    &= \cos\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t \bigg) \cdot \mathbf{I}_4
+    + \frac{1}{|\boldsymbol{\omega}|}\sin\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t \bigg)
+    \cdot \boldsymbol{\Omega}(\boldsymbol{\omega})
 \f}
-
-\f$\text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}\f$ can be computed from the above differential equation,
-then the orientation estimation at \f$t_{k+1}\f$ with given estimation at \f$t_{k}\f$ is:
+or
 
 \f{align*}{
-    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} = \text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}
-    \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}}
+    \boldsymbol{\Theta}(t_{k+1},t_k)
+    = \mathbf{I}_4 + \frac{\Delta t}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})
 \f}
+when \f$|\boldsymbol{\omega}|\f$ is small.
+We can formulate the quaternion propagation from \f$t_k\f$ to \f$t_{k+1}\f$ using the estimated
+rotational velocity with constancy assumption \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}}\f$ as:
+
+\f{align*}{
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
+    = \exp(\frac{1}{2}\boldsymbol{\Omega}(\hat{\boldsymbol{\omega}})\Delta t)
+     \text{}^{I_{k}}_{G}\hat{\bar{q}}
+\f}
+
+
+
+
+
+
+
+
+
+
 
 The position \f$^G\hat{\mathbf{p}}_{k+1}\f$ and \f$^G\hat{\mathbf{v}}_{k+1}\f$ of IMU propagation
 is relatively straight forward as:
