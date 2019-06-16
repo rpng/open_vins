@@ -4,27 +4,36 @@
 
 @page propagation Propagation
 
-@section model_prop Inertial Measurement Unit (IMU) measurements and state
+@section model_prop Inertial Measurement Unit (IMU) measurements and the states
 
-Instead of control input, inertial measurement unit (IMU) measurements are often used to propagate the system state.
-The IMU provides measurements of the rotational velocities \f$\boldsymbol{\omega}_m\f$ and translational accelerations \f$\mathbf{a}_m\f$
-of the system, and the measurements in continuous-time system can be modeled as:
+Instead of control input, inertial measurement unit (IMU) measurements are often used to propagate
+the system state.
+The IMU provides measurements of the rotational velocities \f$\boldsymbol{\omega}_m\f$ and
+translational accelerations \f$\mathbf{a}_m\f$ of the system. The measurements in
+continuous-time system can be modeled as:
 
 \f{align*}{
-    \boldsymbol{\omega}_m(t) &= \boldsymbol{\omega}(t) + \mathbf{b}_\mathbf{g}(t) + \mathbf{n}_{\mathbf{r}}(t)\\
-     \mathbf{a}_m(t) &= \mathbf{a}(t)  + \mathbf{b}_\mathbf{a}(t) + \mathbf{n}_{\mathbf{a}}(t) - ^I_G\mathbf{R}(t)\mathbf{g}
+    \boldsymbol{\omega}_m(t) &= \boldsymbol{\omega}(t) + \mathbf{b}_\mathbf{g}(t) + \mathbf{n}_{\mathbf{g}}(t)\\
+     \mathbf{a}_m(t) &= \mathbf{a}(t)  + \mathbf{b}_\mathbf{a}(t) + \mathbf{n}_{\mathbf{a}}(t) + ^I_G\mathbf{R}(t)\mathbf{g}
 \f}
 
-where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are true rotational velocity and translational acceleration in IMU coordinate,
-\f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\mathbf{a}\f$ are the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{r}}\f$ and \f$\mathbf{n}_{\mathbf{a}}\f$
-are white Gaussian noise processes, and \f$\mathbf{g}\f$ is the gravity vector expressed in the global frame.
+where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are true rotational velocity and translational
+acceleration in IMU coordinate, \f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\mathbf{a}\f$ are
+the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{g}}\f$
+and \f$\mathbf{n}_{\mathbf{a}}\f$ are white Gaussian noise processes,
+and \f$^I_G\mathbf{R}\f$ denotes the rotation from global(\f$\mathbf{G}\f$) to IMU(\f$\mathbf{I}\f$) frame
+and \f$\mathbf{g}\f$ is
+the gravity vector expressed in the global frame.
 
-Following the convention, we define IMU state vector \f$ \mathbf{x}_I\f$ at time \f$t\f$ as \f$16 \times 1\f$ vector:
+
+Following the convention of the IMU state([A Multi-State Constraint Kalman Filter for Vision-aided Inertial Navigation](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.1085&rep=rep1&type=pdf)),
+we define the IMU state vector \f$ \mathbf{x}_I\f$ at time \f$t\f$ as \f$16 \times 1\f$ vector:
+
 \f{align*}{
     \mathbf{x}_I(t) = \begin{bmatrix}
                           ^I_G\bar{q}(t) \\
                           ^G\mathbf{p}_I(t) \\
-                          ^G\mathbf{v}(t)\\
+                          ^G\mathbf{v}_I(t)\\
                           \mathbf{b}_{\mathbf{g}}(t) \\
                           \mathbf{b}_{\mathbf{a}}(t)
                           \end{bmatrix}
@@ -32,108 +41,290 @@ Following the convention, we define IMU state vector \f$ \mathbf{x}_I\f$ at time
 
 where \f$^L_G\bar{q}\f$ is the unit quaternion representing the rotation global to IMU frame,
 and \f$^G\mathbf{p}_I\f$ is the position of IMU in global frame,
-and \f$^G\mathbf{v}\f$ is the velocity of IMU in global frame.
+and \f$^G\mathbf{v}_I\f$ is the velocity of IMU in global frame.
+We will often write time as a subscript of \f$I\f$ describing the state of IMU at the time
+for notational clarity (e.g.  \f$^{I_t}_G\bar{q} = \text{}^I_G\bar{q}(t)\f$).
 
-In order to define the IMU error state, for the position, velocity, and biases the standard additive error definition is employed.
-For the orientation error, we use quaternion \f$\delta \bar{q}\f$ with quaternion multiplication \f$\otimes\f$, specifically:
+In order to define the IMU error state, the standard additive error definition is employed
+for the position, velocity, and biases.
+For the orientation error, we use the quaternion error state \f$\delta \bar{q}\f$ with quaternion multiplication
+\f$\otimes\f$, specifically:
 
 \f{align*}{
     ^I_G\bar{q} &= \delta \bar{q} \otimes \text{}^I_G \hat{\bar{q}}\\
     \delta \bar{q} &= \begin{bmatrix}
-    sin(\frac{1}{2}\text{}^I\tilde{\boldsymbol{\theta}})\\
-    cos(\frac{1}{2}\text{}^I\tilde{\theta}) \end{bmatrix}
+    \hat{\mathbf{k}}\sin(\frac{1}{2}\tilde{\theta})\\
+    \cos(\frac{1}{2}\tilde{\theta}) \end{bmatrix}
     \approx \begin{bmatrix}
-                \frac{1}{2}^I\tilde{\boldsymbol{\theta}}\\
+                \frac{1}{2}\tilde{\boldsymbol{\theta}}\\
                 1 \end{bmatrix}
 \f}
 
-where \f$^I\tilde{\boldsymbol{\theta}}\f$ and \f$^I\tilde{\theta}\f$ are \f$3 \times 1\f$ vector denoting the orientation errors about the three axes, and the norm of it.
-With the definition, the IMU error state is defined as a \f$15 \times 1\f$ vector:
+where \f$\hat{\mathbf{k}}\f$ is the rotation axis and \f$\tilde{\theta}\f$ is the amount of rotation,
+and \f$\tilde{\boldsymbol{\theta}} = \hat{\mathbf{k}} \tilde{\theta}\f$ is \f$3 \times 1\f$ vector denoting the orientation
+errors about the three axes.
+With the definitions of errors, the IMU error state is defined as a \f$15 \times 1\f$ vector:
 
 \f{align*}{
     \tilde{\mathbf{x}}_I(t) = \begin{bmatrix}
-                          ^I\tilde{\boldsymbol{\theta}} \\
+                          \tilde{\boldsymbol{\theta}}(t) \\
                           ^G\tilde{\mathbf{p}}_I(t) \\
-                          ^G\tilde{\mathbf{v}}(t)\\
+                          ^G\tilde{\mathbf{v}}_I(t)\\
                           \tilde{\mathbf{b}}_{\mathbf{g}}(t) \\
                           \tilde{\mathbf{b}}_{\mathbf{a}}(t)
                           \end{bmatrix}
 \f}
 
 
+
+Now, we can describe the system dynamic model of the IMU state, i.e. how the state evolves over time.
+
+\f{align*}{ \newcommand{\comm}[1]{}
+
+    ^I_G\dot{\bar{q}}(t)
+
+\comm{
+    &= \lim_{\delta t \to 0} \frac{1}{\delta t}
+    (^{I_{t + \delta t}}_G\bar{q} - \text{}^{I_{t}}_G\bar{q})\\
+
+    &= \lim_{\delta t \to 0} \frac{1}{\delta t}
+    (^{I_{t + \delta t}}_{L_{t}}\bar{q} \otimes ^{I_{t}}_{G}\bar{q}
+     - \bar{q}_0 \otimes \text{}^{I_{t}}_G\bar{q})\\
+
+    &= \lim_{\delta t \to 0} \frac{1}{\delta t}
+    (^{I_{t + \delta t}}_{L_{t}}\bar{q}   - \bar{q}_0 ) \otimes \text{}^{I_{t}}_{G}\bar{q}\\
+
+    &\approx \lim_{\delta t \to 0} \frac{1}{\delta t}
+    \Bigg (\begin{bmatrix} \frac{1}{2}\delta \boldsymbol{\theta}\\ 1 \end{bmatrix}
+    -\begin{bmatrix} \boldsymbol{0}\\ 1 \end{bmatrix} \Bigg )
+    \otimes \text{}^{I_{t}}_{G}\bar{q} \\
+
+    &= \frac{1}{2} \begin{bmatrix} \boldsymbol{\omega}\\ 0 \end{bmatrix}
+    \otimes \text{}^{I_{t}}_{G}\bar{q}\\}
+
+    &= \frac{1}{2} \begin{bmatrix} -\lfloor \boldsymbol{\omega}(t) \times \rfloor
+    && \boldsymbol{\omega}(t) \\
+    -\boldsymbol{\omega}^\top(t) && 0 \end{bmatrix}   \text{}^{I_{t}}_{G}\bar{q}\\
+
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t))  \text{}^{I_{t}}_{G}\bar{q}\\
+
+    ^G\dot{\mathbf{p}}_I(t) &=\text{} ^G\mathbf{v}_I(t)\\
+
+    ^G\dot{\mathbf{v}}_I(t) &=\text{} ^G_{I_{t}}\mathbf{R}\mathbf{a}(t) + \text{}^G\mathbf{g}\\
+
+     \dot{\mathbf{b}}_{\mathbf{g}}(t) &= \mathbf{n}_{wg}\\
+
+     \dot{\mathbf{b}}_{\mathbf{a}}(t) &= \mathbf{n}_{wa}
+\f}
+
+Here, we want to note two things. First, the gyros and accelerometer biases are modeled as random walks,
+therefore the time derivatives of them are white gaussian noises.
+Second, this derivation is using true values.
+For more detailed derivations, refer [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf).
+
+
+
+
+
+
+
+
+
 @section conti_prop Continuous-time IMU propagation
 
-[High-Precision, Consistent EKF-based Visual-Inertial Odometry](https://pdfs.semanticscholar.org/281b/8f6839e0864fb9f40890bb9b52115edbdc9d.pdf)
 
-[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)
+Now, let us have the access to the continuous-time measurements \f$\boldsymbol{\omega}_m(t)\f$
+and \f$\mathbf{a}_m(t)\f$ in the time interval \f$t \in [t_k,t_{k+1}].\f$
+We get the estimated rotational velocity
+\f$\hat{\boldsymbol{\omega}}(t) = \boldsymbol{\omega}_m(t) - \hat{\boldsymbol{b}}_g(t)\f$ from
+the measurement, thus get differential equation:
 
-Now, the dynamic model can be described as:
-\f{align*}{
-    ^I_G\dot{\bar{q}}(t) &= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I(t + \delta t)}_G\bar{q} - \text{}^{I(t)}_G\bar{q})\\
-                         &= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I(t + \delta t)}_{L(t)}\bar{q} \otimes ^{I(t)}_{G}\bar{q}  - \bar{q}_0 \otimes \text{}^{I(t)}_G\bar{q})\\
-                         &= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I(t + \delta t)}_{L(t)}\bar{q}   - \bar{q}_0 ) \otimes \text{}^{I(t)}_{G}\bar{q}\\
-                         &\approx \lim_{\delta t \to 0} \frac{1}{\delta t}
-                         \Bigg (\begin{bmatrix} \frac{1}{2}\delta \boldsymbol{\theta}\\ 1 \end{bmatrix}
-                         -\begin{bmatrix} \mathbf{0} \boldsymbol{\theta}\\ 1 \end{bmatrix} \Bigg ) \otimes \text{}^{I(t)}_{G}\bar{q} \\
-                         &= \frac{1}{2} \begin{bmatrix} \boldsymbol{\omega}\\ 0 \end{bmatrix}  \otimes ^{I(t)}_{G}\bar{q}\\
-                         &= \frac{1}{2} \begin{bmatrix} -\lfloor \boldsymbol{\omega} \times \rfloor && \boldsymbol{\omega} \\
-                         -\boldsymbol{\omega}^T && 0 \end{bmatrix}   \text{}^{I(t)}_{G}\bar{q}\\
-                         &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega})  \text{}^{I(t)}_{G}\bar{q}\\
-           \iffalse              = \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}_m - \mathbf{b}_\mathbf{g} - \mathbf{n}_{\mathbf{r}})  \text{}^{I(t)}_{G}\bar{q}\\ \fi
-  ^G\dot{\mathbf{p}}_I(t) &=\text{} ^G\mathbf{v}(t)\\
-  ^G\dot{\mathbf{v}}(t) &=\text{} ^G_{I(t)}\mathbf{R}\mathbf{a}(t) + \text{}^G\mathbf{g}\\
-       \dot{\mathbf{b}}_{\mathbf{g}}(t) &= \mathbf{n}_{wg}\\
-       \dot{\mathbf{b}}_{\mathbf{a}}(t) &= \mathbf{n}_{wa}
-\f}
-Now, let us have access to the continuous-time measurements \f$\boldsymbol{\omega}_m(t)\f$ and \f$\mathbf{a}_m(t)\f$
-in the time interval \f$[t_k,t_{k+1}]\f$.
-We get estimated rotational velocity \f$\hat{\boldsymbol{\omega}}(t) = \boldsymbol{\omega}_m(t) - \hat{\boldsymbol{b}}_g(t)\f$,
-thus get differential equation:
 
+For the differential equation of quaternion, the solution has the general form
 
 \f{align*}{
-    ^{I_t}_{I_k}\dot{\hat{\bar{q}}}(t) = \frac{1}{2} \boldsymbol{\Omega}(\hat{\boldsymbol{\omega}})  \text{}^{I_t}_{I_k}\hat{\bar{q}} ~~~~ t \in [t_k,t_{k+1}]
-\f}
-The estimation of relative orientation \f$\text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}\f$ can be computed from the differential equation, and the orientation estimation at \f$t_{k+1}\f$
-with given estimation at \f$t_{k}\f$ is:
-
-\f{align*}{
-    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} = \text{}^{I_{k+1}}_{k}\hat{\bar{q}} \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}}
+    ^{I_{t}}_{G}\bar{q} = \boldsymbol{\Theta}(t,t_k)  \text{}^{I_{k}}_{G}\bar{q}
 \f}
 
-The position \f$^G\hat{\mathbf{p}}_{k+1}\f$ and \f$^G\hat{\mathbf{v}}_{k+1}\f$ of IMU propagation is relatively straight forward as:
+Differentiating and reordering the terms yields the governing equation for
+\f$\boldsymbol{\Theta}(t,t_k)\f$ as
 
 \f{align*}{
-    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{v}}(\tau)} d\tau \\
-    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{a}}(\tau)} d\tau \\
-                             &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau)) + \mathbf{g}} d\tau
+    \boldsymbol{\Theta}(t,t_k) &= \text{}^{I_t}_G\bar{q} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
+
+    \Leftrightarrow \dot{\boldsymbol{\Theta}}(t,t_k) &=
+    \text{}^{I_t}_G\dot{\bar{q}} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
+
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}) \text{ }^{I(t)}_{G}\bar{q}
+    \text{ }^{I(t)}_{G}\bar{q}^{-1}\\
+
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}) \boldsymbol{\Theta}(t,t_k)
+\f}
+with \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
+
+
+
+
+\f{align*}{
+    ^{I_t}_{G}\dot{\hat{\bar{q}}} = \frac{1}{2} \boldsymbol{\Omega}(\hat{\boldsymbol{\omega}}(t))
+    \text{}^{I_t}_{G}\hat{\bar{q}}
 \f}
 
-Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and \f$\hat{\mathbf{b}}_{\mathbf{a}}\f$ is also straight forward as:
+\f$\text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}\f$ can be computed from the above differential equation,
+then the orientation estimation at \f$t_{k+1}\f$ with given estimation at \f$t_{k}\f$ is:
 
 \f{align*}{
-    \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k} + \int_{t_{k+1}}^{t_{k}} {\hat{\mathbf{n}}_{wg}(\tau)} d\tau \\
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} = \text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}
+    \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}}
+\f}
+
+The position \f$^G\hat{\mathbf{p}}_{k+1}\f$ and \f$^G\hat{\mathbf{v}}_{k+1}\f$ of IMU propagation
+is relatively straight forward as:
+
+\f{align*}{
+    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}}
+    {^G\hat{\mathbf{v}}(\tau)} d\tau \\
+
+    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}}
+    {^G\hat{\mathbf{a}}(\tau)} d\tau \\
+
+                             &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}}
+    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))
+     + \mathbf{g}} d\tau
+\f}
+
+Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and
+\f$\hat{\mathbf{b}}_{\mathbf{a}}\f$ is also straight forward as:
+
+\f{align*}{
+    \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k} + \int_{t_{k+1}}^{t_{k}}
+    {\hat{\mathbf{n}}_{wg}(\tau)} d\tau \\
+
                                       &= \hat{\mathbf{b}}_{\mathbf{g},k}\\
-    \hat{\mathbf{b}}_{\mathbf{a},k+1} &= \hat{\mathbf{b}}_{\mathbf{a},k} + \int_{t_{k+1}}^{t_{k}} {\hat{\mathbf{n}}_{wa}(\tau)} d\tau \\
+
+    \hat{\mathbf{b}}_{\mathbf{a},k+1} &= \hat{\mathbf{b}}_{\mathbf{a},k} + \int_{t_{k+1}}^{t_{k}}
+    {\hat{\mathbf{n}}_{wa}(\tau)} d\tau \\
+
                                       &= \hat{\mathbf{b}}_{\mathbf{a},k}
 \f}
 
 To summarize the continuous-time IMU propagation:
+
 \f{align*}{
-    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} &= \text{}^{I_{k+1}}_{I_k}\hat{\bar{q}} \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}} \\
-    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G\hat{\mathbf{v}}(\tau)} d\tau \\
-    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}} {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau)) + \mathbf{g}} d\tau \\
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} &= \text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}
+    \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}} \\
+
+    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}}
+    {^G\hat{\mathbf{v}}(\tau)} d\tau \\
+
+    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}}
+    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))
+    + \mathbf{g}} d\tau \\
+
     \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k}\\
+
     \hat{\mathbf{b}}_{\mathbf{a},k+1} &= \hat{\mathbf{b}}_{\mathbf{a},k}
 \f}
 
+
+
+
+
+
+
+
 @section disc_prop Discrete-time IMU propagation
 
-Now we consider discrete-time system, which means we will not get \f$\boldsymbol{\omega}_m\f$ and \f$\mathbf{a}_m\f$ time-continuously.
+Now we consider discrete-time system, which means we will not get \f$\boldsymbol{\omega}_m\f$
+and \f$\mathbf{a}_m\f$ time-continuously.
 To use time-discrete measurements, we need to assume the measurements between the discrete time.
 For instance, the measurements can be assumed as constant during the time.
-We represent this with error state propagation and it is:
+We employ this assumption and use it to represent propagation.
+
+To find the propagation of orientation error, we start with the rotation matrix:
+
+\f{align*}{
+^{I_{k+1}}_G \mathbf{R} &= ^{I_{k+1}}_{I_{k}} \mathbf{R}  \text{}^{I_{k}}_G \mathbf{R}\\
+
+\Leftrightarrow
+(\mathbf{I}_3 - \lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k+1}}_{G}
+\hat{\mathbf{R}}
+&\approx (\mathbf{I}_3 - \lfloor ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}\times\rfloor)
+\text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}
+(\mathbf{I}_3 - \lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)
+\text{}^{I_{k}}_G \hat{\mathbf{R}}\\
+
+\Leftrightarrow
+^{I_{k+1}}_{G}\hat{\mathbf{R}}
+- \lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor^{I_{k+1}}_{G} \hat{\mathbf{R}}
+&=
+^{I_{k+1}}_{G}\hat{\mathbf{R}}
+
+-^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k}}_G \hat{\mathbf{R}}
+
+- \lfloor ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_{G}\hat{\mathbf{R}}
+
++ \lfloor ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}
+\lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k}}_G \hat{\mathbf{R}}\\
+
+\Leftrightarrow
+\lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor^{I_{k+1}}_{G} \hat{\mathbf{R}}
+&\approx
+
+^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k}}_G \hat{\mathbf{R}}
+
+ \lfloor ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_{G}\hat{\mathbf{R}}\\
 
 
+\Leftrightarrow
+\lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor^{I_{k+1}}_{G} \hat{\mathbf{R}}
+&=
+
+^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_{I_k} \hat{\mathbf{R}}^T \text{}^{I_{k+1}}_{I_k} \hat{\mathbf{R}}
+\text{}^{I_{k}}_G \hat{\mathbf{R}}
+
+\lfloor ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_{G}\hat{\mathbf{R}}\\
+
+
+\Leftrightarrow
+\lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor^{I_{k+1}}_{G} \hat{\mathbf{R}}
+&=
+
+\lfloor ^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}} ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_G \hat{\mathbf{R}}
+
+\lfloor ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}\times\rfloor
+\text{}^{I_{k+1}}_{G}\hat{\mathbf{R}}\\
+
+
+\Leftrightarrow
+\lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor^{I_{k+1}}_{G} \hat{\mathbf{R}}
+&=
+
+\lfloor (^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}} ^{I_k}_{G}\tilde{\boldsymbol{\theta}}
++ ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}})\times\rfloor
+\text{}^{I_{k+1}}_{G}\hat{\mathbf{R}}\\
+
+\Leftrightarrow
+^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}} &=
+^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}} ^{I_k}_{G}\tilde{\boldsymbol{\theta}}
++ ^{I_{k+1}}_{I_{k}}\tilde{\boldsymbol{\theta}}
+
+
+\f}
+---
+
+[High-Precision, Consistent EKF-based Visual-Inertial Odometry](https://pdfs.semanticscholar.org/281b/8f6839e0864fb9f40890bb9b52115edbdc9d.pdf)
+
+
+If
 
 */
