@@ -4,9 +4,11 @@
 
 @page propagation Propagation
 
-TODO: \\
+TODO:
+
 JPL and Hamilton quaternions -  The key difference between the two conventions lies in the relation between the three imaginary bases. In Hamilton convention, ijk=−1, while JPL defines ijk=1.\\
 
+Error propagation of cont sys
 
 @section model_prop Inertial Measurement Unit (IMU) measurements and the states
 
@@ -153,27 +155,28 @@ From the differential equation of quaternion, the solution has the general form:
 Differentiating and reordering the terms yields the governing equation for
 \f$\boldsymbol{\Theta}(t,t_k)\f$ as
 
-\f{align*}{
+\f{align*}{ \newcommand{\comm}[1]{}
+
     \boldsymbol{\Theta}(t,t_k) &= \text{}^{I_t}_G\bar{q} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
 
     \Leftrightarrow \dot{\boldsymbol{\Theta}}(t,t_k) &=
     \text{}^{I_t}_G\dot{\bar{q}} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
-
+\iffalse
     &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \text{ }^{I_t}_{G}\bar{q}
     \text{ }^{I_k}_{G}\bar{q}^{-1}\\
-
+\fi
     &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \boldsymbol{\Theta}(t,t_k)
 \f}
 with \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
 If \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ is constant over the the period
 \f$\Delta t = t_{k+1} - t_k\f$,
-then \f$\boldsymbol{\Omega}\f$ can be expressed as [Stochastic Models, Estimation, and Control](https://books.google.com/books?id=L_YVMUJKNQUC)
+then \f$\boldsymbol{\Theta}\f$ can be expressed as [Stochastic Models, Estimation, and Control](https://books.google.com/books?id=L_YVMUJKNQUC)
 
 
 
 \f{align*}{
     \boldsymbol{\Theta}(t_{k+1},t_k)
-    &= \exp(\frac{1}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})\Delta t)\\
+    &= \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})\Delta t\bigg)\\
     &= \cos\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t \bigg) \cdot \mathbf{I}_4
     + \frac{1}{|\boldsymbol{\omega}|}\sin\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t \bigg)
     \cdot \boldsymbol{\Omega}(\boldsymbol{\omega})
@@ -190,33 +193,28 @@ rotational velocity with constancy assumption \f$\hat{\boldsymbol{\omega}}(t) = 
 
 \f{align*}{
     \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
-    = \exp(\frac{1}{2}\boldsymbol{\Omega}(\hat{\boldsymbol{\omega}})\Delta t)
+    = \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}(\hat{\boldsymbol{\omega}})\Delta t\bigg)
      \text{}^{I_{k}}_{G}\hat{\bar{q}}
 \f}
 
 
-
-
-
-
-
-
-
-
-
-The position \f$^G\hat{\mathbf{p}}_{k+1}\f$ and \f$^G\hat{\mathbf{v}}_{k+1}\f$ of IMU propagation
-is relatively straight forward as:
+The measurement integration over the time interval provides the propagation of velocity and position:
 
 \f{align*}{
-    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}}
-    {^G\hat{\mathbf{v}}(\tau)} d\tau \\
-
-    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}}
+    ^G\hat{\mathbf{v}}_{k+1} &= \text{}^G\hat{\mathbf{v}}_{I_k} + \int_{t_{k}}^{t_{k+1}}
     {^G\hat{\mathbf{a}}(\tau)} d\tau \\
 
-                             &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}}
-    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))
-     + \mathbf{g}} d\tau
+    &= \text{}^G\hat{\mathbf{v}}_{I_k} - \mathbf{g}\Delta t+ \int_{t_{k}}^{t_{k+1}}
+    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))  d\tau}\\
+
+    ^G\hat{\mathbf{p}}_{I_{k+1}} &=
+    \text{}^G\hat{\mathbf{p}}_{I_k} + \int_{t_{k}}^{t_{k+1}}
+        {^G\hat{\mathbf{v}}_I(\tau)} d\tau \\
+
+    &= \text{}^G\hat{\mathbf{p}}_{I_k} + \text{}^G\hat{\mathbf{v}}_{I_k} \Delta t
+    - \frac{1}{2}\mathbf{g}\Delta t^2 +
+    \int_{t_{k}}^{t_{k+1}} \int_{t_{k}}^{s}
+    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))  d\tau ds}
 \f}
 
 Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and
@@ -234,19 +232,52 @@ Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and
                                       &= \hat{\mathbf{b}}_{\mathbf{a},k}
 \f}
 
-To summarize the continuous-time IMU propagation:
+because \f$\hat{\mathbf{n}}_{wg}\f$ and \f$\hat{\mathbf{n}}_{wa}\f$ are zeros.
+
+
+
+
+@section disc_prop Discrete-time IMU propagation
+
+Now we consider discrete-time system, which means we will get \f$\boldsymbol{\omega}_m\f$
+and \f$\mathbf{a}_m\f$ time-discretely.
+To use discrete-time measurements in integration, we need to assume the measurements between
+the discrete time.
+For instance, the measurements can be assumed as constant during the time.
+We employ this assumption and approximate that the measurement read at time \f$t_k\f$ remains
+the same until we get the next measurement at \f$t_{k+1}\f$.
+Also, the state keeps the values as constant between the time period.
+
+For the quaternion propagation, it is the same as continuous-time propagation
+with constancy assumption \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}_k}\f$.
+We use subscript \f$k\f$ to denote it is the measurement we get at time \f$t_k\f$.
+Therefore the propagation of quaternion can be written as:
 
 \f{align*}{
-    \text{}^{I_{k+1}}_{G}\hat{\bar{q}} &= \text{}^{I_{k+1}}_{I_k}\hat{\bar{q}}
-    \otimes \text{}^{I_{k}}_{G}\hat{\bar{q}} \\
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
+    = \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}(\hat{\boldsymbol{\omega}}_k)\Delta t\bigg)
+     \text{}^{I_{k}}_{G}\hat{\bar{q}}
+\f}
 
-    ^G\hat{\mathbf{p}}_{k+1} &= ^G\hat{\mathbf{p}}_{k} + \int_{t_{k+1}}^{t_{k}}
-    {^G\hat{\mathbf{v}}(\tau)} d\tau \\
+For the velocity and propagation we have constant
+\f$\text{}^G\hat{\mathbf{v}}_{I_k}\f$,
+\f$\text{}^G_{I_k}\hat{\mathbf{R}}\f$,
+\f$\mathbf{a}_{m,k}\f$, and
+\f$\hat{\mathbf{b}}_{\mathbf{a},k}\f$ over \f$t \in [t_k, t_{k+1}]\f$, therefore the propagations become
 
-    ^G\hat{\mathbf{v}}_{k+1} &= ^G\hat{\mathbf{v}}_{k} + \int_{t_{k+1}}^{t_{k}}
-    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))
-    + \mathbf{g}} d\tau \\
+\f{align*}{
+    ^G\hat{\mathbf{v}}_{k+1} &= \text{}^G\hat{\mathbf{v}}_{I_k} - \mathbf{g}\Delta t
+    +\text{}^G_{I_k}\hat{\mathbf{R}}(\mathbf{a}_{m,k} - \hat{\mathbf{b}}_{\mathbf{a},k})\Delta t\\
 
+    ^G\hat{\mathbf{p}}_{I_{k+1}}
+    &= \text{}^G\hat{\mathbf{p}}_{I_k} + \text{}^G\hat{\mathbf{v}}_{I_k} \Delta t
+    - \frac{1}{2}\mathbf{g}\Delta t^2 +
+    +\text{}^G_{I_k}\hat{\mathbf{R}}(\mathbf{a}_{m,k} - \hat{\mathbf{b}}_{\mathbf{a},k})\Delta t^2\\
+\f}
+
+Likewise the continuous system, the propagation of each bias is:
+
+\f{align*}{
     \hat{\mathbf{b}}_{\mathbf{g},k+1} &= \hat{\mathbf{b}}_{\mathbf{g},k}\\
 
     \hat{\mathbf{b}}_{\mathbf{a},k+1} &= \hat{\mathbf{b}}_{\mathbf{a},k}
@@ -259,13 +290,8 @@ To summarize the continuous-time IMU propagation:
 
 
 
-@section disc_prop Discrete-time IMU propagation
 
-Now we consider discrete-time system, which means we will not get \f$\boldsymbol{\omega}_m\f$
-and \f$\mathbf{a}_m\f$ time-continuously.
-To use time-discrete measurements, we need to assume the measurements between the discrete time.
-For instance, the measurements can be assumed as constant during the time.
-We employ this assumption and use it to represent propagation.
+
 
 To find the propagation of orientation error, we start with the rotation matrix:
 
