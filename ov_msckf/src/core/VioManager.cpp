@@ -49,6 +49,12 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     else if(feat_rep_str == "ANCHORED_MSCKF_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_MSCKF_INVERSE_DEPTH;
     else {
         ROS_ERROR("VioManager(): invalid feature representation specified = %s", feat_rep_str.c_str());
+        ROS_ERROR("VioManager(): the valid types are:");
+        ROS_ERROR("\t- GLOBAL_3D");
+        ROS_ERROR("\t- GLOBAL_FULL_INVERSE_DEPTH");
+        ROS_ERROR("\t- ANCHORED_3D");
+        ROS_ERROR("\t- ANCHORED_FULL_INVERSE_DEPTH");
+        ROS_ERROR("\t- ANCHORED_MSCKF_INVERSE_DEPTH");
         std::exit(EXIT_FAILURE);
     }
 

@@ -4,14 +4,78 @@
 @page gs-calibration Sensor Calibration
 
 
-
-@section gs-calib-cam-static Camera intrinsic calibration
-
+@section gs-visual-inertial-sensor Visual-Inertial Sensors
 
 
+@image html visensor.png width=50%
 
 
-@section gs-calib-imu-static IMU intrinsic calibration
+One might ask why use a visual-inertial sensor?
+The main reason to do so, is because of the complimentary nature of the different sensing modalities.
+The camera provides high density exterior measurements of the environment while the imu provides insight into the internal ego-motion of the robotic platform.
+The imu is crucial in providing robustness to the estimator while also providing system scale in the case of a monocular camera.
+
+There are some key downsides to leveraging the imu in estimation.
+An imu requires estimating of additional bias terms and requires highly accurate calibration between the camera and imu.
+Additionally small errors in the relative timestamps between the sensors can also degrade performance very quickly in dynamic trajectories.
+Within the Open VINS project we address these by advocating the online estimation of these extrinsic and time offset parameters between the cameras and imu.
+
+
+
+
+@section gs-calib-cam-static Camera Intrinsic Calibration
+
+
+The first task is to calibrate the camera intrinsic values such as the focal length, camera center, and distortion coefficients.
+Our group uses the [Kalibr](https://github.com/ethz-asl/kalibr/) calibration toolbox to perform both intrinsic and extrinsic offline calibrations.
+We normally follow the following steps:
+
+1. Clone and build the [Kalibr](https://github.com/ethz-asl/kalibr/) toolbox
+2. Print out a calibration board to use (we normally use the [Aprilgrid 6x6 0.8x0.8 m (A0 page)](https://drive.google.com/file/d/0B0T1sizOvRsUdjFJem9mQXdiMTQ/edit?usp=sharing))
+3. Ensure that your sensor driver is publishing onto ROS with correct timestamps.
+4. Sensor preparations
+	- Limit motion blur by decreasing exposure time
+	- Publish at low framerate to allow for larger variance in dataset (2-5hz)
+	- Ensure that your calibration board can be viewed in all areas of the image
+	- Ensure that your sensor is in focus (can use their kalibr\_camera\_focus or just manually)
+5. Record a ROS bag and ensure that the calibration board can be seen from different orientations, distances, and in each part of the image plane. You can either move the calibration board and keep the camera still or move the camera and keep the calibration board stationary.
+6. Finally run the calibration
+	- Use the kalibr\_calibrate\_cameras with your specified topic
+	- Depending on amount of distortion use the pinhole-equi fisheye or if a low distortion then use the pinhole-radtan
+	- Depending on how many frames are in your dataset this can take on the upwards of a few hours.
+7. Inspect the final result, pay close attention to the final reprojection error graphs, with a good calibration having less than < 0.2-0.5 pixel reprojection errors.
+
+
+
+
+@section gs-calib-imu-static IMU Intrinsic Calibration
+
+
+Another important aspect are the inertial sensor intrinsic noise characteristics.
+These are needed for the batch optimization to calibrate the camera to imu transform and in our Open VINS filter so that we can properly probabilistically fuse the image and inertial readings.
+There is no mature open sourced toolbox to find these values, but one can try using our [kalibr_allan](https://github.com/rpng/kalibr_allan) project.
+Specifically we are looking for the following noise parameters:
+
+Parameter | YAML element | Symbol | Units
+--- | --- | --- | ---
+Gyroscope "white noise" | `gyroscope_noise_density` | \f$\sigma_g\f$ | \f$\frac{rad}{s}\frac{1}{\sqrt{Hz}}\f$
+Accelerometer "white noise" | `accelerometer_noise_density` | \f$\sigma_a\f$ | \f$\frac{m}{s^2}\frac{1}{\sqrt{Hz}}\f$
+Gyroscope "random walk" | `gyroscope_random_walk` | \f$\sigma_{b_g}\f$ | \f$\frac{rad}{s^2}\frac{1}{\sqrt{Hz}}\f$
+Accelerometer "random walk" | `accelerometer_random_walk` | \f$\sigma_{b_a}\f$ | \f$\frac{m}{s^3}\frac{1}{\sqrt{Hz}}\f$
+
+
+The standard way as explained in the [IEEE Standard Specification Format Guide and Test Procedure for Single-Axis Interferometric Fiber Optic Gyros](https://ieeexplore.ieee.org/document/660628/) (page 71, section C) is that we can compute an [Allan variance](https://en.wikipedia.org/wiki/Allan_variance) plot of the sensor readings over different observation times.
+
+
+@image html allanvar_gyro.png width=75%
+
+
+As shown in the above figure, if we compute the Allan variance we we can look at the value of a line at \f$\tau=1\f$ with a -1/2 slope fitted to the left side of the plot to get the white noise of the sensor.
+Similarly, a line with 1/2 fitted to the right side can be evaluated at \f$\tau=3\f$ to get the random walk noise.
+We have a package that can do this in matlab, but actual verification and conversion into a C++ codebase has yet to be done.
+Please take a look at the [kalibr_allan](https://github.com/rpng/kalibr_allan) github project for details on how to generate this plot for your sensor and calculate the values.
+Normally we will inflate the calculated values by 10-20 times to get usable sensor values.
+
 
 
 
@@ -20,8 +84,26 @@
 @section gs-calib-cam-dynamic Dynamic IMU-CAM calibration
 
 
+After having good intrinsic calibration for both the camera and imu, we can now perform dynamic calibration of the transform between both sensors.
+For this we again leverage [Kalibr](https://github.com/ethz-asl/kalibr/) calibration toolbox].
+For these collected datasets it is important to minimize the motion blur in the camera while also ensuring that you excite all axes of the imu.
+One needs to have at least one translational motion along with two degrees of orientation change for these calibration parameters to be observable (please see [this](https://ieeexplore.ieee.org/abstract/document/8616792) paper on why).
+We recommend having as much change in orientation as possible to ensure good convergence.
 
-
+1. Clone and build the [Kalibr](https://github.com/ethz-asl/kalibr/) toolbox
+2. Print out a calibration board to use (we normally use the [Aprilgrid 6x6 0.8x0.8 m (A0 page)](https://drive.google.com/file/d/0B0T1sizOvRsUdjFJem9mQXdiMTQ/edit?usp=sharing))
+3. Ensure that your sensor driver is publishing onto ROS with correct timestamps.
+4. Sensor preparations
+	- Limit motion blur by decreasing exposure time
+	- Publish at high-ish framerate (20-30hz)
+	- Publish your inertial reading at a reasonable rate (200-500hz)
+5. Record a ROS bag and ensure that the calibration board can be seen from different orientations, distances, and in each part of the image plane. You should move in *smooth* non-jerky motions with a trajectory that excites as many orientation and translational directions as possible at the same time. A 30-60 second dataset is normally enough to allow for calibration.
+6. Finally run the calibration
+	- Use the kalibr\_calibrate\_imu_\camera
+	- Input your static calibration file which will have the camera topics in it
+	- You will need to make an [imu.yaml](https://drive.google.com/file/d/0B0T1sizOvRsUSk9ReDlid0VSY3M/edit?usp=sharing) file with your noise parameters.
+	- Depending on how many frames are in your dataset this can take on the upwards of half a day.
+7. Inspect the final result. You will want to make sure that the spline fitted to the inertial reading was properly fitted. Ensure that your estimated biases do not leave your 3-sigma bounds. If they do your trajectory was too dynamic, or your noise values are not good. Sanity check your final rotation and translation with hand-measured values.
 
 
 

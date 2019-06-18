@@ -457,7 +457,6 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
 void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res) {
 
     // Apply the left nullspace of H_f to all variables
-
     Eigen::JacobiRotation<double> tempHo_GR;
     for (int n = 0; n < H_f.cols(); ++n) {
         for (int m = (int) H_f.rows() - 1; m > n; m--) {
