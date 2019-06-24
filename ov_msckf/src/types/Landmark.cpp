@@ -5,16 +5,16 @@ using namespace ov_msckf;
 
 
 
-Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state) {
+Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state, bool getfej) {
 
     /// CASE: Global 3d feature representation
     if (state->options().feat_representation == StateOptions::GLOBAL_3D) {
-        return value();
+        return (getfej)? fej() : value();
     }
 
     /// CASE: Global inverse depth feature representation
     if (state->options().feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
-        Eigen::Matrix<double, 3, 1> p_invFinG = value();
+        Eigen::Matrix<double, 3, 1> p_invFinG = (getfej)? fej() : value();
         Eigen::Matrix<double, 3, 1> p_FinG;
         p_FinG << (1 / p_invFinG(2)) * std::cos(p_invFinG(0)) * std::sin(p_invFinG(1)),
                 (1 / p_invFinG(2)) * std::sin(p_invFinG(0)) * std::sin(p_invFinG(1)),
@@ -27,12 +27,12 @@ Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state) {
 
     /// CASE: Anchored 3D feature representation
     if (state->options().feat_representation == StateOptions::ANCHORED_3D) {
-        p_FinA = value();
+        p_FinA = (getfej)? fej() : value();
     }
 
     /// CASE: Anchored full inverse depth feature representation
     if (state->options().feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH){
-        Eigen::Matrix<double, 3, 1> p_invFinA = value();
+        Eigen::Matrix<double, 3, 1> p_invFinA = (getfej)? fej() : value();
         p_FinA << (1 / p_invFinA(2)) * std::cos(p_invFinA(0)) * std::sin(p_invFinA(1)),
                 (1 / p_invFinA(2)) * std::sin(p_invFinA(0)) * std::sin(p_invFinA(1)),
                 (1 / p_invFinA(2)) * std::cos(p_invFinA(1));
@@ -40,7 +40,7 @@ Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state) {
 
     /// CASE: Anchored MSCKF inverse depth feature representation
     if (state->options().feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH){
-        Eigen::Matrix<double, 3, 1> p_invFinA = value();
+        Eigen::Matrix<double, 3, 1> p_invFinA = (getfej)? fej() : value();
         p_FinA << (1 / p_invFinA(2)) * p_invFinA(0),
                 (1 / p_invFinA(2)) * p_invFinA(1),
                 1 / p_invFinA(2);
@@ -51,8 +51,8 @@ Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state) {
     Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
 
     // Get anchor IMU calib
-    Eigen::Matrix<double, 3, 3> R_GtoI = state->get_clone(_anchor_clone_timestamp)->Rot();
-    Eigen::Matrix<double, 3, 1> p_IinG = state->get_clone(_anchor_clone_timestamp)->pos();
+    Eigen::Matrix<double, 3, 3> R_GtoI = (getfej)? state->get_clone(_anchor_clone_timestamp)->Rot_fej() : state->get_clone(_anchor_clone_timestamp)->Rot();
+    Eigen::Matrix<double, 3, 1> p_IinG = (getfej)? state->get_clone(_anchor_clone_timestamp)->pos_fej() : state->get_clone(_anchor_clone_timestamp)->pos();
 
     // Compute global xyz
     Eigen::Matrix<double, 3, 1> p_FinG = R_GtoI.transpose() * R_ItoC.transpose()*(p_FinA - p_IinC) + p_IinG;
@@ -61,12 +61,12 @@ Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state) {
 }
 
 
-void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_FinG) {
+void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_FinG, bool isfej) {
 
     /// CASE: Global 3d feature representation
     if (state->options().feat_representation == StateOptions::GLOBAL_3D) {
-        set_value(p_FinG);
-        set_fej(p_FinG);
+        if(isfej) set_fej(p_FinG);
+        else set_value(p_FinG);
         return;
     }
 
@@ -86,8 +86,8 @@ void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_Fin
         p_invFinG(2) = g_rho;
 
         // Set our feature value
-        set_value(p_invFinG);
-        set_fej(p_invFinG);
+        if(isfej) set_fej(p_invFinG);
+        else set_value(p_invFinG);
         return;
     }
 
@@ -96,16 +96,16 @@ void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_Fin
     Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
 
     //Get anchor IMU calib
-    Eigen::Matrix<double, 3, 3> R_GtoI = state->get_clone(_anchor_clone_timestamp)->Rot();
-    Eigen::Matrix<double, 3, 1> p_IinG = state->get_clone(_anchor_clone_timestamp)->pos();
+    Eigen::Matrix<double, 3, 3> R_GtoI = (isfej)? state->get_clone(_anchor_clone_timestamp)->Rot_fej() : state->get_clone(_anchor_clone_timestamp)->Rot();
+    Eigen::Matrix<double, 3, 1> p_IinG = (isfej)? state->get_clone(_anchor_clone_timestamp)->pos_fej() : state->get_clone(_anchor_clone_timestamp)->pos();
 
     // Compute anchor xyz
     Eigen::Matrix<double,3,1> p_FinA = R_ItoC*R_GtoI*(p_FinG-p_IinG)+p_IinC;
 
     /// CASE: Anchored 3d feature representation
     if (state->options().feat_representation == StateOptions::ANCHORED_3D) {
-        set_value(p_FinA);
-        set_fej(p_FinA);
+        if(isfej) set_fej(p_FinA);
+        else set_value(p_FinA);
         return;
     }
 
@@ -124,8 +124,8 @@ void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_Fin
         p_invFinA(2) = a_rho;
 
         // Set our feature value
-        set_value(p_invFinA);
-        set_fej(p_invFinA);
+        if(isfej) set_fej(p_invFinA);
+        else set_value(p_invFinA);
         return;
     }
 
@@ -139,8 +139,8 @@ void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_Fin
         p_invFinA_MSCKF(2) = 1/p_FinA(2);
 
         // Set our feature value
-        set_value(p_invFinA_MSCKF);
-        set_fej(p_invFinA_MSCKF);
+        if(isfej) set_fej(p_invFinA_MSCKF);
+        else set_value(p_invFinA_MSCKF);
         return;
     }
 

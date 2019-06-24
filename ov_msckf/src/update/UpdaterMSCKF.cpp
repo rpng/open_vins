@@ -11,6 +11,13 @@ using namespace ov_msckf;
 
 void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
+    // Return if no features
+    if(feature_vec.empty())
+        return;
+
+    // Start timing
+    boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+    rT0 =  boost::posix_time::microsec_clock::local_time();
 
     // 0. Get all timestamps our clones are at (and thus valid measurement times)
     std::vector<double> clonetimes;
@@ -41,6 +48,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         }
 
     }
+    rT1 =  boost::posix_time::microsec_clock::local_time();
 
     // 2. Create vector of cloned *CAMERA* poses at each of our clone timesteps
     std::unordered_map<size_t, std::unordered_map<double, FeatureInitializer::ClonePose>> clones_cam;
@@ -86,6 +94,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         it1++;
 
     }
+    rT2 =  boost::posix_time::microsec_clock::local_time();
 
 
     // Calculate the max possible measurement size
@@ -98,7 +107,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // Calculate max possible state size (i.e. the size of our covariance)
     size_t max_hx_size = state->n_vars();
-    //max_hx_size -= 3*state->get_slam_feats();
+    max_hx_size -= 3*state->features_SLAM().size();
 
     // Large Jacobian and residual of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
@@ -122,6 +131,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.anchor_cam_id = (*it2)->anchor_cam_id;
         feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
         feat.p_FinG = (*it2)->p_FinG;
+        feat.p_FinG_fej = (*it2)->p_FinG;
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
@@ -181,6 +191,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         it2++;
 
     }
+    rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // We have appended all features to our Hx_big, res_big
     // Delete it so we do not reuse information
@@ -203,6 +214,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     if(Hx_big.rows() < 1) {
         return;
     }
+    rT4 =  boost::posix_time::microsec_clock::local_time();
 
 
     // Our noise is isotropic, so make it here after our compression
@@ -210,6 +222,15 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // 6. With all good features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
+    rT5 =  boost::posix_time::microsec_clock::local_time();
+
+    // Debug print timing information
+    ROS_INFO("[MSCKF-UP]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
+    ROS_INFO("[MSCKF-UP]: %.4f seconds to triangulate",(rT2-rT1).total_microseconds() * 1e-6);
+    ROS_INFO("[MSCKF-UP]: %.4f seconds create system (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+    ROS_INFO("[MSCKF-UP]: %.4f seconds compress system",(rT4-rT3).total_microseconds() * 1e-6);
+    ROS_INFO("[MSCKF-UP]: %.4f seconds update state (%d size)",(rT5-rT4).total_microseconds() * 1e-6, (int)res_big.rows());
+    ROS_INFO("[MSCKF-UP]: %.4f seconds total",(rT5-rT1).total_microseconds() * 1e-6);
 
 }
 

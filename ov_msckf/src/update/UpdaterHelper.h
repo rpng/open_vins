@@ -55,6 +55,9 @@ namespace ov_msckf {
             /// Triangulated position of this feature, in the global frame
             Eigen::Vector3d p_FinG;
 
+            /// Triangulated position of this feature, in the global frame first estimate
+            Eigen::Vector3d p_FinG_fej;
+
         };
 
 

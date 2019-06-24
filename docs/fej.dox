@@ -69,12 +69,12 @@ The state transition from timestep *k-1* to *k* as (see @ref propagation for mor
 
 @m_div{m-container-inflate}
 \f{align*}{
-\mathbf{\Phi}_{k,k-1}=
+\mathbf{\Phi}_{(k,k-1)}=
 \begin{bmatrix}
-	\mathrm{Exp}(-\boldsymbol\omega\Delta t)
+	\mathrm{exp}(-\boldsymbol\omega\Delta t)
 	& \mathbf 0_{3\times3}
 	& \mathbf 0_{3\times3}
-	& \mathrm{Exp}(-\boldsymbol\omega\Delta t)J_r(-\boldsymbol\omega \Delta t)\Delta t
+	& \mathrm{exp}(-\boldsymbol\omega\Delta t)J_r(-\boldsymbol\omega \Delta t)\Delta t
 	& \mathbf 0_{3\times3}
 	& \mathbf 0_{3\times3} \\[1em]
 \empty
@@ -120,11 +120,11 @@ The state transition from timestep *k-1* to *k* as (see @ref propagation for mor
 <br/>
 
 where \f$\boldsymbol\omega = \boldsymbol\omega_m-\mathbf b_\omega\f$ and \f$ \mathbf a = \mathbf a_m-\mathbf b_a-{}^{I_k}_{G}\mathbf{R}{}^{G}\mathbf g\f$ with \f${}^{G}\mathbf g = [0 ~ 0 ~ 9.81]^\top\f$ being the global gravity.
-The functions \f$\mathrm{Exp}(\cdot)\f$ and \f$J_r(\cdot)\f$ are the \f$SO(3)\f$ matrix exponential and right Jacobian:
+The functions \f$\mathrm{exp}(\cdot)\f$ and \f$J_r(\cdot)\f$ are the \f$SO(3)\f$ matrix exponential and right Jacobian:
 
 
 \f{align*}{
-	\mathrm{Exp}(\mathbf v)&= \mathbf{I}+\frac{\sin{\sqrt{\mathbf{v}^\top\mathbf{v}}}}{\sqrt{\mathbf{v}^\top\mathbf{v}}}\lfloor\mathbf{v}\times\rfloor +\frac{1-\cos{\sqrt{\mathbf{v}^\top\mathbf{v}}}}{(\mathbf{v}^\top\mathbf{v})}\lfloor\mathbf{v}\times\rfloor^2 \\
+	\mathrm{exp}(\mathbf v)&= \mathbf{I}+\frac{\sin{\sqrt{\mathbf{v}^\top\mathbf{v}}}}{\sqrt{\mathbf{v}^\top\mathbf{v}}}\lfloor\mathbf{v}\times\rfloor +\frac{1-\cos{\sqrt{\mathbf{v}^\top\mathbf{v}}}}{(\mathbf{v}^\top\mathbf{v})}\lfloor\mathbf{v}\times\rfloor^2 \\
 \empty
 	J_r(\boldsymbol\phi)&=\mathbf{I}-\frac{1-\cos(|\boldsymbol\phi|)}{|\boldsymbol\phi|^2}\lfloor\boldsymbol\phi\times\rfloor +\frac{|\boldsymbol\phi|-\sin(|\boldsymbol\phi |)}{|\boldsymbol\phi|^3}\lfloor\boldsymbol\phi\times\rfloor^2
 \f}

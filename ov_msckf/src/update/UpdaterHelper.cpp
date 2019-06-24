@@ -18,11 +18,14 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     // Global inverse depth representation
     if (state->options().feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
 
+        // Get the feature linearization point
+        Eigen::Matrix<double,3,1> p_FinG = (state->options().do_fej)? feature.p_FinG_fej : feature.p_FinG;
+
         // Get inverse depth representation (should match what is in Landmark.cpp)
-        double g_rho = 1/feature.p_FinG.norm();
-        double g_phi = std::acos(g_rho*feature.p_FinG(2));
+        double g_rho = 1/p_FinG.norm();
+        double g_phi = std::acos(g_rho*p_FinG(2));
         //double g_theta = std::asin(g_rho*p_FinG(1)/std::sin(g_phi));
-        double g_theta = std::atan2(feature.p_FinG(1),feature.p_FinG(0));
+        double g_theta = std::atan2(p_FinG(1),p_FinG(0));
         Eigen::Matrix<double,3,1> p_invFinG;
         p_invFinG(0) = g_theta;
         p_invFinG(1) = g_phi;
@@ -52,18 +55,20 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     // Assert that we have an anchor pose for this feature
     assert(feature.anchor_cam_id!=-1);
 
-    // Get calibration for our anchor camera
-    // TODO: should we do fej with calibration?
+    // Get calibration for our anchor camera (should we do fej with calibration?)
     Eigen::Matrix<double,3,3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
     Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
 
     // Anchor pose orientation and position
     Eigen::Matrix<double,3,3> R_GtoI = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature.anchor_clone_timestamp)->Rot();
-    Eigen::Matrix<double,3,1> p_IinG = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->pos_fej() : state->get_clone(feature.anchor_clone_timestamp)->pos();;
+    Eigen::Matrix<double,3,1> p_IinG = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->pos_fej() : state->get_clone(feature.anchor_clone_timestamp)->pos();
     Eigen::Matrix<double,3,3> R_CtoG = R_GtoI.transpose()*R_ItoC.transpose();
 
+    // Get the feature linearization point
+    Eigen::Matrix<double,3,1> p_FinG = (state->options().do_fej)? feature.p_FinG_fej : feature.p_FinG;
+
     // Calculate position of the feature in our anchor position
-    Eigen::Matrix<double,3,1> p_FinA = R_ItoC*R_GtoI*(feature.p_FinG-p_IinG)+p_IinC;
+    Eigen::Matrix<double,3,1> p_FinA = R_ItoC*R_GtoI*(p_FinG-p_IinG)+p_IinC;
 
     // TODO: when using fej with SLAM need to replace the value of feature position
     Eigen::Matrix<double,3,6> H_anc;
@@ -384,6 +389,13 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             //=========================================================================
             //=========================================================================
 
+            // If we are doing first estimate Jacobians, then overwrite with the first estimates
+            if(state->options().do_fej) {
+                R_GtoIi = clone_Ii->Rot_fej();
+                p_IiinG = clone_Ii->pos_fej();
+                p_FinIi = R_GtoIi*(feature.p_FinG_fej-p_IiinG);
+                p_FinCi = R_ItoC*p_FinIi+p_IinC;
+            }
 
             // Normalized coordinates in respect to projection function
             Eigen::Matrix<double,2,3> dzn_dpfc = Eigen::Matrix<double,2,3>::Zero();

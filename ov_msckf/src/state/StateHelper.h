@@ -5,6 +5,8 @@
 #include "State.h"
 #include "types/Landmark.h"
 
+#include <boost/math/distributions/chi_squared.hpp>
+
 
 /**
  * @namespace ov_msckf

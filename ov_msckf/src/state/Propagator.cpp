@@ -236,6 +236,8 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
     // Now compute Jacobian of new state wrt old state and noise
     if (state->options().do_fej) {
 
+        // This is the change in the orientation from the end of the last prop to the current prop
+        // This is needed since we need to include the "k-th" updated orientation information
         Eigen::Matrix<double,3,3> Rfej = imu->Rot_fej();
         Eigen::Matrix<double,3,3> dR = quat_2_Rot(new_q)*Rfej.transpose();
 
@@ -249,7 +251,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         F.block(v_id, v_id, 3, 3).setIdentity();
         F.block(v_id, ba_id, 3, 3) = -Rfej.transpose() * dt;
         F.block(ba_id, ba_id, 3, 3).setIdentity();
-        F.block(p_id, th_id, 3, 3).noalias() = -skew_x(new_p-p_fej-v_fej*dt+.5*_gravity*dt*dt)*Rfej.transpose();
+        F.block(p_id, th_id, 3, 3).noalias() = -skew_x(new_p-p_fej-v_fej*dt+0.5*_gravity*dt*dt)*Rfej.transpose();
         F.block(p_id, v_id, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
         F.block(p_id, ba_id, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
         F.block(p_id, p_id, 3, 3).setIdentity();
@@ -258,7 +260,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         G.block(bg_id, 3, 3, 3).setIdentity();
         G.block(v_id, 6, 3, 3) = -Rfej.transpose() * dt;
         G.block(ba_id, 9, 3, 3).setIdentity();
-        G.block(p_id, 6, 3, 3) = -.5 * Rfej.transpose() * dt * dt;
+        G.block(p_id, 6, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
 
     } else {
 
