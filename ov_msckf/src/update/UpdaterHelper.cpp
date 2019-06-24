@@ -80,7 +80,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     H_x.push_back(H_anc);
 
     // Get calibration Jacobians (for anchor clone)
-    if (state->options().do_calib_camera_pose){
+    if (state->options().do_calib_camera_pose) {
         Eigen::Matrix<double,3,6> H_calib;
         H_calib.block(0,0,3,3).noalias() = -R_CtoG*skew_x(p_FinA-p_IinC);
         H_calib.block(0,3,3,3) = -R_CtoG;
@@ -147,6 +147,106 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
 
 }
 
+
+
+void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, Eigen::Vector2d uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta) {
+
+    // Calculate distortion uv and jacobian
+    if(isfisheye) {
+
+        // Calculate distorted coordinates for fisheye
+        double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+        double theta = std::atan(r);
+        double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
+
+        // Handle when r is small (meaning our xy is near the camera center)
+        double inv_r = r > 1e-8 ? 1.0/r : 1;
+        double cdist = r > 1e-8 ? theta_d * inv_r : 1;
+
+        // Calculate distorted coordinates for fisheye
+        double x1 = uv_norm(0)*cdist;
+        double y1 = uv_norm(1)*cdist;
+
+        // Jacobian of distorted pixel to "normalized" pixel
+        Eigen::Matrix<double,2,2> duv_dxy1 = Eigen::Matrix<double,2,2>::Zero();
+        duv_dxy1 << cam_d(0), 0, 0, cam_d(1);
+
+        // Jacobian of "normalized" pixel to normalized pixel
+        Eigen::Matrix<double,2,2> dxy1_dxy = Eigen::Matrix<double,2,2>::Zero();
+        dxy1_dxy << theta_d*inv_r, 0, 0, theta_d*inv_r;
+
+        // Jacobian of "normalized" pixel to r
+        Eigen::Matrix<double,2,1> dxy1_dr = Eigen::Matrix<double,2,1>::Zero();
+        dxy1_dr << -uv_norm(0)*theta_d*inv_r*inv_r, -uv_norm(1)*theta_d*inv_r*inv_r;
+
+        // Jacobian of r pixel to normalized xy
+        Eigen::Matrix<double,1,2> dr_dxy = Eigen::Matrix<double,1,2>::Zero();
+        dxy1_dr << -uv_norm(0)*inv_r, -uv_norm(1)*inv_r;
+
+        // Jacobian of "normalized" pixel to theta_d
+        Eigen::Matrix<double,2,1> dxy1_dthd = dr_dxy.transpose();
+
+        // Jacobian of theta_d to theta
+        double dthd_dth = 1+3*cam_d(4)*std::pow(theta,2)+5*cam_d(5)*std::pow(theta,4) +7*cam_d(6)*std::pow(theta,6)+9*cam_d(7)*std::pow(theta,8);
+
+        // Jacobian of theta to r
+        double dth_dr = 1/(r*r+1);
+
+        // Total Jacobian wrt normalized pixel coordinates
+        dz_dzn = duv_dxy1*(dxy1_dxy+(dxy1_dr+dxy1_dthd*dthd_dth*dth_dr)*dr_dxy);
+
+        // Compute the Jacobian in respect to the intrinsics if we are calibrating
+        if(state->options().do_calib_camera_intrinsics) {
+            dz_dzeta(0,0) = x1;
+            dz_dzeta(0,2) = 1;
+            dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,3);
+            dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,5);
+            dz_dzeta(0,6) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,7);
+            dz_dzeta(0,7) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,9);
+            dz_dzeta(1,1) = y1;
+            dz_dzeta(1,3) = 1;
+            dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,3);
+            dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,5);
+            dz_dzeta(1,6) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,7);
+            dz_dzeta(1,7) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,9);
+        }
+
+
+    } else {
+
+        // Calculate distorted coordinates for radial
+        double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+        double r_2 = r*r;
+        double r_4 = r_2*r_2;
+        double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
+        double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
+
+        // Jacobian of distorted pixel to normalized pixel
+        dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
+        dz_dzn(0,1) = cam_d(0)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
+        dz_dzn(0,1) = cam_d(1)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
+        dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(1)*uv_norm(1)+4*cam_d(5)*uv_norm(1)*uv_norm(1)*r)+2*cam_d(7)*uv_norm(0)+(2*cam_d(6)*uv_norm(1)+4*cam_d(6)*uv_norm(1)));
+
+        // Compute the Jacobian in respect to the intrinsics if we are calibrating
+        if(state->options().do_calib_camera_intrinsics) {
+            dz_dzeta(0,0) = x1;
+            dz_dzeta(0,2) = 1;
+            dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*r_2;
+            dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*r_4;
+            dz_dzeta(0,6) = 2*cam_d(0)*uv_norm(0)*uv_norm(1);
+            dz_dzeta(0,7) = cam_d(0)*(r_2+2*uv_norm(0)*uv_norm(0));
+            dz_dzeta(1,1) = y1;
+            dz_dzeta(1,3) = 1;
+            dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*r_2;
+            dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*r_4;
+            dz_dzeta(1,6) = cam_d(1)*(r_2+2*uv_norm(1)*uv_norm(1));
+            dz_dzeta(1,7) = 2*cam_d(1)*uv_norm(0)*uv_norm(1);
+        }
+
+    }
+
+
+}
 
 
 
@@ -269,10 +369,6 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             // Distort the normalized coordinates (false=radtan, true=fisheye)
             Eigen::Matrix<double,2,1> uv_dist;
 
-            // Derivative of measurement in respect to normalized coordinates
-            Eigen::Matrix<double,2,2> dz_dzn = Eigen::Matrix<double,2,2>::Zero();
-            Eigen::Matrix<double,2,8> dz_dzeta = Eigen::Matrix<double,2,8>::Zero();
-
             // Calculate distortion uv and jacobian
             if(state->get_model_CAM(pair.first)) {
 
@@ -291,61 +387,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 uv_dist(0) = cam_d(0)*x1 + cam_d(2);
                 uv_dist(1) = cam_d(1)*y1 + cam_d(3);
 
-                // If our r is small (meaning our xy is near the camera center) then don't distort
-                //if(r < 1e-5) {
-                //    uv_dist(0) = cam_d(0)*uv_norm(0) + cam_d(2);
-                //    uv_dist(1) = cam_d(1)*uv_norm(1) + cam_d(3);
-                //}
-
-                // Jacobian of distorted pixel to "normalized" pixel
-                Eigen::Matrix<double,2,2> duv_dxy1 = Eigen::Matrix<double,2,2>::Zero();
-                duv_dxy1 << cam_d(0), 0, 0, cam_d(1);
-
-                // Jacobian of "normalized" pixel to normalized pixel
-                Eigen::Matrix<double,2,2> dxy1_dxy = Eigen::Matrix<double,2,2>::Zero();
-                dxy1_dxy << theta_d*inv_r, 0, 0, theta_d*inv_r;
-
-                // Jacobian of "normalized" pixel to r
-                Eigen::Matrix<double,2,1> dxy1_dr = Eigen::Matrix<double,2,1>::Zero();
-                dxy1_dr << -uv_norm(0)*theta_d*inv_r*inv_r, -uv_norm(1)*theta_d*inv_r*inv_r;
-
-                // Jacobian of r pixel to normalized xy
-                Eigen::Matrix<double,1,2> dr_dxy = Eigen::Matrix<double,1,2>::Zero();
-                dxy1_dr << -uv_norm(0)*inv_r, -uv_norm(1)*inv_r;
-
-                // Jacobian of "normalized" pixel to theta_d
-                Eigen::Matrix<double,2,1> dxy1_dthd = dr_dxy.transpose();
-
-                // Jacobian of theta_d to theta
-                double dthd_dth = 1+3*cam_d(4)*std::pow(theta,2)+5*cam_d(5)*std::pow(theta,4) +7*cam_d(6)*std::pow(theta,6)+9*cam_d(7)*std::pow(theta,8);
-
-                // Jacobian of theta to r
-                double dth_dr = 1/(r*r+1);
-
-                // Total Jacobian wrt normalized pixel coordinates
-                dz_dzn = duv_dxy1*(dxy1_dxy+(dxy1_dr+dxy1_dthd*dthd_dth*dth_dr)*dr_dxy);
-
-
-                // Compute the Jacobian in respect to the intrinsics if we are calibrating
-                if(state->options().do_calib_camera_intrinsics) {
-                    dz_dzeta(0,0) = x1;
-                    dz_dzeta(0,2) = 1;
-                    dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,3);
-                    dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,5);
-                    dz_dzeta(0,6) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,7);
-                    dz_dzeta(0,7) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,9);
-                    dz_dzeta(1,1) = y1;
-                    dz_dzeta(1,3) = 1;
-                    dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,3);
-                    dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,5);
-                    dz_dzeta(1,6) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,7);
-                    dz_dzeta(1,7) = cam_d(1)*uv_norm(1)*inv_r*std::pow(theta,9);
-                }
-
-
             } else {
-
-
 
                 // Calculate distorted coordinates for radial
                 double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
@@ -355,28 +397,6 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
                 uv_dist(0) = cam_d(0)*x1 + cam_d(2);
                 uv_dist(1) = cam_d(1)*y1 + cam_d(3);
-
-                // Jacobian of distorted pixel to normalized pixel
-                dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
-                dz_dzn(0,1) = cam_d(0)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
-                dz_dzn(0,1) = cam_d(1)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
-                dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(1)*uv_norm(1)+4*cam_d(5)*uv_norm(1)*uv_norm(1)*r)+2*cam_d(7)*uv_norm(0)+(2*cam_d(6)*uv_norm(1)+4*cam_d(6)*uv_norm(1)));
-
-                // Compute the Jacobian in respect to the intrinsics if we are calibrating
-                if(state->options().do_calib_camera_intrinsics) {
-                    dz_dzeta(0,0) = x1;
-                    dz_dzeta(0,2) = 1;
-                    dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*r_2;
-                    dz_dzeta(0,5) = cam_d(0)*uv_norm(0)*r_4;
-                    dz_dzeta(0,6) = 2*cam_d(0)*uv_norm(0)*uv_norm(1);
-                    dz_dzeta(0,7) = cam_d(0)*(r_2+2*uv_norm(0)*uv_norm(0));
-                    dz_dzeta(1,1) = y1;
-                    dz_dzeta(1,3) = 1;
-                    dz_dzeta(1,4) = cam_d(1)*uv_norm(1)*r_2;
-                    dz_dzeta(1,5) = cam_d(1)*uv_norm(1)*r_4;
-                    dz_dzeta(1,6) = cam_d(1)*(r_2+2*uv_norm(1)*uv_norm(1));
-                    dz_dzeta(1,7) = 2*cam_d(1)*uv_norm(0)*uv_norm(1);
-                }
 
             }
 
@@ -395,7 +415,13 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 p_IiinG = clone_Ii->pos_fej();
                 p_FinIi = R_GtoIi*(feature.p_FinG_fej-p_IiinG);
                 p_FinCi = R_ItoC*p_FinIi+p_IinC;
+                uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
             }
+
+            // Compute Jacobians in respect to normalized image coordinates and possibly the camera intrinsics
+            Eigen::Matrix<double,2,2> dz_dzn = Eigen::Matrix<double,2,2>::Zero();
+            Eigen::Matrix<double,2,8> dz_dzeta = Eigen::Matrix<double,2,8>::Zero();
+            UpdaterHelper::get_feature_jacobian_intrinsics(state, uv_norm, state->get_model_CAM(pair.first), cam_d, dz_dzn, dz_dzeta);
 
             // Normalized coordinates in respect to projection function
             Eigen::Matrix<double,2,3> dzn_dpfc = Eigen::Matrix<double,2,3>::Zero();
