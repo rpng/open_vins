@@ -1,7 +1,10 @@
 /**
 
 @page propagation Propagation
+@tableofcontents
 
+
+@section imu_measurements Inertial Sensor Measurements
 
 We use a 6-axis IMU sensor to propagate the inertial navigation system (INS),
 which provides local measurements of the rotational velocity (angular rate) \f$\boldsymbol{\omega}_m\f$ and
@@ -17,29 +20,29 @@ acceleration in the IMU local frame, \f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{
 the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{g}}\f$
 and \f$\mathbf{n}_{\mathbf{a}}\f$ are white Gaussian noise,
 and \f$^I_G\mathbf{R}\f$ denotes the rotation from global \f$\{\mathbf{G} \}\f$ to IMU frame \f$\{\mathbf{I}\}\f$
-and \f$\mathbf{g} = \begin{bmatrix}  0 ~~ 0 ~~ 9.81 \end{bmatrix}^\top\f$ is
-the gravity vector expressed in the global frame.
+and \f$\mathbf{g} = [ 0 ~~ 0 ~~ 9.81 ]^\top\f$ is gravity expressed in the global frame.
 
-The standard INS state vector \f$ \mathbf{x}_I\f$ at time \f$t\f$ is given by:
+We define our INS state vector \f$\mathbf{x}_I\f$ at time \f$t\f$ as:
 
 \f{align*}{
-    \mathbf{x}_I(t) = \begin{bmatrix}
-                          ^I_G\bar{q}(t) \\
-                          ^G\mathbf{p}_I(t) \\
-                          ^G\mathbf{v}_I(t)\\
-                          \mathbf{b}_{\mathbf{g}}(t) \\
-                          \mathbf{b}_{\mathbf{a}}(t)
-                          \end{bmatrix}
+\mathbf{x}_I(t) =
+\begin{bmatrix}
+^I_G\bar{q}(t) \\
+^G\mathbf{p}_I(t) \\
+^G\mathbf{v}_I(t)\\
+\mathbf{b}_{\mathbf{g}}(t) \\
+\mathbf{b}_{\mathbf{a}}(t)
+\end{bmatrix}
 \f}
 
 where \f$^L_G\bar{q}\f$ is the unit quaternion representing the rotation global to IMU frame,
-and \f$^G\mathbf{p}_I\f$ is the position of IMU in global frame,
+\f$^G\mathbf{p}_I\f$ is the position of IMU in global frame,
 and \f$^G\mathbf{v}_I\f$ is the velocity of IMU in global frame.
 We will often write time as a subscript of \f$I\f$ describing the state of IMU at the time
 for notation clarity (e.g.,  \f$^{I_t}_G\bar{q} = \text{}^I_G\bar{q}(t)\f$).
 In order to define the IMU error state, the standard additive error definition is employed
 for the position, velocity, and biases, 
-while  we use the quaternion error state \f$\delta \bar{q}\f$ with quaternion multiplication
+while  we use the quaternion error state \f$\delta \bar{q}\f$ with a left quaternion multiplicative error
 \f$\otimes\f$:
 
 \f{align*}{
@@ -47,31 +50,32 @@ while  we use the quaternion error state \f$\delta \bar{q}\f$ with quaternion mu
     \delta \bar{q} &= \begin{bmatrix}
     \hat{\mathbf{k}}\sin(\frac{1}{2}\tilde{\theta})\\
     \cos(\frac{1}{2}\tilde{\theta}) \end{bmatrix}
-    \approx \begin{bmatrix}
-                \frac{1}{2}\tilde{\boldsymbol{\theta}}\\
-                1 \end{bmatrix}
+    \approx
+    \begin{bmatrix}
+    \frac{1}{2}\tilde{\boldsymbol{\theta}}\\ 1
+    \end{bmatrix}
 \f}
 
-where \f$\hat{\mathbf{k}}\f$ is the rotation axis and \f$\tilde{\theta}\f$ is the amount of rotation,
-and \f$\tilde{\boldsymbol{\theta}} = \hat{\mathbf{k}} \tilde{\theta}\f$ is \f$3 \times 1\f$ vector denoting the orientation
-errors about the three axes.
-With the definitions of errors, the IMU error state is defined as a \f$15 \times 1\f$ vector:
+where \f$\hat{\mathbf{k}}\f$ is the rotation axis and \f$\tilde{\theta}\f$ is the amount of rotation.
+For small error angles the error has been approximated with \f$\tilde{\boldsymbol{\theta}} = \tilde{\theta}~\hat{\mathbf{k}}\f$ as the error vector about the three orientation axes.
+The total IMU error state is defined as the following \f$15 \times 1\f$ vector:
 
 \f{align*}{
-    \tilde{\mathbf{x}}_I(t) = \begin{bmatrix}
-                          \tilde{\boldsymbol{\theta}}(t) \\
-                          ^G\tilde{\mathbf{p}}_I(t) \\
-                          ^G\tilde{\mathbf{v}}_I(t)\\
-                          \tilde{\mathbf{b}}_{\mathbf{g}}(t) \\
-                          \tilde{\mathbf{b}}_{\mathbf{a}}(t)
-                          \end{bmatrix}
+\tilde{\mathbf{x}}_I(t) =
+\begin{bmatrix}
+^I_G\tilde{\boldsymbol{\theta}}(t) \\
+^G\tilde{\mathbf{p}}_I(t) \\
+^G\tilde{\mathbf{v}}_I(t)\\
+\tilde{\mathbf{b}}_{\mathbf{g}}(t) \\
+\tilde{\mathbf{b}}_{\mathbf{a}}(t)
+\end{bmatrix}
 \f}
 
 
 
 
 
-@section imu_kinematic IMU kinematics
+@section imu_kinematic IMU Kinematics
 
 The IMU state evolves over time as follows
 (see [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)).
@@ -108,15 +112,16 @@ The IMU state evolves over time as follows
 
     ^G\dot{\mathbf{p}}_I(t) &=\text{} ^G\mathbf{v}_I(t)\\
 
-    ^G\dot{\mathbf{v}}_I(t) &=\text{} ^{I_{t}}_G\mathbf{R}^\top\mathbf{a}(t) + \mathbf{g}\\
+    ^G\dot{\mathbf{v}}_I(t) &=\text{} ^{I_{t}}_G\mathbf{R}^\top\mathbf{a}(t) \\
 
      \dot{\mathbf{b}}_{\mathbf{g}}(t) &= \mathbf{n}_{wg}\\
 
      \dot{\mathbf{b}}_{\mathbf{a}}(t) &= \mathbf{n}_{wa}
 \f}
 
-where we have modeled  the gyro and accelerometer biases as random walk
-and thus their time derivatives  are white gaussian.
+where we have modeled  the gyroscope and accelerometer biases as random walk
+and thus their time derivatives  are white Gaussian.
+Note that the above kinematics have been defined in terms of the *true* acceleration and angular velocities.
 
 
 
@@ -127,10 +132,11 @@ and thus their time derivatives  are white gaussian.
 
 Given the continuous-time measurements \f$\boldsymbol{\omega}_m(t)\f$
 and \f$\mathbf{a}_m(t)\f$ in the time interval \f$t \in [t_k,t_{k+1}]\f$,
-and their estimates
+and their estimates, i.e. after taking the expectation,
 \f$\hat{\boldsymbol{\omega}}(t) = \boldsymbol{\omega}_m(t) - \hat{\boldsymbol{b}}_g(t)\f$ and
 \f$\hat{\boldsymbol{a}}(t) = \boldsymbol{a}_m(t) - \hat{\boldsymbol{b}}_a(t) - ^I_G\hat{\mathbf{R}}(t)\mathbf{g}\f$,
- the solution to the differential equation of quaternion has the following general form:
+we can define the solutions to the above IMU kinematics differential equation.
+The solution to the quaternion evolution has the following general form:
 
 \f{align*}{
     ^{I_{t}}_{G}\bar{q} = \boldsymbol{\Theta}(t,t_k)  \text{}^{I_{k}}_{G}\bar{q}
@@ -152,10 +158,9 @@ Differentiating and reordering the terms yields the governing equation for
     &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \boldsymbol{\Theta}(t,t_k)
 \f}
 with \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
-If \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ is constant over the the period
+If we take \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ to be constant over the the period
 \f$\Delta t = t_{k+1} - t_k\f$,
 then \f$\boldsymbol{\Theta}\f$ can be expressed as (see [[Stochastic Models, Estimation, and Control]](https://books.google.com/books?id=L_YVMUJKNQUC)):
-
 
 
 \f{align*}{
@@ -167,9 +172,11 @@ then \f$\boldsymbol{\Theta}\f$ can be expressed as (see [[Stochastic Models, Est
 &\simeq
    \mathbf{I}_4 + \frac{\Delta t}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})
 \f}
-where \f$|\boldsymbol{\omega}|\f$ is assumed to be small in the last equation.
+
+
+where in the case of a small \f$|\boldsymbol{\omega}|\f$ the last equation can be used to approximate.
 We can formulate the quaternion propagation from \f$t_k\f$ to \f$t_{k+1}\f$ using the estimated
-rotational velocity with constancy assumption \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}}\f$ as:
+rotational velocity \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}}\f$ as:
 
 \f{align*}{
     \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
@@ -177,15 +184,14 @@ rotational velocity with constancy assumption \f$\hat{\boldsymbol{\omega}}(t) = 
      \text{}^{I_{k}}_{G}\hat{\bar{q}}
 \f}
 
-
-The measurement integration over the time interval provides the propagation of velocity and position:
+Having defined the integration of the orientation, we can integrate the velocity and position over the measurement interval:
 
 \f{align*}{
     ^G\hat{\mathbf{v}}_{k+1} &= \text{}^G\hat{\mathbf{v}}_{I_k} + \int_{t_{k}}^{t_{k+1}}
     {^G\hat{\mathbf{a}}(\tau)} d\tau \\
 
     &= \text{}^G\hat{\mathbf{v}}_{I_k} - \mathbf{g}\Delta t+ \int_{t_{k}}^{t_{k+1}}
-    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))  d\tau}\\
+    {^G_{I_{\tau}}\hat{\mathbf{R}}(\mathbf{a}_m(\tau) - \hat{\mathbf{b}}_{\mathbf{a}}(\tau))  d\tau}\\[1em]
 
     ^G\hat{\mathbf{p}}_{I_{k+1}} &=
     \text{}^G\hat{\mathbf{p}}_{I_k} + \int_{t_{k}}^{t_{k+1}}
@@ -211,21 +217,20 @@ Propagation of each bias \f$\hat{\mathbf{b}}_{\mathbf{g}}\f$ and \f$\hat{\mathbf
                                       &= \hat{\mathbf{b}}_{\mathbf{a},k}
 \f}
 
-because \f$\hat{\mathbf{n}}_{wg}\f$ and \f$\hat{\mathbf{n}}_{wa}\f$ are zero-mean white gaussian.
-
+The biases will not evolve since our random walk noises \f$\hat{\mathbf{n}}_{wg}\f$ and \f$\hat{\mathbf{n}}_{wa}\f$ are zero-mean white Gaussian.
+All of the above integrals could be solved for or numerically solved for if one wishes to use the continuous-time measurement evolution model.
 
 
 
 @section disc_prop Discrete-time IMU propagation
 
 
-To use discrete-time measurements in integration, we need to assume the measurements between
-the discrete times.
-For instance, the measurements can be assumed as constant during the time.
+As simpler method is to model the measurements as discrete-time over the integration period.
+To do this the measurements can be assumed to be constant during the sampling period.
 We employ this assumption and approximate that the measurement read at time \f$t_k\f$ remains
 the same until we get the next measurement at \f$t_{k+1}\f$.
 For the quaternion propagation, it is the same as continuous-time propagation
-with constancy assumption \f$\hat{\boldsymbol{\omega}}(t_k) = \hat{\boldsymbol{\omega}}_k\f$.
+with constant measurement assumption \f$\hat{\boldsymbol{\omega}}(t_k) = \hat{\boldsymbol{\omega}}_k\f$.
 We use subscript \f$k\f$ to denote it is the measurement we get at time \f$t_k\f$.
 Therefore the propagation of quaternion can be written as:
 
@@ -236,10 +241,11 @@ Therefore the propagation of quaternion can be written as:
 \f}
 
 For the velocity and position propagation we have constant
-\f$\text{}^G\hat{\mathbf{v}}_{I_k},\f$
-\f$\text{}^{I_k}_G\hat{\mathbf{R}}^\top,\f$
-\f$\mathbf{a}_{m,k},\f$ and
-\f$\hat{\mathbf{b}}_{\mathbf{a},k}\f$ over \f$t \in [t_k, t_{k+1}]\f$, therefore the propagations become
+\f$\text{}^G\hat{\mathbf{v}}_{I_k}\f$,
+\f$\text{}^{I_k}_G\hat{\mathbf{R}}\f$,
+\f$\mathbf{a}_{m,k}\f$, and
+\f$\hat{\mathbf{b}}_{\mathbf{a},k}\f$ over \f$t \in [t_k, t_{k+1}]\f$.
+We can therefore directly solve for the new state as:
 
 \f{align*}{
     ^G\hat{\mathbf{v}}_{k+1} &= \text{}^G\hat{\mathbf{v}}_{I_k} - \mathbf{g}\Delta t
@@ -262,13 +268,23 @@ The propagation of each bias is likewise the continuous system:
 
 
 
-@subsection error_prop Error-state propagation
+@section error_prop Discrete-time Error-state Propagation
+
+@m_class{m-block m-danger}
+
+@par Section Requires Cleaning
+    Needs to be better formated and explained better why we do things (seems like just a bunch of equations listed).
+    Additionally need to define the \f$\mathbf J_r\f$ function.
+    Should also show the matrix form of the state transition and noise covariance.
+    Also show how we use these matrices (i.e. \f$P_{k|k-1} = \Phi_{k-1,k-2}P_{k|k-2}\Phi_{k-1,k-2}^\top + G_kQ_dG_k^\top \f$).
+    Should explain how we need to convert from continuous-time noise values to discrete also here.
 
 
-We are also interested in the error state propagation which is related to the propagation of covariance of the state.
+
+We are also interested in the error state propagation which is how we propagate the covariance estimate.
+The methodology is to "perturb" each variable in the system and see how the old error "perturbation" relates to the new error state.
 For the orientation error propagation, we start with the rotation matrix perturbation using
-\f$  ^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G}
-      \hat{\mathbf{R}}\f$:
+\f$  ^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$:
 
 
 \f{align*}{
