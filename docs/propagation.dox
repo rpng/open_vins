@@ -4,23 +4,27 @@
 @tableofcontents
 
 
-@section imu_measurements Inertial Sensor Measurements
+@section imu_measurements IMU Measurements
 
-We use a 6-axis IMU sensor to propagate the inertial navigation system (INS),
-which provides local measurements of the rotational velocity (angular rate) \f$\boldsymbol{\omega}_m\f$ and
-translational acceleration \f$\mathbf{a}_m\f$:
+We use a 6-axis inertial measurement unit (IMU) to propagate the inertial navigation system (INS),
+which provides measurements of the local rotational velocity (angular rate) \f$\boldsymbol{\omega}_m\f$ and
+local translational acceleration \f$\mathbf{a}_m\f$:
 
 \f{align*}{
     \boldsymbol{\omega}_m(t) &= \boldsymbol{\omega}(t) + \mathbf{b}_\mathbf{g}(t) + \mathbf{n}_{\mathbf{g}}(t)\\
-     \mathbf{a}_m(t) &= \mathbf{a}(t)  + \mathbf{b}_\mathbf{a}(t) + \mathbf{n}_{\mathbf{a}}(t) + ^I_G\mathbf{R}(t)\mathbf{g}
+     \mathbf{a}_m(t) &= \mathbf{a}(t) + ^I_G\mathbf{R}(t) {^G\mathbf{g}} + \mathbf{b}_\mathbf{a}(t) + \mathbf{n}_{\mathbf{a}}(t) 
 \f}
 
-where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are true rotational velocity and translational
-acceleration in the IMU local frame, \f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\mathbf{a}\f$ are
-the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{g}}\f$
-and \f$\mathbf{n}_{\mathbf{a}}\f$ are white Gaussian noise,
-and \f$^I_G\mathbf{R}\f$ denotes the rotation from global \f$\{\mathbf{G} \}\f$ to IMU frame \f$\{\mathbf{I}\}\f$
-and \f$\mathbf{g} = [ 0 ~~ 0 ~~ 9.81 ]^\top\f$ is gravity expressed in the global frame.
+where \f$\boldsymbol{\omega}\f$ and \f$\mathbf{a}\f$ are the true rotational velocity and translational
+acceleration in the IMU local frame \f$\{I\}\f$, 
+\f$\mathbf{b}_\mathbf{g}\f$ and \f$\mathbf{b}_\mathbf{a}\f$ are the gyros and accelerometer biases, and \f$\mathbf{n}_{\mathbf{g}}\f$
+\f$\mathbf{n}_{\mathbf{a}}\f$ are white Gaussian noise,
+\f${^G\mathbf{g}} = [ 0 ~~ 0 ~~ 9.81 ]^\top\f$ is the gravity expressed in the global frame  \f$\{G\}\f$
+(noting that the gravity is slightly different on different locations of the globe),
+and \f$^I_G\mathbf{R}\f$ is the rotation matrix from global  to IMU local frame.
+
+
+@section ins_state State Vector
 
 We define our INS state vector \f$\mathbf{x}_I\f$ at time \f$t\f$ as:
 
@@ -127,7 +131,7 @@ Note that the above kinematics have been defined in terms of the *true* accelera
 
 
 
-@section conti_prop Continuous-time IMU propagation
+@section conti_prop Continuous-time IMU Propagation
 
 
 Given the continuous-time measurements \f$\boldsymbol{\omega}_m(t)\f$
@@ -222,7 +226,7 @@ All of the above integrals could be solved for or numerically solved for if one 
 
 
 
-@section disc_prop Discrete-time IMU propagation
+@section disc_prop Discrete-time IMU Propagation
 
 
 As simpler method is to model the measurements as discrete-time over the integration period.
