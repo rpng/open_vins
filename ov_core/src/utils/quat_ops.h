@@ -288,7 +288,7 @@ namespace ov_core {
             vec << w_x(2, 1), w_x(0, 2), w_x(1, 0);
             return vec;
         } else {
-            return Eigen::Vector3d::Ones();
+            return Eigen::Vector3d::Zero();
         }
     }
 
@@ -315,8 +315,8 @@ namespace ov_core {
     inline Eigen::Matrix4d exp_se3(Eigen::Matrix<double,6,1> vec) {
 
         // Precompute our values
-        Eigen::Vector3d w = vec.head<3>();
-        Eigen::Vector3d u = vec.tail<3>();
+        Eigen::Vector3d w = vec.head(3);
+        Eigen::Vector3d u = vec.tail(3);
         double theta = sqrt(w.dot(w));
         Eigen::Matrix3d wskew;
         wskew << 0, -w(2), w(1), w(2), 0, -w(0), -w(1), w(0), 0;
@@ -358,7 +358,7 @@ namespace ov_core {
      * where we have the following definitions
      * \f{align*}{
      * \theta &= \mathrm{arccos}((\mathrm{tr}(\mathbf R)-1)/2) \\
-     * \mathbf V^{-1} &= \mathbf I - \frac{1}{2} \lfloor \boldsymbol\omega \times\rfloor + \frac{1}{\theta}\Big(1-\frac{A}{2B}\Big)\lfloor \boldsymbol\omega \times\rfloor^2
+     * \mathbf V^{-1} &= \mathbf I - \frac{1}{2} \lfloor \boldsymbol\omega \times\rfloor + \frac{1}{\theta^2}\Big(1-\frac{A}{2B}\Big)\lfloor \boldsymbol\omega \times\rfloor^2
      * \f}
      *
      * @param mat 4x4 SE(3) matrix
@@ -374,26 +374,28 @@ namespace ov_core {
         double theta = acos(0.5*(R.trace()-1));
 
         // Handle small angle values
-        double A, B, D;
+        double A, B, D, E;
         if(theta < 1e-12) {
             A = 1;
             B = 0.5;
             D = 0.5;
+            E = 1.0/12.0;
         } else {
             A = sin(theta)/theta;
             B = (1-cos(theta))/(theta*theta);
             D = theta/(2*sin(theta));
+            E = 1/(theta*theta)*(1-0.5*A/B);
         }
 
         // Get the skew matrix and V inverse
         Eigen::Matrix3d I_33 = Eigen::Matrix3d::Identity();
         Eigen::Matrix3d wskew = D*(R-R.transpose());
-        Eigen::Matrix3d Vinv = I_33 - 0.5*wskew+1/theta*(1-0.5*A/B)*wskew*wskew;
+        Eigen::Matrix3d Vinv = I_33 - 0.5*wskew+E*wskew*wskew;
 
         // Calculate vector
         Eigen::Matrix<double,6,1> vec;
-        vec.head<3>() << wskew(2, 1), wskew(0, 2), wskew(1, 0);
-        vec.tail<3>() = Vinv*t;
+        vec.head(3) << wskew(2, 1), wskew(0, 2), wskew(1, 0);
+        vec.tail(3) = Vinv*t;
         return vec;
 
     }

@@ -21,6 +21,10 @@ void Simulator::load_data(std::string path_traj) {
     std::string current_line;
     while(std::getline(file, current_line) && ros::ok()) {
 
+        // Skip if we start with a comment
+        if(!current_line.find("#"))
+            continue;
+
         // Loop variables
         int i = 0;
         std::istringstream s(current_line);
