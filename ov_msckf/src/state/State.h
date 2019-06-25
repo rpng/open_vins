@@ -20,7 +20,10 @@ using namespace ov_core;
  */
 namespace ov_msckf {
 
+
+    // Pre-declare the state since it depends on us also (i.e. a circular dependency)
     class Landmark;
+
 
     /**
      * @brief State of our filter

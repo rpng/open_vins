@@ -28,6 +28,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<int>("max_slam", state_options.max_slam_features, 0);
     nh.param<int>("max_aruco", state_options.max_aruco_features, 1024);
     nh.param<int>("max_cameras", state_options.num_cameras, 1);
+    nh.param<double>("dt_slam_delay", dt_statupdelay, 3);
 
     // Enforce that if we are doing stereo tracking, we have two cameras
     if(state_options.num_cameras < 1) {
@@ -84,6 +85,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- max slam: %d", state_options.max_slam_features);
     ROS_INFO("\t- max aruco: %d", state_options.max_aruco_features);
     ROS_INFO("\t- max cameras: %d", state_options.num_cameras);
+    ROS_INFO("\t- slam startup delay: %.1f", dt_statupdelay);
     ROS_INFO("\t- feature representation: %s", feat_rep_str.c_str());
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
 
@@ -417,6 +419,11 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // State propagation, and clone augmentation
     //===================================================================================
 
+    // If we have just started up, we should record this time as the current time
+    if(startup_time == -1) {
+        startup_time = timestamp;
+    }
+
     // Propagate the state forward to the current update time
     // Also augment it with a new clone!
     propagator->propagate_and_clone(state, timestamp);
@@ -485,7 +492,8 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     }
 
     // Append a new SLAM feature if we have the room to do so
-    if(state->options().max_slam_features > 0 && (int)state->features_SLAM().size() < state->options().max_slam_features+curr_aruco_tags) {
+    // Also check that we have waited our delay amount (normally prevents bad first set of slam points)
+    if(state->options().max_slam_features > 0 && timestamp-startup_time >= dt_statupdelay && (int)state->features_SLAM().size() < state->options().max_slam_features+curr_aruco_tags) {
         // Get the total amount to add, then the max amount that we can add given our marginalize feature array
         int amount_to_add = (state->options().max_slam_features+curr_aruco_tags)-(int)state->features_SLAM().size();
         int valid_amount = (amount_to_add > (int)feats_maxtracks.size())? (int)feats_maxtracks.size() : amount_to_add;

@@ -197,6 +197,10 @@ namespace ov_msckf {
         double timelastupdate = -1;
         double distance = 0;
 
+        // Start delay we should wait before inserting the first slam feature
+        double dt_statupdelay;
+        double startup_time = -1;
+
     };
 
 

@@ -31,6 +31,7 @@
         <param name="max_clones"             type="int"    value="15" />
         <param name="max_slam"               type="int"    value="10" />
         <param name="max_cameras"            type="int"    value="1" />
+        <param name="dt_slam_delay"          type="double" value="5" />
         <param name="feat_representation"    type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="init_window_time"       type="double" value="0.5" />
         <param name="init_imu_thresh"        type="double" value="2.0" />
