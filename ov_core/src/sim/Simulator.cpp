@@ -8,7 +8,6 @@ using namespace ov_core;
 
 void Simulator::load_data(std::string path_traj) {
 
-
     // Try to open our groundtruth file
     std::ifstream file;
     file.open(path_traj);
@@ -41,7 +40,7 @@ void Simulator::load_data(std::string path_traj) {
         // Only a valid line if we have all the parameters
         if(i > 7) {
             traj_data.push_back(data);
-            std::cout << std::setprecision(15) << data.transpose() << std::endl;
+            //std::cout << std::setprecision(15) << data.transpose() << std::endl;
         }
 
     }
@@ -49,6 +48,12 @@ void Simulator::load_data(std::string path_traj) {
     // Finally close the file
     file.close();
 
+    // Error if we don't have any data
+    if (traj_data.empty()) {
+        ROS_ERROR("ERROR: Could not parse any data from the file!!");
+        ROS_ERROR("ERROR: %s",path_traj.c_str());
+        std::exit(EXIT_FAILURE);
+    }
 
 }
 
