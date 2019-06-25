@@ -65,6 +65,8 @@ list(APPEND thirdparty_libraries
 ##################################################
 add_library(ov_core_lib
         src/init/InertialInitializer.cpp
+        src/sim/BsplineSE3.cpp
+        src/sim/Simulator.cpp
         src/track/TrackBase.cpp
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp
@@ -82,3 +84,5 @@ add_executable(test_tracking src/test_tracking.cpp)
 target_link_libraries(test_tracking ov_core_lib ${thirdparty_libraries})
 
 
+add_executable(test_simulator src/test_simulator.cpp)
+target_link_libraries(test_simulator ov_core_lib ${thirdparty_libraries})

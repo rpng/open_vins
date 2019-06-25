@@ -176,8 +176,7 @@ namespace ov_core {
      *  \end{bmatrix}
      * @f]
      */
-    inline Eigen::Matrix<double, 4, 1>
-    quat_multiply(const Eigen::Matrix<double, 4, 1> &q, const Eigen::Matrix<double, 4, 1> &p) {
+    inline Eigen::Matrix<double, 4, 1> quat_multiply(const Eigen::Matrix<double, 4, 1> &q, const Eigen::Matrix<double, 4, 1> &p) {
         Eigen::Matrix<double, 4, 1> q_t;
         Eigen::Matrix<double, 4, 4> Qm;
         // create big L matrix
