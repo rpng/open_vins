@@ -5,7 +5,7 @@
 
 
 
-@section fej-sys-evolution Linear System Dynamics
+@section fej-sys-evolution Linearized System
 
 In our extended Kalman filter (EKF) we linearize our measurements about some linearization point.
 This linearization is needed to incorporate our non-linear information into our Kalman filter and is one of the sources of error which causes inaccuracies in our estimates (as compared to measurement noise).
@@ -18,7 +18,7 @@ Let us consider the following linearized system:
 \tilde{\mathbf{z}}_{k} &= \mathbf{H}_{k}~\tilde{\mathbf{x}}_{k|k-1}+\mathbf{n}_{k}
 \f}
 
-where we have the following state which contains the inertial state and a single environmental feature:
+We have the following state which contains the inertial state and a single environmental feature and note that we do not include biases to simplify the derivations.
 
 \f{align*}{
 	\mathbf{x}_k &=
@@ -26,8 +26,6 @@ where we have the following state which contains the inertial state and a single
 	{}_G^{I_{k}} \bar{q}{}^{\top}
 	& {}^G\mathbf{p}_{{I}_{k}}^{\top}
 	& {}^G\mathbf{v}_{{I}_{k}}^{\top}
-	& \mathbf{b}_{\omega_k}^{\top}
-	& \mathbf{b}_{a_k}^{\top}
 	& {}^G\mathbf{p}_{f}^{\top}
 	\end{bmatrix}^{\top}
 \f}
@@ -48,7 +46,7 @@ We can define the feature Jacobian of a given feature at the *k*'th timestep as:
 \begin{bmatrix}
 \lfloor {}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\rfloor &
 -{}^{I_k}_{G}\mathbf{R} &
-\mathbf 0_{3\times9} &
+\mathbf 0_{3\times3} &
 {}^{I_k}_{G}\mathbf{R}
 \end{bmatrix} \\
 &=
@@ -57,7 +55,7 @@ We can define the feature Jacobian of a given feature at the *k*'th timestep as:
 \begin{bmatrix}
 \lfloor ({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\rfloor {}^{I_k}_{G}\mathbf{R}^\top &
 -\mathbf I_{3\times3} &
-\mathbf 0_{3\times9} &
+\mathbf 0_{3\times3} &
 \mathbf I_{3\times3}
 \end{bmatrix}
 \f}
@@ -65,43 +63,21 @@ We can define the feature Jacobian of a given feature at the *k*'th timestep as:
 
 The state transition from timestep *k-1* to *k* as (see @ref propagation for more details):
 
-<br/>
 
-@m_div{m-container-inflate}
 \f{align*}{
-\mathbf{\Phi}_{(k,k-1)}=
+\mathbf{\Phi}_{(k,k-1)}&=
 \begin{bmatrix}
-	\mathrm{exp}(-\boldsymbol\omega\Delta t)
+	{}^{I_{k}}_{I_{k-1}}\mathbf R
 	& \mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
-	& \mathrm{exp}(-\boldsymbol\omega\Delta t)J_r(-\boldsymbol\omega \Delta t)\Delta t
 	& \mathbf 0_{3\times3}
 	& \mathbf 0_{3\times3} \\[1em]
 \empty
-	-\frac{1}{2}{}^{I_k}_{G}\mathbf{R}^\top \lfloor \mathbf a\Delta t^2 \times\rfloor
+	-{}^{I_{k-1}}_{G}\mathbf{R}^\top \lfloor \boldsymbol\alpha(k,k-1) \times\rfloor
 	& \mathbf I_{3\times3}
-	& \Delta t\mathbf I_{3\times3}
-	& \mathbf 0_{3\times3}
-	& -\frac{1}{2}{}^{I_k}_{G}\mathbf{R}^\top \Delta t^2
+	& (t_{k}-t_{k-1})\mathbf I_{3\times3}
 	& \mathbf 0_{3\times3} \\[1em]
 \empty
-	-\frac{1}{2}{}^{I_k}_{G}\mathbf{R}^\top \lfloor \mathbf a\Delta t \times\rfloor
-	& \mathbf 0_{3\times3}
-	& \mathbf I_{3\times3}
-	& \mathbf 0_{3\times3}\
-	& -\frac{1}{2}{}^{I_k}_{G}\mathbf{R}^\top \Delta t
-	& \mathbf 0_{3\times3} \\[1em]
-\empty
-	\mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
-	& \mathbf I_{3\times3}
-	& \mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3} \\[1em]
-\empty
-	\mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
+	-{}^{I_{k-1}}_{G}\mathbf{R}^\top \lfloor \boldsymbol\beta(k,k-1) \times\rfloor
 	& \mathbf 0_{3\times3}
 	& \mathbf I_{3\times3}
 	& \mathbf 0_{3\times3} \\[1em]
@@ -109,27 +85,15 @@ The state transition from timestep *k-1* to *k* as (see @ref propagation for mor
 	\mathbf 0_{3\times3}
 	& \mathbf 0_{3\times3}
 	& \mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
-	& \mathbf 0_{3\times3}
 	& \mathbf I_{3\times3}
-\end{bmatrix}
-\f}
-@m_enddiv
-
-
-<br/>
-
-where \f$\boldsymbol\omega = \boldsymbol\omega_m-\mathbf b_\omega\f$ and \f$ \mathbf a = \mathbf a_m-\mathbf b_a-{}^{I_k}_{G}\mathbf{R}{}^{G}\mathbf g\f$ with \f${}^{G}\mathbf g = [0 ~ 0 ~ 9.81]^\top\f$ being the global gravity.
-The functions \f$\mathrm{exp}(\cdot)\f$ and \f$J_r(\cdot)\f$ are the \f$SO(3)\f$ matrix exponential and right Jacobian:
-
-
-\f{align*}{
-	\mathrm{exp}(\mathbf v)&= \mathbf{I}+\frac{\sin{\sqrt{\mathbf{v}^\top\mathbf{v}}}}{\sqrt{\mathbf{v}^\top\mathbf{v}}}\lfloor\mathbf{v}\times\rfloor +\frac{1-\cos{\sqrt{\mathbf{v}^\top\mathbf{v}}}}{(\mathbf{v}^\top\mathbf{v})}\lfloor\mathbf{v}\times\rfloor^2 \\
-\empty
-	J_r(\boldsymbol\phi)&=\mathbf{I}-\frac{1-\cos(|\boldsymbol\phi|)}{|\boldsymbol\phi|^2}\lfloor\boldsymbol\phi\times\rfloor +\frac{|\boldsymbol\phi|-\sin(|\boldsymbol\phi |)}{|\boldsymbol\phi|^3}\lfloor\boldsymbol\phi\times\rfloor^2
+\end{bmatrix} \\[2em]
+\boldsymbol\alpha(k,k-1) &= \int_{t_{k-1}}^{s} \int_{t_k}^{s} {}^{I_{k-1}}_{\tau}\mathbf R (\mathbf a(\tau)-\mathbf b_a - \mathbf w_a) d\tau ds \\
+\boldsymbol\beta(k,k-1) &= \int_{t_{k-1}}^{t_k} {}^{I_{k-1}}_{\tau}\mathbf R (\mathbf a(\tau)-\mathbf b_a - \mathbf w_a) d\tau
 \f}
 
 
+where \f$\mathbf a(\tau)\f$ is the true acceleration at time \f$\tau \f$, \f${}^{I_{k}}_{I_{k-1}}\mathbf R\f$ is computed using the gyroscope angular velocity measurements, and \f${}^{G}\mathbf g = [0 ~ 0 ~ 9.81]^\top\f$ is gravity in the global frame of reference.
+Normally during propagation one would need to solve these integrals using some form of either discrete or numerical integration while here we are purely interested in how the state evolves to allow us to look at its observability.
 
 
 
@@ -166,24 +130,79 @@ For a given row of this matrix we have the following:
 	\boldsymbol\Gamma_1 &
 	\boldsymbol\Gamma_2 &
 	\boldsymbol\Gamma_3 &
-	\boldsymbol\Gamma_4 &
-	\boldsymbol\Gamma_5 &
-	\boldsymbol\Gamma_6
+	\boldsymbol\Gamma_4
 	\end{bmatrix} \\[2em]
 \empty
 \empty
 	\boldsymbol\Gamma_1 &=
-	\Big\lfloor ({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_0}-{}^{G}\mathbf{v}_{I_0}\Delta t-\frac{1}{2}{}^G\mathbf g \Delta t) \times\Big\rfloor {}^{I_0}_{G}\mathbf{R}^\top \\[1em]
-	\boldsymbol\Gamma_2 &= -\mathbf I_{3\times3} \\[1em]
-	\boldsymbol\Gamma_3 &= -\Delta t \mathbf I_{3\times3} \\[1em]
-	\boldsymbol\Gamma_4 &= \\[1em]
-	\boldsymbol\Gamma_5 &= \\[1em]
-	\boldsymbol\Gamma_6 &= \mathbf I_{3\times3} \\[1em]
+	\Big\lfloor \Big({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k} + {}^{I_{0}}_{G}\mathbf{R}^\top \boldsymbol\alpha(k,0) \Big) \times\Big\rfloor {}^{I_0}_{G}\mathbf{R}^\top \\
+	&=
+	\Big\lfloor \Big({}^{G}\mathbf{p}_f- {}^{G}\mathbf{p}_{I_0}-{}^{G}\mathbf{v}_{I_0}(t_k-t_0)-\frac{1}{2}{}^G\mathbf{g}(t_k-t_0)^2 \Big) \times\Big\rfloor {}^{I_0}_{G}\mathbf{R}^\top
+	\\
+	\boldsymbol\Gamma_2 &= -\mathbf I_{3\times3} \\
+	\boldsymbol\Gamma_3 &= -(t_{k}-t_0) \mathbf I_{3\times3} \\
+	\boldsymbol\Gamma_4 &= \mathbf I_{3\times3}
 \f}
 
 
+We now look to verify the following nullspace which equates to the system yaw about gravity and position estimate:
 
 
+\f{align*}{
+	\mathcal{N}_{vio} &=
+	\begin{bmatrix}
+	{}^{I_{0}}_{G}\mathbf{R}{}^G\mathbf{g} & \mathbf 0_{3\times3} \\
+	-\lfloor {}^{G}\mathbf{p}_{I_0} \times\rfloor{}^G\mathbf{g} & \mathbf{I}_{3\times3} \\
+	-\lfloor {}^{G}\mathbf{v}_{I_0} \times\rfloor{}^G\mathbf{g} & \mathbf{0}_{3\times3} \\
+	-\lfloor {}^{G}\mathbf{p}_{f} \times\rfloor{}^G\mathbf{g} & \mathbf{I}_{3\times3} \\
+	\end{bmatrix}
+\f}
+
+It can be seen that \f$ \mathbf{H}_{k}\mathbf{\Phi}_{(k,0)}\mathcal{N}_{vio} = \mathbf 0 \f$ thus this is a nullspace of the system.
+This shows that there are the four unobserable directions (yaw and position) in visual-inertial mapping systems.
+
+
+
+
+
+@section fej-fej First Estimate Jacobians
+
+
+The main idea of First Estimate Jacobains (FEJ) is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true.
+For those interested in the technical details please take a look at: [Observability-based Rules for Designing Consistent EKF SLAM Estimators](https://journals.sagepub.com/doi/abs/10.1177/0278364909353640) and [High-precision, consistent EKF-based visual-inertial odometry](https://journals.sagepub.com/doi/full/10.1177/0278364913481251).
+Let us first consider a small thought experiment of how the standard Kalman filter computes its state transition matrix.
+From a timestep zero to one it will use the current estimates from state zero forward in time.
+At the next timestep after it updates the state with measurements from other sensors, it will compute the state transition with the updated values to evolve the state to timestep two.
+This causes a miss-match in the "continuity" of the state transition matrix which when multiply sequentially should represent the evolution from time zero to time two.
+
+
+\f{align*}{
+	\mathbf{\Phi}_{(k+1,k-1)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k-1|k-1}) \neq
+	\mathbf{\Phi}_{(k+1,k)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k|k}) ~
+	\mathbf{\Phi}_{(k,k-1)}(\mathbf{x}_{k|k-1},\mathbf{x}_{k-1|k-1})
+\f}
+
+
+As shown above, we wish to compute the state transition matrix from the *k-1* timestep given all *k-1* measurements up until the current propagated timestep *k+1* given all *k* measurements.
+The right side of the above equation is how one would normally perform this in a Kalman filter framework.
+\f$\mathbf{\Phi}_{(k,k-1)}(\mathbf{x}_{k|k-1},\mathbf{x}_{k-1|k-1})\f$ corresponds to propagating from the *k-1* update time to the *k* timestep.
+One would then normally perform the *k*'th update to the state and then propagate from this **updated** state to the newest timestep (i.e. the \f$ \mathbf{\Phi}_{(k+1,k)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k|k}) \f$ state transition matrix).
+This clearly is different then if one was to compute the state transition from time *k-1* to the *k+1* timestep as the second state transition is evaluated at the different \f$\mathbf{x}_{k|k}\f$ linearization point!
+To fix this, we can change the linearization point we evaluate these at:
+
+ 
+
+\f{align*}{
+	\mathbf{\Phi}_{(k+1,k-1)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k-1|k-1}) =
+	\mathbf{\Phi}_{(k+1,k)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k|k-1}) ~
+	\mathbf{\Phi}_{(k,k-1)}(\mathbf{x}_{k|k-1},\mathbf{x}_{k-1|k-1})
+\f}
+
+
+We also need to ensure that our measurement Jacobians match the linearization point of the state transition matrix.
+Thus they also need to be evaluated at the \f$\mathbf{x}_{k|k-1}\f$ linearization point instead of the \f$\mathbf{x}_{k|k}\f$ that one would normally use.
+This gives way to the name FEJ since we will evaluate the Jacobians at the same linearization point to ensure that the nullspace remains valid.
+For example if we evaluated the \f$\mathbf H_k \f$ Jacobian with a different \f$ {}^G\mathbf{p}_f \f$ at each timestep then the nullspace would not hold past the first time instance.
 
 
 
