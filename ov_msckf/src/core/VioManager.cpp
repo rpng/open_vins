@@ -537,12 +537,13 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Now that we have a list of features, lets do the EKF update for MSCKF and SLAM!
     //===================================================================================
 
+    // Pass them to our MSCKF updater
+    // We update first so that our SLAM initialization will be more accurate??
+    updaterMSCKF->update(state, featsup_MSCKF);
+
     // Perform SLAM delay init and update
     updaterSLAM->delayed_init(state, feats_slam_DELAYED);
     updaterSLAM->update(state, feats_slam_UPDATE);
-
-    // Pass them to our MSCKF updater
-    updaterMSCKF->update(state, featsup_MSCKF);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 

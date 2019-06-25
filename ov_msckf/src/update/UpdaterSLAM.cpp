@@ -11,6 +11,13 @@ using namespace ov_msckf;
 
 void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec) {
 
+    // Return if no features
+    if(feature_vec.empty())
+        return;
+
+    // Start timing
+    boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+    rT0 =  boost::posix_time::microsec_clock::local_time();
 
     // 0. Get all timestamps our clones are at (and thus valid measurement times)
     std::vector<double> clonetimes;
@@ -40,6 +47,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         }
 
     }
+    rT1 =  boost::posix_time::microsec_clock::local_time();
 
     // 2. Create vector of cloned *CAMERA* poses at each of our clone timesteps
     std::unordered_map<size_t, std::unordered_map<double, FeatureInitializer::ClonePose>> clones_cam;
@@ -85,6 +93,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         it1++;
 
     }
+    rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // 4. Compute linear system for each feature, nullspace project, and reject
     auto it2 = feature_vec.begin();
@@ -99,6 +108,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         feat.anchor_cam_id = (*it2)->anchor_cam_id;
         feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
         feat.p_FinG = (*it2)->p_FinG;
+        feat.p_FinG_fej = (*it2)->p_FinG;
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
@@ -114,7 +124,8 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         landmark->_featid = feat.featid;
         landmark->_anchor_cam_id = feat.anchor_cam_id;
         landmark->_anchor_clone_timestamp = feat.anchor_clone_timestamp;
-        landmark->set_from_global_xyz(state, feat.p_FinG);
+        landmark->set_from_global_xyz(state, feat.p_FinG, false);
+        landmark->set_from_global_xyz(state, feat.p_FinG_fej, true);
 
         // Measurement noise matrix
         double sigma_pix_sq = ((int)feat.featid < state->options().max_aruco_features)? _options_aruco.sigma_pix_sq : _options_slam.sigma_pix_sq;
@@ -133,6 +144,13 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         }
 
     }
+    rT3 =  boost::posix_time::microsec_clock::local_time();
+
+    // Debug print timing information
+    ROS_INFO("[SLAM-DELAY]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
+    ROS_INFO("[SLAM-DELAY]: %.4f seconds to triangulate",(rT2-rT1).total_microseconds() * 1e-6);
+    ROS_INFO("[SLAM-DELAY]: %.4f seconds initialize (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+    ROS_INFO("[SLAM-DELAY]: %.4f seconds total",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 
@@ -143,6 +161,14 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
 
 void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
+
+    // Return if no features
+    if(feature_vec.empty())
+        return;
+
+    // Start timing
+    boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+    rT0 =  boost::posix_time::microsec_clock::local_time();
 
     // 0. Get all timestamps our clones are at (and thus valid measurement times)
     std::vector<double> clonetimes;
@@ -173,6 +199,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         }
 
     }
+    rT1 =  boost::posix_time::microsec_clock::local_time();
 
     // Calculate the max possible measurement size
     size_t max_meas_size = 0;
@@ -216,7 +243,8 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.timestamps = (*it2)->timestamps;
         feat.anchor_cam_id = landmark->_anchor_cam_id;
         feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
-        feat.p_FinG = landmark->get_global_xyz(state);
+        feat.p_FinG = landmark->get_global_xyz(state, false);
+        feat.p_FinG_fej = landmark->get_global_xyz(state, true);
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
@@ -285,6 +313,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         it2++;
 
     }
+    rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // We have appended all features to our Hx_big, res_big
     // Delete it so we do not reuse information
@@ -302,9 +331,24 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     Hx_big.conservativeResize(ct_meas,ct_jacob);
     R_big.conservativeResize(ct_meas,ct_meas);
 
+    // 5. Perform measurement compression
+    //UpdaterHelper::measurement_compress_inplace(Hx_big, res_big);
+    //if(Hx_big.rows() < 1)
+    //    return;
+    //R_big.conservativeResize(res_big.rows(),res_big.rows());
+    rT3 =  boost::posix_time::microsec_clock::local_time();
+
+
     // 6. With all good SLAM features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
-    std::cout << "updated with " << ct_meas << " slam measurements" << std::endl;
+    rT4 =  boost::posix_time::microsec_clock::local_time();
+
+    // Debug print timing information
+    ROS_INFO("[SLAM-UP]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
+    ROS_INFO("[SLAM-UP]: %.4f seconds creating linear system",(rT2-rT1).total_microseconds() * 1e-6);
+    ROS_INFO("[SLAM-UP]: %.4f seconds compress (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+    ROS_INFO("[SLAM-UP]: %.4f seconds to update (%d size)",(rT4-rT3).total_microseconds() * 1e-6, (int)Hx_big.rows());
+    ROS_INFO("[SLAM-UP]: %.4f seconds total",(rT4-rT1).total_microseconds() * 1e-6);
 
 }
 
@@ -349,7 +393,8 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     old_feat.featid = landmark->_featid;
     old_feat.anchor_cam_id = landmark->_anchor_cam_id;
     old_feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
-    old_feat.p_FinG = landmark->get_global_xyz(state);
+    old_feat.p_FinG = landmark->get_global_xyz(state, false);
+    old_feat.p_FinG_fej = landmark->get_global_xyz(state, true);
 
 
     // Get Jacobians of p_FinG wrt old representation
@@ -364,7 +409,8 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     new_feat.featid = landmark->_featid;
     new_feat.anchor_cam_id = new_cam_id;
     new_feat.anchor_clone_timestamp = new_anchor_timestamp;
-    new_feat.p_FinG = landmark->get_global_xyz(state);
+    new_feat.p_FinG = landmark->get_global_xyz(state, false);
+    new_feat.p_FinG_fej = landmark->get_global_xyz(state, true);
 
 
     // Get Jacobians of p_FinG wrt new representation
@@ -410,7 +456,8 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     landmark->_featid = new_feat.featid;
     landmark->_anchor_cam_id = new_feat.anchor_cam_id;
     landmark->_anchor_clone_timestamp = new_feat.anchor_clone_timestamp;
-    landmark->set_from_global_xyz(state, new_feat.p_FinG);
+    landmark->set_from_global_xyz(state, new_feat.p_FinG, false);
+    landmark->set_from_global_xyz(state, new_feat.p_FinG_fej, true);
 
 }
 

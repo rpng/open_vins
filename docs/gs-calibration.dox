@@ -97,9 +97,9 @@ We recommend having as much change in orientation as possible to ensure good con
 	- Limit motion blur by decreasing exposure time
 	- Publish at high-ish framerate (20-30hz)
 	- Publish your inertial reading at a reasonable rate (200-500hz)
-5. Record a ROS bag and ensure that the calibration board can be seen from different orientations, distances, and in each part of the image plane. You should move in *smooth* non-jerky motions with a trajectory that excites as many orientation and translational directions as possible at the same time. A 30-60 second dataset is normally enough to allow for calibration.
+5. Record a ROS bag and ensure that the calibration board can be seen from different orientations, distances, and mostly in the center of the image. You should move in *smooth* non-jerky motions with a trajectory that excites as many orientation and translational directions as possible at the same time. A 30-60 second dataset is normally enough to allow for calibration.
 6. Finally run the calibration
-	- Use the kalibr\_calibrate\_imu_\camera
+	- Use the kalibr\_calibrate\_imu\_camera
 	- Input your static calibration file which will have the camera topics in it
 	- You will need to make an [imu.yaml](https://drive.google.com/file/d/0B0T1sizOvRsUSk9ReDlid0VSY3M/edit?usp=sharing) file with your noise parameters.
 	- Depending on how many frames are in your dataset this can take on the upwards of half a day.

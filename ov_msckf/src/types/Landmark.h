@@ -41,16 +41,18 @@ namespace ov_msckf {
          * @brief Will return the position of the feature in the global frame of reference.
          * @param state State of filter
          * @return Position of feature in global frame
+         * @param getfej Set to true to get the landmark FEJ value
          */
-        Eigen::Matrix<double,3,1> get_global_xyz(State *state);
+        Eigen::Matrix<double,3,1> get_global_xyz(State *state, bool getfej);
 
 
         /**
          * @brief Will set the current value based on the representation.
          * @param state State of filter
          * @param p_FinG Position of the feature in the global frame
+         * @param isfej Set to true to set the landmark FEJ value
          */
-        void set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_FinG);
+        void set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_FinG, bool isfej);
 
 
     };

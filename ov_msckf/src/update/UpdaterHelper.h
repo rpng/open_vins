@@ -2,7 +2,9 @@
 #define OV_MSCKF_UPDATER_HELPER_H
 
 
+#include <ros/ros.h>
 #include <Eigen/Eigen>
+
 #include "feat/Feature.h"
 #include "state/State.h"
 #include "state/StateOptions.h"
@@ -55,6 +57,9 @@ namespace ov_msckf {
             /// Triangulated position of this feature, in the global frame
             Eigen::Vector3d p_FinG;
 
+            /// Triangulated position of this feature, in the global frame first estimate
+            Eigen::Vector3d p_FinG_fej;
+
         };
 
 
@@ -69,6 +74,18 @@ namespace ov_msckf {
          */
         static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::Matrix<double,3,3> &H_f,
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
+
+        /**
+         * @brief This will compute the Jacobian in respect to the intrisic calibration parameters and normalized coordinates
+         *
+         * @param state State of the filter system
+         * @param uv_norm Normalized image coordinates
+         * @param isfisheye If this feature is for a fisheye model
+         * @param cam_d Camera intrinsics values
+         * @param dz_dzn Derivative in respect to normalized coordinates
+         * @param dz_dzeta Derivative in respect to distortion paramters
+         */
+        static void get_feature_jacobian_intrinsics(State* state, Eigen::Vector2d uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta);
 
 
         /**

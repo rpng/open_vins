@@ -1,6 +1,4 @@
 #include "StateHelper.h"
-#include "State.h"
-#include <boost/math/distributions/chi_squared.hpp>
 
 
 using namespace ov_core;
@@ -371,7 +369,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     // Now collect results, and add it to the state variables
     new_variable->set_local_id((int) (state->n_vars() - new_variable->size()));
     state->insert_variable(new_variable);
-
+    //std::cout << new_variable->id() <<  " init dx = " << (H_Linv * res).transpose() << std::endl;
 
 }
 
