@@ -271,8 +271,9 @@ namespace ov_core {
      * @return 3x1 in the se(3) space [omegax, omegay, omegaz]
      */
     inline Eigen::Matrix<double, 3, 1> log_so3(const Eigen::Matrix<double, 3, 3> &R) {
-        // magnitude of the skew elements
-        double theta = std::acos(0.5 * (R.trace() - 1));
+        // magnitude of the skew elements (handle edge case where we sometimes have a>1...)
+        double a = 0.5*(R.trace()-1);
+        double theta = (a > 1)? 0 : acos(a);
         // Handle small angle values
         double D;
         if(theta < 1e-12) {
@@ -370,8 +371,9 @@ namespace ov_core {
         Eigen::Matrix3d R = mat.block(0,0,3,3);
         Eigen::Vector3d t = mat.block(0,3,3,1);
 
-        // Get theta
-        double theta = acos(0.5*(R.trace()-1));
+        // Get theta (handle edge case where we sometimes have a>1...)
+        double a = 0.5*(R.trace()-1);
+        double theta = (a > 1)? 0 : acos(a);
 
         // Handle small angle values
         double A, B, D, E;
@@ -398,6 +400,24 @@ namespace ov_core {
         vec.tail(3) = Vinv*t;
         return vec;
 
+    }
+
+
+    /**
+     * @brief Hat operator for R^6 -> Lie Algebra se(3)
+     *
+     * \f{align*}{
+     * \boldsymbol\Omega^{\wedge} = \begin{bmatrix} \lfloor \boldsymbol\omega \times\rfloor & \mathbf u \\ \mathbf 0 & 0 \end{bmatrix}
+     * \f}
+     *
+     * @param vec 6x1 in the se(3) space [omega, u]
+     * @return Lie algebra se(3) 4x4 matrix
+     */
+    inline Eigen::Matrix4d hat_se3(const Eigen::Matrix<double,6,1> &vec) {
+        Eigen::Matrix4d mat = Eigen::Matrix4d::Zero();
+        mat.block(0,0,3,3) = skew_x(vec.head(3));
+        mat.block(0,3,3,1) = vec.tail(3);
+        return mat;
     }
 
     /**

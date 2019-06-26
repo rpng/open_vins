@@ -2,6 +2,7 @@
 #define OV_CORE_BSPLINESE3_H
 
 
+#include <ros/ros.h>
 #include <Eigen/Eigen>
 
 #include "utils/quat_ops.h"
@@ -31,7 +32,55 @@ namespace ov_core {
      * The key idea is to convert a set of trajectory points into a continuous-time *uniform cubic cumulative* b-spline.
      * As compared to standard b-spline representations, the cumulative form ensures local continuity which is needed for on-manifold interpolation.
      * We leverage the cubic b-spline to ensure \f$C^2\f$-continuity to ensure that we can calculate accelerations at any point along the trajectory.
+     * The general equations are the following
      *
+     * \f{align*}{
+     *  {}^{w}_{s}\mathbf{T}(u(t))
+     *  &= {}^{w}_{i-1}\mathbf{T}~\mathbf{A}_0~\mathbf{A}_1~\mathbf{A}_2 \\
+     * \empty
+     *  {}^{w}_{s}\dot{\mathbf{T}}(u(t)) &=
+     *  {}^{w}_{i-1}\mathbf{T}
+     *  \Big(
+     *  \dot{\mathbf{A}}_0~\mathbf{A}_1~\mathbf{A}_2 +
+     *  \mathbf{A}_0~\dot{\mathbf{A}}_1~\mathbf{A}_2 +
+     *  \mathbf{A}_0~\mathbf{A}_1~\dot{\mathbf{A}}_2
+     *  \Big) \\
+     * \empty
+     *  {}^{w}_{s}\ddot{\mathbf{T}}(u(t)) &=
+     *  {}^{w}_{i-1}\mathbf{T}
+     *  \Big(
+     *  \ddot{\mathbf{A}}_0~\mathbf{A}_1~\mathbf{A}_2 +
+     *  \mathbf{A}_0~\ddot{\mathbf{A}}_1~\mathbf{A}_2 +
+     *  \mathbf{A}_0~\mathbf{A}_1~\ddot{\mathbf{A}}_2 \nonumber\\
+     *  &\hspace{4cm}
+     *  + 2\dot{\mathbf{A}}_0\dot{\mathbf{A}}_1\mathbf{A}_2 +
+     *  2\mathbf{A}_0\dot{\mathbf{A}}_1\dot{\mathbf{A}}_2 +
+     *  2\dot{\mathbf{A}}_0\mathbf{A}_1\dot{\mathbf{A}}_2
+     *  \Big)  \\[1em]
+     * \empty
+     *  {}^{i-1}_{i}\mathbf{\Omega} &= \mathrm{log}\big( {}^{w}_{i-1}\mathbf{T}^{-1}~{}^{w}_{i}\mathbf{T} \big) \\
+     *  \mathbf{A}_j &= \mathrm{exp}\Big({B}_j(u(t))~{}^{i-1+j}_{i+j}\mathbf{\Omega} \Big) \\
+     *  \dot{\mathbf{A}}_j &= \dot{B}_j(u(t)) ~{}^{i-1+j}_{i+j}\mathbf{\Omega}^\wedge ~\mathbf{A}_j \\
+     *  \ddot{\mathbf{A}}_j &=
+     *  \dot{B}_j(u(t)) ~{}^{i-1+j}_{i+j}\mathbf{\Omega}^\wedge ~\dot{\mathbf{A}}_j +
+     *  \ddot{B}_j(u(t)) ~{}^{i-1+j}_{i+j}\mathbf{\Omega}^\wedge ~\mathbf{A}_j  \\[1em]
+     * \empty
+     *  {B}_0(u(t)) &= \frac{1}{3!}~(5+3u-3u^2+u^3) \\
+     *  {B}_1(u(t)) &= \frac{1}{3!}~(1+3u+3u^2-2u^3) \\
+     *  {B}_2(u(t)) &= \frac{1}{3!}~(u^3) \\[1em]
+     * \empty
+     *  \dot{{B}}_0(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t}~(3-6u+3u^2) \\
+     *  \dot{{B}}_1(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t}~(3+6u-6u^2) \\
+     *  \dot{{B}}_2(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t}~(3u^2) \\[1em]
+     * \empty
+     *  \ddot{{B}}_0(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t^2}~(-6+6u) \\
+     *  \ddot{{B}}_1(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t^2}~(6-12u) \\
+     *  \ddot{{B}}_2(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t^2}~(6u)
+     * \f}
+     *
+     * where \f$u(t)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)\f$ is used for all values of *u*.
+     * Note that one needs to ensure that they use the SE(3) matrix expodential, logorithm, and hat operation for all above equations.
+     * The indexes correspond to the the two poses that are older and two poses that are newer then the current time we want to get (i.e. i-1 and i are less than s, while i+1 and i+2 are both greater than time s).
      */
     class BsplineSE3 {
 
@@ -47,7 +96,7 @@ namespace ov_core {
         /**
          * @brief Will feed in a series of poses that we will then convert into control points.
          *
-         * Our control points need to be uniformly spaced over the trajectory, thus given a vector we will
+         * Our control points need to be uniformly spaced over the trajectory, thus given a `or we will
          * uniformly sample based on the average spacing between the pose points specified.
          *
          * @param traj_points Trajectory poses that we will convert into control points (timestamp(s), q_GtoI, p_IinG)
@@ -60,8 +109,9 @@ namespace ov_core {
          * @param timestamp Desired time to get the pose at
          * @param R_GtoI SO(3) orientation of the pose in the global frame
          * @param p_IinG Position of the pose in the global
+         * @return False if we can't find it
          */
-        void get_pose(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vector3d &p_IinG);
+        bool get_pose(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vector3d &p_IinG);
 
 
         /**
@@ -69,8 +119,9 @@ namespace ov_core {
          * @param timestamp Desired time to get the pose at
          * @param w_IinG Angular velocity in the global frame
          * @param v_IinG Linear velocity in the global frame
+         * @return False if we can't find it
          */
-        void get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::Vector3d &v_IinG);
+        bool get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::Vector3d &v_IinG);
 
 
         /**
@@ -78,8 +129,9 @@ namespace ov_core {
          * @param timestamp Desired time to get the pose at
          * @param alpha_IinG Angular acceleration in the global frame
          * @param a_IinG Linear acceleration in the global frame
+         * @return False if we can't find it
          */
-        void get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG, Eigen::Vector3d &a_IinG);
+        bool get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG, Eigen::Vector3d &a_IinG);
 
 
 
@@ -88,10 +140,49 @@ namespace ov_core {
         /// Uniform sampling time for our control points
         double dt;
 
+        /// Start time of the system
+        double timestamp_start;
+
         /// Our control SE3 control poses (R_ItoG, p_IinG)
         std::map<double,Eigen::Matrix4d> control_points;
 
 
+        /**
+         * @brief Will find the two bounding poses for a given timestamp.
+         *
+         * This will loop through the passed map of poses and find two bounding poses.
+         * If there are no bounding poses then this will return false.
+         *
+         * @param timestamp Desired timestamp we want to get two bounding poses of
+         * @param poses Map of poses and timestamps
+         * @param t0 Timestamp of the first pose
+         * @param pose0 SE(3) pose of the first pose
+         * @param t1 Timestamp of the second pose
+         * @param pose1 SE(3) pose of the second pose
+         * @return False if we are unable to find bounding poses
+         */
+        bool find_bounding_poses(double timestamp, std::map<double,Eigen::Matrix4d> &poses,
+                                 double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1);
+
+
+        /**
+         * @brief Will find two older poses and two newer poses for the current timestamp
+         *
+         * @param timestamp Desired timestamp we want to get four bounding poses of
+         * @param poses Map of poses and timestamps
+         * @param t0 Timestamp of the first pose
+         * @param pose0 SE(3) pose of the first pose
+         * @param t1 Timestamp of the second pose
+         * @param pose1 SE(3) pose of the second pose
+         * @param t2 Timestamp of the third pose
+         * @param pose2 SE(3) pose of the third pose
+         * @param t3 Timestamp of the fourth pose
+         * @param pose3 SE(3) pose of the fourth pose
+         * @return False if we are unable to find bounding poses
+         */
+        bool find_bounding_control_points(double timestamp, std::map<double,Eigen::Matrix4d> &poses,
+                                          double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1,
+                                          double &t2, Eigen::Matrix4d &pose2, double &t3, Eigen::Matrix4d &pose3);
 
     };
 
