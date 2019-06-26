@@ -273,7 +273,7 @@ namespace ov_core {
     inline Eigen::Matrix<double, 3, 1> log_so3(const Eigen::Matrix<double, 3, 3> &R) {
         // magnitude of the skew elements (handle edge case where we sometimes have a>1...)
         double a = 0.5*(R.trace()-1);
-        double theta = (a > 1)? 0 : acos(a);
+        double theta = (a > 1)? acos(1) : ((a < -1)? acos(-1) : acos(a));
         // Handle small angle values
         double D;
         if(theta < 1e-12) {
@@ -373,7 +373,7 @@ namespace ov_core {
 
         // Get theta (handle edge case where we sometimes have a>1...)
         double a = 0.5*(R.trace()-1);
-        double theta = (a > 1)? 0 : acos(a);
+        double theta = (a > 1)? acos(1) : ((a < -1)? acos(-1) : acos(a));
 
         // Handle small angle values
         double A, B, D, E;

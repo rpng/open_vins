@@ -21,7 +21,7 @@ namespace ov_core {
      * This class implements the b-spline functionality that allows for interpolation over the \f$\mathbb{SE}(3)\f$ manifold.
      * This is based off of the derivations from [Continuous-Time Visual-Inertial Odometry for Event Cameras](https://ieeexplore.ieee.org/abstract/document/8432102/)
      * and [A Spline-Based Trajectory Representation for Sensor Fusion and Rolling Shutter Cameras](https://link.springer.com/article/10.1007/s11263-015-0811-3)
-     * with some additional derivations being avalible in [these notes](http://udel.edu/~pgeneva/downloads/notes/2018_notes_mueffler2017arxiv.pdf).
+     * with some additional derivations being available in [these notes](http://udel.edu/~pgeneva/downloads/notes/2018_notes_mueffler2017arxiv.pdf).
      * The use of b-splines for \f$\mathbb{SE}(3)\f$ interpolation has the following properties:
      *
      * 1. Local control, allowing the system to function online as well as in batch
@@ -78,9 +78,10 @@ namespace ov_core {
      *  \ddot{{B}}_2(u(t)) &= \frac{1}{3!}~\frac{1}{\Delta t^2}~(6u)
      * \f}
      *
-     * where \f$u(t)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)\f$ is used for all values of *u*.
+     * where \f$u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)\f$ is used for all values of *u*.
      * Note that one needs to ensure that they use the SE(3) matrix expodential, logorithm, and hat operation for all above equations.
      * The indexes correspond to the the two poses that are older and two poses that are newer then the current time we want to get (i.e. i-1 and i are less than s, while i+1 and i+2 are both greater than time s).
+     * Some additional derivations are available in [these notes](http://udel.edu/~pgeneva/downloads/notes/2018_notes_mueffler2017arxiv.pdf).
      */
     class BsplineSE3 {
 
