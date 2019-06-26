@@ -35,7 +35,7 @@ We define our INS state vector \f$\mathbf{x}_I\f$ at time \f$t\f$ as:
 \end{bmatrix}
 \f}
 
-where \f$^L_G\bar{q}\f$ is the unit quaternion representing the rotation global to IMU frame,
+where \f$^I_G\bar{q}\f$ is the unit quaternion representing the rotation global to IMU frame,
 \f$^G\mathbf{p}_I\f$ is the position of IMU in global frame,
 and \f$^G\mathbf{v}_I\f$ is the velocity of IMU in global frame.
 We will often write time as a subscript of \f$I\f$ describing the state of IMU at the time
@@ -270,19 +270,31 @@ The propagation of each bias is likewise the continuous system:
 
 @section error_prop Discrete-time Error-state Propagation
 
-@m_class{m-block m-danger}
-
-@par Section Requires Cleaning
-    Needs to be better formated and explained better why we do things (seems like just a bunch of equations listed).
-    Additionally need to define the \f$\mathbf J_r\f$ function.
-    Should also show the matrix form of the state transition and noise covariance.
-    Also show how we use these matrices (i.e. \f$P_{k|k-1} = \Phi_{k-1,k-2}P_{k|k-2}\Phi_{k-1,k-2}^\top + G_kQ_dG_k^\top \f$).
-    Should explain how we need to convert from continuous-time noise values to discrete also here.
-
-
-
 We are also interested in the error state propagation which is how we propagate the covariance estimate.
+In order to do so, we need to find \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices which are used for propagtion:
+\f{align*}{
+\mathbf{P}_{k+1|k} = \boldsymbol{\Phi}(t_{k+1},t_k)\mathbf{P}_{k|k}\boldsymbol{\Phi}(t_{k+1},t_k)^\top + \mathbf{G}_k\mathbf{Q}_d\mathbf{G}_k^\top
+\f}
+where \f$\mathbf{P}_{k|k}\f$ and \f$\mathbf{Q}_d\f$ are the covariance matrices of the state before propagation and
+discrete-time sensor noises.
+When the covariance matrix of the continuous-time measurement noises is given as \f$\mathbf{Q}_c\f$, \f$\mathbf{Q}_d\f$ can be computed as
+(see [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)):
+
+\f{align*}{
+\mathbf{Q}_d = \mathbf{Q}_c \frac{1}{\Delta t}
+\f}
+
+
+
+
+
 The methodology is to "perturb" each variable in the system and see how the old error "perturbation" relates to the new error state.
+\f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ are can be found when we perturb each variable as:
+\f{align*}{
+\tilde{\mathbf{x}}_I(t_{k+1}) = \boldsymbol{\Phi}(t_{k+1},t_k) \tilde{\mathbf{x}}_I(t_{k}) + \mathbf{G}_{k} \mathbf{n}
+\f}
+where \f$\mathbf{n} = \begin{bmatrix} \mathbf{n_g}\\ \mathbf{n_a} \end{bmatrix}\f$.
+
 For the orientation error propagation, we start with the rotation matrix perturbation using
 \f$  ^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$:
 
@@ -300,7 +312,9 @@ For the orientation error propagation, we start with the rotation matrix perturb
 \text{}^{I_{k}}_G \hat{\mathbf{R}}
 \f}
 
-where \f$\mathbf J_r\f$ is the right Jacobian of \f$\mathbf{SO}(3)\f$
+where \f$\mathbf {J_r}(\boldsymbol{\theta})
+= \frac{\partial \exp(\lfloor\boldsymbol{\theta}_\times\rfloor)}{\partial \boldsymbol{\theta}}
+\f$ is the right Jacobian of \f$\mathbf{SO}(3)\f$
 and \f$\tilde{\boldsymbol{\omega}} = \boldsymbol{\omega} - \hat{\boldsymbol{\omega}}
 = -\tilde{\mathbf{b}}_{\mathbf{g}} - \mathbf{n_g}\f$.
 By neglecting  the second order terms from above, we obtain the following orientation error propagation:
@@ -396,11 +410,90 @@ The propagation of two biases are the same:
     \tilde{\mathbf{b}}_{\mathbf{a},k}
 \f}
 
+By collecting all the perturbation results, we can build \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices as:
+
+\f{align*}{
+\boldsymbol{\Phi}(t_{k+1},t_k) &=
+\begin{bmatrix}
+\text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}
+&&
+\mathbf{0}_3
+&&
+\mathbf{0}_3
+&&
+- \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\mathbf J_r(\text{}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}})
+\Delta t
+&&
+\mathbf{0}_3
+
+\\
+
+- \frac{1}{2}\text{}^{I_k}_{G}\hat{\mathbf{R}}^\top
+\lfloor \hat{\mathbf{a}}_{k} \Delta t^2 \times\rfloor
+&&
+\mathbf{I}_3
+&&
+\Delta t
+&&
+\mathbf{0}_3
+&&
+- \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t^2
+
+\\
+- \text{}^{I_k}_G\hat{\mathbf{R}}^\top
+    \lfloor \hat{\mathbf{a}}_{k} \Delta t \times\rfloor
+    &&
+\mathbf{0}_3
+&&
+\mathbf{I}_3
+&&
+\mathbf{0}_3
+&&
+- \text{}^{I_k}_G\hat{\mathbf{R}}^\top \Delta t
+
+\\
+
+\mathbf{0}_3 && \mathbf{0}_3 && \mathbf{0}_3 && \mathbf{I}_3 && \mathbf{0}_3\\
+
+\mathbf{0}_3 && \mathbf{0}_3 && \mathbf{0}_3 && \mathbf{0}_3 && \mathbf{I}_3
+
+\end{bmatrix}\\
 
 
 
+\mathbf{G}_{k} &=
+
+\begin{bmatrix}
+- \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\mathbf J_r(\text{}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}})
+\Delta t
+&&
+\mathbf{0}_3
+
+\\
+
+\mathbf{0}_3
+&&
+- \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t^2
+
+\\
+
+\mathbf{0}_3
+&&
+- \text{}^{I_k}_G\hat{\mathbf{R}}^\top \Delta t
+
+\\
+
+\mathbf{0}_3 && \mathbf{0}_3\\
+
+\mathbf{0}_3 && \mathbf{0}_3
+
+\end{bmatrix}
 
 
 
+\f}
+
+Now, with computed \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices, we can propagate the covariance of the state
+from \f$t_k\f$ to \f$t_{k+1}\f$.
 
 */
