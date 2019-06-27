@@ -135,6 +135,11 @@ namespace ov_core {
         bool get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG, Eigen::Vector3d &a_IinG);
 
 
+        /// Returns the simulation start time that we should start simulating from
+        double get_start_time() {
+            return timestamp_start;
+        }
+
 
     protected:
 

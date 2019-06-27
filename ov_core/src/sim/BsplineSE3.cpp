@@ -10,13 +10,14 @@ using namespace ov_core;
 void BsplineSE3::feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::aligned_allocator<Eigen::Matrix<double,8,1>>> traj_points) {
 
 
-    // Find the average frequency
+    // Find the average frequency to use as our uniform timesteps
     double sumdt = 0;
     for(size_t i=0; i<traj_points.size()-1; i++) {
         sumdt += traj_points.at(i+1)(0)-traj_points.at(i)(0);
     }
     dt = sumdt/(traj_points.size()-1);
-    ROS_INFO("[SIM]: control point dt = %.3f",dt);
+    dt = (dt < 0.05)? 0.05 : dt;
+    ROS_INFO("[B-SPLINE]: control point dt = %.3f (original dt of %.3f)",dt,sumdt/(traj_points.size()-1));
 
     // convert all our trajectory points into SE(3) matrices
     // we are given [timestamp, p_IinG, q_GtoI]
@@ -39,8 +40,8 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::al
             timestamp_max = pose.first;
         }
     }
-    ROS_INFO("[SIM]: trajectory start time = %.6f",timestamp_min);
-    ROS_INFO("[SIM]: trajectory end time = %.6f",timestamp_max);
+    ROS_INFO("[B-SPLINE]: trajectory start time = %.6f",timestamp_min);
+    ROS_INFO("[B-SPLINE]: trajectory end time = %.6f",timestamp_max);
 
 
     // then create spline control points
@@ -66,9 +67,11 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::al
         //std::cout << pose_interp(0,3) << "," << pose_interp(1,3) << "," << pose_interp(2,3) << std::endl;
 
     }
+    ROS_INFO("[B-SPLINE]: using %d control points in total",(int)control_points.size());
 
     // The start time of the system is three dt in since we need at least two older control points
     timestamp_start = timestamp_min + 3*dt;
+    ROS_INFO("[B-SPLINE]: start trajectory time of %.6f",timestamp_start);
 
 }
 
