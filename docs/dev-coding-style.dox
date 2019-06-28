@@ -1,0 +1,47 @@
+/**
+
+
+@page dev-coding-style Coding Style
+
+
+
+@section coding-style-overview Overview
+
+Please note that if you have a good excuse to either break the rules or modify
+them, feel free to do it (and update this guide accordingly, if appropriate).
+Nothing is worse than rule that hurts productivity instead of improving it.
+In general, the main aim of this style is:
+
+- Vertical and horizontal compression, fitting more code on a screen while keeping the code readable.
+- Do not need to enforce line wrapping if clarity is impacted (i.e. Jacobians)
+- Consistent indentation and formatting rules to ensure readability (4 space tabbing)
+
+
+The codebase is coded in [snake_case](https://en.wikipedia.org/wiki/Snake_case) with accessor and getter function for most classes (there are a few exceptions).
+We leverage the [Doxygen](http://www.doxygen.nl/) documentation system with a post-processing script from [m.css](https://mcss.mosra.cz/documentation/doxygen/).
+Please see @ref dev-developers for details on how our documentation is generated.
+All functions should be commented both internally and externally with a focus on being as clear to a developer or user that is reading the code or documentation website.
+
+
+
+
+@section coding-style-naming Naming Conventions
+
+We have particular naming style for our orientations and positions that should be consistent throughout the project.
+In general rotation matrices are the only exception of a variable that starts with a capital letter.
+Both position and orientation variables should contain the frame of references.
+
+
+@code{.cpp}
+Eigen::Matrix<double,3,3> R_ItoC; //=> SO(3) rotation from IMU to camera frame
+Eigen::Matrix<double,4,1> q_ItoC; //=> JPL quaternion rot from IMU to the camera
+Eigen::Vector3d p_IinC; //=> 3d position of the IMU frame in the camera frame
+Eigen::Vector3d p_FinG; //=> position of feature F in the global frame G
+@endcode
+
+
+
+
+
+
+*/

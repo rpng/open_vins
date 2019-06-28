@@ -33,7 +33,7 @@ namespace ov_core {
      * The feature tracks store both the raw (distorted) and undistorted/normalized values.
      * Right now we just support two camera models, see: undistort_point_brown() and undistort_point_fisheye().
      *
-     * This base class also handles most of the heavy lifting with the visualalization, but the sub-classes can override
+     * This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override
      * this and do their own logic if they want (i.e. the auroctag tracker has its own logic for visualization).
      */
     class TrackBase {
@@ -42,85 +42,106 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackBase(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                  std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        TrackBase(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                   std::unordered_map<size_t, bool> camera_fisheye) :
-                database(new FeatureDatabase()), num_features(200) {
-            // Save the camera parameters
-            this->camera_k = camera_k;
-            this->camera_d = camera_d;
-            this->camera_fisheye = camera_fisheye;
-            // Convert values to the OpenCV format
-            for (auto const &camKp : camera_k) {
-                cv::Matx33d tempK;
-                tempK(0, 0) = camKp.second(0, 0);
-                tempK(0, 1) = camKp.second(0, 1);
-                tempK(0, 2) = camKp.second(0, 2);
-                tempK(1, 0) = camKp.second(1, 0);
-                tempK(1, 1) = camKp.second(1, 1);
-                tempK(1, 2) = camKp.second(1, 2);
-                tempK(2, 0) = camKp.second(2, 0);
-                tempK(2, 1) = camKp.second(2, 1);
-                tempK(2, 2) = camKp.second(2, 2);
-                camera_k_OPENCV.insert({camKp.first, tempK});
-            }
-            for (auto const &camDp : camera_d) {
-                cv::Vec4d tempD;
-                tempD(0) = camDp.second(0, 0);
-                tempD(1) = camDp.second(1, 0);
-                tempD(2) = camDp.second(2, 0);
-                tempD(3) = camDp.second(3, 0);
-                camera_d_OPENCV.insert({camDp.first, tempD});
-            }
+                database(new FeatureDatabase()), num_features(200), currid(0) {
+            // Set calibration params
+            set_calibration(camera_calib, camera_fisheye, false);
         }
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
          */
-        TrackBase(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                  std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        TrackBase(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                   std::unordered_map<size_t, bool> camera_fisheye,
                   int numfeats, int numaruco) :
                 database(new FeatureDatabase()), num_features(numfeats) {
             // Our current feature ID should be larger then the number of aruco tags we have
             currid = (size_t) numaruco + 1;
-            // Save the camera parameters
-            this->camera_k = camera_k;
-            this->camera_d = camera_d;
-            this->camera_fisheye = camera_fisheye;
-            // Convert values to the OpenCV format
-            for (auto const &camKp : camera_k) {
-                cv::Matx33d tempK;
-                tempK(0, 0) = camKp.second(0, 0);
-                tempK(0, 1) = camKp.second(0, 1);
-                tempK(0, 2) = camKp.second(0, 2);
-                tempK(1, 0) = camKp.second(1, 0);
-                tempK(1, 1) = camKp.second(1, 1);
-                tempK(1, 2) = camKp.second(1, 2);
-                tempK(2, 0) = camKp.second(2, 0);
-                tempK(2, 1) = camKp.second(2, 1);
-                tempK(2, 2) = camKp.second(2, 2);
-                camera_k_OPENCV.insert({camKp.first, tempK});
-            }
-            for (auto const &camDp : camera_d) {
-                cv::Vec4d tempD;
-                tempD(0) = camDp.second(0, 0);
-                tempD(1) = camDp.second(1, 0);
-                tempD(2) = camDp.second(2, 0);
-                tempD(3) = camDp.second(3, 0);
-                camera_d_OPENCV.insert({camDp.first, tempD});
-            }
+            // Set calibration params
+            set_calibration(camera_calib, camera_fisheye, false);
         }
 
+
+        /**
+         * @brief Given a the camera intrinsic values, this will set what we should normalize points with.
+         * This will also update the feature database with corrected normalized values.
+         * Normally this would only be needed if we are optimizing our camera parameters, and thus should re-normalize.
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
+         * @param camera_fisheye Map of camera_id => bool if we should do radtan or fisheye distortion model
+         * @param correct_active If we should re-undistort active features in our database
+         */
+        void set_calibration(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
+                             std::unordered_map<size_t, bool> camera_fisheye, bool correct_active) {
+
+            // Clear old maps
+            camera_k_OPENCV.clear();
+            camera_d_OPENCV.clear();
+
+            // Overwrite our fisheye calibration
+            this->camera_fisheye = camera_fisheye;
+
+            // Convert values to the OpenCV format
+            for (auto const &cam : camera_calib) {
+
+                // Camera matrix
+                cv::Matx33d tempK;
+                tempK(0, 0) = cam.second(0);
+                tempK(0, 1) = 0;
+                tempK(0, 2) = cam.second(2);
+                tempK(1, 0) = 0;
+                tempK(1, 1) = cam.second(1);
+                tempK(1, 2) = cam.second(3);
+                tempK(2, 0) = 0;
+                tempK(2, 1) = 0;
+                tempK(2, 2) = 1;
+                camera_k_OPENCV.insert({cam.first, tempK});
+
+                // Distortion parameters
+                cv::Vec4d tempD;
+                tempD(0) = cam.second(4);
+                tempD(1) = cam.second(5);
+                tempD(2) = cam.second(6);
+                tempD(3) = cam.second(7);
+                camera_d_OPENCV.insert({cam.first, tempD});
+
+            }
+
+            // If we are calibrating camera intrinsics our normalize coordinates will be stale
+            // This is because we appended them to the database with the current best guess *at that timestep*
+            // Thus here since we have a change in calibration, re-normalize all the features we have
+            if(correct_active) {
+
+                // Get all features in this database
+                std::unordered_map<size_t, Feature *> features_idlookup = database->get_internal_data();
+
+                // Loop through and correct each one
+                for(const auto& pair_feat : features_idlookup) {
+                    // Get our feature
+                    Feature *feat = pair_feat.second;
+                    // Loop through each camera for this feature
+                    for (auto const& meas_pair : feat->timestamps) {
+                        size_t camid = meas_pair.first;
+                        for(size_t m=0; m<feat->uvs.at(camid).size(); m++) {
+                            cv::Point2f pt(feat->uvs.at(camid).at(m)(0), feat->uvs.at(camid).at(m)(1));
+                            cv::Point2f pt_n = undistort_point(pt,camid);
+                            feat->uvs_norm.at(camid).at(m)(0) = pt_n.x;
+                            feat->uvs_norm.at(camid).at(m)(1) = pt_n.y;
+                        }
+                    }
+                }
+
+            }
+
+
+        }
 
         /**
          * @brief Process a new monocular image
@@ -138,8 +159,7 @@ namespace ov_core {
          * @param cam_id_left first image camera id
          * @param cam_id_right second image camera id
          */
-        virtual void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left,
-                                 size_t cam_id_right) = 0;
+        virtual void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) = 0;
 
         /**
          * @brief Shows features extracted in the last image
@@ -233,33 +253,32 @@ namespace ov_core {
             return pt_out;
         }
 
-        // Database with all our current features
+        /// Database with all our current features
         FeatureDatabase *database;
 
-        // Our camera information (used to undistort our added UV coordinates)
-        // NOTE: we do NOT undistort and rectify the image as this takes a lot of time
-        std::unordered_map<size_t, Eigen::Matrix3d> camera_k;
-        std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d;
-
-        // If we are a fisheye model or not
+        /// If we are a fisheye model or not
         std::unordered_map<size_t, bool> camera_fisheye;
 
-        // Camera intrinsics in OpenCV format
+        /// Camera intrinsics in OpenCV format
         std::unordered_map<size_t, cv::Matx33d> camera_k_OPENCV;
+
+        /// Camera distortion in OpenCV format
         std::unordered_map<size_t, cv::Vec4d> camera_d_OPENCV;
 
-        // number of features we should try to track frame to frame
+        /// Number of features we should try to track frame to frame
         int num_features;
 
-        // Last set of images
-        std::unordered_map<size_t, cv::Mat> img_last;
+        /// Last set of images (use map so all trackers render in the same order)
+        std::map<size_t, cv::Mat> img_last;
 
-        // Last set of tracked points
+        /// Last set of tracked points
         std::unordered_map<size_t, std::vector<cv::KeyPoint>> pts_last;
 
-        // Set of IDs of each current feature in the database
-        size_t currid = 0;
+        /// Set of IDs of each current feature in the database
         std::unordered_map<size_t, std::vector<size_t>> ids_last;
+
+        /// Master ID for this tracker
+        size_t currid = 0;
 
 
     };

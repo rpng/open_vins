@@ -27,19 +27,16 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackKLT(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                 std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        TrackKLT(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                  std::unordered_map<size_t, bool> camera_fisheye) :
-                TrackBase(camera_k, camera_d, camera_fisheye), threshold(10), grid_x(8), grid_y(5), min_px_dist(30) {}
+                TrackBase(camera_calib, camera_fisheye), threshold(10), grid_x(8), grid_y(5), min_px_dist(30) {}
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
@@ -48,11 +45,10 @@ namespace ov_core {
          * @param gridy size of grid in the y-direction / v-direction
          * @param minpxdist features need to be at least this number pixels away from each other
          */
-        explicit TrackKLT(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                          std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        explicit TrackKLT(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                           std::unordered_map<size_t, bool> camera_fisheye,
                           int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, int minpxdist) :
-                TrackBase(camera_k, camera_d, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
+                TrackBase(camera_calib, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
                 grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
 
 
@@ -112,6 +108,8 @@ namespace ov_core {
          * @param img1 image we want to track too
          * @param pts0 starting points
          * @param pts1 points we have tracked
+         * @param id0 id of the first camera
+         * @param id1 id of the second camera
          * @param mask_out what points had valid tracks
          *
          * This will track features from the first image into the second image.
@@ -119,7 +117,7 @@ namespace ov_core {
          * If the second vector is non-empty, it will be used as an initial guess of where the keypoints are in the second image.
          */
         void perform_matching(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
-                              std::vector<cv::KeyPoint> &pts1, std::vector<uchar> &mask_out);
+                              std::vector<cv::KeyPoint> &pts1, size_t id0, size_t id1, std::vector<uchar> &mask_out);
 
         // Timing variables
         boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;

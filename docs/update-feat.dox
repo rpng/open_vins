@@ -1,91 +1,125 @@
 /**
 
 
-@page update-feat Feature Bearing Update
+@page update-feat Camera Measurement Update
 @tableofcontents
 
-@section model General Measurement Equation
 
 
-Consider a 3D feature that has been tracked over a window of poses in a camera.
-At each timestep we have a uv measurement of this feature on the image plane.
-We can define the following measurement:
+@section model Perspective Projection (Bearing) Measurement Model
 
-\f{align*}{
-    \mathbf{z}_m &= \mathbf{z}_k + \mathbf{n}_k
-\f}
 
-where \f$\mathbf{z}_m\f$ is a single uv measurement on the image plane from a given camera that has some pixel noise  \f$\mathbf{n}_k\f$.
-We now can write how this is a function of the state as follows:
-
+Consider a 3D feature is detected from the camera image at time \f$k\f$, whose \f$uv\f$ measurement (i.e., the corresponding pixel coordinates) on the image plane is given by:
 
 \f{align*}{
-    \mathbf{z}_m
-    &=w(\mathbf{z}'_k, ~\boldsymbol\zeta) + \mathbf{n}_k \\
-    &=w(\pi({}^{C_k}\mathbf{p}_f), ~\boldsymbol\zeta) + \mathbf{n}_k \\
-    &=w(\pi(r({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})), ~\boldsymbol\zeta) + \mathbf{n}_k \\
-    &=w(\pi(r(f(\boldsymbol\lambda,\cdots),~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})), ~\boldsymbol\zeta) + \mathbf{n}_k
+    \mathbf{z}_{m,k}
+    &= \mathbf h(\mathbf x_k) + \mathbf n_k \\
+    &= \mathbf h_d(\mathbf{z}_{n,k}, ~\boldsymbol\zeta) + \mathbf{n}_k \\
+    &= \mathbf h_d(\mathbf h_p({}^{C_k}\mathbf{p}_f), ~\boldsymbol\zeta) + \mathbf{n}_k \\
+    &= \mathbf h_d(\mathbf h_p(\mathbf h_t({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})), ~\boldsymbol\zeta) + \mathbf{n}_k \\
+    &= \mathbf h_d(\mathbf h_p(\mathbf h_t(\mathbf h_r(\boldsymbol\lambda,\cdots),~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})), ~\boldsymbol\zeta) + \mathbf{n}_k
 \f}
 
+where \f$\mathbf n_k\f$ is the measurement noise and typically assumed to be zero-mean white Gaussian;
+\f$\mathbf z_{n,k}\f$ is the normalized undistorted uv measurement;
+\f$\boldsymbol\zeta\f$  is the camera intrinsic parameters such as focal length and distortion parameters;
+\f${}^{C_k}\mathbf{p}_f\f$ is the feature position in the current camera frame \f$\{C_k\}\f$;
+\f${}^{G}\mathbf{p}_f\f$ is the feature position in the global frame \f$\{G\}\f$;
+\f$\{ {}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k} \}\f$ denotes the current camera pose (position and orientation) in the global frame (or camera extrinsics);
+and \f$\boldsymbol\lambda\f$ is the feature's parameters of different representations (other than position) such as simply a xyz position or an inverse depth with bearing.
 
-Each of these functions correspond to different operations that convert our state representation into the final raw uv measurement on the image plane.
-Since we eventually want to perform intrinsic calibration along with extrinsic with different representations, the above function is very general.
-The high level description of each function is as follows:
 
+In the above expression, we decompose the measurement function into multiple concatenated functions corresponding to different operations,
+which map the states into the raw uv measurement on the image plane.
+It should be noted that 
+as we will perform intrinsic calibration along with extrinsic with different feature representations, the above camera measurement model is general.
+The high-level description of each function is given in the next section.
+
+
+
+
+@subsection model-table Measurement Function Overview
 
 | Function | Description |
 |---|---|
-| \f$\mathbf{z}_k = w(\mathbf{z}'_k, ~\boldsymbol\zeta)\f$ | The undistort function that takes normalized coordinates and maps it into raw distorted uv coordinates |
-|\f$\mathbf{z}'_k=\pi({}^{C_k}\mathbf{p}_f)\f$| The projection function that takes a 3D point in the image and converts it into the normalized uv coordinates |
-|\f${}^{C_k}\mathbf{p}_f=r({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})\f$ | Maps a feature in the global frame into the current camera frame |
-| \f${}^{G}\mathbf{p}_f=f(\boldsymbol\lambda,\cdots)\f$ | Converts from a feature representation to a 3D feature in the global frame |
+| \f$\mathbf{z}_k = \mathbf h_d (\mathbf{z}_{n,k}, ~\boldsymbol\zeta)\f$ | The distortion function that takes normalized coordinates and maps it into  distorted uv coordinates |
+|\f$\mathbf{z}_{n,k}= \mathbf h_p({}^{C_k}\mathbf{p}_f)\f$| The projection function that takes a 3D point in the image and converts it into the normalized uv coordinates |
+|\f${}^{C_k}\mathbf{p}_f=\mathbf h_t({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k})\f$ | Transforming a feature's position in the global frame into the current camera frame |
+| \f${}^{G}\mathbf{p}_f= \mathbf h_r(\boldsymbol\lambda,\cdots)\f$ | Converting from a feature representation to a 3D feature in the global frame |
+
+
+
+@subsection model-deriv Jacobian Computation
+
+Given the above nested functions, we can leverage the chainrule to find the total state Jacobian.
+Since our feature representation function \f$\mathbf h_r(\cdots)\f$ might also depend on the state, i.e. an anchoring pose, we need to carefully consider its additional derivatives.
+Consider the following example of our measurement in respect to a state \f$ \mathbf{x} \f$ Jacobian:
+
+\f{align*}{
+\frac{\partial \mathbf{z}_k}{\partial \mathbf{x}}
+=
+\frac{\partial \mathbf h_d (\cdot) }{\partial \mathbf{z}_{n,k}}
+\frac{\partial \mathbf h_p (\cdot) }{\partial {}^{C_k}\mathbf{p}_f}
+\frac{\partial \mathbf h_t (\cdot) }{\partial \mathbf{x}}
++
+\frac{\partial \mathbf h_d (\cdot) }{\partial \mathbf{z}_{n,k}}
+\frac{\partial \mathbf h_p (\cdot) }{\partial {}^{C_k}\mathbf{p}_f}
+\frac{\partial \mathbf h_t (\cdot) }{\partial {}^{G}\mathbf{p}_f}
+\frac{\partial \mathbf h_r (\cdot) }{\partial \mathbf{x}}
+\f}
+
+In the global feature representations, see @ref feat-rep section, the second term will be zero while for the anchored representations it will need to be computed.
 
 
 
 
 @section distortion Distortion Function
 
-@subsection distortion-radtan Radial Distortion
 
-To calibrate our intrinsics we need to know how to map our normalized coordinates into the raw pixel coordinates on the image plane.
-We need to first undistort our normalized coordinates and then project it onto the unit image plane using our focal length and camera center.
-Looking at the [OpenCV model](https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#details) for radial distortion we have the following equation:
+@subsection distortion-radtan Radial model
+
+To calibrate camera intrinsics, we need to know how to map our normalized coordinates into the raw pixel coordinates on the image plane.
+We first employ the radial distortion as in [OpenCV model](https://docs.opencv.org/3.4/da/d54/group__imgproc__transform.html#details):
+
 \f{align*}{
-    \mathbf{z}_k &= w(\mathbf{z}'_k, ~\boldsymbol\zeta) \\[1em]
+    \begin{bmatrix} u \\ v \end{bmatrix}:= \mathbf{z}_k &= \mathbf h_d(\mathbf{z}_{n,k}, ~\boldsymbol\zeta) 
+    = \begin{bmatrix}  f_x * x + c_x \\
+    f_y * y + c_y \end{bmatrix}\\[1em]
 \empty
-    x' &= x (1 + k_1 r^2 + k_2 r^4) + 2 p_1 x y + p_2(r^2 + 2 x^2) \\\
-    y' &= y (1 + k_1 r^2 + k_2 r^4) + p_1 (r^2 + 2 y^2) + 2 p_2 x y \\[1em]
-\empty    
-    \text{where} &\quad r^2 = x^2 + y^2 \\
-    &\quad \begin{bmatrix} x \\ y \end{bmatrix} = \mathbf{z}'_k \\[1em]
-    u &= f_x*x' + c_x \\
-    v &= f_y*y' + c_y
+{\rm where}~~
+    x &= x_n (1 + k_1 r^2 + k_2 r^4) + 2 p_1 x_n y_n + p_2(r^2 + 2 x_n^2) \\\
+    y &= y_n (1 + k_1 r^2 + k_2 r^4) + p_1 (r^2 + 2 y_n^2) + 2 p_2 x_n y_n \\[1em]
+   r^2 &= x_n^2 + y_n^2    
 \f}
 
 
-where x and y are the normalized coordinates of the 3D feature and u and v are the distorted image coordinates on the image plane.
-We consider the case where we are estimating at maximum the following distortion and camera intrinsics parameters (note that we do not estimate the higher order terms since most offline calibration such as [Kalibr](https://github.com/ethz-asl/kalibr) only report the first four):
+where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$  are the normalized coordinates of the 3D feature and u and v are the distorted image coordinates on the image plane.
+The following distortion and camera intrinsic (focal length and image center) parameters are involved in the above distortion model, 
+which can be estimated online:
+
 \f{align*}{
-\boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & p_1 & p_2 \end{bmatrix}
+\boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & p_1 & p_2 \end{bmatrix}^\top
 \f}
 
+Note that we do not estimate the higher order (i.e., higher than fourth order) terms as in most offline calibration methods such as [Kalibr](https://github.com/ethz-asl/kalibr).
+To estimate these intrinsic parameters (including the distortation parameters), the following Jacobian for these parameters is needed:
 
-We have the following Jacobian for these elements:
 \f{align*}{
-\frac{\partial w(\cdot)}{\partial \boldsymbol\zeta} = 
+\frac{\partial \mathbf h_d(\cdot)}{\partial \boldsymbol\zeta} = 
 \begin{bmatrix}
-x' & 0  & 1 & 0 & f_x*(xr^2) & f_x*(xr^4) & f_x*(2xy) & f_x*(r^2+2x^2)  \\[5pt]
-0  & y' & 0 & 1 & f_y*(yr^2) & f_y*(yr^4) & f_y*(r^2+2y^2) & f_y*(2xy)
+x & 0  & 1 & 0 & f_x*(x_nr^2) & f_x*(x_nr^4) & f_x*(2x_ny_n) & f_x*(r^2+2x_n^2)  \\[5pt]
+0  & y & 0 & 1 & f_y*(y_nr^2) & f_y*(y_nr^4) & f_y*(r^2+2y_n^2) & f_y*(2x_ny_n)
 \end{bmatrix}
 \f}
 
 
-We have the Jacobian in respect to the normalized coordinates as follows:
+Similarly, the Jacobian with respect to the normalized coordinates can be obtained as follows:
+
 \f{align*}{
-\frac{\partial w(\cdot)}{\partial \mathbf{z}'_k} = 
+\frac{\partial \mathbf h_d (\cdot)}{\partial \mathbf{z}_{n,k}} = 
 \begin{bmatrix}
-f_x*((1+k_1r^2+k_2r^4)+(2k_1x^2+4k_2x^2(x^2+y^2))+2p_1y+(2p_2x+4p_2x))  &  f_x*(2k_1xy+4k_2xy(x^2+y^2)+2p_1x+2p_2y)    \\
-f_y*(2k_1xy+4k_2xy(x^2+y^2)+2p_1x+2p_2y)  &  f_y*((1+k_1r^2+k_2r^4)+(2k_1y^2+4k_2y^2(x^2+y^2))+(2p_1y+4p_1y)+2p_2x)
+f_x*((1+k_1r^2+k_2r^4)+(2k_1x_n^2+4k_2x_n^2(x_n^2+y_n^2))+2p_1y_n+(2p_2x_n+4p_2x_n))  &  f_x*(2k_1x_ny_n+4k_2x_ny_n(x_n^2+y_n^2)+2p_1x_n+2p_2y_n)    \\
+f_y*(2k_1x_ny_n+4k_2x_ny_n(x_n^2+y_n^2)+2p_1x_n+2p_2y_n)  &  f_y*((1+k_1r^2+k_2r^4)+(2k_1y_n^2+4k_2y_n^2(x_n^2+y_n^2))+(2p_1y_n+4p_1y_n)+2p_2x_n)
 \end{bmatrix}
 \f}
 
@@ -94,61 +128,62 @@ f_y*(2k_1xy+4k_2xy(x^2+y^2)+2p_1x+2p_2y)  &  f_y*((1+k_1r^2+k_2r^4)+(2k_1y^2+4k_
 
 
 
-@subsection distortion-equi Fisheye Distortion
+@subsection distortion-equi Fisheye model
 
 
-The second model is that of the [OpenCV fisheye](https://docs.opencv.org/3.4/db/d58/group__calib3d__fisheye.html#details) model which allows us to handel larger FOV lenses.
-Given the 3D point in normalized image coordinates, we can first distort it and then project it onto the unit image plane using our focal length and camera center.
-We have the following model:
+As fisheye or wide-angle lenses are widely used in practice, we here provide mathematical derivations of such distortion model as in [OpenCV fisheye](https://docs.opencv.org/3.4/db/d58/group__calib3d__fisheye.html#details).
+
 \f{align*}{
-    \mathbf{z}_k &= w(\mathbf{z}'_k, ~\boldsymbol\zeta) \\[1em]
+    \begin{bmatrix} u \\ v \end{bmatrix}:= \mathbf{z}_k &= \mathbf h_d(\mathbf{z}_{n,k}, ~\boldsymbol\zeta) 
+    = \begin{bmatrix}  f_x * x + c_x \\
+    f_y * y + c_y \end{bmatrix}\\[1em]
 \empty
+    {\rm where}~~ 
+    x &= \frac{x_n}{r} * \theta_d \\
+    y &= \frac{y_n}{r} * \theta_d \\
     \theta_d &= \theta (1 + k_1 \theta^2 + k_2 \theta^4 + k_3 \theta^6 + k_4 \theta^8) \\
-    x' &= \frac{x}{r} * \theta_d \\
-    y' &= \frac{y}{r} * \theta_d \\[1em]
-\empty
-    \text{where} &\quad r^2 = x^2 + y^2 \\
-    &\quad \theta = atan(r) \\
-    &\quad\begin{bmatrix} x \\ y \end{bmatrix} = \mathbf{z}'_k \\[1em]
-\empty
-    u &= f_x * x' + c_x \\
-    v &= f_y * y' + c_y
+    \quad r^2 &= x_n^2 + y_n^2 \\
+    \theta &= atan(r)     
 \f}
 
+where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$ are the normalized coordinates of the 3D feature 
+and u and v are the distorted image coordinates on the image plane.
+Clearly, the following distortion intrinsic parameters are used in the above model:
 
-where x and y are the normalized coordinates of the 3D feature and u and v are the distorted image coordinates on the image plane.
-We consider the case where we are estimating at maximum the following distortion and camera intrinsics parameters (note that we do not estimate the skew term since most offline calibration such as [Kalibr](https://github.com/ethz-asl/kalibr) only report the first four):
 \f{align*}{
-\boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & k_3 & k_4 \end{bmatrix}
+\boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & k_3 & k_4 \end{bmatrix}^\top
 \f}
 
+In analogy to the previous radial distortion case, the following Jacobian for these parameters is needed for intrinsic calibration:
 
-We have the following Jacobian for these elements:
 \f{align*}{
-\frac{\partial w(\cdot)}{\partial \boldsymbol\zeta} = 
+\frac{\partial \mathbf h_d (\cdot)}{\partial \boldsymbol\zeta} = 
 \begin{bmatrix}
-x' & 0  & 1 & 0 & f_x*(\frac{x}{r}\theta^3) & f_x*(\frac{x}{r}\theta^5) & f_x*(\frac{x}{r}\theta^7) & f_x*(\frac{x}{r}\theta^9)  \\[5pt]
-0  & y' & 0 & 1 & f_y*(\frac{y}{r}\theta^3) & f_y*(\frac{y}{r}\theta^5) & f_y*(\frac{y}{r}\theta^7) & f_y*(\frac{y}{r}\theta^9)
+x_n & 0  & 1 & 0 & f_x*(\frac{x_n}{r}\theta^3) & f_x*(\frac{x_n}{r}\theta^5) & f_x*(\frac{x_n}{r}\theta^7) & f_x*(\frac{x_n}{r}\theta^9)  \\[5pt]
+0  & y_n & 0 & 1 & f_y*(\frac{y_n}{r}\theta^3) & f_y*(\frac{y_n}{r}\theta^5) & f_y*(\frac{y_n}{r}\theta^7) & f_y*(\frac{y_n}{r}\theta^9)
 \end{bmatrix}
 \f}
 
+Similarly, with the chain rule of differentiation, 
+we can compute the following Jacobian with respect to the normalized coordinates:
 
-We have the compound Jacobian in respect to the normalized coordinates as follows:
 \f{align*}{
-    \frac{\partial w(\cdot)}{\partial \mathbf{z}'_k} &= 
-    \frac{\partial uv}{\partial xy'}\frac{\partial xy'}{\partial xy}+
-    \frac{\partial uv}{\partial xy'}\frac{\partial xy'}{\partial r}\frac{\partial r}{\partial xy}+
-    \frac{\partial uv}{\partial xy'}\frac{\partial xy'}{\partial \theta_d}\frac{\partial \theta_d}{\partial \theta}\frac{\partial \theta}{\partial r}\frac{\partial r}{\partial xy} \\[1em]
+    \frac{\partial \mathbf h_d(\cdot)}{\partial \mathbf{z}_{n,k}} 
+    &= 
+    \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial x_ny_n}+
+    \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial r}\frac{\partial r}{\partial x_ny_n}+
+    \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial \theta_d}\frac{\partial \theta_d}{\partial \theta}\frac{\partial \theta}{\partial r}\frac{\partial r}{\partial x_ny_n} \\[1em]
 \empty
-    \frac{\partial uv}{\partial xy'} &= \begin{bmatrix} f_x & 0 \\ 0 & f_y \end{bmatrix} \\
+{\rm where}~~~~
+    \frac{\partial uv}{\partial xy} &= \begin{bmatrix} f_x & 0 \\ 0 & f_y \end{bmatrix} \\
 \empty
-    \frac{\partial xy'}{\partial xy} &= \begin{bmatrix} \theta_d/r & 0 \\ 0 & \theta_d/r \end{bmatrix} \\
+    \frac{\partial xy}{\partial x_ny_n} &= \begin{bmatrix} \theta_d/r & 0 \\ 0 & \theta_d/r \end{bmatrix} \\
 \empty
-    \frac{\partial xy'}{\partial r} &= \begin{bmatrix} -\frac{x}{r^2}\theta_d \\ -\frac{y}{r^2}\theta_d \end{bmatrix} \\
+    \frac{\partial xy}{\partial r} &= \begin{bmatrix} -\frac{x_n}{r^2}\theta_d \\ -\frac{y_n}{r^2}\theta_d \end{bmatrix} \\
 \empty
-    \frac{\partial r}{\partial xy} &= \begin{bmatrix} \frac{x}{r} & \frac{y}{r} \end{bmatrix} \\
+    \frac{\partial r}{\partial x_ny_n} &= \begin{bmatrix} -\frac{x_n}{r} & -\frac{y_n}{r} \end{bmatrix} \\
 \empty
-    \frac{\partial xy'}{\partial \theta_d} &= \begin{bmatrix} \frac{x}{r} \\ \frac{y}{r} \end{bmatrix} \\
+    \frac{\partial xy}{\partial \theta_d} &= \begin{bmatrix} \frac{x_n}{r} \\ \frac{y_n}{r} \end{bmatrix} \\
 \empty
     \frac{\partial \theta_d}{\partial \theta} &= \begin{bmatrix} 1 + 3k_1 \theta^2 + 5k_2 \theta^4 + 7k_3 \theta^6 + 9k_4 \theta^8\end{bmatrix} \\
 \empty
@@ -160,121 +195,128 @@ We have the compound Jacobian in respect to the normalized coordinates as follow
 
 
 
-@section projection Projection Function
+@section projection Perspective Projection Function
 
+The standard pinhole camera model is used to project a 3D point  in the *camera* frame into the normalized image plane (with unit depth):
 
-This function takes a 3D point in the *camera* frame and converts it into normalized image coordinates.
-We can take the derivative in respect to the original 3D feature to get the following:
-
- 
 \f{align*}{
-    \mathbf{z}'_k &= \pi({}^{C_k}\mathbf{p}_f) \\[1em]
-\empty
-    \mathbf{z}'_k &=
+    \mathbf{z}_{n,k} &= \mathbf h_p  ({}^{C_k}\mathbf{p}_f) =
     \begin{bmatrix}
     {}^Cx/{}^Cz \\
     {}^Cy/{}^Cz
-    \end{bmatrix} \\[1em]
-\empty
-    \text{where} &\quad \begin{bmatrix} {}^Cx \\ {}^Cy \\ {}^Cz \end{bmatrix}  = {}^{C_k}\mathbf{p}_f
+    \end{bmatrix} \\
+    \text{where} \quad  {}^{C_k}\mathbf{p}_f &= \begin{bmatrix} {}^Cx \\ {}^Cy \\ {}^Cz \end{bmatrix} 
 \f}
 
-
+whose Jacobian matrix is computed as follows:
 
 \f{align*}{
-\frac{\partial \pi(\cdot)}{\partial {}^{C_k}\mathbf{p}_f} = 
+\frac{\partial \mathbf h_p (\cdot)}{\partial {}^{C_k}\mathbf{p}_f} = 
 \begin{bmatrix}
-1/{}^Cz & 0 & -{}^Cx/({}^Cz)^2 \\
-0 & 1/{}^Cz & -{}^Cy/({}^Cz)^2 \\
+\frac{1}{{}^Cz} & 0 & \frac{-{}^Cx}{({}^Cz)^2} \\
+0 & \frac{1}{{}^Cz} & \frac{-{}^Cy}{({}^Cz)^2} \\
 \end{bmatrix}
 \f}
 
 
 
 
-@section relative Relative Transform
+@section relative Euclidean Transformation
 
-Given a feature in the global frame, this function maps it into the current camera frame.
-This is a function of the feature in the global, along with the transform to the current camera frame.
-We have the following transformation:
-
+We employ the 6DOF rigid-body Euclidean transformation to transform the 3D feature position in the global frame \f$\{G\}\f$ to the current camera frame \f$\{C_k\}\f$ based on the current global camera pose:
 
 \f{align*}{
     {}^{C_k}\mathbf{p}_f
-    &=r({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k}) \\
-    &=
-    {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k})
+    &= \mathbf h_t ({}^{G}\mathbf{p}_f,~{}^{C_k}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_k}) 
+    = {}^{C_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{C_k})    
+\f}
+
+Note that in visual-inertial navigation systems, we often keep the IMU, instead of camera, state in the state vector. 
+So, we need to further transform the above geometry using the time-invariant IMU-camera extrinsic parameters \f$\{ {}^{C}_{I}\mathbf{R}, ~{}^{C}\mathbf{p}_I \}\f$ as follows:
+
+\f{align*}{
+{}^{G}\mathbf{p}_{C_k} 
+&= {}^{G}\mathbf{p}_{I_k} + {}^{G}_{I}\mathbf{R}  {}^{I}\mathbf{p}_{C_k} 
+= {}^{G}\mathbf{p}_{I_k} + {}^{G}_{I}\mathbf{R}  {}^{I}\mathbf{p}_{C} \\
+{}^{C_k}_{G}\mathbf{R} &=  {}^{C_k}_{I}\mathbf{R} {}^{I_k}_{G}\mathbf{R} = {}^{C}_{I}\mathbf{R} {}^{I_k}_{G}\mathbf{R}
+\f}
+
+Substituting these quantities into the equation of \f$ {}^{C_k}\mathbf{p}_f\f$ yields:
+
+\f{align*}{
+ {}^{C_k}\mathbf{p}_f =  {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k})
     +{}^{C}\mathbf{p}_I
 \f}
 
-We can take the derivative in respect to the feature in the global frame:
+
+We now can compute the following Jacobian with respect to the pertinent states:
+
 \f{align*}{
-\frac{\partial r(\cdot)}{\partial {}^{G}\mathbf{p}_f} &= {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}
+\frac{\partial \mathbf h_t (\cdot)}{\partial {}^{G}\mathbf{p}_f} &= {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R} \\
+\frac{\partial \mathbf h_t (\cdot)}{\partial {}^{I_k}_{G}\mathbf{R}} &= {}^{C}_{I}\mathbf{R} \left\lfloor {}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor \\
+\frac{\partial \mathbf h_t (\cdot)}{\partial {}^{G}\mathbf{p}_{I_k}} &= -{}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}
+\f}
+
+where \f$\lfloor \mathbf a\times \rfloor \f$ denotes the  skew symmetric matrix of a vector \f$\mathbf a\f$ (see [Quatenion TR](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)).
+Note also that in above expression (as well as in ensuing derivations), there is a little abuse of notation; 
+that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotation angle vector.
+Moreover, if performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is needed:
+
+\f{align*}{
+\frac{\partial \mathbf h_t (\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= \left\lfloor {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor  \\
+\frac{\partial \mathbf h_t (\cdot)}{\partial {}^{C}\mathbf{p}_I} &= \mathbf{I}_{3\times 3}
 \f}
 
 
 
-We can take the derivative in respect to the IMU state \f${I_k}\f$ as follows:
-\f{align*}{
-\frac{\partial r(\cdot)}{\partial {}^{I_k}_{G}\mathbf{R}} &= {}^{C}_{I}\mathbf{R} \left\lfloor {}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor \\
-\frac{\partial r(\cdot)}{\partial {}^{G}\mathbf{p}_{I_k}} &= -{}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}
-\f}
-
-
-If we are doing online calibration, we can take the derivatives in respect to the IMU to CAM transformation also:
-\f{align*}{
-\frac{\partial r(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= \left\lfloor {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor  \\
-\frac{\partial r(\cdot)}{\partial {}^{C}\mathbf{p}_I} &= \mathbf{I}_{3\times 3}
-\f}
 
 
 
 
 
 
+@section feat-rep Point Feature Representations
 
+There are two main parameterizations of a 3D point feature: 3D position (xyz) and inverse depth with bearing. 
+Both of these can either be represented in the global frame or in an anchor frame of reference which adds a dependency on having an "anchor" pose where the feature is observed.
+To allow for a unified treatment of different feature parameterizations \f$\boldsymbol \lambda\f$ in our codebase, 
+we derive in detail the generic function \f${}^{G}\mathbf{p}_f=\mathbf f (\cdot)\f$ that maps different representations into global position.
 
-
-@section feat-rep Feature Representation
-
-To allow for multiple different types of feature representations, we define an arbitrary function that itself can be a function of the state and the chosen feature representation.
-The two representations that we leverage here are a 3D point and bearing with inverse depth.
-Both of these can either be represented in the global frame or in an anchor frame of reference which adds a dependency on having an "anchor" pose the feature is seen in.
 
 @subsection feat-rep-global-xyz Global XYZ
 
-For the global representation we have the following:
+As the canonical parameterization, the global position of a 3D point feature is simply given by its xyz coordinates in the global frame of  reference:
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda) \\
+&= \mathbf f(\boldsymbol\lambda) \\
 &= \begin{bmatrix} {}^Gx \\ {}^Gy \\ {}^Gz \end{bmatrix} \\
 \text{where} &\quad \boldsymbol\lambda = {}^{G}\mathbf{p}_f = \begin{bmatrix} {}^Gx & {}^Gy & {}^Gz \end{bmatrix}^\top
 \f}
 
-It is clear that the Jacobian  in respect to the feature state is just the following:
+It is clear that the Jacobian with respect to the feature parameters is:
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= \mathbf{I}_{3\times 3}
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= \mathbf{I}_{3\times 3}
 \f}
 
 
 
 @subsection feat-rep-global-inv Global Inverse Depth
 
-For the global inverse representation we have the following:
+The global inverse-depth representation of a 3D point feature is given by (akin to spherical coordinates):
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda) \\
+&= \mathbf f(\boldsymbol\lambda) \\
 &= \frac{1}{\rho}\begin{bmatrix} \cos(\theta)\sin(\phi) \\ \sin(\theta)\sin(\phi) \\ \cos(\phi) \end{bmatrix} \\
 \text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \theta & \phi & \rho \end{bmatrix}^\top
 \f}
 
-The Jacobian  in respect to the feature state is just the following:
+The Jacobian  with respect to the feature parameters can be computed as:
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= 
 \begin{bmatrix}
--\frac{1}{\rho}\sin(\theta)\cos(\phi) & \frac{1}{\rho}\cos(\theta)\cos(\phi) & -\frac{1}{\rho^2}\cos(\theta)\sin(\phi) \\
+-\frac{1}{\rho}\sin(\theta)\sin(\phi) & \frac{1}{\rho}\cos(\theta)\cos(\phi) & -\frac{1}{\rho^2}\cos(\theta)\sin(\phi) \\
 \frac{1}{\rho}\cos(\theta)\sin(\phi) & \frac{1}{\rho}\sin(\theta)\cos(\phi) & -\frac{1}{\rho^2}\sin(\theta)\sin(\phi) \\
 0 & -\frac{1}{\rho}\sin(\phi) & -\frac{1}{\rho^2}\cos(\phi)
 \end{bmatrix}
@@ -283,58 +325,62 @@ The Jacobian  in respect to the feature state is just the following:
 
 @subsection feat-rep-global-inv2 Global Inverse Depth (MSCKF VERSION)
 
-This representation has a singularity when the vertical z-distance goes to zero.
-Thus one should never represent this in a global frame, and instead should use the @ref feat-rep-anchor-inv2 representation.
-The anchored version doesn't have this issue if you represent the feature in a camera frame that it was seen from (which a feature should never have a non-positive z-direction).
 
+Note that as this representation has a singularity when the z-distance goes to zero,
+it is not recommended to use in practice.
+Instead, one should use the @ref feat-rep-anchor-inv2 representation.
+The anchored version doesn't have this issue if features are represented in a camera frame that they where seen from (in which features should never have a non-positive z-direction).
 
 
 
 @subsection feat-rep-anchor-xyz Anchored XYZ
 
-To "anchor" a feature, we say that it has been seen from some anchor pose which is in the camera sensor frame of reference.
-This would normally be the first pose that an observation of the feature was seen from.
-Thus, our feature measurement is a function of this anchor state as follows:
+We can represent a 3D point feature in some "anchor" frame (say some IMU local frame, \f$\{{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a}\}\f$), 
+which would normally be the IMU pose corresponding to the first camera frame where the feature was detected.
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I}) \\
 &=
-{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top( \boldsymbol\lambda -{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
 \text{where} &\quad \boldsymbol\lambda = {}^{C_a}\mathbf{p}_f = \begin{bmatrix} {}^{C_a}x & {}^{C_a}y & {}^{C_a}z \end{bmatrix}^\top
 \f}
 
-It is clear that the Jacobian in respect to the feature state is just the following:
+The Jacobian with respect to the feature state is given by:
+
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
 
 
-We additionally have the following Jacobians in respect to the anchor state:
+As the anchor pose is involved in this representation, its Jacobians are computed as:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
 \f}
 
 
-If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+Moreover, if performing extrinsic calibration, the following Jacobians with respect to the IMU-camera extrinsics are also needed:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
+
+
+
 
 
 
 
 @subsection feat-rep-anchor-inv Anchored Inverse Depth
 
-To "anchor" a feature, we say that it has been seen from some anchor pose which is in the camera sensor frame of reference.
-This would normally be the first pose that an observation of the feature was seen from.
-Thus, our feature measurement is a function of this anchor state as follows:
+In analogy to the global inverse depth case, we can employ the inverse-depth with bearing (akin to spherical coordinates) in the anchor frame, \f$\{{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a}\}\f$, to represent a 3D point feature:
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I}) \\
 &=
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
 &=
@@ -342,43 +388,46 @@ Thus, our feature measurement is a function of this anchor state as follows:
 \text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \theta & \phi & \rho \end{bmatrix}^\top
 \f}
 
-The Jacobian in respect to the feature state is exactly the same as the global representation with additional rotation matrices:
+The Jacobian with respect to the feature state is given by:
+
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= 
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \begin{bmatrix}
--\frac{1}{\rho}\sin(\theta)\cos(\phi) & \frac{1}{\rho}\cos(\theta)\cos(\phi) & -\frac{1}{\rho^2}\cos(\theta)\sin(\phi) \\
+-\frac{1}{\rho}\sin(\theta)\sin(\phi) & \frac{1}{\rho}\cos(\theta)\cos(\phi) & -\frac{1}{\rho^2}\cos(\theta)\sin(\phi) \\
 \frac{1}{\rho}\cos(\theta)\sin(\phi) & \frac{1}{\rho}\sin(\theta)\cos(\phi) & -\frac{1}{\rho^2}\sin(\theta)\sin(\phi) \\
 0 & -\frac{1}{\rho}\sin(\phi) & -\frac{1}{\rho^2}\cos(\phi)
 \end{bmatrix}
 \f}
 
 
-We additionally have the following Jacobians in respect to the anchor state:
+The Jacobians with respect to the anchor pose are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
 \f}
 
 
-If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+The Jacobians with respect to the IMU-camera extrinsics are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
 
 
 
 
 
+@subsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF Version)
 
-@subsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF VERSION)
-
-We may also define a simpler version of inverse depth, as is presented in the original MSCKF paper. The 3D position of the feature is then given by:
+Note that a simpler version of inverse depth was used in the [MSCKF paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.1085&rep=rep1&type=pdf).
+This representation does not have the singularity if it is represented in a camera frame the feature was measured from.
 
 \f{align*}{
 {}^{G}\mathbf{p}_f
-&= f(\boldsymbol\lambda,~{}^{C_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{C_a}) \\
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I})  \\
 &=
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
 &=
@@ -386,9 +435,10 @@ We may also define a simpler version of inverse depth, as is presented in the or
 \text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \alpha & \beta & \rho \end{bmatrix}^\top
 \f}
 
-The Jacobian in respect to the feature state is then:
+The Jacobian with respect to the feature state is:
+
 \f{align*}{
-\frac{\partial f(\cdot)}{\partial \boldsymbol\lambda} &= 
+\frac{\partial \mathbf f(\cdot)}{\partial \boldsymbol\lambda} &= 
 {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \begin{bmatrix}
 \frac{1}{\rho} & 0 & -\frac{1}{\rho^2}\alpha \\
@@ -398,17 +448,19 @@ The Jacobian in respect to the feature state is then:
 \f}
 
 
-We additionally have the following Jacobians in respect to the anchor state:
+The Jacobians with respect to the anchor state are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{I_a}_{G}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top \left\lfloor{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{G}\mathbf{p}_{I_a}} &= \mathbf{I}_{3\times 3}
 \f}
 
 
-If we are doing extrinsic calibration we also have the following Jacobians for the IMU to CAM transform:
+The Jacobians with respect to the IMU-camera extrinsics are:
+
 \f{align*}{
-    \frac{\partial f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
-    \frac{\partial f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top \left\lfloor({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) \times\right\rfloor \\
+    \frac{\partial \mathbf f(\cdot)}{\partial {}^{C}\mathbf{p}_{I}} &= -{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top
 \f}
 
 

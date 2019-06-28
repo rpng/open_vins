@@ -9,12 +9,13 @@
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
 #include "init/InertialInitializer.h"
-#include "utils/FeatureInitializer.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "update/UpdaterMSCKF.h"
+#include "update/UpdaterSLAM.h"
+#include "types/Landmark.h"
 
 
 /**
@@ -73,6 +74,72 @@ namespace ov_msckf {
         void feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1);
 
 
+        /**
+         * @brief Given a state, this will initialize our IMU state.
+         * @param imustate State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
+         */
+        void initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
+
+            // Initialize the system
+            state->imu()->set_value(imustate.block(1,0,16,1));
+            state->set_timestamp(imustate(0,0));
+            is_initialized_vio = true;
+
+            // Print what we init'ed with
+            ROS_INFO("\033[0;32m[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\033[0m");
+            ROS_INFO("\033[0;32m[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\033[0m",state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3));
+            ROS_INFO("\033[0;32m[INIT]: bias gyro = %.4f, %.4f, %.4f\033[0m",state->imu()->bias_g()(0),state->imu()->bias_g()(1),state->imu()->bias_g()(2));
+            ROS_INFO("\033[0;32m[INIT]: velocity = %.4f, %.4f, %.4f\033[0m",state->imu()->vel()(0),state->imu()->vel()(1),state->imu()->vel()(2));
+            ROS_INFO("\033[0;32m[INIT]: bias accel = %.4f, %.4f, %.4f\033[0m",state->imu()->bias_a()(0),state->imu()->bias_a()(1),state->imu()->bias_a()(2));
+            ROS_INFO("\033[0;32m[INIT]: position = %.4f, %.4f, %.4f\033[0m",state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2));
+        }
+
+
+        /// If we are initialized or not
+        bool intialized() {
+            return is_initialized_vio;
+        }
+
+        /// Accessor to get the current state
+        State* get_state() {
+            return state;
+        }
+
+        /// Get feature tracker
+        TrackBase* get_track_feat() {
+            return trackFEATS;
+        }
+
+        /// Get aruco feature tracker
+        TrackBase* get_track_aruco() {
+            return trackARUCO;
+        }
+
+        /// Returns 3d features used in the last update in global frame
+        std::vector<Eigen::Vector3d> get_good_features_MSCKF() {
+            return good_features_MSCKF;
+        }
+
+        /// Returns 3d SLAM features in the global frame
+        std::vector<Eigen::Vector3d> get_features_SLAM() {
+            std::vector<Eigen::Vector3d> slam_feats;
+            for (auto &f : state->features_SLAM()){
+                if((int)f.first <= state->options().max_aruco_features) continue;
+                slam_feats.push_back(f.second->get_global_xyz(state, false));
+            }
+            return slam_feats;
+        }
+
+        /// Returns 3d ARUCO features in the global frame
+        std::vector<Eigen::Vector3d> get_features_ARUCO() {
+            std::vector<Eigen::Vector3d> aruco_feats;
+            for (auto &f : state->features_SLAM()){
+                if((int)f.first > state->options().max_aruco_features) continue;
+                aruco_feats.push_back(f.second->get_global_xyz(state, false));
+            }
+            return aruco_feats;
+        }
+
 
 
     protected:
@@ -116,6 +183,19 @@ namespace ov_msckf {
 
         /// Our MSCKF feature updater
         UpdaterMSCKF* updaterMSCKF;
+
+        /// Our MSCKF feature updater
+        UpdaterSLAM* updaterSLAM;
+
+        /// Good features that where used in the last update
+        std::vector<Eigen::Vector3d> good_features_MSCKF;
+
+        // Timing variables
+        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6;
+
+        // Track how much distance we have traveled
+        double timelastupdate = -1;
+        double distance = 0;
 
     };
 

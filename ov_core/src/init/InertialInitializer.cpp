@@ -73,6 +73,11 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
         return false;
     }
 
+    // Return if we don't have any measurements
+    //if(imu_data.size() < 200) {
+    //    return false;
+    //}
+
     // Sum up our current accelerations and velocities
     Eigen::Vector3d linsum = Eigen::Vector3d::Zero();
     Eigen::Vector3d angsum = Eigen::Vector3d::Zero();

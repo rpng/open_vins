@@ -5,7 +5,7 @@
 #include <vector>
 #include <Eigen/Eigen>
 
-#include "Feature.h"
+#include "feat/Feature.h"
 
 
 /**
@@ -29,7 +29,7 @@ namespace ov_core {
          * @brief Default constructor
          */
         FeatureDatabase() {
-            features_idlookup = std::map<size_t, Feature *>();
+            features_idlookup = std::unordered_map<size_t, Feature *>();
         }
 
 
@@ -102,7 +102,7 @@ namespace ov_core {
             std::vector<Feature *> feats_old;
 
             // Now lets loop through all features, and just make sure they are not old
-            for (std::map<size_t, Feature *>::iterator it = features_idlookup.begin(); it != features_idlookup.end();) {
+            for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // Loop through each camera
                 bool has_newer_measurement = false;
                 for (auto const &pair : (*it).second->timestamps) {
@@ -140,7 +140,7 @@ namespace ov_core {
             std::vector<Feature *> feats_old;
 
             // Now lets loop through all features, and just make sure they are not old
-            for (std::map<size_t, Feature *>::iterator it = features_idlookup.begin(); it != features_idlookup.end();) {
+            for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // Loop through each camera
                 for (auto const &pair : (*it).second->timestamps) {
                     if (!pair.second.empty() && pair.second.at(0) < timestamp) {
@@ -171,7 +171,7 @@ namespace ov_core {
             std::vector<Feature *> feats_has_timestamp;
 
             // Now lets loop through all features, and just make sure they are not
-            for (std::map<size_t, Feature *>::iterator it = features_idlookup.begin(); it != features_idlookup.end();) {
+            for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // Boolean if it has the timestamp
                 bool has_timestamp = false;
                 for (auto const &pair : (*it).second->timestamps) {
@@ -250,7 +250,8 @@ namespace ov_core {
 
 
         /**
-         * This function will delete all features that have been used up
+         * @brief This function will delete all features that have been used up.
+         *
          * If a feature was unable to be used, it will still remain since it will not have a delete flag set
          */
         void cleanup() {
@@ -267,15 +268,30 @@ namespace ov_core {
                 }
             }
             // Debug
-            //cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << endl;
+            //std::cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << std::endl;
         }
 
 
-    private:
+        /**
+         * @brief Returns the size of the feature database
+         */
+        size_t size() {
+            return features_idlookup.size();
+        }
 
 
-        // Our lookup array that allow use to query based on ID
-        std::map<size_t, Feature *> features_idlookup;
+        /**
+         * @brief Returns the internal data (should not normally be used)
+         */
+        std::unordered_map<size_t, Feature *> get_internal_data() {
+            return features_idlookup;
+        }
+
+    protected:
+
+
+        /// Our lookup array that allow use to query based on ID
+        std::unordered_map<size_t, Feature *> features_idlookup;
 
 
     };
