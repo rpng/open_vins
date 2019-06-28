@@ -14,14 +14,15 @@
 #include <tf/transform_broadcaster.h>
 
 #include "core/VioManager.h"
+#include "core/RosVisualizer.h"
+#include "utils/dataset_reader.h"
 
 
 using namespace ov_msckf;
 
 
-
-int system_mode;
 VioManager* sys;
+RosVisualizer* viz;
 
 
 
@@ -36,6 +37,7 @@ int main(int argc, char** argv)
 
     // Create our VIO system
     sys = new VioManager(nh);
+    viz = new RosVisualizer(nh, sys);
 
 
     //===================================================================================
@@ -51,12 +53,19 @@ int main(int argc, char** argv)
     nh.param<std::string>("topic_camera1", topic_camera1, "/cam1/image_raw");
 
     // Location of the ROS bag we want to read in
-    std::string path_to_bag, path_to_gt;
+    std::string path_to_bag;
     //nhPrivate.param<std::string>("path_bag", path_to_bag, "/home/keck/catkin_ws/V1_01_easy.bag");
     nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
-    nh.param<std::string>("path_gt", path_to_gt, "/home/patrick/datasets/eth/gt_files/V1_01_easy.csv");
     ROS_INFO("ros bag path is: %s", path_to_bag.c_str());
-    ROS_INFO("gt file path is: %s", path_to_gt.c_str());
+
+    // Load groundtruth if we have it
+    std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
+    if (nh.hasParam("path_gt")) {
+        std::string path_to_gt;
+        nh.param<std::string>("path_gt", path_to_gt, "");
+        load_gt_file(path_to_gt, gt_states);
+        ROS_INFO("gt file path is: %s", path_to_gt.c_str());
+    }
 
     // Get our start location and how much of the bag we want to play
     // Make the bag duration < 0 to just process to the end of the bag
@@ -66,8 +75,9 @@ int main(int argc, char** argv)
     ROS_INFO("bag start: %.1f",bag_start);
     ROS_INFO("bag duration: %.1f",bag_durr);
 
-    // Read in what mode we should be processing in (0=mono, 1=stereo)
-    nh.param<int>("system_mode", system_mode, 0);
+    // Read in what mode we should be processing in (1=mono, 2=stereo)
+    int max_cameras;
+    nh.param<int>("max_cameras", max_cameras, 1);
 
 
     //===================================================================================
@@ -110,6 +120,12 @@ int main(int argc, char** argv)
     cv::Mat img0_buffer, img1_buffer;
     double time = time_init.toSec();
     double time_buffer = time_init.toSec();
+
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
 
     // Step through the rosbag
     for (const rosbag::MessageInstance& m : view) {
@@ -181,19 +197,18 @@ int main(int argc, char** argv)
 
 
         // If we are in monocular mode, then we should process the left if we have it
-        if(system_mode==0 && has_left) {
+        if(max_cameras==1 && has_left) {
             // process once we have initialized with the GT
-            sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
+            Eigen::Matrix<double, 17, 1> imustate;
+            if(!gt_states.empty() && !sys->intialized() && get_gt_state(time_buffer,imustate,gt_states)) {
+                sys->initialize_with_gt(imustate);
+            } else if(gt_states.empty() || sys->intialized()) {
+                sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
+            }
+            // visualize
+            viz->visualize();
             // reset bools
             has_left = false;
-            // publish this new state
-            //if(sys->is_initalized_vio()) {
-            //    publish_state();
-            //    publish_feats();
-            //    publish_gpsinfo();
-            //}
-            //publish_images();
-            //publish_gt();
             // move buffer forward
             time_buffer = time;
             img0_buffer = img0.clone();
@@ -201,20 +216,19 @@ int main(int argc, char** argv)
 
 
         // If we are in stereo mode and have both left and right, then process
-        if(system_mode==1 && has_left && has_right) {
+        if(max_cameras==2 && has_left && has_right) {
             // process once we have initialized with the GT
-            sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);
+            Eigen::Matrix<double, 17, 1> imustate;
+            if(!gt_states.empty() && !sys->intialized() && get_gt_state(time_buffer,imustate,gt_states)) {
+                sys->initialize_with_gt(imustate);
+            } else if(gt_states.empty() || sys->intialized()) {
+                sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);
+            }
+            // visualize
+            viz->visualize();
             // reset bools
             has_left = false;
             has_right = false;
-            // publish this new state
-            //if(sys->is_initalized_vio()) {
-            //    publish_state();
-            //    publish_feats();
-            //    publish_gpsinfo();
-            //}
-            //publish_images();
-            //publish_gt();
             // move buffer forward
             time_buffer = time;
             img0_buffer = img0.clone();
@@ -223,8 +237,12 @@ int main(int argc, char** argv)
 
     }
 
+    // Final visualization
+    viz->visualize_final();
+
     // Finally delete our system
     delete sys;
+    delete viz;
 
 
     // Done!

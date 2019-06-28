@@ -79,6 +79,7 @@ namespace ov_msckf {
         Type *clone() override {
             Type *Clone = new JPLQuat();
             Clone->set_value(value());
+            Clone->set_fej(fej());
             return Clone;
         }
 

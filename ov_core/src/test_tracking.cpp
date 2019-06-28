@@ -97,24 +97,21 @@ int main(int argc, char** argv)
     ROS_INFO("downsize aruco image: %d", do_downsizing);
 
     // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
-    Eigen::Matrix3d cam0_k = Eigen::Matrix3d::Identity();
-    Eigen::Matrix<double,4,1> cam0_d = Eigen::Matrix<double,4,1>::Zero();
+    Eigen::Matrix<double,8,1> cam0_calib;
+    cam0_calib << 1,1,0,0,0,0,0,0;
 
     // Create our n-camera vectors
     std::unordered_map<size_t,bool> camera_fisheye;
-    std::unordered_map<size_t,Eigen::Matrix3d> camera_k;
-    std::unordered_map<size_t,Eigen::Matrix<double,4,1>> camera_d;
+    std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calibration;
     camera_fisheye.insert({0,false});
-    camera_k.insert({0,cam0_k});
-    camera_d.insert({0,cam0_d});
+    camera_calibration.insert({0,cam0_calib});
     camera_fisheye.insert({1,false});
-    camera_k.insert({1,cam0_k});
-    camera_d.insert({1,cam0_d});
+    camera_calibration.insert({1,cam0_calib});
 
     // Lets make a feature extractor
-    extractor = new TrackKLT(camera_k,camera_d,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
-    //extractor = new TrackDescriptor(camera_k,camera_d,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
-    //extractor = new TrackAruco(camera_k,camera_d,camera_fisheye,num_aruco,do_downsizing);
+    extractor = new TrackKLT(camera_calibration,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
+    //extractor = new TrackDescriptor(camera_calibration,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
+    //extractor = new TrackAruco(camera_calibration,camera_fisheye,num_aruco,do_downsizing);
 
 
     //===================================================================================

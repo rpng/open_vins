@@ -4,10 +4,14 @@
 using namespace ov_core;
 
 
-void TrackAruco::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
+void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Histogram equalize
+    cv::Mat img;
+    cv::equalizeHist(imgin, img);
 
     // Clear the old data from the last timestep
     ids_aruco[cam_id].clear();
@@ -90,10 +94,15 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 }
 
 
-void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) {
+void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_rightin, size_t cam_id_left, size_t cam_id_right) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Histogram equalize
+    cv::Mat img_left, img_right;
+    cv::equalizeHist(img_leftin, img_left);
+    cv::equalizeHist(img_rightin, img_right);
 
     // Clear the old data from the last timestep
     ids_aruco[cam_id_left].clear();

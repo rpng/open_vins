@@ -5,35 +5,6 @@ using namespace ov_core;
 using namespace ov_msckf;
 
 
-Eigen::MatrixXd State::get_marginal_covariance(const std::vector<Type *> &small_variables) {
-
-    // Calculate the marginal covariance size we need ot make our matrix
-    int cov_size = 0;
-    for (size_t i = 0; i < small_variables.size(); i++) {
-        cov_size += small_variables[i]->size();
-    }
-
-    // Construct our return covariance
-    Eigen::MatrixXd Small_cov(cov_size, cov_size);
-
-    // For each variable, lets copy over all other variable cross terms
-    // Note: this copies over itself to when i_index=k_index
-    int i_index = 0;
-    for (size_t i = 0; i < small_variables.size(); i++) {
-        int k_index = 0;
-        for (size_t k = 0; k < small_variables.size(); k++) {
-            Small_cov.block(i_index, k_index, small_variables[i]->size(), small_variables[k]->size()) =
-                    _Cov.block(small_variables[i]->id(), small_variables[k]->id(), small_variables[i]->size(),
-                               small_variables[k]->size());
-            k_index += small_variables[k]->size();
-        }
-        i_index += small_variables[i]->size();
-    }
-
-    // Return the covariance
-    return Small_cov;
-}
-
 
 void State::initialize_variables() {
 
@@ -85,6 +56,16 @@ void State::initialize_variables() {
     // Finally initialize our covariance to small value
     _Cov = 1e-4*Eigen::MatrixXd::Identity(current_id, current_id);
 
-}
+    // Finally, set some of our priors for our calibration parameters
+    if (_options.do_calib_camera_timeoffset){
+        _Cov(_calib_dt_CAMtoIMU->id(),_calib_dt_CAMtoIMU->id()) = std::pow(0.02,2);
+    }
+    if (_options.do_calib_camera_pose){
+        for(int i=0; i<_options.num_cameras; i++) {
+            _Cov.block(_calib_IMUtoCAM.at(i)->id(),_calib_IMUtoCAM.at(i)->id(),3,3) = std::pow(0.001,2)*Eigen::MatrixXd::Identity(3,3);
+            _Cov.block(_calib_IMUtoCAM.at(i)->id()+3,_calib_IMUtoCAM.at(i)->id()+3,3,3) = std::pow(0.01,2)*Eigen::MatrixXd::Identity(3,3);
+        }
+    }
 
+}
 

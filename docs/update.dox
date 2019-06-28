@@ -3,67 +3,52 @@
 
 @page update Update Derivations
 
-@section general General Bayesian Update
+@section basics Minimum Mean Square Error (MMSE) Estimation
 
-Given a new measurement \f$\mathbf{z}_m\f$ we would like to update our mean and covariance (updates our distribution).
-To do this, we create the distribution of the current state given this new measurement distribution.
-Expanding this distribution using Bayes Rule we have the following:
+Consider the following static state estimation problem: 
+Given a prior distribution (probability density function or pdf) for a Gaussian random vector 
+\f$ \mathbf x\sim \mathcal N (\hat{\mathbf x}^\ominus, \mathbf P_{xx}^\ominus)\f$ with dimension of \f$n\f$ and a new \f$m\f$ dimentional measurement \f$\mathbf{z}_m = \mathbf z + \mathbf n = \mathbf h(\mathbf x) + \mathbf n \f$ corrupted by zero-mean white Gaussian noise independent of state, \f$ \mathbf n \sim \mathcal N(\mathbf 0, \mathbf R)\f$,
+we want to compute the first two (central) moments of the posterior pdf \f$ p(\mathbf x|\mathbf z_m)\f$.
+Generally (given a nonlinear measurement model), we approximate the posterior pdf as:
+\f$ p(\mathbf x|\mathbf z_m) \simeq \mathcal N (\hat{\mathbf x}^\oplus, \mathbf P_{xx}^\oplus)\f$.
+By design, this is the (approximate) solution to the MMSE estimation problem [[Kay 1993]](http://users.isr.ist.utl.pt/~pjcro/temp/Fundamentals%20Of%20Statistical%20Signal%20Processing--Estimation%20Theory-Kay.pdf).
+
+
+@section conditional-pdf Conditional Probability Distribution
+
+To this end, we employ the Bayes Rule:
 
 \f{align*}{
-    p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
-    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m | \mathbf{z}_{0..i-1})}
+    p(\mathbf{x} | \mathbf{z}_m) = \frac{p(\mathbf{x},\mathbf{z}_m)}{p(\mathbf{z}_m)}    
 \f}
 
-
-where we know that the measurement \f$\mathbf{z}_m\f$'s noise is *independent* of the state,
-but the measurement itself is defined as a function of the state,
-which we know is *dependent* on the previous measurements (i.e., we will see that \f$p(\mathbf{z}_m | \mathbf{z}_{0..i-1})\f$ will have a distribution in respect to the state).
-Now we would like to calculate this new Gaussian distribution that the new state (given the new measurement \f$\mathbf{z}_m\f$) follows.
-To do so, we solve for the top and bottom Gaussian distributions, noting that we are using a multivariate Gaussian distribution not a 1D Gaussian distribution, and then combine:
-
+In general, this conditional pdf cannot be computed analytically without imposing simplifying assumptions.
+For the problem at hand, we first approximate (if indeed) \f$ p(\mathbf{z}_m) \simeq \mathcal N (\hat{\mathbf z}, \mathbf P_{zz}) \f$, 
+and then have the following joint Gaussian pdf (noting that joint of Gaussian pdfs is Gaussian):
 
 \f{align*}{
-    p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1}) =
-        \frac{1}{\sqrt{(2\pi)^{n+m}|{\mathbf{P}_{yy}}|}}e^{-\frac{1}{2}(\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})}
+p(\mathbf{x},\mathbf{z}_m) = \mathcal N \left( \begin{bmatrix} \hat{\mathbf x}^\ominus \\ \mathbf z \end{bmatrix}, \begin{bmatrix}\mathbf P_{xx} & \mathbf P_{xz} \\ \mathbf P_{zx} & \mathbf P_{zz} \end{bmatrix} \right) =: \mathcal N(\hat{\mathbf y}, \mathbf P_{yy})
 \f}
 
-\f{align*}{
-     p(\mathbf{z}_m | \mathbf{z}_{0..i-1}) =
-        \frac{1}{\sqrt{(2\pi)^{m}|{\mathbf{P}_{zz}}|}}e^{-\frac{1}{2}(\mathbf{z}_m-\hat{\mathbf{z}}_m)^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}_m)}
-\f}
-
-
-where \f$n\f$ and \f$m\f$ are the size of the state and measurement vectors, respectively, and the following:
+Substitution of these two Gaussians into the first equation yields the following conditional Gaussian pdf:
 
 \f{align*}{
-    \mathbf{P}_{yy} &= \begin{bmatrix}
-    \mathbf{P}_{xx} & \mathbf{P}_{xz} \\
-    \mathbf{P}_{zx} & \mathbf{P}_{zz}
-    \end{bmatrix} \\[5px]
-    \mathbf{y} &= \begin{bmatrix}
-    \mathbf{x}_k \\
-    \mathbf{z}_k
-    \end{bmatrix}
-\f}
-
-
-Combining the two in Bayes Rule, we get the following:
-
-\f{align*}{
-    p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
-    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m | \mathbf{z}_{0..i-1})} \\[5px]
-    &= \frac{1}{\sqrt{(2\pi)^{n}|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|}} \times \nonumber\\
-    &\hspace{0.5cm}\mathrm{exp}\left(
-    {-\frac{1}{2}\left[
+    p(\mathbf{x} | \mathbf{z}_m) 
+    &\simeq \frac{\mathcal N(\hat{\mathbf y}, \mathbf P_{yy})}{\mathcal N (\hat{\mathbf z}, \mathbf P_{zz}) }\\
+    &= \frac{\frac{1}{\sqrt{(2\pi)^{n+m}|{\mathbf{P}_{yy}}|}}e^{-\frac{1}{2}(\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})}}{ \frac{1}{\sqrt{(2\pi)^{m}|{\mathbf{P}_{zz}}|}}e^{-\frac{1}{2}(\mathbf{z}_m-\hat{\mathbf{z}})^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}})}}\\
+    &= \frac{1}{\sqrt{(2\pi)^{n}|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|}} 
+    e^{    {-\frac{1}{2}\left[
     (\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})
     -
-    (\mathbf{z}_m-\hat{\mathbf{z}}_m)^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}_m)
+    (\mathbf{z}_m-\hat{\mathbf{z}})^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}})
     \right]}
-    \right)
+    }\\
+    &=: \mathcal N (\hat{\mathbf x}^\oplus, \mathbf P_{xx}^\oplus)
 \f}
 
-First we can simplify the denominator term \f$|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|\f$ to find what our covariance is for the new distribution.
 
+We now derive the conditional mean and covariance can be computed as follows:
+First we simplify the denominator term \f$|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{zz}}|\f$ in order to find the conditional covariance.
 
 \f{align*}{
     |{\mathbf{P}_{yy}}| = \Big|{\begin{bmatrix}
@@ -73,9 +58,9 @@ First we can simplify the denominator term \f$|{\mathbf{P}_{yy}}|/|{\mathbf{P}_{
     = \Big|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}\Big|\ \Big|{\mathbf{P}_{zz}}\Big|
 \f}
 
-
-This was derived in [The Matrix Reference Manual](http://www.ee.ic.ac.uk/hp/staff/dmb/matrix/intro.html) proof (3.1) and is only valid when \f$\mathbf{P}_{zz}\f$ is invertible.
-From here we can now divide by \f$|{\mathbf{P}_{zz}}|\f$ to get the final value for our new distribution covariance.
+where we assumed \f$\mathbf{P}_{zz}\f$ is invertible 
+and employed the determinant property of [Schur complement](https://en.wikipedia.org/wiki/Schur_complement).
+Thus, we have:
 
 \f{align*}{
     \frac{|{\mathbf{P}_{yy}}|}{|{\mathbf{P}_{zz}}|}
@@ -84,13 +69,14 @@ From here we can now divide by \f$|{\mathbf{P}_{zz}}|\f$ to get the final value 
 \f}
 
 
-Next we can look at combining the values in the exponential to convert it into a recognizable Gaussian distribution form.
-We write the exponential as follows using the residuals \f$\mathbf{r}_x\f$,\f$\mathbf{r}_z\f$,\f$\mathbf{r}_y\f$ and the inverse of a block matrix (see [The Matrix Reference Manual](http://www.ee.ic.ac.uk/hp/staff/dmb/matrix/intro.html) inverse matrix property section):
+Next, by defining the error states \f$\mathbf{r}_x=\mathbf{x}-\hat{\mathbf{x}}^\ominus\f$,\f$\mathbf{r}_z=\mathbf{z}_m-\hat{\mathbf{z}}\f$,\f$\mathbf{r}_y=\mathbf{y}-\hat{\mathbf{y}}\f$,
+and using the [matrix inersion lemma](https://en.wikipedia.org/wiki/Woodbury_matrix_identity), 
+we rewrite the exponential term as follows:
 
 \f{align*}{
-    &= (\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})
+    &(\mathbf{y}-\hat{\mathbf{y}})^\top\mathbf{P}_{yy}^{-1}(\mathbf{y}-\hat{\mathbf{y}})
     -
-    (\mathbf{z}_m-\hat{\mathbf{z}}_m)^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}_m) \\[5px]
+    (\mathbf{z}_m-\hat{\mathbf{z}})^\top\mathbf{P}_{zz}^{-1}(\mathbf{z}_m-\hat{\mathbf{z}}) \\[5px]
     &= \mathbf{r}_y^\top\mathbf{P}_{yy}^{-1}\mathbf{r}_y
     -
     \mathbf{r}_z^\top\mathbf{P}_{zz}^{-1}\mathbf{r}_z \\[5px]
@@ -149,13 +135,12 @@ We write the exponential as follows using the residuals \f$\mathbf{r}_x\f$,\f$\m
 \f}
 
 
-where \f$(\mathbf{P}_{zz}^{-1})^\top = \mathbf{P}_{zz}^{-1}\f$ since all square covariance matrices are symmetric.
-Not losing sight of the original goal, we can now construct the new Gaussian distribution as follows:
+where \f$(\mathbf{P}_{zz}^{-1})^\top = \mathbf{P}_{zz}^{-1}\f$ since covariance matrices are symmetric.
+Up to this point, we can now construct the conditional Gaussian pdf as follows:
 
 
 \f{align*}{
-    p(\mathbf{x}_k | \mathbf{z}_{0..i-1},\mathbf{z}_m)
-    &= \frac{p(\mathbf{x}_k,\mathbf{z}_m | \mathbf{z}_{0..i-1})}{p(\mathbf{z}_m) | \mathbf{z}_{0..i-1}} \\[5px]
+    p(\mathbf{x}_k | \mathbf{z}_m)
     &= \frac{1}{\sqrt{(2\pi)^{n}|{\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}}}|} \times \nonumber\\
     &\hspace{0.5cm}\mathrm{exp}\left(
     {-\frac{1}{2}\left[
@@ -163,132 +148,123 @@ Not losing sight of the original goal, we can now construct the new Gaussian dis
     (\mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx})^{-1}
     (\mathbf{r}_x - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{r}_z)
     \right]}
-    \right) \nonumber
+    \right)
 \f}
 
-
-This gets us the following new mean and covariance:
+which results in the following conditional mean and covariance we were seeking:
 
 \f{align*}{
-    \hat{\mathbf{x}}_{k|z} &= \hat{\mathbf{x}}_k + \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\
-    \mathbf{P}_{xx|z} &= \mathbf{P}_{xx} - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}
+    \hat{\mathbf{x}}^\oplus &= \hat{\mathbf{x}}^\ominus + \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}) \\
+    \mathbf{P}_{xx}^\oplus &= \mathbf{P}_{xx}^\ominus - \mathbf{P}_{xz}\mathbf{P}_{zz}^{-1}\mathbf{P}_{zx}
 \f}
+
+These are the fundamental equations for (linear) state estimation.
+
+
+
+
 
 
 
 
 @section linear-meas Linear Measurement Update
 
-
-The key idea of the [Extended Kalman Filter](https://en.wikipedia.org/wiki/Extended_Kalman_filter) is that we linearize our non-linear measurements about the current estimate so that we can fuse their information in a linear update.
-Thus, in general, we only need to consider the case that we have linear measurement of our state with some measurement noise.
-We can define the measurement and its expectation as follows:
-
+As a special case, we consider a simple linear measurement model to illustrate the linear MMSE estimator:
 
 \f{align*}{
-    \mathbf{z}_m
-    &= \mathbf{z}_k + \mathbf{n}_k \\[5px]
-    &= \mathbf{H}\mathbf{x}_k + \mathbf{n}_k \\[5px]
-    \mathbb{E}[\mathbf{z}_m]
-    &=
-    \mathbb{E}[\mathbf{H}\mathbf{x}_k + \mathbf{n}_k]\\[5px]
-    \hat{\mathbf{z}}_m
-    &= \mathbf{H}\hat{\mathbf{x}}_k + 0
+    \mathbf{z}_{m,k} &=  \mathbf{H}_k \mathbf{x}_k + \mathbf{n}_k \\
+    \hat{\mathbf{z}}_k &:= \mathbb{E}[\mathbf{z}_{m,k}] = \mathbb{E}[\mathbf{H}_k\mathbf{x}_k + \mathbf{n}_k] = \mathbf{H}_k {\hat{\mathbf{x}}_k^\ominus}
 \f}
 
-
-Given a measurement that is a linear function of the state we can derive what the joint and prior distributions.
-We use the definition of the expectation of error squared to give us our covariances.
-The derivation is as follows:
-
+With this, we can derive the covariance and cross-correlation matrices as follows:
 
 \f{align*}{
     \mathbf{P}_{zz}
     &= \mathbb{E}\left[
-    (\mathbf{z}_m - \hat{\mathbf{z}}_m)(\mathbf{z}_m - \hat{\mathbf{z}}_m)^\top
+    (\mathbf{z}_{m,k} - \hat{\mathbf{z}}_k)(\mathbf{z}_{m,k} - \hat{\mathbf{z}}_k)^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    (\mathbf{H}\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}\hat{\mathbf{x}}_k)
-    (\mathbf{H}\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}\hat{\mathbf{x}}_k)^\top
+    (\mathbf{H}_k\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}_k{\hat{\mathbf{x}}_k^\ominus})
+    (\mathbf{H}_k\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}_k{\hat{\mathbf{x}}_k^\ominus})^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    (\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k) + \mathbf{n}_k)
-    (\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k) + \mathbf{n}_k)^\top
+    (\mathbf{H}_k(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus}) + \mathbf{n}_k)
+    (\mathbf{H}_k(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus}) + \mathbf{n}_k)^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    \mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k)
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top
+    \mathbf{H}_k(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})^\top\mathbf{H}_k^\top
     +
-    \textcolor{red}{\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k)
+    \textcolor{red}{\mathbf{H}_k(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})
     \mathbf{n}_k^\top} \right.\nonumber\\
     &\hspace{4cm}+
     \textcolor{red}{\mathbf{n}_k
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top}
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})^\top\mathbf{H}_k^\top}
     +
     \left.
     \mathbf{n}_k
     \mathbf{n}_k^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    \mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k)
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top
+    \mathbf{H}_k(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})^\top\mathbf{H}_k^\top
     +
     \mathbf{n}_k
     \mathbf{n}_k^\top
     \right] \\[5px]
     &= 
-    \mathbf{H}~\mathbb{E}\left[(\mathbf{x}_k - \hat{\mathbf{x}}_k)
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\right]\mathbf{H}^\top
+    \mathbf{H}_k~\mathbb{E}\left[(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})^\top\right]\mathbf{H}_k^\top
     +
     ~\mathbb{E}\left[\mathbf{n}_k\mathbf{n}_k^\top\right] \\[5px]
     &= 
-    \mathbf{H}\mathbf{P}_{xx}\mathbf{H}^\top + \mathbf{R}_{d}
+    \mathbf{H}_k\mathbf{P}_{xx}^\ominus\mathbf{H}_k^\top + \mathbf{R}_k
 \f}
 
 
-where \f$\mathbf{R}_{d}\f$ is the *discrete* measurement noise matrix, \f$\mathbf{H}\f$ is the measurement Jacobian mapping the state into the measurement domain, and \f$\mathbf{P}_{xx}\f$ is the current state covariance.
-Note that terms with only a single noise value go to zero after taking the expectation.
-
+where \f$\mathbf{R}_k\f$ is the *discrete* measurement noise matrix, \f$\mathbf{H}_k\f$ is the measurement Jacobian mapping the state into the measurement domain, and \f$\mathbf{P}_{xx}^\ominus\f$ is the current state covariance.
 
 \f{align*}{
     \mathbf{P}_{xz}
     &= \mathbb{E}\left[
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)(\mathbf{z}_m - \hat{\mathbf{z}}_m)^\top
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})(\mathbf{z}_{m,k} - \hat{\mathbf{z}}_k)^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)
-    (\mathbf{H}\mathbf{x}_k + \mathbf{w}_k - \mathbf{H}\hat{\mathbf{x}}_k)^\top
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})
+    (\mathbf{H}_k\mathbf{x}_k + \mathbf{n}_k - \mathbf{H}_k{\hat{\mathbf{x}}_k^\ominus})^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)
-    (\mathbf{H}(\mathbf{x}_k - \hat{\mathbf{x}}_k) + \mathbf{w}_k)^\top
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})
+    (\mathbf{H}_k(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus}) + \mathbf{n}_k)^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)(\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\mathbf{H}^\top
-    +(\mathbf{x}_k - \hat{\mathbf{x}}_k)\mathbf{w}_k^\top
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})^\top\mathbf{H}_k^\top
+    +(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})\mathbf{n}_k^\top
     \right] \\[5px]
     &= \mathbb{E}\left[
-    (\mathbf{x}_k - \hat{\mathbf{x}}_k)(\mathbf{x}_k - \hat{\mathbf{x}}_k)^\top\right]\mathbf{H}^\top
+    (\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})^\top\right]\mathbf{H}_k^\top
     +
-    \textcolor{red}{\mathbb{E}\left[(\mathbf{x}_k - \hat{\mathbf{x}}_k)\mathbf{w}_k^\top
+    \textcolor{red}{\mathbb{E}\left[(\mathbf{x}_k - {\hat{\mathbf{x}}_k^\ominus})\mathbf{n}_k^\top
     \right]} \\[5px]
-    &= \mathbf{P}_{xx}\mathbf{H}^\top
+    &= \mathbf{P}_{xx}^\ominus\mathbf{H}_k^\top
 \f}
 
-
-This gives the following equations that can be used for the update step:
+where we have employed the fact that the noise is independent of the state.
+Substitution of these quantities into the fundamental equation 
+leads to the following update equations:
 
 
 \f{align*}{
-    \hat{\mathbf{x}}_{k|z} 
-    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1}(\mathbf{z}_m - \hat{\mathbf{z}}_m) \\[5px]
-    &= \hat{\mathbf{x}}_k + \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1}(\mathbf{z}_m - \mathbf{H}\hat{\mathbf{x}}_k) \\[5px]
-    &= \hat{\mathbf{x}}_k + \mathbf{K}\mathbf{r}_z \\[5px]
-    \mathbf{P}_{xx|z} 
-    &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1} (\mathbf{P}_{k}\mathbf{H}^\top)^\top \\[5px]
-    &= \mathbf{P}_{k} - \mathbf{P}_{k}\mathbf{H}^\top (\mathbf{H}\mathbf{P}_{k}\mathbf{H}^\top + \mathbf{R}_{d})^{-1} \mathbf{H}\mathbf{P}_{k}^\top
+    \hat{\mathbf{x}}_k^\oplus
+    &= {\hat{\mathbf{x}}_k^\ominus} + \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1}(\mathbf{z}_{m,k} - \hat{\mathbf{z}}_k) \\[5px]
+    &= {\hat{\mathbf{x}}_k^\ominus} + \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1}(\mathbf{z}_{m,k} - \mathbf{H}_k{\hat{\mathbf{x}}_k^\ominus}) \\[5px]
+    &= {\hat{\mathbf{x}}_k^\ominus} + \mathbf{K}\mathbf{r}_z \\[5px]
+    \mathbf{P}_{xx}^\oplus 
+    &= \mathbf{P}_{k}^\ominus - \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1} (\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top)^\top \\[5px]
+    &= \mathbf{P}_{k}^\ominus - \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1} \mathbf{H}_k{\mathbf{P}_{k}^\ominus}^\top
 \f}
 
+These are essentially the Kalman filter (or linear MMSE) update equations.
 
 
 

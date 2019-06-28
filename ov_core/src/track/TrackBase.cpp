@@ -14,6 +14,10 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
         if(max_height < pair.second.rows) max_height = pair.second.rows;
     }
 
+    // Return if we didn't have a last image
+    if(max_width==-1 || max_height==-1)
+        return;
+
     // If the image is "new" then draw the images from scratch
     // Otherwise, we grab the subset of the main image and draw on top of it
     bool image_new = ((int)img_last.size()*max_width != img_out.cols || max_height != img_out.rows);
@@ -22,12 +26,11 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
     if(image_new) img_out = cv::Mat(max_height,(int)img_last.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
 
     // Loop through each image, and draw
-    int ct = 0;
     for(auto const& pair : img_last) {
         // select the subset of the image
         cv::Mat img_temp;
         if(image_new) cv::cvtColor(img_last[pair.first], img_temp, CV_GRAY2RGB);
-        else img_temp = img_out(cv::Rect(max_width*ct,0,max_width,max_height));
+        else img_temp = img_out(cv::Rect(max_width*pair.first,0,max_width,max_height));
         // draw, loop through all keypoints
         for(size_t i=0; i<pts_last[pair.first].size(); i++) {
             // Get bounding pts for our boxes
@@ -43,9 +46,7 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
         // Draw what camera this is
         cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), cv::Point(30,60), cv::FONT_HERSHEY_COMPLEX_SMALL, 3.0, cv::Scalar(0,255,0),3);
         // Replace the output image
-        img_temp.copyTo(img_out(cv::Rect(max_width*ct,0,img_last[pair.first].cols,img_last[pair.first].rows)));
-        // move fowards
-        ct++;
+        img_temp.copyTo(img_out(cv::Rect(max_width*pair.first,0,img_last[pair.first].cols,img_last[pair.first].rows)));
     }
 
 }
@@ -61,6 +62,10 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
         if(max_height < pair.second.rows) max_height = pair.second.rows;
     }
 
+    // Return if we didn't have a last image
+    if(max_width==-1 || max_height==-1)
+        return;
+
     // If the image is "new" then draw the images from scratch
     // Otherwise, we grab the subset of the main image and draw on top of it
     bool image_new = ((int)img_last.size()*max_width != img_out.cols || max_height != img_out.rows);
@@ -74,12 +79,11 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
     size_t maxtracks = (size_t)-1;
 
     // Loop through each image, and draw
-    int ct = 0;
     for(auto const& pair : img_last) {
         // select the subset of the image
         cv::Mat img_temp;
         if(image_new) cv::cvtColor(img_last[pair.first], img_temp, CV_GRAY2RGB);
-        else img_temp = img_out(cv::Rect(max_width*ct,0,max_width,max_height));
+        else img_temp = img_out(cv::Rect(max_width*pair.first,0,max_width,max_height));
         // draw, loop through all keypoints
         for(size_t i=0; i<ids_last[pair.first].size(); i++) {
             // Get the feature from the database
@@ -114,9 +118,7 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
         // Draw what camera this is
         cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), cv::Point(30,60), cv::FONT_HERSHEY_COMPLEX_SMALL, 3.0, cv::Scalar(0,255,0),3);
         // Replace the output image
-        img_temp.copyTo(img_out(cv::Rect(max_width*ct,0,img_last[pair.first].cols,img_last[pair.first].rows)));
-        // move fowards
-        ct++;
+        img_temp.copyTo(img_out(cv::Rect(max_width*pair.first,0,img_last[pair.first].cols,img_last[pair.first].rows)));
     }
 
 }

@@ -2,8 +2,10 @@
 #define OV_MSCKF_UPDATER_HELPER_H
 
 
+#include <ros/ros.h>
 #include <Eigen/Eigen>
-#include "track/Feature.h"
+
+#include "feat/Feature.h"
 #include "state/State.h"
 #include "state/StateOptions.h"
 #include "utils/quat_ops.h"
@@ -30,6 +32,38 @@ namespace ov_msckf {
 
 
         /**
+         * @brief Feature object that our UpdaterHelper leverages, has all measurements and means
+         */
+        struct UpdaterHelperFeature {
+
+            /// Unique ID of this feature
+            size_t featid;
+
+            /// UV coordinates that this feature has been seen from (mapped by camera ID)
+            std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs;
+
+            // UV normalized coordinates that this feature has been seen from (mapped by camera ID)
+            std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs_norm;
+
+            /// Timestamps of each UV measurement (mapped by camera ID)
+            std::unordered_map<size_t, std::vector<double>> timestamps;
+
+            /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
+            int anchor_cam_id = -1;
+
+            /// Timestamp of anchor clone
+            double anchor_clone_timestamp;
+
+            /// Triangulated position of this feature, in the global frame
+            Eigen::Vector3d p_FinG;
+
+            /// Triangulated position of this feature, in the global frame first estimate
+            Eigen::Vector3d p_FinG_fej;
+
+        };
+
+
+        /**
          * @brief This gets the feature and state Jacobian in respect to the feature representation
          *
          * @param[in] state State of the filter system
@@ -38,8 +72,20 @@ namespace ov_msckf {
          * @param[out] H_x Extra Jacobians in respect to the state (for example anchored pose)
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_representation(State* state, Feature* feature, Eigen::Matrix<double,3,3> &H_f,
+        static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::Matrix<double,3,3> &H_f,
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
+
+        /**
+         * @brief This will compute the Jacobian in respect to the intrisic calibration parameters and normalized coordinates
+         *
+         * @param state State of the filter system
+         * @param uv_norm Normalized image coordinates
+         * @param isfisheye If this feature is for a fisheye model
+         * @param cam_d Camera intrinsics values
+         * @param dz_dzn Derivative in respect to normalized coordinates
+         * @param dz_dzeta Derivative in respect to distortion paramters
+         */
+        static void get_feature_jacobian_intrinsics(State* state, Eigen::Vector2d uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta);
 
 
         /**
@@ -52,7 +98,7 @@ namespace ov_msckf {
          * @param[out] res Measurement residual for this feature
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_full(State* state, Feature* feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::MatrixXd &res, std::vector<Type*> &x_order);
+        static void get_feature_jacobian_full(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<Type*> &x_order);
 
 
         /**
@@ -66,7 +112,19 @@ namespace ov_msckf {
          * @param H_x State jacobian
          * @param res Measurement residual
          */
-        static void nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::MatrixXd &res);
+        static void nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res);
+
+
+        /**
+         * @brief This will perform measurement compression
+         *
+         * Please see the @ref update-compress for details on how this works.
+         * Note that this is done **in place** so all matrices will be different after a function call.
+         *
+         * @param H_x State jacobian
+         * @param res Measurement residual
+         */
+        static void measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::VectorXd &res);
 
 
 

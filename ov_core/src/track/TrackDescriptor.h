@@ -17,7 +17,7 @@ namespace ov_core {
      * @brief Descriptor-based visual tracking
      *
      * Here we use descriptor matching to track features from one frame to the next.
-     * We track both temporally, and across stereo pairs to get stereo contraints.
+     * We track both temporally, and across stereo pairs to get stereo constraints.
      * Right now we use ORB descriptors as we have found it is the fastest when computing descriptors.
      */
     class TrackDescriptor : public TrackBase {
@@ -26,19 +26,16 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                        std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                         std::unordered_map<size_t, bool> camera_fisheye) :
-                        TrackBase(camera_k, camera_d, camera_fisheye), threshold(10), grid_x(8), grid_y(5), knn_ratio(0.75) {}
+                        TrackBase(camera_calib, camera_fisheye), threshold(10), grid_x(8), grid_y(5), knn_ratio(0.75) {}
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_k map of camera_id => 3x3 camera intrinic matrix
-         * @param camera_d  map of camera_id => 4x1 camera distortion parameters
+         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
          * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
@@ -47,11 +44,10 @@ namespace ov_core {
          * @param gridy size of grid in the y-direction / v-direction
          * @param knnratio matching ratio needed (smaller value forces top two descriptors during match to be more different)
          */
-        explicit TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix3d> camera_k,
-                                 std::unordered_map<size_t, Eigen::Matrix<double, 4, 1>> camera_d,
+        explicit TrackDescriptor(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
                                  std::unordered_map<size_t, bool> camera_fisheye,
                                  int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, double knnratio) :
-                                 TrackBase(camera_k, camera_d, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
+                                 TrackBase(camera_calib, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
                                  grid_x(gridx), grid_y(gridy), knn_ratio(knnratio) {}
 
         /**
@@ -99,6 +95,8 @@ namespace ov_core {
          * @param pts1 right vector of new keypoints
          * @param desc0 left vector of extracted descriptors
          * @param desc1 left vector of extracted descriptors
+         * @param cam_id0 id of the first camera
+         * @param cam_id1 id of the second camera
          * @param ids0 left vector of all new IDs
          * @param ids1 right vector of all new IDs
          *
@@ -109,8 +107,9 @@ namespace ov_core {
          */
         void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
                                       std::vector<cv::KeyPoint> &pts1,
-                                      cv::Mat &desc0, cv::Mat &desc1, std::vector<size_t> &ids0,
-                                      std::vector<size_t> &ids1);
+                                      cv::Mat &desc0, cv::Mat &desc1,
+                                      size_t cam_id0, size_t cam_id1,
+                                      std::vector<size_t> &ids0, std::vector<size_t> &ids1);
 
         /**
          * @brief Find matches between two keypoint+descriptor sets.
@@ -118,6 +117,8 @@ namespace ov_core {
          * @param pts1 second vector of keypoints
          * @param desc0 first vector of descriptors
          * @param desc1 second vector of decriptors
+         * @param id0 id of the first camera
+         * @param id1 id of the second camera
          * @param matches vector of matches that we have found
          *
          * This will perform a "robust match" between the two sets of points (slow but has great results).
@@ -126,7 +127,7 @@ namespace ov_core {
          * https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
          */
         void robust_match(std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> pts1,
-                          cv::Mat &desc0, cv::Mat &desc1, std::vector<cv::DMatch> &matches);
+                          cv::Mat &desc0, cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches);
 
         // Helper functions for the robust_match function
         // Original code is from the "RobustMatcher" in the opencv examples

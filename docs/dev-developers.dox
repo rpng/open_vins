@@ -1,0 +1,59 @@
+/**
+
+
+@page dev-developers Developer guide
+
+
+@section developers-addpage Adding a website page
+
+1. Add a `doc/pagename.dox` file, copy up-to-date license header.
+2. Add a @c \@page definition and title to your page
+3. If the page is top-level, list it in `doc/00-page-order.dox` to ensure it
+    gets listed at a proper place
+4. If the page is not top-level, list it using @c \@subpage in its parent page
+5. Leverage @c \@section and @c \@subsection to separate the page
+
+
+
+@section latex Math / Latex Equations
+
+
+- More details on how to format your documentation can be found here:
+    - http://www.doxygen.nl/manual/formulas.html
+    - https://mcss.mosra.cz/css/components/#math
+    - https://mcss.mosra.cz/css/components/
+- Use the inline commands for latex `\f $ <formula_here> \f $` (no space between f and $)
+- Use block to have equation centered on page `\f [ <big_formula_here> \f ]` (no space between f and [])
+
+
+
+@section developers-building Building the documentation site
+
+1. Clone the m.css repository which has scripts to build
+    - Ensure that it is **not** in the same folder as your open_vins
+    - `git clone https://github.com/mosra/m.css`
+    - This repository contains the script that will generate our documentation
+2. You will need to install python3.6
+    - `sudo add-apt-repository ppa:deadsnakes/ppa`
+    - `sudo apt-get update`
+    - `sudo apt-get install python3.6`
+    - `curl https://bootstrap.pypa.io/get-pip.py | sudo python3.6`
+    - `sudo -H pip3.6 install jinja2 Pygments`
+    - `sudo apt install texlive-base texlive-latex-extra texlive-fonts-extra texlive-fonts-recommended`
+3. Go into the documentation folder and build
+    - `cd m.css/documentation/`
+    - `python3.6 doxygen.py <path_to_Doxyfile-mcss>`
+4. If you run into errors, ensure your python path is set to use the 3.6 libraries
+    - ` export PYTHONPATH=/usr/local/lib/python3.6/dist-packages/`
+5. You might need to comment out the `enable_async=True` flag in the doxygen.py file
+6. This should then build the documentation website
+7. Open the html page `/open_vins/doxgen_generated/html/index.html` to view documentation
+
+
+
+
+
+
+
+
+*/

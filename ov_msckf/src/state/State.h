@@ -20,6 +20,7 @@ using namespace ov_core;
  */
 namespace ov_msckf {
 
+    class Landmark;
 
     /**
      * @brief State of our filter
@@ -50,18 +51,6 @@ namespace ov_msckf {
          */
         void initialize_variables();
 
-
-        /**
-         * @brief For a given set of variables, this will this will calculate a smaller covariance.
-         *
-         * That only includes the ones specified with all crossterms.
-         * Thus the size of the return will be the summed dimension of all the passed variables.
-         * Normal use for this is a chi-squared check before update (where you don't need the full covariance).
-         *
-         * @param small_variables Vector of variables whose marginal covariance is desired
-         * @return marginal covariance of the passed variables
-         */
-        Eigen::MatrixXd get_marginal_covariance(const std::vector<Type *> &small_variables);
 
         /**
          * @brief Given an update vector for the **entire covariance**, updates each variable
@@ -120,7 +109,7 @@ namespace ov_msckf {
         }
 
         /// Get size of covariance
-        size_t nVars() {
+        size_t n_vars() {
             return _Cov.rows();
         }
 
@@ -150,6 +139,11 @@ namespace ov_msckf {
             return _calib_IMUtoCAM.at(id);
         }
 
+        /// Access to all current extrinsic calibration between IMU and each camera
+        std::unordered_map<size_t, PoseJPL*> get_calib_IMUtoCAMs() {
+            return _calib_IMUtoCAM;
+        }
+
         /// Access to a given camera intrinsics
         Vec* get_intrinsics_CAM(size_t id) {
             assert((int)id<_options.num_cameras);
@@ -160,6 +154,16 @@ namespace ov_msckf {
         bool& get_model_CAM(size_t id) {
             assert((int)id<_options.num_cameras);
             return _cam_intrinsics_model.at(id);
+        }
+
+        /// Add a SLAM feature
+        void insert_SLAM_feature(size_t featid, Landmark* landmark){
+            _features_SLAM.insert({featid, landmark});
+        }
+
+        /// Access SLAM features
+        std::unordered_map<size_t, Landmark*> &features_SLAM(){
+            return _features_SLAM;
         }
 
 
@@ -178,7 +182,7 @@ namespace ov_msckf {
         std::unordered_map<double, PoseJPL*> _clones_IMU;
 
         /// Our current set of SLAM features (3d positions)
-        //std::map<size_t, Landmark*> _features_SLAM;
+        std::unordered_map<size_t, Landmark*> _features_SLAM;
 
         /// Time offset base IMU to camera (t_imu = t_cam + t_off)
         Vec *_calib_dt_CAMtoIMU;

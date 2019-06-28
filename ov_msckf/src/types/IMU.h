@@ -73,7 +73,7 @@ namespace ov_msckf {
             dq << .5 * dx.block(0, 0, 3, 1), 1.0;
             dq = dq / dq.norm();
 
-            newX.block(0, 0, 4, 1) = quat_multiply(dq, _value);
+            newX.block(0, 0, 4, 1) = quat_multiply(dq, quat());
             newX.block(4, 0, 3, 1) += dx.block(3, 0, 3, 1);
 
             newX.block(7, 0, 3, 1) += dx.block(6, 0, 3, 1);

@@ -3,6 +3,9 @@
 
 
 #include "State.h"
+#include "types/Landmark.h"
+
+#include <boost/math/distributions/chi_squared.hpp>
 
 
 /**
@@ -37,6 +40,18 @@ namespace ov_msckf {
         static void EKFUpdate(State *state, const std::vector<Type *> &H_order, const Eigen::MatrixXd &H,
                               const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
+        /**
+        * @brief For a given set of variables, this will this will calculate a smaller covariance.
+        *
+        * That only includes the ones specified with all crossterms.
+        * Thus the size of the return will be the summed dimension of all the passed variables.
+        * Normal use for this is a chi-squared check before update (where you don't need the full covariance).
+        *
+        * @param state Pointer to state
+        * @param small_variables Vector of variables whose marginal covariance is desired
+        * @return marginal covariance of the passed variables
+        */
+        static Eigen::MatrixXd get_marginal_covariance(State *state, const std::vector<Type *> &small_variables);
 
         /**
          * @brief Marginalizes a variable, properly modifying the ordering/covariances in the state
@@ -76,9 +91,10 @@ namespace ov_msckf {
          * @param H_L Jacobian of initializing measurements wrt new variable
          * @param R Covariance of initializing measurements (isotropic)
          * @param res Residual of initializing measurements
+         * @param chi_2_mult Value we should multiply the chi2 threshold by (larger means it will be accepted more measurements)
          */
-        static void initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
-                               Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res);
+        static bool initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
+                               Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult);
 
 
         /**
@@ -121,13 +137,31 @@ namespace ov_msckf {
          */
         static void marginalize_old_clone(State *state) {
             if ((int) state->n_clones() > state->options().max_clone_size) {
-                double margTime = state->margtimestep();
-                StateHelper::marginalize(state, state->get_clone(margTime));
+                double marginal_time = state->margtimestep();
+                StateHelper::marginalize(state, state->get_clone(marginal_time));
                 // Note that the marginalizer should have already deleted the clone
                 // Thus we just need to remove the pointer to it from our state
-                state->erase_clone(margTime);
+                state->erase_clone(marginal_time);
             }
         }
+
+        /** @brief Marginalize bad SLAM features
+         *  @param state Pointer to state
+         */
+        static void marginalize_slam(State* state) {
+            // Remove SLAM features that have their marginalization flag set
+            // We also check that we do not remove any aruoctag landmarks
+            auto it0 = state->features_SLAM().begin();
+            while(it0 != state->features_SLAM().end()) {
+                if((*it0).second->should_marg && (int)(*it0).first > state->options().max_aruco_features) {
+                    StateHelper::marginalize(state, (*it0).second);
+                    it0 = state->features_SLAM().erase(it0);
+                } else {
+                    it0++;
+                }
+            }
+        }
+
 
 
     private:
