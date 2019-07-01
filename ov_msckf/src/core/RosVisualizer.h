@@ -17,6 +17,7 @@
 
 
 #include "VioManager.h"
+#include "sim/Simulator.h"
 #include "utils/dataset_reader.h"
 
 
@@ -38,8 +39,9 @@ namespace ov_msckf {
          * @brief Default constructor
          * @param nh ROS node handler
          * @param app Core estimator manager
+         * @param sim Simulator if we are simulating
          */
-        RosVisualizer(ros::NodeHandle &nh, VioManager* app);
+        RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator* sim=nullptr);
 
 
         /**
@@ -68,12 +70,14 @@ namespace ov_msckf {
         void publish_groundtruth();
 
 
-
         /// ROS node handle that we publish onto
         ros::NodeHandle _nh;
 
         /// Core application of the filter system
         VioManager* _app;
+
+        /// Simulator (is nullptr if we are not sim'ing)
+        Simulator* _sim;
 
         // Our publishers
         ros::Publisher pub_poseimu;
@@ -81,6 +85,7 @@ namespace ov_msckf {
         ros::Publisher pub_points_msckf;
         ros::Publisher pub_points_slam;
         ros::Publisher pub_points_aruco;
+        ros::Publisher pub_points_sim;
         ros::Publisher pub_tracks;
         tf::TransformBroadcaster *mTfBr;
 

@@ -12,6 +12,9 @@
 #include <Eigen/Eigen>
 #include <Eigen/StdVector>
 
+#include <opencv/cv.hpp>
+#include <opencv2/core/core.hpp>
+
 
 #include "BsplineSE3.h"
 
@@ -26,7 +29,15 @@ namespace ov_core {
 
 
     /**
-     * @brief Master simulator class that will create artifical measurements for our visual-inertial algorithms.
+     * @brief Master simulator class that will create artificial measurements for our visual-inertial algorithms.
+     *
+     * Given a trajectory this will generate a SE(3) bsline for that trajectory.
+     * This allows us to get the inertial measurement information at each timestep during this trajectory.
+     * After creating the bspline we will generate an environmental feature map which will be used as our feature measurements.
+     * This map will be projected into the frame at each timestep to get our "raw" uv measurements.
+     * We inject bias and white noises into our inertial readings while adding our white noise to the uv measurements also.
+     * The user should specify the sensor rates that they desire along with the seeds of the random number generators.
+     *
      */
     class Simulator {
 
@@ -47,7 +58,12 @@ namespace ov_core {
             return is_running;
         }
 
-
+        /**
+         * @brief Get the simulation state at the current timestep
+         * @param imustate State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
+         * @return True if we have a state
+         */
+        bool get_current_state(Eigen::Matrix<double, 17, 1> &imustate);
 
         /**
          * @brief Gets the next inertial reading if we have one.
@@ -63,13 +79,19 @@ namespace ov_core {
          * @brief Gets the next inertial reading if we have one.
          * @param time_cam Time that this measurement occured at
          * @param camids Camera ids that the corresponding vectors match
-         * @param featids Feature ids of the following uvs
-         * @param featuvs Noisy uv measurements for the returned time
+         * @param feats Noisy uv measurements and ids for the returned time
          * @return True if we have a measurement
          */
-        bool get_next_cam(double &time_cam, std::vector<int> &camids,
-                          std::vector<size_t> &featids,
-                          std::vector<Eigen::Vector2d,Eigen::aligned_allocator<Eigen::Vector2d>> &featuvs);
+        bool get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats);
+
+
+        /**
+         * @brief Returns the whole map (used for visualization)
+         * @return Map of 3d features in the global simulation frame
+         */
+        std::unordered_map<size_t,Eigen::Vector3d> get_map() {
+            return featmap;
+        }
 
 
     protected:
@@ -81,12 +103,40 @@ namespace ov_core {
          */
         void load_data(std::string path_traj);
 
+        /**
+         * @brief Projects the passed map features into the desired camera frame.
+         * @param R_GtoI Orientation of the IMU pose
+         * @param p_IinG Position of the IMU pose
+         * @param camid Camera id of the camera sensor we want to project into
+         * @param feats Our set of 3d features
+         * @return True distorted raw image measurements and their ids for the specified camera
+         */
+        std::vector<std::pair<size_t,Eigen::Vector2d>> project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid, const std::unordered_map<size_t,Eigen::Vector3d> &feats);
+
+
+        /**
+         * @brief Will generate points in the fov of the specified camera
+         * @param R_GtoI Orientation of the IMU pose
+         * @param p_IinG Position of the IMU pose
+         * @param camid Camera id of the camera sensor we want to project into
+         * @param[out] feats Map we will append new features to
+         * @param numpts Number of points we should generate
+         */
+        void generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid, std::unordered_map<size_t,Eigen::Vector3d> &feats, int numpts);
+
+        //===================================================================
+        // State related variables
+        //===================================================================
 
         /// Our loaded trajectory data (timestamp(s), q_GtoI, p_IinG)
         std::vector<Eigen::Matrix<double,8,1>,Eigen::aligned_allocator<Eigen::Matrix<double,8,1>>> traj_data;
 
         /// Our b-spline trajectory
         BsplineSE3 spline;
+
+        /// Our map of 3d features
+        size_t id_map = 0;
+        std::unordered_map<size_t,Eigen::Vector3d> featmap;
 
         /// Mersenne twister PRNG for measurements
         std::mt19937 gen_meas;
@@ -138,7 +188,7 @@ namespace ov_core {
 
         // Camera intrinsics that we will load in
         std::unordered_map<size_t,bool> camera_fisheye;
-        std::unordered_map<size_t,double> camera_fov;
+        std::unordered_map<size_t,std::pair<double,double>> camera_wh;
         std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_intrinsics;
         std::unordered_map<size_t,Eigen::Matrix<double,7,1>> camera_extrinsics;
 

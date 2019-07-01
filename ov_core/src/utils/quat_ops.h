@@ -496,6 +496,7 @@ namespace ov_core {
      *
      * The right Jacobian of SO(3) is related to the left by Jl(-w)=Jr(w).
      * See equation (7.87) in [State Estimation for Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot.
+     * See @ref Jl_so3() for the definition of the left Jacobian of SO(3).
      *
      * @param w axis-angle
      * @return The right Jacobian of SO(3)

@@ -40,11 +40,11 @@ int main(int argc, char** argv)
         // CAM: get the next simulated camera uv measurements if we have them
         double time_cam;
         std::vector<int> camids;
-        std::vector<size_t> featids;
-        std::vector<Eigen::Vector2d,Eigen::aligned_allocator<Eigen::Vector2d>> featuvs;
-        bool hascam = sim.get_next_cam(time_cam, camids, featids, featuvs);
+        std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> feats;
+        bool hascam = sim.get_next_cam(time_cam, camids, feats);
         if(hascam) {
-            cout << "new cam measurement = " << std::setprecision(15) << time_cam << std::setprecision(3) << " | " << featids.size() << " cameras" << endl;
+            cout << "new cam measurement = " << std::setprecision(15) << time_cam;
+            cout << std::setprecision(3) << " | " << camids.size() << " cameras | uvs(0) = " << feats.at(0).size() << std::endl;
         }
 
     }

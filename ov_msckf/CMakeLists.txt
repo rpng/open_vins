@@ -82,4 +82,6 @@ target_link_libraries(ov_msckf ${thirdparty_libraries})
 add_executable(test_msckf src/test_msckf.cpp)
 target_link_libraries(test_msckf ov_msckf ${thirdparty_libraries})
 
+add_executable(test_simulation src/test_simulation.cpp)
+target_link_libraries(test_simulation ov_msckf ${thirdparty_libraries})
 

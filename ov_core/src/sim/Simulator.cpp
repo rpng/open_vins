@@ -42,12 +42,12 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     gen_meas = std::mt19937(sim_seed_measurements);
 
     // Read in sensor simulation frequencies
-    nh.param<int>("sim_freq_cam", freq_cam, 1);
-    nh.param<int>("sim_freq_imu", freq_imu, 20);
+    nh.param<int>("sim_freq_cam", freq_cam, 10);
+    nh.param<int>("sim_freq_imu", freq_imu, 200);
 
     // Load number of cameras and number of points
     nh.param<int>("max_cameras", max_cameras, 1);
-    nh.param<int>("num_pts", num_pts, 1);
+    nh.param<int>("num_pts", num_pts, 200);
 
     // Global gravity
     std::vector<double> vec_gravity;
@@ -80,8 +80,10 @@ Simulator::Simulator(ros::NodeHandle& nh) {
         nh.param<bool>("cam"+std::to_string(i)+"_is_fisheye", is_fisheye, false);
 
         // If the desired fov we should simulate
-        double fov;
-        nh.param<double>("cam"+std::to_string(i)+"_fov", fov, 45.0);
+        std::vector<double> matrix_wh;
+        std::vector<double> matrix_wd_default = {752,480};
+        nh.param<std::vector<double>>("cam"+std::to_string(i)+"_wh", matrix_wh, matrix_wd_default);
+        std::pair<double,double> wh(matrix_wh.at(0),matrix_wh.at(1));
 
         // Camera intrinsic properties
         Eigen::Matrix<double,8,1> cam_calib;
@@ -111,11 +113,12 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
         // Append to our maps for our feature trackers
         camera_fisheye.insert({i,is_fisheye});
-        camera_fov.insert({i,fov});
+        camera_wh.insert({i,wh});
         camera_intrinsics.insert({i,cam_calib});
         camera_extrinsics.insert({i,cam_eigen});
 
         // Debug printing
+        cout << "cam_" << i << "wh:" << endl << wh.first << " x " << wh.second << endl;
         cout << "cam_" << i << "K:" << endl << cam_calib.block(0,0,4,1).transpose() << endl;
         cout << "cam_" << i << "d:" << endl << cam_calib.block(4,0,4,1).transpose() << endl;
         cout << "T_C" << i << "toI:" << endl << T_CtoI << endl << endl;
@@ -145,11 +148,82 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     // TODO: perturb the initial state estimates for this system
 
 
-    // TODO: generate the map of points for projection
+    //===============================================================
+    //===============================================================
+
+
+    // We will create synthetic camera frames and ensure that each has enough features
+    double dt = 0.05;
+    double time_synth = spline.get_start_time();
+    ROS_INFO("Generating map features at %d rate",(int)(1.0/dt));
+
+    // Loop through each pose and generate our feature map in them!!!!
+    while(ros::ok()) {
+        // Get the pose at the current timestep
+        Eigen::Matrix3d R_GtoI;
+        Eigen::Vector3d p_IinG;
+        bool success_pose = spline.get_pose(time_synth, R_GtoI, p_IinG);
+        // We have finished generating features
+        if(!success_pose)
+            break;
+        // Loop through each camera
+        for(int i=0; i<max_cameras; i++) {
+            // Get the uv features for this frame
+            std::vector<std::pair<size_t,Eigen::Vector2d>> uvs;
+            uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
+            // If we do not have enough, generate more
+            if((int)uvs.size() < num_pts) {
+                generate_points(R_GtoI, p_IinG, i, featmap, num_pts-(int)uvs.size());
+            }
+        }
+        // Move forward in time
+        time_synth += dt;
+    }
+
+    // Print our map features
+    //for(const auto &feat : featmap) {
+    //    cout << feat.second(0) << "," << feat.second(1) << "," << feat.second(2) << std::endl;
+    //}
+
+    // Debug print
+    ROS_INFO("Generated %d map features in total over %d frames",(int)featmap.size(),(int)((time_synth-spline.get_start_time())/dt));
 
 
 }
 
+
+
+
+
+bool Simulator::get_current_state(Eigen::Matrix<double, 17, 1> &imustate) {
+
+    // Set to default state
+    imustate.setZero();
+    imustate(4) = 1;
+
+    // Current state values
+    Eigen::Matrix3d R_GtoI;
+    Eigen::Vector3d p_IinG, w_IinG, v_IinG;
+
+    // Get the pose, velocity, and acceleration
+    bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
+    bool success_vel = spline.get_velocity(timestamp, w_IinG, v_IinG);
+
+    // If any of these failed, then that means we don't have any more spline
+    if(!success_pose || !success_vel) {
+        return false;
+    }
+
+    // Else lets create the current state
+    imustate(0,0) = timestamp;
+    imustate.block(1,0,4,1) = rot_2_quat(R_GtoI);
+    imustate.block(5,0,3,1) = p_IinG;
+    imustate.block(8,0,3,1) = v_IinG;
+    imustate.block(11,0,3,1) = true_bias_gyro;
+    imustate.block(14,0,3,1) = true_bias_accel;
+    return true;
+
+}
 
 
 
@@ -202,9 +276,7 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
 
 
 
-bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
-                             std::vector<size_t> &featids,
-                             std::vector<Eigen::Vector2d,Eigen::aligned_allocator<Eigen::Vector2d>> &featuvs) {
+bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats) {
 
     // Return if the imu measurement should go before us
     if(timestamp_last_imu+1.0/freq_imu < timestamp_last_cam+1.0/freq_cam)
@@ -215,9 +287,41 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
     timestamp = timestamp_last_cam;
     time_cam = timestamp_last_cam;
 
-    // TODO: do these feature measurement logic
+    // Get the pose at the current timestep
+    Eigen::Matrix3d R_GtoI;
+    Eigen::Vector3d p_IinG;
+    bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
 
+    // We have finished generating measurements
+    if(!success_pose) {
+        is_running = false;
+        return false;
+    }
 
+    // Loop through each camera
+    for(int i=0; i<max_cameras; i++) {
+
+        // Get the uv features for this frame
+        std::vector<std::pair<size_t,Eigen::Vector2d>> uvs;
+        uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
+
+        // If we do not have enough, generate more
+        if((int)uvs.size() < num_pts) {
+            ROS_ERROR("[SIM]: cam %d was unable to generate enough features (%d < %d projections)",(int)i,(int)uvs.size(),num_pts);
+        }
+
+        // Loop through and add noise to each uv measurement
+        std::normal_distribution<double> w(0,1);
+        for(size_t j=0; j<uvs.size(); j++) {
+            uvs.at(j).second(0) += sigma_pix*w(gen_meas);
+            uvs.at(j).second(1) += sigma_pix*w(gen_meas);
+        }
+
+        // Push back for this camera
+        feats.push_back(uvs);
+        camids.push_back(i);
+
+    }
 
 
     // Return success
@@ -289,3 +393,166 @@ void Simulator::load_data(std::string path_traj) {
 
 
 
+std::vector<std::pair<size_t,Eigen::Vector2d>> Simulator::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
+                                                                             int camid, const std::unordered_map<size_t,Eigen::Vector3d> &feats) {
+
+    // Assert we have good camera
+    assert(camid < max_cameras);
+    assert((int)camera_fisheye.size() == max_cameras);
+    assert((int)camera_wh.size() == max_cameras);
+    assert((int)camera_intrinsics.size() == max_cameras);
+    assert((int)camera_extrinsics.size() == max_cameras);
+
+    // Grab our extrinsic and intrinsic values
+    Eigen::Matrix<double,3,3> R_ItoC = quat_2_Rot(camera_extrinsics.at(camid).block(0,0,4,1));
+    Eigen::Matrix<double,3,1> p_IinC = camera_extrinsics.at(camid).block(4,0,3,1);
+    Eigen::Matrix<double,8,1> cam_d = camera_intrinsics.at(camid);
+
+    // Our projected uv true measurements
+    std::vector<std::pair<size_t,Eigen::Vector2d>> uvs;
+
+    // Loop through our map
+    for(const auto &feat : feats) {
+
+        // Transform feature into current camera frame
+        Eigen::Vector3d p_FinI = R_GtoI*(feat.second-p_IinG);
+        Eigen::Vector3d p_FinC = R_ItoC*p_FinI+p_IinC;
+
+        // Project to normalized coordinates
+        Eigen::Vector2d uv_norm;
+        uv_norm << p_FinC(0)/p_FinC(2),p_FinC(1)/p_FinC(2);
+
+        // Distort the normalized coordinates (false=radtan, true=fisheye)
+        Eigen::Vector2d uv_dist;
+
+        // Calculate distortion uv and jacobian
+        if(camera_fisheye.at(camid)) {
+
+            // Calculate distorted coordinates for fisheye
+            double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+            double theta = std::atan(r);
+            double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
+
+            // Handle when r is small (meaning our xy is near the camera center)
+            double inv_r = r > 1e-8 ? 1.0/r : 1;
+            double cdist = r > 1e-8 ? theta_d * inv_r : 1;
+
+            // Calculate distorted coordinates for fisheye
+            double x1 = uv_norm(0)*cdist;
+            double y1 = uv_norm(1)*cdist;
+            uv_dist(0) = cam_d(0)*x1 + cam_d(2);
+            uv_dist(1) = cam_d(1)*y1 + cam_d(3);
+
+        } else {
+
+            // Calculate distorted coordinates for radial
+            double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+            double r_2 = r*r;
+            double r_4 = r_2*r_2;
+            double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
+            double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
+            uv_dist(0) = cam_d(0)*x1 + cam_d(2);
+            uv_dist(1) = cam_d(1)*y1 + cam_d(3);
+
+        }
+
+        // Check that it is inside our bounds
+        if(uv_dist(0) < 0 || uv_dist(0) > camera_wh.at(camid).first || uv_dist(1) < 0 || uv_dist(1) > camera_wh.at(camid).second) {
+            continue;
+        }
+
+        // Else we can add this as a good projection
+        uvs.push_back({feat.first, uv_dist});
+
+    }
+
+    // Return our projections
+    return uvs;
+
+}
+
+
+
+
+void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
+                                int camid, std::unordered_map<size_t,Eigen::Vector3d> &feats, int numpts) {
+
+    // Assert we have good camera
+    assert(camid < max_cameras);
+    assert((int)camera_fisheye.size() == max_cameras);
+    assert((int)camera_wh.size() == max_cameras);
+    assert((int)camera_intrinsics.size() == max_cameras);
+    assert((int)camera_extrinsics.size() == max_cameras);
+
+    // Grab our extrinsic and intrinsic values
+    Eigen::Matrix<double,3,3> R_ItoC = quat_2_Rot(camera_extrinsics.at(camid).block(0,0,4,1));
+    Eigen::Matrix<double,3,1> p_IinC = camera_extrinsics.at(camid).block(4,0,3,1);
+    Eigen::Matrix<double,8,1> cam_d = camera_intrinsics.at(camid);
+
+    // Convert to opencv format since we will use their undistort functions
+    cv::Matx33d camK;
+    camK(0, 0) = cam_d(0);
+    camK(0, 1) = 0;
+    camK(0, 2) = cam_d(2);
+    camK(1, 0) = 0;
+    camK(1, 1) = cam_d(1);
+    camK(1, 2) = cam_d(3);
+    camK(2, 0) = 0;
+    camK(2, 1) = 0;
+    camK(2, 2) = 1;
+    cv::Vec4d camD;
+    camD(0) = cam_d(4);
+    camD(1) = cam_d(5);
+    camD(2) = cam_d(6);
+    camD(3) = cam_d(7);
+
+
+    // Generate the desired number of features
+    for(int i=0; i<numpts; i++) {
+
+        // Uniformly randomly generate within our fov
+        std::uniform_real_distribution<double> gen_u(0,camera_wh.at(camid).first);
+        std::uniform_real_distribution<double> gen_v(0,camera_wh.at(camid).second);
+        double u_dist = gen_u(gen_state_init);
+        double v_dist = gen_v(gen_state_init);
+
+        // Convert to opencv format
+        cv::Mat mat(1, 2, CV_32F);
+        mat.at<float>(0, 0) = u_dist;
+        mat.at<float>(0, 1) = v_dist;
+        mat = mat.reshape(2); // Nx1, 2-channel
+
+        // Undistort this point to our normalized coordinates (false=radtan, true=fisheye)
+        if(camera_fisheye.at(camid)) {
+            cv::fisheye::undistortPoints(mat, mat, camK, camD);
+        } else {
+            cv::undistortPoints(mat, mat, camK, camD);
+        }
+
+        // Construct our return vector
+        Eigen::Vector3d uv_norm;
+        mat = mat.reshape(1); // Nx2, 1-channel
+        uv_norm(0) = mat.at<float>(0, 0);
+        uv_norm(1) = mat.at<float>(0, 1);
+        uv_norm(2) = 1;
+
+        // Generate a random depth
+        std::uniform_real_distribution<double> gen_depth(5,10);
+        double depth = gen_depth(gen_state_init);
+
+        // Get the 3d point
+        Eigen::Vector3d p_FinC;
+        p_FinC = depth*uv_norm;
+
+        // Move to the global frame of reference
+        Eigen::Vector3d p_FinI = R_ItoC.transpose()*(p_FinC-p_IinC);
+        Eigen::Vector3d p_FinG = R_GtoI.transpose()*p_FinI+p_IinG;
+
+        // Append this as a new feature
+        featmap.insert({id_map,p_FinG});
+        id_map++;
+
+    }
+
+
+}
