@@ -118,21 +118,21 @@ namespace ov_core {
         /**
          * @brief Gets the angular and linear velocity at a given timestamp
          * @param timestamp Desired time to get the pose at
-         * @param w_IinG Angular velocity in the global frame
+         * @param w_IinI Angular velocity in the inertial frame
          * @param v_IinG Linear velocity in the global frame
          * @return False if we can't find it
          */
-        bool get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::Vector3d &v_IinG);
+        bool get_velocity(double timestamp, Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG);
 
 
         /**
          * @brief Gets the angular and linear acceleration at a given timestamp
          * @param timestamp Desired time to get the pose at
-         * @param alpha_IinG Angular acceleration in the global frame
+         * @param alpha_IinG Angular acceleration in the inertial frame
          * @param a_IinG Linear acceleration in the global frame
          * @return False if we can't find it
          */
-        bool get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG, Eigen::Vector3d &a_IinG);
+        bool get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinI, Eigen::Vector3d &a_IinG);
 
 
         /// Returns the simulation start time that we should start simulating from

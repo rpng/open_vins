@@ -8,7 +8,7 @@ using namespace ov_msckf;
 
 
 
-void Propagator::propagate_and_clone(State* state, double timestamp){
+void Propagator::propagate_and_clone(State* state, double timestamp) {
 
     // First lets construct an IMU vector of measurements we need
     vector<IMUDATA> prop_data;
@@ -180,7 +180,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
 
 
 void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
-                                     Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd){
+                                     Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd) {
 
     // Set them to zero
     F.setZero();

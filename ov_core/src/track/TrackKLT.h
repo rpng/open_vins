@@ -27,17 +27,11 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackKLT(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                 std::unordered_map<size_t, bool> camera_fisheye) :
-                TrackBase(camera_calib, camera_fisheye), threshold(10), grid_x(8), grid_y(5), min_px_dist(30) {}
+        TrackKLT() : TrackBase(), threshold(10), grid_x(8), grid_y(5), min_px_dist(30) {}
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
          * @param fast_threshold FAST detection threshold
@@ -45,11 +39,8 @@ namespace ov_core {
          * @param gridy size of grid in the y-direction / v-direction
          * @param minpxdist features need to be at least this number pixels away from each other
          */
-        explicit TrackKLT(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                          std::unordered_map<size_t, bool> camera_fisheye,
-                          int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, int minpxdist) :
-                TrackBase(camera_calib, camera_fisheye, numfeats, numaruco), threshold(fast_threshold),
-                grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
+        explicit TrackKLT(int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, int minpxdist) :
+                 TrackBase(numfeats, numaruco), threshold(fast_threshold), grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
 
 
         /**

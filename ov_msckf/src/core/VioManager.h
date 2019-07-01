@@ -8,6 +8,7 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
+#include "track/TrackSIM.h"
 #include "init/InertialInitializer.h"
 
 #include "state/Propagator.h"
@@ -72,6 +73,15 @@ namespace ov_msckf {
          * @param cam_id1 Unique id of what camera the image is from
          */
         void feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1);
+
+
+        /**
+         * @brief Feed function for a synchronized simulated cameras
+         * @param timestamp Time that this image was collected
+         * @param camids Camera ids that we have simulated measurements for
+         * @param feats Raw uv simulated measurements
+         */
+        void feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats);
 
 
         /**
@@ -200,6 +210,11 @@ namespace ov_msckf {
         // Start delay we should wait before inserting the first slam feature
         double dt_statupdelay;
         double startup_time = -1;
+
+        // Camera intrinsics that we will load in
+        std::unordered_map<size_t,bool> camera_fisheye;
+        std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calib;
+        std::unordered_map<size_t,std::pair<int,int>> camera_wh;
 
     };
 

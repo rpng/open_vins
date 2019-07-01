@@ -20,7 +20,7 @@ using namespace ov_core;
 // Main function
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "test_tracking");
+    ros::init(argc, argv, "test_simulator");
     ros::NodeHandle nh("~");
 
     // Create the simulator

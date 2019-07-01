@@ -98,10 +98,6 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("=====================================");
     ROS_INFO("CAMERA PARAMETERS:");
 
-    // Camera intrinsics that we will load in
-    std::unordered_map<size_t,bool> camera_fisheye;
-    std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calibrations;
-
     // Loop through through, and load each of the cameras
     for(int i=0; i<state->options().num_cameras; i++) {
 
@@ -109,6 +105,12 @@ VioManager::VioManager(ros::NodeHandle &nh) {
         bool is_fisheye;
         nh.param<bool>("cam"+std::to_string(i)+"_is_fisheye", is_fisheye, false);
         state->get_model_CAM(i) = is_fisheye;
+
+        // If the desired fov we should simulate
+        std::vector<int> matrix_wh;
+        std::vector<int> matrix_wd_default = {752,480};
+        nh.param<std::vector<int>>("cam"+std::to_string(i)+"_wh", matrix_wh, matrix_wd_default);
+        std::pair<int,int> wh(matrix_wh.at(0),matrix_wh.at(1));
 
         // Camera intrinsic properties
         Eigen::Matrix<double,8,1> cam_calib;
@@ -142,9 +144,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
         // Append to our maps for our feature trackers
         camera_fisheye.insert({i,is_fisheye});
-        camera_calibrations.insert({i,cam_calib});
+        camera_calib.insert({i,cam_calib});
+        camera_wh.insert({i,wh});
 
         // Debug printing
+        cout << "cam_" << i << "wh:" << endl << wh.first << " x " << wh.second << endl;
         cout << "cam_" << i << "K:" << endl << cam_calib.block(0,0,4,1).transpose() << endl;
         cout << "cam_" << i << "d:" << endl << cam_calib.block(4,0,4,1).transpose() << endl;
         cout << "T_C" << i << "toI:" << endl << T_CtoI << endl << endl;
@@ -270,14 +274,17 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
     // Lets make a feature extractor
     if(use_klt) {
-        trackFEATS = new TrackKLT(camera_calibrations,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,min_px_dist);
+        trackFEATS = new TrackKLT(num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,min_px_dist);
+        trackFEATS->set_calibration(camera_calib, camera_fisheye);
     } else {
-        trackFEATS = new TrackDescriptor(camera_calibrations,camera_fisheye,num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,knn_ratio);
+        trackFEATS = new TrackDescriptor(num_pts,state->options().max_aruco_features,fast_threshold,grid_x,grid_y,knn_ratio);
+        trackFEATS->set_calibration(camera_calib, camera_fisheye);
     }
 
     // Initialize our aruco tag extractor
     if(use_aruco) {
-        trackARUCO = new TrackAruco(camera_calibrations,camera_fisheye,state->options().max_aruco_features,do_downsizing);
+        trackARUCO = new TrackAruco(state->options().max_aruco_features,do_downsizing);
+        trackARUCO->set_calibration(camera_calib, camera_fisheye);
     }
 
     // Initialize our state propagator
@@ -340,7 +347,40 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
 }
 
 
+void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats) {
 
+    // Start timing
+    rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Check if we actually have a simulated tracker
+    TrackSIM *trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
+    if(trackSIM == nullptr) {
+        //delete trackFEATS; //(fix this error in the future)
+        trackFEATS = new TrackSIM(state->options().max_aruco_features);
+        trackFEATS->set_calibration(camera_calib, camera_fisheye);
+        ROS_ERROR("[SIM]: casting our tracker to a TrackSIM object!");
+    }
+
+    // Cast the tracker to our simulation tracker
+    trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
+    trackSIM->set_width_height(camera_wh);
+
+    // Feed our simulation tracker
+    trackSIM->feed_measurement_simulation(timestamp, camids, feats);
+    rT2 =  boost::posix_time::microsec_clock::local_time();
+
+    // If we do not have VIO initialization, then return an error
+    if(!is_initialized_vio) {
+        ROS_ERROR("[SIM]: your vio system should already be initialized before simulating features!!!");
+        ROS_ERROR("[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!");
+        return;
+    }
+
+    // Call on our propagate and update function
+    do_feature_propagate_update(timestamp);
+
+
+}
 
 
 void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
@@ -550,8 +590,8 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     updaterMSCKF->update(state, featsup_MSCKF);
 
     // Perform SLAM delay init and update
-    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
-    updaterSLAM->update(state, feats_slam_UPDATE);
+    //updaterSLAM->delayed_init(state, feats_slam_DELAYED);
+    //updaterSLAM->update(state, feats_slam_UPDATE);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 

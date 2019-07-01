@@ -39,7 +39,14 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     nh.param<int>("sim_seed_state_init", seed_state_init, 0);
     nh.param<int>("sim_seed_measurements", sim_seed_measurements, 0);
     gen_state_init = std::mt19937(seed_state_init);
+    gen_state_init.seed(seed_state_init);
     gen_meas = std::mt19937(sim_seed_measurements);
+    gen_meas.seed(seed_state_init);
+
+    std::normal_distribution<double> w(0,1);
+    for(int i=0; i<10; i++) {
+        cout << w(gen_meas) << endl;
+    }
 
     // Read in sensor simulation frequencies
     nh.param<int>("sim_freq_cam", freq_cam, 10);
@@ -80,10 +87,10 @@ Simulator::Simulator(ros::NodeHandle& nh) {
         nh.param<bool>("cam"+std::to_string(i)+"_is_fisheye", is_fisheye, false);
 
         // If the desired fov we should simulate
-        std::vector<double> matrix_wh;
-        std::vector<double> matrix_wd_default = {752,480};
-        nh.param<std::vector<double>>("cam"+std::to_string(i)+"_wh", matrix_wh, matrix_wd_default);
-        std::pair<double,double> wh(matrix_wh.at(0),matrix_wh.at(1));
+        std::vector<int> matrix_wh;
+        std::vector<int> matrix_wd_default = {752,480};
+        nh.param<std::vector<int>>("cam"+std::to_string(i)+"_wh", matrix_wh, matrix_wd_default);
+        std::pair<int,int> wh(matrix_wh.at(0),matrix_wh.at(1));
 
         // Camera intrinsic properties
         Eigen::Matrix<double,8,1> cam_calib;
@@ -113,9 +120,9 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
         // Append to our maps for our feature trackers
         camera_fisheye.insert({i,is_fisheye});
-        camera_wh.insert({i,wh});
         camera_intrinsics.insert({i,cam_calib});
         camera_extrinsics.insert({i,cam_eigen});
+        camera_wh.insert({i,wh});
 
         // Debug printing
         cout << "cam_" << i << "wh:" << endl << wh.first << " x " << wh.second << endl;
@@ -153,7 +160,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
 
     // We will create synthetic camera frames and ensure that each has enough features
-    double dt = 0.05;
+    double dt = 0.01;
     double time_synth = spline.get_start_time();
     ROS_INFO("Generating map features at %d rate",(int)(1.0/dt));
 
@@ -187,7 +194,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
     // Debug print
     ROS_INFO("Generated %d map features in total over %d frames",(int)featmap.size(),(int)((time_synth-spline.get_start_time())/dt));
-
+    sleep(1);
 
 }
 
@@ -203,11 +210,11 @@ bool Simulator::get_current_state(Eigen::Matrix<double, 17, 1> &imustate) {
 
     // Current state values
     Eigen::Matrix3d R_GtoI;
-    Eigen::Vector3d p_IinG, w_IinG, v_IinG;
+    Eigen::Vector3d p_IinG, w_IinI, v_IinG;
 
     // Get the pose, velocity, and acceleration
     bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
-    bool success_vel = spline.get_velocity(timestamp, w_IinG, v_IinG);
+    bool success_vel = spline.get_velocity(timestamp, w_IinI, v_IinG);
 
     // If any of these failed, then that means we don't have any more spline
     if(!success_pose || !success_vel) {
@@ -241,12 +248,12 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
 
     // Current state values
     Eigen::Matrix3d R_GtoI;
-    Eigen::Vector3d p_IinG, w_IinG, v_IinG, alpha_IinG, a_IinG;
+    Eigen::Vector3d p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG;
 
     // Get the pose, velocity, and acceleration
     bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
-    bool success_vel = spline.get_velocity(timestamp, w_IinG, v_IinG);
-    bool success_accel = spline.get_acceleration(timestamp, alpha_IinG, a_IinG);
+    bool success_vel = spline.get_velocity(timestamp, w_IinI, v_IinG);
+    bool success_accel = spline.get_acceleration(timestamp, alpha_IinI, a_IinG);
 
     // If any of these failed, then that means we don't have any more spline
     // Thus we should stop the simulation
@@ -256,8 +263,8 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     }
 
     // Transform omega and linear acceleration into imu frame
-    Eigen::Vector3d omega_inI = R_GtoI.transpose()*w_IinG;
-    Eigen::Vector3d accel_inI = R_GtoI.transpose()*(a_IinG+gravity);
+    Eigen::Vector3d omega_inI = w_IinI;
+    Eigen::Vector3d accel_inI = R_GtoI*(a_IinG+gravity);
 
     // Now add noise to these measurements
     double dt = 1.0/freq_imu;
@@ -285,7 +292,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
     // Else lets do a new measurement!!!
     timestamp_last_cam += 1.0/freq_cam;
     timestamp = timestamp_last_cam;
-    time_cam = timestamp_last_cam;
+    time_cam = timestamp_last_cam+calib_camimu_dt;
 
     // Get the pose at the current timestep
     Eigen::Matrix3d R_GtoI;

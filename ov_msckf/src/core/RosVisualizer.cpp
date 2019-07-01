@@ -41,7 +41,7 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     if (nh.hasParam("path_gt")) {
         std::string path_to_gt;
         nh.param<std::string>("path_gt", path_to_gt, "");
-        load_gt_file(path_to_gt, gt_states);
+        DatasetReader::load_gt_file(path_to_gt, gt_states);
     }
 
 }
@@ -334,7 +334,7 @@ void RosVisualizer::publish_groundtruth() {
     Eigen::Matrix<double,17,1> state_gt;
 
     // Check that we have the timestamp in our GT file [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
-    if(_sim == nullptr && (gt_states.empty() || !get_gt_state(_app->get_state()->timestamp(), state_gt, gt_states))) {
+    if(_sim == nullptr && (gt_states.empty() || !DatasetReader::get_gt_state(_app->get_state()->timestamp(), state_gt, gt_states))) {
         return;
     }
 
@@ -407,7 +407,7 @@ void RosVisualizer::publish_groundtruth() {
     summed_number++;
 
     // Nice display for the user
-    ROS_INFO("\033[0;95merror to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m)\033[0m",rmse_ori,rmse_pos,summed_rmse_ori/summed_number,summed_rmse_pos/summed_number);
+    ROS_INFO("\033[0;95merror to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m) | called %d times \033[0m",rmse_ori,rmse_pos,summed_rmse_ori/summed_number,summed_rmse_pos/summed_number, (int)summed_number);
 
     //==========================================================================
     //==========================================================================

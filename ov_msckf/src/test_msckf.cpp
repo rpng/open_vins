@@ -63,7 +63,7 @@ int main(int argc, char** argv)
     if (nh.hasParam("path_gt")) {
         std::string path_to_gt;
         nh.param<std::string>("path_gt", path_to_gt, "");
-        load_gt_file(path_to_gt, gt_states);
+        DatasetReader::load_gt_file(path_to_gt, gt_states);
         ROS_INFO("gt file path is: %s", path_to_gt.c_str());
     }
 
@@ -200,7 +200,7 @@ int main(int argc, char** argv)
         if(max_cameras==1 && has_left) {
             // process once we have initialized with the GT
             Eigen::Matrix<double, 17, 1> imustate;
-            if(!gt_states.empty() && !sys->intialized() && get_gt_state(time_buffer,imustate,gt_states)) {
+            if(!gt_states.empty() && !sys->intialized() && DatasetReader::get_gt_state(time_buffer,imustate,gt_states)) {
                 sys->initialize_with_gt(imustate);
             } else if(gt_states.empty() || sys->intialized()) {
                 sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
@@ -219,7 +219,7 @@ int main(int argc, char** argv)
         if(max_cameras==2 && has_left && has_right) {
             // process once we have initialized with the GT
             Eigen::Matrix<double, 17, 1> imustate;
-            if(!gt_states.empty() && !sys->intialized() && get_gt_state(time_buffer,imustate,gt_states)) {
+            if(!gt_states.empty() && !sys->intialized() && DatasetReader::get_gt_state(time_buffer,imustate,gt_states)) {
                 sys->initialize_with_gt(imustate);
             } else if(gt_states.empty() || sys->intialized()) {
                 sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);

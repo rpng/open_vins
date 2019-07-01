@@ -42,31 +42,17 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackBase(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                  std::unordered_map<size_t, bool> camera_fisheye) :
-                database(new FeatureDatabase()), num_features(200), currid(0) {
-            // Set calibration params
-            set_calibration(camera_calib, camera_fisheye, false);
-        }
+        TrackBase() : database(new FeatureDatabase()), num_features(200), currid(0) { }
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
          */
-        TrackBase(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                  std::unordered_map<size_t, bool> camera_fisheye,
-                  int numfeats, int numaruco) :
-                database(new FeatureDatabase()), num_features(numfeats) {
+        TrackBase(int numfeats, int numaruco) : database(new FeatureDatabase()), num_features(numfeats) {
             // Our current feature ID should be larger then the number of aruco tags we have
             currid = (size_t) numaruco + 1;
-            // Set calibration params
-            set_calibration(camera_calib, camera_fisheye, false);
         }
 
 
@@ -79,7 +65,7 @@ namespace ov_core {
          * @param correct_active If we should re-undistort active features in our database
          */
         void set_calibration(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                             std::unordered_map<size_t, bool> camera_fisheye, bool correct_active) {
+                             std::unordered_map<size_t, bool> camera_fisheye, bool correct_active=false) {
 
             // Clear old maps
             camera_k_OPENCV.clear();

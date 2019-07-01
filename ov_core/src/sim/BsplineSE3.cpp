@@ -117,7 +117,7 @@ bool BsplineSE3::get_pose(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vect
 
 
 
-bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::Vector3d &v_IinG) {
+bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG) {
 
     // Get the bounding poses for the desired timestamp
     double t0, t1, t2, t3;
@@ -127,7 +127,7 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::
 
     // Return failure if we can't get bounding poses
     if(!success) {
-        w_IinG.setZero();
+        w_IinI.setZero();
         v_IinG.setZero();
         return false;
     }
@@ -154,7 +154,7 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::
     // NOTE: Rdot = R*skew(omega) => R^T*Rdot = skew(omega)
     Eigen::Matrix4d pos_interp = pose0*A0*A1*A2;
     Eigen::Matrix4d vel_interp = pose0*(A0dot*A1*A2+A0*A1dot*A2+A0*A1*A2dot);
-    w_IinG = vee(pos_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3));
+    w_IinI = vee(pos_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3));
     v_IinG = vel_interp.block(0,3,3,1);
     return true;
 
@@ -163,7 +163,7 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinG, Eigen::
 
 
 
-bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG, Eigen::Vector3d &a_IinG) {
+bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinI, Eigen::Vector3d &a_IinG) {
 
     // Get the bounding poses for the desired timestamp
     double t0, t1, t2, t3;
@@ -172,7 +172,7 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG,
 
     // Return failure if we can't get bounding poses
     if(!success) {
-        alpha_IinG.setZero();
+        alpha_IinI.setZero();
         a_IinG.setZero();
         return false;
     }
@@ -210,7 +210,7 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinG,
     Eigen::Matrix4d acc_interp = pose0*(A0dotdot*A1*A2+A0*A1dotdot*A2+A0*A1*A2dotdot
                                         +2*A0dot*A1dot*A2+2*A0*A1dot*A2dot+2*A0dot*A1*A2dot);
     Eigen::Matrix3d omegaskew = pos_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3);
-    alpha_IinG = vee(pos_interp.block(0,0,3,3).transpose()*(acc_interp.block(0,0,3,3)-vel_interp.block(0,0,3,3)*omegaskew));
+    alpha_IinI = vee(pos_interp.block(0,0,3,3).transpose()*(acc_interp.block(0,0,3,3)-vel_interp.block(0,0,3,3)*omegaskew));
     a_IinG = acc_interp.block(0,3,3,1);
     return true;
 

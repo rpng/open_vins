@@ -63,6 +63,10 @@ int main(int argc, char** argv)
     //===================================================================================
     //===================================================================================
 
+    // Buffer our camera image
+    double buffer_timecam = -1;
+    std::vector<int> buffer_camids;
+    std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> buffer_feats;
 
     // Step through the rosbag
     while(ros::ok() && sim->ok()) {
@@ -81,8 +85,13 @@ int main(int argc, char** argv)
         std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> feats;
         bool hascam = sim->get_next_cam(time_cam, camids, feats);
         if(hascam) {
-            //sys->feed_measurement_simulation(time_buffer, img0_buffer, 0);
-            viz->visualize();
+            if(buffer_timecam != -1) {
+                sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
+                viz->visualize();
+            }
+            buffer_timecam = time_cam;
+            buffer_camids = camids;
+            buffer_feats = feats;
         }
 
     }

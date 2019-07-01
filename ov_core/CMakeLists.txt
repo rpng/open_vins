@@ -71,6 +71,7 @@ add_library(ov_core_lib
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp
         src/track/TrackKLT.cpp
+        src/track/TrackSIM.cpp
         src/feat/Feature.cpp
         src/feat/FeatureInitializer.cpp
 )
@@ -86,3 +87,7 @@ target_link_libraries(test_tracking ov_core_lib ${thirdparty_libraries})
 
 add_executable(test_simulator src/test_simulator.cpp)
 target_link_libraries(test_simulator ov_core_lib ${thirdparty_libraries})
+
+
+add_executable(test_repeat src/test_repeat.cpp)
+target_link_libraries(test_repeat ov_core_lib ${thirdparty_libraries})

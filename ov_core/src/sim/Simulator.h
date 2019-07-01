@@ -188,9 +188,9 @@ namespace ov_core {
 
         // Camera intrinsics that we will load in
         std::unordered_map<size_t,bool> camera_fisheye;
-        std::unordered_map<size_t,std::pair<double,double>> camera_wh;
         std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_intrinsics;
         std::unordered_map<size_t,Eigen::Matrix<double,7,1>> camera_extrinsics;
+        std::unordered_map<size_t,std::pair<int,int>> camera_wh;
 
         /// Max number of features to have in a single image
         int num_pts;
