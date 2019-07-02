@@ -2,7 +2,6 @@
 #define OV_MSCKF_LANDMARK_H
 
 
-
 #include "Vec.h"
 #include "state/State.h"
 

@@ -8,7 +8,7 @@ using namespace ov_msckf;
 
 
 
-void Propagator::propagate_and_clone(State* state, double timestamp){
+void Propagator::propagate_and_clone(State* state, double timestamp) {
 
     // First lets construct an IMU vector of measurements we need
     vector<IMUDATA> prop_data;
@@ -180,7 +180,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp){
 
 
 void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
-                                     Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd){
+                                     Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd) {
 
     // Set them to zero
     F.setZero();
@@ -264,8 +264,8 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
     } else {
 
-        F.block(th_id, th_id, 3, 3) = Exp(-w_hat * dt);
-        F.block(th_id, bg_id, 3, 3).noalias() = -Exp(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
+        F.block(th_id, th_id, 3, 3) = exp_so3(-w_hat * dt);
+        F.block(th_id, bg_id, 3, 3).noalias() = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
         F.block(bg_id, bg_id, 3, 3).setIdentity();
         F.block(v_id, th_id, 3, 3).noalias() = -R_Gtoi.transpose() * skew_x(a_hat * dt);
         F.block(v_id, v_id, 3, 3).setIdentity();
@@ -276,7 +276,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         F.block(p_id, ba_id, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
         F.block(p_id, p_id, 3, 3).setIdentity();
 
-        G.block(th_id, 0, 3, 3) = -Exp(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
+        G.block(th_id, 0, 3, 3) = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
         G.block(v_id, 3, 3, 3) = -R_Gtoi.transpose() * dt;
         G.block(p_id, 3, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
         G.block(bg_id, 6, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();

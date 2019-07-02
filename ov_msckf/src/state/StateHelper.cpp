@@ -13,11 +13,8 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     //==========================================================
     //==========================================================
     // Part of the Kalman Gain K = M*S^{-1}
-
     assert(res.rows() == R.rows());
     assert(H.rows() == res.rows());
-
-
     Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->n_vars(), res.rows());
 
     std::vector<int> H_id;
@@ -55,7 +52,6 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     Eigen::MatrixXd S(R.rows(), R.rows());
     S.triangularView<Eigen::Upper>() = H * P_small * H.transpose();
     S.triangularView<Eigen::Upper>() += R;
-    //S = 0.5*(S+S.transpose());
 
     // Inverse our S (should we use a more stable method here??)
     Eigen::MatrixXd Sinv = Eigen::MatrixXd::Identity(R.rows(), R.rows());
@@ -67,6 +63,7 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     Cov = Cov.selfadjointView<Eigen::Upper>();
 
     // Calculate our delta and pass it to update all our state variables
+    //cout << "dx = " << endl << (K*res).transpose() << endl;
     state->update(K * res);
 
 }
@@ -98,6 +95,7 @@ Eigen::MatrixXd StateHelper::get_marginal_covariance(State *state, const std::ve
     }
 
     // Return the covariance
+    //Small_cov = 0.5*(Small_cov+Small_cov.transpose());
     return Small_cov;
 }
 
@@ -147,14 +145,14 @@ void StateHelper::marginalize(State *state, Type *marg) {
     Cov_new.block(marg_id, marg_id, x2_size, x2_size) = state->Cov().block(marg_id + marg_size, marg_id + marg_size, x2_size, x2_size);
 
 
-    //Now set new covariance
-    state->Cov() = Cov_new;
-
+    // Now set new covariance
+    state->Cov() = 0.5*(Cov_new+Cov_new.transpose());
+    //state->Cov() = Cov_new;
     assert(state->Cov().rows() == Cov_new.rows());
 
 
-    //Now we keep the remaining variables and update their ordering
-    //Note: DOES NOT SUPPORT MARGINALIZING SUBVARIABLES YET!!!!!!!
+    // Now we keep the remaining variables and update their ordering
+    // Note: DOES NOT SUPPORT MARGINALIZING SUBVARIABLES YET!!!!!!!
     std::vector<Type *> remaining_variables;
     for (size_t i = 0; i < state->variables().size(); i++) {
         //Only keep non-marginal states
@@ -170,7 +168,7 @@ void StateHelper::marginalize(State *state, Type *marg) {
     delete marg;
 
 
-    //Now set variables as the remaining ones
+    // Now set variables as the remaining ones
     state->variables() = remaining_variables;
 
 }
@@ -216,7 +214,7 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
 
     }
 
-    // Check if the current state has the GPS enabled
+    // Check if the current state has this variable
     if (new_clone == nullptr) {
         std::cerr << "CovManager::clone() - Called on variable is not in the state" << std::endl;
         std::cerr << "CovManager::clone() - Ensure that the variable specified is a variable, or sub-variable.." << std::endl;
@@ -255,21 +253,19 @@ bool StateHelper::initialize(State *state, Type *new_variable, const std::vector
     }
 
 
-    //Separate into initializing and updating portions
-
-    //Invertible initializing system
+    // Separate into initializing and updating portions
+    // 1. Invertible initializing system
     Eigen::MatrixXd Hxinit = H_R.block(0, 0, new_var_size, H_R.cols());
     Eigen::MatrixXd H_finit = H_L.block(0, 0, new_var_size, new_var_size);
     Eigen::VectorXd resinit = res.block(0, 0, new_var_size, 1);
     Eigen::MatrixXd Rinit = R.block(0, 0, new_var_size, new_var_size);
 
-
-    //Nullspace projected updating system
+    // 2. Nullspace projected updating system
     Eigen::MatrixXd Hup = H_R.block(new_var_size, 0, H_R.rows() - new_var_size, H_R.cols());
     Eigen::VectorXd resup = res.block(new_var_size, 0, res.rows() - new_var_size, 1);
     Eigen::MatrixXd Rup = R.block(new_var_size, new_var_size, R.rows() - new_var_size, R.rows() - new_var_size);
 
-    //Do mahalanobis distance testing
+    // Do mahalanobis distance testing
     Eigen::MatrixXd P_up = get_marginal_covariance(state, H_order);
 
     assert(Rup.rows() == Hup.rows());
@@ -378,6 +374,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
 
 void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w) {
 
+    // Get our state and covariance
     auto imu = state->imu();
     auto &Cov = state->Cov();
 
@@ -386,7 +383,7 @@ void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w
     Type *posetemp = StateHelper::clone(state, imu->pose());
 
     // Cast to a JPL pose type
-    PoseJPL *pose = dynamic_cast<PoseJPL *>(posetemp);
+    PoseJPL *pose = dynamic_cast<PoseJPL*>(posetemp);
 
     // Check that it was a valid cast
     if (pose == nullptr) {

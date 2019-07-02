@@ -47,7 +47,7 @@ namespace ov_msckf {
          * @param options_aruco Updater options (include measurement noise value) for ARUCO features
          * @param feat_init_options Feature initializer options
          */
-        UpdaterSLAM(UpdaterOptions options_slam, UpdaterOptions options_aruco, FeatureInitializerOptions feat_init_options)
+        UpdaterSLAM(UpdaterOptions &options_slam, UpdaterOptions &options_aruco, FeatureInitializerOptions &feat_init_options)
                     : _options_slam(options_slam), _options_aruco(options_aruco) {
 
             // Save our raw pixel noise squared

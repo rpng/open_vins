@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     // Make the bag duration < 0 to just process to the end of the bag
     double bag_start, bag_durr;
     nh.param<double>("bag_start", bag_start, 2);
-    nh.param<double>("bag_durr", bag_durr, -1);
+    nh.param<double>("bag_durr", bag_durr, 10);
 
 
     //===================================================================================
@@ -101,17 +101,18 @@ int main(int argc, char** argv)
     cam0_calib << 1,1,0,0,0,0,0,0;
 
     // Create our n-camera vectors
-    std::unordered_map<size_t,bool> camera_fisheye;
-    std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calibration;
+    std::map<size_t,bool> camera_fisheye;
+    std::map<size_t,Eigen::VectorXd> camera_calibration;
     camera_fisheye.insert({0,false});
     camera_calibration.insert({0,cam0_calib});
     camera_fisheye.insert({1,false});
     camera_calibration.insert({1,cam0_calib});
 
     // Lets make a feature extractor
-    extractor = new TrackKLT(camera_calibration,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
-    //extractor = new TrackDescriptor(camera_calibration,camera_fisheye,num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
-    //extractor = new TrackAruco(camera_calibration,camera_fisheye,num_aruco,do_downsizing);
+    extractor = new TrackKLT(num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
+    //extractor = new TrackDescriptor(num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
+    //extractor = new TrackAruco(num_aruco,do_downsizing);
+    extractor->set_calibration(camera_calibration, camera_fisheye);
 
 
     //===================================================================================

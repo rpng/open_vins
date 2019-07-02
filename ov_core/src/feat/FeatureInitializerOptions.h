@@ -33,7 +33,7 @@ namespace ov_core {
         double lam_mult = 10;
 
         /// Minimum distance to accept triangulated features
-        double min_dist = .25;
+        double min_dist = 0.25;
 
         /// Minimum distance to accept triangulated features
         double max_dist = 40;

@@ -40,10 +40,10 @@ namespace ov_msckf {
             size_t featid;
 
             /// UV coordinates that this feature has been seen from (mapped by camera ID)
-            std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs;
+            std::unordered_map<size_t, std::vector<Eigen::VectorXf>> uvs;
 
             // UV normalized coordinates that this feature has been seen from (mapped by camera ID)
-            std::unordered_map<size_t, std::vector<Eigen::Vector2f, Eigen::aligned_allocator<Eigen::Vector2f>>> uvs_norm;
+            std::unordered_map<size_t, std::vector<Eigen::VectorXf>> uvs_norm;
 
             /// Timestamps of each UV measurement (mapped by camera ID)
             std::unordered_map<size_t, std::vector<double>> timestamps;
@@ -85,7 +85,7 @@ namespace ov_msckf {
          * @param dz_dzn Derivative in respect to normalized coordinates
          * @param dz_dzeta Derivative in respect to distortion paramters
          */
-        static void get_feature_jacobian_intrinsics(State* state, Eigen::Vector2d uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta);
+        static void get_feature_jacobian_intrinsics(State* state, const Eigen::Vector2d &uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta);
 
 
         /**

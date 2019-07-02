@@ -77,7 +77,7 @@ namespace ov_msckf {
          * @param noises imu noise characteristics (continuous time)
          * @param gravity Global gravity of the system (normally [0,0,9.81])
          */
-        Propagator(NoiseManager noises, Eigen::Matrix<double, 3, 1> gravity) : _noises(noises), _gravity(gravity) {
+        Propagator(NoiseManager noises, Eigen::Vector3d gravity) : _noises(noises), _gravity(gravity) {
             _noises.sigma_w_2 = std::pow(_noises.sigma_w,2);
             _noises.sigma_a_2 = std::pow(_noises.sigma_a,2);
             _noises.sigma_wb_2 = std::pow(_noises.sigma_wb,2);
@@ -92,7 +92,7 @@ namespace ov_msckf {
          * @param wm Gyro angular velocity reading
          * @param am Accelerometer linear acceleration reading
          */
-        void feed_imu(double timestamp, Eigen::Matrix<double, 3, 1> wm, Eigen::Matrix<double, 3, 1> am) {
+        void feed_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am) {
 
             // Create our imu data object
             IMUDATA data;

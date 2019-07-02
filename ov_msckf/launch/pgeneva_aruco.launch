@@ -2,8 +2,8 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="test_msckf" pkg="ov_msckf" type="test_msckf" output="screen" clear_params="true" required="true">
-<!--        <node name="test_msckf" pkg="ov_msckf" type="test_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
+<!--        <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
         <!-- bag topics -->
         <param name="topic_imu"      type="string" value="/imu0" />
@@ -26,6 +26,7 @@
         <param name="max_clones"             type="int"    value="15" />
         <param name="max_slam"               type="int"    value="0" />
         <param name="max_cameras"            type="int"    value="2" />
+        <param name="dt_slam_delay"          type="double" value="5" />
         <param name="feat_representation"    type="string" value="GLOBAL_3D" />
         <param name="init_window_time"       type="double" value="0.5" />
         <param name="init_imu_thresh"        type="double" value="2.0" />

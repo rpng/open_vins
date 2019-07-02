@@ -5,6 +5,7 @@
 #include <iostream>
 #include <thread>
 #include <unordered_map>
+#include <Eigen/StdVector>
 
 #include <ros/ros.h>
 #include <boost/thread.hpp>
@@ -42,31 +43,17 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackBase(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                  std::unordered_map<size_t, bool> camera_fisheye) :
-                database(new FeatureDatabase()), num_features(200), currid(0) {
-            // Set calibration params
-            set_calibration(camera_calib, camera_fisheye, false);
-        }
+        TrackBase() : database(new FeatureDatabase()), num_features(200), currid(0) { }
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
          */
-        TrackBase(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                  std::unordered_map<size_t, bool> camera_fisheye,
-                  int numfeats, int numaruco) :
-                database(new FeatureDatabase()), num_features(numfeats) {
+        TrackBase(int numfeats, int numaruco) : database(new FeatureDatabase()), num_features(numfeats) {
             // Our current feature ID should be larger then the number of aruco tags we have
             currid = (size_t) numaruco + 1;
-            // Set calibration params
-            set_calibration(camera_calib, camera_fisheye, false);
         }
 
 
@@ -78,8 +65,8 @@ namespace ov_core {
          * @param camera_fisheye Map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param correct_active If we should re-undistort active features in our database
          */
-        void set_calibration(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                             std::unordered_map<size_t, bool> camera_fisheye, bool correct_active) {
+        void set_calibration(std::map<size_t,Eigen::VectorXd> camera_calib,
+                             std::map<size_t, bool> camera_fisheye, bool correct_active=false) {
 
             // Clear old maps
             camera_k_OPENCV.clear();
@@ -90,6 +77,9 @@ namespace ov_core {
 
             // Convert values to the OpenCV format
             for (auto const &cam : camera_calib) {
+
+                // Assert we are of size eight
+                assert(cam.second.rows()==8);
 
                 // Camera matrix
                 cv::Matx33d tempK;
@@ -120,7 +110,7 @@ namespace ov_core {
             if(correct_active) {
 
                 // Get all features in this database
-                std::unordered_map<size_t, Feature *> features_idlookup = database->get_internal_data();
+                std::unordered_map<size_t, Feature*> features_idlookup = database->get_internal_data();
 
                 // Loop through and correct each one
                 for(const auto& pair_feat : features_idlookup) {
@@ -200,10 +190,10 @@ namespace ov_core {
          */
         cv::Point2f undistort_point(cv::Point2f pt_in, size_t cam_id) {
             // Determine what camera parameters we should use
-            cv::Matx33d camK = this->camera_k_OPENCV[cam_id];
-            cv::Vec4d camD = this->camera_d_OPENCV[cam_id];
+            cv::Matx33d camK = this->camera_k_OPENCV.at(cam_id);
+            cv::Vec4d camD = this->camera_d_OPENCV.at(cam_id);
             // Call on the fisheye if we should!
-            if (this->camera_fisheye[cam_id]) {
+            if (this->camera_fisheye.at(cam_id)) {
                 return undistort_point_fisheye(pt_in, camK, camD);
             }
             return undistort_point_brown(pt_in, camK, camD);
@@ -257,13 +247,13 @@ namespace ov_core {
         FeatureDatabase *database;
 
         /// If we are a fisheye model or not
-        std::unordered_map<size_t, bool> camera_fisheye;
+        std::map<size_t, bool> camera_fisheye;
 
         /// Camera intrinsics in OpenCV format
-        std::unordered_map<size_t, cv::Matx33d> camera_k_OPENCV;
+        std::map<size_t, cv::Matx33d> camera_k_OPENCV;
 
         /// Camera distortion in OpenCV format
-        std::unordered_map<size_t, cv::Vec4d> camera_d_OPENCV;
+        std::map<size_t, cv::Vec4d> camera_d_OPENCV;
 
         /// Number of features we should try to track frame to frame
         int num_features;

@@ -25,27 +25,18 @@ namespace ov_core {
 
         /**
          * @brief Public default constructor
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          */
-        TrackAruco(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                   std::unordered_map<size_t, bool> camera_fisheye) :
-                TrackBase(camera_calib, camera_fisheye), max_tag_id(1024), do_downsizing(false) {
+        TrackAruco() : TrackBase(), max_tag_id(1024), do_downsizing(false) {
             aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
             aruco_params = cv::aruco::DetectorParameters::create();
         }
 
         /**
          * @brief Public constructor with configuration variables
-         * @param camera_calib Calibration parameters for all cameras [fx,fy,cx,cy,d1,d2,d3,d4]
-         * @param camera_fisheye map of camera_id => bool if we should do radtan or fisheye distortion model
          * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
          * @param do_downsizing we can scale the image by 1/2 to increase Aruco tag extraction speed
          */
-        explicit TrackAruco(std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib,
-                            std::unordered_map<size_t, bool> camera_fisheye, int numaruco, bool do_downsizing) :
-                TrackBase(camera_calib, camera_fisheye, 0, numaruco), max_tag_id(numaruco),
-                do_downsizing(do_downsizing) {
+        explicit TrackAruco(int numaruco, bool do_downsizing) : TrackBase(0, numaruco), max_tag_id(numaruco), do_downsizing(do_downsizing) {
             aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
             aruco_params = cv::aruco::DetectorParameters::create();
         }

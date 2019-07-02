@@ -72,7 +72,7 @@ namespace ov_core {
          * @brief Default constructor
          * @param options Options for the initializer
          */
-        FeatureInitializer(FeatureInitializerOptions options) : _options(options) {}
+        FeatureInitializer(FeatureInitializerOptions &options) : _options(options) {}
 
         /**
          * @brief Uses a linear triangulation to get initial estimate for the feature

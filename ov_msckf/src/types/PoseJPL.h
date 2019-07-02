@@ -39,7 +39,10 @@ namespace ov_msckf {
             set_fej(pose0);
         }
 
-        ~PoseJPL() {}
+        ~PoseJPL() {
+            delete _q;
+            delete _p;
+        }
 
         /**
          * @brief Sets id used to track location of variable in the filter covariance

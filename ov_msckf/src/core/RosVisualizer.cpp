@@ -5,7 +5,7 @@ using namespace ov_msckf;
 
 
 
-RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app) : _nh(nh), _app(app) {
+RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *sim) : _nh(nh), _app(app), _sim(sim) {
 
 
     // Setup our transform broadcaster
@@ -24,6 +24,8 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app) : _nh(nh), _a
     ROS_INFO("Publishing: %s", pub_points_msckf.getTopic().c_str());
     pub_points_aruco = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_aruco", 2);
     ROS_INFO("Publishing: %s", pub_points_aruco.getTopic().c_str());
+    pub_points_sim = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
+    ROS_INFO("Publishing: %s", pub_points_sim.getTopic().c_str());
 
     // Our tracking image
     pub_tracks = nh.advertise<sensor_msgs::Image>("/ov_msckf/trackhist", 2);
@@ -39,7 +41,7 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app) : _nh(nh), _a
     if (nh.hasParam("path_gt")) {
         std::string path_to_gt;
         nh.param<std::string>("path_gt", path_to_gt, "");
-        load_gt_file(path_to_gt, gt_states);
+        DatasetReader::load_gt_file(path_to_gt, gt_states);
     }
 
 }
@@ -282,19 +284,62 @@ void RosVisualizer::publish_features() {
     // Publish
     pub_points_aruco.publish(cloud_ARUCO);
 
+
+    //====================================================================
+    //====================================================================
+
+    // Skip the rest of we are not doing simulation
+    if(_sim == nullptr)
+        return;
+
+    // Get our good features
+    std::unordered_map<size_t,Eigen::Vector3d> feats_sim = _sim->get_map();
+
+    // Declare message and sizes
+    sensor_msgs::PointCloud2 cloud_SIM;
+    cloud_SIM.header.frame_id = "global";
+    cloud_SIM.header.stamp = ros::Time::now();
+    cloud_SIM.width  = 3*feats_sim.size();
+    cloud_SIM.height = 1;
+    cloud_SIM.is_bigendian = false;
+    cloud_SIM.is_dense = false; // there may be invalid points
+
+    // Setup pointcloud fields
+    sensor_msgs::PointCloud2Modifier modifier_SIM(cloud_SIM);
+    modifier_SIM.setPointCloud2FieldsByString(1,"xyz");
+    modifier_SIM.resize(3*feats_sim.size());
+
+    // Iterators
+    sensor_msgs::PointCloud2Iterator<float> out_x_SIM(cloud_SIM, "x");
+    sensor_msgs::PointCloud2Iterator<float> out_y_SIM(cloud_SIM, "y");
+    sensor_msgs::PointCloud2Iterator<float> out_z_SIM(cloud_SIM, "z");
+
+    // Fill our iterators
+    for(const auto &pt : feats_sim) {
+        *out_x_SIM = pt.second(0); ++out_x_SIM;
+        *out_y_SIM = pt.second(1); ++out_y_SIM;
+        *out_z_SIM = pt.second(2); ++out_z_SIM;
+    }
+
+    // Publish
+    pub_points_sim.publish(cloud_SIM);
+
 }
 
 
 
 void RosVisualizer::publish_groundtruth() {
 
-    // Return if we don't have gt states
-    if(gt_states.empty())
-        return;
+    // Our groundtruth state
+    Eigen::Matrix<double,17,1> state_gt;
 
     // Check that we have the timestamp in our GT file [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
-    Eigen::Matrix<double,17,1> state_gt;
-    if(!get_gt_state(_app->get_state()->timestamp(), state_gt, gt_states)) {
+    if(_sim == nullptr && (gt_states.empty() || !DatasetReader::get_gt_state(_app->get_state()->timestamp(), state_gt, gt_states))) {
+        return;
+    }
+
+    // Get the simulated groundtruth
+    if(_sim != nullptr && !_sim->get_current_state(state_gt)) {
         return;
     }
 
@@ -362,7 +407,7 @@ void RosVisualizer::publish_groundtruth() {
     summed_number++;
 
     // Nice display for the user
-    ROS_INFO("\033[0;95merror to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m)\033[0m",rmse_ori,rmse_pos,summed_rmse_ori/summed_number,summed_rmse_pos/summed_number);
+    ROS_INFO("\033[0;95merror to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m) | called %d times \033[0m",rmse_ori,rmse_pos,summed_rmse_ori/summed_number,summed_rmse_pos/summed_number, (int)summed_number);
 
     //==========================================================================
     //==========================================================================

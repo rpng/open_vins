@@ -149,19 +149,19 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
 
 
 
-void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, Eigen::Vector2d uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta) {
+void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::Vector2d &uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta) {
 
     // Calculate distortion uv and jacobian
     if(isfisheye) {
 
         // Calculate distorted coordinates for fisheye
-        double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+        double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
         double theta = std::atan(r);
         double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
 
         // Handle when r is small (meaning our xy is near the camera center)
-        double inv_r = r > 1e-8 ? 1.0/r : 1;
-        double cdist = r > 1e-8 ? theta_d * inv_r : 1;
+        double inv_r = (r > 1e-8)? 1.0/r : 1.0;
+        double cdist = (r > 1e-8)? theta_d * inv_r : 1.0;
 
         // Calculate distorted coordinates for fisheye
         double x1 = uv_norm(0)*cdist;
@@ -373,13 +373,13 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             if(state->get_model_CAM(pair.first)) {
 
                 // Calculate distorted coordinates for fisheye
-                double r = sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+                double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
                 double theta = std::atan(r);
                 double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
 
                 // Handle when r is small (meaning our xy is near the camera center)
-                double inv_r = r > 1e-8 ? 1.0/r : 1;
-                double cdist = r > 1e-8 ? theta_d * inv_r : 1;
+                double inv_r = (r > 1e-8)? 1.0/r : 1.0;
+                double cdist = (r > 1e-8)? theta_d * inv_r : 1.0;
 
                 // Calculate distorted coordinates for fisheye
                 double x1 = uv_norm(0)*cdist;
@@ -510,9 +510,10 @@ void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::Matri
     }
 
     // The H_f jacobian max rank is 3, thus size of the left nullspace is Hf.rows()-3
-    //H_f = H_f.block(H_f.cols(),0,H_f.rows()-H_f.cols(),H_f.cols());
-    H_x = H_x.block(H_f.cols(),0,H_x.rows()-H_f.cols(),H_x.cols());
-    res = res.block(H_f.cols(),0,res.rows()-H_f.cols(),res.cols());
+    // NOTE: need to eigen3 eval here since this experiences aliasing!
+    //H_f = H_f.block(H_f.cols(),0,H_f.rows()-H_f.cols(),H_f.cols()).eval();
+    H_x = H_x.block(H_f.cols(),0,H_x.rows()-H_f.cols(),H_x.cols()).eval();
+    res = res.block(H_f.cols(),0,res.rows()-H_f.cols(),res.cols()).eval();
 
     // Sanity check
     assert(H_x.rows()==res.rows());
@@ -544,7 +545,7 @@ void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::Ve
     int n = (int)H_x.cols();
     while (!found_rank && r < n+1 && r < H_x.rows()) {
         double eps = H_x.block(r, 0, 1, H_x.cols()).squaredNorm();
-        if (eps < 1e-20) {
+        if (eps < 1e-10) {
             found_rank = true;
         } else {
             r++;
@@ -555,6 +556,10 @@ void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::Ve
     H_x.conservativeResize(r, H_x.cols());
     res.conservativeResize(r, res.cols());
 
+    // Hx is square, zero all below diagonal elements
+    for(int i=1; i<H_x.rows(); i++) {
+        H_x.block(i,0,1,i).setZero();
+    }
 
 }
 
