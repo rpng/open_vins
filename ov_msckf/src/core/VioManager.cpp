@@ -485,7 +485,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     std::vector<Feature*> feats_lost, feats_marg, feats_slam;
     feats_lost = trackFEATS->get_feature_database()->features_not_containing_newer(state->timestamp());
     feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep());
-    if(trackARUCO != nullptr) {
+    if(trackARUCO != nullptr && timestamp-startup_time >= dt_statupdelay) {
         feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep());
     }
 

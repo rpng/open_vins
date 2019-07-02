@@ -24,6 +24,11 @@ Please take a look at the feature list below for full details on what the system
 * Sliding window visual-inertial MSCKF
 * Modular covariance type system
 * Comprehensive documentation and derivations
+* Extendable visual-inertial simulator
+    * On manifold SE(3) b-spline
+    * Arbitrary number of cameras
+    * Arbitrary sensor rate
+    * Automatic feature generation
 * Five different feature representations
     1. Global XYZ
     2. Global inverse depth

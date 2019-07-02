@@ -6,45 +6,70 @@
 
 @section gs-data-euroc The EuRoC MAV Dataset
 
+The ETH ASL [EuRoC MAV dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets) is one of the most used datasets in the visual-inertial / simultaneous localization and mapping (SLAM) research literature.
+The reason for this is the synchronised inertial+camera sensor data and the high quality groundtruth.
+The dataset contains different sequences of varying difficulty of a Micro Aerial Vehicle (MAV) flying in an indoor room.
+Monochrome stereo images are collected by a two Aptina MT9V034 global shutter cameras at 20 frames per seconds, while a ADIS16448 MEMS inertial unit provides linear accelerations and angular velocities at a rate of 200 samples per second.
+We recommend that most users start testing on this dataset before moving on to the other datasets that our system support or before trying with your own collected data.
+Note that we also focus on the vicon room datasets as full 6 dof pose collection of the MAV was available.
 
-| Dataset Name | Length | Link Dataset | Link Groundtruth | Link Calibration |
+
+@m_div{m-text-center}
+| Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-
+| Vicon Room 1 01 | - | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_01_easy/V1_01_easy.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+| Vicon Room 1 02 | - | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_02_medium/V1_02_medium.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+| Vicon Room 1 03 | - | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_03_difficult/V1_03_difficult.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+| Vicon Room 2 01 | - | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_01_easy/V2_01_easy.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+| Vicon Room 2 02 | - | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_02_medium/V2_02_medium.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+| Vicon Room 2 03 | - | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_03_difficult/V2_03_difficult.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+@m_enddiv
 
 
 
 
 @section gs-data-tumvi TUM Visual-Inertial Dataset
 
+The TUM [Visual-Inertial Dataset](https://vision.in.tum.de/data/datasets/visual-inertial-dataset) is a more recent dataset that was presented to provide a way to evaluate state-of-the-art visual inertial odometery approaches.
+As compared to the EuRoC MAV datasets, this dataset provides photometric calibration of the cameras which has not been available in any other visual-inertal dataset for researchers.
+Monochrome stereo images are collected by two IDS uEye UI-3241LE-M-GL global shutter cameras at 20 frames per second, while a Bosch BMI160 inertial unit provides linear accelerations and angular velocities at a rate of 200 samples per second.
+Not all datasets have groundtruth avalible throughout the entire trajectory as the motion capture system is limited to the starting and ending room.
+There are quite a few very challenging outdoor handheld datasets which are a challenging direction for research.
+Note that we focus on the room datasets as full 6 dof pose collection is available over the total trajectory.
 
-| Dataset Name | Length | Link Dataset | Link Groundtruth | Link Calibration |
+
+@m_div{m-text-center}
+| Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-
+| room1 | - | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room1_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+| room2 | - | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room2_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+| room3 | - | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room3_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+| room4 | - | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room4_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+| room5 | - | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room5_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+| room6 | - | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room6_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+@m_enddiv
 
 
 
 
 @section gs-data-rpng RPNG Dataset
 
+In additional the above community maintained datasets, we have also released a few datasets.
+Please cite the Open VINS paper if you use any of these datasets in your works 
+Most of these datasets do not have perfect calibration parameters, and some are not time synchronised.
+Thus, please ensure that you have enabled online calibration of these parameters.
 
-| Dataset Name | Length | Link Dataset | Link Groundtruth | Link Calibration |
+
+@m_div{m-text-center}
+| Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-|              |        |              |                  |                  |
-
+| ArUco Room 01 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Room 02 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Hallway 01 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Hallway 02 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| UD Gore Hall | - | tbh | none | tbh |
+| UD Smith Hall | - | tbh | none | tbh |
+@m_enddiv
 
 
 

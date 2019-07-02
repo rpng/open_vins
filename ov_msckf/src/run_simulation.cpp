@@ -27,9 +27,6 @@ VioManager* sys;
 RosVisualizer* viz;
 
 
-//#define EIGEN_DONT_ALIGN_STATICALLY
-
-
 // Main function
 int main(int argc, char** argv)
 {
