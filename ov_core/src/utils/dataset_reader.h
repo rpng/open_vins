@@ -29,10 +29,6 @@
 
 using namespace std;
 
-/**
- * @namespace ov_core
- * @brief Core algorithms for Open VINS
- */
 namespace ov_core {
 
 

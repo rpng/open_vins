@@ -8,16 +8,16 @@
 using namespace ov_core;
 
 
-
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 
     /**
      * @brief Performs the state covariance and mean propagation using imu measurements
+     *
+     * We will first select what measurements we need to propagate with.
+     * We then compute the state transition matrix at each step and update the state and covariance.
+     * For derivations look at @ref propagation page which has detailed equations.
+     *
      */
     class Propagator {
 

@@ -17,10 +17,7 @@
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
+
 namespace ov_msckf {
 
 

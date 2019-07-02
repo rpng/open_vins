@@ -11,10 +11,6 @@
 #include "utils/quat_ops.h"
 
 
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 
@@ -25,6 +21,8 @@ namespace ov_msckf {
      * This will create the Jacobian based on what representation our state is in.
      * If we are using the anchor representation then we also have additional Jacobians in respect to the anchor state.
      * Also has functions such as nullspace projection and full jacobian construction.
+     * For derivations look at @ref update-feat page which has detailed equations.
+     *
      */
     class UpdaterHelper {
 

@@ -37,7 +37,7 @@ ALIASES += \
 ##! M_FAVICON               = docs/img/favicon-dark.png
 
 
-##! M_LINKS_NAVBAR1 = pages namespaceov__core namespaceov__msckf annotated
+##! M_LINKS_NAVBAR1 = pages namespaceov__core namespaceov__eval namespaceov__msckf annotated
 ##! M_LINKS_NAVBAR2 = \
 ##!     "<a href=\"https://github.com/rpng/open_vins/">GitHub</a>"
 

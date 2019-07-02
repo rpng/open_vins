@@ -14,7 +14,7 @@
     <maintainer email="keck@udel.edu">Kevin Eckenhoff</maintainer>
 
     <!-- Licensing -->
-    <license>All Rights Reserved</license>
+    <license>GNU General Public License v3.0</license>
 
     <!-- Dependencies which this package needs to build itself. -->
     <buildtool_depend>catkin</buildtool_depend>
