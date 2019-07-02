@@ -21,20 +21,20 @@ using namespace ov_core;
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "test_repeat");
-    ros::NodeHandle nh("~");
 
     //===================================================
     //===================================================
 
     // Create the simulator
-    Simulator sim1(nh);
+    ros::NodeHandle nh1("~");
+    Simulator sim1(nh1);
 
     // Vector of stored measurements
     std::vector<double> vec_imutime;
     std::vector<double> vec_camtime;
     std::vector<Eigen::Vector3d> vec_am;
     std::vector<Eigen::Vector3d> vec_wm;
-    std::vector<std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>>> vec_feats;
+    std::vector<std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>>> vec_feats;
 
     // Continue to simulate until we have processed all the measurements
     while(ros::ok() && sim1.ok()) {
@@ -52,7 +52,7 @@ int main(int argc, char** argv)
         // CAM: get the next simulated camera uv measurements if we have them
         double time_cam;
         std::vector<int> camids;
-        std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> feats;
+        std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> feats;
         bool hascam = sim1.get_next_cam(time_cam, camids, feats);
         if(hascam) {
             vec_camtime.push_back(time_cam);
@@ -67,7 +67,8 @@ int main(int argc, char** argv)
 
 
     // Create the simulator
-    Simulator sim2(nh);
+    ros::NodeHandle nh2("~");
+    Simulator sim2(nh2);
     size_t ct_imu = 0;
     size_t ct_cam = 0;
 
@@ -92,7 +93,7 @@ int main(int argc, char** argv)
         // CAM: get the next simulated camera uv measurements if we have them
         double time_cam;
         std::vector<int> camids;
-        std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> feats;
+        std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> feats;
         bool hascam = sim2.get_next_cam(time_cam, camids, feats);
         if(hascam) {
             assert(time_cam==vec_camtime.at(ct_cam));
@@ -111,6 +112,7 @@ int main(int argc, char** argv)
 
 
     // Done!
+    ROS_INFO("success! they all are the same!");
     return EXIT_SUCCESS;
 
 

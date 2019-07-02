@@ -65,7 +65,7 @@ int main(int argc, char** argv)
     // Make the bag duration < 0 to just process to the end of the bag
     double bag_start, bag_durr;
     nh.param<double>("bag_start", bag_start, 2);
-    nh.param<double>("bag_durr", bag_durr, -1);
+    nh.param<double>("bag_durr", bag_durr, 10);
 
 
     //===================================================================================
@@ -101,8 +101,8 @@ int main(int argc, char** argv)
     cam0_calib << 1,1,0,0,0,0,0,0;
 
     // Create our n-camera vectors
-    std::unordered_map<size_t,bool> camera_fisheye;
-    std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calibration;
+    std::map<size_t,bool> camera_fisheye;
+    std::map<size_t,Eigen::VectorXd> camera_calibration;
     camera_fisheye.insert({0,false});
     camera_calibration.insert({0,cam0_calib});
     camera_fisheye.insert({1,false});

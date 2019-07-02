@@ -4,6 +4,7 @@
 
 #include <string>
 #include <algorithm>
+#include <Eigen/StdVector>
 
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
@@ -53,7 +54,7 @@ namespace ov_msckf {
          * @param wm Angular velocity
          * @param am Linear acceleration
          */
-        void feed_measurement_imu(double timestamp, Eigen::Matrix<double,3,1> wm, Eigen::Matrix<double,3,1> am);
+        void feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am);
 
 
         /**
@@ -81,14 +82,14 @@ namespace ov_msckf {
          * @param camids Camera ids that we have simulated measurements for
          * @param feats Raw uv simulated measurements
          */
-        void feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats);
+        void feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats);
 
 
         /**
          * @brief Given a state, this will initialize our IMU state.
          * @param imustate State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
          */
-        void initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
+        void initialize_with_gt(Eigen::Matrix<double,17,1> imustate) {
 
             // Initialize the system
             state->imu()->set_value(imustate.block(1,0,16,1));
@@ -212,9 +213,9 @@ namespace ov_msckf {
         double startup_time = -1;
 
         // Camera intrinsics that we will load in
-        std::unordered_map<size_t,bool> camera_fisheye;
-        std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_calib;
-        std::unordered_map<size_t,std::pair<int,int>> camera_wh;
+        std::map<size_t,bool> camera_fisheye;
+        std::map<size_t,Eigen::VectorXd> camera_calib;
+        std::map<size_t,std::pair<int,int>> camera_wh;
 
     };
 

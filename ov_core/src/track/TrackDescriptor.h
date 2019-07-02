@@ -57,8 +57,7 @@ namespace ov_core {
          * @param cam_id_left first image camera id
          * @param cam_id_right second image camera id
          */
-        void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left,
-                         size_t cam_id_right) override;
+        void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) override;
 
 
     protected:
@@ -75,8 +74,7 @@ namespace ov_core {
          * Our vector of IDs will be later overwritten when we match features temporally to the previous frame's features.
          * See robust_match() for the matching.
          */
-        void perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, cv::Mat &desc0,
-                                         std::vector<size_t> &ids0);
+        void perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, cv::Mat &desc0, std::vector<size_t> &ids0);
 
         /**
          * @brief Detects new features in the current stereo pair
@@ -96,8 +94,8 @@ namespace ov_core {
          * Our vector of IDs will be later overwritten when we match features temporally to the previous frame's features.
          * See robust_match() for the matching.
          */
-        void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
-                                      std::vector<cv::KeyPoint> &pts1,
+        void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1,
+                                      std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
                                       cv::Mat &desc0, cv::Mat &desc1,
                                       size_t cam_id0, size_t cam_id1,
                                       std::vector<size_t> &ids0, std::vector<size_t> &ids1);
@@ -123,10 +121,9 @@ namespace ov_core {
         // Helper functions for the robust_match function
         // Original code is from the "RobustMatcher" in the opencv examples
         // https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
-        void robust_ratio_test(std::vector<std::vector<cv::DMatch> > &matches);
-
-        void robust_symmetry_test(std::vector<std::vector<cv::DMatch> > &matches1,
-                                  std::vector<std::vector<cv::DMatch> > &matches2,
+        void robust_ratio_test(std::vector<std::vector<cv::DMatch>> &matches);
+        void robust_symmetry_test(std::vector<std::vector<cv::DMatch>> &matches1,
+                                  std::vector<std::vector<cv::DMatch>> &matches2,
                                   std::vector<cv::DMatch> &good_matches);
 
         // Timing variables

@@ -18,7 +18,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     ROS_INFO("=======================================");
 
     // Load the groundtruth trajectory and its spline
-    std::string path_traj = "/home/patrick/workspace/catkin_ws_ov/src/rpg_trajectory_evaluation/results/laptop/vio_mono/laptop_vio_mono_V2_01/stamped_groundtruth.txt";
+    std::string path_traj = "/home/patrick/workspace/catkin_ws_ov/src/open_vins/ov_data/sim/udel_gore.txt";
     nh.param<std::string>("sim_traj_path", path_traj, path_traj);
     load_data(path_traj);
     spline.feed_trajectory(traj_data);
@@ -42,11 +42,6 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     gen_state_init.seed(seed_state_init);
     gen_meas = std::mt19937(sim_seed_measurements);
     gen_meas.seed(seed_state_init);
-
-    std::normal_distribution<double> w(0,1);
-    for(int i=0; i<10; i++) {
-        cout << w(gen_meas) << endl;
-    }
 
     // Read in sensor simulation frequencies
     nh.param<int>("sim_freq_cam", freq_cam, 10);
@@ -176,8 +171,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
         // Loop through each camera
         for(int i=0; i<max_cameras; i++) {
             // Get the uv features for this frame
-            std::vector<std::pair<size_t,Eigen::Vector2d>> uvs;
-            uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
+            std::vector<std::pair<size_t,Eigen::VectorXf>> uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
             // If we do not have enough, generate more
             if((int)uvs.size() < num_pts) {
                 generate_points(R_GtoI, p_IinG, i, featmap, num_pts-(int)uvs.size());
@@ -194,7 +188,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
     // Debug print
     ROS_INFO("Generated %d map features in total over %d frames",(int)featmap.size(),(int)((time_synth-spline.get_start_time())/dt));
-    sleep(1);
+    sleep(2);
 
 }
 
@@ -202,7 +196,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
 
 
-bool Simulator::get_current_state(Eigen::Matrix<double, 17, 1> &imustate) {
+bool Simulator::get_current_state(Eigen::Matrix<double,17,1> &imustate) {
 
     // Set to default state
     imustate.setZero();
@@ -283,7 +277,7 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
 
 
 
-bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats) {
+bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
 
     // Return if the imu measurement should go before us
     if(timestamp_last_imu+1.0/freq_imu < timestamp_last_cam+1.0/freq_cam)
@@ -309,8 +303,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
     for(int i=0; i<max_cameras; i++) {
 
         // Get the uv features for this frame
-        std::vector<std::pair<size_t,Eigen::Vector2d>> uvs;
-        uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
+        std::vector<std::pair<size_t,Eigen::VectorXf>> uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
 
         // If we do not have enough, generate more
         if((int)uvs.size() < num_pts) {
@@ -349,6 +342,10 @@ void Simulator::load_data(std::string path_traj) {
         ROS_ERROR("ERROR: %s",path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
+
+    // Debug print
+    std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
+    ROS_INFO("[SIM]: loaded trajectory %s",base_filename.c_str());
 
     // Loop through each line of this file
     std::string current_line;
@@ -400,7 +397,7 @@ void Simulator::load_data(std::string path_traj) {
 
 
 
-std::vector<std::pair<size_t,Eigen::Vector2d>> Simulator::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
+std::vector<std::pair<size_t,Eigen::VectorXf>> Simulator::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
                                                                              int camid, const std::unordered_map<size_t,Eigen::Vector3d> &feats) {
 
     // Assert we have good camera
@@ -416,7 +413,7 @@ std::vector<std::pair<size_t,Eigen::Vector2d>> Simulator::project_pointcloud(con
     Eigen::Matrix<double,8,1> cam_d = camera_intrinsics.at(camid);
 
     // Our projected uv true measurements
-    std::vector<std::pair<size_t,Eigen::Vector2d>> uvs;
+    std::vector<std::pair<size_t,Eigen::VectorXf>> uvs;
 
     // Loop through our map
     for(const auto &feat : feats) {
@@ -425,12 +422,16 @@ std::vector<std::pair<size_t,Eigen::Vector2d>> Simulator::project_pointcloud(con
         Eigen::Vector3d p_FinI = R_GtoI*(feat.second-p_IinG);
         Eigen::Vector3d p_FinC = R_ItoC*p_FinI+p_IinC;
 
+        // Skip cloud if too far away
+        if(p_FinC(2) > 50 || p_FinC(2) < 0.5)
+            continue;
+
         // Project to normalized coordinates
-        Eigen::Vector2d uv_norm;
+        Eigen::Vector2f uv_norm;
         uv_norm << p_FinC(0)/p_FinC(2),p_FinC(1)/p_FinC(2);
 
         // Distort the normalized coordinates (false=radtan, true=fisheye)
-        Eigen::Vector2d uv_dist;
+        Eigen::Vector2f uv_dist;
 
         // Calculate distortion uv and jacobian
         if(camera_fisheye.at(camid)) {

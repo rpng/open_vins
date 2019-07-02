@@ -27,6 +27,7 @@ VioManager* sys;
 RosVisualizer* viz;
 
 
+//#define EIGEN_DONT_ALIGN_STATICALLY
 
 
 // Main function
@@ -34,7 +35,7 @@ int main(int argc, char** argv)
 {
 
     // Launch our ros node
-    ros::init(argc, argv, "test_msckf");
+    ros::init(argc, argv, "test_simulation");
     ros::NodeHandle nh("~");
 
     // Create our VIO system
@@ -66,7 +67,7 @@ int main(int argc, char** argv)
     // Buffer our camera image
     double buffer_timecam = -1;
     std::vector<int> buffer_camids;
-    std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> buffer_feats;
+    std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> buffer_feats;
 
     // Step through the rosbag
     while(ros::ok() && sim->ok()) {
@@ -82,7 +83,7 @@ int main(int argc, char** argv)
         // CAM: get the next simulated camera uv measurements if we have them
         double time_cam;
         std::vector<int> camids;
-        std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> feats;
+        std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> feats;
         bool hascam = sim->get_next_cam(time_cam, camids, feats);
         if(hascam) {
             if(buffer_timecam != -1) {

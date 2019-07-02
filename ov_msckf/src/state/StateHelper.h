@@ -37,8 +37,8 @@ namespace ov_msckf {
          * @param res residual of updating measurement
          * @param R updating measurement covariance
          */
-        static void EKFUpdate(State *state, const std::vector<Type *> &H_order, const Eigen::MatrixXd &H,
-                              const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
+        static void EKFUpdate(State *state, const std::vector<Type *> &H_order,
+                              const Eigen::MatrixXd &H, const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
         /**
         * @brief For a given set of variables, this will this will calculate a smaller covariance.

@@ -6,7 +6,7 @@ using namespace ov_core;
 
 
 
-void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats) {
+void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
 
 
     // Assert our two vectors are equal

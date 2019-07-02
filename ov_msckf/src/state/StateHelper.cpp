@@ -61,10 +61,8 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     // Update Covariance
     Cov.triangularView<Eigen::Upper>() -= K * M_a.transpose();
     Cov = Cov.selfadjointView<Eigen::Upper>();
-    //Cov = 0.5*(Cov+Cov.transpose());
 
     // Calculate our delta and pass it to update all our state variables
-    //cout << "H = " << endl << H << endl;
     //cout << "dx = " << endl << (K*res).transpose() << endl;
     state->update(K * res);
 

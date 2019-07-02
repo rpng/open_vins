@@ -245,8 +245,7 @@ void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d_current;
-    grid_2d_current.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d_current = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
     auto it0 = pts0.begin();
     auto it2 = ids0.begin();
     while(it0 != pts0.end()) {
@@ -278,8 +277,7 @@ void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d;
-    grid_2d.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
     for(auto& kpt : pts0) {
         grid_2d((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
     }
@@ -318,8 +316,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d_current;
-    grid_2d_current.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d_current = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
     auto it0 = pts0.begin();
     auto it1 = pts1.begin();
     auto it2 = ids0.begin();
@@ -358,8 +355,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d;
-    grid_2d.resize((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
     for(auto& kpt : pts0) {
         grid_2d((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
     }

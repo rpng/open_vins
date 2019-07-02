@@ -102,7 +102,7 @@ namespace ov_core {
          *
          * @param traj_points Trajectory poses that we will convert into control points (timestamp(s), q_GtoI, p_IinG)
          */
-        void feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::aligned_allocator<Eigen::Matrix<double,8,1>>> traj_points);
+        void feed_trajectory(std::vector<Eigen::VectorXd> traj_points);
 
 
         /**
@@ -128,7 +128,7 @@ namespace ov_core {
         /**
          * @brief Gets the angular and linear acceleration at a given timestamp
          * @param timestamp Desired time to get the pose at
-         * @param alpha_IinG Angular acceleration in the inertial frame
+         * @param alpha_IinI Angular acceleration in the inertial frame
          * @param a_IinG Linear acceleration in the global frame
          * @return False if we can't find it
          */
@@ -150,7 +150,7 @@ namespace ov_core {
         double timestamp_start;
 
         /// Our control SE3 control poses (R_ItoG, p_IinG)
-        std::map<double,Eigen::Matrix4d> control_points;
+        std::map<double,Eigen::MatrixXd> control_points;
 
 
         /**
@@ -167,7 +167,7 @@ namespace ov_core {
          * @param pose1 SE(3) pose of the second pose
          * @return False if we are unable to find bounding poses
          */
-        bool find_bounding_poses(double timestamp, std::map<double,Eigen::Matrix4d> &poses,
+        bool find_bounding_poses(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
                                  double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1);
 
 
@@ -186,7 +186,7 @@ namespace ov_core {
          * @param pose3 SE(3) pose of the fourth pose
          * @return False if we are unable to find bounding poses
          */
-        bool find_bounding_control_points(double timestamp, std::map<double,Eigen::Matrix4d> &poses,
+        bool find_bounding_control_points(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
                                           double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1,
                                           double &t2, Eigen::Matrix4d &pose2, double &t3, Eigen::Matrix4d &pose3);
 

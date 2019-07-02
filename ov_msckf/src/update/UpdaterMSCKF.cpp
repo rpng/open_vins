@@ -165,6 +165,9 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         if(chi2 > _options.chi2_multipler*chi2_check) {
             (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
+            //cout << "featid = " << feat.featid << endl;
+            //cout << "chi2 = " << chi2 << " > " << _options.chi2_multipler*chi2_check << endl;
+            //cout << "res = " << endl << res.transpose() << endl;
             continue;
         }
 

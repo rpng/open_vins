@@ -230,7 +230,7 @@ namespace ov_msckf {
 
         /// Access a specific variable by its id
         Type *variables(size_t i) {
-            return _variables[i];
+            return _variables.at(i);
         }
 
         /// Insert a new variable into our vector (

@@ -42,7 +42,7 @@ endif()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
 # Enable debug flags (use if you want to debug in gdb)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninitialized")
 
 # Include our header files
 include_directories(
@@ -79,9 +79,9 @@ target_link_libraries(ov_msckf ${thirdparty_libraries})
 ##################################################
 # Make binary files!
 ##################################################
-add_executable(test_msckf src/test_msckf.cpp)
-target_link_libraries(test_msckf ov_msckf ${thirdparty_libraries})
+add_executable(run_serial_msckf src/run_serial_msckf.cpp)
+target_link_libraries(run_serial_msckf ov_msckf ${thirdparty_libraries})
 
-add_executable(test_simulation src/test_simulation.cpp)
-target_link_libraries(test_simulation ov_msckf ${thirdparty_libraries})
+add_executable(run_simulation src/run_simulation.cpp)
+target_link_libraries(run_simulation ov_msckf ${thirdparty_libraries})
 

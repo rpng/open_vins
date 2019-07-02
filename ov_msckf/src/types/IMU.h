@@ -40,7 +40,12 @@ namespace ov_msckf {
             set_fej(imu0);
         }
 
-        ~IMU() {}
+        ~IMU() {
+            delete _pose;
+            delete _v;
+            delete _bg;
+            delete _ba;
+        }
 
         /**
          * @brief Sets id used to track location of variable in the filter covariance

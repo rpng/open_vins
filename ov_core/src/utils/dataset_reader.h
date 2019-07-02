@@ -53,7 +53,7 @@ namespace ov_core {
          * If we can't open the file, or it is in the wrong format we will error and exit the program.
          * See get_gt_state() for a way to get the groundtruth state at a given timestep
          */
-        static void load_gt_file(std::string path, std::map<double, Eigen::Matrix<double, 17, 1>>& gt_states) {
+        static void load_gt_file(std::string path, std::map<double, Eigen::Matrix<double,17,1>>& gt_states) {
 
             // Clear any old data
             gt_states.clear();
@@ -106,7 +106,7 @@ namespace ov_core {
          * @param gt_states Should be loaded with groundtruth states, see load_gt_file() for details
          * @return true if we found the state, false otherwise
          */
-        static bool get_gt_state(double timestep, Eigen::Matrix<double, 17, 1> &imustate, std::map<double, Eigen::Matrix<double, 17, 1>>& gt_states) {
+        static bool get_gt_state(double timestep, Eigen::Matrix<double,17,1> &imustate, std::map<double, Eigen::Matrix<double,17,1>>& gt_states) {
 
             // Check that we even have groundtruth loaded
             if (gt_states.empty()) {
@@ -162,6 +162,16 @@ namespace ov_core {
             // Success!
             return true;
         }
+
+
+
+    private:
+
+        /**
+         * All function in this class should be static.
+         * Thus an instance of this class cannot be created.
+         */
+        DatasetReader() {}
 
 
     };

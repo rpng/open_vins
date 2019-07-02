@@ -48,7 +48,7 @@ namespace ov_core {
          * @param window_length Amount of time we will initialize over (seconds)
          * @param imu_excite_threshold Variance threshold on our acceleration to be classified as moving
          */
-        InertialInitializer(Eigen::Matrix<double, 3, 1> gravity, double window_length, double imu_excite_threshold) :
+        InertialInitializer(Eigen::Matrix<double,3,1> gravity, double window_length, double imu_excite_threshold) :
                             _gravity(gravity), _window_length(window_length), _imu_excite_threshold(imu_excite_threshold) {}
 
 
@@ -77,8 +77,8 @@ namespace ov_core {
          * @param[out] p_I0inG Position at initialization
          * @return True if we have successfully initialized our system
          */
-        bool initialize_with_imu(double &time0, Eigen::Matrix<double, 4, 1> &q_GtoI0, Eigen::Matrix<double, 3, 1> &b_w0,
-                                 Eigen::Matrix<double, 3, 1> &v_I0inG, Eigen::Matrix<double, 3, 1> &b_a0, Eigen::Matrix<double, 3, 1> &p_I0inG);
+        bool initialize_with_imu(double &time0, Eigen::Matrix<double,4,1> &q_GtoI0, Eigen::Matrix<double,3,1> &b_w0,
+                                 Eigen::Matrix<double,3,1> &v_I0inG, Eigen::Matrix<double,3,1> &b_a0, Eigen::Matrix<double,3,1> &p_I0inG);
 
 
 
@@ -86,7 +86,7 @@ namespace ov_core {
 
 
         /// Gravity vector
-        Eigen::Matrix<double, 3, 1> _gravity;
+        Eigen::Matrix<double,3,1> _gravity;
 
         /// Amount of time we will initialize over (seconds)
         double _window_length;

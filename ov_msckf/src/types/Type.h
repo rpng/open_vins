@@ -28,7 +28,9 @@ namespace ov_msckf {
          *
         * @param size_ degrees of freedom of variable (i.e., the size of the error state)
         */
-        Type(int size_) { _size = size_; }
+        Type(int size_) {
+            _size = size_;
+        }
 
         virtual ~Type() {};
 

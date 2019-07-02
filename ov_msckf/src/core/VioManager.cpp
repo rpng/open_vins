@@ -303,7 +303,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
 
 
-void VioManager::feed_measurement_imu(double timestamp, Eigen::Matrix<double,3,1> wm, Eigen::Matrix<double,3,1> am) {
+void VioManager::feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am) {
 
     // Push back to our propagator
     propagator->feed_imu(timestamp,wm,am);
@@ -347,42 +347,6 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
 }
 
 
-void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats) {
-
-    // Start timing
-    rT1 =  boost::posix_time::microsec_clock::local_time();
-
-    // Check if we actually have a simulated tracker
-    TrackSIM *trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
-    if(trackSIM == nullptr) {
-        //delete trackFEATS; //(fix this error in the future)
-        trackFEATS = new TrackSIM(state->options().max_aruco_features);
-        trackFEATS->set_calibration(camera_calib, camera_fisheye);
-        ROS_ERROR("[SIM]: casting our tracker to a TrackSIM object!");
-    }
-
-    // Cast the tracker to our simulation tracker
-    trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
-    trackSIM->set_width_height(camera_wh);
-
-    // Feed our simulation tracker
-    trackSIM->feed_measurement_simulation(timestamp, camids, feats);
-    rT2 =  boost::posix_time::microsec_clock::local_time();
-
-    // If we do not have VIO initialization, then return an error
-    if(!is_initialized_vio) {
-        ROS_ERROR("[SIM]: your vio system should already be initialized before simulating features!!!");
-        ROS_ERROR("[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!");
-        return;
-    }
-
-    // Call on our propagate and update function
-    do_feature_propagate_update(timestamp);
-
-
-}
-
-
 void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
 
     // Start timing
@@ -411,8 +375,43 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
 
 
-bool VioManager::try_to_initialize() {
+void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
 
+    // Start timing
+    rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Check if we actually have a simulated tracker
+    TrackSIM *trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
+    if(trackSIM == nullptr) {
+        //delete trackFEATS; //(fix this error in the future)
+        trackFEATS = new TrackSIM(state->options().max_aruco_features);
+        trackFEATS->set_calibration(camera_calib, camera_fisheye);
+        ROS_ERROR("[SIM]: casting our tracker to a TrackSIM object!");
+    }
+
+    // Cast the tracker to our simulation tracker
+    trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
+    trackSIM->set_width_height(camera_wh);
+
+    // Feed our simulation tracker
+    trackSIM->feed_measurement_simulation(timestamp, camids, feats);
+    rT2 =  boost::posix_time::microsec_clock::local_time();
+
+    // If we do not have VIO initialization, then return an error
+    if(!is_initialized_vio) {
+        ROS_ERROR("[SIM]: your vio system should already be initialized before simulating features!!!");
+        ROS_ERROR("[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!");
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Call on our propagate and update function
+    do_feature_propagate_update(timestamp);
+
+
+}
+
+
+bool VioManager::try_to_initialize() {
 
         // Returns from our initializer
         double time0;
@@ -590,8 +589,8 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     updaterMSCKF->update(state, featsup_MSCKF);
 
     // Perform SLAM delay init and update
-    //updaterSLAM->delayed_init(state, feats_slam_DELAYED);
-    //updaterSLAM->update(state, feats_slam_UPDATE);
+    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
+    updaterSLAM->update(state, feats_slam_UPDATE);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -604,6 +603,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     good_features_MSCKF.clear();
     for(Feature* feat : featsup_MSCKF) {
         good_features_MSCKF.push_back(feat->p_FinG);
+        feat->to_delete = true;
     }
 
     // Remove features that where used for the update from our extractors at the last timestep
@@ -627,18 +627,18 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Finally if we are optimizing our intrinsics, update our trackers
     if(state->options().do_calib_camera_intrinsics) {
         // Get vectors arrays
-        std::unordered_map<size_t, Eigen::Matrix<double,8,1>> camera_calib;
-        std::unordered_map<size_t, bool> camera_fisheye;
+        std::map<size_t, Eigen::VectorXd> cameranew_calib;
+        std::map<size_t, bool> cameranew_fisheye;
         for(int i=0; i<state->options().num_cameras; i++) {
             Vec* calib = state->get_intrinsics_CAM(i);
             bool isfish = state->get_model_CAM(i);
-            camera_calib.insert({i,calib->value()});
-            camera_fisheye.insert({i,isfish});
+            cameranew_calib.insert({i,calib->value()});
+            cameranew_fisheye.insert({i,isfish});
         }
         // Update the trackers and their databases
-        trackFEATS->set_calibration(camera_calib, camera_fisheye, true);
+        trackFEATS->set_calibration(cameranew_calib, cameranew_fisheye, true);
         if(trackARUCO != nullptr) {
-            trackARUCO->set_calibration(camera_calib, camera_fisheye, true);
+            trackARUCO->set_calibration(cameranew_calib, cameranew_fisheye, true);
         }
     }
     rT5 =  boost::posix_time::microsec_clock::local_time();

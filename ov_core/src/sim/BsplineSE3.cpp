@@ -7,7 +7,7 @@ using namespace ov_core;
 
 
 
-void BsplineSE3::feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::aligned_allocator<Eigen::Matrix<double,8,1>>> traj_points) {
+void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
 
 
     // Find the average frequency to use as our uniform timesteps
@@ -21,7 +21,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::al
 
     // convert all our trajectory points into SE(3) matrices
     // we are given [timestamp, p_IinG, q_GtoI]
-    std::map<double,Eigen::Matrix4d> trajectory_points;
+    std::map<double,Eigen::MatrixXd> trajectory_points;
     for(size_t i=0; i<traj_points.size()-1; i++) {
         Eigen::Matrix4d T_IinG = Eigen::Matrix4d::Identity();
         T_IinG.block(0,0,3,3) = quat_2_Rot(traj_points.at(i).block(4,0,4,1)).transpose();
@@ -32,7 +32,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::Matrix<double,8,1>,Eigen::al
     // Get the oldest timestamp
     double timestamp_min = INFINITY;
     double timestamp_max = -INFINITY;
-    for(std::pair<const double, Eigen::Matrix4d> &pose : trajectory_points) {
+    for(std::pair<const double, Eigen::MatrixXd> &pose : trajectory_points) {
         if(pose.first <= timestamp_min) {
             timestamp_min = pose.first;
         }
@@ -217,7 +217,7 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinI,
 }
 
 
-bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Matrix4d> &poses,
+bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
                                      double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1) {
 
     // Set the default values
@@ -233,7 +233,7 @@ bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Ma
     bool found_newer = false;
 
     // Find the bounding poses for interpolation. If no older one is found, measurement is unusable
-    for(std::pair<const double, Eigen::Matrix4d> &pose : poses) {
+    for(std::pair<const double, Eigen::MatrixXd> &pose : poses) {
         if (pose.first > min_time && pose.first <= timestamp){
             min_time = pose.first;
             found_older = true;
@@ -267,7 +267,7 @@ bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Ma
 
 
 
-bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,Eigen::Matrix4d> &poses,
+bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
                                               double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1,
                                               double &t2, Eigen::Matrix4d &pose2, double &t3, Eigen::Matrix4d &pose3) {
 
@@ -293,7 +293,7 @@ bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,
     double max_time = INFINITY;
     bool found_min_of_min = false;
     bool found_max_of_max = false;
-    for(std::pair<const double, Eigen::Matrix4d> &pose : poses) {
+    for(std::pair<const double, Eigen::MatrixXd> &pose : poses) {
         if (pose.first > min_time && pose.first < t1){
             min_time = pose.first;
             found_min_of_min = true;

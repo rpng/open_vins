@@ -63,7 +63,7 @@ namespace ov_core {
          * @param imustate State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
          * @return True if we have a state
          */
-        bool get_current_state(Eigen::Matrix<double, 17, 1> &imustate);
+        bool get_current_state(Eigen::Matrix<double,17,1> &imustate);
 
         /**
          * @brief Gets the next inertial reading if we have one.
@@ -82,7 +82,7 @@ namespace ov_core {
          * @param feats Noisy uv measurements and ids for the returned time
          * @return True if we have a measurement
          */
-        bool get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::Vector2d>>> &feats);
+        bool get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats);
 
 
         /**
@@ -111,7 +111,7 @@ namespace ov_core {
          * @param feats Our set of 3d features
          * @return True distorted raw image measurements and their ids for the specified camera
          */
-        std::vector<std::pair<size_t,Eigen::Vector2d>> project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid, const std::unordered_map<size_t,Eigen::Vector3d> &feats);
+        std::vector<std::pair<size_t,Eigen::VectorXf>> project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid, const std::unordered_map<size_t,Eigen::Vector3d> &feats);
 
 
         /**
@@ -129,7 +129,7 @@ namespace ov_core {
         //===================================================================
 
         /// Our loaded trajectory data (timestamp(s), q_GtoI, p_IinG)
-        std::vector<Eigen::Matrix<double,8,1>,Eigen::aligned_allocator<Eigen::Matrix<double,8,1>>> traj_data;
+        std::vector<Eigen::VectorXd> traj_data;
 
         /// Our b-spline trajectory
         BsplineSE3 spline;
@@ -188,8 +188,8 @@ namespace ov_core {
 
         // Camera intrinsics that we will load in
         std::unordered_map<size_t,bool> camera_fisheye;
-        std::unordered_map<size_t,Eigen::Matrix<double,8,1>> camera_intrinsics;
-        std::unordered_map<size_t,Eigen::Matrix<double,7,1>> camera_extrinsics;
+        std::unordered_map<size_t,Eigen::VectorXd> camera_intrinsics;
+        std::unordered_map<size_t,Eigen::VectorXd> camera_extrinsics;
         std::unordered_map<size_t,std::pair<int,int>> camera_wh;
 
         /// Max number of features to have in a single image

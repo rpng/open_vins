@@ -101,7 +101,7 @@ namespace ov_msckf {
         size_t summed_number = 0;
 
         // Our groundtruth states
-        std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
+        std::map<double, Eigen::Matrix<double,17,1>> gt_states;
 
         // For path viz
         unsigned int poses_seq_gt = 0;
