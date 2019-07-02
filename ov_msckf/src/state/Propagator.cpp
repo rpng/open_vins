@@ -257,10 +257,10 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         F.block(p_id, p_id, 3, 3).setIdentity();
 
         G.block(th_id, 0, 3, 3) = -dR * Jr_so3(-w_hat * dt) * dt;
-        G.block(bg_id, 3, 3, 3).setIdentity();
-        G.block(v_id, 6, 3, 3) = -Rfej.transpose() * dt;
-        G.block(ba_id, 9, 3, 3).setIdentity();
-        G.block(p_id, 6, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
+        G.block(v_id, 3, 3, 3) = -Rfej.transpose() * dt;
+        G.block(p_id, 3, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
+        G.block(bg_id, 6, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
+        G.block(ba_id, 9, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
 
     } else {
 
@@ -277,10 +277,10 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         F.block(p_id, p_id, 3, 3).setIdentity();
 
         G.block(th_id, 0, 3, 3) = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
-        G.block(bg_id, 3, 3, 3).setIdentity();
-        G.block(v_id, 6, 3, 3) = -R_Gtoi.transpose() * dt;
-        G.block(ba_id, 9, 3, 3).setIdentity();
-        G.block(p_id, 6, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
+        G.block(v_id, 3, 3, 3) = -R_Gtoi.transpose() * dt;
+        G.block(p_id, 3, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
+        G.block(bg_id, 6, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
+        G.block(ba_id, 9, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
     }
 
     // Construct our discrete noise covariance matrix
@@ -288,9 +288,9 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
     // Equations (129) amd (130) of Trawny tech report
     Eigen::Matrix<double,12,12> Qc = Eigen::Matrix<double,12,12>::Zero();
     Qc.block(0,0,3,3) = _noises.sigma_w_2/dt*Eigen::Matrix<double,3,3>::Identity();
-    Qc.block(3,3,3,3) = _noises.sigma_wb_2*dt*Eigen::Matrix<double,3,3>::Identity();
-    Qc.block(6,6,3,3) = _noises.sigma_a_2/dt*Eigen::Matrix<double,3,3>::Identity();
-    Qc.block(9,9,3,3) = _noises.sigma_ab_2*dt*Eigen::Matrix<double,3,3>::Identity();
+    Qc.block(3,3,3,3) = _noises.sigma_a_2/dt*Eigen::Matrix<double,3,3>::Identity();
+    Qc.block(6,6,3,3) = _noises.sigma_wb_2/dt*Eigen::Matrix<double,3,3>::Identity();
+    Qc.block(9,9,3,3) = _noises.sigma_ab_2/dt*Eigen::Matrix<double,3,3>::Identity();
 
     // Compute the noise injected into the state over the interval
     Qd = G*Qc*G.transpose();

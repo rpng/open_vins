@@ -87,7 +87,7 @@ The state transition from timestep *k-1* to *k* as (see @ref propagation for mor
 	& \mathbf 0_{3\times3}
 	& \mathbf I_{3\times3}
 \end{bmatrix} \\[2em]
-\boldsymbol\alpha(k,k-1) &= \int_{t_{k-1}}^{s} \int_{t_k}^{s} {}^{I_{k-1}}_{\tau}\mathbf R (\mathbf a(\tau)-\mathbf b_a - \mathbf w_a) d\tau ds \\
+\boldsymbol\alpha(k,k-1) &= \int_{t_{k-1}}^{k} \int_{t_{k-1}}^{s} {}^{I_{k-1}}_{\tau}\mathbf R (\mathbf a(\tau)-\mathbf b_a - \mathbf w_a) d\tau ds \\
 \boldsymbol\beta(k,k-1) &= \int_{t_{k-1}}^{t_k} {}^{I_{k-1}}_{\tau}\mathbf R (\mathbf a(\tau)-\mathbf b_a - \mathbf w_a) d\tau
 \f}
 
