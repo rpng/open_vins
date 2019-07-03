@@ -63,8 +63,9 @@ list(APPEND thirdparty_libraries
 ##################################################
 add_library(ov_eval_lib
         src/dummy.cpp
-        src/alignment/align_utils.cpp
-        src/record/Recorder.h
+        src/alignment/AlignTrajectory.cpp
+        src/alignment/AlignUtils.cpp
+        src/utils/Recorder.h
 )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 
