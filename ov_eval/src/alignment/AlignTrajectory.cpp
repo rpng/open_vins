@@ -5,24 +5,22 @@ using namespace ov_eval;
 
 
 
-void AlignTrajectory::alignTrajectory(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                                      std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                                      Eigen::Matrix3d &R, Eigen::Vector3d &t, double &s, std::string method, int n_aligned){
+void AlignTrajectory::align_trajectory(const std::vector<Eigen::Vector3d> &p_es, const std::vector<Eigen::Vector3d> &p_gt,
+                                       const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
+                                       Eigen::Matrix3d &R, Eigen::Vector3d &t, double &s, std::string method, int n_aligned){
 
     // Use the correct method
-    if (method == "sim3"){
+    if (method == "posyaw"){
+        s = 1;
+        align_posyaw(p_es, p_gt, q_es, q_gt, R, t, n_aligned);
+    } else if (method == "se3"){
+        s = 1;
+        align_se3(p_es, p_gt, q_es, q_gt, R, t, n_aligned);
+    } else if (method == "sim3"){
         assert(n_aligned >= 2 || n_aligned == -1);
-        alignSIM3(p_es, p_gt, q_es, q_gt, R, t,s, n_aligned);
-    }
-    else if (method == "se3"){
+        align_sim3(p_es, p_gt, q_es, q_gt, R, t,s, n_aligned);
+    } else if (method == "none"){
         s = 1;
-        alignSE3(p_es, p_gt, q_es, q_gt, R, t, n_aligned);
-    }
-    else if (method == "posyaw"){
-        s = 1;
-        alignPositionYaw(p_es, p_gt, q_es, q_gt, R, t, n_aligned);
-    }
-    else if (method == "none"){
         R.setIdentity();
         t.setZero();
     } else {
@@ -32,11 +30,9 @@ void AlignTrajectory::alignTrajectory(std::vector<Eigen::Vector3d> &p_es, std::v
 }
 
 
-
-
-void AlignTrajectory::alignPositionYawSingle(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                                      std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                                      Eigen::Matrix3d &R, Eigen::Vector3d &t){
+void AlignTrajectory::align_posyaw_single(const std::vector<Eigen::Vector3d> &p_es, const std::vector<Eigen::Vector3d> &p_gt,
+                                          const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
+                                          Eigen::Matrix3d &R, Eigen::Vector3d &t){
 
     //Get first ever poses
     Eigen::Vector4d q_es_0 = q_es[0];
@@ -65,21 +61,16 @@ void AlignTrajectory::alignPositionYawSingle(std::vector<Eigen::Vector3d> &p_es,
 }
 
 
+void AlignTrajectory::align_posyaw(const std::vector<Eigen::Vector3d> &p_es, const std::vector<Eigen::Vector3d> &p_gt,
+                                   const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
+                                   Eigen::Matrix3d &R, Eigen::Vector3d &t, int n_aligned){
 
-
-void AlignTrajectory::alignPositionYaw(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                                std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                                Eigen::Matrix3d &R, Eigen::Vector3d &t, int n_aligned){
-
+    // If we only have one, just use the single alignment
     if (n_aligned == 1){
-        // If we only have one, just use the single alignment
-        alignPositionYawSingle(p_es, p_gt, q_es, q_gt, R, t);
-    }
-
-    else {
+        align_posyaw_single(p_es, p_gt, q_es, q_gt, R, t);
+    } else {
 
         // Align using the method of Umeyama
-
         //Grab poses used for alignment
         assert(p_es.size() > 0);
         std::vector<Eigen::Vector3d> est_pos(p_es.begin(), p_es.begin()+std::min((size_t) n_aligned, p_es.size()));
@@ -94,12 +85,9 @@ void AlignTrajectory::alignPositionYaw(std::vector<Eigen::Vector3d> &p_es, std::
 }
 
 
-
-void AlignTrajectory::alignSE3Single(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                              std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                              Eigen::Matrix3d &R, Eigen::Vector3d &t){
-
-
+void AlignTrajectory::align_se3_single(const std::vector<Eigen::Vector3d> &p_es, const std::vector<Eigen::Vector3d> &p_gt,
+                                       const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
+                                       Eigen::Matrix3d &R, Eigen::Vector3d &t){
     // Get initial poses
     Eigen::Vector4d q_es_0 = q_es[0];
     Eigen::Vector3d p_es_0 = p_es[0];
@@ -117,18 +105,16 @@ void AlignTrajectory::alignSE3Single(std::vector<Eigen::Vector3d> &p_es, std::ve
 }
 
 
-void AlignTrajectory::alignSE3(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                        std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                        Eigen::Matrix3d &R, Eigen::Vector3d &t, int n_aligned){
+void AlignTrajectory::align_se3(const std::vector<Eigen::Vector3d> &p_es, const std::vector<Eigen::Vector3d> &p_gt,
+                                const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
+                                Eigen::Matrix3d &R, Eigen::Vector3d &t, int n_aligned){
 
     // If we only have one, just use the single alignment
     if (n_aligned == 1){
-        alignSE3Single(p_es, p_gt, q_es, q_gt, R, t);
-    }
-    else {
+        align_se3_single(p_es, p_gt, q_es, q_gt, R, t);
+    } else {
 
         // Align using the method of Umeyama
-
         assert(p_es.size() > 0);
 
         //Grab poses used for alignment
@@ -143,10 +129,14 @@ void AlignTrajectory::alignSE3(std::vector<Eigen::Vector3d> &p_es, std::vector<E
 }
 
 
-void AlignTrajectory::alignSIM3(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                         std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                         Eigen::Matrix3d &R, Eigen::Vector3d &t, double &s, int n_aligned){
 
+
+void AlignTrajectory::align_sim3(const std::vector<Eigen::Vector3d> &p_es, const std::vector<Eigen::Vector3d> &p_gt,
+                                 const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es, const std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
+                                 Eigen::Matrix3d &R, Eigen::Vector3d &t, double &s, int n_aligned){
+
+    // Need to have more than two to get
+    assert(n_aligned >= 2 || n_aligned == -1);
 
     //Grab poses used for alignment
     assert(p_es.size() > 0);
@@ -155,36 +145,11 @@ void AlignTrajectory::alignSIM3(std::vector<Eigen::Vector3d> &p_es, std::vector<
 
     // Align using the method of Umeyama
     AlignUtils::align_umeyama(gt_pos, est_pos, R,t,s, false, false);
-}
-
-
-
-void AlignTrajectory::alignBodySE3Single(std::vector<Eigen::Vector3d> &p_es, std::vector<Eigen::Vector3d> &p_gt,
-                                  std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_es,
-                                  std::vector<Eigen::Vector4d, Eigen::aligned_allocator<Eigen::Vector4d>> &q_gt,
-                                  Eigen::Matrix3d &R, Eigen::Vector3d &t){
-
-    // Get initial poses
-    Eigen::Vector4d q_es_0 = q_es[0];
-    Eigen::Vector3d p_es_0 = p_es[0];
-
-    Eigen::Vector4d q_gt_0 = q_gt[0];
-    Eigen::Vector3d p_gt_0 = p_gt[0];
-
-    Eigen::Matrix<double,4,4> T_I_to_W = Eigen::Matrix<double,4,4>::Identity();
-    T_I_to_W.block(0,0,3,3) = AlignUtils::quat_2_Rot(q_es_0).transpose();
-    T_I_to_W.block(0,3,3,1) = p_es_0;
-
-    Eigen::Matrix<double,4,4> T_B_to_W = Eigen::Matrix<double,4,4>::Identity();
-    T_B_to_W.block(0,0,3,3) = AlignUtils::quat_2_Rot(q_gt_0).transpose();
-    T_B_to_W.block(0,3,3,1) = p_gt_0;
-
-
-    Eigen::Matrix<double,4,4> T_B_to_I = T_I_to_W.inverse()*T_B_to_W;
-
-    R = T_B_to_I.block(0,0,3,3);
-    t = T_B_to_I.block(0,3,3,1);
 
 }
+
+
+
+
 
 

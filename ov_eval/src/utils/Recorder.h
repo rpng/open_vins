@@ -48,12 +48,13 @@ namespace ov_eval {
                 ROS_ERROR("Path: %s",filename.c_str());
                 std::exit(EXIT_FAILURE);
             }
-            outfile << "# timestamp(s) tx ty tz qx qy qz qw P11 P22 P33 P44 P55 P66" << std::endl;
+            outfile << "# timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt12 Pt13 Pt22 Pt23 Pt33" << std::endl;
             // Set initial state values
             timestamp = -1;
             q_ItoG << 0,0,0,1;
             p_IinG = Eigen::Vector3d::Zero();
-            cov_diag = Eigen::Matrix<double,6,1>::Zero();
+            cov_rot = Eigen::Matrix<double,3,3>::Zero();
+            cov_pos = Eigen::Matrix<double,3,3>::Zero();
         }
 
         /**
@@ -64,8 +65,12 @@ namespace ov_eval {
             timestamp = msg->header.stamp.toSec();
             q_ItoG << msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w;
             p_IinG << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
-            cov_diag << msg->pose.covariance.at(0),msg->pose.covariance.at(7),msg->pose.covariance.at(14),
-                        msg->pose.covariance.at(21),msg->pose.covariance.at(28),msg->pose.covariance.at(35);
+            cov_rot << msg->pose.covariance.at(0),msg->pose.covariance.at(1),msg->pose.covariance.at(2),
+                    msg->pose.covariance.at(6),msg->pose.covariance.at(7),msg->pose.covariance.at(8),
+                    msg->pose.covariance.at(12),msg->pose.covariance.at(13),msg->pose.covariance.at(14);
+            cov_pos << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
+                    msg->pose.covariance.at(27),msg->pose.covariance.at(28),msg->pose.covariance.at(29),
+                    msg->pose.covariance.at(33),msg->pose.covariance.at(34),msg->pose.covariance.at(35);
             write();
         }
 
@@ -88,8 +93,12 @@ namespace ov_eval {
             timestamp = msg->header.stamp.toSec();
             q_ItoG << msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w;
             p_IinG << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
-            cov_diag << msg->pose.covariance.at(0),msg->pose.covariance.at(7),msg->pose.covariance.at(14),
-                    msg->pose.covariance.at(21),msg->pose.covariance.at(28),msg->pose.covariance.at(35);
+            cov_rot << msg->pose.covariance.at(0),msg->pose.covariance.at(1),msg->pose.covariance.at(2),
+                    msg->pose.covariance.at(6),msg->pose.covariance.at(7),msg->pose.covariance.at(8),
+                    msg->pose.covariance.at(12),msg->pose.covariance.at(13),msg->pose.covariance.at(14);
+            cov_pos << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
+                    msg->pose.covariance.at(27),msg->pose.covariance.at(28),msg->pose.covariance.at(29),
+                    msg->pose.covariance.at(33),msg->pose.covariance.at(34),msg->pose.covariance.at(35);
             write();
         }
 
@@ -118,8 +127,8 @@ namespace ov_eval {
             outfile.precision(6);
             outfile << p_IinG.x() << " " << p_IinG.y() << " " << p_IinG.z() << " "
                     << q_ItoG(0) << " " << q_ItoG(1) << " " << q_ItoG(2) << " " << q_ItoG(3) << " "
-                    << cov_diag(0) << " " << cov_diag(1) << " " << cov_diag(2) << " "
-                    << cov_diag(3) << " " << cov_diag(4) << " " << cov_diag(5) << " " << std::endl;
+                    << cov_rot(0,0) << " " << cov_rot(0,1) << " " << cov_rot(0,2) << " " << cov_rot(1,1) << " " << cov_rot(1,2) << " " << cov_rot(2,2) << " "
+                    << cov_pos(0,0) << " " << cov_pos(0,1) << " " << cov_pos(0,2) << " " << cov_pos(1,1) << " " << cov_pos(1,2) << " " << cov_pos(2,2) << std::endl;
         }
 
 
@@ -130,7 +139,8 @@ namespace ov_eval {
         double timestamp;
         Eigen::Vector4d q_ItoG;
         Eigen::Vector3d p_IinG;
-        Eigen::Matrix<double,6,1> cov_diag;
+        Eigen::Matrix<double,3,3> cov_rot;
+        Eigen::Matrix<double,3,3> cov_pos;
 
     };
 
