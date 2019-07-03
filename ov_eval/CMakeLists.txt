@@ -7,7 +7,7 @@ project(ov_eval)
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 # Find catkin (the ROS build system)
-find_package(catkin REQUIRED COMPONENTS roscpp)
+find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs sensor_msgs)
 
 # Include libraries
 find_package(Eigen3 REQUIRED)
@@ -20,7 +20,7 @@ message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 
 # Describe catkin project
 catkin_package(
-        CATKIN_DEPENDS roscpp
+        CATKIN_DEPENDS roscpp geometry_msgs nav_msgs sensor_msgs
         INCLUDE_DIRS src
         LIBRARIES ov_eval_lib
 )
@@ -64,7 +64,7 @@ list(APPEND thirdparty_libraries
 add_library(ov_eval_lib
         src/dummy.cpp
         src/alignment/align_utils.cpp
-        src/record/Recorder.cpp
+        src/record/Recorder.h
 )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 
@@ -76,5 +76,7 @@ add_executable(pose_to_file src/pose_to_file.cpp)
 target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
 
 
+add_executable(format_converter src/format_converter.cpp)
+target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
 
 
