@@ -5,26 +5,24 @@
 #include <fstream>
 #include <Eigen/Eigen>
 #include <ros/ros.h>
+#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string/predicate.hpp>
 
 
-int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "format_converter");
 
-    // Ensure we have a path
-    if(argc < 2) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval format_convert <path.csv>");
-        std::exit(EXIT_FAILURE);
-    }
+
+/**
+ * Given a CSV file this will convert it to our text file format.
+ */
+void process_csv(std::string infile) {
 
     // Check if file paths are good
-    std::string infile = argv[1];
     std::ifstream file1;
     std::string line;
     file1.open(infile);
+    ROS_INFO("Opening file %s",boost::filesystem::path(infile).filename().c_str());
 
     // Check that it was successful
     if (!file1) {
@@ -75,15 +73,14 @@ int main(int argc, char **argv) {
         ROS_ERROR("ERROR: %s",infile.c_str());
         std::exit(EXIT_FAILURE);
     }
-    ROS_INFO("Loaded %d poses from file",(int)traj_data.size());
+    ROS_INFO("\t- Loaded %d poses from file",(int)traj_data.size());
 
     // If file exists already then crash
     std::string outfile = infile.substr(0,infile.find_last_of('.'))+".txt";
     if(boost::filesystem::exists(outfile)) {
-        ROS_ERROR("ERROR: Output file already exists!!");
-        ROS_ERROR("ERROR: Please delete and re-run this script!");
-        ROS_ERROR("ERROR: %s",outfile.c_str());
-        std::exit(EXIT_FAILURE);
+        ROS_ERROR("\t- ERROR: Output file already exists, please delete and re-run this script!!");
+        ROS_ERROR("\t- ERROR: %s",outfile.c_str());
+        return;
     }
 
     // Open this file we want to write to
@@ -105,10 +102,52 @@ int main(int argc, char **argv) {
         file2 << traj_data.at(i)(1) << " " << traj_data.at(i)(2) << " " << traj_data.at(i)(3) << " "
               << traj_data.at(i)(5) << " " << traj_data.at(i)(6) << " " << traj_data.at(i)(7) << " " << traj_data.at(i)(4) << std::endl;
     }
-    ROS_INFO("Saved to file %s",outfile.c_str());
+    ROS_INFO("\t- Saved to file %s",boost::filesystem::path(outfile).filename().c_str());
 
     // Finally close the file
     file2.close();
+
+}
+
+
+
+
+
+int main(int argc, char **argv) {
+
+    // Create ros node
+    ros::init(argc, argv, "format_converter");
+
+    // Ensure we have a path
+    if(argc < 2) {
+        ROS_ERROR("ERROR: Please specify a file to convert");
+        ROS_ERROR("ERROR: rosrun ov_eval format_convert <file.csv>");
+        ROS_ERROR("ERROR: rosrun ov_eval format_convert <folder>");
+        std::exit(EXIT_FAILURE);
+    }
+
+    // If we do not have a wildcard, then process this one csv
+    if(boost::algorithm::ends_with(argv[1],"csv")) {
+
+        // Process this single file
+        process_csv(argv[1]);
+
+    } else {
+
+        // Loop through this directory
+        boost::filesystem::path infolder(argv[1]);
+        boost::filesystem::directory_iterator it(infolder), eod;
+        BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod)) {
+            if(boost::filesystem::is_regular_file(p) && boost::algorithm::ends_with(p.string(),"csv")) {
+                process_csv(p.string());
+            }
+        }
+
+    }
+
+
+
+
 
     // Done!
     return EXIT_SUCCESS;

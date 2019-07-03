@@ -55,6 +55,7 @@ namespace ov_eval {
             p_IinG = Eigen::Vector3d::Zero();
             cov_rot = Eigen::Matrix<double,3,3>::Zero();
             cov_pos = Eigen::Matrix<double,3,3>::Zero();
+            has_covariance = false;
         }
 
         /**
@@ -71,6 +72,7 @@ namespace ov_eval {
             cov_pos << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
                     msg->pose.covariance.at(27),msg->pose.covariance.at(28),msg->pose.covariance.at(29),
                     msg->pose.covariance.at(33),msg->pose.covariance.at(34),msg->pose.covariance.at(35);
+            has_covariance = true;
             write();
         }
 
@@ -99,6 +101,7 @@ namespace ov_eval {
             cov_pos << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
                     msg->pose.covariance.at(27),msg->pose.covariance.at(28),msg->pose.covariance.at(29),
                     msg->pose.covariance.at(33),msg->pose.covariance.at(34),msg->pose.covariance.at(35);
+            has_covariance = true;
             write();
         }
 
@@ -121,14 +124,24 @@ namespace ov_eval {
          * This should be called after we have saved the desired pose to our class variables.
          */
         void write() {
+
+            // timestamp
             outfile.precision(5);
             outfile.setf(std::ios::fixed, std::ios::floatfield);
             outfile << timestamp << " ";
+
+            // pose
             outfile.precision(6);
             outfile << p_IinG.x() << " " << p_IinG.y() << " " << p_IinG.z() << " "
-                    << q_ItoG(0) << " " << q_ItoG(1) << " " << q_ItoG(2) << " " << q_ItoG(3) << " "
-                    << cov_rot(0,0) << " " << cov_rot(0,1) << " " << cov_rot(0,2) << " " << cov_rot(1,1) << " " << cov_rot(1,2) << " " << cov_rot(2,2) << " "
-                    << cov_pos(0,0) << " " << cov_pos(0,1) << " " << cov_pos(0,2) << " " << cov_pos(1,1) << " " << cov_pos(1,2) << " " << cov_pos(2,2) << std::endl;
+                    << q_ItoG(0) << " " << q_ItoG(1) << " " << q_ItoG(2) << " " << q_ItoG(3);
+
+            // output the covariance only if we have it
+            if(has_covariance) {
+                outfile << " " << cov_rot(0,0) << " " << cov_rot(0,1) << " " << cov_rot(0,2) << " " << cov_rot(1,1) << " " << cov_rot(1,2) << " " << cov_rot(2,2)
+                        << " " << cov_pos(0,0) << " " << cov_pos(0,1) << " " << cov_pos(0,2) << " " << cov_pos(1,1) << " " << cov_pos(1,2) << " " << cov_pos(2,2) << std::endl;
+            } else {
+                outfile << std::endl;
+            }
         }
 
 
@@ -136,6 +149,7 @@ namespace ov_eval {
         std::ofstream outfile;
 
         // Temp storage objects for our pose and its certainty
+        bool has_covariance = false;
         double timestamp;
         Eigen::Vector4d q_ItoG;
         Eigen::Vector3d p_IinG;
