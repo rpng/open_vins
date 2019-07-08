@@ -12,7 +12,7 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     mTfBr = new tf::TransformBroadcaster();
 
     // Setup pose and path publisher
-    pub_poseimu = nh.advertise<geometry_msgs::PoseStamped>("/ov_msckf/poseimu", 2);
+    pub_poseimu = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
     ROS_INFO("Publishing: %s", pub_poseimu.getTopic().c_str());
     pub_pathimu = nh.advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
     ROS_INFO("Publishing: %s", pub_pathimu.getTopic().c_str());
@@ -93,21 +93,63 @@ void RosVisualizer::publish_state() {
     State* state = _app->get_state();
 
     // Create pose of IMU (note we use the bag time)
-    geometry_msgs::PoseStamped poseIinM;
+    geometry_msgs::PoseWithCovarianceStamped poseIinM;
     poseIinM.header.stamp = ros::Time(state->timestamp());
     poseIinM.header.seq = poses_seq_imu;
     poseIinM.header.frame_id = "global";
-    poseIinM.pose.orientation.x = state->imu()->quat()(0);
-    poseIinM.pose.orientation.y = state->imu()->quat()(1);
-    poseIinM.pose.orientation.z = state->imu()->quat()(2);
-    poseIinM.pose.orientation.w = state->imu()->quat()(3);
-    poseIinM.pose.position.x = state->imu()->pos()(0);
-    poseIinM.pose.position.y = state->imu()->pos()(1);
-    poseIinM.pose.position.z = state->imu()->pos()(2);
+    poseIinM.pose.pose.orientation.x = state->imu()->quat()(0);
+    poseIinM.pose.pose.orientation.y = state->imu()->quat()(1);
+    poseIinM.pose.pose.orientation.z = state->imu()->quat()(2);
+    poseIinM.pose.pose.orientation.w = state->imu()->quat()(3);
+    poseIinM.pose.pose.position.x = state->imu()->pos()(0);
+    poseIinM.pose.pose.position.y = state->imu()->pos()(1);
+    poseIinM.pose.pose.position.z = state->imu()->pos()(2);
+
+    // Finally set the covariance in the message
+    Eigen::Matrix<double,6,6> covariance = state->Cov().block(state->imu()->pose()->id(),state->imu()->pose()->id(),6,6);
+    poseIinM.pose.covariance[0] = covariance(0,0); // 0
+    poseIinM.pose.covariance[1] = covariance(0,1);
+    poseIinM.pose.covariance[2] = covariance(0,2);
+    poseIinM.pose.covariance[3] = covariance(0,3);
+    poseIinM.pose.covariance[4] = covariance(0,4);
+    poseIinM.pose.covariance[5] = covariance(0,5);
+    poseIinM.pose.covariance[6] = covariance(1,0); // 1
+    poseIinM.pose.covariance[7] = covariance(1,1);
+    poseIinM.pose.covariance[8] = covariance(1,2);
+    poseIinM.pose.covariance[9] = covariance(1,3);
+    poseIinM.pose.covariance[10] = covariance(1,4);
+    poseIinM.pose.covariance[11] = covariance(1,5);
+    poseIinM.pose.covariance[12] = covariance(2,0); // 2
+    poseIinM.pose.covariance[13] = covariance(2,1);
+    poseIinM.pose.covariance[14] = covariance(2,2);
+    poseIinM.pose.covariance[15] = covariance(2,3);
+    poseIinM.pose.covariance[16] = covariance(2,4);
+    poseIinM.pose.covariance[17] = covariance(2,5);
+    poseIinM.pose.covariance[18] = covariance(3,0); // 3
+    poseIinM.pose.covariance[19] = covariance(3,1);
+    poseIinM.pose.covariance[20] = covariance(3,2);
+    poseIinM.pose.covariance[21] = covariance(3,3);
+    poseIinM.pose.covariance[22] = covariance(3,4);
+    poseIinM.pose.covariance[23] = covariance(3,5);
+    poseIinM.pose.covariance[24] = covariance(4,0); // 4
+    poseIinM.pose.covariance[25] = covariance(4,1);
+    poseIinM.pose.covariance[26] = covariance(4,2);
+    poseIinM.pose.covariance[27] = covariance(4,3);
+    poseIinM.pose.covariance[28] = covariance(4,4);
+    poseIinM.pose.covariance[29] = covariance(4,5);
+    poseIinM.pose.covariance[30] = covariance(5,0); // 5
+    poseIinM.pose.covariance[31] = covariance(5,1);
+    poseIinM.pose.covariance[32] = covariance(5,2);
+    poseIinM.pose.covariance[33] = covariance(5,3);
+    poseIinM.pose.covariance[34] = covariance(5,4);
+    poseIinM.pose.covariance[35] = covariance(5,5);
     pub_poseimu.publish(poseIinM);
 
     // Append to our pose vector
-    poses_imu.push_back(poseIinM);
+    geometry_msgs::PoseStamped posetemp;
+    posetemp.header = poseIinM.header;
+    posetemp.pose = poseIinM.pose.pose;
+    poses_imu.push_back(posetemp);
 
     // Create our path (imu)
     nav_msgs::Path arrIMU;
@@ -339,7 +381,7 @@ void RosVisualizer::publish_groundtruth() {
     }
 
     // Get the simulated groundtruth
-    if(_sim != nullptr && !_sim->get_current_state(state_gt)) {
+    if(_sim != nullptr && !_sim->get_state(_app->get_state()->timestamp(),state_gt)) {
         return;
     }
 
@@ -395,19 +437,38 @@ void RosVisualizer::publish_groundtruth() {
     double rmse_pos = std::sqrt(dx*dx+dy*dy+dz*dz);
 
     // Quaternion error
-    Eigen::Matrix<double,4,1> quat_gt,quat_st, quat_diff;
+    Eigen::Matrix<double,4,1> quat_gt, quat_st, quat_diff;
     quat_gt << state_gt(1,0),state_gt(2,0),state_gt(3,0),state_gt(4,0);
     quat_st << state_ekf(0,0),state_ekf(1,0),state_ekf(2,0),state_ekf(3,0);
     quat_diff = quat_multiply(quat_st,Inv(quat_gt));
     double rmse_ori = (180/M_PI)*2*quat_diff.block(0,0,3,1).norm();
 
+
+    //==========================================================================
+    //==========================================================================
+
+    // Get covariance of pose
+    Eigen::Matrix<double,6,6> covariance = _app->get_state()->Cov().block(_app->get_state()->imu()->pose()->id(),_app->get_state()->imu()->pose()->id(),6,6);
+
+    // Calculate NEES values
+    double ori_nees = 2*quat_diff.block(0,0,3,1).dot(covariance.block(0,0,3,3).inverse()*2*quat_diff.block(0,0,3,1));
+    Eigen::Vector3d errpos = state_ekf.block(4,0,3,1)-state_gt.block(5,0,3,1);
+    double pos_nees = errpos.transpose()*covariance.block(3,3,3,3).inverse()*errpos;
+
+    //==========================================================================
+    //==========================================================================
+
     // Update our average variables
     summed_rmse_ori += rmse_ori;
     summed_rmse_pos += rmse_pos;
+    summed_nees_ori += ori_nees;
+    summed_nees_pos += pos_nees;
     summed_number++;
 
     // Nice display for the user
     ROS_INFO("\033[0;95merror to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m) | called %d times \033[0m",rmse_ori,rmse_pos,summed_rmse_ori/summed_number,summed_rmse_pos/summed_number, (int)summed_number);
+    ROS_INFO("\033[0;95mnees => %.1f, %.1f (ori,pos) | average nees = %.1f, %.1f (ori,pos) \033[0m",ori_nees,pos_nees,summed_nees_ori/summed_number,summed_nees_pos/summed_number);
+
 
     //==========================================================================
     //==========================================================================

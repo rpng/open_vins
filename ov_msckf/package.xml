@@ -43,6 +43,7 @@
     <run_depend>visualization_msgs</run_depend>
     <run_depend>cv_bridge</run_depend>
     <run_depend>ov_core</run_depend>
+    <run_depend>ov_eval</run_depend>
 
 
 </package>

@@ -89,6 +89,13 @@ namespace ov_eval {
 
         }
 
+        /// Will clear any old values
+        void clear() {
+            timestamps.clear();
+            values.clear();
+            values_bound.clear();
+        }
+
     };
 
 

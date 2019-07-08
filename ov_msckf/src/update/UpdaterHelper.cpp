@@ -553,13 +553,14 @@ void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::Ve
     }
 
     // Construct the smaller jacobian and residual after measurement compression
+    assert(r<=H_x.rows());
     H_x.conservativeResize(r, H_x.cols());
     res.conservativeResize(r, res.cols());
 
     // Hx is square, zero all below diagonal elements
-    for(int i=1; i<H_x.rows(); i++) {
-        H_x.block(i,0,1,i).setZero();
-    }
+    //for(int i=1; i<H_x.rows(); i++) {
+    //    H_x.block(i,0,1,i).setZero();
+    //}
 
 }
 

@@ -4,6 +4,7 @@
 
 #include "state/StateHelper.h"
 #include "utils/quat_ops.h"
+#include <ros/ros.h>
 
 using namespace ov_core;
 

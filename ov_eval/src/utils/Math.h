@@ -435,7 +435,8 @@ namespace ov_eval {
         }
 
         /**
-         * @brief Gets roll, pitch, yaw of argument rotation (in that order)
+         * @brief Gets roll, pitch, yaw of argument rotation (in that order).
+         * To recover the matrix: R_input = R_z(yaw)*R_y(pitch)*R_x(roll)
          * @param rot Rotation matrix
          */
         static inline Eigen::Matrix<double, 3, 1> rot2rpy(const Eigen::Matrix<double, 3, 3> &rot) {
@@ -449,6 +450,30 @@ namespace ov_eval {
                 rpy(0, 0) = atan2(rot(0, 1), rot(1, 1));
             }
             return rpy;
+        }
+
+        /**
+         * @brief Construct rotation matrix from given roll
+         * @param t roll angle
+         */
+        static inline Eigen::Matrix<double, 3, 3> rot_x(double t) {
+            Eigen::Matrix<double, 3, 3> r;
+            double ct = cos(t);
+            double st = sin(t);
+            r << 1.0, 0.0, 0.0, 0.0, ct, -st, 0.0, st, ct;
+            return r;
+        }
+
+        /**
+         * @brief Construct rotation matrix from given pitch
+         * @param t pitch angle
+         */
+        static inline Eigen::Matrix<double, 3, 3> rot_y(double t) {
+            Eigen::Matrix<double, 3, 3> r;
+            double ct = cos(t);
+            double st = sin(t);
+            r << ct, 0.0, st, 0.0, 1.0, 0.0, -st, 0.0, ct;
+            return r;
         }
 
         /**

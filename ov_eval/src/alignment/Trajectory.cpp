@@ -31,10 +31,8 @@ Trajectory::Trajectory(std::string path_est, std::string path_gt, std::string al
     // Finally lets calculate the aligned trajectories
     for(size_t i=0; i<gt_times.size(); i++) {
         Eigen::Matrix<double,7,1> pose_ESTinGT, pose_GTinEST;
-
         pose_ESTinGT.block(0,0,3,1) = s_ESTtoGT*R_ESTtoGT*est_poses.at(i).block(0,0,3,1)+t_ESTinGT;
         pose_ESTinGT.block(3,0,4,1) = Math::quat_multiply(est_poses.at(i).block(3,0,4,1),Math::rot_2_quat(R_ESTtoGT.transpose()));
-
         pose_GTinEST.block(0,0,3,1) = s_GTtoEST*R_GTtoEST*gt_poses.at(i).block(0,0,3,1)+t_GTinEST;
         pose_GTinEST.block(3,0,4,1) = Math::quat_multiply(gt_poses.at(i).block(3,0,4,1),Math::rot_2_quat(R_GTtoEST.transpose()));
         est_poses_aignedtoGT.push_back(pose_ESTinGT);
@@ -49,12 +47,8 @@ Trajectory::Trajectory(std::string path_est, std::string path_gt, std::string al
 void Trajectory::calculate_ate(Statistics &error_ori, Statistics &error_pos) {
 
     // Clear any old data
-    error_ori.timestamps.clear();
-    error_ori.values.clear();
-    error_ori.values_bound.clear();
-    error_pos.timestamps.clear();
-    error_pos.values.clear();
-    error_pos.values_bound.clear();
+    error_ori.clear();
+    error_pos.clear();
 
     // Calculate the position and orientation error at every timestep
     for(size_t i=0; i<est_poses_aignedtoGT.size(); i++) {
@@ -172,6 +166,164 @@ void Trajectory::calculate_rpe(const std::vector<double> &segment_lengths, std::
 
 
 
+void Trajectory::calculate_nees(Statistics &nees_ori, Statistics &nees_pos) {
+
+    // Check that we have our covariance matrices to normalize with
+    if(est_times.size() != est_covori.size() || est_times.size() != est_covpos.size()
+        || gt_times.size() != gt_covori.size() || gt_times.size() != gt_covpos.size()) {
+        ROS_ERROR("[TRAJ]: Normalized Estimation Error Squared called but trajectory does not have any covariances...");
+        ROS_ERROR("[TRAJ]: Did you record using a Odometry or PoseWithCovarianceStamped????");
+        return;
+    }
+
+    // Clear any old data
+    nees_ori.clear();
+    nees_pos.clear();
+
+    // Calculate the position and orientation error at every timestep
+    for(size_t i=0; i<est_poses.size(); i++) {
+
+        // Calculate orientation error
+        // NOTE: we define our error as e_R = -Log(R*Rhat^T)
+        Eigen::Matrix3d e_R = Math::quat_2_Rot(gt_poses.at(i).block(3,0,4,1)) * Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose();
+        Eigen::Vector3d errori = -Math::log_so3(e_R);
+        //Eigen::Vector4d e_q = Math::quat_multiply(gt_poses_aignedtoEST.at(i).block(3,0,4,1),Math::Inv(est_poses.at(i).block(3,0,4,1)));
+        //Eigen::Vector3d errori = 2*e_q.block(0,0,3,1);
+        double ori_nees = errori.transpose()*est_covori.at(i).inverse()*errori;
+
+        // Calculate nees position error
+        Eigen::Vector3d errpos = gt_poses_aignedtoEST.at(i).block(0,0,3,1)-est_poses.at(i).block(0,0,3,1);
+        double pos_nees = errpos.transpose()*est_covpos.at(i).inverse()*errpos;
+
+        // Skip if nan error value
+        if(std::isnan(ori_nees) || std::isnan(pos_nees)) {
+            ROS_WARN("[TRAJ]: nees calculation had nan number (covariance is wrong?) skipping...");
+            continue;
+        }
+
+        // Append this error!
+        nees_ori.timestamps.push_back(est_times.at(i));
+        nees_ori.values.push_back(ori_nees);
+        nees_pos.timestamps.push_back(est_times.at(i));
+        nees_pos.values.push_back(pos_nees);
+
+    }
+
+
+    // Update stat information
+    nees_ori.calculate();
+    nees_pos.calculate();
+
+}
+
+void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics &posz,
+                                 Statistics &orix, Statistics &oriy, Statistics &oriz,
+                                 Statistics &roll, Statistics &pitch, Statistics &yaw) {
+
+    // Check that we have our covariance matrices to normalize with
+    if(est_times.size() != est_covori.size() || est_times.size() != est_covpos.size()
+       || gt_times.size() != gt_covori.size() || gt_times.size() != gt_covpos.size()) {
+        ROS_ERROR("[TRAJ]: Error At Each Timestep function called but trajectory does not have any covariances...");
+        ROS_ERROR("[TRAJ]: Did you record using a Odometry or PoseWithCovarianceStamped????");
+        return;
+    }
+
+    // Clear any old data
+    posx.clear();
+    posy.clear();
+    posz.clear();
+    orix.clear();
+    oriy.clear();
+    oriz.clear();
+    roll.clear();
+    pitch.clear();
+    yaw.clear();
+
+    // Calculate the position and orientation error at every timestep
+    for(size_t i=0; i<est_poses.size(); i++) {
+
+        // Calculate local orientation error, then propagate its covariance into the global frame of reference
+        Eigen::Vector4d e_q = Math::quat_multiply(gt_poses_aignedtoEST.at(i).block(3,0,4,1),Math::Inv(est_poses.at(i).block(3,0,4,1)));
+        Eigen::Vector3d errori_local = 2*e_q.block(0,0,3,1);
+        Eigen::Vector3d errori_global = Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose()*errori_local;
+        Eigen::Matrix3d cov_global = Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose()*est_covori.at(i)*Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1));
+
+        // Convert to roll pitch yaw (also need to "wrap" the error to -pi to pi)
+        // NOTE: our rot2rpy is in the form R_input = R_z(yaw)*R_y(pitch)*R_x(roll)
+        // NOTE: this error is in the "global" frame since we do rot2rpy on R_ItoG rotation
+        Eigen::Vector3d ypr_est_ItoG = Math::rot2rpy(Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose());
+        Eigen::Vector3d ypr_gt_ItoG = Math::rot2rpy(Math::quat_2_Rot(gt_poses_aignedtoEST.at(i).block(3,0,4,1)).transpose());
+        Eigen::Vector3d errori_rpy = ypr_gt_ItoG-ypr_est_ItoG;
+        for(size_t idx=0; idx<3; idx++) {
+            while(errori_rpy(idx)<-M_PI) {
+                errori_rpy(idx) += 2*M_PI;
+            }
+            while(errori_rpy(idx)>M_PI) {
+                errori_rpy(idx) -= 2*M_PI;
+            }
+        }
+
+        // Next need to propagate our covariance to the RPY frame of reference
+        // NOTE: one can derive this by perturbing the rpy error equation
+        // NOTE: R*Exp(theta_erro) = Rz*Rz(error)*Ry*Ry(error)*Rx*Rx(error)
+        // NOTE: example can be found here http://mars.cs.umn.edu/tr/reports/Trawny05c.pdf
+        Eigen::Matrix<double,3,3> H_xyz2rpy = Eigen::Matrix<double,3,3>::Identity();
+        H_xyz2rpy.block(0,1,3,1) = Math::rot_x(-ypr_est_ItoG(0))*H_xyz2rpy.block(0,1,3,1);
+        H_xyz2rpy.block(0,2,3,1) = Math::rot_x(-ypr_est_ItoG(0))*Math::rot_y(-ypr_est_ItoG(1))*H_xyz2rpy.block(0,2,3,1);
+        Eigen::Matrix3d cov_rpy = H_xyz2rpy.inverse()*est_covori.at(i)*H_xyz2rpy.inverse().transpose();
+
+        // Calculate position error
+        Eigen::Vector3d errpos = gt_poses_aignedtoEST.at(i).block(0,0,3,1)-est_poses.at(i).block(0,0,3,1);
+
+        // POSITION: Append this error!
+        posx.timestamps.push_back(est_times.at(i));
+        posx.values.push_back(errpos(0));
+        posx.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(0,0)));
+        posy.timestamps.push_back(est_times.at(i));
+        posy.values.push_back(errpos(1));
+        posy.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(1,1)));
+        posz.timestamps.push_back(est_times.at(i));
+        posz.values.push_back(errpos(2));
+        posz.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(2,2)));
+
+        // ORIENTATION: Append this error!
+        orix.timestamps.push_back(est_times.at(i));
+        orix.values.push_back(errori_global(0));
+        orix.values_bound.push_back(3*std::sqrt(cov_global(0,0)));
+        oriy.timestamps.push_back(est_times.at(i));
+        oriy.values.push_back(errori_global(1));
+        oriy.values_bound.push_back(3*std::sqrt(cov_global(1,1)));
+        oriz.timestamps.push_back(est_times.at(i));
+        oriz.values.push_back(errori_global(2));
+        oriz.values_bound.push_back(3*std::sqrt(cov_global(2,2)));
+
+        // RPY: Append this error!
+        roll.timestamps.push_back(est_times.at(i));
+        roll.values.push_back(errori_rpy(0));
+        roll.values_bound.push_back(3*std::sqrt(cov_rpy(0,0)));
+        pitch.timestamps.push_back(est_times.at(i));
+        pitch.values.push_back(errori_rpy(1));
+        pitch.values_bound.push_back(3*std::sqrt(cov_rpy(1,1)));
+        yaw.timestamps.push_back(est_times.at(i));
+        yaw.values.push_back(errori_rpy(2));
+        yaw.values_bound.push_back(3*std::sqrt(cov_rpy(2,2)));
+
+    }
+
+    // Update stat information
+    posx.calculate();
+    posy.calculate();
+    posz.calculate();
+    orix.calculate();
+    oriy.calculate();
+    oriz.calculate();
+    roll.calculate();
+    pitch.calculate();
+    yaw.calculate();
+
+}
+
+
 void Trajectory::load_data(std::string path_traj,
                            std::vector<double> &times, std::vector<Eigen::Matrix<double,7,1>> &poses,
                            std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos) {
@@ -180,8 +332,8 @@ void Trajectory::load_data(std::string path_traj,
     std::ifstream file;
     file.open(path_traj);
     if (!file) {
-        ROS_ERROR("ERROR: Unable to open trajectory file...");
-        ROS_ERROR("ERROR: %s",path_traj.c_str());
+        ROS_ERROR("[TRAJ]: Unable to open trajectory file...");
+        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
@@ -222,6 +374,8 @@ void Trajectory::load_data(std::string path_traj,
             c_pos << data(14),data(15),data(16),
                     data(15),data(17),data(18),
                     data(16),data(18),data(19);
+            c_ori = 0.5*(c_ori+c_ori.transpose());
+            c_pos = 0.5*(c_pos+c_pos.transpose());
             cov_ori.push_back(c_ori);
             cov_pos.push_back(c_pos);
         } else if(i >= 8) {
@@ -236,28 +390,28 @@ void Trajectory::load_data(std::string path_traj,
 
     // Error if we don't have any data
     if (times.empty()) {
-        ROS_ERROR("ERROR: Could not parse any data from the file!!");
-        ROS_ERROR("ERROR: %s",path_traj.c_str());
+        ROS_ERROR("[TRAJ]: Could not parse any data from the file!!");
+        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Assert that they are all equal
     if(times.size() != poses.size()) {
-        ROS_ERROR("ERROR: Parsing error, pose and timestamps do not match!!");
-        ROS_ERROR("ERROR: %s",path_traj.c_str());
+        ROS_ERROR("[TRAJ]: Parsing error, pose and timestamps do not match!!");
+        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Assert that they are all equal
     if(!cov_ori.empty() && (times.size() != cov_ori.size() || times.size() != cov_pos.size())) {
-        ROS_ERROR("ERROR: Parsing error, timestamps covariance size do not match!!");
-        ROS_ERROR("ERROR: %s",path_traj.c_str());
+        ROS_ERROR("[TRAJ]: Parsing error, timestamps covariance size do not match!!");
+        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Debug print amount
     std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
-    ROS_INFO("[TRAJECTORY]: loaded %d poses from %s",(int)poses.size(),base_filename.c_str());
+    ROS_INFO("[TRAJ]: loaded %d poses from %s",(int)poses.size(),base_filename.c_str());
 
 }
 
@@ -329,13 +483,13 @@ void Trajectory::perform_association(double offset, double max_difference) {
 
     // Ensure that we have enough assosiations
     if(est_times.size() < 3) {
-        ROS_ERROR("ERROR: Was unable to assosiate groundtruth and estimate trajectories");
-        ROS_ERROR("ERROR: %d total matches....",(int)est_times.size());
-        ROS_ERROR("ERROR: Do the time of the files match??");
+        ROS_ERROR("[TRAJ]: Was unable to assosiate groundtruth and estimate trajectories");
+        ROS_ERROR("[TRAJ]: %d total matches....",(int)est_times.size());
+        ROS_ERROR("[TRAJ]: Do the time of the files match??");
         std::exit(EXIT_FAILURE);
     }
     assert(est_times_temp.size()==gt_times_temp.size());
-    ROS_INFO("[TRAJECTORY]: %d est poses and %d gt poses => %d matches",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
+    ROS_INFO("[TRAJ]: %d est poses and %d gt poses => %d matches",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
 
     // Overwrite with intersected values
     est_times = est_times_temp;

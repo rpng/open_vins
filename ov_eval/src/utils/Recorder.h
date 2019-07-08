@@ -41,6 +41,11 @@ namespace ov_eval {
                 ROS_INFO("Created folder path to output file.");
                 ROS_INFO("Path: %s",dir.parent_path().c_str());
             }
+            // If it exists, then delete it
+            if(boost::filesystem::exists(filename)) {
+                ROS_WARN("Output file exists, deleting old file....");
+                boost::filesystem::remove(filename);
+            }
             // Open this file we want to write to
             outfile.open(filename.c_str());
             if(outfile.fail()) {
@@ -137,6 +142,7 @@ namespace ov_eval {
 
             // output the covariance only if we have it
             if(has_covariance) {
+                outfile.precision(10);
                 outfile << " " << cov_rot(0,0) << " " << cov_rot(0,1) << " " << cov_rot(0,2) << " " << cov_rot(1,1) << " " << cov_rot(1,2) << " " << cov_rot(2,2)
                         << " " << cov_pos(0,0) << " " << cov_pos(0,1) << " " << cov_pos(0,2) << " " << cov_pos(1,1) << " " << cov_pos(1,2) << " " << cov_pos(2,2) << std::endl;
             } else {

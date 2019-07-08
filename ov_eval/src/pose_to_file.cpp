@@ -35,13 +35,13 @@ int main(int argc, char **argv) {
     // Subscribe to topic
     ros::Subscriber sub;
     if (topic_type == std::string("PoseWithCovarianceStamped")) {
-        sub = nh.subscribe(topic, 10, &ov_eval::Recorder::callback_posecovariance, &recorder);
+        sub = nh.subscribe(topic, 9999, &ov_eval::Recorder::callback_posecovariance, &recorder);
     } else if (topic_type == std::string("PoseStamped")) {
-        sub = nh.subscribe(topic, 10, &ov_eval::Recorder::callback_pose, &recorder);
+        sub = nh.subscribe(topic, 9999, &ov_eval::Recorder::callback_pose, &recorder);
     } else if (topic_type == std::string("TransformStamped")) {
-        sub = nh.subscribe(topic, 10, &ov_eval::Recorder::callback_transform, &recorder);
+        sub = nh.subscribe(topic, 9999, &ov_eval::Recorder::callback_transform, &recorder);
     } else if(topic_type == std::string("Odometry")) {
-        sub = nh.subscribe(topic, 10, &ov_eval::Recorder::callback_odometry, &recorder);
+        sub = nh.subscribe(topic, 9999, &ov_eval::Recorder::callback_odometry, &recorder);
     } else {
         ROS_ERROR("The specified topic type is not supported");
         ROS_ERROR("topic_type = %s", topic_type.c_str());

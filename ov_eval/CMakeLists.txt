@@ -15,8 +15,17 @@ find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
 # display message to user
 message(STATUS "EIGEN VERSION: " ${EIGEN3_VERSION})
-message(STATUS "OPENCV VERSION: " ${OpenCV_VERSION})
 message(STATUS "BOOST VERSION: " ${Boost_VERSION})
+
+# check if we have our python libs files
+# sudo apt-get install python-matplotlib python-numpy python2.7-dev
+find_package(PythonLibs 2.7)
+if(PYTHONLIBS_FOUND)
+    add_definitions(-DHAVE_PYTHONLIBS=1)
+    message(STATUS "PYTHON VERSION: " ${PYTHONLIBS_VERSION_STRING})
+    message(STATUS "PYTHON INCLUDE: " ${PYTHON_INCLUDE_DIRS})
+    message(STATUS "PYTHON LIBRARIES: " ${PYTHON_LIBRARIES})
+endif()
 
 # Describe catkin project
 catkin_package(
@@ -49,12 +58,16 @@ include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
+        ${PYTHON_INCLUDE_DIRS}
+        /usr/local/lib/python2.7/dist-packages/numpy/core/include
+        /usr/local/lib/python2.7/site-packages/numpy/core/include
         ${catkin_INCLUDE_DIRS}
 )
 
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
+        ${PYTHON_LIBRARIES}
         ${catkin_LIBRARIES}
 )
 

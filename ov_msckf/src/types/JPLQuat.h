@@ -51,7 +51,7 @@ namespace ov_msckf {
             //Build perturbing quaternion
             Eigen::Matrix<double, 4, 1> dq;
             dq << .5 * dx, 1.0;
-            dq = dq / dq.norm();
+            dq = quatnorm(dq);
 
             //Update estimate and recompute R
             set_value(quat_multiply(dq, _value));

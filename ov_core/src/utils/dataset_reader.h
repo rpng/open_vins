@@ -148,12 +148,12 @@ namespace ov_core {
             imustate(8, 0) = state(8, 0); //vel
             imustate(9, 0) = state(9, 0);
             imustate(10, 0) = state(10, 0);
-            imustate(11, 0) = 0;//state(11, 0); //bg
-            imustate(12, 0) = 0;//state(12, 0);
-            imustate(13, 0) = 0;//state(13, 0);
-            imustate(14, 0) = 0;//state(14, 0); //ba
-            imustate(15, 0) = 0;//state(15, 0);
-            imustate(16, 0) = 0;//state(16, 0);
+            imustate(11, 0) = state(11, 0); //bg
+            imustate(12, 0) = state(12, 0);
+            imustate(13, 0) = state(13, 0);
+            imustate(14, 0) = state(14, 0); //ba
+            imustate(15, 0) = state(15, 0);
+            imustate(16, 0) = state(16, 0);
 
             // Success!
             return true;

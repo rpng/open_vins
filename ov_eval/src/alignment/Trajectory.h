@@ -109,8 +109,13 @@ namespace ov_eval {
          * @param orix Orientation x-axis error and bound if we have it in our file
          * @param oriy Orientation y-axis error and bound if we have it in our file
          * @param oriz Orientation z-axis error and bound if we have it in our file
+         * @param roll Orientation roll error and bound if we have it in our file
+         * @param pitch Orientation pitch error and bound if we have it in our file
+         * @param yaw Orientation yaw error and bound if we have it in our file
          */
-        void calculate_error(Statistics &posx, Statistics &posy, Statistics &posz, Statistics &orix, Statistics &oriy, Statistics &oriz);
+        void calculate_error(Statistics &posx, Statistics &posy, Statistics &posz,
+                             Statistics &orix, Statistics &oriy, Statistics &oriz,
+                             Statistics &roll, Statistics &pitch, Statistics &yaw);
 
 
     protected:
