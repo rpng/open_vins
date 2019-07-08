@@ -62,6 +62,12 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     Cov.triangularView<Eigen::Upper>() -= K * M_a.transpose();
     Cov = Cov.selfadjointView<Eigen::Upper>();
 
+    // We should be positive semi-definitate (i.e. no negative diagionals)
+    Eigen::VectorXd diags = Cov.diagonal();
+    for(int i=0; i<diags.rows(); i++) {
+        assert(diags(i)>0.0);
+    }
+
     // Calculate our delta and pass it to update all our state variables
     //cout << "dx = " << endl << (K*res).transpose() << endl;
     state->update(K * res);

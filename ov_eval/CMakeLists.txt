@@ -65,6 +65,7 @@ add_library(ov_eval_lib
         src/dummy.cpp
         src/alignment/AlignTrajectory.cpp
         src/alignment/AlignUtils.cpp
+        src/alignment/Trajectory.cpp
         src/utils/Recorder.h
 )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
@@ -81,3 +82,5 @@ add_executable(format_converter src/format_converter.cpp)
 target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
 
 
+add_executable(error_single_run src/error_single_run.cpp)
+target_link_libraries(error_single_run ov_eval_lib ${thirdparty_libraries})

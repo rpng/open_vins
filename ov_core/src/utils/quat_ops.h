@@ -2,7 +2,6 @@
 #define OV_CORE_QUAT_OPS_H
 
 /**
- * @file quat_ops.h
  * @brief JPL quaternion math utilities
  *
  * @section Summary
