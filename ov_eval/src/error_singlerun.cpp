@@ -66,12 +66,12 @@ void plot_3errors(ov_eval::Statistics sx, ov_eval::Statistics sy, ov_eval::Stati
 int main(int argc, char **argv) {
 
     // Create ros node
-    ros::init(argc, argv, "error_single_run");
+    ros::init(argc, argv, "error_singlerun");
 
     // Ensure we have a path
     if(argc < 4) {
         ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval error_single_run <align_mode> <file_gt.txt> <file_est.txt>");
+        ROS_ERROR("ERROR: rosrun ov_eval error_singlerun <align_mode> <file_gt.txt> <file_est.txt>");
         std::exit(EXIT_FAILURE);
     }
 
@@ -134,6 +134,43 @@ int main(int argc, char **argv) {
     ROS_INFO("std_ori  = %.3f | std_pos  = %.3f",nees_ori.std,nees_pos.std);
 
 
+#ifdef HAVE_PYTHONLIBS
+
+    // Zero our time arrays
+    double starttime1 = nees_ori.timestamps.at(0);
+    for(size_t i=0; i<nees_ori.timestamps.size(); i++) {
+        nees_ori.timestamps.at(i) -= starttime1;
+        nees_pos.timestamps.at(i) -= starttime1;
+    }
+
+    // Plot this figure
+    matplotlibcpp::figure_size(1000, 600);
+
+    // Parameters that define the line styles
+    std::map<std::string, std::string> params_neesp, params_neeso;
+    params_neesp.insert({"label","nees position"});
+    params_neesp.insert({"linestyle","-"});
+    params_neesp.insert({"color","blue"});
+    params_neeso.insert({"label","nees orientation"});
+    params_neeso.insert({"linestyle","-"});
+    params_neeso.insert({"color","red"});
+
+    // Plot our error value
+    matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values, params_neeso);
+    matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values, params_neesp);
+    matplotlibcpp::title("Normalized Estimation Error Squared");
+    matplotlibcpp::ylabel("NEES");
+    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::legend();
+
+    // Display to the user
+    matplotlibcpp::tight_layout();
+    matplotlibcpp::show(false);
+
+
+#endif
+
+
     //===========================================================
     // Plot the error if we have matplotlib to plot!
     //===========================================================
@@ -146,24 +183,24 @@ int main(int argc, char **argv) {
 
 
     // Zero our time arrays
-    double starttime = posx.timestamps.at(0);
+    double starttime2 = posx.timestamps.at(0);
     for(size_t i=0; i<posx.timestamps.size(); i++) {
-        posx.timestamps.at(i) -= starttime;
-        posy.timestamps.at(i) -= starttime;
-        posz.timestamps.at(i) -= starttime;
-        orix.timestamps.at(i) -= starttime;
-        oriy.timestamps.at(i) -= starttime;
-        oriz.timestamps.at(i) -= starttime;
-        roll.timestamps.at(i) -= starttime;
-        pitch.timestamps.at(i) -= starttime;
-        yaw.timestamps.at(i) -= starttime;
+        posx.timestamps.at(i) -= starttime2;
+        posy.timestamps.at(i) -= starttime2;
+        posz.timestamps.at(i) -= starttime2;
+        orix.timestamps.at(i) -= starttime2;
+        oriy.timestamps.at(i) -= starttime2;
+        oriz.timestamps.at(i) -= starttime2;
+        roll.timestamps.at(i) -= starttime2;
+        pitch.timestamps.at(i) -= starttime2;
+        yaw.timestamps.at(i) -= starttime2;
     }
 
 #ifdef HAVE_PYTHONLIBS
 
     //=====================================================
     // Plot this figure
-    matplotlibcpp::figure_size(1200, 780);
+    matplotlibcpp::figure_size(1000, 600);
     plot_3errors(posx,posy,posz);
 
     // Update the title and axis labels
@@ -187,7 +224,7 @@ int main(int argc, char **argv) {
 
     //=====================================================
     // Plot this figure
-    matplotlibcpp::figure_size(1200, 780);
+    matplotlibcpp::figure_size(1000, 600);
     plot_3errors(orix,oriy,oriz);
 
     // Update the title and axis labels
@@ -211,7 +248,7 @@ int main(int argc, char **argv) {
 
     //=====================================================
     // Plot this figure
-    matplotlibcpp::figure_size(1200, 780);
+    matplotlibcpp::figure_size(1000, 600);
     plot_3errors(roll,pitch,yaw);
 
     // Update the title and axis labels

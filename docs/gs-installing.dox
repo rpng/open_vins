@@ -58,10 +58,18 @@ catkin build
 @endcode
 
 
+@section gs-install-oveval Additional Evaluation Requirements
 
+If you want to use the plotting utility wrapper of [matplotlib-cpp](https://github.com/lava/matplotlib-cpp) to generate plots directly from running the cpp code in ov_eval you will need to make sure you have a valid Python 2.7 install of matplotlib.
+On ubuntu 16.04 you can do the following command which should take care of everything you need.
+If you can't link properly, make sure you can call it from Python normally (i.e. that your Python environment is not broken).
+You can disable this visualization if it is broken for you by passing the -DDISABLE_MATPLOTLIB=ON parameter to your catkin build.
 
-
-
+@code{.shell-session}
+sudo apt-get install python-matplotlib python-numpy python2.7-dev
+catkin build -DDISABLE_MATPLOTLIB=OFF # build with viz (default)
+catkin build -DDISABLE_MATPLOTLIB=ON # build without viz
+@endcode
 
 
 

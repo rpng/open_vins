@@ -14,6 +14,7 @@
 #include "AlignTrajectory.h"
 #include "utils/Statistics.h"
 #include "utils/Math.h"
+#include "utils/Loader.h"
 
 
 namespace ov_eval {
@@ -128,18 +129,6 @@ namespace ov_eval {
         // Aligned trajectories
         std::vector<Eigen::Matrix<double,7,1>> est_poses_aignedtoGT;
         std::vector<Eigen::Matrix<double,7,1>> gt_poses_aignedtoEST;
-
-        /**
-         * @brief This will load the trajectory into memory
-         * @param path_traj Path to the trajectory file that we want to read in.
-         * @param times Timesteps in seconds
-         * @param poses Pose at every timestep [pos,quat]
-         * @param cov_ori Vector of orientation covariances at each timestep (empty if we can't load)
-         * @param cov_pos Vector of position covariances at each timestep (empty if we can't load)
-         */
-        void load_data(std::string path_traj,
-                       std::vector<double> &times, std::vector<Eigen::Matrix<double,7,1>> &poses,
-                       std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos);
 
 
         /**

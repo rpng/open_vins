@@ -136,10 +136,9 @@ int main(int argc, char **argv) {
 
         // Loop through this directory
         boost::filesystem::path infolder(argv[1]);
-        boost::filesystem::directory_iterator it(infolder), eod;
-        BOOST_FOREACH(boost::filesystem::path const &p, std::make_pair(it, eod)) {
-            if(boost::filesystem::is_regular_file(p) && boost::algorithm::ends_with(p.string(),"csv")) {
-                process_csv(p.string());
+        for(auto& p: boost::filesystem::recursive_directory_iterator(infolder)) {
+            if(p.path().extension() == ".csv") {
+                process_csv(p.path().string());
             }
         }
 

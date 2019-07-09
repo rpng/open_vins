@@ -9,11 +9,24 @@ using namespace ov_eval;
 Trajectory::Trajectory(std::string path_est, std::string path_gt, std::string alignment_method) {
 
     // Load from file
-    load_data(path_est, est_times, est_poses, est_covori, est_covpos);
-    load_data(path_gt, gt_times, gt_poses, gt_covori, gt_covpos);
+    Loader::load_data(path_est, est_times, est_poses, est_covori, est_covpos);
+    Loader::load_data(path_gt, gt_times, gt_poses, gt_covori, gt_covpos);
+
+    // Debug print amount
+    //std::string base_filename1 = path_est.substr(path_est.find_last_of("/\\") + 1);
+    //std::string base_filename2 = path_gt.substr(path_gt.find_last_of("/\\") + 1);
+    //ROS_INFO("[TRAJ]: loaded %d poses from %s",(int)est_times.size(),base_filename1.c_str());
+    //ROS_INFO("[TRAJ]: loaded %d poses from %s",(int)gt_times.size(),base_filename2.c_str());
 
     // Intersect timestamps
     perform_association(0, 0.02);
+
+    // Return failure if we didn't have any common timestamps
+    if(est_poses.size() < 2) {
+        ROS_ERROR("[TRAJ]: unable to get enough common timestamps between trajectories.");
+        ROS_ERROR("[TRAJ]: does the estimated trajectory publish the rosbag timestamps??");
+        std::exit(EXIT_FAILURE);
+    }
 
     // Perform alignment of the trajectories
     Eigen::Matrix3d R_ESTtoGT, R_GTtoEST;
@@ -23,10 +36,10 @@ Trajectory::Trajectory(std::string path_est, std::string path_gt, std::string al
     AlignTrajectory::align_trajectory(gt_poses, est_poses, R_GTtoEST, t_GTinEST, s_GTtoEST, alignment_method);
 
     // Debug print to the user
-    Eigen::Vector4d q_ESTtoGT = Math::rot_2_quat(R_ESTtoGT);
-    Eigen::Vector4d q_GTtoEST = Math::rot_2_quat(R_GTtoEST);
-    ROS_INFO("[ALIGN]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f",q_ESTtoGT(0),q_ESTtoGT(1),q_ESTtoGT(2),q_ESTtoGT(3),t_ESTinGT(0),t_ESTinGT(1),t_ESTinGT(2),s_ESTtoGT);
-    ROS_INFO("[ALIGN]: q_GTtoEST = %.3f, %.3f, %.3f, %.3f | t_GTinEST = %.3f, %.3f, %.3f | s = %.2f",q_GTtoEST(0),q_GTtoEST(1),q_GTtoEST(2),q_GTtoEST(3),t_GTinEST(0),t_GTinEST(1),t_GTinEST(2),s_GTtoEST);
+    //Eigen::Vector4d q_ESTtoGT = Math::rot_2_quat(R_ESTtoGT);
+    //Eigen::Vector4d q_GTtoEST = Math::rot_2_quat(R_GTtoEST);
+    //ROS_INFO("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f",q_ESTtoGT(0),q_ESTtoGT(1),q_ESTtoGT(2),q_ESTtoGT(3),t_ESTinGT(0),t_ESTinGT(1),t_ESTinGT(2),s_ESTtoGT);
+    //ROS_INFO("[TRAJ]: q_GTtoEST = %.3f, %.3f, %.3f, %.3f | p_GTinEST = %.3f, %.3f, %.3f | s = %.2f",q_GTtoEST(0),q_GTtoEST(1),q_GTtoEST(2),q_GTtoEST(3),t_GTinEST(0),t_GTinEST(1),t_GTinEST(2),s_GTtoEST);
 
     // Finally lets calculate the aligned trajectories
     for(size_t i=0; i<gt_times.size(); i++) {
@@ -324,98 +337,6 @@ void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics 
 }
 
 
-void Trajectory::load_data(std::string path_traj,
-                           std::vector<double> &times, std::vector<Eigen::Matrix<double,7,1>> &poses,
-                           std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos) {
-
-    // Try to open our trajectory file
-    std::ifstream file;
-    file.open(path_traj);
-    if (!file) {
-        ROS_ERROR("[TRAJ]: Unable to open trajectory file...");
-        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
-        std::exit(EXIT_FAILURE);
-    }
-
-    // Loop through each line of this file
-    std::string current_line;
-    while(std::getline(file, current_line) && ros::ok()) {
-
-        // Skip if we start with a comment
-        if(!current_line.find("#"))
-            continue;
-
-        // Loop variables
-        int i = 0;
-        std::istringstream s(current_line);
-        std::string field;
-        Eigen::Matrix<double,20,1> data;
-
-        // Loop through this line (timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt11 Pt12 Pt13 Pt22 Pt23 Pt33)
-        while(std::getline(s,field,' ') && ros::ok()) {
-            // Skip if empty
-            if(field.empty() || i >= data.rows())
-                continue;
-            // save the data to our vector
-            data(i) = std::atof(field.c_str());
-            i++;
-        }
-
-        // Only a valid line if we have all the parameters
-        if(i >= 20) {
-            // time and pose
-            times.push_back(data(0));
-            poses.push_back(data.block(1,0,7,1));
-            // covariance values
-            Eigen::Matrix3d c_ori, c_pos;
-            c_ori << data(8),data(9),data(10),
-                    data(9),data(11),data(12),
-                    data(10),data(12),data(13);
-            c_pos << data(14),data(15),data(16),
-                    data(15),data(17),data(18),
-                    data(16),data(18),data(19);
-            c_ori = 0.5*(c_ori+c_ori.transpose());
-            c_pos = 0.5*(c_pos+c_pos.transpose());
-            cov_ori.push_back(c_ori);
-            cov_pos.push_back(c_pos);
-        } else if(i >= 8) {
-            times.push_back(data(0));
-            poses.push_back(data.block(1,0,7,1));
-        }
-
-    }
-
-    // Finally close the file
-    file.close();
-
-    // Error if we don't have any data
-    if (times.empty()) {
-        ROS_ERROR("[TRAJ]: Could not parse any data from the file!!");
-        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
-        std::exit(EXIT_FAILURE);
-    }
-
-    // Assert that they are all equal
-    if(times.size() != poses.size()) {
-        ROS_ERROR("[TRAJ]: Parsing error, pose and timestamps do not match!!");
-        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
-        std::exit(EXIT_FAILURE);
-    }
-
-    // Assert that they are all equal
-    if(!cov_ori.empty() && (times.size() != cov_ori.size() || times.size() != cov_pos.size())) {
-        ROS_ERROR("[TRAJ]: Parsing error, timestamps covariance size do not match!!");
-        ROS_ERROR("[TRAJ]: %s",path_traj.c_str());
-        std::exit(EXIT_FAILURE);
-    }
-
-    // Debug print amount
-    std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
-    ROS_INFO("[TRAJ]: loaded %d poses from %s",(int)poses.size(),base_filename.c_str());
-
-}
-
-
 
 void Trajectory::perform_association(double offset, double max_difference) {
 
@@ -489,7 +410,7 @@ void Trajectory::perform_association(double offset, double max_difference) {
         std::exit(EXIT_FAILURE);
     }
     assert(est_times_temp.size()==gt_times_temp.size());
-    ROS_INFO("[TRAJ]: %d est poses and %d gt poses => %d matches",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
+    //ROS_INFO("[TRAJ]: %d est poses and %d gt poses => %d matches",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
 
     // Overwrite with intersected values
     est_times = est_times_temp;

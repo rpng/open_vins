@@ -9,6 +9,13 @@ In doing so, we wish to provide insight into *why* our method does better and in
 We additionally need to account for the inherent randomness of the methods and thus should treat each estimated trajectory as a random output.
 The key steps that we follow are the following:  
 
+
+@m_class{m-note m-warning}
+
+@par Installation Warning
+    If you plan to use the included plotting from the cpp code, you will need to make sure that you have matplotlib and python 2.7 installed. We use the to [matplotlib-cpp](https://github.com/lava/matplotlib-cpp) to call this external library and generate the desired figures. Please see @ref gs-install-oveval for more details on the exact install.
+
+
 @subsection eval-ov-collection Collection
 
 The first step in any evaluation is to first collect the estimated trajectory of the proposed systems.
@@ -43,6 +50,40 @@ In addition we have a specific folder structure that is assumed.
 We store trajectories by first their algorithm name and then a folder for each dataset this algorithm was run on.
 The folder names of the datasets need to match the groundtruth trajectory files which should be in their own separate folder.
 Please see the example recorded datasets for how to structure your folders.
+
+```text
+truth/
+    dateset_name_1.txt
+    dateset_name_2.txt
+algorithms/
+    open_vins/
+        dataset_name_1/
+            run1.txt
+            run2.txt
+            run3.txt
+        dataset_name_2/
+            run1.txt
+            run2.txt
+            run3.txt
+    okvis_stereo/
+        dataset_name_1/
+            run1.txt
+            run2.txt
+            run3.txt
+        dataset_name_2/
+            run1.txt
+            run2.txt
+            run3.txt
+    vins_mono/
+        dataset_name_1/
+            run1.txt
+            run2.txt
+            run3.txt
+        dataset_name_2/
+            run1.txt
+            run2.txt
+            run3.txt
+```
 
 
 @subsection eval-ov-plot Processing & Plotting

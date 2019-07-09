@@ -20,7 +20,7 @@ message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 # check if we have our python libs files
 # sudo apt-get install python-matplotlib python-numpy python2.7-dev
 find_package(PythonLibs 2.7)
-if(PYTHONLIBS_FOUND)
+if(PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
     add_definitions(-DHAVE_PYTHONLIBS=1)
     message(STATUS "PYTHON VERSION: " ${PYTHONLIBS_VERSION_STRING})
     message(STATUS "PYTHON INCLUDE: " ${PYTHON_INCLUDE_DIRS})
@@ -80,6 +80,7 @@ add_library(ov_eval_lib
         src/alignment/AlignUtils.cpp
         src/alignment/Trajectory.cpp
         src/utils/Recorder.h
+        src/utils/Loader.cpp
 )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 
@@ -90,10 +91,11 @@ target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 add_executable(pose_to_file src/pose_to_file.cpp)
 target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
 
-
 add_executable(format_converter src/format_converter.cpp)
 target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
 
+add_executable(error_comparison src/error_comparison.cpp)
+target_link_libraries(error_comparison ov_eval_lib ${thirdparty_libraries})
 
-add_executable(error_single_run src/error_single_run.cpp)
-target_link_libraries(error_single_run ov_eval_lib ${thirdparty_libraries})
+add_executable(error_singlerun src/error_singlerun.cpp)
+target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
