@@ -211,6 +211,106 @@ int main(int argc, char **argv) {
     ROS_INFO("============================================");
 
 
+#ifdef HAVE_PYTHONLIBS
+
+    // Plot line colors
+    std::vector<std::string> colors = {"blue","red","black","green","cyan","magenta","yellow"};
+    assert(algo_rpe.size() <= colors.size());
+
+    // Parameters
+    std::map<std::string, std::string> params_rpe;
+    params_rpe.insert({"notch","false"});
+    params_rpe.insert({"sym",""});
+
+    // Plot this figure
+    matplotlibcpp::figure_size(1200, 500);
+
+    // Plot each RPE next to each other
+    double width = 1.0/(algo_rpe.size()+1);
+    double spacing = width/(algo_rpe.size()+1);
+    std::vector<double> xticks;
+    std::vector<std::string> labels;
+    int ct_algo = 0;
+    double ct_pos = 0;
+    for(auto &algo : algo_rpe) {
+        // Start based on what algorithm we are doing
+        xticks.clear();
+        labels.clear();
+        ct_pos = 1+ct_algo*(width+spacing);
+        // Loop through each length type
+        for(auto &seg : algo.second) {
+            xticks.push_back(ct_pos-(algo_rpe.size()*(width+spacing)-width)/2);
+            labels.push_back(std::to_string((int)seg.first));
+            matplotlibcpp::boxplot(seg.second.first.values, ct_pos, width, colors.at(ct_algo), params_rpe);
+            ct_pos += 1+3*width;
+        }
+        // Move forward
+        ct_algo++;
+    }
+
+    // Add "fake" plots for our legend
+    ct_algo = 0;
+    for(const auto &algo : algo_rpe) {
+        std::map<std::string, std::string> params_empty;
+        params_empty.insert({"label", algo.first});
+        params_empty.insert({"linestyle", "-"});
+        params_empty.insert({"color", colors.at(ct_algo)});
+        std::vector<double> vec_empty;
+        matplotlibcpp::plot(vec_empty, vec_empty, params_empty);
+        ct_algo++;
+    }
+
+    // Display to the user
+    matplotlibcpp::xlim(0.5,ct_pos-0.5-3*width);
+    matplotlibcpp::xticks(xticks,labels);
+    matplotlibcpp::title("Relative Orientation Error");
+    matplotlibcpp::ylabel("orientation error (deg)");
+    matplotlibcpp::xlabel("sub-segment lengths (m)");
+    matplotlibcpp::legend();
+    matplotlibcpp::show(false);
+
+    // Plot this figure
+    matplotlibcpp::figure_size(1200, 500);
+
+    // Plot each RPE next to each other
+    ct_algo = 0;
+    ct_pos = 0;
+    for(auto &algo : algo_rpe) {
+        // Start based on what algorithm we are doing
+        ct_pos = 1+ct_algo*(width+spacing);
+        // Loop through each length type
+        for(auto &seg : algo.second) {
+            matplotlibcpp::boxplot(seg.second.second.values, ct_pos, width, colors.at(ct_algo), params_rpe);
+            ct_pos += 1+3*width;
+        }
+        // Move forward
+        ct_algo++;
+    }
+
+    // Add "fake" plots for our legend
+    ct_algo = 0;
+    for(const auto &algo : algo_rpe) {
+        std::map<std::string, std::string> params_empty;
+        params_empty.insert({"label", algo.first});
+        params_empty.insert({"linestyle", "-"});
+        params_empty.insert({"color", colors.at(ct_algo)});
+        std::vector<double> vec_empty;
+        matplotlibcpp::plot(vec_empty, vec_empty, params_empty);
+        ct_algo++;
+    }
+
+    // Display to the user
+    matplotlibcpp::xlim(0.5,ct_pos-0.5-3*width);
+    matplotlibcpp::xticks(xticks,labels);
+    matplotlibcpp::title("Relative Position Error");
+    matplotlibcpp::ylabel("translational error (m)");
+    matplotlibcpp::xlabel("sub-segment lengths (m)");
+    matplotlibcpp::legend();
+    matplotlibcpp::show(true);
+
+#endif
+
+
     // Done!
     return EXIT_SUCCESS;
 

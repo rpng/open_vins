@@ -115,6 +115,53 @@ int main(int argc, char **argv) {
         //ROS_INFO("seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
     }
 
+#ifdef HAVE_PYTHONLIBS
+
+    // Parameters
+    std::map<std::string, std::string> params_rpe;
+    params_rpe.insert({"notch","true"});
+    params_rpe.insert({"sym",""});
+
+    // Plot this figure
+    matplotlibcpp::figure_size(800, 600);
+
+    // Plot each RPE next to each other
+    double ct = 1;
+    double width = 0.50;
+    std::vector<double> xticks;
+    std::vector<std::string> labels;
+    for(const auto &seg : error_rpe) {
+        xticks.push_back(ct);
+        labels.push_back(std::to_string((int)seg.first));
+        matplotlibcpp::boxplot(seg.second.first.values, ct++, width, "blue", params_rpe);
+    }
+
+    // Display to the user
+    matplotlibcpp::xlim(0.5,ct-0.5);
+    matplotlibcpp::xticks(xticks,labels);
+    matplotlibcpp::title("Relative Orientation Error");
+    matplotlibcpp::ylabel("orientation error (deg)");
+    matplotlibcpp::xlabel("sub-segment lengths (m)");
+    matplotlibcpp::show(false);
+
+    // Plot this figure
+    matplotlibcpp::figure_size(800, 600);
+
+    // Plot each RPE next to each other
+    ct = 1;
+    for(const auto &seg : error_rpe) {
+        matplotlibcpp::boxplot(seg.second.second.values, ct++, width, "blue", params_rpe);
+    }
+
+    // Display to the user
+    matplotlibcpp::xlim(0.5,ct-0.5);
+    matplotlibcpp::xticks(xticks,labels);
+    matplotlibcpp::title("Relative Position Error");
+    matplotlibcpp::ylabel("translation error (m)");
+    matplotlibcpp::xlabel("sub-segment lengths (m)");
+    matplotlibcpp::show(true);
+
+#endif
 
     //===========================================================
     // Normalized Estimation Error Squared

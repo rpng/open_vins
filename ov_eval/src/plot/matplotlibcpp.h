@@ -43,6 +43,7 @@ namespace matplotlibcpp {
             PyObject *s_python_function_fignum_exists;
             PyObject *s_python_function_plot;
             PyObject *s_python_function_quiver;
+            PyObject *s_python_function_boxplot;
             PyObject *s_python_function_semilogx;
             PyObject *s_python_function_semilogy;
             PyObject *s_python_function_loglog;
@@ -176,6 +177,7 @@ namespace matplotlibcpp {
                 s_python_function_fignum_exists = safe_import(pymod, "fignum_exists");
                 s_python_function_plot = safe_import(pymod, "plot");
                 s_python_function_quiver = safe_import(pymod, "quiver");
+                s_python_function_boxplot = safe_import(pymod, "boxplot");
                 s_python_function_semilogx = safe_import(pymod, "semilogx");
                 s_python_function_semilogy = safe_import(pymod, "semilogy");
                 s_python_function_loglog = safe_import(pymod, "loglog");
@@ -797,6 +799,46 @@ PyObject* get_array(const std::vector<Numeric>& v)
         if (res)
             Py_DECREF(res);
 
+        return res;
+    }
+
+    template<typename NumericX>
+    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::map<std::string, std::string>& keywords = {})
+    {
+
+        // Create a sequence of vectors
+        PyObject* plot_args = PyTuple_New(1);
+        PyTuple_SetItem(plot_args, 0, get_array(x));
+
+        // construct keyword args
+        PyObject* kwargs = PyDict_New();
+        for(std::map<std::string, std::string>::const_iterator it = keywords.begin(); it != keywords.end(); ++it) {
+            PyDict_SetItemString(kwargs, it->first.c_str(), PyUnicode_FromString(it->second.c_str()));
+        }
+
+        // append position
+        PyObject* positions = PyTuple_New(1);
+        PyTuple_SetItem(positions, 0, PyFloat_FromDouble(position));
+        PyDict_SetItemString(kwargs, "positions", positions);
+
+        // append width (can be scalar or tuple)
+        PyDict_SetItemString(kwargs, "widths", PyFloat_FromDouble(width));
+
+        // append color setting to all lines
+        PyObject* cargs1 = PyDict_New();
+        PyDict_SetItemString(cargs1, "color", PyUnicode_FromString(color.c_str()));
+        PyDict_SetItemString(kwargs, "capprops", cargs1);
+        PyDict_SetItemString(kwargs, "whiskerprops", cargs1);
+        PyDict_SetItemString(kwargs, "medianprops", cargs1);
+        PyDict_SetItemString(kwargs, "boxprops", cargs1);
+
+        // finally call the external python function
+        PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_boxplot, plot_args, kwargs);
+
+        Py_DECREF(kwargs);
+        Py_DECREF(plot_args);
+        if (res)
+            Py_DECREF(res);
         return res;
     }
 
