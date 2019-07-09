@@ -47,7 +47,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
         // If the next timestamp is greater then our current state time
         // And the current is not greater then it yet...
         // Then we should "split" our current IMU measurement
-        if(imu_data.at(i+1).timestamp > state->timestamp()+last_prop_time_offset && imu_data.at(i).timestamp <= state->timestamp()+last_prop_time_offset) {
+        if(imu_data.at(i+1).timestamp > state->timestamp()+last_prop_time_offset && imu_data.at(i).timestamp < state->timestamp()+last_prop_time_offset) {
             IMUDATA data = interpolate_data(imu_data.at(i),imu_data.at(i+1), state->timestamp()+last_prop_time_offset);
             prop_data.push_back(data);
             //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,state->timestamp()-prop_data.at(0).timestamp);
@@ -131,6 +131,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     // We will then add the noise to the IMU portion of the state
     Eigen::Matrix<double,15,15> Phi_summed = Eigen::Matrix<double,15,15>::Identity();
     Eigen::Matrix<double,15,15> Qd_summed = Eigen::Matrix<double,15,15>::Zero();
+    double dt_summed = 0;
 
     // Loop through all IMU messages, and use them to move the state forward in time
     // This uses the zero'th order quat, and then constant acceleration discrete
@@ -149,6 +150,8 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
         // NOTE: Q_summed = Phi_i*Q_summed*Phi_i^T + G*Q_i*G^T
         Phi_summed = F * Phi_summed;
         Qd_summed = F * Qd_summed * F.transpose() + Qdi;
+        Qd_summed = 0.5*(Qd_summed+Qd_summed.transpose());
+        dt_summed +=  prop_data.at(i+1).timestamp-prop_data.at(i).timestamp;
     }
 
     // Last angular velocity (used for cloning when estimating time offset)
@@ -160,7 +163,6 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     // Do the update to the covariance with our "summed" state transition and IMU noise addition...
     auto &Cov = state->Cov();
     size_t imu_id = state->imu()->id();
-    assert(imu_id == 0);
     Cov.block(imu_id,0,15,state->n_vars()) = Phi_summed*Cov.block(imu_id,0,15,state->n_vars());
     Cov.block(0,imu_id,state->n_vars(),15) = Cov.block(0,imu_id,state->n_vars(),15)*Phi_summed.transpose();
     Cov.block(imu_id,imu_id,15,15) += Qd_summed;
@@ -190,6 +192,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
     // Time elapsed over interval
     double dt = data_plus.timestamp-data_minus.timestamp;
+    assert(data_plus.timestamp>data_minus.timestamp);
 
     // Corrected imu measurements
     Eigen::Matrix<double,3,1> w_hat = data_minus.wm - imu->bias_g();
@@ -210,12 +213,13 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
     // Orientation: Equation (101) and (103) and of Trawny indirect TR
     Eigen::Matrix<double,4,4> bigO;
-    if(w_norm > 1e-3) {
+    if(w_norm > 1e-20) {
         bigO = cos(0.5*w_norm*dt)*I_4x4 + 1/w_norm*sin(0.5*w_norm*dt)*Omega(w_hat);
     } else {
         bigO = I_4x4 + 0.5*dt*Omega(w_hat);
     }
     Eigen::Matrix<double,4,1> new_q = quatnorm(bigO*imu->quat());
+    //Eigen::Matrix<double,4,1> new_q = rot_2_quat(exp_so3(-w_hat*dt)*R_Gtoi);
 
     // Velocity: just the acceleration in the local frame, minus global gravity
     Eigen::Matrix<double,3,1> new_v = imu->vel() + R_Gtoi.transpose()*a_hat*dt - _gravity*dt;
@@ -294,6 +298,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
     // Compute the noise injected into the state over the interval
     Qd = G*Qc*G.transpose();
+    Qd = 0.5*(Qd+Qd.transpose());
 
     //Now replace imu estimate and fej with propagated values
     Eigen::Matrix<double,16,1> imu_x = imu->value();

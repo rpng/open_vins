@@ -13,11 +13,6 @@
 using namespace ov_core;
 
 
-
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 

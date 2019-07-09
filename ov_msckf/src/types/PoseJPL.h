@@ -9,10 +9,6 @@
 using namespace ov_core;
 
 
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 
@@ -70,7 +66,7 @@ namespace ov_msckf {
 
             Eigen::Matrix<double, 4, 1> dq;
             dq << .5 * dx.block(0, 0, 3, 1), 1.0;
-            dq = dq / dq.norm();
+            dq = quatnorm(dq);
 
             //Update orientation
             newX.block(0, 0, 4, 1) = quat_multiply(dq, quat());

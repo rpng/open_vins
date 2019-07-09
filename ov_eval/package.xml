@@ -1,0 +1,36 @@
+<?xml version="1.0"?>
+<package>
+    <!-- Package Information -->
+    <name>ov_eval</name>
+    <version>1.0.0</version>
+    <description>
+        Evaluation methods and scripts for visual-inertial odometry systems.
+    </description>
+
+    <!-- Code Authors -->
+    <author email="pgeneva@udel.edu">Patrick Geneva</author>
+    <author email="keck@udel.edu">Kevin Eckenhoff</author>
+    <maintainer email="pgeneva@udel.edu">Patrick Geneva</maintainer>
+    <maintainer email="keck@udel.edu">Kevin Eckenhoff</maintainer>
+
+    <!-- Licensing -->
+    <license>GNU General Public License v3.0</license>
+
+    <!-- Dependencies which this package needs to build itself. -->
+    <buildtool_depend>catkin</buildtool_depend>
+
+    <!-- Dependencies needed to compile this package. -->
+    <build_depend>cmake_modules</build_depend>
+    <build_depend>roscpp</build_depend>
+    <build_depend>geometry_msgs</build_depend>
+    <build_depend>nav_msgs</build_depend>
+    <build_depend>sensor_msgs</build_depend>
+
+    <!-- Dependencies needed after this package is compiled. -->
+    <run_depend>roscpp</run_depend>
+    <run_depend>geometry_msgs</run_depend>
+    <run_depend>nav_msgs</run_depend>
+    <run_depend>sensor_msgs</run_depend>
+
+
+</package>

@@ -31,10 +31,7 @@
 #include "CpiBase.h"
 #include "utils/quat_ops.h"
 
-/**
- * @namespace ov_core
- * @brief Core algorithms for Open VINS
- */
+
 namespace ov_core {
 
 

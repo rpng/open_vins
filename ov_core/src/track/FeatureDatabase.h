@@ -8,10 +8,6 @@
 #include "feat/Feature.h"
 
 
-/**
- * @namespace ov_core
- * @brief Core algorithms for Open VINS
- */
 namespace ov_core {
 
     /**

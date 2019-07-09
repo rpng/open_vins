@@ -67,10 +67,15 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
         //std::cout << pose_interp(0,3) << "," << pose_interp(1,3) << "," << pose_interp(2,3) << std::endl;
 
     }
+
+    // Add stationary control points to the begining
+    for(size_t i=1; i<=10; i++) {
+        control_points.insert({timestamp_min-dt*i, control_points.at(timestamp_min)});
+    }
     ROS_INFO("[B-SPLINE]: using %d control points in total",(int)control_points.size());
 
     // The start time of the system is three dt in since we need at least two older control points
-    timestamp_start = timestamp_min + 3*dt;
+    timestamp_start = timestamp_min - 8*dt;
     ROS_INFO("[B-SPLINE]: start trajectory time of %.6f",timestamp_start);
 
 }

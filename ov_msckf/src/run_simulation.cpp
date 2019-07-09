@@ -46,7 +46,7 @@ int main(int argc, char** argv)
 
     // Get initial state
     Eigen::Matrix<double, 17, 1> imustate;
-    bool success = sim->get_current_state(imustate);
+    bool success = sim->get_state(sim->current_timestamp(),imustate);
     if(!success) {
         ROS_ERROR("[SIM]: Could not initialize the filter to the first state");
         ROS_ERROR("[SIM]: Did the simulator load properly???");
@@ -55,6 +55,7 @@ int main(int argc, char** argv)
 
     // Initialize our filter with the groundtruth
     sys->initialize_with_gt(imustate);
+    viz->visualize();
 
 
     //===================================================================================

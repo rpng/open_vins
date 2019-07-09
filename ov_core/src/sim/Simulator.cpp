@@ -155,7 +155,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
 
     // We will create synthetic camera frames and ensure that each has enough features
-    double dt = 0.01;
+    double dt = 0.05;
     double time_synth = spline.get_start_time();
     ROS_INFO("Generating map features at %d rate",(int)(1.0/dt));
 
@@ -196,7 +196,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
 
 
-bool Simulator::get_current_state(Eigen::Matrix<double,17,1> &imustate) {
+bool Simulator::get_state(double desired_time, Eigen::Matrix<double,17,1> &imustate) {
 
     // Set to default state
     imustate.setZero();
@@ -207,8 +207,8 @@ bool Simulator::get_current_state(Eigen::Matrix<double,17,1> &imustate) {
     Eigen::Vector3d p_IinG, w_IinI, v_IinG;
 
     // Get the pose, velocity, and acceleration
-    bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
-    bool success_vel = spline.get_velocity(timestamp, w_IinI, v_IinG);
+    bool success_pose = spline.get_pose(desired_time, R_GtoI, p_IinG);
+    bool success_vel = spline.get_velocity(desired_time, w_IinI, v_IinG);
 
     // If any of these failed, then that means we don't have any more spline
     if(!success_pose || !success_vel) {
@@ -216,7 +216,7 @@ bool Simulator::get_current_state(Eigen::Matrix<double,17,1> &imustate) {
     }
 
     // Else lets create the current state
-    imustate(0,0) = timestamp;
+    imustate(0,0) = desired_time;
     imustate.block(1,0,4,1) = rot_2_quat(R_GtoI);
     imustate.block(5,0,3,1) = p_IinG;
     imustate.block(8,0,3,1) = v_IinG;
@@ -263,12 +263,20 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     // Now add noise to these measurements
     double dt = 1.0/freq_imu;
     std::normal_distribution<double> w(0,1);
-    wm = omega_inI + true_bias_gyro + sigma_w*1/std::sqrt(dt)*w(gen_meas)*Eigen::Vector3d::Ones();
-    am = accel_inI + true_bias_accel + sigma_a*1/std::sqrt(dt)*w(gen_meas)*Eigen::Vector3d::Ones();
+    wm(0) = omega_inI(0) + true_bias_gyro(0) + sigma_w*1/std::sqrt(dt)*w(gen_meas);
+    wm(1) = omega_inI(1) + true_bias_gyro(1) + sigma_w*1/std::sqrt(dt)*w(gen_meas);
+    wm(2) = omega_inI(2) + true_bias_gyro(2) + sigma_w*1/std::sqrt(dt)*w(gen_meas);
+    am(0) = accel_inI(0) + true_bias_accel(0) + sigma_a*1/std::sqrt(dt)*w(gen_meas);
+    am(1) = accel_inI(1) + true_bias_accel(1) + sigma_a*1/std::sqrt(dt)*w(gen_meas);
+    am(2) = accel_inI(2) + true_bias_accel(2) + sigma_a*1/std::sqrt(dt)*w(gen_meas);
 
     // Move the biases forward in time
-    true_bias_gyro += sigma_wb*std::sqrt(dt)*w(gen_meas)*Eigen::Vector3d::Ones();
-    true_bias_accel += sigma_ab*std::sqrt(dt)*w(gen_meas)*Eigen::Vector3d::Ones();
+    true_bias_gyro(0) += sigma_wb*std::sqrt(dt)*w(gen_meas);
+    true_bias_gyro(1) += sigma_wb*std::sqrt(dt)*w(gen_meas);
+    true_bias_gyro(2) += sigma_wb*std::sqrt(dt)*w(gen_meas);
+    true_bias_accel(0) += sigma_ab*std::sqrt(dt)*w(gen_meas);
+    true_bias_accel(1) += sigma_ab*std::sqrt(dt)*w(gen_meas);
+    true_bias_accel(2) += sigma_ab*std::sqrt(dt)*w(gen_meas);
 
     // Return success
     return true;
@@ -423,7 +431,7 @@ std::vector<std::pair<size_t,Eigen::VectorXf>> Simulator::project_pointcloud(con
         Eigen::Vector3d p_FinC = R_ItoC*p_FinI+p_IinC;
 
         // Skip cloud if too far away
-        if(p_FinC(2) > 50 || p_FinC(2) < 0.5)
+        if(p_FinC(2) > 15 || p_FinC(2) < 0.5)
             continue;
 
         // Project to normalized coordinates

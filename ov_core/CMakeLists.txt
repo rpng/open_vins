@@ -64,6 +64,7 @@ list(APPEND thirdparty_libraries
 # Make the core library
 ##################################################
 add_library(ov_core_lib
+        src/dummy.cpp
         src/init/InertialInitializer.cpp
         src/sim/BsplineSE3.cpp
         src/sim/Simulator.cpp

@@ -24,7 +24,8 @@ Specifically it stores the following large components:
 
 This ov_core library is used by the ov_msckf system which contains our filter-based estimator.
 Within this we have the state, its manager, type system, prediction, and update algorithms.
-We encourage users to look at the specific documentation for a detailed view of what we support. 
+We encourage users to look at the specific documentation for a detailed view of what we support.
+The ov_eval library has a bunch of evaluation methods and scripts that one can use to generate research results for publication.
 
 
 

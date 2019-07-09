@@ -6,10 +6,6 @@
 #include "state/State.h"
 
 
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 

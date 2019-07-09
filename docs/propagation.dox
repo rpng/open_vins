@@ -405,7 +405,7 @@ By collecting all the perturbation results, we can build \f$\boldsymbol{\Phi}(t_
 \Delta t & \mathbf{0}_3 \\
 
 - \frac{1}{2}\text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \lfloor \hat{\mathbf{a}}_{k} \Delta t^2 \times\rfloor
-& \mathbf{I}_3 & \Delta t & \mathbf{0}_3 & - \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t^2 \\
+& \mathbf{I}_3 & \Delta t \mathbf{I}_3 & \mathbf{0}_3 & - \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t^2 \\
 
 - \text{}^{I_k}_G\hat{\mathbf{R}}^\top \lfloor \hat{\mathbf{a}}_{k} \Delta t \times\rfloor
 & \mathbf{0}_3 & \mathbf{I}_3 & \mathbf{0}_3 & - \text{}^{I_k}_G\hat{\mathbf{R}}^\top \Delta t \\

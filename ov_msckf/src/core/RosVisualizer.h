@@ -12,6 +12,7 @@
 #include <std_msgs/Float64.h>
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <cv_bridge/cv_bridge.h>
 #include <tf/transform_broadcaster.h>
 
@@ -21,10 +22,6 @@
 #include "utils/dataset_reader.h"
 
 
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 
@@ -98,6 +95,8 @@ namespace ov_msckf {
         ros::Publisher pub_posegt;
         double summed_rmse_ori = 0.0;
         double summed_rmse_pos = 0.0;
+        double summed_nees_ori = 0.0;
+        double summed_nees_pos = 0.0;
         size_t summed_number = 0;
 
         // Our groundtruth states

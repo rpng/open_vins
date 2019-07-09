@@ -52,15 +52,26 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     Eigen::MatrixXd S(R.rows(), R.rows());
     S.triangularView<Eigen::Upper>() = H * P_small * H.transpose();
     S.triangularView<Eigen::Upper>() += R;
+    //Eigen::MatrixXd S = H * P_small * H.transpose() + R;
+
 
     // Inverse our S (should we use a more stable method here??)
     Eigen::MatrixXd Sinv = Eigen::MatrixXd::Identity(R.rows(), R.rows());
     S.selfadjointView<Eigen::Upper>().llt().solveInPlace(Sinv);
     Eigen::MatrixXd K = M_a * Sinv.selfadjointView<Eigen::Upper>();
+    //Eigen::MatrixXd K = M_a * S.inverse();
 
     // Update Covariance
     Cov.triangularView<Eigen::Upper>() -= K * M_a.transpose();
     Cov = Cov.selfadjointView<Eigen::Upper>();
+    //Cov -= K * M_a.transpose();
+    //Cov = 0.5*(Cov+Cov.transpose());
+
+    // We should be positive semi-definitate (i.e. no negative diagionals)
+    Eigen::VectorXd diags = Cov.diagonal();
+    for(int i=0; i<diags.rows(); i++) {
+        assert(diags(i)>=0.0);
+    }
 
     // Calculate our delta and pass it to update all our state variables
     //cout << "dx = " << endl << (K*res).transpose() << endl;
@@ -79,7 +90,7 @@ Eigen::MatrixXd StateHelper::get_marginal_covariance(State *state, const std::ve
     }
 
     // Construct our return covariance
-    Eigen::MatrixXd Small_cov(cov_size, cov_size);
+    Eigen::MatrixXd Small_cov = Eigen::MatrixXd::Zero(cov_size, cov_size);
 
     // For each variable, lets copy over all other variable cross terms
     // Note: this copies over itself to when i_index=k_index
@@ -146,8 +157,8 @@ void StateHelper::marginalize(State *state, Type *marg) {
 
 
     // Now set new covariance
-    state->Cov() = 0.5*(Cov_new+Cov_new.transpose());
-    //state->Cov() = Cov_new;
+    state->Cov() = Cov_new;
+    //state->Cov() = 0.5*(Cov_new+Cov_new.transpose());
     assert(state->Cov().rows() == Cov_new.rows());
 
 

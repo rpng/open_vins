@@ -2,10 +2,6 @@
 #define OV_MSCKF_UPDATER_OPTIONS_H
 
 
-/**
- * @namespace ov_msckf
- * @brief The Open VINS MSCKF
- */
 namespace ov_msckf {
 
 
