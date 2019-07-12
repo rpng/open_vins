@@ -4,10 +4,9 @@
 @page gs-calibration Sensor Calibration
 
 
+
 @section gs-visual-inertial-sensor Visual-Inertial Sensors
 
-
-@image html visensor.png width=50%
 
 
 One may ask why use a visual-inertial sensor?
@@ -21,6 +20,8 @@ An IMU requires estimating of additional bias terms and requires highly accurate
 Additionally small errors in the relative timestamps between the sensors can also degrade performance very quickly in dynamic trajectories.
 Within this *Open VINS* project we address these by advocating the *online* estimation of these extrinsic and time offset parameters between the cameras and IMU.
 
+
+@image html rig_hydra_old.jpg width=60%
 
 
 
