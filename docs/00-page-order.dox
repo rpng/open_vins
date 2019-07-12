@@ -6,15 +6,13 @@
 /**
 
 
-@page getting-started Getting started
+@page getting-started Getting Started
 
 
-@page propagation Propagation Derivations
-@page fej First Estimate Jacobians
-@page update Update Derivations
-@page evaluation Filter Evaluation Methods
-
-
+@page propagation IMU Propagation Derivations
+@page fej First-Estimate Jacobian Estimators
+@page update Measurement Update Derivations
+@page evaluation Estimator Evaluation Methods
 
 @page dev-welcome Developer and Internals
 
