@@ -41,7 +41,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     gen_state_init = std::mt19937(seed_state_init);
     gen_state_init.seed(seed_state_init);
     gen_meas = std::mt19937(sim_seed_measurements);
-    gen_meas.seed(seed_state_init);
+    gen_meas.seed(sim_seed_measurements);
 
     // Read in sensor simulation frequencies
     nh.param<int>("sim_freq_cam", freq_cam, 10);
@@ -207,11 +207,10 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double,17,1> &imust
     Eigen::Vector3d p_IinG, w_IinI, v_IinG;
 
     // Get the pose, velocity, and acceleration
-    bool success_pose = spline.get_pose(desired_time, R_GtoI, p_IinG);
-    bool success_vel = spline.get_velocity(desired_time, w_IinI, v_IinG);
+    bool success_vel = spline.get_velocity(desired_time, R_GtoI, p_IinG, w_IinI, v_IinG);
 
-    // If any of these failed, then that means we don't have any more spline
-    if(!success_pose || !success_vel) {
+    // If failed, then that means we don't have any more spline
+    if(!success_vel) {
         return false;
     }
 
@@ -245,13 +244,14 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     Eigen::Vector3d p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG;
 
     // Get the pose, velocity, and acceleration
-    bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
-    bool success_vel = spline.get_velocity(timestamp, w_IinI, v_IinG);
-    bool success_accel = spline.get_acceleration(timestamp, alpha_IinI, a_IinG);
+    // NOTE: we get the acceleration between our two IMU
+    // NOTE: this is because we are using a constant measurement model for integration
+    //bool success_accel = spline.get_acceleration(timestamp+0.5/freq_imu, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
+    bool success_accel = spline.get_acceleration(timestamp, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
 
-    // If any of these failed, then that means we don't have any more spline
+    // If failed, then that means we don't have any more spline
     // Thus we should stop the simulation
-    if(!success_pose || !success_vel || !success_accel) {
+    if(!success_accel) {
         is_running = false;
         return false;
     }
@@ -263,12 +263,12 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     // Now add noise to these measurements
     double dt = 1.0/freq_imu;
     std::normal_distribution<double> w(0,1);
-    wm(0) = omega_inI(0) + true_bias_gyro(0) + sigma_w*1/std::sqrt(dt)*w(gen_meas);
-    wm(1) = omega_inI(1) + true_bias_gyro(1) + sigma_w*1/std::sqrt(dt)*w(gen_meas);
-    wm(2) = omega_inI(2) + true_bias_gyro(2) + sigma_w*1/std::sqrt(dt)*w(gen_meas);
-    am(0) = accel_inI(0) + true_bias_accel(0) + sigma_a*1/std::sqrt(dt)*w(gen_meas);
-    am(1) = accel_inI(1) + true_bias_accel(1) + sigma_a*1/std::sqrt(dt)*w(gen_meas);
-    am(2) = accel_inI(2) + true_bias_accel(2) + sigma_a*1/std::sqrt(dt)*w(gen_meas);
+    wm(0) = omega_inI(0) + true_bias_gyro(0) + sigma_w/std::sqrt(dt)*w(gen_meas);
+    wm(1) = omega_inI(1) + true_bias_gyro(1) + sigma_w/std::sqrt(dt)*w(gen_meas);
+    wm(2) = omega_inI(2) + true_bias_gyro(2) + sigma_w/std::sqrt(dt)*w(gen_meas);
+    am(0) = accel_inI(0) + true_bias_accel(0) + sigma_a/std::sqrt(dt)*w(gen_meas);
+    am(1) = accel_inI(1) + true_bias_accel(1) + sigma_a/std::sqrt(dt)*w(gen_meas);
+    am(2) = accel_inI(2) + true_bias_accel(2) + sigma_a/std::sqrt(dt)*w(gen_meas);
 
     // Move the biases forward in time
     true_bias_gyro(0) += sigma_wb*std::sqrt(dt)*w(gen_meas);

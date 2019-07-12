@@ -13,8 +13,8 @@ double FeatureInitializer::compute_error(std::unordered_map<size_t,std::unordere
     double err = 0;
 
     // Get the position of the anchor pose
-    Eigen::Matrix<double,3,3> &R_GtoA = clonesCAM.at(feat->anchor_cam_id).at(feat->timestamps.at(feat->anchor_cam_id).at(0)).Rot();
-    Eigen::Matrix<double,3,1> &p_AinG = clonesCAM.at(feat->anchor_cam_id).at(feat->timestamps.at(feat->anchor_cam_id).at(0)).pos();
+    Eigen::Matrix<double,3,3> &R_GtoA = clonesCAM.at(feat->anchor_cam_id).at(feat->anchor_clone_timestamp).Rot();
+    Eigen::Matrix<double,3,1> &p_AinG = clonesCAM.at(feat->anchor_cam_id).at(feat->anchor_clone_timestamp).pos();
 
     // Loop through each camera for this feature
     for (auto const& pair : feat->timestamps) {
@@ -74,7 +74,7 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
         }
     }
     feat->anchor_cam_id = anchor_most_meas;
-    feat->anchor_clone_timestamp = feat->timestamps.at(feat->anchor_cam_id).at(0);
+    feat->anchor_clone_timestamp = feat->timestamps.at(feat->anchor_cam_id).back();
 
     // Our linear system matrices
     Eigen::MatrixXd A = Eigen::MatrixXd::Zero(2*total_meas, 3);
@@ -84,7 +84,7 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
     size_t c = 0;
 
     // Get the position of the anchor pose
-    ClonePose anchorclone = clonesCAM.at(feat->anchor_cam_id).at(feat->timestamps.at(feat->anchor_cam_id).at(0));
+    ClonePose anchorclone = clonesCAM.at(feat->anchor_cam_id).at(feat->anchor_clone_timestamp);
     Eigen::Matrix<double,3,3> &R_GtoA = anchorclone.Rot();
     Eigen::Matrix<double,3,1> &p_AinG = anchorclone.pos();
 
@@ -166,8 +166,8 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
     double cost_old = compute_error(clonesCAM,feat,alpha,beta,rho);
 
     // Get the position of the anchor pose
-    Eigen::Matrix<double,3,3> &R_GtoA = clonesCAM.at(feat->anchor_cam_id).at(feat->timestamps.at(feat->anchor_cam_id).at(0)).Rot();
-    Eigen::Matrix<double,3,1> &p_AinG = clonesCAM.at(feat->anchor_cam_id).at(feat->timestamps.at(feat->anchor_cam_id).at(0)).pos();
+    Eigen::Matrix<double,3,3> &R_GtoA = clonesCAM.at(feat->anchor_cam_id).at(feat->anchor_clone_timestamp).Rot();
+    Eigen::Matrix<double,3,1> &p_AinG = clonesCAM.at(feat->anchor_cam_id).at(feat->anchor_clone_timestamp).pos();
 
     // Loop till we have either
     // 1. Reached our max iteration count

@@ -122,7 +122,7 @@ bool BsplineSE3::get_pose(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vect
 
 
 
-bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG) {
+bool BsplineSE3::get_velocity(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vector3d &p_IinG, Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG) {
 
     // Get the bounding poses for the desired timestamp
     double t0, t1, t2, t3;
@@ -147,19 +147,28 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinI, Eigen::
     double b1dot = 1.0/(6.0*DT)*(3+6*u-6*u*u);
     double b2dot = 1.0/(6.0*DT)*(3*u*u);
 
+    // Cache some values we use alot
+    Eigen::Matrix<double,6,1> omega_10 = log_se3(pose0.inverse()*pose1);
+    Eigen::Matrix<double,6,1> omega_21 = log_se3(pose1.inverse()*pose2);
+    Eigen::Matrix<double,6,1> omega_32 = log_se3(pose2.inverse()*pose3);
+
     // Calculate interpolated poses
-    Eigen::Matrix4d A0 = exp_se3(b0*log_se3(pose0.inverse()*pose1));
-    Eigen::Matrix4d A1 = exp_se3(b1*log_se3(pose1.inverse()*pose2));
-    Eigen::Matrix4d A2 = exp_se3(b2*log_se3(pose2.inverse()*pose3));
-    Eigen::Matrix4d A0dot = b0dot*hat_se3(log_se3(pose0.inverse()*pose1))*A0;
-    Eigen::Matrix4d A1dot = b1dot*hat_se3(log_se3(pose1.inverse()*pose2))*A1;
-    Eigen::Matrix4d A2dot = b2dot*hat_se3(log_se3(pose2.inverse()*pose3))*A2;
+    Eigen::Matrix4d A0 = exp_se3(b0*omega_10);
+    Eigen::Matrix4d A1 = exp_se3(b1*omega_21);
+    Eigen::Matrix4d A2 = exp_se3(b2*omega_32);
+    Eigen::Matrix4d A0dot = b0dot*hat_se3(omega_10)*A0;
+    Eigen::Matrix4d A1dot = b1dot*hat_se3(omega_21)*A1;
+    Eigen::Matrix4d A2dot = b2dot*hat_se3(omega_32)*A2;
+
+    // Get the interpolated pose
+    Eigen::Matrix4d pose_interp = pose0*A0*A1*A2;
+    R_GtoI = pose_interp.block(0,0,3,3).transpose();
+    p_IinG = pose_interp.block(0,3,3,1);
 
     // Finally get the interpolated velocities
     // NOTE: Rdot = R*skew(omega) => R^T*Rdot = skew(omega)
-    Eigen::Matrix4d pos_interp = pose0*A0*A1*A2;
     Eigen::Matrix4d vel_interp = pose0*(A0dot*A1*A2+A0*A1dot*A2+A0*A1*A2dot);
-    w_IinI = vee(pos_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3));
+    w_IinI = vee(pose_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3));
     v_IinG = vel_interp.block(0,3,3,1);
     return true;
 
@@ -168,7 +177,9 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Vector3d &w_IinI, Eigen::
 
 
 
-bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinI, Eigen::Vector3d &a_IinG) {
+bool BsplineSE3::get_acceleration(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vector3d &p_IinG,
+                                    Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG,
+                                    Eigen::Vector3d &alpha_IinI, Eigen::Vector3d &a_IinG) {
 
     // Get the bounding poses for the desired timestamp
     double t0, t1, t2, t3;
@@ -195,27 +206,40 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Vector3d &alpha_IinI,
     double b1dotdot = 1.0/(6.0*DT*DT)*(6-12*u);
     double b2dotdot = 1.0/(6.0*DT*DT)*(6*u);
 
-    // Calculate interpolated poses
-    Eigen::Matrix4d A0 = exp_se3(b0*log_se3(pose0.inverse()*pose1));
-    Eigen::Matrix4d A1 = exp_se3(b1*log_se3(pose1.inverse()*pose2));
-    Eigen::Matrix4d A2 = exp_se3(b2*log_se3(pose2.inverse()*pose3));
-    Eigen::Matrix4d A0dot = b0dot*hat_se3(log_se3(pose0.inverse()*pose1))*A0;
-    Eigen::Matrix4d A1dot = b1dot*hat_se3(log_se3(pose1.inverse()*pose2))*A1;
-    Eigen::Matrix4d A2dot = b2dot*hat_se3(log_se3(pose2.inverse()*pose3))*A2;
-    Eigen::Matrix4d A0dotdot = b0dot*hat_se3(log_se3(pose0.inverse()*pose1))*A0dot+b0dotdot*hat_se3(log_se3(pose0.inverse()*pose1))*A0;
-    Eigen::Matrix4d A1dotdot = b1dot*hat_se3(log_se3(pose1.inverse()*pose2))*A1dot+b1dotdot*hat_se3(log_se3(pose1.inverse()*pose2))*A1;
-    Eigen::Matrix4d A2dotdot = b2dot*hat_se3(log_se3(pose2.inverse()*pose3))*A2dot+b2dotdot*hat_se3(log_se3(pose2.inverse()*pose3))*A2;
+    // Cache some values we use alot
+    Eigen::Matrix<double,6,1> omega_10 = log_se3(pose0.inverse()*pose1);
+    Eigen::Matrix<double,6,1> omega_21 = log_se3(pose1.inverse()*pose2);
+    Eigen::Matrix<double,6,1> omega_32 = log_se3(pose2.inverse()*pose3);
 
+    // Calculate interpolated poses
+    Eigen::Matrix4d A0 = exp_se3(b0*omega_10);
+    Eigen::Matrix4d A1 = exp_se3(b1*omega_21);
+    Eigen::Matrix4d A2 = exp_se3(b2*omega_32);
+    Eigen::Matrix4d A0dot = b0dot*hat_se3(omega_10)*A0;
+    Eigen::Matrix4d A1dot = b1dot*hat_se3(omega_21)*A1;
+    Eigen::Matrix4d A2dot = b2dot*hat_se3(omega_32)*A2;
+    Eigen::Matrix4d A0dotdot = b0dot*hat_se3(omega_10)*A0dot+b0dotdot*hat_se3(omega_10)*A0;
+    Eigen::Matrix4d A1dotdot = b1dot*hat_se3(omega_21)*A1dot+b1dotdot*hat_se3(omega_21)*A1;
+    Eigen::Matrix4d A2dotdot = b2dot*hat_se3(omega_32)*A2dot+b2dotdot*hat_se3(omega_32)*A2;
+
+    // Get the interpolated pose
+    Eigen::Matrix4d pose_interp = pose0*A0*A1*A2;
+    R_GtoI = pose_interp.block(0,0,3,3).transpose();
+    p_IinG = pose_interp.block(0,3,3,1);
+
+    // Get the interpolated velocities
+    // NOTE: Rdot = R*skew(omega) => R^T*Rdot = skew(omega)
+    Eigen::Matrix4d vel_interp = pose0*(A0dot*A1*A2+A0*A1dot*A2+A0*A1*A2dot);
+    w_IinI = vee(pose_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3));
+    v_IinG = vel_interp.block(0,3,3,1);
 
     // Finally get the interpolated velocities
     // NOTE: Rdot = R*skew(omega)
     // NOTE: Rdotdot = Rdot*skew(omega) + R*skew(alpha) => R^T*(Rdotdot-Rdot*skew(omega))=skew(alpha)
-    Eigen::Matrix4d pos_interp = pose0*A0*A1*A2;
-    Eigen::Matrix4d vel_interp = pose0*(A0dot*A1*A2+A0*A1dot*A2+A0*A1*A2dot);
     Eigen::Matrix4d acc_interp = pose0*(A0dotdot*A1*A2+A0*A1dotdot*A2+A0*A1*A2dotdot
                                         +2*A0dot*A1dot*A2+2*A0*A1dot*A2dot+2*A0dot*A1*A2dot);
-    Eigen::Matrix3d omegaskew = pos_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3);
-    alpha_IinI = vee(pos_interp.block(0,0,3,3).transpose()*(acc_interp.block(0,0,3,3)-vel_interp.block(0,0,3,3)*omegaskew));
+    Eigen::Matrix3d omegaskew = pose_interp.block(0,0,3,3).transpose()*vel_interp.block(0,0,3,3);
+    alpha_IinI = vee(pose_interp.block(0,0,3,3).transpose()*(acc_interp.block(0,0,3,3)-vel_interp.block(0,0,3,3)*omegaskew));
     a_IinG = acc_interp.block(0,3,3,1);
     return true;
 
