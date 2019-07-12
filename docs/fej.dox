@@ -1,24 +1,23 @@
 /**
 
 
-@page fej First Estimate Jacobians
+@page fej First Estimate Jacobian (FEJ) Estimation
 
 
 
-@section fej-sys-evolution Linearized System
+@section fej-sys-evolution EKF Linearized Error-State System
 
-In our extended Kalman filter (EKF) we linearize our measurements about some linearization point.
-This linearization is needed to incorporate our non-linear information into our Kalman filter and is one of the sources of error which causes inaccuracies in our estimates (as compared to measurement noise).
-It is well known that for visual-inertial systems that are gravity aligned there are four directions that are unobservable directions: global yaw and global position.
-Let us consider the following linearized system:
-
+When developing an extended Kalman filter (EKF), one needs to linearize the nonlinear motion and measurement models about some linearization point.
+This linearization is one of the sources of error  causing inaccuracies in the estimates (in addition to, for exmaple, model errors and measurement noise).
+Let us consider the following  linearized error-state visual-inertial system:
 
 \f{align*}{
 \tilde{\mathbf{x}}_{k|k-1} &= \mathbf{\Phi}_{(k,k-1)}~\tilde{\mathbf{x}}_{k-1|k-1} + \mathbf{G}_{k}\mathbf{w}_{k} \\
 \tilde{\mathbf{z}}_{k} &= \mathbf{H}_{k}~\tilde{\mathbf{x}}_{k|k-1}+\mathbf{n}_{k}
 \f}
 
-We have the following state which contains the inertial state and a single environmental feature and note that we do not include biases to simplify the derivations.
+where the state contains the inertial navigation state and a single environmental feature 
+(noting that we do not include biases to simplify the derivations):
 
 \f{align*}{
 	\mathbf{x}_k &=
@@ -30,10 +29,11 @@ We have the following state which contains the inertial state and a single envir
 	\end{bmatrix}^{\top}
 \f}
 
-Note that we use the left quaternion error state (see [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf) for details).
-For our observability analysis we assume that the camera and inertial frame have an identity transform.
-We can define the feature Jacobian of a given feature at the *k*'th timestep as:
-
+Note that we use the left quaternion error state 
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] for details).
+For simplicity we assume that the camera and IMU frame have an identity transform.
+We can compute the measurement Jacobian of a given feature based on the perspective projection camera model 
+at the *k*-th timestep as follows:
 
 \f{align*}{
 \mathbf{H}_{k} &=
@@ -61,7 +61,7 @@ We can define the feature Jacobian of a given feature at the *k*'th timestep as:
 \f}
 
 
-The state transition from timestep *k-1* to *k* as (see @ref propagation for more details):
+The state-transition (or system Jacobian) matrix from timestep *k-1* to *k* as (see [@ref propagation] for more details):
 
 
 \f{align*}{
@@ -93,15 +93,14 @@ The state transition from timestep *k-1* to *k* as (see @ref propagation for mor
 
 
 where \f$\mathbf a(\tau)\f$ is the true acceleration at time \f$\tau \f$, \f${}^{I_{k}}_{I_{k-1}}\mathbf R\f$ is computed using the gyroscope angular velocity measurements, and \f${}^{G}\mathbf g = [0 ~ 0 ~ 9.81]^\top\f$ is gravity in the global frame of reference.
-Normally during propagation one would need to solve these integrals using some form of either discrete or numerical integration while here we are purely interested in how the state evolves to allow us to look at its observability.
+During propagation one would need to solve these integrals using either analytical or numerical integration, 
+while  we  here are  interested in how the state evolves  in order to examine its observability.
 
 
 
-@section fej-sys-observability System Observability
+@section fej-sys-observability Linearized System Observability
 
-
-
-If we wish to look at the observability of this system we can look at the observability matrix:
+The observability matrix of this linearized system is defined by:
 
 \f{align*}{
 \mathcal{O}=
@@ -114,12 +113,8 @@ If we wish to look at the observability of this system we can look at the observ
 \end{bmatrix}
 \f}
 
-
-where \f$\mathbf{H}_{k}\f$ is the Jacobian at timestep *k* and \f$\mathbf{\Phi}_{(k,0)}\f$ is the compounded state transition matrix from timestep 0 to k.
-For a given row of this matrix we have the following:
-
-
-
+where \f$\mathbf{H}_{k}\f$ is the measurement Jacobian at timestep *k* and \f$\mathbf{\Phi}_{(k,0)}\f$ is the compounded state transition (system Jacobian) matrix from timestep 0 to k.
+For a given block row of this matrix, we have:
 
 \f{align*}{
 	\mathbf{H}_{k}\mathbf{\Phi}_{(k,0)} &=
@@ -145,11 +140,11 @@ For a given row of this matrix we have the following:
 \f}
 
 
-We now look to verify the following nullspace which equates to the system yaw about gravity and position estimate:
+We now  verify the following nullspace which corresponds to the global yaw about gravity and global IMU and feature positions:
 
 
 \f{align*}{
-	\mathcal{N}_{vio} &=
+	\mathcal{N}_{vins} &=
 	\begin{bmatrix}
 	{}^{I_{0}}_{G}\mathbf{R}{}^G\mathbf{g} & \mathbf 0_{3\times3} \\
 	-\lfloor {}^{G}\mathbf{p}_{I_0} \times\rfloor{}^G\mathbf{g} & \mathbf{I}_{3\times3} \\
@@ -158,18 +153,17 @@ We now look to verify the following nullspace which equates to the system yaw ab
 	\end{bmatrix}
 \f}
 
-It can be seen that \f$ \mathbf{H}_{k}\mathbf{\Phi}_{(k,0)}\mathcal{N}_{vio} = \mathbf 0 \f$ thus this is a nullspace of the system.
-This shows that there are the four unobserable directions (yaw and position) in visual-inertial mapping systems.
-
-
+It is not difficult to verify that \f$ \mathbf{H}_{k}\mathbf{\Phi}_{(k,0)}\mathcal{N}_{vio} = \mathbf 0 \f$.
+Thus  this is a nullspace of the system,
+which clearly shows that there are the four unobserable directions (global yaw and position) of visual-inertial systems.
 
 
 
 @section fej-fej First Estimate Jacobians
 
 
-The main idea of First Estimate Jacobains (FEJ) is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true.
-For those interested in the technical details please take a look at: [Observability-based Rules for Designing Consistent EKF SLAM Estimators](https://journals.sagepub.com/doi/abs/10.1177/0278364909353640) and [High-precision, consistent EKF-based visual-inertial odometry](https://journals.sagepub.com/doi/full/10.1177/0278364913481251).
+The main idea of First-Estimate Jacobains (FEJ) approaches is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true.
+For those interested in the technical details please take a look at: [[Observability-based Rules for Designing Consistent EKF SLAM Estimators](https://journals.sagepub.com/doi/abs/10.1177/0278364909353640)] and [[High-precision, consistent EKF-based visual-inertial odometry](https://journals.sagepub.com/doi/full/10.1177/0278364913481251)].
 Let us first consider a small thought experiment of how the standard Kalman filter computes its state transition matrix.
 From a timestep zero to one it will use the current estimates from state zero forward in time.
 At the next timestep after it updates the state with measurements from other sensors, it will compute the state transition with the updated values to evolve the state to timestep two.
