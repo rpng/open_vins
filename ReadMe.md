@@ -48,6 +48,7 @@ Please take a look at the feature list below for full details on what the system
     * KLT or descriptor based
 * Static IMU initialization (sfm will be open sourced later)
 * Out of the box evaluation on EurocMav and TUM-VI datasets
+* Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
 
 

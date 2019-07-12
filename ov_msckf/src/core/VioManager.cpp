@@ -123,6 +123,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
 
         // Save this representation in our state
         state->get_intrinsics_CAM(i)->set_value(cam_calib);
+        state->get_intrinsics_CAM(i)->set_fej(cam_calib);
 
         // Our camera extrinsics transform
         Eigen::Matrix4d T_CtoI;
@@ -141,6 +142,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
         cam_eigen.block(0,0,4,1) = rot_2_quat(T_CtoI.block(0,0,3,3).transpose());
         cam_eigen.block(4,0,3,1) = -T_CtoI.block(0,0,3,3).transpose()*T_CtoI.block(0,3,3,1);
         state->get_calib_IMUtoCAM(i)->set_value(cam_eigen);
+        state->get_calib_IMUtoCAM(i)->set_fej(cam_eigen);
 
         // Append to our maps for our feature trackers
         camera_fisheye.insert({i,is_fisheye});
@@ -589,8 +591,8 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     updaterMSCKF->update(state, featsup_MSCKF);
 
     // Perform SLAM delay init and update
-    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
     updaterSLAM->update(state, feats_slam_UPDATE);
+    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 

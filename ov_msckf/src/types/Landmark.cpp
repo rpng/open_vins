@@ -47,8 +47,10 @@ Eigen::Matrix<double,3,1> Landmark::get_global_xyz(State *state, bool getfej) {
     }
 
     // Get anchor camera calib
-    Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot();
-    Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
+    //Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot();
+    //Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
+    Eigen::Matrix<double, 3, 3> R_ItoC = (getfej)? state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot_fej() : state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot();
+    Eigen::Matrix<double, 3, 1> p_IinC = (getfej)? state->get_calib_IMUtoCAM(_anchor_cam_id)->pos_fej() : state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
 
     // Get anchor IMU calib
     Eigen::Matrix<double, 3, 3> R_GtoI = (getfej)? state->get_clone(_anchor_clone_timestamp)->Rot_fej() : state->get_clone(_anchor_clone_timestamp)->Rot();
@@ -92,8 +94,10 @@ void Landmark::set_from_global_xyz(State *state, Eigen::Matrix<double,3,1> p_Fin
     }
 
     // Get anchor camera calib
-    Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot();
-    Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
+    //Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot();
+    //Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
+    Eigen::Matrix<double, 3, 3> R_ItoC = (isfej)? state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot_fej() : state->get_calib_IMUtoCAM(_anchor_cam_id)->Rot();
+    Eigen::Matrix<double, 3, 1> p_IinC = (isfej)? state->get_calib_IMUtoCAM(_anchor_cam_id)->pos_fej() : state->get_calib_IMUtoCAM(_anchor_cam_id)->pos();
 
     //Get anchor IMU calib
     Eigen::Matrix<double, 3, 3> R_GtoI = (isfej)? state->get_clone(_anchor_clone_timestamp)->Rot_fej() : state->get_clone(_anchor_clone_timestamp)->Rot();

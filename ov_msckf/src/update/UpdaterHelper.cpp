@@ -56,8 +56,10 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     assert(feature.anchor_cam_id!=-1);
 
     // Get calibration for our anchor camera (should we do fej with calibration?)
-    Eigen::Matrix<double,3,3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
-    Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+    //Eigen::Matrix<double,3,3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
+    //Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+    Eigen::Matrix<double, 3, 3> R_ItoC = (state->options().do_fej)? state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej() : state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
+    Eigen::Matrix<double, 3, 1> p_IinC = (state->options().do_fej)? state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej() : state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
 
     // Anchor pose orientation and position
     Eigen::Matrix<double,3,3> R_GtoI = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature.anchor_clone_timestamp)->Rot();
@@ -112,6 +114,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
         double sin_phi = std::sin(p_invFinA(1,0));
         double cos_phi = std::cos(p_invFinA(1,0));
         double rho = p_invFinA(2,0);
+        //assert(p_invFinA(2,0)>=0.0);
 
         // Jacobian of anchored 3D position wrt inverse depth parameters
         Eigen::Matrix<double,3,3> d_pfinA_dpinv;
@@ -168,32 +171,33 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::V
         double y1 = uv_norm(1)*cdist;
 
         // Jacobian of distorted pixel to "normalized" pixel
-        Eigen::Matrix<double,2,2> duv_dxy1 = Eigen::Matrix<double,2,2>::Zero();
-        duv_dxy1 << cam_d(0), 0, 0, cam_d(1);
+        Eigen::Matrix<double,2,2> duv_dxy = Eigen::Matrix<double,2,2>::Zero();
+        duv_dxy << cam_d(0), 0, 0, cam_d(1);
 
         // Jacobian of "normalized" pixel to normalized pixel
-        Eigen::Matrix<double,2,2> dxy1_dxy = Eigen::Matrix<double,2,2>::Zero();
-        dxy1_dxy << theta_d*inv_r, 0, 0, theta_d*inv_r;
+        Eigen::Matrix<double,2,2> dxy_dxyn = Eigen::Matrix<double,2,2>::Zero();
+        dxy_dxyn << theta_d*inv_r, 0, 0, theta_d*inv_r;
 
         // Jacobian of "normalized" pixel to r
-        Eigen::Matrix<double,2,1> dxy1_dr = Eigen::Matrix<double,2,1>::Zero();
-        dxy1_dr << -uv_norm(0)*theta_d*inv_r*inv_r, -uv_norm(1)*theta_d*inv_r*inv_r;
+        Eigen::Matrix<double,2,1> dxy_dr = Eigen::Matrix<double,2,1>::Zero();
+        dxy_dr << -uv_norm(0)*theta_d*inv_r*inv_r, -uv_norm(1)*theta_d*inv_r*inv_r;
 
         // Jacobian of r pixel to normalized xy
-        Eigen::Matrix<double,1,2> dr_dxy = Eigen::Matrix<double,1,2>::Zero();
-        dxy1_dr << -uv_norm(0)*inv_r, -uv_norm(1)*inv_r;
+        Eigen::Matrix<double,1,2> dr_dxyn = Eigen::Matrix<double,1,2>::Zero();
+        dr_dxyn << uv_norm(0)*inv_r, uv_norm(1)*inv_r;
 
         // Jacobian of "normalized" pixel to theta_d
-        Eigen::Matrix<double,2,1> dxy1_dthd = dr_dxy.transpose();
+        Eigen::Matrix<double,2,1> dxy_dthd = Eigen::Matrix<double,2,1>::Zero();
+        dxy_dthd << uv_norm(0)*inv_r, uv_norm(1)*inv_r;
 
         // Jacobian of theta_d to theta
-        double dthd_dth = 1+3*cam_d(4)*std::pow(theta,2)+5*cam_d(5)*std::pow(theta,4) +7*cam_d(6)*std::pow(theta,6)+9*cam_d(7)*std::pow(theta,8);
+        double dthd_dth = 1+3*cam_d(4)*std::pow(theta,2)+5*cam_d(5)*std::pow(theta,4)+7*cam_d(6)*std::pow(theta,6)+9*cam_d(7)*std::pow(theta,8);
 
         // Jacobian of theta to r
         double dth_dr = 1/(r*r+1);
 
         // Total Jacobian wrt normalized pixel coordinates
-        dz_dzn = duv_dxy1*(dxy1_dxy+(dxy1_dr+dxy1_dthd*dthd_dth*dth_dr)*dr_dxy);
+        dz_dzn = duv_dxy*(dxy_dxyn+(dxy_dr+dxy_dthd*dthd_dth*dth_dr)*dr_dxyn);
 
         // Compute the Jacobian in respect to the intrinsics if we are calibrating
         if(state->options().do_calib_camera_intrinsics) {
@@ -224,7 +228,7 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::V
         // Jacobian of distorted pixel to normalized pixel
         dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
         dz_dzn(0,1) = cam_d(0)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
-        dz_dzn(0,1) = cam_d(1)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
+        dz_dzn(1,0) = cam_d(1)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
         dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(1)*uv_norm(1)+4*cam_d(5)*uv_norm(1)*uv_norm(1)*r)+2*cam_d(7)*uv_norm(0)+(2*cam_d(6)*uv_norm(1)+4*cam_d(6)*uv_norm(1)));
 
         // Compute the Jacobian in respect to the intrinsics if we are calibrating
@@ -413,6 +417,8 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             if(state->options().do_fej) {
                 R_GtoIi = clone_Ii->Rot_fej();
                 p_IiinG = clone_Ii->pos_fej();
+                R_ItoC = calibration->Rot_fej();
+                p_IinC = calibration->pos_fej();
                 p_FinIi = R_GtoIi*(feature.p_FinG_fej-p_IiinG);
                 p_FinCi = R_ItoC*p_FinIi+p_IinC;
                 uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
@@ -450,7 +456,6 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
 
             // CHAINRULE: get state clone Jacobian
             H_x.block(2*c,map_hx[clone_Ii],2,clone_Ii->size()).noalias() = dz_dpfc*dpfc_dclone;
-
 
             // CHAINRULE: loop through all extra states and add their
             // NOTE: we add the Jacobian here as we might be in the anchoring pose for this measurement

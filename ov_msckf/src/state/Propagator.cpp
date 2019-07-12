@@ -250,17 +250,21 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
         F.block(th_id, th_id, 3, 3) = dR;
         F.block(th_id, bg_id, 3, 3).noalias() = -dR * Jr_so3(-w_hat * dt) * dt;
+        //F.block(th_id, bg_id, 3, 3).noalias() = -dR * Jr_so3(-log_so3(dR)) * dt;
         F.block(bg_id, bg_id, 3, 3).setIdentity();
         F.block(v_id, th_id, 3, 3).noalias() = -skew_x(new_v-v_fej+_gravity*dt)*Rfej.transpose();
+        //F.block(v_id, th_id, 3, 3).noalias() = -Rfej.transpose() * skew_x(Rfej*(new_v-v_fej+_gravity*dt));
         F.block(v_id, v_id, 3, 3).setIdentity();
         F.block(v_id, ba_id, 3, 3) = -Rfej.transpose() * dt;
         F.block(ba_id, ba_id, 3, 3).setIdentity();
         F.block(p_id, th_id, 3, 3).noalias() = -skew_x(new_p-p_fej-v_fej*dt+0.5*_gravity*dt*dt)*Rfej.transpose();
+        //F.block(p_id, th_id, 3, 3).noalias() = -0.5 * Rfej.transpose() * skew_x(2*Rfej*(new_p-p_fej-v_fej*dt+0.5*_gravity*dt*dt));
         F.block(p_id, v_id, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
         F.block(p_id, ba_id, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
         F.block(p_id, p_id, 3, 3).setIdentity();
 
         G.block(th_id, 0, 3, 3) = -dR * Jr_so3(-w_hat * dt) * dt;
+        //G.block(th_id, 0, 3, 3) = -dR * Jr_so3(-log_so3(dR)) * dt;
         G.block(v_id, 3, 3, 3) = -Rfej.transpose() * dt;
         G.block(p_id, 3, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
         G.block(bg_id, 6, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();

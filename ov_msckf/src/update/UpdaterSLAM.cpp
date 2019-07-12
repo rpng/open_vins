@@ -99,6 +99,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
     auto it2 = feature_vec.begin();
     while(it2 != feature_vec.end()) {
 
+
         // Convert our feature into our current format
         UpdaterHelper::UpdaterHelperFeature feat;
         feat.featid = (*it2)->featid;
@@ -108,7 +109,29 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         feat.anchor_cam_id = (*it2)->anchor_cam_id;
         feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
         feat.p_FinG = (*it2)->p_FinG;
-        feat.p_FinG_fej = (*it2)->p_FinG;
+
+        // We need to be careful about the initial fej value for this feature
+        // This is because if we are using an anchored representation, we need to ensure that when we "warp" into the global
+        // We are using the FEJ states, so that when we "unwarp" them in our Jacobians the transforms cancel
+        // Alternatively we could have used the FEJ states during triangulation etc, but there we wanted to use the best estimates
+        if(state->options().do_fej && (
+                state->options().feat_representation == StateOptions::ANCHORED_3D ||
+                state->options().feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH ||
+                state->options().feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH)) {
+
+            // Get anchor camera calib and IMU global transform
+            Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(feat.anchor_cam_id)->Rot_fej();
+            Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(feat.anchor_cam_id)->pos_fej();
+            Eigen::Matrix<double, 3, 3> R_GtoI = state->get_clone(feat.anchor_clone_timestamp)->Rot_fej();
+            Eigen::Matrix<double, 3, 1> p_IinG = state->get_clone(feat.anchor_clone_timestamp)->pos_fej();
+
+            // If we are doing anchored, use the feature in the anchor frame
+            // Then use the FEJ states to warp into the global frame
+            feat.p_FinG_fej = R_GtoI.transpose() * R_ItoC.transpose()*((*it2)->p_FinA - p_IinC) + p_IinG;
+
+        } else {
+            feat.p_FinG_fej = (*it2)->p_FinG;
+        }
 
         // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
         Eigen::MatrixXd H_f;
@@ -255,11 +278,12 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         // Get the Jacobian for this feature
         UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
 
-        //Place Jacobians in one big Jacobian, since the landmark is already in our state vector
+        // Place Jacobians in one big Jacobian, since the landmark is already in our state vector
         Eigen::MatrixXd H_xf = H_x;
         H_xf.conservativeResize(H_x.rows(), H_x.cols()+3);
         H_xf.block(0, H_x.cols(), H_x.rows(), 3) = H_f;
 
+        // Append to our Jacobian order vector
         std::vector<Type*> Hxf_order = Hx_order;
         Hxf_order.push_back(landmark);
 
@@ -375,7 +399,7 @@ void UpdaterSLAM::change_anchors(State* state){
     double marg_timestep = state->margtimestep();
     for (auto &f : state->features_SLAM()){
         assert(marg_timestep <= f.second->_anchor_clone_timestamp);
-        if (f.second->_anchor_clone_timestamp == marg_timestep){
+        if (f.second->_anchor_clone_timestamp == marg_timestep) {
             perform_anchor_change(state, f.second, state->timestamp(), f.second->_anchor_cam_id);
         }
     }
@@ -386,7 +410,6 @@ void UpdaterSLAM::change_anchors(State* state){
 
 
 void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id){
-
 
     // Create current feature representation
     UpdaterHelper::UpdaterHelperFeature old_feat;
