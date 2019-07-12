@@ -1,0 +1,36 @@
+/**
+
+
+@page dev-index Covariance Index Internals
+
+
+@section dev-index-types Type System
+
+The type system that the ov_msckf leverages was inspired by graph-based optimization frameworks such as [Georgia Tech Smoothing and Mapping library (GTSAM)](https://github.com/borglab/gtsam).
+As compared to manually knowing where in the covariance state elements are, the interaction is abstracted away from the user and is replaced by a straight forward way to access the desired elements.
+The ov_msckf::State is owner of these types and thus after creation one should not delete these externally.
+
+
+@code{.cpp}
+class Type {
+protected:
+    // Current best estimate
+    Eigen::VectorXd _value;
+    // Location of error state in covariance
+    int _id = -1;
+    // Dimension of error state
+    int _size = -1;
+};
+@endcode
+
+
+A type is defined by its location in its covariance, its current estimate and its error state size.
+The current value does not have to be a vector, but could be a matrix in the case of an SO(3) rotation group type object.
+The error state needs to be a vector and thus a type will need to define the mapping between this error state and its manifold representation.
+
+
+
+
+
+
+*/
