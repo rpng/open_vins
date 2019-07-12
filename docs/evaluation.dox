@@ -2,6 +2,7 @@
 
 
 @page evaluation Filter Evaluation Methods
+
 @section eval-overview General Methodology
 
 The goal of our evaluation is to ensure fair comparison to other methods and our own.
@@ -96,7 +97,7 @@ We will first process the data into a set of output text files which a user can 
 
 
 
-@section eval-ate Absolute Trajectory Error
+@section eval-ate Absolute Trajectory Error (ATE)
 
 The Absolute Trajectory Error (ATE) is given by the simple difference between the estimated trajectory and groundtruth after it has been aligned so that it has minimal error.
 First the "best" transform between the groundtruth and estimate is computed, afterwhich the error is computed at every timestep and then averaged.
@@ -108,7 +109,7 @@ For a given dataset with \f$N\f$ runs of the same algorithm with \f$K\f$ pose me
 \f}
 
 
-@section eval-rpe Relative Pose Error
+@section eval-rpe Relative Pose Error (RPE)
 
 The Relative Pose Error (RPE) is calculated for segments of the dataset and allows for introspection of how localization solutions drift as the length of the trajectory increases.
 The other key advantage over ATE error is that it is less sensitive to jumps in estimation error due to sampling the trajectory over many smaller segments.
@@ -125,7 +126,7 @@ We can define the relative error for a trajectory split into \f$D_i\f$ segments 
 
 
 
-@section eval-rmse Root Mean Squared Error
+@section eval-rmse Root Mean Squared Error (RMSE)
 
 When evaluating a system on a *single* dataset is the Root Mean Squared Error (RMSE) plots.
 This plots the RMSE at every timestep of the trajectory and thus can provide insight into timesteps where the estimation performance suffers.
@@ -138,9 +139,9 @@ For a given dataset with \f$N\f$ runs of the same algorithm we can compute the f
 
 
 
-@section eval-nees Normalized Estimation Error Squared
+@section eval-nees Normalized Estimation Error Squared (NEES)
 
-Normalized Estimation Error Squared (NEES) is a good way to characterize if the estimator is being consistent or not.
+Normalized Estimation Error Squared (NEES) is a standard way to characterize if the estimator is being consistent or not.
 In general NEES is just the normalized error which should be the degrees of freedoms of the state variables.
 Thus in the case of position and orientation we should get a NEES of three at every timestep.
 To compute the average NEES for a dataset with \f$N\f$ runs of the same algorithm we can compute the following at each timestep \f$k\f$:
