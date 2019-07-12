@@ -53,10 +53,6 @@ namespace ov_eval {
             std::vector<double> values_sorted = values;
             std::sort(values_sorted.begin(), values_sorted.end());
 
-            // Return if we don't have any data
-            if(values_sorted.size() < 2)
-                return;
-
             // Now that its been sorted, can easily grab min and max
             min = values_sorted.at(0);
             max = values_sorted.at(values_sorted.size()-1);
@@ -64,10 +60,14 @@ namespace ov_eval {
             // Compute median
             // ODD:  grab middle from the sorted vector
             // EVEN: average the middle two numbers
-            if (values_sorted.size() % 2 == 1) {
+            if (values_sorted.size()==1) {
+                median = values_sorted.at(values_sorted.size()-1);
+            } else if(values_sorted.size() % 2 == 1) {
                 median = values_sorted.at(values_sorted.size() / 2);
+            } else if(values_sorted.size() > 1) {
+                median = 0.5 * (values_sorted.at(values_sorted.size()/2-1) + values_sorted.at(values_sorted.size()/2));
             } else {
-                median = 0.5 * (values_sorted.at(values_sorted.size() / 2) + values_sorted.at(values_sorted.size() / 2 + 1));
+                median = 0.0;
             }
 
             // Compute mean and rmse

@@ -308,6 +308,9 @@ int main(int argc, char **argv) {
     matplotlibcpp::legend();
     matplotlibcpp::show(true);
 
+    // Wait till the user kills this node
+    //ros::spin();
+
 #endif
 
 

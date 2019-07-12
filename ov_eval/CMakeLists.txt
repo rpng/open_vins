@@ -97,5 +97,8 @@ target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
 add_executable(error_comparison src/error_comparison.cpp)
 target_link_libraries(error_comparison ov_eval_lib ${thirdparty_libraries})
 
+add_executable(error_dataset src/error_dataset.cpp)
+target_link_libraries(error_dataset ov_eval_lib ${thirdparty_libraries})
+
 add_executable(error_singlerun src/error_singlerun.cpp)
 target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})

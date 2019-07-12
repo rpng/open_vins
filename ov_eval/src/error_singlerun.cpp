@@ -159,7 +159,7 @@ int main(int argc, char **argv) {
     matplotlibcpp::title("Relative Position Error");
     matplotlibcpp::ylabel("translation error (m)");
     matplotlibcpp::xlabel("sub-segment lengths (m)");
-    matplotlibcpp::show(true);
+    matplotlibcpp::show(false);
 
 #endif
 
@@ -179,12 +179,15 @@ int main(int argc, char **argv) {
     ROS_INFO("min_ori  = %.3f | min_pos  = %.3f",nees_ori.min,nees_pos.min);
     ROS_INFO("max_ori  = %.3f | max_pos  = %.3f",nees_ori.max,nees_pos.max);
     ROS_INFO("std_ori  = %.3f | std_pos  = %.3f",nees_ori.std,nees_pos.std);
+    ROS_INFO("======================================");
+
 
 
 #ifdef HAVE_PYTHONLIBS
 
     // Zero our time arrays
-    double starttime1 = nees_ori.timestamps.at(0);
+    double starttime1 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(0);
+    double endtime1 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(nees_ori.timestamps.size()-1);
     for(size_t i=0; i<nees_ori.timestamps.size(); i++) {
         nees_ori.timestamps.at(i) -= starttime1;
         nees_pos.timestamps.at(i) -= starttime1;
@@ -200,15 +203,20 @@ int main(int argc, char **argv) {
     params_neesp.insert({"color","blue"});
     params_neeso.insert({"label","nees orientation"});
     params_neeso.insert({"linestyle","-"});
-    params_neeso.insert({"color","red"});
+    params_neeso.insert({"color","blue"});
 
-    // Plot our error value
-    matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values, params_neeso);
-    matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values, params_neesp);
+
+    // Update the title and axis labels
+    matplotlibcpp::subplot(2,1,1);
     matplotlibcpp::title("Normalized Estimation Error Squared");
-    matplotlibcpp::ylabel("NEES");
+    matplotlibcpp::ylabel("NEES Orientation");
+    matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values, params_neeso);
+    matplotlibcpp::xlim(0.0,endtime1-starttime1);
+    matplotlibcpp::subplot(2,1,2);
+    matplotlibcpp::ylabel("NEES Position");
     matplotlibcpp::xlabel("dataset time (s)");
-    matplotlibcpp::legend();
+    matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values, params_neesp);
+    matplotlibcpp::xlim(0.0,endtime1-starttime1);
 
     // Display to the user
     matplotlibcpp::tight_layout();
@@ -230,7 +238,8 @@ int main(int argc, char **argv) {
 
 
     // Zero our time arrays
-    double starttime2 = posx.timestamps.at(0);
+    double starttime2 = (posx.timestamps.empty())? 0 : posx.timestamps.at(0);
+    double endtime2 = (posx.timestamps.empty())? 0 : posx.timestamps.at(posx.timestamps.size()-1);
     for(size_t i=0; i<posx.timestamps.size(); i++) {
         posx.timestamps.at(i) -= starttime2;
         posy.timestamps.at(i) -= starttime2;
@@ -255,15 +264,18 @@ int main(int argc, char **argv) {
     matplotlibcpp::title("X-Axis Position Error");
     matplotlibcpp::ylabel("error (m)");
     matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::legend();
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::title("Y-Axis Position Error");
     matplotlibcpp::ylabel("error (m)");
     matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
     matplotlibcpp::title("Z-Axis Position Error");
     matplotlibcpp::ylabel("error (m)");
     matplotlibcpp::xlabel("dataset time (s)");
-    matplotlibcpp::legend();
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
 
     // Display to the user
     matplotlibcpp::tight_layout();
@@ -279,15 +291,18 @@ int main(int argc, char **argv) {
     matplotlibcpp::title("X-Axis Orientation Error");
     matplotlibcpp::ylabel("error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::legend();
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::title("Y-Axis Orientation Error");
     matplotlibcpp::ylabel("error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
     matplotlibcpp::title("Z-Axis Orientation Error");
     matplotlibcpp::ylabel("error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
-    matplotlibcpp::legend();
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
 
     // Display to the user
     matplotlibcpp::tight_layout();
@@ -303,20 +318,25 @@ int main(int argc, char **argv) {
     matplotlibcpp::title("Orientation Roll Error");
     matplotlibcpp::ylabel("error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::legend();
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::title("Orientation Pitch Error");
     matplotlibcpp::ylabel("error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
     matplotlibcpp::title("Orientation Yaw Error");
     matplotlibcpp::ylabel("error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
-    matplotlibcpp::legend();
+    matplotlibcpp::xlim(0.0,endtime2-starttime2);
 
     // Display to the user
     matplotlibcpp::tight_layout();
     matplotlibcpp::show(true);
 
+    // Wait till the user kills this node
+    //ros::spin();
 
 #endif
 
