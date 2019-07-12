@@ -54,15 +54,16 @@ while  we use the quaternion error state \f$\delta \bar{q}\f$ with a left quater
     \delta \bar{q} &= \begin{bmatrix}
     \hat{\mathbf{k}}\sin(\frac{1}{2}\tilde{\theta})\\
     \cos(\frac{1}{2}\tilde{\theta}) \end{bmatrix}
-    \approx
+    \simeq
     \begin{bmatrix}
     \frac{1}{2}\tilde{\boldsymbol{\theta}}\\ 1
     \end{bmatrix}
 \f}
 
-where \f$\hat{\mathbf{k}}\f$ is the rotation axis and \f$\tilde{\theta}\f$ is the amount of rotation.
-For small error angles the error has been approximated with \f$\tilde{\boldsymbol{\theta}} = \tilde{\theta}~\hat{\mathbf{k}}\f$ as the error vector about the three orientation axes.
-The total IMU error state is defined as the following 15x1 vector:
+where \f$\hat{\mathbf{k}}\f$ is the rotation axis and \f$\tilde{\theta}\f$ is the rotation angle.
+For small rotation, the error angle vector is approximated by \f$\tilde{\boldsymbol{\theta}} = \tilde{\theta}~\hat{\mathbf{k}}\f$ 
+as the error vector about the three orientation axes.
+The total IMU error state thus is defined as the following 15x1 (not 16x1) vector:
 
 \f{align*}{
 \tilde{\mathbf{x}}_I(t) =
@@ -153,18 +154,17 @@ Differentiating and reordering the terms yields the governing equation for
 
     \boldsymbol{\Theta}(t,t_k) &= \text{}^{I_t}_G\bar{q} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
 
-    \Leftrightarrow \dot{\boldsymbol{\Theta}}(t,t_k) &=
+    \Rightarrow \dot{\boldsymbol{\Theta}}(t,t_k) &=
     \text{}^{I_t}_G\dot{\bar{q}} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
-\iffalse
     &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \text{ }^{I_t}_{G}\bar{q}
     \text{ }^{I_k}_{G}\bar{q}^{-1}\\
-\fi
     &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \boldsymbol{\Theta}(t,t_k)
 \f}
 with \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
 If we take \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ to be constant over the the period
 \f$\Delta t = t_{k+1} - t_k\f$,
-then \f$\boldsymbol{\Theta}\f$ can be expressed as (see [[Stochastic Models, Estimation, and Control]](https://books.google.com/books?id=L_YVMUJKNQUC)):
+then the above system is linear time-invarying (LTI), and 
+\f$\boldsymbol{\Theta}\f$ can be solved as (see [[Stochastic Models, Estimation, and Control]](https://books.google.com/books?id=L_YVMUJKNQUC)):
 
 
 \f{align*}{
@@ -178,9 +178,9 @@ then \f$\boldsymbol{\Theta}\f$ can be expressed as (see [[Stochastic Models, Est
 \f}
 
 
-where in the case of a small \f$|\boldsymbol{\omega}|\f$ the last equation can be used to approximate.
+where the approximation assumes  small \f$|\boldsymbol{\omega}|\f$.
 We can formulate the quaternion propagation from \f$t_k\f$ to \f$t_{k+1}\f$ using the estimated
-rotational velocity \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}}\f$ as:
+rotational velocity  \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}}\f$ as:
 
 \f{align*}{
     \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
@@ -231,9 +231,9 @@ All of the above integrals could be analytically or numerically solved if one wi
 @section disc_prop Discrete-time IMU Propagation
 
 
-As simpler method is to model the measurements as discrete-time over the integration period.
-To do this the measurements can be assumed to be constant during the sampling period.
-We employ this assumption and approximate that the measurement read at time \f$t_k\f$ remains
+A simpler method is to model the measurements as discrete-time over the integration period.
+To do this, the measurements can be assumed to be constant during the sampling period.
+We employ this assumption and approximate that the measurement at time \f$t_k\f$ remains
 the same until we get the next measurement at \f$t_{k+1}\f$.
 For the quaternion propagation, it is the same as continuous-time propagation
 with constant measurement assumption \f${\boldsymbol{\omega}}_{m}(t_k) = {\boldsymbol{\omega}}_{m,k}\f$.
@@ -270,32 +270,33 @@ The propagation of each bias is likewise the continuous system:
 
 
 
+
+
+
 @section error_prop Discrete-time Error-state Propagation
 
-We are also interested in the error state propagation which is how we propagate the covariance estimate.
-In order to do so, we need to find \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices which are used for propagtion:
-\f{align*}{
-\mathbf{P}_{k+1|k} = \boldsymbol{\Phi}(t_{k+1},t_k)\mathbf{P}_{k|k}\boldsymbol{\Phi}(t_{k+1},t_k)^\top + \mathbf{G}_k\mathbf{Q}_d\mathbf{G}_k^\top
-\f}
-where \f$\mathbf{P}_{k|k}\f$ and \f$\mathbf{Q}_d\f$ are the covariance matrices of the state before propagation and
-discrete-time sensor noises.
-When the covariance matrix of the continuous-time measurement noises is given as \f$\mathbf{Q}_c\f$, \f$\mathbf{Q}_d\f$ can be computed as
-(see [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)):
+In order to propagate the covariance matrix, we should derive the error-state propagation,
+i.e., computing the system Jacobian  \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and noise Jacobian \f$\mathbf{G}_{k}\f$.
+In particular, when the covariance matrix of the continuous-time measurement noises is given by 
+\f$\mathbf{Q}_c\f$, then the discrete-time noise covariance \f$\mathbf{Q}_d\f$ can be computed as
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)]):
 
 \f{align*}{
 \mathbf{Q}_d = \frac{1}{\Delta t} \mathbf{Q}_c
 \f}
 
 
-
-The methodology is to "perturb" each variable in the system and see how the old error "perturbation" relates to the new error state.
-\f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ are can be found when we perturb each variable as:
+The method of computing Jacobians is to "perturb" each variable in the system and see how the old error "perturbation" relates to the new error state.
+That is, 
+\f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$  can be found by perturbing each variable as:
 \f{align*}{
 \tilde{\mathbf{x}}_I(t_{k+1}) = \boldsymbol{\Phi}(t_{k+1},t_k) \tilde{\mathbf{x}}_I(t_{k}) + \mathbf{G}_{k} \mathbf{n}
 \f}
 
 
 where \f$\mathbf{n} = [ \mathbf{n}_g ~ \mathbf{n}_a ~ \mathbf{n}_{bg} ~ \mathbf{n}_{ba} ]^\top\f$ are the IMU sensor noises.
+
+
 For the orientation error propagation, we start with the rotation matrix perturbation using 
 \f${}^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$:
 
@@ -313,7 +314,9 @@ For the orientation error propagation, we start with the rotation matrix perturb
 
 where \f$\tilde{\boldsymbol{\omega}} = \boldsymbol{\omega} - \hat{\boldsymbol{\omega}}
 = -(\tilde{\mathbf{b}}_{\mathbf{g}} + \mathbf{n}_g)\f$.
-For the definition of \f$\mathbf {J}_r(\boldsymbol{\theta})\f$ is the right Jacobian of \f$\mathbf{SO}(3)\f$ see the @ref ov_core::Jr_so3() definition.
+\f$\mathbf {J}_r(\boldsymbol{\theta})\f$ is the right Jacobian of \f$\mathbf{SO}(3)\f$ 
+that maps the variation of rotation angle in the parameter vector space into the variation in the tangent vector space to the manifold
+[see @ref ov_core::Jr_so3()].
 By neglecting the second order terms from above, we obtain the following orientation error propagation:
 
 \f{align*}
@@ -343,7 +346,7 @@ Now we can do error propagation of position and velocity using the same scheme:
 ^G\mathbf{v}_{k+1} &= \text{}^G\mathbf{v}_{I_k} - {}^G\mathbf{g}\Delta t
 +\text{}^{I_k}_G\mathbf{R}^\top\mathbf{a}_{k}\Delta t\\
 
-^G\hat{\mathbf{v}}_{k+1} + ^G\tilde{\mathbf{v}}_{k+1} &=
+^G\hat{\mathbf{v}}_{k+1} + ^G\tilde{\mathbf{v}}_{k+1} &\approx
 {}^G\hat{\mathbf{v}}_{I_k} + {}^G\tilde{\mathbf{v}}_{I_k}
 - {}^G\mathbf{g}\Delta t
 + \text{}^{I_k}_G\hat{\mathbf{R}}^\top
@@ -373,7 +376,8 @@ By neglecting the second order error terms, we obtain the following position and
     (\tilde{\mathbf{b}}_{\mathbf{a},k} + \mathbf{n}_{\mathbf{a},k})
 \f}
 
-The propagation of two biases are the same:
+The propagation of two biases can be derived in the same way:
+
 \f{align*}{
     \mathbf{b}_{\mathbf{g},k+1} &= \mathbf{b}_{\mathbf{g},k} + \int_{t_{k}}^{t_{k+1}}
     {\mathbf{n}}_{wg}(\tau) d\tau \\
@@ -441,7 +445,11 @@ By collecting all the perturbation results, we can build \f$\boldsymbol{\Phi}(t_
 
 
 
-Now, with computed \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices, we can propagate the covariance of the state
-from \f$t_k\f$ to \f$t_{k+1}\f$.
+Now, with the computed \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices, 
+we can propagate the covariance from \f$t_k\f$ to \f$t_{k+1}\f$:
+\f{align*}{
+\mathbf{P}_{k+1|k} = \boldsymbol{\Phi}(t_{k+1},t_k)\mathbf{P}_{k|k}\boldsymbol{\Phi}(t_{k+1},t_k)^\top + \mathbf{G}_k\mathbf{Q}_d\mathbf{G}_k^\top
+\f}
+
 
 */
