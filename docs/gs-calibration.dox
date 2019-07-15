@@ -42,7 +42,7 @@ Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) calibrati
 5. Record a ROS bag and ensure that the calibration board can be seen from different orientations, distances, and in each part of the image plane. You can either move the calibration board and keep the camera still or move the camera and keep the calibration board stationary.
 6. Finally run the calibration
 	- Use the kalibr\_calibrate\_cameras with your specified topic
-	- Depending on amount of distortion use the *pinhole-equi fisheye*, or if a low distortion then use the *pinhole-radtan*
+	- Depending on amount of distortion, use the *pinhole-equi* for fisheye, or if a low distortion then use the *pinhole-radtan*
 	- Depending on how many frames are in your dataset this can take on the upwards of a few hours.
 7. Inspect the final result, pay close attention to the final reprojection error graphs, with a good calibration having less than < 0.2-0.5 pixel reprojection errors.
 
