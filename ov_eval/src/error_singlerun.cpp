@@ -34,29 +34,35 @@ void plot_3errors(ov_eval::Statistics sx, ov_eval::Statistics sy, ov_eval::Stati
     // Plot our error value
     matplotlibcpp::subplot(3,1,1);
     matplotlibcpp::plot(sx.timestamps, sx.values, params_value);
-    matplotlibcpp::plot(sx.timestamps, sx.values_bound, params_bound);
-    for(size_t i=0; i<sx.timestamps.size(); i++) {
-        sx.values_bound.at(i) *= -1;
+    if(!sx.values_bound.empty()) {
+        matplotlibcpp::plot(sx.timestamps, sx.values_bound, params_bound);
+        for(size_t i=0; i<sx.timestamps.size(); i++) {
+            sx.values_bound.at(i) *= -1;
+        }
+        matplotlibcpp::plot(sx.timestamps, sx.values_bound, "r--");
     }
-    matplotlibcpp::plot(sx.timestamps, sx.values_bound, "r--");
 
     // Plot our error value
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::plot(sy.timestamps, sy.values, params_value);
-    matplotlibcpp::plot(sy.timestamps, sy.values_bound, params_bound);
-    for(size_t i=0; i<sy.timestamps.size(); i++) {
-        sy.values_bound.at(i) *= -1;
+    if(!sy.values_bound.empty()) {
+        matplotlibcpp::plot(sy.timestamps, sy.values_bound, params_bound);
+        for(size_t i=0; i<sy.timestamps.size(); i++) {
+            sy.values_bound.at(i) *= -1;
+        }
+        matplotlibcpp::plot(sy.timestamps, sy.values_bound, "r--");
     }
-    matplotlibcpp::plot(sy.timestamps, sy.values_bound, "r--");
 
     // Plot our error value
     matplotlibcpp::subplot(3,1,3);
     matplotlibcpp::plot(sz.timestamps, sz.values, params_value);
-    matplotlibcpp::plot(sz.timestamps, sz.values_bound, params_bound);
-    for(size_t i=0; i<sz.timestamps.size(); i++) {
-        sz.values_bound.at(i) *= -1;
+    if(!sz.values_bound.empty()) {
+        matplotlibcpp::plot(sz.timestamps, sz.values_bound, params_bound);
+        for(size_t i=0; i<sz.timestamps.size(); i++) {
+            sz.values_bound.at(i) *= -1;
+        }
+        matplotlibcpp::plot(sz.timestamps, sz.values_bound, "r--");
     }
-    matplotlibcpp::plot(sz.timestamps, sz.values_bound, "r--");
 
 }
 
@@ -185,43 +191,44 @@ int main(int argc, char **argv) {
 
 #ifdef HAVE_PYTHONLIBS
 
-    // Zero our time arrays
-    double starttime1 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(0);
-    double endtime1 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(nees_ori.timestamps.size()-1);
-    for(size_t i=0; i<nees_ori.timestamps.size(); i++) {
-        nees_ori.timestamps.at(i) -= starttime1;
-        nees_pos.timestamps.at(i) -= starttime1;
+    if(!nees_ori.values.empty() && !nees_pos.values.empty()) {
+        // Zero our time arrays
+        double starttime1 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(0);
+        double endtime1 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(nees_ori.timestamps.size()-1);
+        for(size_t i=0; i<nees_ori.timestamps.size(); i++) {
+            nees_ori.timestamps.at(i) -= starttime1;
+            nees_pos.timestamps.at(i) -= starttime1;
+        }
+
+        // Plot this figure
+        matplotlibcpp::figure_size(1000, 600);
+
+        // Parameters that define the line styles
+        std::map<std::string, std::string> params_neesp, params_neeso;
+        params_neesp.insert({"label","nees position"});
+        params_neesp.insert({"linestyle","-"});
+        params_neesp.insert({"color","blue"});
+        params_neeso.insert({"label","nees orientation"});
+        params_neeso.insert({"linestyle","-"});
+        params_neeso.insert({"color","blue"});
+
+
+        // Update the title and axis labels
+        matplotlibcpp::subplot(2,1,1);
+        matplotlibcpp::title("Normalized Estimation Error Squared");
+        matplotlibcpp::ylabel("NEES Orientation");
+        matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values, params_neeso);
+        matplotlibcpp::xlim(0.0,endtime1-starttime1);
+        matplotlibcpp::subplot(2,1,2);
+        matplotlibcpp::ylabel("NEES Position");
+        matplotlibcpp::xlabel("dataset time (s)");
+        matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values, params_neesp);
+        matplotlibcpp::xlim(0.0,endtime1-starttime1);
+
+        // Display to the user
+        matplotlibcpp::tight_layout();
+        matplotlibcpp::show(false);
     }
-
-    // Plot this figure
-    matplotlibcpp::figure_size(1000, 600);
-
-    // Parameters that define the line styles
-    std::map<std::string, std::string> params_neesp, params_neeso;
-    params_neesp.insert({"label","nees position"});
-    params_neesp.insert({"linestyle","-"});
-    params_neesp.insert({"color","blue"});
-    params_neeso.insert({"label","nees orientation"});
-    params_neeso.insert({"linestyle","-"});
-    params_neeso.insert({"color","blue"});
-
-
-    // Update the title and axis labels
-    matplotlibcpp::subplot(2,1,1);
-    matplotlibcpp::title("Normalized Estimation Error Squared");
-    matplotlibcpp::ylabel("NEES Orientation");
-    matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values, params_neeso);
-    matplotlibcpp::xlim(0.0,endtime1-starttime1);
-    matplotlibcpp::subplot(2,1,2);
-    matplotlibcpp::ylabel("NEES Position");
-    matplotlibcpp::xlabel("dataset time (s)");
-    matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values, params_neesp);
-    matplotlibcpp::xlim(0.0,endtime1-starttime1);
-
-    // Display to the user
-    matplotlibcpp::tight_layout();
-    matplotlibcpp::show(false);
-
 
 #endif
 

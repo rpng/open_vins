@@ -77,7 +77,8 @@ int main(int argc, char **argv) {
 
     // Relative pose error segment lengths
     //std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0};
-    std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
+    //std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
+    std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
 
     // The overall RPE error calculation for each algorithm type
     std::map<std::string,std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>>> algo_rpe;
@@ -204,7 +205,7 @@ int main(int argc, char **argv) {
         for(auto &seg : algo.second) {
             seg.second.first.calculate();
             seg.second.second.calculate();
-            ROS_INFO("\tRPE: seg %d - mean_ori = %.4f | mean_pos = %.4f (%d samples)",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
+            ROS_INFO("\tRPE: seg %d - median_ori = %.4f | median_pos = %.4f (%d samples)",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
             //ROS_INFO("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
         }
     }

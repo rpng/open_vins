@@ -237,32 +237,35 @@ int main(int argc, char **argv) {
         matplotlibcpp::show(false);
 
         //=====================================================
-        // NEES plot at each timestep
-        matplotlibcpp::figure_size(1000, 600);
 
-        // Zero our time arrays
-        double starttime2 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(0);
-        double endtime2 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(nees_ori.timestamps.size()-1);
-        for(size_t j=0; j<nees_ori.timestamps.size(); j++) {
-            nees_ori.timestamps.at(j) -= starttime2;
-            nees_pos.timestamps.at(j) -= starttime2;
+        if(!nees_ori.values.empty() && !nees_pos.values.empty()) {
+            // NEES plot at each timestep
+            matplotlibcpp::figure_size(1000, 600);
+
+            // Zero our time arrays
+            double starttime2 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(0);
+            double endtime2 = (nees_ori.timestamps.empty())? 0 : nees_ori.timestamps.at(nees_ori.timestamps.size()-1);
+            for(size_t j=0; j<nees_ori.timestamps.size(); j++) {
+                nees_ori.timestamps.at(j) -= starttime2;
+                nees_pos.timestamps.at(j) -= starttime2;
+            }
+
+            // Update the title and axis labels
+            matplotlibcpp::subplot(2,1,1);
+            matplotlibcpp::title("Normalized Estimation Error Squared - "+path_algorithms.at(i).stem().string());
+            matplotlibcpp::ylabel("NEES Orientation");
+            matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values);
+            matplotlibcpp::xlim(0.0,endtime2-starttime2);
+            matplotlibcpp::subplot(2,1,2);
+            matplotlibcpp::ylabel("NEES Position");
+            matplotlibcpp::xlabel("dataset time (s)");
+            matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values);
+            matplotlibcpp::xlim(0.0,endtime2-starttime2);
+
+            // Display to the user
+            matplotlibcpp::tight_layout();
+            matplotlibcpp::show(false);
         }
-
-        // Update the title and axis labels
-        matplotlibcpp::subplot(2,1,1);
-        matplotlibcpp::title("Normalized Estimation Error Squared - "+path_algorithms.at(i).stem().string());
-        matplotlibcpp::ylabel("NEES Orientation");
-        matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values);
-        matplotlibcpp::xlim(0.0,endtime2-starttime2);
-        matplotlibcpp::subplot(2,1,2);
-        matplotlibcpp::ylabel("NEES Position");
-        matplotlibcpp::xlabel("dataset time (s)");
-        matplotlibcpp::plot(nees_pos.timestamps, nees_pos.values);
-        matplotlibcpp::xlim(0.0,endtime2-starttime2);
-
-        // Display to the user
-        matplotlibcpp::tight_layout();
-        matplotlibcpp::show(false);
 
 #endif
 

@@ -233,14 +233,6 @@ void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics 
                                  Statistics &orix, Statistics &oriy, Statistics &oriz,
                                  Statistics &roll, Statistics &pitch, Statistics &yaw) {
 
-    // Check that we have our covariance matrices to normalize with
-    if(est_times.size() != est_covori.size() || est_times.size() != est_covpos.size()
-       || gt_times.size() != gt_covori.size() || gt_times.size() != gt_covpos.size()) {
-        ROS_ERROR("[TRAJ]: Error At Each Timestep function called but trajectory does not have any covariances...");
-        ROS_ERROR("[TRAJ]: Did you record using a Odometry or PoseWithCovarianceStamped????");
-        return;
-    }
-
     // Clear any old data
     posx.clear();
     posy.clear();
@@ -259,7 +251,10 @@ void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics 
         Eigen::Vector4d e_q = Math::quat_multiply(gt_poses_aignedtoEST.at(i).block(3,0,4,1),Math::Inv(est_poses.at(i).block(3,0,4,1)));
         Eigen::Vector3d errori_local = 2*e_q.block(0,0,3,1);
         Eigen::Vector3d errori_global = Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose()*errori_local;
-        Eigen::Matrix3d cov_global = Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose()*est_covori.at(i)*Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1));
+        Eigen::Matrix3d cov_global;
+        if(est_times.size() == est_covori.size()) {
+            cov_global = Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1)).transpose()*est_covori.at(i)*Math::quat_2_Rot(est_poses.at(i).block(3,0,4,1));
+        }
 
         // Convert to roll pitch yaw (also need to "wrap" the error to -pi to pi)
         // NOTE: our rot2rpy is in the form R_input = R_z(yaw)*R_y(pitch)*R_x(roll)
@@ -283,7 +278,10 @@ void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics 
         Eigen::Matrix<double,3,3> H_xyz2rpy = Eigen::Matrix<double,3,3>::Identity();
         H_xyz2rpy.block(0,1,3,1) = Math::rot_x(-ypr_est_ItoG(0))*H_xyz2rpy.block(0,1,3,1);
         H_xyz2rpy.block(0,2,3,1) = Math::rot_x(-ypr_est_ItoG(0))*Math::rot_y(-ypr_est_ItoG(1))*H_xyz2rpy.block(0,2,3,1);
-        Eigen::Matrix3d cov_rpy = H_xyz2rpy.inverse()*est_covori.at(i)*H_xyz2rpy.inverse().transpose();
+        Eigen::Matrix3d cov_rpy;
+        if(est_times.size() == est_covori.size()) {
+            cov_rpy = H_xyz2rpy.inverse()*est_covori.at(i)*H_xyz2rpy.inverse().transpose();
+        }
 
         // Calculate position error
         Eigen::Vector3d errpos = gt_poses_aignedtoEST.at(i).block(0,0,3,1)-est_poses.at(i).block(0,0,3,1);
@@ -291,35 +289,41 @@ void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics 
         // POSITION: Append this error!
         posx.timestamps.push_back(est_times.at(i));
         posx.values.push_back(errpos(0));
-        posx.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(0,0)));
         posy.timestamps.push_back(est_times.at(i));
         posy.values.push_back(errpos(1));
-        posy.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(1,1)));
         posz.timestamps.push_back(est_times.at(i));
         posz.values.push_back(errpos(2));
-        posz.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(2,2)));
+        if(est_times.size() == est_covpos.size()) {
+            posx.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(0,0)));
+            posy.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(1,1)));
+            posz.values_bound.push_back(3*std::sqrt(est_covpos.at(i)(2,2)));
+        }
 
         // ORIENTATION: Append this error!
         orix.timestamps.push_back(est_times.at(i));
         orix.values.push_back(errori_global(0));
-        orix.values_bound.push_back(3*std::sqrt(cov_global(0,0)));
         oriy.timestamps.push_back(est_times.at(i));
         oriy.values.push_back(errori_global(1));
-        oriy.values_bound.push_back(3*std::sqrt(cov_global(1,1)));
         oriz.timestamps.push_back(est_times.at(i));
         oriz.values.push_back(errori_global(2));
-        oriz.values_bound.push_back(3*std::sqrt(cov_global(2,2)));
+        if(est_times.size() == est_covori.size()) {
+            orix.values_bound.push_back(3*std::sqrt(cov_global(0,0)));
+            oriy.values_bound.push_back(3*std::sqrt(cov_global(1,1)));
+            oriz.values_bound.push_back(3*std::sqrt(cov_global(2,2)));
+        }
 
         // RPY: Append this error!
         roll.timestamps.push_back(est_times.at(i));
         roll.values.push_back(errori_rpy(0));
-        roll.values_bound.push_back(3*std::sqrt(cov_rpy(0,0)));
         pitch.timestamps.push_back(est_times.at(i));
         pitch.values.push_back(errori_rpy(1));
-        pitch.values_bound.push_back(3*std::sqrt(cov_rpy(1,1)));
         yaw.timestamps.push_back(est_times.at(i));
         yaw.values.push_back(errori_rpy(2));
-        yaw.values_bound.push_back(3*std::sqrt(cov_rpy(2,2)));
+        if(est_times.size() == est_covori.size()) {
+            roll.values_bound.push_back(3*std::sqrt(cov_rpy(0,0)));
+            pitch.values_bound.push_back(3*std::sqrt(cov_rpy(1,1)));
+            yaw.values_bound.push_back(3*std::sqrt(cov_rpy(2,2)));
+        }
 
     }
 
