@@ -40,8 +40,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     nh.param<int>("sim_seed_measurements", sim_seed_measurements, 0);
     gen_state_init = std::mt19937(seed_state_init);
     gen_state_init.seed(seed_state_init);
-    gen_meas = std::mt19937(sim_seed_measurements);
-    gen_meas.seed(sim_seed_measurements);
+    gen_meas_imu = std::mt19937(sim_seed_measurements);
+    gen_meas_imu.seed(sim_seed_measurements);
 
     // Read in sensor simulation frequencies
     nh.param<int>("sim_freq_cam", freq_cam, 10);
@@ -50,6 +50,12 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     // Load number of cameras and number of points
     nh.param<int>("max_cameras", max_cameras, 1);
     nh.param<int>("num_pts", num_pts, 200);
+
+    // Create generator for our camera
+    for(int i=0; i<max_cameras; i++) {
+        gen_meas_cams.push_back(std::mt19937(sim_seed_measurements));
+        gen_meas_cams.at(i).seed(sim_seed_measurements);
+    }
 
     // Global gravity
     std::vector<double> vec_gravity;
@@ -155,39 +161,50 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
 
     // We will create synthetic camera frames and ensure that each has enough features
-    double dt = 0.05;
-    double time_synth = spline.get_start_time();
-    ROS_INFO("Generating map features at %d rate",(int)(1.0/dt));
+    //double dt = 0.25/freq_cam;
+    double dt = 0.25;
+    size_t mapsize = featmap.size();
+    ROS_INFO("[SIM]: Generating map features at %d rate",(int)(1.0/dt));
 
-    // Loop through each pose and generate our feature map in them!!!!
-    while(ros::ok()) {
-        // Get the pose at the current timestep
-        Eigen::Matrix3d R_GtoI;
-        Eigen::Vector3d p_IinG;
-        bool success_pose = spline.get_pose(time_synth, R_GtoI, p_IinG);
-        // We have finished generating features
-        if(!success_pose)
-            break;
-        // Loop through each camera
-        for(int i=0; i<max_cameras; i++) {
+    // Loop through each camera
+    // NOTE: we loop through cameras here so that the feature map for camera 1 will always be the same
+    // NOTE: thus when we add more cameras the first camera should get the same measurements
+    for(int i=0; i<max_cameras; i++) {
+
+        // Reset the start time
+        double time_synth = spline.get_start_time();
+
+        // Loop through each pose and generate our feature map in them!!!!
+        while(ros::ok()) {
+            // Get the pose at the current timestep
+            Eigen::Matrix3d R_GtoI;
+            Eigen::Vector3d p_IinG;
+            bool success_pose = spline.get_pose(time_synth, R_GtoI, p_IinG);
+            // We have finished generating features
+            if(!success_pose)
+                break;
+
             // Get the uv features for this frame
             std::vector<std::pair<size_t,Eigen::VectorXf>> uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
             // If we do not have enough, generate more
             if((int)uvs.size() < num_pts) {
                 generate_points(R_GtoI, p_IinG, i, featmap, num_pts-(int)uvs.size());
             }
+
+            // Move forward in time
+            time_synth += dt;
         }
-        // Move forward in time
-        time_synth += dt;
+
+        // Debug print
+        ROS_INFO("[SIM]: Generated %d map features in total over %d frames (camera %d)",(int)(featmap.size()-mapsize),(int)((time_synth-spline.get_start_time())/dt),i);
+        mapsize = featmap.size();
+
     }
 
     // Print our map features
     //for(const auto &feat : featmap) {
     //    cout << feat.second(0) << "," << feat.second(1) << "," << feat.second(2) << std::endl;
     //}
-
-    // Debug print
-    ROS_INFO("Generated %d map features in total over %d frames",(int)featmap.size(),(int)((time_synth-spline.get_start_time())/dt));
     sleep(2);
 
 }
@@ -263,20 +280,20 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     // Now add noise to these measurements
     double dt = 1.0/freq_imu;
     std::normal_distribution<double> w(0,1);
-    wm(0) = omega_inI(0) + true_bias_gyro(0) + sigma_w/std::sqrt(dt)*w(gen_meas);
-    wm(1) = omega_inI(1) + true_bias_gyro(1) + sigma_w/std::sqrt(dt)*w(gen_meas);
-    wm(2) = omega_inI(2) + true_bias_gyro(2) + sigma_w/std::sqrt(dt)*w(gen_meas);
-    am(0) = accel_inI(0) + true_bias_accel(0) + sigma_a/std::sqrt(dt)*w(gen_meas);
-    am(1) = accel_inI(1) + true_bias_accel(1) + sigma_a/std::sqrt(dt)*w(gen_meas);
-    am(2) = accel_inI(2) + true_bias_accel(2) + sigma_a/std::sqrt(dt)*w(gen_meas);
+    wm(0) = omega_inI(0) + true_bias_gyro(0) + sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+    wm(1) = omega_inI(1) + true_bias_gyro(1) + sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+    wm(2) = omega_inI(2) + true_bias_gyro(2) + sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+    am(0) = accel_inI(0) + true_bias_accel(0) + sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+    am(1) = accel_inI(1) + true_bias_accel(1) + sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+    am(2) = accel_inI(2) + true_bias_accel(2) + sigma_a/std::sqrt(dt)*w(gen_meas_imu);
 
     // Move the biases forward in time
-    true_bias_gyro(0) += sigma_wb*std::sqrt(dt)*w(gen_meas);
-    true_bias_gyro(1) += sigma_wb*std::sqrt(dt)*w(gen_meas);
-    true_bias_gyro(2) += sigma_wb*std::sqrt(dt)*w(gen_meas);
-    true_bias_accel(0) += sigma_ab*std::sqrt(dt)*w(gen_meas);
-    true_bias_accel(1) += sigma_ab*std::sqrt(dt)*w(gen_meas);
-    true_bias_accel(2) += sigma_ab*std::sqrt(dt)*w(gen_meas);
+    true_bias_gyro(0) += sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_gyro(1) += sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_gyro(2) += sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_accel(0) += sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_accel(1) += sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_accel(2) += sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
 
     // Return success
     return true;
@@ -318,11 +335,16 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
             ROS_ERROR("[SIM]: cam %d was unable to generate enough features (%d < %d projections)",(int)i,(int)uvs.size(),num_pts);
         }
 
+        // If greater than only select the first set
+        if((int)uvs.size() > num_pts) {
+            uvs.erase(uvs.begin()+num_pts, uvs.end());
+        }
+
         // Loop through and add noise to each uv measurement
         std::normal_distribution<double> w(0,1);
         for(size_t j=0; j<uvs.size(); j++) {
-            uvs.at(j).second(0) += sigma_pix*w(gen_meas);
-            uvs.at(j).second(1) += sigma_pix*w(gen_meas);
+            uvs.at(j).second(0) += sigma_pix*w(gen_meas_cams.at(i));
+            uvs.at(j).second(1) += sigma_pix*w(gen_meas_cams.at(i));
         }
 
         // Push back for this camera

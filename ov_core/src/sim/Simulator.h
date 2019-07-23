@@ -143,8 +143,11 @@ namespace ov_core {
         size_t id_map = 0;
         std::unordered_map<size_t,Eigen::Vector3d> featmap;
 
-        /// Mersenne twister PRNG for measurements
-        std::mt19937 gen_meas;
+        /// Mersenne twister PRNG for measurements (IMU)
+        std::mt19937 gen_meas_imu;
+
+        /// Mersenne twister PRNG for measurements (CAMERAS)
+        std::vector<std::mt19937> gen_meas_cams;
 
         /// Mersenne twister PRNG for state initialization
         std::mt19937 gen_state_init;
