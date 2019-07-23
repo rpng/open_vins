@@ -460,6 +460,12 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // State propagation, and clone augmentation
     //===================================================================================
 
+    // Return if the camera measurement is out of order
+    if(state->timestamp() >= timestamp) {
+        ROS_WARN("image received out of order (prop dt = %3f)",(timestamp-state->timestamp()));
+        return;
+    }
+
     // If we have just started up, we should record this time as the current time
     if(startup_time == -1) {
         startup_time = timestamp;

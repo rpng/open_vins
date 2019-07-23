@@ -9,14 +9,14 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order) {
 
     // Global XYZ representation
-    if (state->options().feat_representation == StateOptions::GLOBAL_3D) {
+    if (feature.feat_representation == StateOptions::GLOBAL_3D) {
         H_f.resize(3,3);
         H_f.setIdentity();
         return;
     }
 
     // Global inverse depth representation
-    if (state->options().feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
+    if (feature.feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
 
         // Get the feature linearization point
         Eigen::Matrix<double,3,1> p_FinG = (state->options().do_fej)? feature.p_FinG_fej : feature.p_FinG;
@@ -55,24 +55,28 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     // Assert that we have an anchor pose for this feature
     assert(feature.anchor_cam_id!=-1);
 
-    // Get calibration for our anchor camera (should we do fej with calibration?)
-    //Eigen::Matrix<double,3,3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
-    //Eigen::Matrix<double,3,1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
-    Eigen::Matrix<double, 3, 3> R_ItoC = (state->options().do_fej)? state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej() : state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
-    Eigen::Matrix<double, 3, 1> p_IinC = (state->options().do_fej)? state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej() : state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+    // Anchor pose orientation and position, and camera calibration for our anchor camera
+    Eigen::Matrix<double, 3, 3> R_ItoC, R_GtoI, R_CtoG;
+    Eigen::Matrix<double, 3, 1> p_IinC, p_IinG, p_FinA;
 
-    // Anchor pose orientation and position
-    Eigen::Matrix<double,3,3> R_GtoI = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->Rot_fej() : state->get_clone(feature.anchor_clone_timestamp)->Rot();
-    Eigen::Matrix<double,3,1> p_IinG = (state->options().do_fej)? state->get_clone(feature.anchor_clone_timestamp)->pos_fej() : state->get_clone(feature.anchor_clone_timestamp)->pos();
-    Eigen::Matrix<double,3,3> R_CtoG = R_GtoI.transpose()*R_ItoC.transpose();
+    // If I am doing FEJ, I should FEJ the anchor states (should we fej calibration???)
+    // Also get the FEJ position of the feature if we are
+    if(!state->options().do_fej) {
+        R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
+        p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+        R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot();
+        p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos();
+        p_FinA = feature.p_FinA;
+    } else {
+        R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej();
+        p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej();
+        R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot_fej();
+        p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos_fej();
+        p_FinA = feature.p_FinA_fej;
+    }
+    R_CtoG = R_GtoI.transpose()*R_ItoC.transpose();
 
-    // Get the feature linearization point
-    Eigen::Matrix<double,3,1> p_FinG = (state->options().do_fej)? feature.p_FinG_fej : feature.p_FinG;
-
-    // Calculate position of the feature in our anchor position
-    Eigen::Matrix<double,3,1> p_FinA = R_ItoC*R_GtoI*(p_FinG-p_IinG)+p_IinC;
-
-    // TODO: when using fej with SLAM need to replace the value of feature position
+    // Jacobian for our anchor pose
     Eigen::Matrix<double,3,6> H_anc;
     H_anc.block(0,0,3,3).noalias() = -R_GtoI.transpose()*skew_x(R_ItoC.transpose()*(p_FinA-p_IinC));
     H_anc.block(0,3,3,3).setIdentity();
@@ -91,13 +95,13 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     }
 
     // If we are doing anchored XYZ feature
-    if(state->options().feat_representation == StateOptions::ANCHORED_3D) {
+    if (feature.feat_representation == StateOptions::ANCHORED_3D) {
         H_f = R_CtoG;
         return;
     }
 
     // If we are doing full inverse depth
-    if (state->options().feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH) {
+    if (feature.feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH) {
 
         // Get inverse depth representation (should match what is in Landmark.cpp)
         double a_rho = 1/p_FinA.norm();
@@ -126,7 +130,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     }
 
     // If we are doing the MSCKF version of inverse depth
-    if (state->options().feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH) {
+    if (feature.feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH) {
 
         // Get inverse depth representation (should match what is in Landmark.cpp)
         Eigen::Matrix<double,3,1> p_invFinA_MSCKF;
@@ -166,10 +170,6 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::V
         double inv_r = (r > 1e-8)? 1.0/r : 1.0;
         double cdist = (r > 1e-8)? theta_d * inv_r : 1.0;
 
-        // Calculate distorted coordinates for fisheye
-        double x1 = uv_norm(0)*cdist;
-        double y1 = uv_norm(1)*cdist;
-
         // Jacobian of distorted pixel to "normalized" pixel
         Eigen::Matrix<double,2,2> duv_dxy = Eigen::Matrix<double,2,2>::Zero();
         duv_dxy << cam_d(0), 0, 0, cam_d(1);
@@ -201,6 +201,12 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::V
 
         // Compute the Jacobian in respect to the intrinsics if we are calibrating
         if(state->options().do_calib_camera_intrinsics) {
+
+            // Calculate distorted coordinates for fisheye
+            double x1 = uv_norm(0)*cdist;
+            double y1 = uv_norm(1)*cdist;
+
+            // Jacobian
             dz_dzeta(0,0) = x1;
             dz_dzeta(0,2) = 1;
             dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*inv_r*std::pow(theta,3);
@@ -222,17 +228,26 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::V
         double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
         double r_2 = r*r;
         double r_4 = r_2*r_2;
-        double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
-        double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
 
         // Jacobian of distorted pixel to normalized pixel
-        dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(0)*uv_norm(0)+4*cam_d(5)*uv_norm(0)*uv_norm(0)*r)+2*cam_d(6)*uv_norm(1)+(2*cam_d(7)*uv_norm(0)+4*cam_d(7)*uv_norm(0)));
-        dz_dzn(0,1) = cam_d(0)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
-        dz_dzn(1,0) = cam_d(1)*(2*cam_d(4)*uv_norm(0)*uv_norm(1)+4*cam_d(5)*uv_norm(0)*uv_norm(1)*r+2*cam_d(6)*uv_norm(0)+2*cam_d(7)*uv_norm(1));
-        dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*uv_norm(1)*uv_norm(1)+4*cam_d(5)*uv_norm(1)*uv_norm(1)*r)+2*cam_d(7)*uv_norm(0)+(2*cam_d(6)*uv_norm(1)+4*cam_d(6)*uv_norm(1)));
+        double x = uv_norm(0);
+        double y = uv_norm(1);
+        double x_2 = uv_norm(0)*uv_norm(0);
+        double y_2 = uv_norm(1)*uv_norm(1);
+        double x_y = uv_norm(0)*uv_norm(1);
+        dz_dzn(0,0) = cam_d(0)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*x_2+4*cam_d(5)*x_2*r)+2*cam_d(6)*y+(2*cam_d(7)*x+4*cam_d(7)*x));
+        dz_dzn(0,1) = cam_d(0)*(2*cam_d(4)*x_y+4*cam_d(5)*x_y*r+2*cam_d(6)*x+2*cam_d(7)*y);
+        dz_dzn(1,0) = cam_d(1)*(2*cam_d(4)*x_y+4*cam_d(5)*x_y*r+2*cam_d(6)*x+2*cam_d(7)*y);
+        dz_dzn(1,1) = cam_d(1)*((1+cam_d(4)*r_2+cam_d(5)*r_4)+(2*cam_d(4)*y_2+4*cam_d(5)*y_2*r)+2*cam_d(7)*x+(2*cam_d(6)*y+4*cam_d(6)*y));
 
         // Compute the Jacobian in respect to the intrinsics if we are calibrating
         if(state->options().do_calib_camera_intrinsics) {
+
+            // Calculate distorted coordinates for radtan
+            double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
+            double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
+
+            // Jacobian
             dz_dzeta(0,0) = x1;
             dz_dzeta(0,2) = 1;
             dz_dzeta(0,4) = cam_d(0)*uv_norm(0)*r_2;
@@ -301,9 +316,10 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     }
 
     // If we are using an anchored representation, make sure that the anchor is also added
-    if (state->options().feat_representation == StateOptions::ANCHORED_3D
-        || state->options().feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH
-        || state->options().feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH) {
+    if (StateOptions::is_relative_representation(feature.feat_representation)) {
+
+        // Assert we have a clone
+        assert(feature.anchor_cam_id != -1);
 
         // Add this anchor if it is not added already
         PoseJPL *clone_Ai = state->get_clone(feature.anchor_clone_timestamp);
@@ -329,18 +345,54 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     //=========================================================================
     //=========================================================================
 
+    // Calculate the position of this feature in the global frame
+    // If anchored, then we need to calculate the position of the feature in the global
+    Eigen::Vector3d p_FinG = feature.p_FinG;
+    if(StateOptions::is_relative_representation(feature.feat_representation)) {
+        // Assert that we have an anchor pose for this feature
+        assert(feature.anchor_cam_id!=-1);
+        // Get calibration for our anchor camera
+        Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
+        Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+        // Anchor pose orientation and position
+        Eigen::Matrix<double,3,3> R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot();
+        Eigen::Matrix<double,3,1> p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos();
+        // Feature in the global frame
+        p_FinG = R_GtoI.transpose() * R_ItoC.transpose()*(feature.p_FinA - p_IinC) + p_IinG;
+    }
+
+    // Calculate the position of this feature in the global frame FEJ
+    // If anchored, then we need to calculate the position of the feature in the global
+    Eigen::Vector3d p_FinG_fej = feature.p_FinG_fej;
+    if(StateOptions::is_relative_representation(feature.feat_representation)) {
+        // Assert that we have an anchor pose for this feature
+        assert(feature.anchor_cam_id!=-1);
+        // Get calibration for our anchor camera
+        Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej();
+        Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej();
+        // Anchor pose orientation and position
+        Eigen::Matrix<double,3,3> R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot_fej();
+        Eigen::Matrix<double,3,1> p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos_fej();
+        // Feature in the global frame
+        p_FinG_fej = R_GtoI.transpose() * R_ItoC.transpose()*(feature.p_FinA_fej - p_IinC) + p_IinG;
+    }
+
+    //=========================================================================
+    //=========================================================================
+
     // Allocate our residual and Jacobians
     int c = 0;
     res = Eigen::VectorXd::Zero(2*total_meas);
     H_f = Eigen::MatrixXd::Zero(2*total_meas,3);
     H_x = Eigen::MatrixXd::Zero(2*total_meas,total_hx);
 
-    // Derivative of p_FinG in respect to feature representation. This only needs to be computed once
-    // and thus we pull it out of the loop
+    // Derivative of p_FinG in respect to feature representation.
+    // This only needs to be computed once and thus we pull it out of the loop
     Eigen::Matrix<double,3,3> dpfg_dlambda;
     std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> dpfg_dx;
     std::vector<Type*> dpfg_dx_order;
     UpdaterHelper::get_feature_jacobian_representation(state, feature, dpfg_dlambda, dpfg_dx, dpfg_dx_order);
+
 
     // Loop through each camera for this feature
     for (auto const& pair : feature.timestamps) {
@@ -363,7 +415,8 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             Eigen::Matrix<double,3,3> R_GtoIi = clone_Ii->Rot();
             Eigen::Matrix<double,3,1> p_IiinG = clone_Ii->pos();
 
-            Eigen::Matrix<double,3,1> p_FinIi = R_GtoIi*(feature.p_FinG-p_IiinG);
+            // Get current feature in the IMU
+            Eigen::Matrix<double,3,1> p_FinIi = R_GtoIi*(p_FinG-p_IiinG);
 
             // Project the current feature into the current frame of reference
             Eigen::Matrix<double,3,1> p_FinCi = R_ItoC*p_FinIi+p_IinC;
@@ -419,7 +472,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 p_IiinG = clone_Ii->pos_fej();
                 R_ItoC = calibration->Rot_fej();
                 p_IinC = calibration->pos_fej();
-                p_FinIi = R_GtoIi*(feature.p_FinG_fej-p_IiinG);
+                p_FinIi = R_GtoIi*(p_FinG_fej-p_IiinG);
                 p_FinCi = R_ItoC*p_FinIi+p_IinC;
                 uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
             }
@@ -441,7 +494,6 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             Eigen::Matrix<double,3,6> dpfc_dclone = Eigen::Matrix<double,3,6>::Zero();
             dpfc_dclone.block(0,0,3,3).noalias() = R_ItoC*skew_x(p_FinIi);
             dpfc_dclone.block(0,3,3,3) = -dpfc_dpfg;
-
 
             //=========================================================================
             //=========================================================================

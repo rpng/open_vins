@@ -62,9 +62,10 @@ namespace ov_msckf {
         * @brief Sets the value of the estimate and recomputes the internal rotation matrix
         * @param new_value New value for the quaternion estimate
         */
-        void set_value(const Eigen::VectorXd new_value) override {
+        void set_value(const Eigen::MatrixXd new_value) override {
 
             assert(new_value.rows() == 4);
+            assert(new_value.cols() == 1);
 
             _value = new_value;
 
@@ -83,9 +84,10 @@ namespace ov_msckf {
         * @brief Sets the fej value and recomputes the fej rotation matrix
         * @param new_value New value for the quaternion estimate
         */
-        void set_fej(const Eigen::VectorXd new_value) override {
+        void set_fej(const Eigen::MatrixXd new_value) override {
 
             assert(new_value.rows() == 4);
+            assert(new_value.cols() == 1);
 
             _fej = new_value;
 

@@ -11,14 +11,14 @@ source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
 
 # config locations
 usefej=(
-    "false"
+#    "false"
     "true"
 )
 
 # dataset locations
 representations=(
-    "GLOBAL_3D"
-    "GLOBAL_FULL_INVERSE_DEPTH"
+#    "GLOBAL_3D"
+#    "GLOBAL_FULL_INVERSE_DEPTH"
     "ANCHORED_3D"
     "ANCHORED_FULL_INVERSE_DEPTH"
     "ANCHORED_MSCKF_INVERSE_DEPTH"
@@ -55,7 +55,7 @@ fi
 filename="$save_path/${representations[i]}$temp/udel_gore/estimate_$j.txt"
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_sim.launch seed:="$j" fej:="${usefej[h]}" feat_rep:="${representations[i]}" num_clones:="20" num_slam:="150" num_pts:="150" dosave:="true" path_est:="$filename" &> /dev/null
+roslaunch ov_msckf pgeneva_sim.launch seed:="$j" fej:="${usefej[h]}" feat_rep:="${representations[i]}" num_clones:="6" num_slam:="50" num_pts:="50" dosave:="true" path_est:="$filename" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"

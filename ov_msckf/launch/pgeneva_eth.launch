@@ -25,13 +25,13 @@
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
 
         <!-- bag parameters -->
-        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
-        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
-<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />-->
-<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_02_medium.csv" />-->
+<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />-->
+<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />-->
+        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />
+        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_02_medium.csv" />
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V2_03_difficult.bag" />-->
 <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V2_03_difficult.csv" />-->
-        <param name="bag_start"   type="double" value="5.0" />
+        <param name="bag_start"   type="double" value="8.0" />
         <param name="bag_durr"    type="int"    value="-1" />
 
 
@@ -43,7 +43,7 @@
         <param name="calib_cam_timeoffset"   type="bool"   value="false" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
-        <param name="max_slam"               type="int"    value="0" />
+        <param name="max_slam"               type="int"    value="50" />
         <param name="max_cameras"            type="int"    value="1" />
         <param name="dt_slam_delay"          type="double" value="5" />
         <param name="feat_representation"    type="string" value="GLOBAL_3D" />
@@ -69,7 +69,7 @@
         <param name="up_msckf_sigma_px"            type="double"   value="1" />
         <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
         <param name="up_slam_sigma_px"             type="double"   value="1" />
-        <param name="up_slam_chi2_multipler"       type="double"   value="5" />
+        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
         <param name="up_aruco_sigma_px"            type="double"   value="0.8" />
         <param name="up_aruco_chi2_multipler"      type="double"   value="3" />
         <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />

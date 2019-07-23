@@ -63,14 +63,14 @@ namespace ov_msckf {
         /**
          * @brief Access variable's estimate
          */
-        virtual Eigen::VectorXd value() const {
+        virtual Eigen::MatrixXd value() const {
             return _value;
         }
 
         /**
          * @brief Access variable's first-estimate
          */
-        virtual Eigen::VectorXd fej() const {
+        virtual Eigen::MatrixXd fej() const {
             return _fej;
         }
 
@@ -78,7 +78,9 @@ namespace ov_msckf {
          * @brief Overwrite value of state's estimate
          * @param new_value New value that will overwrite state's value
          */
-        virtual void set_value(const Eigen::VectorXd new_value) {
+        virtual void set_value(const Eigen::MatrixXd new_value) {
+            assert(_value.rows()==new_value.rows());
+            assert(_value.cols()==new_value.cols());
             _value = new_value;
         }
 
@@ -86,7 +88,9 @@ namespace ov_msckf {
          * @brief Overwrite value of first-estimate
          * @param new_value New value that will overwrite state's fej
          */
-        virtual void set_fej(const Eigen::VectorXd new_value) {
+        virtual void set_fej(const Eigen::MatrixXd new_value) {
+            assert(_fej.rows()==new_value.rows());
+            assert(_fej.cols()==new_value.cols());
             _fej = new_value;
         }
 
@@ -113,10 +117,10 @@ namespace ov_msckf {
     protected:
 
         /// First-estimate
-        Eigen::VectorXd _fej;
+        Eigen::MatrixXd _fej;
 
         /// Current best estimate
-        Eigen::VectorXd _value;
+        Eigen::MatrixXd _value;
 
         /// Location of error state in covariance
         int _id = -1;

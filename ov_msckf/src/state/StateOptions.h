@@ -51,6 +51,13 @@ namespace ov_msckf {
         /// What representation our features are in
         FeatureRepresentation feat_representation = GLOBAL_3D;
 
+        /// Helper function that checks if the passed feature representation is a relative or global
+        static inline bool is_relative_representation(FeatureRepresentation feat_representation) {
+            return (feat_representation == StateOptions::ANCHORED_3D ||
+                    feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH ||
+                    feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH);
+        }
+
     };
 
 

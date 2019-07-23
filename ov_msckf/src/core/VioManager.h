@@ -132,7 +132,20 @@ namespace ov_msckf {
             std::vector<Eigen::Vector3d> slam_feats;
             for (auto &f : state->features_SLAM()){
                 if((int)f.first <= state->options().max_aruco_features) continue;
-                slam_feats.push_back(f.second->get_global_xyz(state, false));
+                if(StateOptions::is_relative_representation(f.second->_feat_representation)) {
+                    // Assert that we have an anchor pose for this feature
+                    assert(f.second->_anchor_cam_id!=-1);
+                    // Get calibration for our anchor camera
+                    Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(f.second->_anchor_cam_id)->Rot();
+                    Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(f.second->_anchor_cam_id)->pos();
+                    // Anchor pose orientation and position
+                    Eigen::Matrix<double,3,3> R_GtoI = state->get_clone(f.second->_anchor_clone_timestamp)->Rot();
+                    Eigen::Matrix<double,3,1> p_IinG = state->get_clone(f.second->_anchor_clone_timestamp)->pos();
+                    // Feature in the global frame
+                    slam_feats.push_back(R_GtoI.transpose() * R_ItoC.transpose()*(f.second->get_xyz(false) - p_IinC) + p_IinG);
+                } else {
+                    slam_feats.push_back(f.second->get_xyz(false));
+                }
             }
             return slam_feats;
         }
@@ -142,7 +155,20 @@ namespace ov_msckf {
             std::vector<Eigen::Vector3d> aruco_feats;
             for (auto &f : state->features_SLAM()){
                 if((int)f.first > state->options().max_aruco_features) continue;
-                aruco_feats.push_back(f.second->get_global_xyz(state, false));
+                if(StateOptions::is_relative_representation(f.second->_feat_representation)) {
+                    // Assert that we have an anchor pose for this feature
+                    assert(f.second->_anchor_cam_id!=-1);
+                    // Get calibration for our anchor camera
+                    Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(f.second->_anchor_cam_id)->Rot();
+                    Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(f.second->_anchor_cam_id)->pos();
+                    // Anchor pose orientation and position
+                    Eigen::Matrix<double,3,3> R_GtoI = state->get_clone(f.second->_anchor_clone_timestamp)->Rot();
+                    Eigen::Matrix<double,3,1> p_IinG = state->get_clone(f.second->_anchor_clone_timestamp)->pos();
+                    // Feature in the global frame
+                    aruco_feats.push_back(R_GtoI.transpose() * R_ItoC.transpose()*(f.second->get_xyz(false) - p_IinC) + p_IinG);
+                } else {
+                    aruco_feats.push_back(f.second->get_xyz(false));
+                }
             }
             return aruco_feats;
         }

@@ -39,6 +39,19 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
         std::exit(EXIT_FAILURE);
     }
 
+    // We should crash if we are trying to propagate backwards
+    if(state->timestamp() > timestamp) {
+        std::cerr << "Propagator::propagate_and_clone(): Propagation called trying to propagate backwards in time!!!!" << std::endl;
+        std::cerr << "Propagator::propagate_and_clone(): desired propagation = " << (timestamp-state->timestamp()) << std::endl;
+        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Sort our imu data (handles any out of order measurements)
+    //std::sort(imu_data.begin(), imu_data.end(), [](IMUDATA i, IMUDATA j){
+    //    return i.timestamp < j.timestamp;
+    //});
+
     // Loop through and find all the needed measurements to propagate with
     // Note we split measurements based on the given state time, and the update timestamp
     for(size_t i=0; i<imu_data.size()-1; i++) {
@@ -106,7 +119,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     // Loop through and ensure we do not have an zero dt values
     // This would cause the noise covariance to be Infinity
     for (size_t i=0; i < prop_data.size()-1; i++){
-        if ((prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-8){
+        if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-8){
             std::cerr << "Propagator::propagate_and_clone(): Zero DT between " << i << " and " << i+1 << " measurements (dt = " << (prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) << ")" << std::endl;
             prop_data.erase(prop_data.begin()+i);
             i--;

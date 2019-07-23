@@ -46,11 +46,20 @@ namespace ov_msckf {
             /// Timestamps of each UV measurement (mapped by camera ID)
             std::unordered_map<size_t, std::vector<double>> timestamps;
 
+            /// What representation our feature is in
+            StateOptions::FeatureRepresentation feat_representation;
+
             /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
             int anchor_cam_id = -1;
 
             /// Timestamp of anchor clone
-            double anchor_clone_timestamp;
+            double anchor_clone_timestamp = -1;
+
+            /// Triangulated position of this feature, in the anchor frame
+            Eigen::Vector3d p_FinA;
+
+            /// Triangulated position of this feature, in the anchor frame first estimate
+            Eigen::Vector3d p_FinA_fej;
 
             /// Triangulated position of this feature, in the global frame
             Eigen::Vector3d p_FinG;

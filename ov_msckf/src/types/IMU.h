@@ -91,7 +91,10 @@ namespace ov_msckf {
          * @brief Sets the value of the estimate
          * @param new_value New value we should set
          */
-        void set_value(const Eigen::VectorXd new_value) override {
+        void set_value(const Eigen::MatrixXd new_value) override {
+
+            assert(new_value.rows() == 16);
+            assert(new_value.cols() == 1);
 
             _pose->set_value(new_value.block(0, 0, 7, 1));
             _v->set_value(new_value.block(7, 0, 3, 1));
@@ -105,7 +108,10 @@ namespace ov_msckf {
          * @brief Sets the value of the first estimate
          * @param new_value New value we should set
          */
-        void set_fej(const Eigen::VectorXd new_value) override {
+        void set_fej(const Eigen::MatrixXd new_value) override {
+
+            assert(new_value.rows() == 16);
+            assert(new_value.cols() == 1);
 
             _pose->set_fej(new_value.block(0, 0, 7, 1));
             _v->set_fej(new_value.block(7, 0, 3, 1));

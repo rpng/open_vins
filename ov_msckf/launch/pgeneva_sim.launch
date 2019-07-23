@@ -4,9 +4,9 @@
     <arg name="seed"       default="0" />
     <arg name="fej"        default="true" />
     <arg name="feat_rep"   default="ANCHORED_3D" />
-    <arg name="num_clones" default="11" />
-    <arg name="num_slam"   default="10" />
-    <arg name="num_pts"    default="20" />
+    <arg name="num_clones" default="6" />
+    <arg name="num_slam"   default="50" />
+    <arg name="num_pts"    default="50" />
 
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="200" />
@@ -26,6 +26,8 @@
         <!-- =============================================== -->
 
         <param name="sim_traj_path"         type="string" value="$(find ov_data)/sim/udel_gore.txt" />
+<!--        <param name="sim_traj_path"         type="string" value="$(find ov_data)/sim/euroc_V2_02.txt" />-->
+<!--        <param name="sim_traj_path"         type="string" value="$(find ov_data)/sim/udel_arl.txt" />-->
 
         <param name="sim_seed_state_init"   type="int" value="0" />
         <param name="sim_seed_measurements" type="int" value="$(arg seed)" />
@@ -49,7 +51,7 @@
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="$(arg num_clones)" />
         <param name="max_slam"               type="int"    value="$(arg num_slam)" />
-        <param name="max_cameras"            type="int"    value="1" />
+        <param name="max_cameras"            type="int"    value="3" />
         <param name="dt_slam_delay"          type="double" value="1" />
         <param name="feat_representation"    type="string" value="$(arg feat_rep)" />
         <param name="init_window_time"       type="double" value="0.5" />
@@ -74,13 +76,13 @@
         <param name="up_msckf_sigma_px"            type="double"   value="1" />
         <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
         <param name="up_slam_sigma_px"             type="double"   value="1" />
-        <param name="up_slam_chi2_multipler"       type="double"   value="5" />
+        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
         <param name="up_aruco_sigma_px"            type="double"   value="1" />
         <param name="up_aruco_chi2_multipler"      type="double"   value="3" />
-        <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />
-        <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
-        <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
-        <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
+        <param name="gyroscope_noise_density"      type="double"   value="1.6968e-03" />
+        <param name="gyroscope_random_walk"        type="double"   value="1.9393e-04" />
+        <param name="accelerometer_noise_density"  type="double"   value="2.0000e-2" />
+        <param name="accelerometer_random_walk"    type="double"   value="3.0000e-2" />
 
 
         <!-- camera intrinsics -->
@@ -88,7 +90,9 @@
         <param name="cam1_is_fisheye" type="bool" value="false" />
         <param name="cam2_is_fisheye" type="bool" value="false" />
         <rosparam param="cam0_k">[458.654,457.296,367.215,248.375]</rosparam>
-        <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05]</rosparam>
+<!--        <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05]</rosparam>-->
+        <rosparam param="cam0_d">[0.0034823894022493434, 0.0007150348452162257, -0.0020532361418706202, 0.00020293673591811182]</rosparam>
+<!--        <rosparam param="cam0_d">[0,0,0,0]</rosparam>-->
         <rosparam param="cam1_k">[457.587,456.134,379.999,255.238]</rosparam>
         <rosparam param="cam1_d">[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05]</rosparam>
         <rosparam param="cam2_k">[457.587,456.134,379.999,255.238]</rosparam>
@@ -98,26 +102,26 @@
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">
             [
-            0, -1, 0, -0.025,
-            1,  0, 0, -0.05,
-            0,  0, 1,  0.00,
-            0,  0, 0,  1.0
+             0,-1, 0, -0.05,
+             1, 0, 0, -0.025,
+             0, 0, 1,  0.00,
+             0, 0, 0,  1.0
             ]
         </rosparam>
         <rosparam param="T_C1toI">
             [
-            0, -1, 0, -0.025,
-            1,  0, 0,  0.05,
-            0,  0, 1,  0.00,
-            0,  0, 0,  1.0
+             0,-1, 0,  0.05,
+             1, 0, 0, -0.025,
+             0, 0, 1,  0.00,
+             0, 0, 0,  1.0
             ]
         </rosparam>
         <rosparam param="T_C2toI">
             [
-            0, -1, 0, -0.025,
-            1,  0, 0,  0.10,
-            0,  0, 1,  0.00,
-            0,  0, 0,  1.0
+            -1,  0,  0,  0.0,
+             0,  1,  0,  0.0,
+             0,  0, -1, -0.5,
+             0,  0,  0,  1.0
             ]
         </rosparam>
 
@@ -131,11 +135,11 @@
             <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
             <param name="output"     type="str" value="$(arg path_est)" />
         </node>
-        <!--<node name="recorder_groundtruth" pkg="ov_eval" type="pose_to_file" output="screen">-->
-        <!--<param name="topic"      type="str" value="/ov_msckf/posegt" />-->
-        <!--<param name="topic_type" type="str" value="PoseStamped" />-->
-        <!--<param name="output"     type="str" value="$(find ov_eval)/data/sim/traj_groundtruth.txt" />-->
-        <!--</node>-->
+<!--        <node name="recorder_groundtruth" pkg="ov_eval" type="pose_to_file" output="screen">-->
+<!--        <param name="topic"      type="str" value="/ov_msckf/posegt" />-->
+<!--        <param name="topic_type" type="str" value="PoseStamped" />-->
+<!--        <param name="output"     type="str" value="$(find ov_eval)/data/sim/traj_groundtruth.txt" />-->
+<!--        </node>-->
     </group>
 
 

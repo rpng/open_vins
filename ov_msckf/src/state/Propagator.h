@@ -83,6 +83,7 @@ namespace ov_msckf {
             _noises.sigma_a_2 = std::pow(_noises.sigma_a,2);
             _noises.sigma_wb_2 = std::pow(_noises.sigma_wb,2);
             _noises.sigma_ab_2 = std::pow(_noises.sigma_ab,2);
+            last_prop_time_offset = 0.0;
         }
 
 

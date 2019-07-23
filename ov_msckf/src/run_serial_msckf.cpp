@@ -174,10 +174,11 @@ int main(int argc, char** argv)
                 ROS_ERROR("cv_bridge exception: %s", e.what());
                 continue;
             }
-            // Save to our temp variable
-            has_right = true;
-            img1 = cv_ptr->image.clone();
-            time = cv_ptr->header.stamp.toSec();
+            // Save to our temp variable (use a right image that is near in time)
+            if(std::abs(cv_ptr->header.stamp.toSec()-time) < 0.02) {
+                has_right = true;
+                img1 = cv_ptr->image.clone();
+            }
         }
 
 
@@ -191,7 +192,6 @@ int main(int argc, char** argv)
         // Fill our buffer if we have not
         if(has_right && img1_buffer.rows == 0) {
             has_right = false;
-            time_buffer = time;
             img1_buffer = img1.clone();
         }
 
