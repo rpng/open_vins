@@ -19,7 +19,7 @@ In general, the main aim of this style is:
 
 The codebase is coded in [snake_case](https://en.wikipedia.org/wiki/Snake_case) with accessor and getter function for most classes (there are a few exceptions).
 We leverage the [Doxygen](http://www.doxygen.nl/) documentation system with a post-processing script from [m.css](https://mcss.mosra.cz/documentation/doxygen/).
-Please see @ref dev-developers for details on how our documentation is generated.
+Please see @ref dev-docs for details on how our documentation is generated.
 All functions should be commented both internally and externally with a focus on being as clear to a developer or user that is reading the code or documentation website.
 
 

@@ -31,6 +31,29 @@ The error state needs to be a vector and thus a type will need to define the map
 
 
 
+@section dev-index-update Type-based EKF Update
+
+
+To show the power of this type-based indexing system, we will go through how we compute the EKF update.
+The specific method we will be looking at is the @ref ov_msckf::StateHelper::EKFUpdate() which takes in the state, vector of types, Jacobian, residual, and measurement covariance.
+As compared to passing a Jacobian matrix that is the full size of state wide, we instead leverage this type system by passing a "small" Jacobian that has only the state elements that the measurements are a function of.
+
+
+For example, if we have a global 3D SLAM feature update (implemented in @ref ov_msckf::UpdaterSLAM) our Jacobian will only be a function of the newest clone and the feature.
+This means that our Jacobian is only of size 9 as compared to the size our state.
+In addition to the matrix containing the Jacobian elements, we need to know what order this Jacobian is in, thus we pass a vector of types which correspond to the state elements our Jacobian is a function of.
+Thus in our example, it would contain two points: our newest clone @ref ov_msckf::PoseJPL and current landmark feature @ref ov_msckf::Landmark.
+
+
+
+
+
+
+
+
+
+
+
 
 
 */
