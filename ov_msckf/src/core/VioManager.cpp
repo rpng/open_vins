@@ -65,7 +65,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     // Timeoffset from camera to IMU
     double calib_camimu_dt;
     nh.param<double>("calib_camimu_dt", calib_camimu_dt, 0.0);
-    state->calib_dt_CAMtoIMU()->value() << calib_camimu_dt;
+    Eigen::VectorXd temp_camimu_dt;
+    temp_camimu_dt.resize(1);
+    temp_camimu_dt(0) = calib_camimu_dt;
+    state->calib_dt_CAMtoIMU()->set_value(temp_camimu_dt);
+    state->calib_dt_CAMtoIMU()->set_fej(temp_camimu_dt);
 
     // Global gravity
     Eigen::Matrix<double,3,1> gravity;
@@ -87,6 +91,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     ROS_INFO("\t- max cameras: %d", state_options.num_cameras);
     ROS_INFO("\t- slam startup delay: %.1f", dt_statupdelay);
     ROS_INFO("\t- feature representation: %s", feat_rep_str.c_str());
+
+
+    // Debug print initial values our state use
+    ROS_INFO("STATE INIT VALUES:");
+    ROS_INFO("\t- calib_camimu_dt: %.4f", calib_camimu_dt);
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
 
 
@@ -434,10 +443,10 @@ bool VioManager::try_to_initialize() {
         imu_val.block(0,0,4,1) = q_GtoI0;
         imu_val.block(4,0,3,1) << 0,0,0;
         imu_val.block(7,0,3,1) = v_I0inG;
-        //imu_val.block(10,0,3,1) = b_w0;
-        //imu_val.block(13,0,3,1) = b_a0;
-        imu_val.block(10,0,3,1) << 0,0,0;
-        imu_val.block(13,0,3,1) << 0,0,0;
+        imu_val.block(10,0,3,1) = b_w0;
+        imu_val.block(13,0,3,1) = b_a0;
+        //imu_val.block(10,0,3,1) << 0,0,0;
+        //imu_val.block(13,0,3,1) << 0,0,0;
         state->imu()->set_value(imu_val);
         state->set_timestamp(time0);
 

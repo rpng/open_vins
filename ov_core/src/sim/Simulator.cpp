@@ -40,6 +40,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     nh.param<int>("sim_seed_measurements", sim_seed_measurements, 0);
     gen_state_init = std::mt19937(seed_state_init);
     gen_state_init.seed(seed_state_init);
+    gen_state_perturb = std::mt19937(seed_state_init);
+    gen_state_perturb.seed(seed_state_init);
     gen_meas_imu = std::mt19937(sim_seed_measurements);
     gen_meas_imu.seed(sim_seed_measurements);
 
@@ -78,6 +80,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
     ROS_INFO("\t- cam+imu timeoff: %.3f", calib_camimu_dt);
 
+    // Temp set of variables that have the "true" values of the calibration
+    std::vector<std::vector<double>> matrix_k_vec, matrix_d_vec, matrix_TCtoI_vec;
 
     // Loop through through, and load each of the cameras
     ROS_INFO("CAMERA PARAMETERS:");
@@ -101,6 +105,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
         nh.param<std::vector<double>>("cam"+std::to_string(i)+"_k", matrix_k, matrix_k_default);
         nh.param<std::vector<double>>("cam"+std::to_string(i)+"_d", matrix_d, matrix_d_default);
         cam_calib << matrix_k.at(0),matrix_k.at(1),matrix_k.at(2),matrix_k.at(3),matrix_d.at(0),matrix_d.at(1),matrix_d.at(2),matrix_d.at(3);
+        matrix_k_vec.push_back(matrix_k);
+        matrix_d_vec.push_back(matrix_d);
 
         // Our camera extrinsics transform
         Eigen::Matrix4d T_CtoI;
@@ -113,6 +119,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
                 matrix_TCtoI.at(4),matrix_TCtoI.at(5),matrix_TCtoI.at(6),matrix_TCtoI.at(7),
                 matrix_TCtoI.at(8),matrix_TCtoI.at(9),matrix_TCtoI.at(10),matrix_TCtoI.at(11),
                 matrix_TCtoI.at(12),matrix_TCtoI.at(13),matrix_TCtoI.at(14),matrix_TCtoI.at(15);
+        matrix_TCtoI_vec.push_back(matrix_TCtoI);
 
         // Load these into our state
         Eigen::Matrix<double,7,1> cam_eigen;
@@ -153,8 +160,68 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     //===============================================================
 
 
-    // TODO: perturb the initial state estimates for this system
+    // Get if we should perturb the initial state estimates for this system
+    bool should_perturb;
+    nh.param<bool>("sim_do_perturbation", should_perturb, false);
 
+    // One std generator
+    std::normal_distribution<double> w(0,1);
+
+    // Perturb if we should
+    if(should_perturb) {
+
+        // cam imu offset
+        double temp = calib_camimu_dt+0.01*w(gen_state_perturb);
+        nh.setParam("calib_camimu_dt", temp);
+
+        // camera intrinsics and extrinsics
+        for(int i=0; i<max_cameras; i++) {
+
+            // Camera intrinsic properties
+            std::vector<double> matrix_k = matrix_k_vec.at(i);
+            matrix_k.at(0) += 1.0*w(gen_state_perturb); // k1
+            matrix_k.at(1) += 1.0*w(gen_state_perturb); // k2
+            matrix_k.at(2) += 1.0*w(gen_state_perturb); // p1
+            matrix_k.at(3) += 1.0*w(gen_state_perturb); // p2
+            std::vector<double> matrix_d = matrix_d_vec.at(i);
+            matrix_d.at(0) += 0.005*w(gen_state_perturb); // r1
+            matrix_d.at(1) += 0.005*w(gen_state_perturb); // r2
+            matrix_d.at(2) += 0.005*w(gen_state_perturb); // r3
+            matrix_d.at(3) += 0.005*w(gen_state_perturb); // r4
+
+            // Our camera extrinsics transform
+            std::vector<double> matrix_TCtoI = matrix_TCtoI_vec.at(i);
+            matrix_TCtoI.at(3) += 0.01*w(gen_state_perturb); // x
+            matrix_TCtoI.at(7) += 0.01*w(gen_state_perturb); // y
+            matrix_TCtoI.at(11) += 0.01*w(gen_state_perturb); // z
+
+            // Perturb the orientation calibration
+            Eigen::Matrix3d R_calib;
+            R_calib << matrix_TCtoI.at(0),matrix_TCtoI.at(1),matrix_TCtoI.at(2),
+                    matrix_TCtoI.at(4),matrix_TCtoI.at(5),matrix_TCtoI.at(6),
+                    matrix_TCtoI.at(8),matrix_TCtoI.at(9),matrix_TCtoI.at(10);
+            Eigen::Vector3d w_vec;
+            w_vec << 0.001*w(gen_state_perturb), 0.001*w(gen_state_perturb), 0.001*w(gen_state_perturb);
+            R_calib = exp_so3(w_vec)*R_calib;
+
+            matrix_TCtoI.at(0) = R_calib(0,0);
+            matrix_TCtoI.at(1) = R_calib(0,1);
+            matrix_TCtoI.at(2) = R_calib(0,2);
+            matrix_TCtoI.at(4) = R_calib(1,0);
+            matrix_TCtoI.at(5) = R_calib(1,1);
+            matrix_TCtoI.at(6) = R_calib(1,2);
+            matrix_TCtoI.at(8) = R_calib(2,0);
+            matrix_TCtoI.at(9) = R_calib(2,1);
+            matrix_TCtoI.at(10) = R_calib(2,2);
+
+            // Overwrite their values
+            nh.setParam("cam"+std::to_string(i)+"_k", matrix_k);
+            nh.setParam("cam"+std::to_string(i)+"_d", matrix_d);
+            nh.setParam("T_C"+std::to_string(i)+"toI", matrix_TCtoI);
+
+        }
+
+    }
 
     //===============================================================
     //===============================================================

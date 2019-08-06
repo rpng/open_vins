@@ -25,14 +25,12 @@ VioManager* sys;
 RosVisualizer* viz;
 
 
-
-
 // Main function
 int main(int argc, char** argv)
 {
 
     // Launch our ros node
-    ros::init(argc, argv, "test_msckf");
+    ros::init(argc, argv, "run_serial_msckf");
     ros::NodeHandle nh("~");
 
     // Create our VIO system

@@ -36,18 +36,18 @@ Trajectory::Trajectory(std::string path_est, std::string path_gt, std::string al
     AlignTrajectory::align_trajectory(gt_poses, est_poses, R_GTtoEST, t_GTinEST, s_GTtoEST, alignment_method);
 
     // Debug print to the user
-    //Eigen::Vector4d q_ESTtoGT = Math::rot_2_quat(R_ESTtoGT);
-    //Eigen::Vector4d q_GTtoEST = Math::rot_2_quat(R_GTtoEST);
-    //ROS_INFO("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f",q_ESTtoGT(0),q_ESTtoGT(1),q_ESTtoGT(2),q_ESTtoGT(3),t_ESTinGT(0),t_ESTinGT(1),t_ESTinGT(2),s_ESTtoGT);
+    Eigen::Vector4d q_ESTtoGT = Math::rot_2_quat(R_ESTtoGT);
+    Eigen::Vector4d q_GTtoEST = Math::rot_2_quat(R_GTtoEST);
+    ROS_INFO("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f",q_ESTtoGT(0),q_ESTtoGT(1),q_ESTtoGT(2),q_ESTtoGT(3),t_ESTinGT(0),t_ESTinGT(1),t_ESTinGT(2),s_ESTtoGT);
     //ROS_INFO("[TRAJ]: q_GTtoEST = %.3f, %.3f, %.3f, %.3f | p_GTinEST = %.3f, %.3f, %.3f | s = %.2f",q_GTtoEST(0),q_GTtoEST(1),q_GTtoEST(2),q_GTtoEST(3),t_GTinEST(0),t_GTinEST(1),t_GTinEST(2),s_GTtoEST);
 
     // Finally lets calculate the aligned trajectories
     for(size_t i=0; i<gt_times.size(); i++) {
         Eigen::Matrix<double,7,1> pose_ESTinGT, pose_GTinEST;
         pose_ESTinGT.block(0,0,3,1) = s_ESTtoGT*R_ESTtoGT*est_poses.at(i).block(0,0,3,1)+t_ESTinGT;
-        pose_ESTinGT.block(3,0,4,1) = Math::quat_multiply(est_poses.at(i).block(3,0,4,1),Math::rot_2_quat(R_ESTtoGT.transpose()));
+        pose_ESTinGT.block(3,0,4,1) = Math::quat_multiply(est_poses.at(i).block(3,0,4,1),Math::Inv(q_ESTtoGT));
         pose_GTinEST.block(0,0,3,1) = s_GTtoEST*R_GTtoEST*gt_poses.at(i).block(0,0,3,1)+t_GTinEST;
-        pose_GTinEST.block(3,0,4,1) = Math::quat_multiply(gt_poses.at(i).block(3,0,4,1),Math::rot_2_quat(R_GTtoEST.transpose()));
+        pose_GTinEST.block(3,0,4,1) = Math::quat_multiply(gt_poses.at(i).block(3,0,4,1),Math::Inv(q_GTtoEST));
         est_poses_aignedtoGT.push_back(pose_ESTinGT);
         gt_poses_aignedtoEST.push_back(pose_GTinEST);
     }
@@ -301,28 +301,28 @@ void Trajectory::calculate_error(Statistics &posx, Statistics &posy, Statistics 
 
         // ORIENTATION: Append this error!
         orix.timestamps.push_back(est_times.at(i));
-        orix.values.push_back(errori_global(0));
+        orix.values.push_back(180.0/M_PI*errori_global(0));
         oriy.timestamps.push_back(est_times.at(i));
-        oriy.values.push_back(errori_global(1));
+        oriy.values.push_back(180.0/M_PI*errori_global(1));
         oriz.timestamps.push_back(est_times.at(i));
-        oriz.values.push_back(errori_global(2));
+        oriz.values.push_back(180.0/M_PI*errori_global(2));
         if(est_times.size() == est_covori.size()) {
-            orix.values_bound.push_back(3*std::sqrt(cov_global(0,0)));
-            oriy.values_bound.push_back(3*std::sqrt(cov_global(1,1)));
-            oriz.values_bound.push_back(3*std::sqrt(cov_global(2,2)));
+            orix.values_bound.push_back(3*180.0/M_PI*std::sqrt(cov_global(0,0)));
+            oriy.values_bound.push_back(3*180.0/M_PI*std::sqrt(cov_global(1,1)));
+            oriz.values_bound.push_back(3*180.0/M_PI*std::sqrt(cov_global(2,2)));
         }
 
         // RPY: Append this error!
         roll.timestamps.push_back(est_times.at(i));
-        roll.values.push_back(errori_rpy(0));
+        roll.values.push_back(180.0/M_PI*errori_rpy(0));
         pitch.timestamps.push_back(est_times.at(i));
-        pitch.values.push_back(errori_rpy(1));
+        pitch.values.push_back(180.0/M_PI*errori_rpy(1));
         yaw.timestamps.push_back(est_times.at(i));
-        yaw.values.push_back(errori_rpy(2));
+        yaw.values.push_back(180.0/M_PI*errori_rpy(2));
         if(est_times.size() == est_covori.size()) {
-            roll.values_bound.push_back(3*std::sqrt(cov_rpy(0,0)));
-            pitch.values_bound.push_back(3*std::sqrt(cov_rpy(1,1)));
-            yaw.values_bound.push_back(3*std::sqrt(cov_rpy(2,2)));
+            roll.values_bound.push_back(3*180.0/M_PI*std::sqrt(cov_rpy(0,0)));
+            pitch.values_bound.push_back(3*180.0/M_PI*std::sqrt(cov_rpy(1,1)));
+            yaw.values_bound.push_back(3*180.0/M_PI*std::sqrt(cov_rpy(2,2)));
         }
 
     }

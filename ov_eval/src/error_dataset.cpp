@@ -214,7 +214,7 @@ int main(int argc, char **argv) {
 
         // Zero our time arrays
         double starttime1 = (rmse_ori.timestamps.empty())? 0 : rmse_ori.timestamps.at(0);
-        double endtime1 = (rmse_ori.timestamps.empty())? 0 : rmse_ori.timestamps.at(nees_ori.timestamps.size()-1);
+        double endtime1 = (rmse_ori.timestamps.empty())? 0 : rmse_ori.timestamps.at(rmse_ori.timestamps.size()-1);
         for(size_t j=0; j<rmse_ori.timestamps.size(); j++) {
             rmse_ori.timestamps.at(j) -= starttime1;
             rmse_pos.timestamps.at(j) -= starttime1;

@@ -105,44 +105,16 @@ void RosVisualizer::publish_state() {
     poseIinM.pose.pose.position.y = state->imu()->pos()(1);
     poseIinM.pose.pose.position.z = state->imu()->pos()(2);
 
-    // Finally set the covariance in the message
-    Eigen::Matrix<double,6,6> covariance = state->Cov().block(state->imu()->pose()->id(),state->imu()->pose()->id(),6,6);
-    poseIinM.pose.covariance[0] = covariance(0,0); // 0
-    poseIinM.pose.covariance[1] = covariance(0,1);
-    poseIinM.pose.covariance[2] = covariance(0,2);
-    poseIinM.pose.covariance[3] = covariance(0,3);
-    poseIinM.pose.covariance[4] = covariance(0,4);
-    poseIinM.pose.covariance[5] = covariance(0,5);
-    poseIinM.pose.covariance[6] = covariance(1,0); // 1
-    poseIinM.pose.covariance[7] = covariance(1,1);
-    poseIinM.pose.covariance[8] = covariance(1,2);
-    poseIinM.pose.covariance[9] = covariance(1,3);
-    poseIinM.pose.covariance[10] = covariance(1,4);
-    poseIinM.pose.covariance[11] = covariance(1,5);
-    poseIinM.pose.covariance[12] = covariance(2,0); // 2
-    poseIinM.pose.covariance[13] = covariance(2,1);
-    poseIinM.pose.covariance[14] = covariance(2,2);
-    poseIinM.pose.covariance[15] = covariance(2,3);
-    poseIinM.pose.covariance[16] = covariance(2,4);
-    poseIinM.pose.covariance[17] = covariance(2,5);
-    poseIinM.pose.covariance[18] = covariance(3,0); // 3
-    poseIinM.pose.covariance[19] = covariance(3,1);
-    poseIinM.pose.covariance[20] = covariance(3,2);
-    poseIinM.pose.covariance[21] = covariance(3,3);
-    poseIinM.pose.covariance[22] = covariance(3,4);
-    poseIinM.pose.covariance[23] = covariance(3,5);
-    poseIinM.pose.covariance[24] = covariance(4,0); // 4
-    poseIinM.pose.covariance[25] = covariance(4,1);
-    poseIinM.pose.covariance[26] = covariance(4,2);
-    poseIinM.pose.covariance[27] = covariance(4,3);
-    poseIinM.pose.covariance[28] = covariance(4,4);
-    poseIinM.pose.covariance[29] = covariance(4,5);
-    poseIinM.pose.covariance[30] = covariance(5,0); // 5
-    poseIinM.pose.covariance[31] = covariance(5,1);
-    poseIinM.pose.covariance[32] = covariance(5,2);
-    poseIinM.pose.covariance[33] = covariance(5,3);
-    poseIinM.pose.covariance[34] = covariance(5,4);
-    poseIinM.pose.covariance[35] = covariance(5,5);
+    // Finally set the covariance in the message (in the order position then orientation as per ros convention)
+    std::vector<Type*> statevars;
+    statevars.push_back(state->imu()->pose()->p());
+    statevars.push_back(state->imu()->pose()->q());
+    Eigen::Matrix<double,6,6> covariance = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
+    for(int r=0; r<6; r++) {
+        for(int c=0; c<6; c++) {
+            poseIinM.pose.covariance[6*r+c] = covariance(r,c);
+        }
+    }
     pub_poseimu.publish(poseIinM);
 
     // Append to our pose vector
@@ -172,7 +144,6 @@ void RosVisualizer::publish_state() {
     tf::Vector3 orig(state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2));
     trans.setOrigin(orig);
     mTfBr->sendTransform(trans);
-
 
     // Loop through each camera calibration and publish it
     for(const auto &calib : state->get_calib_IMUtoCAMs()) {

@@ -65,16 +65,20 @@ namespace ov_eval {
 
         /**
          * @brief Callback for nav_msgs::Odometry message types.
+         *
+         * Note that covariance is in the order (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis).
+         * http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovariance.html
+         *
          * @param msg New message
          */
         void callback_odometry(const nav_msgs::OdometryPtr &msg) {
             timestamp = msg->header.stamp.toSec();
             q_ItoG << msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w;
             p_IinG << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
-            cov_rot << msg->pose.covariance.at(0),msg->pose.covariance.at(1),msg->pose.covariance.at(2),
+            cov_pos << msg->pose.covariance.at(0),msg->pose.covariance.at(1),msg->pose.covariance.at(2),
                     msg->pose.covariance.at(6),msg->pose.covariance.at(7),msg->pose.covariance.at(8),
                     msg->pose.covariance.at(12),msg->pose.covariance.at(13),msg->pose.covariance.at(14);
-            cov_pos << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
+            cov_rot << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
                     msg->pose.covariance.at(27),msg->pose.covariance.at(28),msg->pose.covariance.at(29),
                     msg->pose.covariance.at(33),msg->pose.covariance.at(34),msg->pose.covariance.at(35);
             has_covariance = true;
@@ -93,17 +97,21 @@ namespace ov_eval {
         }
 
         /**
-         * @brief Callback for geometry_msgs::PoseWithCovarianceStamped message types
+         * @brief Callback for geometry_msgs::PoseWithCovarianceStamped message types.
+         *
+         * Note that covariance is in the order (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis).
+         * http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovariance.html
+         *
          * @param msg New message
          */
         void callback_posecovariance(const geometry_msgs::PoseWithCovarianceStampedPtr &msg) {
             timestamp = msg->header.stamp.toSec();
             q_ItoG << msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w;
             p_IinG << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
-            cov_rot << msg->pose.covariance.at(0),msg->pose.covariance.at(1),msg->pose.covariance.at(2),
+            cov_pos << msg->pose.covariance.at(0),msg->pose.covariance.at(1),msg->pose.covariance.at(2),
                     msg->pose.covariance.at(6),msg->pose.covariance.at(7),msg->pose.covariance.at(8),
                     msg->pose.covariance.at(12),msg->pose.covariance.at(13),msg->pose.covariance.at(14);
-            cov_pos << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
+            cov_rot << msg->pose.covariance.at(21),msg->pose.covariance.at(22),msg->pose.covariance.at(23),
                     msg->pose.covariance.at(27),msg->pose.covariance.at(28),msg->pose.covariance.at(29),
                     msg->pose.covariance.at(33),msg->pose.covariance.at(34),msg->pose.covariance.at(35);
             has_covariance = true;

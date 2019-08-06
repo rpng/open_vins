@@ -26,7 +26,7 @@ namespace ov_eval {
 
         /**
          * @brief Gets best yaw from Frobenius problem.
-         * Equation (17-(18) in [Zhang et al. 2018 IROS](http://rpg.ifi.uzh.ch/docs/IROS18_Zhang.pdf) paper.
+         * Equation (17)-(18) in [Zhang et al. 2018 IROS](http://rpg.ifi.uzh.ch/docs/IROS18_Zhang.pdf) paper.
          * @param C Data matrix
          */
         static inline double get_best_yaw(const Eigen::Matrix<double, 3, 3> &C) {

@@ -139,7 +139,7 @@ int main(int argc, char **argv) {
     for(const auto &seg : error_rpe) {
         xticks.push_back(ct);
         labels.push_back(std::to_string((int)seg.first));
-        matplotlibcpp::boxplot(seg.second.first.values, ct++, width, "blue", params_rpe);
+        matplotlibcpp::boxplot(seg.second.first.values, ct++, width, "blue", "-", params_rpe);
     }
 
     // Display to the user
@@ -156,7 +156,7 @@ int main(int argc, char **argv) {
     // Plot each RPE next to each other
     ct = 1;
     for(const auto &seg : error_rpe) {
-        matplotlibcpp::boxplot(seg.second.second.values, ct++, width, "blue", params_rpe);
+        matplotlibcpp::boxplot(seg.second.second.values, ct++, width, "blue", "-", params_rpe);
     }
 
     // Display to the user

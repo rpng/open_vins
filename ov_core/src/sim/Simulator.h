@@ -90,12 +90,29 @@ namespace ov_core {
         bool get_next_cam(double &time_cam, std::vector<int> &camids, std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats);
 
 
-        /**
-         * @brief Returns the whole map (used for visualization)
-         * @return Map of 3d features in the global simulation frame
-         */
+        /// Returns the true 3d map of features
         std::unordered_map<size_t,Eigen::Vector3d> get_map() {
             return featmap;
+        }
+
+        /// Access function for the true camera intrinsics
+        std::unordered_map<size_t,Eigen::VectorXd> get_true_intrinsics() {
+            return camera_intrinsics;
+        }
+
+        /// Access function for the true camera extrinsics
+        std::unordered_map<size_t,Eigen::VectorXd> get_true_extrinsics() {
+            return camera_extrinsics;
+        }
+
+        /// Access function for the true imu+camera time calibration
+        double get_true_imucamdt() {
+            return calib_camimu_dt;
+        }
+
+        /// Get number of cameras that we have
+        int get_num_cameras() {
+            return max_cameras;
         }
 
 
@@ -151,6 +168,9 @@ namespace ov_core {
 
         /// Mersenne twister PRNG for state initialization
         std::mt19937 gen_state_init;
+
+        /// Mersenne twister PRNG for state perturbations
+        std::mt19937 gen_state_perturb;
 
         /// If our simulation is running
         bool is_running;

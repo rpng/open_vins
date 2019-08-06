@@ -470,11 +470,12 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             if(state->options().do_fej) {
                 R_GtoIi = clone_Ii->Rot_fej();
                 p_IiinG = clone_Ii->pos_fej();
-                R_ItoC = calibration->Rot_fej();
-                p_IinC = calibration->pos_fej();
+                //R_ItoC = calibration->Rot_fej();
+                //p_IinC = calibration->pos_fej();
                 p_FinIi = R_GtoIi*(p_FinG_fej-p_IiinG);
                 p_FinCi = R_ItoC*p_FinIi+p_IinC;
-                uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
+                //uv_norm << p_FinCi(0)/p_FinCi(2),p_FinCi(1)/p_FinCi(2);
+                //cam_d = state->get_intrinsics_CAM(pair.first)->fej();
             }
 
             // Compute Jacobians in respect to normalized image coordinates and possibly the camera intrinsics
@@ -582,9 +583,13 @@ void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::Matri
 void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::VectorXd &res) {
 
 
+    // Return if H_x is a fat matrix (there is no need to compress in this case)
+    if(H_x.rows() <= H_x.cols())
+        return;
+
     // Do measurement compression through givens rotations
     Eigen::JacobiRotation<double> tempHo_GR;
-    for (int n=0; n<H_x.cols(); ++n) {
+    for (int n=0; n<H_x.cols(); n++) {
         for (int m=(int)H_x.rows()-1; m>n; m--) {
             // Givens matrix G
             tempHo_GR.makeGivens(H_x(m-1,n), H_x(m,n));
@@ -596,28 +601,14 @@ void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::Ve
         }
     }
 
-    // Find rank of the system
-    int r = 0;
-    bool found_rank = false;
-    int n = (int)H_x.cols();
-    while (!found_rank && r < n+1 && r < H_x.rows()) {
-        double eps = H_x.block(r, 0, 1, H_x.cols()).squaredNorm();
-        if (eps < 1e-10) {
-            found_rank = true;
-        } else {
-            r++;
-        }
-    }
+    // If H is a fat matrix, then use the rows
+    // Else it should be same size as our state
+    int r = std::min(H_x.rows(),H_x.cols());
 
     // Construct the smaller jacobian and residual after measurement compression
     assert(r<=H_x.rows());
     H_x.conservativeResize(r, H_x.cols());
     res.conservativeResize(r, res.cols());
-
-    // Hx is square, zero all below diagonal elements
-    //for(int i=1; i<H_x.rows(); i++) {
-    //    H_x.block(i,0,1,i).setZero();
-    //}
 
 }
 

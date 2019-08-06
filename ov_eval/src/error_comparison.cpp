@@ -76,9 +76,10 @@ int main(int argc, char **argv) {
 
 
     // Relative pose error segment lengths
-    //std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0};
+    std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0};
     //std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
-    std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
+    //std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
+    //std::vector<double> segments = {5.0, 15.0, 30.0, 45.0, 60.0};
 
     // The overall RPE error calculation for each algorithm type
     std::map<std::string,std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>>> algo_rpe;
@@ -173,7 +174,8 @@ int main(int argc, char **argv) {
             for(auto &seg : rpe_dataset) {
                 seg.second.first.calculate();
                 seg.second.second.calculate();
-                ROS_INFO("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
+                //ROS_INFO("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
+                ROS_INFO("\tRPE: seg %d - median_ori = %.4f | median_pos = %.4f (%d samples)",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
                 //ROS_INFO("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
             }
 
@@ -215,8 +217,9 @@ int main(int argc, char **argv) {
 #ifdef HAVE_PYTHONLIBS
 
     // Plot line colors
-    std::vector<std::string> colors = {"blue","red","black","green","cyan","magenta","yellow"};
-    assert(algo_rpe.size() <= colors.size());
+    std::vector<std::string> colors = {"blue","red","black","green","cyan","magenta"};
+    std::vector<std::string> linestyle = {"-","--","-."};
+    assert(algo_rpe.size() <= colors.size()*linestyle.size());
 
     // Parameters
     std::map<std::string, std::string> params_rpe;
@@ -224,7 +227,9 @@ int main(int argc, char **argv) {
     params_rpe.insert({"sym",""});
 
     // Plot this figure
-    matplotlibcpp::figure_size(1200, 500);
+    matplotlibcpp::figure_size(1000, 700);
+    matplotlibcpp::subplot(2,1,1);
+    matplotlibcpp::title("Relative Orientation Error");
 
     // Plot each RPE next to each other
     double width = 1.0/(algo_rpe.size()+1);
@@ -242,7 +247,7 @@ int main(int argc, char **argv) {
         for(auto &seg : algo.second) {
             xticks.push_back(ct_pos-(algo_rpe.size()*(width+spacing)-width)/2);
             labels.push_back(std::to_string((int)seg.first));
-            matplotlibcpp::boxplot(seg.second.first.values, ct_pos, width, colors.at(ct_algo), params_rpe);
+            matplotlibcpp::boxplot(seg.second.first.values, ct_pos, width, colors.at(ct_algo%colors.size()), linestyle.at(ct_algo/colors.size()), params_rpe);
             ct_pos += 1+3*width;
         }
         // Move forward
@@ -254,26 +259,19 @@ int main(int argc, char **argv) {
     for(const auto &algo : algo_rpe) {
         std::map<std::string, std::string> params_empty;
         params_empty.insert({"label", algo.first});
-        params_empty.insert({"linestyle", "-"});
-        params_empty.insert({"color", colors.at(ct_algo)});
+        params_empty.insert({"linestyle", linestyle.at(ct_algo/colors.size())});
+        params_empty.insert({"color", colors.at(ct_algo%colors.size())});
         std::vector<double> vec_empty;
         matplotlibcpp::plot(vec_empty, vec_empty, params_empty);
         ct_algo++;
     }
 
-    // Display to the user
+    // Plot each RPE next to each other
     matplotlibcpp::xlim(0.5,ct_pos-0.5-3*width);
     matplotlibcpp::xticks(xticks,labels);
-    matplotlibcpp::title("Relative Orientation Error");
     matplotlibcpp::ylabel("orientation error (deg)");
-    matplotlibcpp::xlabel("sub-segment lengths (m)");
     matplotlibcpp::legend();
-    matplotlibcpp::show(false);
-
-    // Plot this figure
-    matplotlibcpp::figure_size(1200, 500);
-
-    // Plot each RPE next to each other
+    matplotlibcpp::subplot(2,1,2);
     ct_algo = 0;
     ct_pos = 0;
     for(auto &algo : algo_rpe) {
@@ -281,7 +279,7 @@ int main(int argc, char **argv) {
         ct_pos = 1+ct_algo*(width+spacing);
         // Loop through each length type
         for(auto &seg : algo.second) {
-            matplotlibcpp::boxplot(seg.second.second.values, ct_pos, width, colors.at(ct_algo), params_rpe);
+            matplotlibcpp::boxplot(seg.second.second.values, ct_pos, width, colors.at(ct_algo%colors.size()), linestyle.at(ct_algo/colors.size()), params_rpe);
             ct_pos += 1+3*width;
         }
         // Move forward
@@ -293,8 +291,8 @@ int main(int argc, char **argv) {
     for(const auto &algo : algo_rpe) {
         std::map<std::string, std::string> params_empty;
         params_empty.insert({"label", algo.first});
-        params_empty.insert({"linestyle", "-"});
-        params_empty.insert({"color", colors.at(ct_algo)});
+        params_empty.insert({"linestyle", linestyle.at(ct_algo/colors.size())});
+        params_empty.insert({"color", colors.at(ct_algo%colors.size())});
         std::vector<double> vec_empty;
         matplotlibcpp::plot(vec_empty, vec_empty, params_empty);
         ct_algo++;
@@ -306,7 +304,6 @@ int main(int argc, char **argv) {
     matplotlibcpp::title("Relative Position Error");
     matplotlibcpp::ylabel("translational error (m)");
     matplotlibcpp::xlabel("sub-segment lengths (m)");
-    matplotlibcpp::legend();
     matplotlibcpp::show(true);
 
     // Wait till the user kills this node

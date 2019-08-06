@@ -53,6 +53,10 @@ namespace ov_eval {
             std::vector<double> values_sorted = values;
             std::sort(values_sorted.begin(), values_sorted.end());
 
+            // If we don't have any data, just return :(
+            if(values_sorted.empty())
+                return;
+
             // Now that its been sorted, can easily grab min and max
             min = values_sorted.at(0);
             max = values_sorted.at(values_sorted.size()-1);

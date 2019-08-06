@@ -107,7 +107,6 @@ namespace ov_msckf {
         vector<geometry_msgs::PoseStamped> poses_gt;
 
 
-
     };
 
 

@@ -803,7 +803,7 @@ PyObject* get_array(const std::vector<Numeric>& v)
     }
 
     template<typename NumericX>
-    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::map<std::string, std::string>& keywords = {})
+    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::string &linestyle, const std::map<std::string, std::string>& keywords = {})
     {
 
         // Create a sequence of vectors
@@ -827,6 +827,7 @@ PyObject* get_array(const std::vector<Numeric>& v)
         // append color setting to all lines
         PyObject* cargs1 = PyDict_New();
         PyDict_SetItemString(cargs1, "color", PyUnicode_FromString(color.c_str()));
+        PyDict_SetItemString(cargs1, "linestyle", PyUnicode_FromString(linestyle.c_str()));
         PyDict_SetItemString(kwargs, "capprops", cargs1);
         PyDict_SetItemString(kwargs, "whiskerprops", cargs1);
         PyDict_SetItemString(kwargs, "medianprops", cargs1);
