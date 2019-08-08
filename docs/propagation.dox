@@ -83,7 +83,7 @@ The total IMU error state thus is defined as the following 15x1 (not 16x1) vecto
 @section imu_kinematic IMU Kinematics
 
 The IMU state evolves over time as follows
-(see [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)).
+(see [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf) @cite Trawny2005TR).
 
 
 \f{align*}{ \newcommand{\comm}[1]{}
@@ -164,7 +164,7 @@ with \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
 If we take \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ to be constant over the the period
 \f$\Delta t = t_{k+1} - t_k\f$,
 then the above system is linear time-invarying (LTI), and 
-\f$\boldsymbol{\Theta}\f$ can be solved as (see [[Stochastic Models, Estimation, and Control]](https://books.google.com/books?id=L_YVMUJKNQUC)):
+\f$\boldsymbol{\Theta}\f$ can be solved as (see [[Stochastic Models, Estimation, and Control]](https://books.google.com/books?id=L_YVMUJKNQUC) @cite Maybeck1982STOC):
 
 
 \f{align*}{
@@ -279,7 +279,7 @@ In order to propagate the covariance matrix, we should derive the error-state pr
 i.e., computing the system Jacobian  \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and noise Jacobian \f$\mathbf{G}_{k}\f$.
 In particular, when the covariance matrix of the continuous-time measurement noises is given by 
 \f$\mathbf{Q}_c\f$, then the discrete-time noise covariance \f$\mathbf{Q}_d\f$ can be computed as
-(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)]):
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] @cite Trawny2005TR):
 
 \f{align*}{
 \mathbf{Q}_d = \frac{1}{\Delta t} \mathbf{Q}_c

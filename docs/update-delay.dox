@@ -3,7 +3,7 @@
 
 @page update-delay Delayed Feature Initialization
 
-We describe a method of delayed initialization of a 3D point feature as in [Visual-Inertial Odometry on Resource-Constrained Systems](https://escholarship.org/content/qt4nn0j264/qt4nn0j264.pdf).
+We describe a method of delayed initialization of a 3D point feature as in [Visual-Inertial Odometry on Resource-Constrained Systems](https://escholarship.org/content/qt4nn0j264/qt4nn0j264.pdf) @cite Li2014THESIS.
 Specifically, given a set of measurements involving the state \f$\mathbf{x}\f$ and a new feature  \f$\mathbf{f}\f$, we want to optimally and efficiently initialize the feature.
 
 \f{align*}{

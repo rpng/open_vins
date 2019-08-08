@@ -11,7 +11,7 @@ Given a prior distribution (probability density function or pdf) for a Gaussian 
 we want to compute the first two (central) moments of the posterior pdf \f$ p(\mathbf x|\mathbf z_m)\f$.
 Generally (given a nonlinear measurement model), we approximate the posterior pdf as:
 \f$ p(\mathbf x|\mathbf z_m) \simeq \mathcal N (\hat{\mathbf x}^\oplus, \mathbf P_{xx}^\oplus)\f$.
-By design, this is the (approximate) solution to the MMSE estimation problem [[Kay 1993]](http://users.isr.ist.utl.pt/~pjcro/temp/Fundamentals%20Of%20Statistical%20Signal%20Processing--Estimation%20Theory-Kay.pdf).
+By design, this is the (approximate) solution to the MMSE estimation problem [[Kay 1993]](http://users.isr.ist.utl.pt/~pjcro/temp/Fundamentals%20Of%20Statistical%20Signal%20Processing--Estimation%20Theory-Kay.pdf) @cite Kay1993.
 
 
 @section conditional-pdf Conditional Probability Distribution

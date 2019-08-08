@@ -30,7 +30,7 @@ where the state contains the inertial navigation state and a single environmenta
 \f}
 
 Note that we use the left quaternion error state 
-(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] for details).
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] @cite Trawny2005TR for details).
 For simplicity we assume that the camera and IMU frame have an identity transform.
 We can compute the measurement Jacobian of a given feature based on the perspective projection camera model 
 at the *k*-th timestep as follows:
@@ -163,7 +163,7 @@ which clearly shows that there are the four unobserable directions (global yaw a
 
 
 The main idea of First-Estimate Jacobains (FEJ) approaches is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true.
-For those interested in the technical details please take a look at: [[Observability-based Rules for Designing Consistent EKF SLAM Estimators](https://journals.sagepub.com/doi/abs/10.1177/0278364909353640)] and [[High-precision, consistent EKF-based visual-inertial odometry](https://journals.sagepub.com/doi/full/10.1177/0278364913481251)].
+For those interested in the technical details please take a look at: @cite Huang2010IJRR and @cite Li2013IJRR.
 Let us first consider a small thought experiment of how the standard Kalman filter computes its state transition matrix.
 From a timestep zero to one it will use the current estimates from state zero forward in time.
 At the next timestep after it updates the state with measurements from other sensors, it will compute the state transition with the updated values to evolve the state to timestep two.

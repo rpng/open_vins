@@ -303,8 +303,8 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double,17,1> &imust
     imustate.block(1,0,4,1) = rot_2_quat(R_GtoI);
     imustate.block(5,0,3,1) = p_IinG;
     imustate.block(8,0,3,1) = v_IinG;
-    imustate.block(11,0,3,1) = true_bias_gyro;
-    imustate.block(14,0,3,1) = true_bias_accel;
+    imustate.block(11,0,3,1) = true_bias_gyro; //todo fix this is wrong
+    imustate.block(14,0,3,1) = true_bias_accel; //todo fix this is wrong
     return true;
 
 }

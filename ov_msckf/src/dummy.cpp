@@ -3,7 +3,7 @@
 /**
  * @namespace ov_msckf
  *
- * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) which leverages inertial and visual feature information.
+ * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) @cite Mourikis2007ICRA which leverages inertial and visual feature information.
  * We want to stress that this is not a "vanilla" implementation of the filter and instead has many more features and improvements over the original.
  * In additional we have a modular type system which allows us to initialize and marginalizing variables out of state with ease.
  * The key features of the system are the following:

@@ -257,7 +257,7 @@ We now can compute the following Jacobian with respect to the pertinent states:
 \frac{\partial \mathbf h_t (\cdot)}{\partial {}^{G}\mathbf{p}_{I_k}} &= -{}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}
 \f}
 
-where \f$\lfloor \mathbf a\times \rfloor \f$ denotes the  skew symmetric matrix of a vector \f$\mathbf a\f$ (see [Quatenion TR](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)).
+where \f$\lfloor \mathbf a\times \rfloor \f$ denotes the  skew symmetric matrix of a vector \f$\mathbf a\f$ (see [Quaternion TR](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf) @cite Trawny2005TR).
 Note also that in above expression (as well as in ensuing derivations), there is a little abuse of notation; 
 that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotation angle vector.
 Moreover, if performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is needed:
@@ -422,7 +422,7 @@ The Jacobians with respect to the IMU-camera extrinsics are:
 
 @subsection feat-rep-anchor-inv2 Anchored Inverse Depth (MSCKF Version)
 
-Note that a simpler version of inverse depth was used in the [MSCKF paper](http://citeseerx.ist.psu.edu/viewdoc/download?doi=10.1.1.437.1085&rep=rep1&type=pdf).
+Note that a simpler version of inverse depth was used in the original MSCKF paper @cite Mourikis2007ICRA.
 This representation does not have the singularity if it is represented in a camera frame the feature was measured from.
 
 \f{align*}{

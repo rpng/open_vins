@@ -6,7 +6,7 @@
 
 @section gs-data-euroc The EuRoC MAV Dataset
 
-The ETH ASL [EuRoC MAV dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets) is one of the most used datasets in the visual-inertial / simultaneous localization and mapping (SLAM) research literature.
+The ETH ASL [EuRoC MAV dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets) @cite Burri2016IJRR is one of the most used datasets in the visual-inertial / simultaneous localization and mapping (SLAM) research literature.
 The reason for this is the synchronised inertial+camera sensor data and the high quality groundtruth.
 The dataset contains different sequences of varying difficulty of a Micro Aerial Vehicle (MAV) flying in an indoor room.
 Monochrome stereo images are collected by a two Aptina MT9V034 global shutter cameras at 20 frames per seconds, while a ADIS16448 MEMS inertial unit provides linear accelerations and angular velocities at a rate of 200 samples per second.
@@ -30,7 +30,7 @@ Note that we also focus on the vicon room datasets as full 6 dof pose collection
 
 @section gs-data-tumvi TUM Visual-Inertial Dataset
 
-The TUM [Visual-Inertial Dataset](https://vision.in.tum.de/data/datasets/visual-inertial-dataset) is a more recent dataset that was presented to provide a way to evaluate state-of-the-art visual inertial odometery approaches.
+The TUM [Visual-Inertial Dataset](https://vision.in.tum.de/data/datasets/visual-inertial-dataset) @cite Schubert2018IROS is a more recent dataset that was presented to provide a way to evaluate state-of-the-art visual inertial odometery approaches.
 As compared to the EuRoC MAV datasets, this dataset provides photometric calibration of the cameras which has not been available in any other visual-inertal dataset for researchers.
 Monochrome stereo images are collected by two IDS uEye UI-3241LE-M-GL global shutter cameras at 20 frames per second, while a Bosch BMI160 inertial unit provides linear accelerations and angular velocities at a rate of 200 samples per second.
 Not all datasets have groundtruth avalible throughout the entire trajectory as the motion capture system is limited to the starting and ending room.

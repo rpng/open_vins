@@ -101,7 +101,7 @@ We will first process the data into a set of output text files which a user can 
 
 The Absolute Trajectory Error (ATE) is given by the simple difference between the estimated trajectory and groundtruth after it has been aligned so that it has minimal error.
 First the "best" transform between the groundtruth and estimate is computed, afterwhich the error is computed at every timestep and then averaged.
-We recommend reading Zhang and Scaramuzza [A Tutorial on Quantitative Trajectory Evaluation for Visual(-Inertial) Odometry](http://rpg.ifi.uzh.ch/docs/IROS18_Zhang.pdf) paper for further details.
+We recommend reading Zhang and Scaramuzza @cite Zhang2018IROS paper for details.
 For a given dataset with \f$N\f$ runs of the same algorithm with \f$K\f$ pose measurements, we can compute the following for an aligned estimated trajectory \f$\hat{\mathbf{x}}^+\f$:
 
 \f{align*}{
@@ -114,7 +114,7 @@ For a given dataset with \f$N\f$ runs of the same algorithm with \f$K\f$ pose me
 The Relative Pose Error (RPE) is calculated for segments of the dataset and allows for introspection of how localization solutions drift as the length of the trajectory increases.
 The other key advantage over ATE error is that it is less sensitive to jumps in estimation error due to sampling the trajectory over many smaller segments.
 This allows for a much fairer comparision of methods and is what we recommend all authors publish results for.
-We recommend reading Zhang and Scaramuzza [A Tutorial on Quantitative Trajectory Evaluation for Visual(-Inertial) Odometry](http://rpg.ifi.uzh.ch/docs/IROS18_Zhang.pdf) paper for further details.
+We recommend reading Zhang and Scaramuzza @cite Zhang2018IROS paper for details.
 We first define a set of segment lengths \f$\mathcal{D} = [d_1,~d_2,\cdots,~d_V]\f$ which we compute the relative error for.
 We can define the relative error for a trajectory split into \f$D_i\f$ segments of \f$d_i\f$ length as follows:
 

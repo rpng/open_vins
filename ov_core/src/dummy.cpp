@@ -8,7 +8,7 @@
  * These algorithms are the foundation which is necessary before we can even write an estimator that can perform localization.
  * The key components of the ov_core codebase are the following:
  *
- * - Closed-form preintegration
+ * - Closed-form preintegration @cite Eckenhoff2019IJRR
  * - 3d feature initialization
  * - Inertial state initialization
  * - Visual-inertial simulator and SE(3) b-spline

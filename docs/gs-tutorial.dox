@@ -6,7 +6,7 @@
 This guide assumes that you have already built the project successfully and are now ready to run the program on some datasets.
 If you have not compiled the program yet please follow the @ref gs-installing guide.
 The first that we will download is a dataset to run the program on.
-In this tutorial we will run on the [EuRoC MAV Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets) which provides monochrome stereo images at 20Hz with a MEMS ADIS16448 IMU at 200Hz.
+In this tutorial we will run on the [EuRoC MAV Dataset](https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets) @cite Burri2016IJRR which provides monochrome stereo images at 20Hz with a MEMS ADIS16448 IMU at 200Hz.
 
 
 
