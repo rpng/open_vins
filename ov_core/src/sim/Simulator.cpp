@@ -23,10 +23,55 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     load_data(path_traj);
     spline.feed_trajectory(traj_data);
 
+    // Read in sensor simulation frequencies
+    nh.param<int>("sim_freq_cam", freq_cam, 10);
+    nh.param<int>("sim_freq_imu", freq_imu, 200);
+
     // Set all our timestamps as starting from the minimum spline time
     timestamp = spline.get_start_time();
     timestamp_last_imu = spline.get_start_time();
     timestamp_last_cam = spline.get_start_time();
+
+    // Get the pose at the current timestep
+    Eigen::Matrix3d R_GtoI_init;
+    Eigen::Vector3d p_IinG_init;
+    bool success_pose_init = spline.get_pose(timestamp, R_GtoI_init, p_IinG_init);
+    if(!success_pose_init) {
+        ROS_ERROR("[SIM]: unable to find the first pose in the spline...");
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Find the timestamp that we move enough to be considered "moved"
+    double distance = 0.0;
+    while(true) {
+
+        // Get the pose at the current timestep
+        Eigen::Matrix3d R_GtoI;
+        Eigen::Vector3d p_IinG;
+        bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
+
+        // Check if it fails
+        if(!success_pose) {
+            ROS_ERROR("[SIM]: unable to find jolt in the groundtruth data to initialize at");
+            std::exit(EXIT_FAILURE);
+        }
+
+        // Append to our scalar distance
+        distance += (p_IinG-p_IinG_init).norm();
+        p_IinG_init = p_IinG;
+
+        // Now check if we have an acceleration, else move forward in time
+        double distancethreshold = 0.10;
+        if(distance > distancethreshold) {
+            break;
+        } else {
+            timestamp += 1.0/freq_cam;
+            timestamp_last_imu += 1.0/freq_cam;
+            timestamp_last_cam += 1.0/freq_cam;
+        }
+
+    }
+    ROS_INFO("[SIM]: moved %.3f seconds into the dataset where it starts moving",timestamp-spline.get_start_time());
 
     // Our simulation is running
     is_running = true;
@@ -35,19 +80,16 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     //===============================================================
 
     // Load the seeds for the random number generators
-    int seed_state_init, sim_seed_measurements;
+    int seed_state_init, sim_seed_preturb, sim_seed_measurements;
     nh.param<int>("sim_seed_state_init", seed_state_init, 0);
+    nh.param<int>("sim_seed_preturb", sim_seed_preturb, 0);
     nh.param<int>("sim_seed_measurements", sim_seed_measurements, 0);
     gen_state_init = std::mt19937(seed_state_init);
     gen_state_init.seed(seed_state_init);
-    gen_state_perturb = std::mt19937(seed_state_init);
-    gen_state_perturb.seed(seed_state_init);
+    gen_state_perturb = std::mt19937(sim_seed_preturb);
+    gen_state_perturb.seed(sim_seed_preturb);
     gen_meas_imu = std::mt19937(sim_seed_measurements);
     gen_meas_imu.seed(sim_seed_measurements);
-
-    // Read in sensor simulation frequencies
-    nh.param<int>("sim_freq_cam", freq_cam, 10);
-    nh.param<int>("sim_freq_imu", freq_imu, 200);
 
     // Load number of cameras and number of points
     nh.param<int>("max_cameras", max_cameras, 1);
@@ -68,10 +110,10 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     // Timeoffset from camera to IMU
     nh.param<double>("calib_camimu_dt", calib_camimu_dt, 0.0);
 
-
     // Debug print
     ROS_INFO("SIMULATION PARAMETERS:");
     ROS_INFO("\t- \033[1;31mbold state init seed: %d \033[0m", seed_state_init);
+    ROS_INFO("\t- \033[1;31mbold perturb seed: %d \033[0m", sim_seed_preturb);
     ROS_INFO("\t- \033[1;31mbold measurement seed: %d \033[0m", sim_seed_measurements);
     ROS_INFO("\t- cam feq: %d", freq_cam);
     ROS_INFO("\t- imu feq: %d", freq_imu);
@@ -79,6 +121,14 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     ROS_INFO("\t- max features: %d", num_pts);
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
     ROS_INFO("\t- cam+imu timeoff: %.3f", calib_camimu_dt);
+
+    // Append the current true bias to our history
+    hist_true_bias_time.push_back(timestamp_last_imu-1.0/freq_imu);
+    hist_true_bias_accel.push_back(true_bias_accel);
+    hist_true_bias_gyro.push_back(true_bias_gyro);
+    hist_true_bias_time.push_back(timestamp_last_imu);
+    hist_true_bias_accel.push_back(true_bias_accel);
+    hist_true_bias_gyro.push_back(true_bias_gyro);
 
     // Temp set of variables that have the "true" values of the calibration
     std::vector<std::vector<double>> matrix_k_vec, matrix_d_vec, matrix_TCtoI_vec;
@@ -293,18 +343,34 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double,17,1> &imust
     // Get the pose, velocity, and acceleration
     bool success_vel = spline.get_velocity(desired_time, R_GtoI, p_IinG, w_IinI, v_IinG);
 
-    // If failed, then that means we don't have any more spline
-    if(!success_vel) {
+    // Find the bounding bias values
+    bool success_bias = false;
+    size_t id_loc = 0;
+    for(size_t i=0; i<hist_true_bias_time.size()-1; i++) {
+        if(hist_true_bias_time.at(i) < desired_time && hist_true_bias_time.at(i+1) >= desired_time) {
+            id_loc = i;
+            success_bias = true;
+            break;
+        }
+    }
+
+    // If failed, then that means we don't have any more spline or bias
+    if(!success_vel || !success_bias) {
         return false;
     }
 
-    // Else lets create the current state
+    // Interpolate our biases (they will be at every IMU timestep)
+    double lambda = (desired_time-hist_true_bias_time.at(id_loc))/(hist_true_bias_time.at(id_loc+1)-hist_true_bias_time.at(id_loc));
+    Eigen::Vector3d true_bg_interp = (1-lambda)*hist_true_bias_gyro.at(id_loc) + lambda*hist_true_bias_gyro.at(id_loc+1);
+    Eigen::Vector3d true_ba_interp = (1-lambda)*hist_true_bias_accel.at(id_loc) + lambda*hist_true_bias_accel.at(id_loc+1);
+
+    // Finally lets create the current state
     imustate(0,0) = desired_time;
     imustate.block(1,0,4,1) = rot_2_quat(R_GtoI);
     imustate.block(5,0,3,1) = p_IinG;
     imustate.block(8,0,3,1) = v_IinG;
-    imustate.block(11,0,3,1) = true_bias_gyro; //todo fix this is wrong
-    imustate.block(14,0,3,1) = true_bias_accel; //todo fix this is wrong
+    imustate.block(11,0,3,1) = true_bg_interp;
+    imustate.block(14,0,3,1) = true_ba_interp;
     return true;
 
 }
@@ -362,6 +428,11 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     true_bias_accel(1) += sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
     true_bias_accel(2) += sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
 
+    // Append the current true bias to our history
+    hist_true_bias_time.push_back(timestamp_last_imu);
+    hist_true_bias_gyro.push_back(true_bias_gyro);
+    hist_true_bias_accel.push_back(true_bias_accel);
+
     // Return success
     return true;
 
@@ -399,7 +470,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
 
         // If we do not have enough, generate more
         if((int)uvs.size() < num_pts) {
-            ROS_ERROR("[SIM]: cam %d was unable to generate enough features (%d < %d projections)",(int)i,(int)uvs.size(),num_pts);
+            ROS_WARN("[SIM]: cam %d was unable to generate enough features (%d < %d projections)",(int)i,(int)uvs.size(),num_pts);
         }
 
         // If greater than only select the first set

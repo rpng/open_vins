@@ -54,7 +54,7 @@ void State::initialize_variables() {
     }
 
     // Finally initialize our covariance to small value
-    _Cov = 1e-4*Eigen::MatrixXd::Identity(current_id, current_id);
+    _Cov = 1e-3*Eigen::MatrixXd::Identity(current_id, current_id);
 
     // Set bias covariance to zero (for simulation testing)
     //_Cov.block(_imu->bg()->id(),_imu->bg()->id(),3,3).setZero();

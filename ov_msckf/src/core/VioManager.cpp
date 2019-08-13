@@ -347,8 +347,8 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
     // If we do not have VIO initialization, then try to initialize
     // TODO: Or if we are trying to reset the system, then do that here!
     if(!is_initialized_vio) {
-        bool success = try_to_initialize();
-        if(!success) return;
+        is_initialized_vio = try_to_initialize();
+        if(!is_initialized_vio) return;
     }
 
     // Call on our propagate and update function
@@ -375,8 +375,8 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
     // If we do not have VIO initialization, then try to initialize
     // TODO: Or if we are trying to reset the system, then do that here!
     if(!is_initialized_vio) {
-        bool success = try_to_initialize();
-        if(!success) return;
+        is_initialized_vio = try_to_initialize();
+        if(!is_initialized_vio) return;
     }
 
     // Call on our propagate and update function
@@ -414,6 +414,10 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
         ROS_ERROR("[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!");
         std::exit(EXIT_FAILURE);
     }
+    //if(!is_initialized_vio) {
+    //    is_initialized_vio = try_to_initialize();
+    //    if(!is_initialized_vio) return;
+    //}
 
     // Call on our propagate and update function
     do_feature_propagate_update(timestamp);
@@ -430,10 +434,10 @@ bool VioManager::try_to_initialize() {
         Eigen::Matrix<double, 3, 1> b_w0, v_I0inG, b_a0, p_I0inG;
 
         // Try to initialize the system
-        is_initialized_vio = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG);
+        bool success = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG);
 
         // Return if it failed
-        if (!is_initialized_vio) {
+        if (!success) {
             return false;
         }
 

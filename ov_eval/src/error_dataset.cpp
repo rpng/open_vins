@@ -10,7 +10,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 
-#include "alignment/Trajectory.h"
+#include "calc/ResultTrajectory.h"
 #include "utils/Loader.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -114,7 +114,7 @@ int main(int argc, char **argv) {
                 std::string path_esttxt = entry.path().string();
 
                 // Create our trajectory object
-                ov_eval::Trajectory traj(path_esttxt, path_gttxt, argv[1]);
+                ov_eval::ResultTrajectory traj(path_esttxt, path_gttxt, argv[1]);
 
                 // Calculate ATE error for this dataset
                 ov_eval::Statistics error_ori, error_pos;

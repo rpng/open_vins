@@ -13,9 +13,10 @@
 #include <nav_msgs/Path.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
-#include <cv_bridge/cv_bridge.h>
 #include <tf/transform_broadcaster.h>
 
+#include <cv_bridge/cv_bridge.h>
+#include <boost/filesystem.hpp>
 
 #include "VioManager.h"
 #include "sim/Simulator.h"
@@ -66,6 +67,8 @@ namespace ov_msckf {
         /// Publish groundtruth (if we have it)
         void publish_groundtruth();
 
+        /// Save current estimate state and groundtruth including calibration
+        void sim_save_total_state_to_file();
 
         /// ROS node handle that we publish onto
         ros::NodeHandle _nh;
@@ -106,6 +109,9 @@ namespace ov_msckf {
         unsigned int poses_seq_gt = 0;
         vector<geometry_msgs::PoseStamped> poses_gt;
 
+        // Files and if we should save total state
+        bool save_total_state;
+        std::ofstream of_state_est, of_state_std, of_state_gt;
 
     };
 

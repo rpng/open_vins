@@ -242,6 +242,13 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
 bool StateHelper::initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
                              Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult) {
 
+    // Check that this new variable is not already initialized
+    if (std::find(state->variables().begin(), state->variables().end(), new_variable) != state->variables().end()) {
+        std::cerr << "CovManager::initialize() - Called on variable that is already in the state" << std::endl;
+        std::cerr << "CovManager::initialize() - Found this variable at " << new_variable->id() << " in covariance" << std::endl;
+        std::exit(EXIT_FAILURE);
+    }
+
     //==========================================================
     //==========================================================
     // Part of the Kalman Gain K = M*S^{-1}

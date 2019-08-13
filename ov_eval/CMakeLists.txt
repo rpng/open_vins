@@ -78,7 +78,8 @@ add_library(ov_eval_lib
         src/dummy.cpp
         src/alignment/AlignTrajectory.cpp
         src/alignment/AlignUtils.cpp
-        src/alignment/Trajectory.cpp
+        src/calc/ResultTrajectory.cpp
+        src/calc/ResultSimulation.cpp
         src/utils/Recorder.h
         src/utils/Loader.cpp
 )
@@ -102,3 +103,7 @@ target_link_libraries(error_dataset ov_eval_lib ${thirdparty_libraries})
 
 add_executable(error_singlerun src/error_singlerun.cpp)
 target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
+
+add_executable(error_simulation src/error_simulation.cpp)
+target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
+

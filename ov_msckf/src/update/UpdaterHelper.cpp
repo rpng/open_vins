@@ -68,8 +68,10 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
         p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos();
         p_FinA = feature.p_FinA;
     } else {
-        R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej();
-        p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej();
+        //R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej();
+        //p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej();
+        R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
+        p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
         R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot_fej();
         p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos_fej();
         p_FinA = feature.p_FinA_fej;

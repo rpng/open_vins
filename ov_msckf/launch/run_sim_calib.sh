@@ -42,7 +42,7 @@ for j in {00..04}; do
 #===============================================
 start_time="$(date -u +%s)"
 filename_est="$save_path_est/static_groundtruth/${datasets[h]}/estimate_$j.txt"
-roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="false" sim_do_perturbation:="false" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
+roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="false" sim_do_perturbation:="false" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave_pose:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
 end_time="$(date -u +%s)"
 elapsed="$(($end_time-$start_time))"
 echo "BASH: ${datasets[h]} - static_groundtruth - run $j took $elapsed seconds";
@@ -50,7 +50,7 @@ echo "BASH: ${datasets[h]} - static_groundtruth - run $j took $elapsed seconds";
 #===============================================
 start_time="$(date -u +%s)"
 filename_est="$save_path_est/calib_groundtruth/${datasets[h]}/estimate_$j.txt"
-roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="true" sim_do_perturbation:="false" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
+roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="true" sim_do_perturbation:="false" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave_pose:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
 end_time="$(date -u +%s)"
 elapsed="$(($end_time-$start_time))"
 echo "BASH: ${datasets[h]} - calib_groundtruth - run $j took $elapsed seconds";
@@ -58,7 +58,7 @@ echo "BASH: ${datasets[h]} - calib_groundtruth - run $j took $elapsed seconds";
 #===============================================
 start_time="$(date -u +%s)"
 filename_est="$save_path_est/calib_perturbed/${datasets[h]}/estimate_$j.txt"
-roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="true" sim_do_perturbation:="true" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
+roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="true" sim_do_perturbation:="true" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave_pose:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
 end_time="$(date -u +%s)"
 elapsed="$(($end_time-$start_time))"
 echo "BASH: ${datasets[h]} - calib_perturbed - run $j took $elapsed seconds";
@@ -66,7 +66,7 @@ echo "BASH: ${datasets[h]} - calib_perturbed - run $j took $elapsed seconds";
 #===============================================
 start_time="$(date -u +%s)"
 filename_est="$save_path_est/static_perturbed/${datasets[h]}/estimate_$j.txt"
-roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="false" sim_do_perturbation:="true" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
+roslaunch ov_msckf pgeneva_sim.launch seed:="$j" dataset:="${datasets[h]}.txt" sim_do_calibration:="false" sim_do_perturbation:="true" max_cameras:="1" num_clones:="11" num_slam:="50" num_pts:="100" dosave_pose:="true" path_est:="$filename_est" path_gt:="$filename_gt" &> /dev/null
 end_time="$(date -u +%s)"
 elapsed="$(($end_time-$start_time))"
 echo "BASH: ${datasets[h]} - static_perturbed - run $j took $elapsed seconds";

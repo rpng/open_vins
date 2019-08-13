@@ -96,6 +96,71 @@ void Loader::load_data(std::string path_traj,
 
 
 
+void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &values) {
+
+    // Try to open our trajectory file
+    std::ifstream file(path);
+    if(!file.is_open()) {
+        ROS_ERROR("[LOAD]: Unable to open file...");
+        ROS_ERROR("[LOAD]: %s",path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Loop through each line of this file
+    std::string current_line;
+    while(std::getline(file, current_line) && ros::ok()) {
+
+        // Skip if we start with a comment
+        if(!current_line.find("#"))
+            continue;
+
+        // Loop variables
+        std::istringstream s(current_line);
+        std::string field;
+        std::vector<double> vec;
+
+        // Loop through this line (timestamp(s) values....)
+        while(std::getline(s,field,' ') && ros::ok()) {
+            // Skip if empty
+            if(field.empty())
+                continue;
+            // save the data to our vector
+            vec.push_back(std::atof(field.c_str()));
+        }
+
+        // Create eigen vector
+        Eigen::VectorXd temp(vec.size());
+        for(size_t i=0; i<vec.size(); i++) {
+            temp(i) = vec.at(i);
+        }
+        values.push_back(temp);
+
+    }
+
+    // Finally close the file
+    file.close();
+
+    // Error if we don't have any data
+    if (values.empty()) {
+        ROS_ERROR("[LOAD]: Could not parse any data from the file!!");
+        ROS_ERROR("[LOAD]: %s",path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Assert that all rows in this file are of the same length
+    int rowsize = values.at(0).rows();
+    for(size_t i=0; i<values.size(); i++) {
+        if(values.at(i).rows() != rowsize) {
+            ROS_ERROR("[LOAD]: Invalid row size on line %d (of size %d instead of %d)",(int)i,(int)values.at(i).rows(),rowsize);
+            ROS_ERROR("[LOAD]: %s",path.c_str());
+            std::exit(EXIT_FAILURE);
+        }
+    }
+
+}
+
+
+
 double Loader::get_total_length(const std::vector<Eigen::Matrix<double,7,1>> &poses) {
 
     // Loop through every pose and append its segment

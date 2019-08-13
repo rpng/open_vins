@@ -7,10 +7,10 @@
 #include <ros/ros.h>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
+#include <boost/algorithm/string.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-
-#include "alignment/Trajectory.h"
+#include "calc/ResultTrajectory.h"
 #include "utils/Loader.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -64,7 +64,6 @@ int main(int argc, char **argv) {
     for(const auto& entry : boost::filesystem::directory_iterator(path_algos)) {
         if(boost::filesystem::is_directory(entry)) {
             path_algorithms.push_back(entry.path());
-
         }
     }
     std::sort(path_algorithms.begin(), path_algorithms.end());
@@ -74,9 +73,18 @@ int main(int argc, char **argv) {
     //===============================================================================
     //===============================================================================
 
+    // ATE summery information
+    std::map<std::string,std::vector<std::pair<ov_eval::Statistics,ov_eval::Statistics>>> algo_ate;
+    for(const auto& p : path_algorithms) {
+        std::vector<std::pair<ov_eval::Statistics,ov_eval::Statistics>> temp;
+        for(size_t i=0; i<path_groundtruths.size(); i++) {
+            temp.push_back({ov_eval::Statistics(),ov_eval::Statistics()});
+        }
+        algo_ate.insert({p.stem().string(),temp});
+    }
 
     // Relative pose error segment lengths
-    std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 48.0};
+    std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0, 48.0};
     //std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
     //std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
     //std::vector<double> segments = {5.0, 15.0, 30.0, 45.0, 60.0};
@@ -143,7 +151,7 @@ int main(int argc, char **argv) {
                     std::string path_esttxt = entry.path().string();
 
                     // Create our trajectory object
-                    ov_eval::Trajectory traj(path_esttxt, path_gttxt, argv[1]);
+                    ov_eval::ResultTrajectory traj(path_esttxt, path_gttxt, argv[1]);
 
                     // Calculate ATE error for this dataset
                     ov_eval::Statistics error_ori, error_pos;
@@ -179,8 +187,12 @@ int main(int argc, char **argv) {
                 //ROS_INFO("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
             }
 
-            // Update the global RPE error stats
+            // Update the global ATE error stats
             std::string algo = path_algorithms.at(i).stem().string();
+            algo_ate.at(algo).at(j).first = ate_dataset_ori;
+            algo_ate.at(algo).at(j).second = ate_dataset_pos;
+
+            // Update the global RPE error stats
             for(const auto& elm : rpe_dataset) {
                 algo_rpe.at(algo).at(elm.first).first.values.insert(algo_rpe.at(algo).at(elm.first).first.values.end(),elm.second.first.values.begin(),elm.second.first.values.end());
                 algo_rpe.at(algo).at(elm.first).first.timestamps.insert(algo_rpe.at(algo).at(elm.first).first.timestamps.end(),elm.second.first.timestamps.begin(),elm.second.first.timestamps.end());
@@ -198,18 +210,47 @@ int main(int argc, char **argv) {
     //===============================================================================
     //===============================================================================
 
+    // Finally print the ATE for all the runs
+    ROS_INFO("============================================");
+    ROS_INFO("ATE LATEX TABLE");
+    ROS_INFO("============================================");
+    for(size_t i=0; i<path_groundtruths.size(); i++) {
+        std::string gtname = path_groundtruths.at(i).stem().string();
+        boost::replace_all(gtname,"_","\\_");
+        cout << " & \\textbf{" << gtname << "}";
+    }
+    cout << " \\\\\\hline" << endl;
+    for(auto &algo : algo_ate) {
+        std::string algoname = algo.first;
+        boost::replace_all(algoname,"_","\\_");
+        cout << algoname;
+        for(auto &seg : algo.second) {
+            if(seg.first.values.empty() || seg.second.values.empty()) cout << std::fixed << std::setprecision(3) << " & - / -";
+            else cout << std::fixed << std::setprecision(3) << " & " << seg.first.rmse << " / " << seg.second.rmse;
+        }
+        cout << " \\\\" << endl;
+    }
+    ROS_INFO("============================================");
+
 
     // Finally print the RPE for all the runs
-    ROS_INFO(" ");
+    ROS_INFO("============================================");
+    ROS_INFO("RPE LATEX TABLE");
+    ROS_INFO("============================================");
+    for(const auto& len : segments) {
+        cout << std::fixed << std::setprecision(0) << " & \\textbf{" << len << "m}";
+    }
+    cout << " \\\\\\hline" << endl;
     for(auto &algo : algo_rpe) {
-        ROS_INFO("============================================");
-        ROS_INFO("algorithm %s",algo.first.c_str());
+        std::string algoname = algo.first;
+        boost::replace_all(algoname,"_","\\_");
+        cout << algoname;
         for(auto &seg : algo.second) {
             seg.second.first.calculate();
             seg.second.second.calculate();
-            ROS_INFO("\tRPE: seg %d - median_ori = %.4f | median_pos = %.4f (%d samples)",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
-            //ROS_INFO("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
+            cout << std::fixed << std::setprecision(3) << " & " << seg.second.first.median << " / " << seg.second.second.median;
         }
+        cout << " \\\\" << endl;
     }
     ROS_INFO("============================================");
 

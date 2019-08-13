@@ -10,7 +10,7 @@
 #include <boost/algorithm/string/predicate.hpp>
 
 
-#include "alignment/Trajectory.h"
+#include "calc/ResultTrajectory.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -81,9 +81,18 @@ int main(int argc, char **argv) {
         std::exit(EXIT_FAILURE);
     }
 
+    // Load it!
+    boost::filesystem::path path_gt(argv[2]);
+    std::vector<double> times;
+    std::vector<Eigen::Matrix<double,7,1>> poses;
+    std::vector<Eigen::Matrix3d> cov_ori, cov_pos;
+    ov_eval::Loader::load_data(argv[2], times, poses, cov_ori, cov_pos);
+    // Print its length and stats
+    double length = ov_eval::Loader::get_total_length(poses);
+    ROS_INFO("[COMP]: %d poses in %s => length of %.2f meters",(int)times.size(),path_gt.stem().string().c_str(),length);
 
     // Create our trajectory object
-    ov_eval::Trajectory traj(argv[3], argv[2], argv[1]);
+    ov_eval::ResultTrajectory traj(argv[3], argv[2], argv[1]);
 
     //===========================================================
     // Absolute trajectory error
@@ -268,19 +277,16 @@ int main(int argc, char **argv) {
 
     // Update the title and axis labels
     matplotlibcpp::subplot(3,1,1);
-    matplotlibcpp::title("X-Axis Position Error");
-    matplotlibcpp::ylabel("error (m)");
-    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::title("Position Error");
+    matplotlibcpp::ylabel("x-error (m)");
     matplotlibcpp::legend();
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::title("Y-Axis Position Error");
-    matplotlibcpp::ylabel("error (m)");
-    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::ylabel("y-error (m)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
-    matplotlibcpp::title("Z-Axis Position Error");
-    matplotlibcpp::ylabel("error (m)");
+    matplotlibcpp::ylabel("z-error (m)");
     matplotlibcpp::xlabel("dataset time (s)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
 
@@ -295,19 +301,16 @@ int main(int argc, char **argv) {
 
     // Update the title and axis labels
     matplotlibcpp::subplot(3,1,1);
-    matplotlibcpp::title("X-Axis Orientation Error");
-    matplotlibcpp::ylabel("error (deg)");
-    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::title("Global Orientation Error");
+    matplotlibcpp::ylabel("x-error (deg)");
     matplotlibcpp::legend();
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::title("Y-Axis Orientation Error");
-    matplotlibcpp::ylabel("error (deg)");
-    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::ylabel("y-error (deg)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
-    matplotlibcpp::title("Z-Axis Orientation Error");
-    matplotlibcpp::ylabel("error (deg)");
+    matplotlibcpp::ylabel("z-error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
 
@@ -322,19 +325,16 @@ int main(int argc, char **argv) {
 
     // Update the title and axis labels
     matplotlibcpp::subplot(3,1,1);
-    matplotlibcpp::title("Orientation Roll Error");
-    matplotlibcpp::ylabel("error (deg)");
-    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::title("Global Orientation RPY Error");
+    matplotlibcpp::ylabel("roll error (deg)");
     matplotlibcpp::legend();
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
     matplotlibcpp::title("Orientation Pitch Error");
-    matplotlibcpp::ylabel("error (deg)");
-    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::ylabel("pitch error (deg)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
-    matplotlibcpp::title("Orientation Yaw Error");
-    matplotlibcpp::ylabel("error (deg)");
+    matplotlibcpp::ylabel("yaw error (deg)");
     matplotlibcpp::xlabel("dataset time (s)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
 

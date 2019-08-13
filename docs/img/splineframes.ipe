@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <!DOCTYPE ipe SYSTEM "ipe.dtd">
 <ipe version="70107" creator="Ipe 7.1.10">
-<info created="D:20190808093354" modified="D:20190808093914"/>
+<info created="D:20190808093354" modified="D:20190812102717"/>
 <ipestyle name="basic">
 <symbol name="arrow/arc(spx)">
 <path stroke="sym-stroke" fill="sym-stroke" pen="sym-pen">
@@ -319,10 +319,10 @@ h
 80 760 l
 </path>
 <text matrix="1 0 0 1 -8.82792 37.5187" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="15.497" height="7.473" depth="2.49" valign="baseline">\{S\}</text>
-<text matrix="1 0 0 1 -42.8526 32.5527" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="21.032" height="7.473" depth="2.49" valign="baseline">\{i-1\}</text>
-<text matrix="1 0 0 1 -108.327 33.4728" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="21.032" height="7.473" depth="2.49" valign="baseline">\{i-2\}</text>
-<text matrix="1 0 0 1 25.0117 39.3576" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="12.73" height="7.473" depth="2.49" valign="baseline">\{i\}</text>
-<text matrix="1 0 0 1 81.8411 21.8859" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="25.46" height="7.473" depth="2.49" valign="baseline">\{i+1\}</text>
+<text matrix="1 0 0 1 -40.1593 32.5527" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="12.73" height="7.473" depth="2.49" valign="baseline">\{i\}</text>
+<text matrix="1 0 0 1 -108.327 33.4728" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="21.032" height="7.473" depth="2.49" valign="baseline">\{i-1\}</text>
+<text matrix="1 0 0 1 20.4538 39.3576" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="25.46" height="7.473" depth="2.49" valign="baseline">\{i+1\}</text>
+<text matrix="1 0 0 1 81.8411 21.8859" transformations="translations" pos="145.339 737.238" stroke="black" type="label" width="25.46" height="7.473" depth="2.49" valign="baseline">\{i+2\}</text>
 <path matrix="1 0 0 1 0.36783 -3.86222" stroke="black" arrow="pointed/small" rarrow="pointed/small">
 48 728 m
 112 728 l

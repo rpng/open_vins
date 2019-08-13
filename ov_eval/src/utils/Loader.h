@@ -34,7 +34,12 @@ namespace ov_eval {
                               std::vector<double> &times, std::vector<Eigen::Matrix<double,7,1>> &poses,
                               std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos);
 
-
+        /**
+         * @brief Load a arbitrary sized row of values
+         * @param path Path to our text file to load
+         * @param values Each row of values
+         */
+        static void load_simulation(std::string path, std::vector<Eigen::VectorXd> &values);
 
         /**
          * @brief Will calculate the total trajectory distance

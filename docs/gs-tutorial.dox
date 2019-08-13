@@ -67,10 +67,10 @@ One can take a look in the [launch](https://github.com/rpng/open_vins/tree/maste
         <!-- camera intrinsics -->
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <param name="cam1_is_fisheye" type="bool" value="false" />
-        <rosparam param="cam0_k">[458.654,0.0,367.215,0.0,457.296,248.375,0.0,0.0,1.0]</rosparam>
-        <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05,0.0]</rosparam>
-        <rosparam param="cam1_k">[457.587,0.0,379.999,0.0,456.134,255.238,0.0,0.0,1.0]</rosparam>
-        <rosparam param="cam1_d">[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05,0.0]</rosparam>
+        <rosparam param="cam0_k">[458.654,457.296,367.215,248.375]</rosparam>
+        <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05]</rosparam>
+        <rosparam param="cam1_k">[457.587,456.134,379.999,255.238]</rosparam>
+        <rosparam param="cam1_d">[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05]</rosparam>
     
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">

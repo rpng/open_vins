@@ -203,6 +203,10 @@ namespace ov_core {
         /// Our running gyroscope bias
         Eigen::Vector3d true_bias_gyro = Eigen::Vector3d::Zero();
 
+        // Our history of true biases
+        std::vector<double> hist_true_bias_time;
+        std::vector<Eigen::Vector3d> hist_true_bias_accel;
+        std::vector<Eigen::Vector3d> hist_true_bias_gyro;
 
         //===================================================================
         // Sensor measurement specific variables

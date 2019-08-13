@@ -6,26 +6,30 @@
 
 
     <arg name="seed"        default="0" />
-    <arg name="fej"         default="false" />
+    <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
-    <arg name="num_clones"  default="5" />
-    <arg name="num_slam"    default="0" />
-    <arg name="num_pts"     default="200" />
+    <arg name="num_clones"  default="11" />
+    <arg name="num_slam"    default="50" />
+    <arg name="num_pts"     default="100" />
     <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="200" />
 
-    <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, euroc_V2_02, udel_arl -->
+    <arg name="dataset"    default="udel_arl.txt" /> <!-- euroc_V1_01_easy, udel_gore, tum_corridor1_512_16_okvis, udel_arl -->
 
     <!-- if we should perturb the initial state values (i.e. calibration) -->
     <arg name="sim_do_perturbation" default="false" />
     <arg name="sim_do_calibration"  default="false" />
 
     <!-- saving trajectory paths -->
-    <arg name="dosave"     default="false" />
-    <arg name="path_est"   default="$(find ov_eval)/data/sim/traj_estimate.txt" />
-    <arg name="path_gt"    default="$(find ov_eval)/data/sim/traj_groundtruth.txt" />
+    <arg name="dosave_pose"     default="true" />
+    <arg name="path_est"        default="$(find ov_eval)/data/sim/traj_estimate.txt" />
+    <arg name="path_gt"         default="$(find ov_eval)/data/sim/traj_groundtruth.txt" />
+    <arg name="dosave_state"    default="true" />
+    <arg name="path_state_est"  default="$(find ov_eval)/data/sim/state_estimate.txt" />
+    <arg name="path_state_std"  default="$(find ov_eval)/data/sim/state_deviation.txt" />
+    <arg name="path_state_gt"   default="$(find ov_eval)/data/sim/state_groundtruth.txt" />
 
 
     <!-- ================================================================ -->
@@ -36,7 +40,6 @@
     <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">
 <!--        <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
-
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->
         <!-- =============================================== -->
@@ -44,6 +47,7 @@
         <param name="sim_traj_path"         type="string" value="$(find ov_data)/sim/$(arg dataset)" />
         <param name="sim_seed_state_init"   type="int"    value="0" />
         <param name="sim_seed_measurements" type="int"    value="$(arg seed)" />
+        <param name="sim_seed_preturb"      type="int"    value="$(arg seed)" />
         <param name="sim_freq_cam"          type="int"    value="$(arg freq_cam)" />
         <param name="sim_freq_imu"          type="int"    value="$(arg freq_imu)" />
         <param name="sim_do_perturbation"   type="bool"   value="$(arg sim_do_perturbation)" />
@@ -51,6 +55,11 @@
         <rosparam param="cam0_wh">[752,480]</rosparam>
         <rosparam param="cam1_wh">[752,480]</rosparam>
         <rosparam param="cam2_wh">[752,480]</rosparam>
+
+        <param name="save_total_state"  type="bool"   value="$(arg dosave_state)" />
+        <param name="filepath_est"      type="string" value="$(arg path_state_est)" />
+        <param name="filepath_std"      type="string" value="$(arg path_state_std)" />
+        <param name="filepath_gt"       type="string" value="$(arg path_state_gt)" />
 
         <!-- =============================================== -->
         <!-- =============================================== -->
@@ -65,10 +74,10 @@
         <param name="max_clones"             type="int"    value="$(arg num_clones)" />
         <param name="max_slam"               type="int"    value="$(arg num_slam)" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
-        <param name="dt_slam_delay"          type="double" value="1" />
+        <param name="dt_slam_delay"          type="double" value="4" />
         <param name="feat_representation"    type="string" value="$(arg feat_rep)" />
-        <param name="init_window_time"       type="double" value="0.5" />
-        <param name="init_imu_thresh"        type="double" value="2.0" />
+        <param name="init_window_time"       type="double" value="0.75" />
+        <param name="init_imu_thresh"        type="double" value="1.0" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
 
         <!-- tracker/extractor properties -->
@@ -96,7 +105,6 @@
         <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
         <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
         <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
-
 
         <!-- camera intrinsics -->
         <param name="cam0_is_fisheye" type="bool" value="false" />
@@ -151,7 +159,7 @@
 
 
     <!-- record the trajectory if enabled -->
-    <group if="$(arg dosave)">
+    <group if="$(arg dosave_pose)">
         <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
             <param name="topic"      type="str" value="/ov_msckf/poseimu" />
             <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
