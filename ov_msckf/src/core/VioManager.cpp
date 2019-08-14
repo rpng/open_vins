@@ -414,10 +414,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
         ROS_ERROR("[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!");
         std::exit(EXIT_FAILURE);
     }
-    //if(!is_initialized_vio) {
-    //    is_initialized_vio = try_to_initialize();
-    //    if(!is_initialized_vio) return;
-    //}
 
     // Call on our propagate and update function
     do_feature_propagate_update(timestamp);
@@ -491,8 +487,9 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // If we have not reached max clones, we should just return...
     // This isn't super ideal, but it keeps the logic after this easier...
-    if((int)state->n_clones() < state->options().max_clone_size) {
-        ROS_INFO("waiting for enough clone states (%d of %d) ....",(int)state->n_clones(),state->options().max_clone_size);
+    // We can start processing things when we have at least 5 clones since we can start triangulating things...
+    if((int)state->n_clones() < std::min(state->options().max_clone_size,5)) {
+        ROS_INFO("waiting for enough clone states (%d of %d) ....",(int)state->n_clones(),std::min(state->options().max_clone_size,5));
         return;
     }
 
@@ -502,12 +499,16 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     //===================================================================================
 
 
-    // Now, lets get all features that should be used for an update
+    // Now, lets get all features that should be used for an update that are lost in the newest frame
     std::vector<Feature*> feats_lost, feats_marg, feats_slam;
     feats_lost = trackFEATS->get_feature_database()->features_not_containing_newer(state->timestamp());
-    feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep());
-    if(trackARUCO != nullptr && timestamp-startup_time >= dt_statupdelay) {
-        feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep());
+
+    // Don't need to get the oldest features untill we reach our max number of clones
+    if((int)state->n_clones() > state->options().max_clone_size) {
+        feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep());
+        if(trackARUCO != nullptr && timestamp-startup_time >= dt_statupdelay) {
+            feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep());
+        }
     }
 
     // We also need to make sure that the max tracks does not contain any lost features
@@ -643,7 +644,9 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     updaterSLAM->change_anchors(state);
 
     // Marginalize the oldest clone of the state if we are at max length
-    StateHelper::marginalize_old_clone(state);
+    if((int)state->n_clones() > state->options().max_clone_size) {
+        StateHelper::marginalize_old_clone(state);
+    }
 
     // Finally if we are optimizing our intrinsics, update our trackers
     if(state->options().do_calib_camera_intrinsics) {

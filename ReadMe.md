@@ -12,7 +12,7 @@ Please take a look at the feature list below for full details on what the system
 
 
 * Github project page - https://github.com/rpng/open_vins
-* Documentation - TBD
+* Documentation - http://docs.openvins.com/
 * Publication reference - TBD
 
 

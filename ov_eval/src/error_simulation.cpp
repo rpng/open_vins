@@ -44,11 +44,11 @@ int main(int argc, char **argv) {
 
     // Plot camera intrinsics
     ROS_INFO("Plotting camera intrinsics...");
-    traj.plot_cam_instrinsics(true, 30);
+    traj.plot_cam_instrinsics(true, 60);
 
     // Plot camera extrinsics
     ROS_INFO("Plotting camera extrinsics...");
-    traj.plot_cam_extrinsics(true);
+    traj.plot_cam_extrinsics(true, 60);
 
 
 #ifdef HAVE_PYTHONLIBS

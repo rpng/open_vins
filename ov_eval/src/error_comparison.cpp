@@ -219,15 +219,25 @@ int main(int argc, char **argv) {
         boost::replace_all(gtname,"_","\\_");
         cout << " & \\textbf{" << gtname << "}";
     }
-    cout << " \\\\\\hline" << endl;
+    cout << " & \\textbf{Average} \\\\\\hline" << endl;
     for(auto &algo : algo_ate) {
         std::string algoname = algo.first;
         boost::replace_all(algoname,"_","\\_");
         cout << algoname;
+        double sum_ori = 0.0;
+        double sum_pos = 0.0;
+        int sum_ct = 0;
         for(auto &seg : algo.second) {
-            if(seg.first.values.empty() || seg.second.values.empty()) cout << std::fixed << std::setprecision(3) << " & - / -";
-            else cout << std::fixed << std::setprecision(3) << " & " << seg.first.rmse << " / " << seg.second.rmse;
+            if(seg.first.values.empty() || seg.second.values.empty()) {
+                cout << std::fixed << std::setprecision(3) << " & - / -";
+            } else {
+                cout << std::fixed << std::setprecision(3) << " & " << seg.first.rmse << " / " << seg.second.rmse;
+                sum_ori += seg.first.rmse;
+                sum_pos += seg.second.rmse;
+                sum_ct++;
+            }
         }
+        cout << std::fixed << std::setprecision(3) << " & " << sum_ori/sum_ct << " / " << sum_pos/sum_ct;
         cout << " \\\\" << endl;
     }
     ROS_INFO("============================================");

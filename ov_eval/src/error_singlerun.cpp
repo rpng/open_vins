@@ -277,12 +277,10 @@ int main(int argc, char **argv) {
 
     // Update the title and axis labels
     matplotlibcpp::subplot(3,1,1);
-    matplotlibcpp::title("Position Error");
+    matplotlibcpp::title("IMU Position Error");
     matplotlibcpp::ylabel("x-error (m)");
-    matplotlibcpp::legend();
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
-    matplotlibcpp::title("Y-Axis Position Error");
     matplotlibcpp::ylabel("y-error (m)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
@@ -301,12 +299,10 @@ int main(int argc, char **argv) {
 
     // Update the title and axis labels
     matplotlibcpp::subplot(3,1,1);
-    matplotlibcpp::title("Global Orientation Error");
+    matplotlibcpp::title("IMU Orientation Error");
     matplotlibcpp::ylabel("x-error (deg)");
-    matplotlibcpp::legend();
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
-    matplotlibcpp::title("Y-Axis Orientation Error");
     matplotlibcpp::ylabel("y-error (deg)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);
@@ -327,10 +323,8 @@ int main(int argc, char **argv) {
     matplotlibcpp::subplot(3,1,1);
     matplotlibcpp::title("Global Orientation RPY Error");
     matplotlibcpp::ylabel("roll error (deg)");
-    matplotlibcpp::legend();
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,2);
-    matplotlibcpp::title("Orientation Pitch Error");
     matplotlibcpp::ylabel("pitch error (deg)");
     matplotlibcpp::xlim(0.0,endtime2-starttime2);
     matplotlibcpp::subplot(3,1,3);

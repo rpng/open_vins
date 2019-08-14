@@ -449,7 +449,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
     // Else lets do a new measurement!!!
     timestamp_last_cam += 1.0/freq_cam;
     timestamp = timestamp_last_cam;
-    time_cam = timestamp_last_cam+calib_camimu_dt;
+    time_cam = timestamp_last_cam-calib_camimu_dt;
 
     // Get the pose at the current timestep
     Eigen::Matrix3d R_GtoI;

@@ -36,7 +36,7 @@ for h in "${!datasets[@]}"; do
 filename_gt="$save_path_gt/${datasets[h]}.txt"
 
 # Monte Carlo runs for this dataset
-for j in {00..04}; do
+for j in {00..19}; do
 
 #===============================================
 #===============================================
