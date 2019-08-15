@@ -244,11 +244,28 @@ bool StateHelper::initialize(State *state, Type *new_variable, const std::vector
         std::exit(EXIT_FAILURE);
     }
 
+    // Check that we have isotropic noise (i.e. is diagonal and all the same value)
+    // TODO: can we simplify this so it doesn't take as much time?
+    assert(R.rows()==R.cols());
+    assert(R.rows()>0);
+    for(int r=0; r<R.rows(); r++) {
+        for(int c=0; c<R.cols(); c++) {
+            if(r==c && R(0,0) != R(r,c)) {
+                std::cerr << "CovManager::initialize() - Your noise is not isotropic!" << std::endl;
+                std::cerr << "CovManager::initialize() - Found a value of " << R(r,c) << " vs " << R(0,0)  << " at row " << r << " column " << c << std::endl;
+                std::exit(EXIT_FAILURE);
+            } else if(r!=c && R(r,c) != 0.0) {
+                std::cerr << "CovManager::initialize() - Your noise is not diagonal!" << std::endl;
+                std::cerr << "CovManager::initialize() - Found a value of " << R(r,c) << " at row " << r << " column " << c << std::endl;
+                std::exit(EXIT_FAILURE);
+            }
+        }
+    }
+
     //==========================================================
     //==========================================================
     // First we perform QR givens to seperate the system
     // The top will be a system that depends on the new state, while the bottom does not
-
     size_t new_var_size = new_variable->size();
     assert((int)new_var_size == H_L.cols());
 
@@ -317,6 +334,24 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
         std::cerr << "CovManager::initialize_invertible() - Called on variable that is already in the state" << std::endl;
         std::cerr << "CovManager::initialize_invertible() - Found this variable at " << new_variable->id() << " in covariance" << std::endl;
         std::exit(EXIT_FAILURE);
+    }
+
+    // Check that we have isotropic noise (i.e. is diagonal and all the same value)
+    // TODO: can we simplify this so it doesn't take as much time?
+    assert(R.rows()==R.cols());
+    assert(R.rows()>0);
+    for(int r=0; r<R.rows(); r++) {
+        for(int c=0; c<R.cols(); c++) {
+            if(r==c && R(0,0) != R(r,c)) {
+                std::cerr << "CovManager::initialize_invertible() - Your noise is not isotropic!" << std::endl;
+                std::cerr << "CovManager::initialize_invertible() - Found a value of " << R(r,c) << " verses value of " << R(0,0) << std::endl;
+                std::exit(EXIT_FAILURE);
+            } else if(r!=c && R(r,c) != 0.0) {
+                std::cerr << "CovManager::initialize_invertible() - Your noise is not diagonal!" << std::endl;
+                std::cerr << "CovManager::initialize_invertible() - Found a value of " << R(r,c) << " at row " << r << " column " << c << std::endl;
+                std::exit(EXIT_FAILURE);
+            }
+        }
     }
 
     //==========================================================
