@@ -18,7 +18,6 @@ namespace ov_msckf {
      * We will first select what measurements we need to propagate with.
      * We then compute the state transition matrix at each step and update the state and covariance.
      * For derivations look at @ref propagation page which has detailed equations.
-     *
      */
     class Propagator {
 
@@ -89,7 +88,6 @@ namespace ov_msckf {
 
         /**
          * @brief Stores incoming inertial readings
-         *
          * @param timestamp Timestamp of imu reading
          * @param wm Gyro angular velocity reading
          * @param am Accelerometer linear acceleration reading
@@ -136,8 +134,9 @@ namespace ov_msckf {
          * matrix of this interval.
          *
          * This function can be replaced with analytical/numerical integration or when using a different state representation.
-         * This contains our state transition matix along with how our noise evolves in time.
+         * This contains our state transition matrix along with how our noise evolves in time.
          * If you have other state variables besides the IMU that evolve you would add them here.
+         * See the @ref error_prop page for details on how this was derived.
          *
          * @param state Pointer to state
          * @param data_minus imu readings at beginning of interval

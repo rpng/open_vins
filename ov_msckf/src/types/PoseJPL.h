@@ -123,6 +123,7 @@ namespace ov_msckf {
 
         /**
          * @brief Used to find the components inside the Pose if needed
+         *
          * If the passed variable is a sub-variable or the current variable this will return it.
          * Otherwise it will return a nullptr, meaning that it was unable to be found.
          *

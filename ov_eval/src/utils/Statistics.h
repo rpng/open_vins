@@ -13,6 +13,7 @@ namespace ov_eval {
 
     /**
      * @brief Stat object for a given set scalar time series values.
+     * Ensure that you call the calculate() function to update the values before using them.
      */
     struct Statistics {
 

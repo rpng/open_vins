@@ -12,12 +12,12 @@ namespace ov_msckf {
 
 
     /**
-     * @brief Helper which manipulates the State its covariance.
+     * @brief Helper which manipulates the State and its covariance.
      *
-     * In general, this class has all the core logic for the MSCKF system in it.
+     * In general, this class has all the core logic for an Extended Kalman Filter (EKF)-based system.
      * This has all functions that change the covariance along with addition and removing elements from the state.
      * All functions here are static, and thus are self-contained so that in the future multiple states could be tracked and updated.
-     * We recommend you look directly at the code for this class for clarity on what exactly we are doing in each.
+     * We recommend you look directly at the code for this class for clarity on what exactly we are doing in each and the matching documentation pages.
      */
     class StateHelper {
 
@@ -25,16 +25,15 @@ namespace ov_msckf {
 
 
         /**
-         * @brief Performs EKF update of the state
-         *
+         * @brief Performs EKF update of the state (see @ref linear-meas page)
          * @param state Pointer to state
          * @param H_order Variable ordering used in the compressed Jacobian
          * @param H Condensed Jacobian of updating measurement
          * @param res residual of updating measurement
          * @param R updating measurement covariance
          */
-        static void EKFUpdate(State *state, const std::vector<Type *> &H_order,
-                              const Eigen::MatrixXd &H, const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
+        static void EKFUpdate(State *state, const std::vector<Type *> &H_order, const Eigen::MatrixXd &H,
+                              const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
         /**
         * @brief For a given set of variables, this will this will calculate a smaller covariance.
@@ -66,7 +65,6 @@ namespace ov_msckf {
 
         /**
          * @brief Clones "variable to clone" and places it at end of covariance
-         *
          * @param state Pointer to state
          * @param variable_to_clone Pointer to variable that will be cloned
          */
@@ -141,8 +139,9 @@ namespace ov_msckf {
             }
         }
 
-        /** @brief Marginalize bad SLAM features
-         *  @param state Pointer to state
+        /**
+         * @brief Marginalize bad SLAM features
+         * @param state Pointer to state
          */
         static void marginalize_slam(State* state) {
             // Remove SLAM features that have their marginalization flag set

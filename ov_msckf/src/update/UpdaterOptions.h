@@ -14,11 +14,10 @@ namespace ov_msckf {
         int chi2_multipler = 5;
 
         /// Noise sigma for our raw pixel measurements
-        double sigma_pix;
+        double sigma_pix = 1;
 
         /// Covariance for our raw pixel measurements
-        double sigma_pix_sq;
-
+        double sigma_pix_sq = 1;
 
     };
 

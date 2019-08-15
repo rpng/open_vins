@@ -15,6 +15,7 @@ namespace ov_core {
      * Here we use descriptor matching to track features from one frame to the next.
      * We track both temporally, and across stereo pairs to get stereo constraints.
      * Right now we use ORB descriptors as we have found it is the fastest when computing descriptors.
+     * Tracks are then rejected based on a ratio test and ransac.
      */
     class TrackDescriptor : public TrackBase {
 

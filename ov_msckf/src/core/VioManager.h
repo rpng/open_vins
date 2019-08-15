@@ -71,7 +71,6 @@ namespace ov_msckf {
          */
         void feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1);
 
-
         /**
          * @brief Feed function for a synchronized simulated cameras
          * @param timestamp Time that this image was collected
@@ -79,7 +78,6 @@ namespace ov_msckf {
          * @param feats Raw uv simulated measurements
          */
         void feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats);
-
 
         /**
          * @brief Given a state, this will initialize our IMU state.

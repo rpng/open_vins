@@ -24,6 +24,9 @@ namespace ov_core {
 
         /**
          * @brief Structure which stores pose estimates for use in triangulation
+         *
+         * - R_GtoC - rotation from global to camera
+         * - p_CinG - position of camera in global frame
          */
         struct ClonePose {
 
@@ -33,19 +36,19 @@ namespace ov_core {
             /// Position
             Eigen::Matrix<double,3,1> _pos;
 
-            /// @brief Constructs pose from rotation and position
+            /// Constructs pose from rotation and position
             ClonePose(Eigen::Matrix<double,3,3> R, Eigen::Matrix<double,3,1> p) {
                 _Rot = R;
                 _pos = p;
             }
 
-            /// @brief Constructs pose from quaternion and position
+            /// Constructs pose from quaternion and position
             ClonePose(Eigen::Matrix<double,4,1> q, Eigen::Matrix<double,3,1> p) {
                 _Rot = quat_2_Rot(q);
                 _pos = p;
             }
 
-            /// @brief default constructor
+            /// Default constructor
             ClonePose() {
                 _Rot = Eigen::Matrix<double,3,3>::Identity();
                 _pos = Eigen::Matrix<double,3,1>::Zero();
@@ -92,14 +95,13 @@ namespace ov_core {
         /// Contains options for the initializer process
         FeatureInitializerOptions _options;
 
-
         /**
          * @brief Helper function for the gauss newton method that computes error of the given estimate
          * @param clonesCAM Map between camera ID to map of timestamp to camera pose estimate
          * @param feat Pointer to the feature
          * @param alpha x/z in anchor
          * @param beta y/z in anchor
-         * @param rho inverse depth
+         * @param rho 1/z inverse depth
          */
         double compute_error(std::unordered_map<size_t,std::unordered_map<double,ClonePose>> &clonesCAM,Feature* feat,double alpha,double beta,double rho);
 

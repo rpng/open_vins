@@ -16,9 +16,10 @@ namespace ov_eval {
     /**
      * @brief Helper functions for the trajectory alignment class.
      *
-     * The key function is an implementation of Umeyama's [Least-squares estimation of transformation parameters between two point patterns](https://ieeexplore.ieee.org/document/88573).
-     * This is what allows us to find the transform between the two trajectories without worrying about singularities for the absolute trajectory error.
-     *
+     * The key function is an implementation of Umeyama's
+     * [Least-squares estimation of transformation parameters between two point patterns](https://ieeexplore.ieee.org/document/88573).
+     * This is what allows us to find the transform between the two
+     * trajectories without worrying about singularities for the absolute trajectory error.
      */
     class AlignUtils {
 

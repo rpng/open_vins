@@ -306,10 +306,16 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         // Check if we should delete or not
         double chi2_multipler = ((int)feat.featid < state->options().max_aruco_features)? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
         if(chi2 > chi2_multipler*chi2_check) {
+            if((int)feat.featid < state->options().max_aruco_features)
+                ROS_WARN("[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)",(int)feat.featid,chi2,chi2_multipler*chi2_check);
             (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
             continue;
         }
+
+        // Debug print when we are going to update the aruco tags
+        if((int)feat.featid < state->options().max_aruco_features)
+            ROS_INFO("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)",(int)feat.featid,chi2,chi2_multipler*chi2_check);
 
         // We are good!!! Append to our large H vector
         size_t ct_hx = 0;
@@ -355,24 +361,15 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     Hx_big.conservativeResize(ct_meas,ct_jacob);
     R_big.conservativeResize(ct_meas,ct_meas);
 
-    // 5. Perform measurement compression
-    //UpdaterHelper::measurement_compress_inplace(Hx_big, res_big);
-    //if(Hx_big.rows() < 1)
-    //    return;
-    //R_big.conservativeResize(res_big.rows(),res_big.rows());
-    rT3 =  boost::posix_time::microsec_clock::local_time();
-
-
-    // 6. With all good SLAM features update the state
+    // 5. With all good SLAM features update the state
     StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);
-    rT4 =  boost::posix_time::microsec_clock::local_time();
+    rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Debug print timing information
     ROS_INFO("[SLAM-UP]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
     ROS_INFO("[SLAM-UP]: %.4f seconds creating linear system",(rT2-rT1).total_microseconds() * 1e-6);
-    ROS_INFO("[SLAM-UP]: %.4f seconds compress (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
-    ROS_INFO("[SLAM-UP]: %.4f seconds to update (%d size)",(rT4-rT3).total_microseconds() * 1e-6, (int)Hx_big.rows());
-    ROS_INFO("[SLAM-UP]: %.4f seconds total",(rT4-rT1).total_microseconds() * 1e-6);
+    ROS_INFO("[SLAM-UP]: %.4f seconds to update (%d feats of %d size)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size(), (int)Hx_big.rows());
+    ROS_INFO("[SLAM-UP]: %.4f seconds total",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 
@@ -508,7 +505,7 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     Cov.block(landmark->id(), 0, 3, Cov.rows()) = Pxf.transpose();
     Cov.block(0, landmark->id(), Cov.rows(), 3) = Pxf;
     Cov.block(landmark->id(),landmark->id(), 3, 3) = Pff;
-    Cov = 0.5*(Cov + Cov.transpose());
+    //Cov = 0.5*(Cov + Cov.transpose());
 
     // Set state from new feature
     landmark->_featid = new_feat.featid;

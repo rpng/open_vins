@@ -15,7 +15,7 @@
 
 #include "Grider_FAST.h"
 #include "Grider_DOG.h"
-#include "FeatureDatabase.h"
+#include "feat/FeatureDatabase.h"
 
 namespace ov_core {
 
@@ -31,7 +31,7 @@ namespace ov_core {
      * Right now we just support two camera models, see: undistort_point_brown() and undistort_point_fisheye().
      *
      * This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override
-     * this and do their own logic if they want (i.e. the auroctag tracker has its own logic for visualization).
+     * this and do their own logic if they want (i.e. the TrackAruco has its own logic for visualization).
      */
     class TrackBase {
 

@@ -261,7 +261,7 @@ leads to the following update equations:
     &= {\hat{\mathbf{x}}_k^\ominus} + \mathbf{K}\mathbf{r}_z \\[5px]
     \mathbf{P}_{xx}^\oplus 
     &= \mathbf{P}_{k}^\ominus - \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1} (\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top)^\top \\[5px]
-    &= \mathbf{P}_{k}^\ominus - \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1} \mathbf{H}_k{\mathbf{P}_{k}^\ominus}^\top
+    &= \mathbf{P}_{k}^\ominus - \mathbf{P}_{k}^\ominus\mathbf{H}_k^\top (\mathbf{H}_k\mathbf{P}_{k}^\ominus\mathbf{H}_k^\top + \mathbf{R}_{k})^{-1} \mathbf{H}_k{\mathbf{P}_{k}^\ominus}
 \f}
 
 These are essentially the Kalman filter (or linear MMSE) update equations.

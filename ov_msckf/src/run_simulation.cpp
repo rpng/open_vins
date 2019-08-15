@@ -1,17 +1,6 @@
 
 
 #include <ros/ros.h>
-#include <rosbag/bag.h>
-#include <rosbag/view.h>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <std_msgs/Float64.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
-#include <cv_bridge/cv_bridge.h>
-#include <tf/transform_broadcaster.h>
 
 #include "sim/Simulator.h"
 #include "core/VioManager.h"

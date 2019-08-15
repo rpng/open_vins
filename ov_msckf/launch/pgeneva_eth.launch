@@ -12,11 +12,11 @@
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
 
         <!-- bag parameters -->
-        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_02_medium.bag" />
-        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_02_medium.csv" />
+        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
+        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V2_03_difficult.bag" />-->
 <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V2_03_difficult.csv" />-->
-        <param name="bag_start"   type="double" value="8.0" />
+        <param name="bag_start"   type="double" value="6.0" />
         <param name="bag_durr"    type="int"    value="-1" />
 
 

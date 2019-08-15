@@ -23,7 +23,7 @@ namespace ov_eval {
     public:
 
         /**
-         * @brief This will load the trajectory into memory
+         * @brief This will load space seperated trajectory into memory
          * @param path_traj Path to the trajectory file that we want to read in.
          * @param times Timesteps in seconds
          * @param poses Pose at every timestep [pos,quat]
@@ -35,7 +35,7 @@ namespace ov_eval {
                               std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos);
 
         /**
-         * @brief Load a arbitrary sized row of values
+         * @brief Load a arbitrary sized row of values, used for our simulation
          * @param path Path to our text file to load
          * @param values Each row of values
          */

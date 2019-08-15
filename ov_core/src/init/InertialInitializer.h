@@ -77,9 +77,7 @@ namespace ov_core {
                                  Eigen::Matrix<double,3,1> &v_I0inG, Eigen::Matrix<double,3,1> &b_a0, Eigen::Matrix<double,3,1> &p_I0inG);
 
 
-
     protected:
-
 
         /// Gravity vector
         Eigen::Matrix<double,3,1> _gravity;

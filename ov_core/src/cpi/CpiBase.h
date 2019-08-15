@@ -41,7 +41,7 @@ namespace ov_core {
      *
      * This is the base class that both continuous-time preintegrators extend.
      * Please take a look at the derived classes CpiV1 and CpiV2 for the actual implementation.
-     * Please see the following publication for details on the theory:
+     * Please see the following publication for details on the theory @cite Eckenhoff2019IJRR :
      * > Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation
      * > Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang
      * > http://udel.edu/~ghuang/papers/tr_cpi.pdf

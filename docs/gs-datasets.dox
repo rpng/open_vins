@@ -13,6 +13,12 @@ Monochrome stereo images are collected by a two Aptina MT9V034 global shutter ca
 We recommend that most users start testing on this dataset before moving on to the other datasets that our system support or before trying with your own collected data.
 Note that we also focus on the vicon room datasets as full 6 dof pose collection of the MAV was available.
 
+@m_class{m-block m-warning}
+
+@par Groundtruth on V1_01_easy
+    We have found that the groundtruth on the V1_01_easy dataset is not accurate in its orientation estimate.
+    We have recomputed this by optimizing the inertial and vicon readings in a graph to get the trajectory of the imu.
+    You can find the output at this [link](https://drive.google.com/drive/folders/1d62Q_RQwHzKLcIdUlTeBmojr7j0UL4sM?usp=sharing) and is what we normally use to evaluate the error on this dataset.
 
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
@@ -63,12 +69,10 @@ Thus, please ensure that you have enabled online calibration of these parameters
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| ArUco Room 01 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| ArUco Room 02 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| ArUco Hallway 01 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| ArUco Hallway 02 | - | tbd | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| UD Gore Hall | - | tbh | none | tbh |
-| UD Smith Hall | - | tbh | none | tbh |
+| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1ytjo8V6pCroaVd8-QSop7R4DbsvvKyRQ/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1l_hnPUW6ufqxPtrLqRRHHI4mfGRZB1ha/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1FQBo3uHqRd0qm8GUb50Q-sj5gukcwaoU/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1oAbnV3MPOeaUSjnSc3g8t-pWV1nVjbys/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
 @m_enddiv
 
 

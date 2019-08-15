@@ -16,7 +16,7 @@ namespace ov_msckf {
      * @brief Derived Type class that implements an IMU state
      *
      * Contains a PoseJPL, Vec velocity, Vec gyro bias, and Vec accel bias.
-     * This should be simular to that of the standard MSCKF state besides the ordering.
+     * This should be similar to that of the standard MSCKF state besides the ordering.
      * The pose is first, followed by velocity, etc.
      */
     class IMU : public Type {

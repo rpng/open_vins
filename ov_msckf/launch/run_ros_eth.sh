@@ -58,7 +58,7 @@ else
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_eth.launch max_cameras:="$temp" bag:="$bag_path/${bagnames[i]}.bag" dosave:="true" path_est:="$filename" &> /dev/null
+roslaunch ov_msckf pgeneva_eth_ros.launch max_cameras:="$temp" bag:="$bag_path/${bagnames[i]}.bag" dosave:="true" path_est:="$filename" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"

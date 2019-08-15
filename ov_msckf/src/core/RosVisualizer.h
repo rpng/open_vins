@@ -27,7 +27,14 @@ namespace ov_msckf {
 
 
     /**
-     * @brief Helper class that will publish results onto the ROS framework
+     * @brief Helper class that will publish results onto the ROS framework.
+     *
+     * Also save to file the current total state and covariance along with the groundtruth if we are simulating.
+     * We visualize the following things:
+     * - State of the system on TF, pose message, and path
+     * - Image of our tracker
+     * - Our different features (SLAM, MSCKF, ARUCO)
+     * - Groundtruth trajectory if we have it
      */
     class RosVisualizer {
 

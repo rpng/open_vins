@@ -5,7 +5,7 @@
     <!-- ================================================================ -->
 
 
-    <arg name="seed"        default="0" />
+    <arg name="seed"        default="3" />
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
@@ -23,10 +23,10 @@
     <arg name="sim_do_calibration"  default="true" />
 
     <!-- saving trajectory paths -->
-    <arg name="dosave_pose"     default="false" />
+    <arg name="dosave_pose"     default="true" />
     <arg name="path_est"        default="$(find ov_eval)/data/sim/traj_estimate.txt" />
     <arg name="path_gt"         default="$(find ov_eval)/data/sim/traj_groundtruth.txt" />
-    <arg name="dosave_state"    default="false" />
+    <arg name="dosave_state"    default="true" />
     <arg name="path_state_est"  default="$(find ov_eval)/data/sim/state_estimate.txt" />
     <arg name="path_state_std"  default="$(find ov_eval)/data/sim/state_deviation.txt" />
     <arg name="path_state_gt"   default="$(find ov_eval)/data/sim/state_groundtruth.txt" />

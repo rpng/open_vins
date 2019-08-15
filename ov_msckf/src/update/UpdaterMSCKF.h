@@ -37,7 +37,7 @@ namespace ov_msckf {
         /**
          * @brief Default constructor for our MSCKF updater
          *
-         * Our updater has a feature intializer which we use to initialize features as needed.
+         * Our updater has a feature initializer which we use to initialize features as needed.
          * Also the options allow for one to tune the different parameters for update.
          *
          * @param options Updater options (include measurement noise value)
@@ -61,7 +61,6 @@ namespace ov_msckf {
         }
 
 
-
         /**
          * @brief Given tracked features, this will try to use them to update the state.
          *
@@ -83,8 +82,6 @@ namespace ov_msckf {
 
         /// Chi squared 95th percentile table (lookup would be size of residual)
         std::map<int, double> chi_squared_table;
-
-
 
 
     };

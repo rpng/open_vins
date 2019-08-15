@@ -29,7 +29,11 @@ namespace ov_eval {
 
 
     /**
-     * @brief A single simulation run (the full state not just pose)
+     * @brief A single simulation run (the full state not just pose).
+     *
+     * This should match the recording logic that is in the ov_msckf::RosVisualizer in which we write both estimate, their deviation, and groundtruth to three files.
+     * We enforce that these files first contain the current IMU state, then time offset, number of cameras, then the camera calibration states.
+     * If we are not performing calibration these should all be written to file, just their deviation should be zero as they are 100% certain.
      */
     class ResultSimulation {
 
@@ -164,7 +168,7 @@ namespace ov_eval {
     }
 
         /**
-         * @brief Plots three different statistic values and sigma bounds
+         * @brief Plots four different statistic values and sigma bounds
          * @param sx Error one
          * @param sy Error two
          * @param sz Error three

@@ -23,7 +23,8 @@ namespace ov_eval {
      * @brief This class takes in published poses and writes them to file.
      *
      * Original code is based on this modified [posemsg_to_file](https://github.com/rpng/posemsg_to_file/).
-     * Output is in a text file that is space deliminated.
+     * Output is in a text file that is space deliminated and can be read by all scripts.
+     * If we have a covariance then we also save the upper triangular part to file so we can calculate NEES values.
      */
     class Recorder {
 

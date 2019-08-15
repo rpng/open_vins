@@ -1,23 +1,6 @@
 #ifndef OV_CORE_DATASET_READER_H
 #define OV_CORE_DATASET_READER_H
 
-/**
- * @file
- * @brief Utility functions for reading dataset formats.
- *
- * This file has some nice functions for reading dataset files.
- * One of the main datasets that we test agaist is teh EuRoC MAV dataset.
- * We have some nice utility functions here that handle loading of the groundtruth data.
- * This can be used to initalize the VINS or for plotting and calculation of RMSE values. *
- *
- * > M. Burri, J. Nikolic, P. Gohl, T. Schneider, J. Rehder, S. Omari,M. Achtelik and R. Siegwart,
- * > "The EuRoC micro aerial vehicle datasets", International Journal of Robotic Research, DOI: 10.1177/0278364915620033, 2016.
- * > https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets.
- *
- * @todo We need to also extend groundtruth reading to work with the TUM visual-inertial dataset.
- * https://vision.in.tum.de/data/datasets/visual-inertial-dataset
- */
-
 
 #include <string>
 #include <sstream>
@@ -34,6 +17,15 @@ namespace ov_core {
 
     /**
      * @brief Helper functions to read in dataset files
+     *
+     * This file has some nice functions for reading dataset files.
+     * One of the main datasets that we test against is the EuRoC MAV dataset.
+     * We have some nice utility functions here that handle loading of the groundtruth data.
+     * This can be used to initialize the system or for plotting and calculation of RMSE values without needing any alignment.
+     *
+     * > M. Burri, J. Nikolic, P. Gohl, T. Schneider, J. Rehder, S. Omari,M. Achtelik and R. Siegwart,
+     * > "The EuRoC micro aerial vehicle datasets", International Journal of Robotic Research, DOI: 10.1177/0278364915620033, 2016.
+     * > https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets.
      */
     class DatasetReader {
 

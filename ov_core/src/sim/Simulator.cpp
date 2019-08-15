@@ -24,8 +24,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     spline.feed_trajectory(traj_data);
 
     // Read in sensor simulation frequencies
-    nh.param<int>("sim_freq_cam", freq_cam, 10);
-    nh.param<int>("sim_freq_imu", freq_imu, 200);
+    nh.param<double>("sim_freq_cam", freq_cam, 10);
+    nh.param<double>("sim_freq_imu", freq_imu, 200);
 
     // Set all our timestamps as starting from the minimum spline time
     timestamp = spline.get_start_time();
@@ -115,8 +115,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     ROS_INFO("\t- \033[1;31mbold state init seed: %d \033[0m", seed_state_init);
     ROS_INFO("\t- \033[1;31mbold perturb seed: %d \033[0m", sim_seed_preturb);
     ROS_INFO("\t- \033[1;31mbold measurement seed: %d \033[0m", sim_seed_measurements);
-    ROS_INFO("\t- cam feq: %d", freq_cam);
-    ROS_INFO("\t- imu feq: %d", freq_imu);
+    ROS_INFO("\t- cam feq: %.2f", freq_cam);
+    ROS_INFO("\t- imu feq: %.2f", freq_imu);
     ROS_INFO("\t- max cameras: %d", max_cameras);
     ROS_INFO("\t- max features: %d", num_pts);
     ROS_INFO("\t- gravity: %.3f, %.3f, %.3f", vec_gravity.at(0), vec_gravity.at(1), vec_gravity.at(2));
@@ -217,7 +217,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     // One std generator
     std::normal_distribution<double> w(0,1);
 
-    // Perturb if we should
+    // Perturb all calibration if we should
     if(should_perturb) {
 
         // cam imu offset
@@ -322,7 +322,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     //for(const auto &feat : featmap) {
     //    cout << feat.second(0) << "," << feat.second(1) << "," << feat.second(2) << std::endl;
     //}
-    sleep(2);
+    sleep(3);
 
 }
 

@@ -5,13 +5,8 @@
 #include <rosbag/view.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/PointCloud2.h>
 #include <std_msgs/Float64.h>
-#include <nav_msgs/Path.h>
-#include <geometry_msgs/PoseStamped.h>
 #include <cv_bridge/cv_bridge.h>
-#include <tf/transform_broadcaster.h>
 
 #include "core/VioManager.h"
 #include "core/RosVisualizer.h"
@@ -173,10 +168,13 @@ int main(int argc, char** argv)
                 continue;
             }
             // Save to our temp variable (use a right image that is near in time)
-            if(std::abs(cv_ptr->header.stamp.toSec()-time) < 0.02) {
-                has_right = true;
-                img1 = cv_ptr->image.clone();
-            }
+            // TODO: fix this logic as the left will still advance instead of waiting
+            // TODO: should implement something like here:
+            // TODO: https://github.com/rpng/MARS-VINS/blob/master/example_ros/ros_driver.cpp
+            //if(std::abs(cv_ptr->header.stamp.toSec()-time) < 0.02) {
+            has_right = true;
+            img1 = cv_ptr->image.clone();
+            //}
         }
 
 

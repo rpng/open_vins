@@ -58,7 +58,7 @@ One can take a look in the [launch](https://github.com/rpng/open_vins/tree/maste
     
         <!-- sensor noise values / update -->
         <param name="up_msckf_sigma_px"            type="double"   value="1" />
-        <param name="up_msckf_chi2_multipler"      type="double"   value="3" />
+        <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
         <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />
         <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
         <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />

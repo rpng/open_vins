@@ -37,7 +37,7 @@ namespace ov_msckf {
         /**
          * @brief Default constructor for our SLAM updater
          *
-         * Our updater has a feature intializer which we use to initialize features as needed.
+         * Our updater has a feature initializer which we use to initialize features as needed.
          * Also the options allow for one to tune the different parameters for update.
          *
          * @param options_slam Updater options (include measurement noise value) for SLAM features
@@ -66,7 +66,6 @@ namespace ov_msckf {
 
         /**
          * @brief Given tracked SLAM features, this will try to use them to update the state.
-         *
          * @param state State of the filter
          * @param feature_vec Features that can be used for update
          */
@@ -75,7 +74,6 @@ namespace ov_msckf {
 
         /**
          * @brief Given max track features, this will try to use them to initialize them in the state.
-         *
          * @param state State of the filter
          * @param feature_vec Features that can be used for update
          */
@@ -110,7 +108,7 @@ namespace ov_msckf {
         /// Options used during update for slam features
         UpdaterOptions _options_slam;
 
-        // Options used during update for aruco features
+        /// Options used during update for aruco features
         UpdaterOptions _options_aruco;
 
         /// Feature initializer class object

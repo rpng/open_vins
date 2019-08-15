@@ -83,7 +83,7 @@ namespace ov_msckf {
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
 
         /**
-         * @brief This will compute the Jacobian in respect to the intrisic calibration parameters and normalized coordinates
+         * @brief This will compute the Jacobian in respect to the intrinsic calibration parameters and normalized coordinates
          *
          * @param state State of the filter system
          * @param uv_norm Normalized image coordinates

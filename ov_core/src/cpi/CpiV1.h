@@ -42,7 +42,7 @@ namespace ov_core {
      * > Eckenhoff, Kevin, Patrick Geneva, and Guoquan Huang.
      * > "High-accuracy preintegration for visual inertial navigation."
      * > International Workshop on the Algorithmic Foundations of Robotics. 2016.
-     * Please see the following publication for details on the theory:
+     * Please see the following publication for details on the theory @cite Eckenhoff2019IJRR :
      * > Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation
      * > Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang
      * > http://udel.edu/~ghuang/papers/tr_cpi.pdf

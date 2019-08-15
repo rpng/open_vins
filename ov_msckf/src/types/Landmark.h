@@ -10,7 +10,11 @@ namespace ov_msckf {
 
 
     /**
-     * @brief Type that implements a persistant SLAM feature
+     * @brief Type that implements a persistant SLAM feature.
+     *
+     * We store the feature ID that should match the IDs in the trackers.
+     * Additionally if this is an anchored representation we store what clone timestamp this is anchored from and what camera.
+     * If this features should be marginalized its flag can be set and during cleanup it will be removed.
      */
     class Landmark : public Vec {
 

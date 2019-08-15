@@ -29,7 +29,7 @@ namespace ov_core {
         /// UV coordinates that this feature has been seen from (mapped by camera ID)
         std::unordered_map<size_t, std::vector<Eigen::VectorXf>> uvs;
 
-        // UV normalized coordinates that this feature has been seen from (mapped by camera ID)
+        /// UV normalized coordinates that this feature has been seen from (mapped by camera ID)
         std::unordered_map<size_t, std::vector<Eigen::VectorXf>> uvs_norm;
 
         /// Timestamps of each UV measurement (mapped by camera ID)

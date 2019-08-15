@@ -93,7 +93,7 @@ namespace ov_core {
         /**
          * @brief Will feed in a series of poses that we will then convert into control points.
          *
-         * Our control points need to be uniformly spaced over the trajectory, thus given a `or we will
+         * Our control points need to be uniformly spaced over the trajectory, thus given a trajectory we will
          * uniformly sample based on the average spacing between the pose points specified.
          *
          * @param traj_points Trajectory poses that we will convert into control points (timestamp(s), q_GtoI, p_IinG)

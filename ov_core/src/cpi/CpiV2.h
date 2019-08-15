@@ -39,7 +39,7 @@ namespace ov_core {
      * @brief Model 2 of continuous preintegration.
      *
      * This model is the "piecewise constant local acceleration assumption."
-     * Please see the following publication for details on the theory:
+     * Please see the following publication for details on the theory @cite Eckenhoff2019IJRR :
      * > Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation
      * > Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang
      * > http://udel.edu/~ghuang/papers/tr_cpi.pdf
