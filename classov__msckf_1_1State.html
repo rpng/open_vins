@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_msckf::State class | Open VINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">Open VINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>State <span class="m-thin">class</span>
+        </h1>
+        <p><a href="classov__msckf_1_1State.html" class="m-doc">State</a> of our filter.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-attribs">Protected variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This state has all the current estimates for the filter. This system is modeled after the MSCKF filter, thus we have a sliding window of clones. We additionally have more parameters for online estimation of calibration and SLAM features. We also have the covariance of the system, which should be managed using the <a href="classov__msckf_1_1StateHelper.html" class="m-doc">StateHelper</a> class.</p>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a2e5938c30d425410594a5c9ef159fb3f" class="m-doc">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span>
+            </dt>
+            <dd>Default Constructor (will initialize variables to defaults)</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a3be1ed8de7e0d498dfee11b31a4398b7" class="m-doc">initialize_variables</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Initializes pointers and covariance.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ae9c27a3a937d5c837cd1c51dd44ff998" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd dx)</span>
+            </dt>
+            <dd>Given an update vector for the <strong>entire covariance</strong>, updates each variable.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a167f44efb9d0136ef1d29312560d5863" class="m-doc">set_timestamp</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+            </dt>
+            <dd>Set the current timestamp of the filter.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a36420e71ffa54625667eac2a8a345582" class="m-doc">margtimestep</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+            </dt>
+            <dd>Will return the timestep that we will marginalize next.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aa89a34944c29d45371a5eb63ca982c58" class="m-doc-self" name="aa89a34944c29d45371a5eb63ca982c58">timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+            </dt>
+            <dd>Access current timestamp.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae4804480dde4171360cdcfd4d3224d78" class="m-doc-self" name="ae4804480dde4171360cdcfd4d3224d78">options</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp;</span>
+            </dt>
+            <dd>Access options struct.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a7febe740c3d61e63b432964a9c4909" class="m-doc-self" name="a3a7febe740c3d61e63b432964a9c4909">imu</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a>*</span>
+            </dt>
+            <dd>Access to <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> type.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#abb5370684ae3f4dfe91b60955280ba41" class="m-doc-self" name="abb5370684ae3f4dfe91b60955280ba41">Cov</a>(</span><span class="m-doc-wrap">) -&gt; Eigen::MatrixXd&amp;</span>
+            </dt>
+            <dd>Access covariance matrix.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a66f018a98ae072eaecfa4cb05e32fb36" class="m-doc-self" name="a66f018a98ae072eaecfa4cb05e32fb36">n_vars</a>(</span><span class="m-doc-wrap">) -&gt; size_t</span>
+            </dt>
+            <dd>Get size of covariance.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aea2bfa7a52e146365ebe6089809083d8" class="m-doc-self" name="aea2bfa7a52e146365ebe6089809083d8">calib_dt_CAMtoIMU</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>*</span>
+            </dt>
+            <dd>Access imu-camera time offset type.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a0f81d48853196cb205b92c2ce9ff0d7d" class="m-doc-self" name="a0f81d48853196cb205b92c2ce9ff0d7d">get_clone</a>(</span><span class="m-doc-wrap">double timestamp) -&gt; <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
+            </dt>
+            <dd>Access to a given clone.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae08b6be58c8e657642ce8fdd43b8b236" class="m-doc-self" name="ae08b6be58c8e657642ce8fdd43b8b236">get_clones</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;double, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
+            </dt>
+            <dd>Access to all current clones in the state.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae09b3d4d7bef41760e2afdec3fc4b0a9" class="m-doc-self" name="ae09b3d4d7bef41760e2afdec3fc4b0a9">n_clones</a>(</span><span class="m-doc-wrap">) -&gt; size_t</span>
+            </dt>
+            <dd>Get current number of clones.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a7f0ee02941ff70b8d1881b7cf4aa17cf" class="m-doc-self" name="a7f0ee02941ff70b8d1881b7cf4aa17cf">get_calib_IMUtoCAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
+            </dt>
+            <dd>Access to a given camera extrinsics.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3639e7a84aeaea3cadab871f4aa04941" class="m-doc-self" name="a3639e7a84aeaea3cadab871f4aa04941">get_calib_IMUtoCAMs</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
+            </dt>
+            <dd>Access to all current extrinsic calibration between <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> and each camera.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a6e86454e3420f1f1392cecab1127bcee" class="m-doc-self" name="a6e86454e3420f1f1392cecab1127bcee">get_intrinsics_CAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>*</span>
+            </dt>
+            <dd>Access to a given camera intrinsics.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aebc2cbcd0c7a4de784b17fc1bbd35559" class="m-doc-self" name="aebc2cbcd0c7a4de784b17fc1bbd35559">get_model_CAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; bool&amp;</span>
+            </dt>
+            <dd>Access to a given camera intrinsics.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a2b5c609828c6f940f3c4a43093741d52" class="m-doc-self" name="a2b5c609828c6f940f3c4a43093741d52">insert_SLAM_feature</a>(</span><span class="m-doc-wrap">size_t featid,
+              <a href="classov__msckf_1_1Landmark.html" class="m-doc">Landmark</a>* landmark)</span>
+            </dt>
+            <dd>Add a SLAM feature.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#add4cbead8f1bec9c29626b7ca31bab2a" class="m-doc-self" name="add4cbead8f1bec9c29626b7ca31bab2a">features_SLAM</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__msckf_1_1Landmark.html" class="m-doc">Landmark</a>*&gt;&amp;</span>
+            </dt>
+            <dd>Access SLAM features.</dd>
+          </dl>
+        </section>
+        <section id="pro-attribs">
+          <h2><a href="#pro-attribs">Protected variables</a></h2>
+          <dl class="m-doc">
+            <dt>
+              double <a href="#ae7615177e3edeb8eac39eb05867dc72f" class="m-doc-self" name="ae7615177e3edeb8eac39eb05867dc72f">_timestamp</a>
+            </dt>
+            <dd>Current timestamp (should be the last update time!)</dd>
+            <dt>
+              <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a2af409a71537d305b45c62a91b6dda75" class="m-doc-self" name="a2af409a71537d305b45c62a91b6dda75">_options</a>
+            </dt>
+            <dd>Struct containing filter options.</dd>
+            <dt>
+              <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a>* <a href="#a7e5401c6f6241a32615b071147a40b54" class="m-doc-self" name="a7e5401c6f6241a32615b071147a40b54">_imu</a>
+            </dt>
+            <dd>Pointer to the &quot;active&quot; <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> state (q_GtoI, p_IinG, v_IinG, bg, ba)</dd>
+            <dt>
+              std::unordered_map&lt;double, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a3b02a5f803a016ffc7c0fcc9893555e5" class="m-doc-self" name="a3b02a5f803a016ffc7c0fcc9893555e5">_clones_IMU</a>
+            </dt>
+            <dd>Map between imaging times and clone poses (q_GtoIi, p_IiinG)</dd>
+            <dt>
+              std::unordered_map&lt;size_t, <a href="classov__msckf_1_1Landmark.html" class="m-doc">Landmark</a>*&gt; <a href="#a890a6cb1245465a0acae30149de3dc18" class="m-doc-self" name="a890a6cb1245465a0acae30149de3dc18">_features_SLAM</a>
+            </dt>
+            <dd>Our current set of SLAM features (3d positions)</dd>
+            <dt>
+              <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>* <a href="#ab74adf6c3e2bed34c5ae2bd00b640541" class="m-doc-self" name="ab74adf6c3e2bed34c5ae2bd00b640541">_calib_dt_CAMtoIMU</a>
+            </dt>
+            <dd>Time offset base <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> to camera (t_imu = t_cam + t_off)</dd>
+            <dt>
+              std::unordered_map&lt;size_t, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a78eebc01de3742b79ff0cac34ca2e500" class="m-doc-self" name="a78eebc01de3742b79ff0cac34ca2e500">_calib_IMUtoCAM</a>
+            </dt>
+            <dd>Calibration poses for each camera (R_ItoC, p_IinC)</dd>
+            <dt>
+              std::unordered_map&lt;size_t, <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>*&gt; <a href="#a24985916b003b6c024c7795ca1de0b29" class="m-doc-self" name="a24985916b003b6c024c7795ca1de0b29">_cam_intrinsics</a>
+            </dt>
+            <dd>Camera intrinsics.</dd>
+            <dt>
+              std::unordered_map&lt;size_t, bool&gt; <a href="#a284f1502a059cfeac644485f8ca587fb" class="m-doc-self" name="a284f1502a059cfeac644485f8ca587fb">_cam_intrinsics_model</a>
+            </dt>
+            <dd>What distortion model we are using (false=radtan, true=fisheye)</dd>
+            <dt>
+              Eigen::MatrixXd <a href="#a40fe7851cbb0030af7a42e98fd9782d1" class="m-doc-self" name="a40fe7851cbb0030af7a42e98fd9782d1">_Cov</a>
+            </dt>
+            <dd>Covariance of all active variables.</dd>
+            <dt>
+              std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt; <a href="#a3399fe5ffa5adc223c0514a0e4e51b91" class="m-doc-self" name="a3399fe5ffa5adc223c0514a0e4e51b91">_variables</a>
+            </dt>
+            <dd>Vector of variables.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a2e5938c30d425410594a5c9ef159fb3f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2e5938c30d425410594a5c9ef159fb3f" class="m-doc-self">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span></span>
+            </h3>
+            <p>Default Constructor (will initialize variables to defaults)</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">options_</td>
+                  <td>Options structure containing filter options</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a3be1ed8de7e0d498dfee11b31a4398b7"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3be1ed8de7e0d498dfee11b31a4398b7" class="m-doc-self">initialize_variables</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Initializes pointers and covariance.</p>
+<p>TODO: Read initial values and covariance from options</p>
+          </div></section>
+          <section class="m-doc-details" id="ae9c27a3a937d5c837cd1c51dd44ff998"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae9c27a3a937d5c837cd1c51dd44ff998" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd dx)</span></span>
+            </h3>
+            <p>Given an update vector for the <strong>entire covariance</strong>, updates each variable.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">dx</td>
+                  <td>Correction vector for the entire filter state</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a167f44efb9d0136ef1d29312560d5863"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a167f44efb9d0136ef1d29312560d5863" class="m-doc-self">set_timestamp</a>(</span><span class="m-doc-wrap">double timestamp)</span></span>
+            </h3>
+            <p>Set the current timestamp of the filter.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">timestamp</td>
+                  <td>New timestamp</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a36420e71ffa54625667eac2a8a345582"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">double ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a36420e71ffa54625667eac2a8a345582" class="m-doc-self">margtimestep</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Will return the timestep that we will marginalize next.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>timestep of clone we will marginalize</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>As of right now, since we are using a sliding window, this is the oldest clone. But if you wanted to do a keyframe system, you could selectively marginalize clones.</p>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search.js"></script>
+<script src="searchdata.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

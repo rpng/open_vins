@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Getting Started &raquo; Installation Guide | Open VINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">Open VINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="getting-started.html">Getting Started</a> &raquo;</span>
+          Installation Guide
+        </h1>
+<section id="gs-install-ros"><h2><a href="#gs-install-ros">ROS Dependency</a></h2><p>Our codebase is built on top of the <a href="https://www.ros.org/">Robot Operating System (ROS)</a> and has been tested building on Ubuntu 16.04 systems with ROS Kinetic Kame. We also recommend installing the <a href="https://github.com/catkin/catkin_tools">catkin_<wbr />tools</a> build for easy ROS building. Please see the official instructions <a href="http://wiki.ros.org/kinetic/Installation/Ubuntu">here</a>, which have also been copied below.</p><pre class="m-console"><span class="go">sudo sh -c &#39;echo &quot;deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main&quot; &gt; /etc/apt/sources.list.d/ros-latest.list&#39;</span>
+<span class="go">sudo apt-key adv --keyserver &#39;hkp://keyserver.ubuntu.com:80&#39; --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654</span>
+<span class="go">sudo apt-get update</span>
+<span class="go">sudo apt-get install ros-kinetic-desktop-full</span>
+<span class="go">sudo apt-get install python-catkin-tools</span>
+<span class="go">echo &quot;source /opt/ros/kinetic/setup.bash&quot; &gt;&gt; ~/.bashrc</span>
+<span class="go">source ~/.bashrc</span></pre></section><section id="gs-install-opencv"><h2><a href="#gs-install-opencv">OpenCV Dependency</a></h2><p>We leverage <a href="https://opencv.org/">OpenCV 3.4.6</a> for this project and recommend you compile it from source. You can try linking to the one included with ROS but we have always had success with building from source to ensure we have all contributed OpenCV libraries. One should make sure you can see some of the &quot;contrib&quot; (e.g. xfeature2d) to ensure you have linked to the contrib modules.</p><pre class="m-console"><span class="go">git clone --branch 3.4.6 https://github.com/opencv/opencv/</span>
+<span class="go">git clone --branch 3.4.6 https://github.com/opencv/opencv_contrib/</span>
+<span class="go">mkdir opencv/build/</span>
+<span class="go">cd opencv/build/</span>
+<span class="go">cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules ..</span>
+<span class="go">make -j8</span>
+<span class="go">sudo make install</span></pre></section><section id="gs-install-openvins"><h2><a href="#gs-install-openvins">Cloning Open VINS</a></h2><p>Now that we have ROS and OpenCV install we can setup a catkin workspace and build the project! If you did not install the catkin_tools build system, you should be able to build using the standard <code>catkin_make</code> command that is included with ROS. If you run into any problems please google search the issue first and if you are unable to find a solution please open an issue on our github page. After the build is successful please following the <a href="gs-tutorial.html" class="m-doc">Simple Tutorial</a> guide on getting a dataset and running the system.</p><pre class="m-console"><span class="go">mkdir -p ~/workspace/catkin_ws_ov/src/</span>
+<span class="go">cd ~/workspace/catkin_ws_ov/src/</span>
+<span class="go">git clone https://github.com/rpng/open_vins/</span>
+<span class="go">cd ..</span>
+<span class="go">catkin build</span></pre></section><section id="gs-install-oveval"><h2><a href="#gs-install-oveval">Additional Evaluation Requirements</a></h2><p>If you want to use the plotting utility wrapper of <a href="https://github.com/lava/matplotlib-cpp">matplotlib-cpp</a> to generate plots directly from running the cpp code in <a href="namespaceov__eval.html" class="m-doc">ov_<wbr />eval</a> you will need to make sure you have a valid Python 2.7 install of matplotlib. On ubuntu 16.04 you can do the following command which should take care of everything you need. If you can&#x27;t link properly, make sure you can call it from Python normally (i.e. that your Python environment is not broken). You can disable this visualization if it is broken for you by passing the -DDISABLE_MATPLOTLIB=ON parameter to your catkin build.</p><pre class="m-console"><span class="go">sudo apt-get install python-matplotlib python-numpy python2.7-dev</span>
+<span class="go">catkin build -DDISABLE_MATPLOTLIB=OFF # build with viz (default)</span>
+<span class="go">catkin build -DDISABLE_MATPLOTLIB=ON # build without viz</span></pre></section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search.js"></script>
+<script src="searchdata.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

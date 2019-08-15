@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_core::TrackKLT class | Open VINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">Open VINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>TrackKLT <span class="m-thin">class</span>
+        </h1>
+        <p>KLT tracking of features.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This is the implementation of a KLT visual frontend for tracking sparse features. We can track either monocular cameras across time (temporally) along with stereo cameras which we also track across time (temporally) but track from left to right to find the stereo correspondence information also. This uses the <a href="https://github.com/opencv/opencv/blob/master/modules/video/src/lkpyramid.cpp">calcOpticalFlowPyrLK</a> OpenCV function to do the KLT tracking.</p>
+        <section id="base-classes">
+          <h2><a href="#base-classes">Base classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>
+            </dt>
+            <dd>Visual feature tracking base class.</dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a11801835895bba8d9770b9920a2b1322" class="m-doc-self" name="a11801835895bba8d9770b9920a2b1322">TrackKLT</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Public default constructor.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a3f9ad84b4349094f7541181506370ab8" class="m-doc">TrackKLT</a>(</span><span class="m-doc-wrap">int numfeats,
+              int numaruco,
+              int fast_threshold,
+              int gridx,
+              int gridy,
+              int minpxdist) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd>Public constructor with configuration variables.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#aedc03d000dbf49dca20008f615dc4b31" class="m-doc">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
+              cv::Mat&amp; img,
+              size_t cam_id) <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Process a new monocular image.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a8f93cabd476c2b4fd3c6931e23b934df" class="m-doc">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
+              cv::Mat&amp; img_left,
+              cv::Mat&amp; img_right,
+              size_t cam_id_left,
+              size_t cam_id_right) <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Process new stereo pair of images.</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a3a954e5ea5be4d86f8ea7fde5a9f387b" class="m-doc">perform_detection_monocular</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img0,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              std::vector&lt;size_t&gt;&amp; ids0)</span>
+            </dt>
+            <dd>Detects new features in the current image.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a04b5f8b0e01c5c7ad8a083677ab3b15c" class="m-doc">perform_detection_stereo</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img0,
+              const cv::Mat&amp; img1,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
+              std::vector&lt;size_t&gt;&amp; ids0,
+              std::vector&lt;size_t&gt;&amp; ids1)</span>
+            </dt>
+            <dd>Detects new features in the current stereo pair.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a37c691dbff887a7d82efa2c2962951d3" class="m-doc">perform_matching</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img0,
+              const cv::Mat&amp; img1,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
+              size_t id0,
+              size_t id1,
+              std::vector&lt;uchar&gt;&amp; mask_out)</span>
+            </dt>
+            <dd>KLT track between two images, and do RANSAC afterwards.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a3f9ad84b4349094f7541181506370ab8"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3f9ad84b4349094f7541181506370ab8" class="m-doc-self">TrackKLT</a>(</span><span class="m-doc-wrap">int numfeats,
+              int numaruco,
+              int fast_threshold,
+              int gridx,
+              int gridy,
+              int minpxdist) <span class="m-label m-info">explicit</span> </span></span>
+            </h3>
+            <p>Public constructor with configuration variables.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">numfeats</td>
+                  <td>number of features we want want to track (i.e. track 200 points from frame to frame)</td>
+                </tr>
+                <tr>
+                  <td>numaruco</td>
+                  <td>the max id of the arucotags, so we ensure that we start our non-auroc features above this value</td>
+                </tr>
+                <tr>
+                  <td>fast_threshold</td>
+                  <td>FAST detection threshold</td>
+                </tr>
+                <tr>
+                  <td>gridx</td>
+                  <td>size of grid in the x-direction / u-direction</td>
+                </tr>
+                <tr>
+                  <td>gridy</td>
+                  <td>size of grid in the y-direction / v-direction</td>
+                </tr>
+                <tr>
+                  <td>minpxdist</td>
+                  <td>features need to be at least this number pixels away from each other</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="aedc03d000dbf49dca20008f615dc4b31"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aedc03d000dbf49dca20008f615dc4b31" class="m-doc-self">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
+              cv::Mat&amp; img,
+              size_t cam_id) <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Process a new monocular image.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">timestamp</td>
+                  <td>timestamp the new image occurred at</td>
+                </tr>
+                <tr>
+                  <td>img</td>
+                  <td>new cv:Mat grayscale image</td>
+                </tr>
+                <tr>
+                  <td>cam_id</td>
+                  <td>the camera id that this new image corresponds too</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a8f93cabd476c2b4fd3c6931e23b934df"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8f93cabd476c2b4fd3c6931e23b934df" class="m-doc-self">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
+              cv::Mat&amp; img_left,
+              cv::Mat&amp; img_right,
+              size_t cam_id_left,
+              size_t cam_id_right) <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Process new stereo pair of images.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">timestamp</td>
+                  <td>timestamp this pair occured at (stereo is synchronised)</td>
+                </tr>
+                <tr>
+                  <td>img_left</td>
+                  <td>first grayscaled image</td>
+                </tr>
+                <tr>
+                  <td>img_right</td>
+                  <td>second grayscaled image</td>
+                </tr>
+                <tr>
+                  <td>cam_id_left</td>
+                  <td>first image camera id</td>
+                </tr>
+                <tr>
+                  <td>cam_id_right</td>
+                  <td>second image camera id</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a3a954e5ea5be4d86f8ea7fde5a9f387b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3a954e5ea5be4d86f8ea7fde5a9f387b" class="m-doc-self">perform_detection_monocular</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img0,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              std::vector&lt;size_t&gt;&amp; ids0) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Detects new features in the current image.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">img0</td>
+                  <td>image we will detect features on</td>
+                </tr>
+                <tr>
+                  <td>pts0</td>
+                  <td>vector of currently extracted keypoints in this image</td>
+                </tr>
+                <tr>
+                  <td>ids0</td>
+                  <td>vector of feature ids for each currently extracted keypoint</td>
+                </tr>
+              </tbody>
+            </table>
+<p>Given an image and its currently extracted features, this will try to add new features if needed. Will try to always have the &quot;max_features&quot; being tracked through KLT at each timestep. Passed images should already be grayscaled.</p>
+          </div></section>
+          <section class="m-doc-details" id="a04b5f8b0e01c5c7ad8a083677ab3b15c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a04b5f8b0e01c5c7ad8a083677ab3b15c" class="m-doc-self">perform_detection_stereo</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img0,
+              const cv::Mat&amp; img1,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
+              std::vector&lt;size_t&gt;&amp; ids0,
+              std::vector&lt;size_t&gt;&amp; ids1) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Detects new features in the current stereo pair.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">img0</td>
+                  <td>left image we will detect features on</td>
+                </tr>
+                <tr>
+                  <td>img1</td>
+                  <td>right image we will detect features on</td>
+                </tr>
+                <tr>
+                  <td>pts0</td>
+                  <td>left vector of currently extracted keypoints</td>
+                </tr>
+                <tr>
+                  <td>pts1</td>
+                  <td>right vector of currently extracted keypoints</td>
+                </tr>
+                <tr>
+                  <td>ids0</td>
+                  <td>left vector of feature ids for each currently extracted keypoint</td>
+                </tr>
+                <tr>
+                  <td>ids1</td>
+                  <td>right vector of feature ids for each currently extracted keypoint</td>
+                </tr>
+              </tbody>
+            </table>
+<p>This does the same logic as the <a href="classov__core_1_1TrackKLT.html#a3a954e5ea5be4d86f8ea7fde5a9f387b" class="m-doc">perform_<wbr />detection_<wbr />monocular()</a> function, but we also enforce stereo contraints. So we detect features in the left image, and then KLT track them onto the right image. If we have valid tracks, then we have both the keypoint on the left and its matching point in the right image. Will try to always have the &quot;max_features&quot; being tracked through KLT at each timestep.</p>
+          </div></section>
+          <section class="m-doc-details" id="a37c691dbff887a7d82efa2c2962951d3"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a37c691dbff887a7d82efa2c2962951d3" class="m-doc-self">perform_matching</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img0,
+              const cv::Mat&amp; img1,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
+              size_t id0,
+              size_t id1,
+              std::vector&lt;uchar&gt;&amp; mask_out) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>KLT track between two images, and do RANSAC afterwards.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">img0</td>
+                  <td>starting image</td>
+                </tr>
+                <tr>
+                  <td>img1</td>
+                  <td>image we want to track too</td>
+                </tr>
+                <tr>
+                  <td>pts0</td>
+                  <td>starting points</td>
+                </tr>
+                <tr>
+                  <td>pts1</td>
+                  <td>points we have tracked</td>
+                </tr>
+                <tr>
+                  <td>id0</td>
+                  <td>id of the first camera</td>
+                </tr>
+                <tr>
+                  <td>id1</td>
+                  <td>id of the second camera</td>
+                </tr>
+                <tr>
+                  <td>mask_out</td>
+                  <td>what points had valid tracks</td>
+                </tr>
+              </tbody>
+            </table>
+<p>This will track features from the first image into the second image. The two point vectors will be of equal size, but the mask_out variable will specify which points are good or bad. If the second vector is non-empty, it will be used as an initial guess of where the keypoints are in the second image.</p>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search.js"></script>
+<script src="searchdata.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

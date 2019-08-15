@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_msckf::Type class | Open VINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">Open VINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>Type <span class="m-thin">class</span>
+        </h1>
+        <p>Base class for estimated variables.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-attribs">Protected variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This class is used how variables are represented or updated (e.g., vectors or quaternions). Each variable is defined by its error state size and its location in the covariance matrix. We additionally require all sub-types to have a update procedure.</p>
+        <section id="derived-classes">
+          <h2><a href="#derived-classes">Derived classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a>
+            </dt>
+            <dd>Derived <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> class that implements an <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> state.</dd>
+            <dt>
+              class <a href="classov__msckf_1_1JPLQuat.html" class="m-doc">JPLQuat</a>
+            </dt>
+            <dd>Derived <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> class that implements JPL quaternion.</dd>
+            <dt>
+              class <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>
+            </dt>
+            <dd>Derived <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> class that implements a 6 d.o.f pose.</dd>
+            <dt>
+              class <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>
+            </dt>
+            <dd>Derived <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> class that implements vector variables.</dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a9a0855551ca7cd62f3e1a5868d51ef6c" class="m-doc">Type</a>(</span><span class="m-doc-wrap">int size_)</span>
+            </dt>
+            <dd>Default constructor for our <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a1424aee2a704ed27c7b328c44f970f45" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Sets id used to track location of variable in the filter covariance.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab69938c9995604db286afafe73b3f3e4" class="m-doc-self" name="ab69938c9995604db286afafe73b3f3e4">id</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
+            </dt>
+            <dd>Access to variable id (i.e. its location in the covariance)</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae5aaecbb96a58e994bafc3ed095d056a" class="m-doc-self" name="ae5aaecbb96a58e994bafc3ed095d056a">size</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
+            </dt>
+            <dd>Access to variable size (i.e. its error state size)</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a9429d9ef6711a1dc77fee83d524bd50d" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Update variable due to perturbation of error state.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae4661ddb34ffdccf609090c87d6e5dc8" class="m-doc-self" name="ae4661ddb34ffdccf609090c87d6e5dc8">value</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::MatrixXd <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Access variable&#x27;s estimate.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae899f9b27bc9c71636444733f138a0fd" class="m-doc-self" name="ae899f9b27bc9c71636444733f138a0fd">fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::MatrixXd <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Access variable&#x27;s first-estimate.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a5910a56f4b74e4d517c16cc66086f35a" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Overwrite value of state&#x27;s estimate.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a3d95037f0869ebef7a66bc879d15ed1e" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Overwrite value of first-estimate.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a849dedb942fddc11bcbc17484a197378" class="m-doc-self" name="a849dedb942fddc11bcbc17484a197378">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Create a clone of this variable.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a13d6104a22feece626910d1cbf265491" class="m-doc">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* check) -&gt; <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Determine if &quot;check&quot; is the same variable If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</dd>
+          </dl>
+        </section>
+        <section id="pro-attribs">
+          <h2><a href="#pro-attribs">Protected variables</a></h2>
+          <dl class="m-doc">
+            <dt>
+              Eigen::MatrixXd <a href="#a0c09e875fb6c62e60381e4540de17565" class="m-doc-self" name="a0c09e875fb6c62e60381e4540de17565">_fej</a>
+            </dt>
+            <dd>First-estimate.</dd>
+            <dt>
+              Eigen::MatrixXd <a href="#aaa9783856eddb1d06486210d92d4e69c" class="m-doc-self" name="aaa9783856eddb1d06486210d92d4e69c">_value</a>
+            </dt>
+            <dd>Current best estimate.</dd>
+            <dt>
+              int <a href="#a11c83362279c7ca413a291cc90393288" class="m-doc-self" name="a11c83362279c7ca413a291cc90393288">_id</a>
+            </dt>
+            <dd>Location of error state in covariance.</dd>
+            <dt>
+              int <a href="#ab6437dca59bc6b0e9001fac6af713500" class="m-doc-self" name="ab6437dca59bc6b0e9001fac6af713500">_size</a>
+            </dt>
+            <dd>Dimension of error state.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a9a0855551ca7cd62f3e1a5868d51ef6c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9a0855551ca7cd62f3e1a5868d51ef6c" class="m-doc-self">Type</a>(</span><span class="m-doc-wrap">int size_)</span></span>
+            </h3>
+            <p>Default constructor for our <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">size_</td>
+                  <td>degrees of freedom of variable (i.e., the size of the error state)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a1424aee2a704ed27c7b328c44f970f45"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1424aee2a704ed27c7b328c44f970f45" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+            <p>Sets id used to track location of variable in the filter covariance.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">new_id</td>
+                  <td>entry in filter covariance corresponding to this variable</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a9429d9ef6711a1dc77fee83d524bd50d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9429d9ef6711a1dc77fee83d524bd50d" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Update variable due to perturbation of error state.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">dx</td>
+                  <td>Perturbation used to update the variable through a defined &quot;boxplus&quot; operation</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a5910a56f4b74e4d517c16cc66086f35a"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5910a56f4b74e4d517c16cc66086f35a" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+            <p>Overwrite value of state&#x27;s estimate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">new_value</td>
+                  <td>New value that will overwrite state&#x27;s value</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a3d95037f0869ebef7a66bc879d15ed1e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3d95037f0869ebef7a66bc879d15ed1e" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+            <p>Overwrite value of first-estimate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">new_value</td>
+                  <td>New value that will overwrite state&#x27;s fej</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a13d6104a22feece626910d1cbf265491"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* ov_msckf::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a13d6104a22feece626910d1cbf265491" class="m-doc-self">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* check) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+            <p>Determine if &quot;check&quot; is the same variable If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">check</td>
+                  <td><a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> pointer to compare to</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search.js"></script>
+<script src="searchdata.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

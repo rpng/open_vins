@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_core::FeatureInitializer class | Open VINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#22272e" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">Open VINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>FeatureInitializer <span class="m-thin">class</span>
+        </h1>
+        <p>Class that triangulates feature.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
+                <li><a href="#pro-attribs">Protected variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This class has the functions needed to triangulate and then refine a given 3D feature. As in the standard MSCKF, we know the clones of the camera from propagation and past updates. Thus, we just need to triangulate a feature in 3D with the known poses and then refine it. One should first call the <a href="classov__core_1_1FeatureInitializer.html#ab35bcab4875dfb998fb9e776d284777a" class="m-doc">single_<wbr />triangulation()</a> function afterwhich <a href="classov__core_1_1FeatureInitializer.html#aaf7ffee2a46df0fb10242fff348b01cb" class="m-doc">single_<wbr />gaussnewton()</a> allows for refinement.</p>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
+          <dl class="m-doc">
+            <dt>
+              struct <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>
+            </dt>
+            <dd>Structure which stores pose estimates for use in triangulation.</dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#afa2efde962719a502507044379644e63" class="m-doc">FeatureInitializer</a>(</span><span class="m-doc-wrap"><a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a>&amp; options)</span>
+            </dt>
+            <dd>Default constructor.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab35bcab4875dfb998fb9e776d284777a" class="m-doc">single_triangulation</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM) -&gt; bool</span>
+            </dt>
+            <dd>Uses a linear triangulation to get initial estimate for the feature.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aaf7ffee2a46df0fb10242fff348b01cb" class="m-doc">single_gaussnewton</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM) -&gt; bool</span>
+            </dt>
+            <dd>Uses a nonlinear triangulation to refine initial linear estimate of the feature.</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab33cc500df7408419ee17e0041c810f6" class="m-doc">compute_error</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM,
+              <a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              double alpha,
+              double beta,
+              double rho) -&gt; double</span>
+            </dt>
+            <dd>Helper function for the gauss newton method that computes error of the given estimate.</dd>
+          </dl>
+        </section>
+        <section id="pro-attribs">
+          <h2><a href="#pro-attribs">Protected variables</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a> <a href="#a1e9a923db5dc5ced439d0516ff884964" class="m-doc-self" name="a1e9a923db5dc5ced439d0516ff884964">_options</a>
+            </dt>
+            <dd>Contains options for the initializer process.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="afa2efde962719a502507044379644e63"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afa2efde962719a502507044379644e63" class="m-doc-self">FeatureInitializer</a>(</span><span class="m-doc-wrap"><a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a>&amp; options)</span></span>
+            </h3>
+            <p>Default constructor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">options</td>
+                  <td>Options for the initializer</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ab35bcab4875dfb998fb9e776d284777a"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab35bcab4875dfb998fb9e776d284777a" class="m-doc-self">single_triangulation</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM)</span></span>
+            </h3>
+            <p>Uses a linear triangulation to get initial estimate for the feature.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">feat</td>
+                  <td>Pointer to feature</td>
+                </tr>
+                <tr>
+                  <td>clonesCAM</td>
+                  <td>Map between camera ID to map of timestamp to camera pose estimate (rotation from global to camera, position of camera in global frame)</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>Returns false if it fails to triangulate (based on the thresholds)</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="aaf7ffee2a46df0fb10242fff348b01cb"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aaf7ffee2a46df0fb10242fff348b01cb" class="m-doc-self">single_gaussnewton</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM)</span></span>
+            </h3>
+            <p>Uses a nonlinear triangulation to refine initial linear estimate of the feature.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">feat</td>
+                  <td>Pointer to feature</td>
+                </tr>
+                <tr>
+                  <td>clonesCAM</td>
+                  <td>Map between camera ID to map of timestamp to camera pose estimate (rotation from global to camera, position of camera in global frame)</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>Returns false if it fails to be optimize (based on the thresholds)</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ab33cc500df7408419ee17e0041c810f6"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">double ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab33cc500df7408419ee17e0041c810f6" class="m-doc-self">compute_error</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM,
+              <a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              double alpha,
+              double beta,
+              double rho) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Helper function for the gauss newton method that computes error of the given estimate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">clonesCAM</td>
+                  <td>Map between camera ID to map of timestamp to camera pose estimate</td>
+                </tr>
+                <tr>
+                  <td>feat</td>
+                  <td>Pointer to the feature</td>
+                </tr>
+                <tr>
+                  <td>alpha</td>
+                  <td>x/z in anchor</td>
+                </tr>
+                <tr>
+                  <td>beta</td>
+                  <td>y/z in anchor</td>
+                </tr>
+                <tr>
+                  <td>rho</td>
+                  <td>1/z inverse depth</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search.js"></script>
+<script src="searchdata.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>
