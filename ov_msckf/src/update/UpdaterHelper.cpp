@@ -589,7 +589,7 @@ void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::Matri
         }
     }
 
-    // The H_f jacobian max rank is 3, thus size of the left nullspace is Hf.rows()-3
+    // The H_f jacobian max rank is 3 if it is a 3d position, thus size of the left nullspace is Hf.rows()-3
     // NOTE: need to eigen3 eval here since this experiences aliasing!
     //H_f = H_f.block(H_f.cols(),0,H_f.rows()-H_f.cols(),H_f.cols()).eval();
     H_x = H_x.block(H_f.cols(),0,H_x.rows()-H_f.cols(),H_x.cols()).eval();

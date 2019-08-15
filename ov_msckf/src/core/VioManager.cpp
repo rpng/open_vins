@@ -588,7 +588,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // Loop through current SLAM features, we have tracks of them, grab them for this update!
     // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
-    // Note: these types of klt slam features seem to *degrade* the estimator performance....
+    // Note: if you do not use FEJ, these types of slam features *degrade* the estimator performance....
     for (std::pair<const size_t, Landmark*> &landmark : state->features_SLAM()) {
         if(trackARUCO != nullptr) {
             Feature* feat1 = trackARUCO->get_feature_database()->get_feature(landmark.second->_featid);
