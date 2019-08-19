@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_msckf::PoseJPL class | Open VINS</title>
+  <title>ov_core::PoseJPL class | Open VINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,9 +47,9 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          ov_msckf::PoseJPL <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>PoseJPL <span class="m-thin">class</span>
         </h1>
-        <p>Derived <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> class that implements a 6 d.o.f pose.</p>
+        <p>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements a 6 d.o.f pose.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -63,12 +63,12 @@
             </li>
           </ul>
         </div>
-<p>Internally we use a <a href="classov__msckf_1_1JPLQuat.html" class="m-doc">JPLQuat</a> quaternion representation for the orientation and 3D <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a> position. Please see <a href="classov__msckf_1_1JPLQuat.html" class="m-doc">JPLQuat</a> for details on its update procedure and its left multiplicative error.</p>
+<p>Internally we use a <a href="classov__core_1_1JPLQuat.html" class="m-doc">JPLQuat</a> quaternion representation for the orientation and 3D <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a> position. Please see <a href="classov__core_1_1JPLQuat.html" class="m-doc">JPLQuat</a> for details on its update procedure and its left multiplicative error.</p>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classov__msckf_1_1Type.html" class="m-doc">ov_msckf::Type</a>
+              class <a href="classov__core_1_1Type.html" class="m-doc">Type</a>
             </dt>
             <dd>Base class for estimated variables.</dd>
           </dl>
@@ -77,47 +77,47 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#aa45f366478c5d8c5125cb3ec7525d66b" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a40dcde7e8357540b873791c1f2ee1d49" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets id used to track location of variable in the filter covariance.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#af8e667b4f8e9b2bbd7383bf29b9f2049" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a7a87cc23d9ecdef21cba11c23135c9ae" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd>Update q and p using a the <a href="classov__msckf_1_1JPLQuat.html" class="m-doc">JPLQuat</a> update for orientation and vector update for position.</dd>
+            <dd>Update q and p using a the <a href="classov__core_1_1JPLQuat.html" class="m-doc">JPLQuat</a> update for orientation and vector update for position.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a48eb70e07968dbb534162ab7c22159ac" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a49be70f00ebd9fe50628cc2b1cd9830f" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets the value of the estimate.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a179f937db0c1d50a7f35ccbec81bfed9" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#aa93cc54b77eee5b3992060a7ff666795" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets the value of the first estimate.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a727dec7d749b1a0c23b9d1b89eb45fea" class="m-doc-self" name="a727dec7d749b1a0c23b9d1b89eb45fea">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#aee87e703c021f263e90fea79b9a0b1af" class="m-doc-self" name="aee87e703c021f263e90fea79b9a0b1af">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Create a clone of this variable.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a7573aeeb3adcc12afedea0136055d46e" class="m-doc">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* check) -&gt; <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac65bc0a4205aff2becd28a80088ec7db" class="m-doc">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* check) -&gt; <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Used to find the components inside the Pose if needed.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a9c76d94a976c321915e72edf52ad86e4" class="m-doc-self" name="a9c76d94a976c321915e72edf52ad86e4">Rot</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3e2f89e52c66022fe17bd6a0e1e5d0c4" class="m-doc-self" name="a3e2f89e52c66022fe17bd6a0e1e5d0c4">Rot</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
             <dd>Rotation access.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a114154cb1951045bab757b819c179d8f" class="m-doc-self" name="a114154cb1951045bab757b819c179d8f">Rot_fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a5bd27172a8032328479c4daa52df3b91" class="m-doc-self" name="a5bd27172a8032328479c4daa52df3b91">Rot_fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
             <dd>FEJ Rotation access.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ad391b6ad350e80670f5f7ae06e3ee8bd" class="m-doc-self" name="ad391b6ad350e80670f5f7ae06e3ee8bd">quat</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 4, 1&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a5554cae425c8dcdaec45bae4d59f3638" class="m-doc-self" name="a5554cae425c8dcdaec45bae4d59f3638">quat</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 4, 1&gt;</span>
             </dt>
             <dd>Rotation access as quaternion.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#abc7118e136e18116b532915321f77761" class="m-doc-self" name="abc7118e136e18116b532915321f77761">quat_fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 4, 1&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a757ad5a54092a0e99e36309213bbe677" class="m-doc-self" name="a757ad5a54092a0e99e36309213bbe677">quat_fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 4, 1&gt;</span>
             </dt>
             <dd>FEJ Rotation access as quaternion.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a93ac8be490ee338d371777103b194254" class="m-doc-self" name="a93ac8be490ee338d371777103b194254">pos</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#afa2d42d581ab7f66bf2a290bb4954397" class="m-doc-self" name="afa2d42d581ab7f66bf2a290bb4954397">pos</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
             </dt>
             <dd>Position access.</dd>
           </dl>
@@ -126,20 +126,20 @@
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
             <dt>
-              <a href="classov__msckf_1_1JPLQuat.html" class="m-doc">JPLQuat</a>* <a href="#a81f91a920db37b5838663d7ec91f9c80" class="m-doc-self" name="a81f91a920db37b5838663d7ec91f9c80">_q</a>
+              <a href="classov__core_1_1JPLQuat.html" class="m-doc">JPLQuat</a>* <a href="#a0c52bfa6435b60f3c0d2e013bf07b7df" class="m-doc-self" name="a0c52bfa6435b60f3c0d2e013bf07b7df">_q</a>
             </dt>
             <dd>Subvariable containing orientation.</dd>
             <dt>
-              <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>* <a href="#a46be2388b0696e9530bd0a22f93705aa" class="m-doc-self" name="a46be2388b0696e9530bd0a22f93705aa">_p</a>
+              <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>* <a href="#acceb04197f3a2fc355a5a623657511d3" class="m-doc-self" name="acceb04197f3a2fc355a5a623657511d3">_p</a>
             </dt>
             <dd>Subvariable containg position.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="aa45f366478c5d8c5125cb3ec7525d66b"><div>
+          <section class="m-doc-details" id="a40dcde7e8357540b873791c1f2ee1d49"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa45f366478c5d8c5125cb3ec7525d66b" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a40dcde7e8357540b873791c1f2ee1d49" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets id used to track location of variable in the filter covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -155,11 +155,11 @@
             </table>
 <p>Note that we update the sub-variables also.</p>
           </div></section>
-          <section class="m-doc-details" id="af8e667b4f8e9b2bbd7383bf29b9f2049"><div>
+          <section class="m-doc-details" id="a7a87cc23d9ecdef21cba11c23135c9ae"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af8e667b4f8e9b2bbd7383bf29b9f2049" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7a87cc23d9ecdef21cba11c23135c9ae" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
             </h3>
-            <p>Update q and p using a the <a href="classov__msckf_1_1JPLQuat.html" class="m-doc">JPLQuat</a> update for orientation and vector update for position.</p>
+            <p>Update q and p using a the <a href="classov__core_1_1JPLQuat.html" class="m-doc">JPLQuat</a> update for orientation and vector update for position.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -172,9 +172,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a48eb70e07968dbb534162ab7c22159ac"><div>
+          <section class="m-doc-details" id="a49be70f00ebd9fe50628cc2b1cd9830f"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a48eb70e07968dbb534162ab7c22159ac" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a49be70f00ebd9fe50628cc2b1cd9830f" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets the value of the estimate.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -189,9 +189,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a179f937db0c1d50a7f35ccbec81bfed9"><div>
+          <section class="m-doc-details" id="aa93cc54b77eee5b3992060a7ff666795"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a179f937db0c1d50a7f35ccbec81bfed9" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa93cc54b77eee5b3992060a7ff666795" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets the value of the first estimate.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -206,9 +206,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a7573aeeb3adcc12afedea0136055d46e"><div>
+          <section class="m-doc-details" id="ac65bc0a4205aff2becd28a80088ec7db"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"><a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* ov_msckf::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7573aeeb3adcc12afedea0136055d46e" class="m-doc-self">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* check) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper"><a href="classov__core_1_1Type.html" class="m-doc">Type</a>* ov_core::<wbr />PoseJPL::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac65bc0a4205aff2becd28a80088ec7db" class="m-doc-self">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* check) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Used to find the components inside the Pose if needed.</p>
             <table class="m-table m-fullwidth m-flat">

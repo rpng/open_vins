@@ -67,7 +67,7 @@
           <dl class="m-doc">
             <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#aa276e2f032ae5c43daaea2e1371c7a06" class="m-doc">EKFUpdate</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H,
               const Eigen::VectorXd&amp; res,
               const Eigen::MatrixXd&amp; R)</span>
@@ -75,23 +75,23 @@
             <dd>Performs EKF update of the state (see <a href="update.html#linear-meas" class="m-doc">Linear Measurement Update</a> page)</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static auto <a href="#a46ea0b31e4d5020ef42e1206c443aa7b" class="m-doc">get_marginal_covariance</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; small_variables) -&gt; Eigen::MatrixXd</span>
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; small_variables) -&gt; Eigen::MatrixXd</span>
             </dt>
             <dd>For a given set of variables, this will this will calculate a smaller covariance.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#af1f44f63d066778be8aa78729c8a5ba4" class="m-doc">marginalize</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* marg)</span>
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* marg)</span>
             </dt>
             <dd>Marginalizes a variable, properly modifying the ordering/covariances in the state.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static auto <a href="#ab455f230c03bacee08de7efe4d40c816" class="m-doc">clone</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* variable_to_clone) -&gt; <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*</span>
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* variable_to_clone) -&gt; <a href="classov__core_1_1Type.html" class="m-doc">Type</a>*</span>
             </dt>
             <dd>Clones &quot;variable to clone&quot; and places it at end of covariance.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static auto <a href="#aac70ca98a53f2cb08fb168b98573ea8a" class="m-doc">initialize</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* new_variable,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* new_variable,
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
               Eigen::MatrixXd&amp; H_R,
               Eigen::MatrixXd&amp; H_L,
               Eigen::MatrixXd&amp; R,
@@ -101,8 +101,8 @@
             <dd>Initializes new variable into covariance.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#a5885fb37c2e6cd2ad21766594591b872" class="m-doc">initialize_invertible</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* new_variable,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* new_variable,
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H_R,
               const Eigen::MatrixXd&amp; H_L,
               const Eigen::MatrixXd&amp; R,
@@ -113,7 +113,7 @@
               <span class="m-doc-wrap-bumper">static void <a href="#a598854d6e72b64a88e68fcc4a515bdb4" class="m-doc">augment_clone</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
               Eigen::Matrix&lt;double, 3, 1&gt; last_w)</span>
             </dt>
-            <dd>Augment the state with a stochastic copy of the current <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> pose.</dd>
+            <dd>Augment the state with a stochastic copy of the current IMU pose.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#aa3a62928d163598da8001bdc55197f9e" class="m-doc">marginalize_old_clone</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state)</span>
             </dt>
@@ -129,7 +129,7 @@
           <section class="m-doc-details" id="aa276e2f032ae5c43daaea2e1371c7a06"><div>
             <h3>
               <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa276e2f032ae5c43daaea2e1371c7a06" class="m-doc-self">EKFUpdate</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H,
               const Eigen::VectorXd&amp; res,
               const Eigen::MatrixXd&amp; R)</span></span>
@@ -166,7 +166,7 @@
           <section class="m-doc-details" id="a46ea0b31e4d5020ef42e1206c443aa7b"><div>
             <h3>
               <span class="m-doc-wrap-bumper">static Eigen::MatrixXd ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a46ea0b31e4d5020ef42e1206c443aa7b" class="m-doc-self">get_marginal_covariance</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; small_variables)</span></span>
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; small_variables)</span></span>
             </h3>
             <p>For a given set of variables, this will this will calculate a smaller covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -195,7 +195,7 @@
           <section class="m-doc-details" id="af1f44f63d066778be8aa78729c8a5ba4"><div>
             <h3>
               <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af1f44f63d066778be8aa78729c8a5ba4" class="m-doc-self">marginalize</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* marg)</span></span>
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* marg)</span></span>
             </h3>
             <p>Marginalizes a variable, properly modifying the ordering/covariances in the state.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -213,12 +213,12 @@
                 </tr>
               </tbody>
             </table>
-<p>This function can support any <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a> variable out of the box. Right now the marginalization of a sub-variable/type is not supported. For example if you wanted to just marginalize the orientation of a <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>, that isn&#x27;t supported. We will first remove the rows and columns corresponding to the type (i.e. do the marginalization). After we update all the type ids so that they take into account that the covariance has shrunk in parts of it.</p>
+<p>This function can support any Type variable out of the box. Right now the marginalization of a sub-variable/type is not supported. For example if you wanted to just marginalize the orientation of a PoseJPL, that isn&#x27;t supported. We will first remove the rows and columns corresponding to the type (i.e. do the marginalization). After we update all the type ids so that they take into account that the covariance has shrunk in parts of it.</p>
           </div></section>
           <section class="m-doc-details" id="ab455f230c03bacee08de7efe4d40c816"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab455f230c03bacee08de7efe4d40c816" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* variable_to_clone)</span></span>
+              <span class="m-doc-wrap-bumper">static <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab455f230c03bacee08de7efe4d40c816" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* variable_to_clone)</span></span>
             </h3>
             <p>Clones &quot;variable to clone&quot; and places it at end of covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -240,8 +240,8 @@
           <section class="m-doc-details" id="aac70ca98a53f2cb08fb168b98573ea8a"><div>
             <h3>
               <span class="m-doc-wrap-bumper">static bool ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aac70ca98a53f2cb08fb168b98573ea8a" class="m-doc-self">initialize</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* new_variable,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* new_variable,
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
               Eigen::MatrixXd&amp; H_R,
               Eigen::MatrixXd&amp; H_L,
               Eigen::MatrixXd&amp; R,
@@ -293,8 +293,8 @@
           <section class="m-doc-details" id="a5885fb37c2e6cd2ad21766594591b872"><div>
             <h3>
               <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5885fb37c2e6cd2ad21766594591b872" class="m-doc-self">initialize_invertible</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>* new_variable,
-              const std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
+              <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* new_variable,
+              const std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H_R,
               const Eigen::MatrixXd&amp; H_L,
               const Eigen::MatrixXd&amp; R,
@@ -342,7 +342,7 @@
               <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a598854d6e72b64a88e68fcc4a515bdb4" class="m-doc-self">augment_clone</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
               Eigen::Matrix&lt;double, 3, 1&gt; last_w)</span></span>
             </h3>
-            <p>Augment the state with a stochastic copy of the current <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> pose.</p>
+            <p>Augment the state with a stochastic copy of the current IMU pose.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -358,7 +358,7 @@
                 </tr>
               </tbody>
             </table>
-<p>After propagation, normally we augment the state with an new clone that is at the new update timestep. This augmentation clones the <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> pose and adds it to our state&#x27;s clone map. If we are doing time offset calibration we also make our cloning a function of the time offset. Time offset logic is based on Mingyang Li and Anastasios I. Mourikis paper: <a href="http://journals.sagepub.com/doi/pdf/10.1177/0278364913515286">http:/<wbr />/<wbr />journals.sagepub.com/<wbr />doi/<wbr />pdf/<wbr />10.1177/<wbr />0278364913515286</a></p>
+<p>After propagation, normally we augment the state with an new clone that is at the new update timestep. This augmentation clones the IMU pose and adds it to our state&#x27;s clone map. If we are doing time offset calibration we also make our cloning a function of the time offset. Time offset logic is based on Mingyang Li and Anastasios I. Mourikis paper: <a href="http://journals.sagepub.com/doi/pdf/10.1177/0278364913515286">http:/<wbr />/<wbr />journals.sagepub.com/<wbr />doi/<wbr />pdf/<wbr />10.1177/<wbr />0278364913515286</a></p>
           </div></section>
           <section class="m-doc-details" id="aa3a62928d163598da8001bdc55197f9e"><div>
             <h3>

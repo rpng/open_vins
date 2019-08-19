@@ -101,9 +101,9 @@
             </dt>
             <dd>Access options struct.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a3a7febe740c3d61e63b432964a9c4909" class="m-doc-self" name="a3a7febe740c3d61e63b432964a9c4909">imu</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a>*</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a7febe740c3d61e63b432964a9c4909" class="m-doc-self" name="a3a7febe740c3d61e63b432964a9c4909">imu</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a>*</span>
             </dt>
-            <dd>Access to <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> type.</dd>
+            <dd>Access to IMU type.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#abb5370684ae3f4dfe91b60955280ba41" class="m-doc-self" name="abb5370684ae3f4dfe91b60955280ba41">Cov</a>(</span><span class="m-doc-wrap">) -&gt; Eigen::MatrixXd&amp;</span>
             </dt>
@@ -113,15 +113,15 @@
             </dt>
             <dd>Get size of covariance.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#aea2bfa7a52e146365ebe6089809083d8" class="m-doc-self" name="aea2bfa7a52e146365ebe6089809083d8">calib_dt_CAMtoIMU</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>*</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#aea2bfa7a52e146365ebe6089809083d8" class="m-doc-self" name="aea2bfa7a52e146365ebe6089809083d8">calib_dt_CAMtoIMU</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>*</span>
             </dt>
             <dd>Access imu-camera time offset type.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a0f81d48853196cb205b92c2ce9ff0d7d" class="m-doc-self" name="a0f81d48853196cb205b92c2ce9ff0d7d">get_clone</a>(</span><span class="m-doc-wrap">double timestamp) -&gt; <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a0f81d48853196cb205b92c2ce9ff0d7d" class="m-doc-self" name="a0f81d48853196cb205b92c2ce9ff0d7d">get_clone</a>(</span><span class="m-doc-wrap">double timestamp) -&gt; <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
             </dt>
             <dd>Access to a given clone.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ae08b6be58c8e657642ce8fdd43b8b236" class="m-doc-self" name="ae08b6be58c8e657642ce8fdd43b8b236">get_clones</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;double, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae08b6be58c8e657642ce8fdd43b8b236" class="m-doc-self" name="ae08b6be58c8e657642ce8fdd43b8b236">get_clones</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;double, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
             </dt>
             <dd>Access to all current clones in the state.</dd>
             <dt>
@@ -129,15 +129,15 @@
             </dt>
             <dd>Get current number of clones.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a7f0ee02941ff70b8d1881b7cf4aa17cf" class="m-doc-self" name="a7f0ee02941ff70b8d1881b7cf4aa17cf">get_calib_IMUtoCAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a7f0ee02941ff70b8d1881b7cf4aa17cf" class="m-doc-self" name="a7f0ee02941ff70b8d1881b7cf4aa17cf">get_calib_IMUtoCAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
             </dt>
             <dd>Access to a given camera extrinsics.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a3639e7a84aeaea3cadab871f4aa04941" class="m-doc-self" name="a3639e7a84aeaea3cadab871f4aa04941">get_calib_IMUtoCAMs</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3639e7a84aeaea3cadab871f4aa04941" class="m-doc-self" name="a3639e7a84aeaea3cadab871f4aa04941">get_calib_IMUtoCAMs</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
             </dt>
-            <dd>Access to all current extrinsic calibration between <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> and each camera.</dd>
+            <dd>Access to all current extrinsic calibration between IMU and each camera.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a6e86454e3420f1f1392cecab1127bcee" class="m-doc-self" name="a6e86454e3420f1f1392cecab1127bcee">get_intrinsics_CAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>*</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a6e86454e3420f1f1392cecab1127bcee" class="m-doc-self" name="a6e86454e3420f1f1392cecab1127bcee">get_intrinsics_CAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>*</span>
             </dt>
             <dd>Access to a given camera intrinsics.</dd>
             <dt>
@@ -146,11 +146,11 @@
             <dd>Access to a given camera intrinsics.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a2b5c609828c6f940f3c4a43093741d52" class="m-doc-self" name="a2b5c609828c6f940f3c4a43093741d52">insert_SLAM_feature</a>(</span><span class="m-doc-wrap">size_t featid,
-              <a href="classov__msckf_1_1Landmark.html" class="m-doc">Landmark</a>* landmark)</span>
+              <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>* landmark)</span>
             </dt>
             <dd>Add a SLAM feature.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#add4cbead8f1bec9c29626b7ca31bab2a" class="m-doc-self" name="add4cbead8f1bec9c29626b7ca31bab2a">features_SLAM</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__msckf_1_1Landmark.html" class="m-doc">Landmark</a>*&gt;&amp;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#add4cbead8f1bec9c29626b7ca31bab2a" class="m-doc-self" name="add4cbead8f1bec9c29626b7ca31bab2a">features_SLAM</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>*&gt;&amp;</span>
             </dt>
             <dd>Access SLAM features.</dd>
           </dl>
@@ -167,27 +167,27 @@
             </dt>
             <dd>Struct containing filter options.</dd>
             <dt>
-              <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a>* <a href="#a7e5401c6f6241a32615b071147a40b54" class="m-doc-self" name="a7e5401c6f6241a32615b071147a40b54">_imu</a>
+              <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a>* <a href="#a7e5401c6f6241a32615b071147a40b54" class="m-doc-self" name="a7e5401c6f6241a32615b071147a40b54">_imu</a>
             </dt>
-            <dd>Pointer to the &quot;active&quot; <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> state (q_GtoI, p_IinG, v_IinG, bg, ba)</dd>
+            <dd>Pointer to the &quot;active&quot; IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)</dd>
             <dt>
-              std::unordered_map&lt;double, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a3b02a5f803a016ffc7c0fcc9893555e5" class="m-doc-self" name="a3b02a5f803a016ffc7c0fcc9893555e5">_clones_IMU</a>
+              std::unordered_map&lt;double, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a3b02a5f803a016ffc7c0fcc9893555e5" class="m-doc-self" name="a3b02a5f803a016ffc7c0fcc9893555e5">_clones_IMU</a>
             </dt>
             <dd>Map between imaging times and clone poses (q_GtoIi, p_IiinG)</dd>
             <dt>
-              std::unordered_map&lt;size_t, <a href="classov__msckf_1_1Landmark.html" class="m-doc">Landmark</a>*&gt; <a href="#a890a6cb1245465a0acae30149de3dc18" class="m-doc-self" name="a890a6cb1245465a0acae30149de3dc18">_features_SLAM</a>
+              std::unordered_map&lt;size_t, <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>*&gt; <a href="#a890a6cb1245465a0acae30149de3dc18" class="m-doc-self" name="a890a6cb1245465a0acae30149de3dc18">_features_SLAM</a>
             </dt>
             <dd>Our current set of SLAM features (3d positions)</dd>
             <dt>
-              <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>* <a href="#ab74adf6c3e2bed34c5ae2bd00b640541" class="m-doc-self" name="ab74adf6c3e2bed34c5ae2bd00b640541">_calib_dt_CAMtoIMU</a>
+              <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>* <a href="#ab74adf6c3e2bed34c5ae2bd00b640541" class="m-doc-self" name="ab74adf6c3e2bed34c5ae2bd00b640541">_calib_dt_CAMtoIMU</a>
             </dt>
-            <dd>Time offset base <a href="classov__msckf_1_1IMU.html" class="m-doc">IMU</a> to camera (t_imu = t_cam + t_off)</dd>
+            <dd>Time offset base IMU to camera (t_imu = t_cam + t_off)</dd>
             <dt>
-              std::unordered_map&lt;size_t, <a href="classov__msckf_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a78eebc01de3742b79ff0cac34ca2e500" class="m-doc-self" name="a78eebc01de3742b79ff0cac34ca2e500">_calib_IMUtoCAM</a>
+              std::unordered_map&lt;size_t, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a78eebc01de3742b79ff0cac34ca2e500" class="m-doc-self" name="a78eebc01de3742b79ff0cac34ca2e500">_calib_IMUtoCAM</a>
             </dt>
             <dd>Calibration poses for each camera (R_ItoC, p_IinC)</dd>
             <dt>
-              std::unordered_map&lt;size_t, <a href="classov__msckf_1_1Vec.html" class="m-doc">Vec</a>*&gt; <a href="#a24985916b003b6c024c7795ca1de0b29" class="m-doc-self" name="a24985916b003b6c024c7795ca1de0b29">_cam_intrinsics</a>
+              std::unordered_map&lt;size_t, <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>*&gt; <a href="#a24985916b003b6c024c7795ca1de0b29" class="m-doc-self" name="a24985916b003b6c024c7795ca1de0b29">_cam_intrinsics</a>
             </dt>
             <dd>Camera intrinsics.</dd>
             <dt>
@@ -199,7 +199,7 @@
             </dt>
             <dd>Covariance of all active variables.</dd>
             <dt>
-              std::vector&lt;<a href="classov__msckf_1_1Type.html" class="m-doc">Type</a>*&gt; <a href="#a3399fe5ffa5adc223c0514a0e4e51b91" class="m-doc-self" name="a3399fe5ffa5adc223c0514a0e4e51b91">_variables</a>
+              std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt; <a href="#a3399fe5ffa5adc223c0514a0e4e51b91" class="m-doc-self" name="a3399fe5ffa5adc223c0514a0e4e51b91">_variables</a>
             </dt>
             <dd>Vector of variables.</dd>
           </dl>

@@ -64,7 +64,7 @@
             </li>
           </ul>
         </div>
-<p>This model is the &quot;piecewise constant local acceleration assumption.&quot; Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[3]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiV2.html#ae2be6b7617c08c934214d118b9938cb8" class="m-doc">feed_<wbr />IMU()</a> will all IMU measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
+<p>This model is the &quot;piecewise constant local acceleration assumption.&quot; Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[3]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiV2.html#ae2be6b7617c08c934214d118b9938cb8" class="m-doc">feed_<wbr />IMU()</a> will all <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
@@ -166,11 +166,11 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">t_0&nbsp;<span class="m-label m-flat m-info">in</span></td>
-                  <td>first IMU timestamp</td>
+                  <td>first <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> timestamp</td>
                 </tr>
                 <tr>
                   <td>t_1&nbsp;<span class="m-label m-flat m-info">in</span></td>
-                  <td>second IMU timestamp</td>
+                  <td>second <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> timestamp</td>
                 </tr>
                 <tr>
                   <td>w_m_0&nbsp;<span class="m-label m-flat m-info">in</span></td>

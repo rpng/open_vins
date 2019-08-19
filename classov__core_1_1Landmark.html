@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_core::InertialInitializer class | Open VINS</title>
+  <title>ov_core::Landmark class | Open VINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,189 +47,154 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>InertialInitializer <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>Landmark <span class="m-thin">class</span>
         </h1>
-        <p>Initializer for visual-inertial system.</p>
+        <p><a href="classov__core_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#base-classes">Base classes</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
-                <li><a href="#pro-attribs">Protected variables</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-<p>This class has a series of functions that can be used to initialize your system. Right now we have our implementation that assumes that the imu starts from standing still. In the future we plan to add support for structure-from-motion dynamic initialization.</p>
-        <section id="pub-types">
-          <h2><a href="#pub-types">Public types</a></h2>
+<p>We store the feature ID that should match the IDs in the trackers. Additionally if this is an anchored representation we store what clone timestamp this is anchored from and what camera. If this features should be marginalized its flag can be set and during cleanup it will be removed.</p>
+        <section id="base-classes">
+          <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              struct <a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>
+              class <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>
             </dt>
-            <dd>Struct for a single imu measurement (time, wm, am)</dd>
+            <dd>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements vector variables.</dd>
           </dl>
         </section>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#af561617873737ccbee89ef1049380950" class="m-doc">InertialInitializer</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; gravity,
-              double window_length,
-              double imu_excite_threshold)</span>
+              <span class="m-doc-wrap-bumper"><a href="#aebaa1fd1a45e303f5431cb65e0c160cb" class="m-doc-self" name="aebaa1fd1a45e303f5431cb65e0c160cb">Landmark</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
-            <dd>Default constructor.</dd>
+            <dd>Default constructor (feature is always a <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a> of size 3)</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad16871758a8c89fadc39768541c7dd0a" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Matrix&lt;double, 3, 1&gt; wm,
-              Eigen::Matrix&lt;double, 3, 1&gt; am)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#ad8e8c8b0477862440eb787e4b2032fcd" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd>Stores incoming inertial readings.</dd>
+            <dd>Overrides the default vector update rule We want to selectively update the FEJ value if we are using an anchored representation.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a01a53903accbcaa72db154cf24175602" class="m-doc">initialize_with_imu</a>(</span><span class="m-doc-wrap">double&amp; time0,
-              Eigen::Matrix&lt;double, 4, 1&gt;&amp; q_GtoI0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_w0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; v_I0inG,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_a0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; p_I0inG) -&gt; bool</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac4f8e2cecf6c4fc00b7680ebe95c2fa9" class="m-doc">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej) -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
             </dt>
-            <dd>Try to initialize the system using just the imu.</dd>
+            <dd>Will return the position of the feature in the global frame of reference.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ac34319e2057c3c63154cef9a9aa08a2e" class="m-doc">set_from_xyz</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; p_FinG,
+              bool isfej)</span>
+            </dt>
+            <dd>Will set the current value based on the representation.</dd>
           </dl>
         </section>
-        <section id="pro-attribs">
-          <h2><a href="#pro-attribs">Protected variables</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
             <dt>
-              Eigen::Matrix&lt;double, 3, 1&gt; <a href="#a59d20bbff5849ed357e0119130ab200e" class="m-doc-self" name="a59d20bbff5849ed357e0119130ab200e">_gravity</a>
+              size_t <a href="#a3a8efcdbac98654a1f9a6c1aeec704d2" class="m-doc-self" name="a3a8efcdbac98654a1f9a6c1aeec704d2">_featid</a>
             </dt>
-            <dd>Gravity vector.</dd>
+            <dd><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a> ID of this landmark (corresponds to frontend id)</dd>
             <dt>
-              double <a href="#affb904841eab3635252b698b85ffe4be" class="m-doc-self" name="affb904841eab3635252b698b85ffe4be">_window_length</a>
+              int <a href="#af3e8650123382857392257f54703d129" class="m-doc-self" name="af3e8650123382857392257f54703d129">_anchor_cam_id</a>
             </dt>
-            <dd>Amount of time we will initialize over (seconds)</dd>
+            <dd>What camera ID our pose is anchored in!! By default the first measurement is the anchor.</dd>
             <dt>
-              double <a href="#a1af4c82912928d0a58a05e62d6103141" class="m-doc-self" name="a1af4c82912928d0a58a05e62d6103141">_imu_excite_threshold</a>
+              double <a href="#ac1eda5b2b1ae865e17cb14a4496732a0" class="m-doc-self" name="ac1eda5b2b1ae865e17cb14a4496732a0">_anchor_clone_timestamp</a>
             </dt>
-            <dd>Variance threshold on our acceleration to be classified as moving.</dd>
+            <dd>Timestamp of anchor clone.</dd>
             <dt>
-              std::vector&lt;<a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>&gt; <a href="#a07604dc112f6417994c4bb403defa375" class="m-doc-self" name="a07604dc112f6417994c4bb403defa375">imu_data</a>
+              bool <a href="#aa299b320a9cc181cf76c43bacb2b9fea" class="m-doc-self" name="aa299b320a9cc181cf76c43bacb2b9fea">has_had_anchor_change</a>
             </dt>
-            <dd>Our history of <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> messages (time, angular, linear)</dd>
+            <dd>Boolean if this landmark has had at least one anchor change.</dd>
+            <dt>
+              bool <a href="#a632a92f6b7c83766b25384f0fc3897fd" class="m-doc-self" name="a632a92f6b7c83766b25384f0fc3897fd">should_marg</a>
+            </dt>
+            <dd>Boolean if this landmark should be marginalized out.</dd>
+            <dt>
+              <a href="classov__core_1_1FeatureRepresentation.html#a6da28654fec70a2010f1826d316abc44" class="m-doc">FeatureRepresentation::<wbr />Representation</a> <a href="#aad43d6fde03f42ae92f00342a190c929" class="m-doc-self" name="aad43d6fde03f42ae92f00342a190c929">_feat_representation</a>
+            </dt>
+            <dd>What feature representation this feature currently has.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="af561617873737ccbee89ef1049380950"><div>
+          <section class="m-doc-details" id="ad8e8c8b0477862440eb787e4b2032fcd"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af561617873737ccbee89ef1049380950" class="m-doc-self">InertialInitializer</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; gravity,
-              double window_length,
-              double imu_excite_threshold)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad8e8c8b0477862440eb787e4b2032fcd" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
             </h3>
-            <p>Default constructor.</p>
+            <p>Overrides the default vector update rule We want to selectively update the FEJ value if we are using an anchored representation.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">gravity</td>
-                  <td>Gravity in the global frame of reference</td>
-                </tr>
-                <tr>
-                  <td>window_length</td>
-                  <td>Amount of time we will initialize over (seconds)</td>
-                </tr>
-                <tr>
-                  <td>imu_excite_threshold</td>
-                  <td>Variance threshold on our acceleration to be classified as moving</td>
+                  <td style="width: 1%">dx</td>
+                  <td>Additive error state correction</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ad16871758a8c89fadc39768541c7dd0a"><div>
+          <section class="m-doc-details" id="ac4f8e2cecf6c4fc00b7680ebe95c2fa9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad16871758a8c89fadc39768541c7dd0a" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Matrix&lt;double, 3, 1&gt; wm,
-              Eigen::Matrix&lt;double, 3, 1&gt; am)</span></span>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 1&gt; ov_core::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac4f8e2cecf6c4fc00b7680ebe95c2fa9" class="m-doc-self">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej)</span></span>
             </h3>
-            <p>Stores incoming inertial readings.</p>
+            <p>Will return the position of the feature in the global frame of reference.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>Timestamp of imu reading</td>
-                </tr>
-                <tr>
-                  <td>wm</td>
-                  <td>Gyro angular velocity reading</td>
-                </tr>
-                <tr>
-                  <td>am</td>
-                  <td>Accelerometer linear acceleration reading</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a01a53903accbcaa72db154cf24175602"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a01a53903accbcaa72db154cf24175602" class="m-doc-self">initialize_with_imu</a>(</span><span class="m-doc-wrap">double&amp; time0,
-              Eigen::Matrix&lt;double, 4, 1&gt;&amp; q_GtoI0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_w0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; v_I0inG,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_a0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; p_I0inG)</span></span>
-            </h3>
-            <p>Try to initialize the system using just the imu.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">time0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Timestamp that the returned state is at</td>
-                </tr>
-                <tr>
-                  <td>q_GtoI0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Orientation at initialization</td>
-                </tr>
-                <tr>
-                  <td>b_w0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Gyro bias at initialization</td>
-                </tr>
-                <tr>
-                  <td>v_I0inG&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Velocity at initialization</td>
-                </tr>
-                <tr>
-                  <td>b_a0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Acceleration bias at initialization</td>
-                </tr>
-                <tr>
-                  <td>p_I0inG&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Position at initialization</td>
+                  <td style="width: 1%">getfej</td>
+                  <td>Set to true to get the landmark FEJ value</td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
                   <th>Returns</th>
-                  <td>True if we have successfully initialized our system</td>
+                  <td>Position of feature either in global or anchor frame</td>
                 </tr>
               </tfoot>
             </table>
-<p>This will check if we have had a large enough jump in our acceleration. If we have then we will use the period of time before this jump to initialize the state. This assumes that our imu is sitting still and is not moving (so this would fail if we are experiencing constant acceleration).</p>
+<p>CASE: Global 3d feature representation CASE: Anchored 3D feature representation</p><p>CASE: Global inverse depth feature representation CASE: Anchored full inverse depth feature representation</p><p>CASE: Anchored MSCKF inverse depth feature representation</p>
+          </div></section>
+          <section class="m-doc-details" id="ac34319e2057c3c63154cef9a9aa08a2e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac34319e2057c3c63154cef9a9aa08a2e" class="m-doc-self">set_from_xyz</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; p_FinG,
+              bool isfej)</span></span>
+            </h3>
+            <p>Will set the current value based on the representation.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">p_FinG</td>
+                  <td>Position of the feature either in global or anchor frame</td>
+                </tr>
+                <tr>
+                  <td>isfej</td>
+                  <td>Set to true to set the landmark FEJ value</td>
+                </tr>
+              </tbody>
+            </table>
+<p>CASE: Global 3d feature representation CASE: Anchored 3d feature representation</p><p>CASE: Global inverse depth feature representation CASE: Anchored inverse depth feature representation</p><p>CASE: MSCKF anchored inverse depth representation</p>
           </div></section>
         </section>
       </div>

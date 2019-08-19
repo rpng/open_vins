@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_msckf::StateOptions struct | Open VINS</title>
+  <title>ov_core::FeatureRepresentation class | Open VINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,64 +47,68 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>StateOptions <span class="m-thin">struct</span>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>FeatureRepresentation <span class="m-thin">class</span>
         </h1>
-        <p>Struct which stores all our filter options.</p>
+        <p>Class has useful feature representation types.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#pub-attribs">Public variables</a></li>
+                <li><a href="#pub-types">Public types</a></li>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-        <section id="pub-attribs">
-          <h2><a href="#pub-attribs">Public variables</a></h2>
+        <section id="pub-types">
+          <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
             <dt>
-              bool <a href="#a1a4f949ad477d10523fa06322dcc0e39" class="m-doc-self" name="a1a4f949ad477d10523fa06322dcc0e39">do_fej</a>
+              <span class="m-doc-wrap-bumper">enum <a href="#a6da28654fec70a2010f1826d316abc44" class="m-doc-self" name="a6da28654fec70a2010f1826d316abc44">Representation</a> { </span><span class="m-doc-wrap"><a href="#a6da28654fec70a2010f1826d316abc44a7109f0a78ca879389f087eced3be56ab" class="m-doc">GLOBAL_3D</a>,
+              <a href="#a6da28654fec70a2010f1826d316abc44a26756ef4eb123ae0ea873230057afb9f" class="m-doc">GLOBAL_FULL_INVERSE_DEPTH</a>,
+              <a href="#a6da28654fec70a2010f1826d316abc44adb1120e0cc44ca74aafa6c762a1e1f58" class="m-doc">ANCHORED_3D</a>,
+              <a href="#a6da28654fec70a2010f1826d316abc44adfaf0d4334e31aa6c50fe12c0a3796df" class="m-doc">ANCHORED_FULL_INVERSE_DEPTH</a>,
+              <a href="#a6da28654fec70a2010f1826d316abc44a57b80a6054b38f1ad7c8cb1d20e9bd41" class="m-doc">ANCHORED_MSCKF_INVERSE_DEPTH</a> }</span>
             </dt>
-            <dd>Bool to determine whether or not to do first estimate Jacobians.</dd>
-            <dt>
-              bool <a href="#af4881f6bc94e9dc7d91adf2d064b131a" class="m-doc-self" name="af4881f6bc94e9dc7d91adf2d064b131a">imu_avg</a>
-            </dt>
-            <dd>Bool to determine whether or not use imu message averaging.</dd>
-            <dt>
-              bool <a href="#a9119bc2f15ba934708bf201bdb5ac225" class="m-doc-self" name="a9119bc2f15ba934708bf201bdb5ac225">do_calib_camera_pose</a>
-            </dt>
-            <dd>Bool to determine whether or not to calibrate imu-to-camera pose.</dd>
-            <dt>
-              bool <a href="#aff5471acfde8d4ddd4cd44e940be5177" class="m-doc-self" name="aff5471acfde8d4ddd4cd44e940be5177">do_calib_camera_intrinsics</a>
-            </dt>
-            <dd>Bool to determine whether or not to calibrate camera intrinsics.</dd>
-            <dt>
-              bool <a href="#a05dd7ee2f2acaadfbcabfad00a26df25" class="m-doc-self" name="a05dd7ee2f2acaadfbcabfad00a26df25">do_calib_camera_timeoffset</a>
-            </dt>
-            <dd>Bool to determine whether or not to calibrate camera to IMU time offset.</dd>
-            <dt>
-              int <a href="#a3fbf23951c9d379f51847348f775cfc9" class="m-doc-self" name="a3fbf23951c9d379f51847348f775cfc9">max_clone_size</a>
-            </dt>
-            <dd>Max clone size of sliding window.</dd>
-            <dt>
-              int <a href="#af486dff48a918b3afed0176558d86f65" class="m-doc-self" name="af486dff48a918b3afed0176558d86f65">max_slam_features</a>
-            </dt>
-            <dd>Max number of estimated SLAM features.</dd>
-            <dt>
-              int <a href="#ad26177fc751cdcf12e9e19ef698f91eb" class="m-doc-self" name="ad26177fc751cdcf12e9e19ef698f91eb">max_aruco_features</a>
-            </dt>
-            <dd>Max number of estimated ARUCO features.</dd>
-            <dt>
-              int <a href="#a1de43b7611b68b3bbae742adfd0e20e5" class="m-doc-self" name="a1de43b7611b68b3bbae742adfd0e20e5">num_cameras</a>
-            </dt>
-            <dd>Number of cameras.</dd>
-            <dt>
-              <a href="classov__core_1_1FeatureRepresentation.html#a6da28654fec70a2010f1826d316abc44" class="m-doc">FeatureRepresentation::<wbr />Representation</a> <a href="#af8f3b46cb5760dd22b174e183ac6fc92" class="m-doc-self" name="af8f3b46cb5760dd22b174e183ac6fc92">feat_representation</a>
-            </dt>
-            <dd>What representation our features are in.</dd>
+            <dd>What feature representation our state can use.</dd>
           </dl>
+        </section>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a9e2ff53197911360e1e2200a63181b7e" class="m-doc">is_relative_representation</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1FeatureRepresentation.html#a6da28654fec70a2010f1826d316abc44" class="m-doc">Representation</a> feat_representation) -&gt; bool</span>
+            </dt>
+            <dd>Helper function that checks if the passed feature representation is a relative or global.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a9e2ff53197911360e1e2200a63181b7e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static bool ov_core::<wbr />FeatureRepresentation::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9e2ff53197911360e1e2200a63181b7e" class="m-doc-self">is_relative_representation</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1FeatureRepresentation.html#a6da28654fec70a2010f1826d316abc44" class="m-doc">Representation</a> feat_representation)</span></span>
+            </h3>
+            <p>Helper function that checks if the passed feature representation is a relative or global.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">feat_representation</td>
+                  <td>Representation we want to check</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>True if it is a relative representation</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>
