@@ -63,11 +63,11 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     std::transform(feat_rep_str.begin(), feat_rep_str.end(),feat_rep_str.begin(), ::toupper);
 
     // Set what representation we should be using
-    if(feat_rep_str == "GLOBAL_3D") state_options.feat_representation = StateOptions::FeatureRepresentation::GLOBAL_3D;
-    else if(feat_rep_str == "GLOBAL_FULL_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::GLOBAL_FULL_INVERSE_DEPTH;
-    else if(feat_rep_str == "ANCHORED_3D") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_3D;
-    else if(feat_rep_str == "ANCHORED_FULL_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_FULL_INVERSE_DEPTH;
-    else if(feat_rep_str == "ANCHORED_MSCKF_INVERSE_DEPTH") state_options.feat_representation = StateOptions::FeatureRepresentation::ANCHORED_MSCKF_INVERSE_DEPTH;
+    if(feat_rep_str == "GLOBAL_3D") state_options.feat_representation = FeatureRepresentation::Representation::GLOBAL_3D;
+    else if(feat_rep_str == "GLOBAL_FULL_INVERSE_DEPTH") state_options.feat_representation = FeatureRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH;
+    else if(feat_rep_str == "ANCHORED_3D") state_options.feat_representation = FeatureRepresentation::Representation::ANCHORED_3D;
+    else if(feat_rep_str == "ANCHORED_FULL_INVERSE_DEPTH") state_options.feat_representation = FeatureRepresentation::Representation::ANCHORED_FULL_INVERSE_DEPTH;
+    else if(feat_rep_str == "ANCHORED_MSCKF_INVERSE_DEPTH") state_options.feat_representation = FeatureRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
     else {
         ROS_ERROR("VioManager(): invalid feature representation specified = %s", feat_rep_str.c_str());
         ROS_ERROR("VioManager(): the valid types are:");

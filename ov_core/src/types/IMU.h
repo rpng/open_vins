@@ -18,18 +18,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_MSCKF_TYPE_IMU_H
-#define OV_MSCKF_TYPE_IMU_H
+#ifndef OV_CORE_TYPE_IMU_H
+#define OV_CORE_TYPE_IMU_H
 
 
-#include "utils/quat_ops.h"
 #include "PoseJPL.h"
+#include "utils/quat_ops.h"
 
 
-using namespace ov_core;
-
-
-namespace ov_msckf {
+namespace ov_core {
 
 
     /**
@@ -285,4 +282,4 @@ namespace ov_msckf {
 }
 
 
-#endif //OV_MSCKF_TYPE_IMU_H
+#endif //OV_CORE_TYPE_IMU_H

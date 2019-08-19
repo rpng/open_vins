@@ -31,13 +31,14 @@
 #include "track/TrackKLT.h"
 #include "track/TrackSIM.h"
 #include "init/InertialInitializer.h"
+#include "feat/FeatureRepresentation.h"
+#include "types/Landmark.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "update/UpdaterMSCKF.h"
 #include "update/UpdaterSLAM.h"
-#include "types/Landmark.h"
 
 
 namespace ov_msckf {
@@ -151,7 +152,7 @@ namespace ov_msckf {
             std::vector<Eigen::Vector3d> slam_feats;
             for (auto &f : state->features_SLAM()){
                 if((int)f.first <= state->options().max_aruco_features) continue;
-                if(StateOptions::is_relative_representation(f.second->_feat_representation)) {
+                if(FeatureRepresentation::is_relative_representation(f.second->_feat_representation)) {
                     // Assert that we have an anchor pose for this feature
                     assert(f.second->_anchor_cam_id!=-1);
                     // Get calibration for our anchor camera
@@ -174,7 +175,7 @@ namespace ov_msckf {
             std::vector<Eigen::Vector3d> aruco_feats;
             for (auto &f : state->features_SLAM()){
                 if((int)f.first > state->options().max_aruco_features) continue;
-                if(StateOptions::is_relative_representation(f.second->_feat_representation)) {
+                if(FeatureRepresentation::is_relative_representation(f.second->_feat_representation)) {
                     // Assert that we have an anchor pose for this feature
                     assert(f.second->_anchor_cam_id!=-1);
                     // Get calibration for our anchor camera

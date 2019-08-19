@@ -25,20 +25,17 @@
 #include <vector>
 #include <unordered_map>
 
+#include "types/Type.h"
 #include "types/IMU.h"
 #include "types/Vec.h"
 #include "types/PoseJPL.h"
+#include "types/Landmark.h"
 #include "StateOptions.h"
 
 using namespace ov_core;
 
 
 namespace ov_msckf {
-
-
-    // Pre-declare the state since it depends on us also (i.e. a circular dependency)
-    class Landmark;
-
 
     /**
      * @brief State of our filter

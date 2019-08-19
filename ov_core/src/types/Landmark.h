@@ -18,15 +18,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_MSCKF_LANDMARK_H
-#define OV_MSCKF_LANDMARK_H
+#ifndef OV_CORE_TYPE_LANDMARK_H
+#define OV_CORE_TYPE_LANDMARK_H
 
 
 #include "Vec.h"
-#include "state/StateOptions.h"
+#include "feat/FeatureRepresentation.h"
 
 
-namespace ov_msckf {
+namespace ov_core {
 
 
     /**
@@ -59,7 +59,7 @@ namespace ov_msckf {
         bool should_marg = false;
 
         /// What feature representation this feature currently has
-        StateOptions::FeatureRepresentation _feat_representation;
+        FeatureRepresentation::Representation _feat_representation;
 
         /**
          * @brief Overrides the default vector update rule
@@ -71,8 +71,8 @@ namespace ov_msckf {
             assert(dx.rows() == _size);
             set_value(_value+dx);
             // If we are using a relative and we have not anchor changed yet, then update linearization / FEJ value
-            //if(StateOptions::is_relative_representation(_feat_representation) && !has_had_anchor_change) {
-            if(StateOptions::is_relative_representation(_feat_representation)) {
+            //if(FeatureRepresentation::is_relative_representation(_feat_representation) && !has_had_anchor_change) {
+            if(FeatureRepresentation::is_relative_representation(_feat_representation)) {
                 set_fej(value());
             }
         }
@@ -98,4 +98,4 @@ namespace ov_msckf {
 
 
 
-#endif //OV_MSCKF_LANDMARK_H
+#endif //OV_CORE_TYPE_LANDMARK_H

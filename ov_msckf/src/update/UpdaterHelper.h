@@ -26,6 +26,7 @@
 #include <Eigen/Eigen>
 
 #include "feat/Feature.h"
+#include "feat/FeatureRepresentation.h"
 #include "state/State.h"
 #include "state/StateOptions.h"
 #include "utils/quat_ops.h"
@@ -67,7 +68,7 @@ namespace ov_msckf {
             std::unordered_map<size_t, std::vector<double>> timestamps;
 
             /// What representation our feature is in
-            StateOptions::FeatureRepresentation feat_representation;
+            FeatureRepresentation::Representation feat_representation;
 
             /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
             int anchor_cam_id = -1;

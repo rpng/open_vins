@@ -27,8 +27,6 @@ using namespace ov_msckf;
 
 
 
-
-
 void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec) {
 
     // Return if no features
@@ -129,7 +127,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         feat.feat_representation = state->options().feat_representation;
 
         // Save the position and its fej value
-        if(StateOptions::is_relative_representation(feat.feat_representation)) {
+        if(FeatureRepresentation::is_relative_representation(feat.feat_representation)) {
             feat.anchor_cam_id = (*it2)->anchor_cam_id;
             feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
             feat.p_FinA = (*it2)->p_FinA;
@@ -152,7 +150,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         Landmark* landmark = new Landmark();
         landmark->_featid = feat.featid;
         landmark->_feat_representation = feat.feat_representation;
-        if(StateOptions::is_relative_representation(feat.feat_representation)) {
+        if(FeatureRepresentation::is_relative_representation(feat.feat_representation)) {
             landmark->_anchor_cam_id = feat.anchor_cam_id;
             landmark->_anchor_clone_timestamp = feat.anchor_clone_timestamp;
             landmark->set_from_xyz(feat.p_FinA, false);
@@ -279,7 +277,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.feat_representation = landmark->_feat_representation;
 
         // Save the position and its fej value
-        if(StateOptions::is_relative_representation(feat.feat_representation)) {
+        if(FeatureRepresentation::is_relative_representation(feat.feat_representation)) {
             feat.anchor_cam_id = landmark->_anchor_cam_id;
             feat.anchor_clone_timestamp = landmark->_anchor_clone_timestamp;
             feat.p_FinA = landmark->get_xyz(false);
@@ -410,7 +408,8 @@ void UpdaterSLAM::change_anchors(State* state){
     double marg_timestep = state->margtimestep();
     for (auto &f : state->features_SLAM()){
         // Skip any features that are in the global frame
-        if(f.second->_feat_representation== StateOptions::GLOBAL_3D || f.second->_feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH)
+        if(f.second->_feat_representation== FeatureRepresentation::Representation::GLOBAL_3D
+            || f.second->_feat_representation == FeatureRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH)
             continue;
         // Else lets see if it is anchored in the clone that will be marginalized
         assert(marg_timestep <= f.second->_anchor_clone_timestamp);
@@ -427,7 +426,7 @@ void UpdaterSLAM::change_anchors(State* state){
 void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id) {
 
     // Assert that this is an anchored representation
-    assert(StateOptions::is_relative_representation(landmark->_feat_representation));
+    assert(FeatureRepresentation::is_relative_representation(landmark->_feat_representation));
     assert(landmark->_anchor_cam_id != -1);
 
     // Create current feature representation

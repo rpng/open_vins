@@ -151,7 +151,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.feat_representation = state->options().feat_representation;
 
         // Save the position and its fej value
-        if(StateOptions::is_relative_representation(feat.feat_representation)) {
+        if(FeatureRepresentation::is_relative_representation(feat.feat_representation)) {
             feat.anchor_cam_id = (*it2)->anchor_cam_id;
             feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
             feat.p_FinA = (*it2)->p_FinA;

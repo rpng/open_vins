@@ -29,14 +29,14 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
                                                         std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order) {
 
     // Global XYZ representation
-    if (feature.feat_representation == StateOptions::GLOBAL_3D) {
+    if (feature.feat_representation == FeatureRepresentation::Representation::GLOBAL_3D) {
         H_f.resize(3,3);
         H_f.setIdentity();
         return;
     }
 
     // Global inverse depth representation
-    if (feature.feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH) {
+    if (feature.feat_representation == FeatureRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH) {
 
         // Get the feature linearization point
         Eigen::Matrix<double,3,1> p_FinG = (state->options().do_fej)? feature.p_FinG_fej : feature.p_FinG;
@@ -117,13 +117,13 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     }
 
     // If we are doing anchored XYZ feature
-    if (feature.feat_representation == StateOptions::ANCHORED_3D) {
+    if (feature.feat_representation == FeatureRepresentation::Representation::ANCHORED_3D) {
         H_f = R_CtoG;
         return;
     }
 
     // If we are doing full inverse depth
-    if (feature.feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH) {
+    if (feature.feat_representation == FeatureRepresentation::Representation::ANCHORED_FULL_INVERSE_DEPTH) {
 
         // Get inverse depth representation (should match what is in Landmark.cpp)
         double a_rho = 1/p_FinA.norm();
@@ -152,7 +152,7 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     }
 
     // If we are doing the MSCKF version of inverse depth
-    if (feature.feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH) {
+    if (feature.feat_representation == FeatureRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH) {
 
         // Get inverse depth representation (should match what is in Landmark.cpp)
         Eigen::Matrix<double,3,1> p_invFinA_MSCKF;
@@ -338,7 +338,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     }
 
     // If we are using an anchored representation, make sure that the anchor is also added
-    if (StateOptions::is_relative_representation(feature.feat_representation)) {
+    if (FeatureRepresentation::is_relative_representation(feature.feat_representation)) {
 
         // Assert we have a clone
         assert(feature.anchor_cam_id != -1);
@@ -370,7 +370,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     // Calculate the position of this feature in the global frame
     // If anchored, then we need to calculate the position of the feature in the global
     Eigen::Vector3d p_FinG = feature.p_FinG;
-    if(StateOptions::is_relative_representation(feature.feat_representation)) {
+    if(FeatureRepresentation::is_relative_representation(feature.feat_representation)) {
         // Assert that we have an anchor pose for this feature
         assert(feature.anchor_cam_id!=-1);
         // Get calibration for our anchor camera
@@ -386,7 +386,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     // Calculate the position of this feature in the global frame FEJ
     // If anchored, then we need to calculate the position of the feature in the global
     Eigen::Vector3d p_FinG_fej = feature.p_FinG_fej;
-    if(StateOptions::is_relative_representation(feature.feat_representation)) {
+    if(FeatureRepresentation::is_relative_representation(feature.feat_representation)) {
         // Assert that we have an anchor pose for this feature
         assert(feature.anchor_cam_id!=-1);
         // Get calibration for our anchor camera

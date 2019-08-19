@@ -26,6 +26,7 @@
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "feat/Feature.h"
+#include "feat/FeatureRepresentation.h"
 #include "feat/FeatureInitializer.h"
 #include "feat/FeatureInitializerOptions.h"
 #include "utils/quat_ops.h"

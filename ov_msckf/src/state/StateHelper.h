@@ -27,6 +27,7 @@
 
 #include <boost/math/distributions/chi_squared.hpp>
 
+using namespace ov_core;
 
 namespace ov_msckf {
 

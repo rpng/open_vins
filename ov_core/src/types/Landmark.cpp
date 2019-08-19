@@ -21,21 +21,22 @@
 #include "Landmark.h"
 
 
-using namespace ov_msckf;
-
+using namespace ov_core;
 
 
 Eigen::Matrix<double,3,1> Landmark::get_xyz(bool getfej) {
 
     /// CASE: Global 3d feature representation
     /// CASE: Anchored 3D feature representation
-    if (_feat_representation == StateOptions::GLOBAL_3D || _feat_representation == StateOptions::ANCHORED_3D) {
+    if (_feat_representation == FeatureRepresentation::Representation::GLOBAL_3D
+        || _feat_representation == FeatureRepresentation::Representation::ANCHORED_3D) {
         return (getfej) ? fej() : value();
     }
 
     /// CASE: Global inverse depth feature representation
     /// CASE: Anchored full inverse depth feature representation
-    if (_feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH || _feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH) {
+    if (_feat_representation == FeatureRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH
+        || _feat_representation == FeatureRepresentation::Representation::ANCHORED_FULL_INVERSE_DEPTH) {
         Eigen::Matrix<double, 3, 1> p_invFinG = (getfej) ? fej() : value();
         Eigen::Matrix<double, 3, 1> p_FinG;
         p_FinG << (1 / p_invFinG(2)) * std::cos(p_invFinG(0)) * std::sin(p_invFinG(1)),
@@ -45,7 +46,7 @@ Eigen::Matrix<double,3,1> Landmark::get_xyz(bool getfej) {
     }
 
     /// CASE: Anchored MSCKF inverse depth feature representation
-    if (_feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH){
+    if (_feat_representation == FeatureRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH){
         Eigen::Matrix<double, 3, 1> p_FinA;
         Eigen::Matrix<double, 3, 1> p_invFinA = value();
         p_FinA << (1 / p_invFinA(2)) * p_invFinA(0),
@@ -64,7 +65,8 @@ void Landmark::set_from_xyz(Eigen::Matrix<double,3,1> p_FinG, bool isfej) {
 
     /// CASE: Global 3d feature representation
     /// CASE: Anchored 3d feature representation
-    if (_feat_representation == StateOptions::GLOBAL_3D || _feat_representation == StateOptions::ANCHORED_3D) {
+    if (_feat_representation == FeatureRepresentation::Representation::GLOBAL_3D
+        || _feat_representation == FeatureRepresentation::Representation::ANCHORED_3D) {
         if(isfej) set_fej(p_FinG);
         else set_value(p_FinG);
         return;
@@ -72,7 +74,8 @@ void Landmark::set_from_xyz(Eigen::Matrix<double,3,1> p_FinG, bool isfej) {
 
     /// CASE: Global inverse depth feature representation
     /// CASE: Anchored inverse depth feature representation
-    if (_feat_representation == StateOptions::GLOBAL_FULL_INVERSE_DEPTH || _feat_representation == StateOptions::ANCHORED_FULL_INVERSE_DEPTH) {
+    if (_feat_representation == FeatureRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH
+        || _feat_representation == FeatureRepresentation::Representation::ANCHORED_FULL_INVERSE_DEPTH) {
 
         // Feature inverse representation
         // NOTE: This is not the MSCKF inverse form, but the standard form
@@ -93,7 +96,7 @@ void Landmark::set_from_xyz(Eigen::Matrix<double,3,1> p_FinG, bool isfej) {
     }
 
     /// CASE: MSCKF anchored inverse depth representation
-    if (_feat_representation == StateOptions::ANCHORED_MSCKF_INVERSE_DEPTH) {
+    if (_feat_representation == FeatureRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH) {
 
         // MSCKF representation
         Eigen::Matrix<double,3,1> p_invFinA_MSCKF;

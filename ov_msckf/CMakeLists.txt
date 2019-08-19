@@ -68,7 +68,7 @@ add_library(ov_msckf
         src/state/Propagator.cpp
         src/core/VioManager.cpp
         src/core/RosVisualizer.cpp
-        src/types/Landmark.cpp
+        ../ov_core/src/types/Landmark.cpp
         src/update/UpdaterHelper.cpp
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
