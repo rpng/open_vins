@@ -62,28 +62,27 @@ list(APPEND thirdparty_libraries
 ##################################################
 # Make the core library
 ##################################################
-add_library(ov_msckf
+add_library(ov_msckf_lib
         src/state/State.cpp
         src/state/StateHelper.cpp
         src/state/Propagator.cpp
         src/core/VioManager.cpp
         src/core/RosVisualizer.cpp
-        ../ov_core/src/types/Landmark.cpp
         src/update/UpdaterHelper.cpp
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
 )
-target_link_libraries(ov_msckf ${thirdparty_libraries})
+target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
 
 
 ##################################################
 # Make binary files!
 ##################################################
 add_executable(run_serial_msckf src/run_serial_msckf.cpp)
-target_link_libraries(run_serial_msckf ov_msckf ${thirdparty_libraries})
+target_link_libraries(run_serial_msckf ov_msckf_lib ${thirdparty_libraries})
 
 add_executable(run_simulation src/run_simulation.cpp)
-target_link_libraries(run_simulation ov_msckf ${thirdparty_libraries})
+target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
 
 add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
-target_link_libraries(run_subscribe_msckf ov_msckf ${thirdparty_libraries})
+target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
