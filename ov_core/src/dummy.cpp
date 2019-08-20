@@ -35,6 +35,7 @@
  * - KLT, descriptor, aruco, and simulation feature trackers
  * - Groundtruth dataset reader
  * - Quaternion and other manifold math operations
+ * - Generic type system and their implementations
  *
  * Please take a look at classes that we offer for the user to leverage as each has its own documentation.
  * If you are looking for the estimator please take a look at the ov_msckf project which leverages these algorithms.

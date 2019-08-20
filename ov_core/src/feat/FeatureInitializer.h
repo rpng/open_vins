@@ -36,6 +36,7 @@ namespace ov_core {
      * As in the standard MSCKF, we know the clones of the camera from propagation and past updates.
      * Thus, we just need to triangulate a feature in 3D with the known poses and then refine it.
      * One should first call the single_triangulation() function afterwhich single_gaussnewton() allows for refinement.
+     * Please see the @ref update-featinit page for detailed derivations.
      */
     class FeatureInitializer
     {

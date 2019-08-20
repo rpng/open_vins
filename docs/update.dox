@@ -272,6 +272,7 @@ These are essentially the Kalman filter (or linear MMSE) update equations.
 
 @section update-examples Update Equations and Derivations
 
+-   @subpage  update-featinit --- 3D feature triangulation derivations for getting a feature linearization point
 -   @subpage update-feat --- Measurement equations and derivation for 3D feature point
 -   @subpage update-delay --- How to perform delayed initialization
 -   @subpage update-null --- MSCKF nullspace projection
