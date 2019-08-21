@@ -23,6 +23,7 @@ message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 catkin_package(
         CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core
         INCLUDE_DIRS src
+        LIBRARIES ov_msckf_lib
 )
 
 # Try to compile with c++11
