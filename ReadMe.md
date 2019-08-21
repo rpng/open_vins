@@ -17,7 +17,7 @@ Please take a look at the feature list below for full details on what the system
 * Publication reference - TBD
 
 
-## News
+## News / Events
 
 * **August 21, 2019** - Open sourced [ov_maplab](https://github.com/rpng/ov_maplab) for interfacing OpenVINS with the [maplab](https://github.com/ethz-asl/maplab) library.
 * **August 15, 2019** - Initial release of OpenVINS repository and documentation website! 
