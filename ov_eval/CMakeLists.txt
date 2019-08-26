@@ -7,7 +7,7 @@ project(ov_eval)
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 # Find catkin (the ROS build system)
-find_package(catkin REQUIRED COMPONENTS roscpp geometry_msgs nav_msgs sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs)
 
 # Include libraries
 find_package(Eigen3 REQUIRED)
@@ -29,7 +29,7 @@ endif()
 
 # Describe catkin project
 catkin_package(
-        CATKIN_DEPENDS roscpp geometry_msgs nav_msgs sensor_msgs
+        CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs
         INCLUDE_DIRS src
         LIBRARIES ov_eval_lib
 )
@@ -106,4 +106,21 @@ target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
 
 add_executable(error_simulation src/error_simulation.cpp)
 target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
+
+add_executable(timing_singlerun src/timing_singlerun.cpp)
+target_link_libraries(timing_singlerun ov_eval_lib ${thirdparty_libraries})
+
+add_executable(timing_comparison src/timing_comparison.cpp)
+target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
+
+
+
+##################################################
+# Python scripts!
+##################################################
+catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+
+
 

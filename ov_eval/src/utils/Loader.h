@@ -62,6 +62,16 @@ namespace ov_eval {
         static void load_simulation(std::string path, std::vector<Eigen::VectorXd> &values);
 
         /**
+         * @brief Load space seperated timing file from pid_ros.py file
+         * @param path Path to our text file to load
+         * @param times Timesteps in seconds
+         * @param summed_values Summed node values [%cpu,%mem,#threads]
+         * @param node_values Values for each seperate node [%cpu,%mem,#threads]
+         */
+        static void load_timing(std::string path, std::vector<double> &times,
+                                std::vector<Eigen::Vector3d> &summed_values, std::vector<Eigen::VectorXd> &node_values);
+
+        /**
          * @brief Will calculate the total trajectory distance
          * @param poses Pose at every timestep [pos,quat]
          * @return Distance travels (meters)

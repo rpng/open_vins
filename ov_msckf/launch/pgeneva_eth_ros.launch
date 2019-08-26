@@ -7,6 +7,7 @@
     <!-- saving trajectory paths -->
     <arg name="dosave"      default="false" />
     <arg name="path_est"    default="/tmp/traj_estimate.txt" />
+    <arg name="path_time"   default="/tmp/traj_timing.txt" />
 
 
     <!-- MASTER NODE! -->
@@ -96,10 +97,14 @@
 
     <!-- record the trajectory if enabled -->
     <group if="$(arg dosave)">
-        <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
+        <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen" required="true">
             <param name="topic"      type="str" value="/ov_msckf/poseimu" />
             <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
             <param name="output"     type="str" value="$(arg path_est)" />
+        </node>
+        <node name="recorder_timing" pkg="ov_eval" type="pid_ros.py" output="screen" required="true">
+            <param name="nodes"      type="str" value="/run_subscribe_msckf" />
+            <param name="output"     type="str" value="$(arg path_time)" />
         </node>
     </group>
 

@@ -25,13 +25,21 @@ Within the ROS framework, this means that we just need to publish the current es
 We recommend using the following @ref ov_eval::Recorder utility for recording the estimator output directly into a text file.
 
 @code{.xml}
-<launch>
-<node name="pose_to_file" pkg="ov_eval" type="pose_to_file" output="screen">
+<node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
     <param name="topic"      type="str" value="/ov_msckf/poseimu" />
     <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
     <param name="output"     type="str" value="/home/user/data/traj_log.txt" />
 </node>
-</launch>
+@endcode
+
+
+To evaluate the computational load, we have a python script that leverages the [psutil](https://github.com/giampaolo/psutil) python package to record percent CPU and memory consumption.
+
+@code{.xml}
+<node name="recorder_timing" pkg="ov_eval" type="pid_ros.py" output="screen">
+    <param name="nodes"   type="str" value="/run_subscribe_msckf" />
+    <param name="output"  type="str" value="/home/user/data/time_log.txt" />
+</node>
 @endcode
 
 

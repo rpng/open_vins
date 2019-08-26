@@ -805,7 +805,7 @@ PyObject* get_array(const std::vector<Numeric>& v)
     }
 
     template<typename NumericX>
-    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::string &linestyle, const std::map<std::string, std::string>& keywords = {})
+    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::string &linestyle, const std::map<std::string, std::string>& keywords = {}, bool vert=true)
     {
 
         // Create a sequence of vectors
@@ -834,6 +834,10 @@ PyObject* get_array(const std::vector<Numeric>& v)
         PyDict_SetItemString(kwargs, "whiskerprops", cargs1);
         PyDict_SetItemString(kwargs, "medianprops", cargs1);
         PyDict_SetItemString(kwargs, "boxprops", cargs1);
+
+        // set if vertical or not
+        if(vert) PyDict_SetItemString(kwargs, "vert", Py_True);
+        else PyDict_SetItemString(kwargs, "vert", Py_False);
 
         // finally call the external python function
         PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_boxplot, plot_args, kwargs);

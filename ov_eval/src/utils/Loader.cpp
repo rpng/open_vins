@@ -181,6 +181,78 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
 
 
 
+void Loader::load_timing(std::string path, std::vector<double> &times,
+                         std::vector<Eigen::Vector3d> &summed_values, std::vector<Eigen::VectorXd> &node_values) {
+
+    // Try to open our trajectory file
+    std::ifstream file(path);
+    if(!file.is_open()) {
+        ROS_ERROR("[LOAD]: Unable to open timing file...");
+        ROS_ERROR("[LOAD]: %s",path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Loop through each line of this file
+    std::string current_line;
+    while(std::getline(file, current_line) && ros::ok()) {
+
+        // Skip if we start with a comment
+        if(!current_line.find("#"))
+            continue;
+
+        // Loop variables
+        std::istringstream s(current_line);
+        std::string field;
+        std::vector<double> vec;
+
+        // Loop through this line (timestamp(s) values....)
+        while(std::getline(s,field,' ') && ros::ok()) {
+            // Skip if empty
+            if(field.empty())
+                continue;
+            // save the data to our vector
+            vec.push_back(std::atof(field.c_str()));
+        }
+
+        // Create eigen vector
+        Eigen::VectorXd temp(vec.size());
+        for(size_t i=0; i<vec.size(); i++) {
+            temp(i) = vec.at(i);
+        }
+
+        // Skip if there where no threads
+        if(temp(3)==0.0)
+            continue;
+
+        // Save the summed value
+        times.push_back(temp(0));
+        summed_values.push_back(temp.block(1,0,3,1));
+        node_values.push_back(temp.block(4,0,temp.rows()-4,1));
+
+    }
+
+    // Finally close the file
+    file.close();
+
+    // Error if we don't have any data
+    if (times.empty()) {
+        ROS_ERROR("[LOAD]: Could not parse any data from the file!!");
+        ROS_ERROR("[LOAD]: %s",path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Assert that they are all equal
+    if(times.size() != summed_values.size() || times.size() != node_values.size()) {
+        ROS_ERROR("[LOAD]: Parsing error, pose and timestamps do not match!!");
+        ROS_ERROR("[LOAD]: %s",path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+
+}
+
+
+
 double Loader::get_total_length(const std::vector<Eigen::Matrix<double,7,1>> &poses) {
 
     // Loop through every pose and append its segment
