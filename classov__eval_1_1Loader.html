@@ -78,6 +78,13 @@
             </dt>
             <dd>Load a arbitrary sized row of values, used for our simulation.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#aa5ac4cd4fbf653e5a5b6becb130e80db" class="m-doc">load_timing</a>(</span><span class="m-doc-wrap">std::string path,
+              std::vector&lt;double&gt;&amp; times,
+              std::vector&lt;Eigen::Vector3d&gt;&amp; summed_values,
+              std::vector&lt;Eigen::VectorXd&gt;&amp; node_values)</span>
+            </dt>
+            <dd>Load space seperated timing file from pid_ros.py file.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">static auto <a href="#af4f3f47d194febe39fe1a97a915b7add" class="m-doc">get_total_length</a>(</span><span class="m-doc-wrap">const std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; poses) -&gt; double</span>
             </dt>
             <dd>Will calculate the total trajectory distance.</dd>
@@ -140,6 +147,38 @@
                 <tr>
                   <td>values</td>
                   <td>Each row of values</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="aa5ac4cd4fbf653e5a5b6becb130e80db"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />Loader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa5ac4cd4fbf653e5a5b6becb130e80db" class="m-doc-self">load_timing</a>(</span><span class="m-doc-wrap">std::string path,
+              std::vector&lt;double&gt;&amp; times,
+              std::vector&lt;Eigen::Vector3d&gt;&amp; summed_values,
+              std::vector&lt;Eigen::VectorXd&gt;&amp; node_values)</span></span>
+            </h3>
+            <p>Load space seperated timing file from pid_ros.py file.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">path</td>
+                  <td>Path to our text file to load</td>
+                </tr>
+                <tr>
+                  <td>times</td>
+                  <td>Timesteps in seconds</td>
+                </tr>
+                <tr>
+                  <td>summed_values</td>
+                  <td>Summed node values [cpu,mem,#threads]</td>
+                </tr>
+                <tr>
+                  <td>node_values</td>
+                  <td>Values for each seperate node [cpu,mem,#threads]</td>
                 </tr>
               </tbody>
             </table>
