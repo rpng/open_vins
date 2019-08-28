@@ -103,7 +103,6 @@ int main(int argc, char **argv) {
             std::vector<Eigen::Vector3d> summed_values;
             std::vector<Eigen::VectorXd> node_values;
             ov_eval::Loader::load_timing(entry.path().string(), times, summed_values, node_values);
-            ROS_INFO("\t-loaded %d timestamps from file!!",(int)times.size());
 
             // Append to our summed values
             total_times.insert(total_times.end(),times.begin(),times.end());
@@ -122,6 +121,14 @@ int main(int argc, char **argv) {
             algo_timings.at(algo).at(2).values.push_back(total_summed_values.at(j)(2));
         }
 
+        // Display for the user
+        ROS_INFO("\tloaded %d timestamps from file!!",(int)algo_timings.at(algo).at(0).timestamps.size());
+        algo_timings.at(algo).at(0).calculate();
+        algo_timings.at(algo).at(1).calculate();
+        algo_timings.at(algo).at(2).calculate();
+        ROS_INFO("\tPREC: mean_cpu = %.3f +- %.3f",algo_timings.at(algo).at(0).mean,algo_timings.at(algo).at(0).std);
+        ROS_INFO("\tPREC: mean_mem = %.3f +- %.3f",algo_timings.at(algo).at(1).mean,algo_timings.at(algo).at(1).std);
+        ROS_INFO("\t#THR: mean_threads = %.3f +- %.3f",algo_timings.at(algo).at(2).mean,algo_timings.at(algo).at(2).std);
 
     }
 
@@ -129,7 +136,6 @@ int main(int argc, char **argv) {
     //===============================================================================
     //===============================================================================
     //===============================================================================
-
 
 
 #ifdef HAVE_PYTHONLIBS
