@@ -436,6 +436,26 @@ namespace ov_core {
     }
 
     /**
+     * @brief SE(3) matrix analytical inverse
+     *
+     * It seems that using the .inverse() function is not a good way.
+     * This should be used in all cases we need the inverse instead of numerical inverse.
+     * https://github.com/rpng/open_vins/issues/12
+     * \f{align*}{
+     * \mathbf{T}^{-1} = \begin{bmatrix} \mathbf{R}^\top & -\mathbf{R}^\top\mathbf{p} \\ \mathbf{0} & 1 \end{bmatrix}
+     * \f}
+     *
+     * @param[in] T SE(3) matrix
+     * @return inversed SE(3) matrix
+     */
+    inline Eigen::Matrix4d Inv_se3(const Eigen::Matrix4d &T) {
+        Eigen::Matrix4d Tinv = Eigen::Matrix4d::Identity();
+        Tinv.block(0,0,3,3) = T.block(0,0,3,3).transpose();
+        Tinv.block(0,3,3,1) = -Tinv.block(0,0,3,3)*T.block(0,3,3,1);
+        return Tinv;
+    }
+
+    /**
      * @brief JPL Quaternion inverse
      *
      * See equation 21 in [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf).

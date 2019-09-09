@@ -81,7 +81,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
 
         // Linear interpolation and append to our control points
         double lambda = (timestamp_curr-t0)/(t1-t0);
-        Eigen::Matrix4d pose_interp = exp_se3(lambda*log_se3(pose1*pose0.inverse()))*pose0;
+        Eigen::Matrix4d pose_interp = exp_se3(lambda*log_se3(pose1*Inv_se3(pose0)))*pose0;
         control_points.insert({timestamp_curr, pose_interp});
         timestamp_curr += dt;
         //std::cout << pose_interp(0,3) << "," << pose_interp(1,3) << "," << pose_interp(2,3) << std::endl;
@@ -121,9 +121,9 @@ bool BsplineSE3::get_pose(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vect
     double b2 = 1.0/6.0*(u*u*u);
 
     // Calculate interpolated poses
-    Eigen::Matrix4d A0 = exp_se3(b0*log_se3(pose0.inverse()*pose1));
-    Eigen::Matrix4d A1 = exp_se3(b1*log_se3(pose1.inverse()*pose2));
-    Eigen::Matrix4d A2 = exp_se3(b2*log_se3(pose2.inverse()*pose3));
+    Eigen::Matrix4d A0 = exp_se3(b0*log_se3(Inv_se3(pose0)*pose1));
+    Eigen::Matrix4d A1 = exp_se3(b1*log_se3(Inv_se3(pose1)*pose2));
+    Eigen::Matrix4d A2 = exp_se3(b2*log_se3(Inv_se3(pose2)*pose3));
 
     // Finally get the interpolated pose
     Eigen::Matrix4d pose_interp = pose0*A0*A1*A2;
@@ -162,9 +162,9 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::
     double b2dot = 1.0/(6.0*DT)*(3*u*u);
 
     // Cache some values we use alot
-    Eigen::Matrix<double,6,1> omega_10 = log_se3(pose0.inverse()*pose1);
-    Eigen::Matrix<double,6,1> omega_21 = log_se3(pose1.inverse()*pose2);
-    Eigen::Matrix<double,6,1> omega_32 = log_se3(pose2.inverse()*pose3);
+    Eigen::Matrix<double,6,1> omega_10 = log_se3(Inv_se3(pose0)*pose1);
+    Eigen::Matrix<double,6,1> omega_21 = log_se3(Inv_se3(pose1)*pose2);
+    Eigen::Matrix<double,6,1> omega_32 = log_se3(Inv_se3(pose2)*pose3);
 
     // Calculate interpolated poses
     Eigen::Matrix4d A0 = exp_se3(b0*omega_10);
@@ -221,9 +221,9 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Matrix3d &R_GtoI, Eig
     double b2dotdot = 1.0/(6.0*DT*DT)*(6*u);
 
     // Cache some values we use alot
-    Eigen::Matrix<double,6,1> omega_10 = log_se3(pose0.inverse()*pose1);
-    Eigen::Matrix<double,6,1> omega_21 = log_se3(pose1.inverse()*pose2);
-    Eigen::Matrix<double,6,1> omega_32 = log_se3(pose2.inverse()*pose3);
+    Eigen::Matrix<double,6,1> omega_10 = log_se3(Inv_se3(pose0)*pose1);
+    Eigen::Matrix<double,6,1> omega_21 = log_se3(Inv_se3(pose1)*pose2);
+    Eigen::Matrix<double,6,1> omega_32 = log_se3(Inv_se3(pose2)*pose3);
 
     // Calculate interpolated poses
     Eigen::Matrix4d A0 = exp_se3(b0*omega_10);

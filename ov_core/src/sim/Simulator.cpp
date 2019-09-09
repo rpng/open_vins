@@ -63,6 +63,8 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
     // Find the timestamp that we move enough to be considered "moved"
     double distance = 0.0;
+    double distancethreshold = 0.0;
+    nh.param<double>("sim_distance_threshold", distancethreshold, 0.5);
     while(true) {
 
         // Get the pose at the current timestep
@@ -81,7 +83,6 @@ Simulator::Simulator(ros::NodeHandle& nh) {
         p_IinG_init = p_IinG;
 
         // Now check if we have an acceleration, else move forward in time
-        double distancethreshold = 0.10;
         if(distance > distancethreshold) {
             break;
         } else {
