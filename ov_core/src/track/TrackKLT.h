@@ -82,7 +82,7 @@ namespace ov_core {
 
         /**
          * @brief Detects new features in the current image
-         * @param img0 image we will detect features on
+         * @param img0pyr image we will detect features on (first level of pyramid)
          * @param pts0 vector of currently extracted keypoints in this image
          * @param ids0 vector of feature ids for each currently extracted keypoint
          *
@@ -90,12 +90,12 @@ namespace ov_core {
          * Will try to always have the "max_features" being tracked through KLT at each timestep.
          * Passed images should already be grayscaled.
          */
-        void perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0);
+        void perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0);
 
         /**
          * @brief Detects new features in the current stereo pair
-         * @param img0 left image we will detect features on
-         * @param img1 right image we will detect features on
+         * @param img0pyr left image we will detect features on (first level of pyramid)
+         * @param img1pyr right image we will detect features on (first level of pyramid)
          * @param pts0 left vector of currently extracted keypoints
          * @param pts1 right vector of currently extracted keypoints
          * @param ids0 left vector of feature ids for each currently extracted keypoint
@@ -106,13 +106,13 @@ namespace ov_core {
          * If we have valid tracks, then we have both the keypoint on the left and its matching point in the right image.
          * Will try to always have the "max_features" being tracked through KLT at each timestep.
          */
-        void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
+        void perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, const std::vector<cv::Mat> &img1pyr, std::vector<cv::KeyPoint> &pts0,
                                       std::vector<cv::KeyPoint> &pts1, std::vector<size_t> &ids0, std::vector<size_t> &ids1);
 
         /**
          * @brief KLT track between two images, and do RANSAC afterwards
-         * @param img0 starting image
-         * @param img1 image we want to track too
+         * @param img0pyr starting image pyramid
+         * @param img1pyr image pyramid we want to track too
          * @param pts0 starting points
          * @param pts1 points we have tracked
          * @param id0 id of the first camera
@@ -123,7 +123,7 @@ namespace ov_core {
          * The two point vectors will be of equal size, but the mask_out variable will specify which points are good or bad.
          * If the second vector is non-empty, it will be used as an initial guess of where the keypoints are in the second image.
          */
-        void perform_matching(const cv::Mat &img0, const cv::Mat &img1, std::vector<cv::KeyPoint> &pts0,
+        void perform_matching(const std::vector<cv::Mat> &img0pyr, const std::vector<cv::Mat> &img1pyr, std::vector<cv::KeyPoint> &pts0,
                               std::vector<cv::KeyPoint> &pts1, size_t id0, size_t id1, std::vector<uchar> &mask_out);
 
         // Timing variables
@@ -136,6 +136,13 @@ namespace ov_core {
 
         // Minimum pixel distance to be "far away enough" to be a different extracted feature
         int min_px_dist;
+
+        // How many pyramid levels to track on and the window size to reduce by
+        int pyr_levels = 3;
+        cv::Size win_size = cv::Size(15, 15);
+
+        // Last set of image pyramids
+        std::map<size_t, std::vector<cv::Mat>> img_pyramid_last;
 
     };
 

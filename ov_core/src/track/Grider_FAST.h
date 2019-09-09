@@ -87,9 +87,16 @@ namespace ov_core {
             // We want to have equally distributed features
             auto num_features_grid = (int) (num_features / (grid_x * grid_y)) + 1;
 
-            // Lets loop through each grid and extract features
-            for (int x = 0; x < img.cols; x += size_x) {
-                for (int y = 0; y < img.rows; y += size_y) {
+            // Parallelize our 2d grid extraction!!
+            int ct_cols = std::floor(img.cols/size_x);
+            int ct_rows = std::floor(img.rows/size_y);
+            std::vector<std::vector<cv::KeyPoint>> collection(ct_cols*ct_rows);
+            parallel_for_(cv::Range(0, ct_cols*ct_rows), [&](const cv::Range& range){
+                for (int r = range.start; r < range.end; r++) {
+
+                    // Calculate what cell xy value we are in
+                    int x = r%ct_cols*size_x;
+                    int y = r/ct_cols*size_y;
 
                     // Skip if we are out of bounds
                     if (x + size_x > img.cols || y + size_y > img.rows)
@@ -105,12 +112,6 @@ namespace ov_core {
                     // Now lets get the top number from this
                     std::sort(pts_new.begin(), pts_new.end(), Grider_FAST::compare_response);
 
-                    // Debug print out the response values
-                    //for (auto pt : pts_new) {
-                    //    std::cout << pt.response << std::endl;
-                    //}
-                    //std::cout << "======================" << std::endl;
-
                     // Append the "best" ones to our vector
                     // Note that we need to "correct" the point u,v since we extracted it in a ROI
                     // So we should append the location of that ROI in the image
@@ -118,11 +119,14 @@ namespace ov_core {
                         cv::KeyPoint pt_cor = pts_new.at(i);
                         pt_cor.pt.x += x;
                         pt_cor.pt.y += y;
-                        pts.push_back(pt_cor);
+                        collection.at(r).push_back(pt_cor);
                     }
-
-
                 }
+            });
+
+            // Combine all the collections into our single vector
+            for(size_t r=0; r<collection.size(); r++) {
+                pts.insert(pts.end(),collection.at(r).begin(),collection.at(r).end());
             }
 
         }

@@ -32,18 +32,26 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     // Histogram equalize
     cv::equalizeHist(img, img);
 
+    // Extract the new image pyramid
+    std::vector<cv::Mat> imgpyr;
+    cv::buildOpticalFlowPyramid(img, imgpyr, win_size, pyr_levels);
+    rT2 =  boost::posix_time::microsec_clock::local_time();
+
     // If we didn't have any successful tracks last time, just extract this time
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id].empty()) {
-        perform_detection_monocular(img, pts_last[cam_id], ids_last[cam_id]);
+        // Detect new features
+        perform_detection_monocular(imgpyr, pts_last[cam_id], ids_last[cam_id]);
+        // Save the current image and pyramid
         img_last[cam_id] = img.clone();
+        img_pyramid_last[cam_id] = imgpyr;
         return;
     }
 
     // First we should make that the last images have enough features so we can do KLT
     // This will "top-off" our number of tracks so always have a constant number
-    perform_detection_monocular(img_last[cam_id], pts_last[cam_id], ids_last[cam_id]);
-    rT2 =  boost::posix_time::microsec_clock::local_time();
+    perform_detection_monocular(img_pyramid_last[cam_id], pts_last[cam_id], ids_last[cam_id]);
+    rT3 =  boost::posix_time::microsec_clock::local_time();
 
     //===================================================================================
     //===================================================================================
@@ -56,8 +64,8 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     std::vector<cv::KeyPoint> pts_left_new = pts_last[cam_id];
 
     // Lets track temporally
-    perform_matching(img_last[cam_id],img,pts_last[cam_id],pts_left_new,cam_id,cam_id,mask_ll);
-    rT3 =  boost::posix_time::microsec_clock::local_time();
+    perform_matching(img_pyramid_last[cam_id],imgpyr,pts_last[cam_id],pts_left_new,cam_id,cam_id,mask_ll);
+    rT4 =  boost::posix_time::microsec_clock::local_time();
 
     //===================================================================================
     //===================================================================================
@@ -65,6 +73,7 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     // If any of our mask is empty, that means we didn't have enough to do ransac, so just return
     if(mask_ll.empty()) {
         img_last[cam_id] = img.clone();
+        img_pyramid_last[cam_id] = imgpyr;
         pts_last[cam_id].clear();
         ids_last[cam_id].clear();
         ROS_ERROR("[KLT-EXTRACTOR]: Failed to get enough points to do RANSAC, resetting.....");
@@ -102,14 +111,16 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
     // Move forward in time
     img_last[cam_id] = img.clone();
+    img_pyramid_last[cam_id] = imgpyr;
     pts_last[cam_id] = good_left;
     ids_last[cam_id] = good_ids_left;
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for detection",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for temporal klt",(rT3-rT2).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for feature DB update (%d features)",(rT5-rT3).total_microseconds() * 1e-6, (int)good_left.size());
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for pyramid",(rT2-rT1).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for detection",(rT3-rT2).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for temporal klt",(rT4-rT3).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for feature DB update (%d features)",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
     //ROS_INFO("[TIME-KLT]: %.4f seconds for total",(rT5-rT1).total_microseconds() * 1e-6);
 
 
@@ -123,33 +134,46 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Histogram equalize
     cv::Mat img_left, img_right;
-    cv::equalizeHist(img_leftin, img_left);
-    cv::equalizeHist(img_rightin, img_right);
+    boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
+    boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+    t_lhe.join();
+    t_rhe.join();
+
+    // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
+    std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+    boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
+                                       boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                       cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    boost::thread t_rp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right),
+                                       boost::ref(imgpyr_right), boost::ref(win_size), boost::ref(pyr_levels),
+                                       false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
+    t_lp.join();
+    t_rp.join();
+    rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // If we didn't have any successful tracks last time, just extract this time
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {
-        perform_detection_stereo(img_left, img_right, pts_last[cam_id_left], pts_last[cam_id_right], ids_last[cam_id_left], ids_last[cam_id_right]);
+        // Track into the new image
+        perform_detection_stereo(imgpyr_left, imgpyr_right, pts_last[cam_id_left], pts_last[cam_id_right], ids_last[cam_id_left], ids_last[cam_id_right]);
+        // Save the current image and pyramid
         img_last[cam_id_left] = img_left.clone();
         img_last[cam_id_right] = img_right.clone();
+        img_pyramid_last[cam_id_left] = imgpyr_left;
+        img_pyramid_last[cam_id_right] = imgpyr_right;
         return;
     }
 
-
     // First we should make that the last images have enough features so we can do KLT
     // This will "top-off" our number of tracks so always have a constant number
-    perform_detection_stereo(img_last[cam_id_left], img_last[cam_id_right],
+    perform_detection_stereo(img_pyramid_last[cam_id_left], img_pyramid_last[cam_id_right],
                              pts_last[cam_id_left], pts_last[cam_id_right],
                              ids_last[cam_id_left], ids_last[cam_id_right]);
-    rT2 =  boost::posix_time::microsec_clock::local_time();
+    rT3 =  boost::posix_time::microsec_clock::local_time();
 
 
     //===================================================================================
     //===================================================================================
-
-
-    // Debug
-    //ROS_INFO("current points = %d,%d",(int)pts_left_last.size(),(int)pts_right_last.size());
 
     // Our return success masks, and predicted new features
     std::vector<uchar> mask_ll, mask_rr;
@@ -157,15 +181,15 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::vector<cv::KeyPoint> pts_right_new = pts_last[cam_id_right];
 
     // Lets track temporally
-    boost::thread t_ll = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_last[cam_id_left]), boost::cref(img_left),
+    boost::thread t_ll = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_pyramid_last[cam_id_left]), boost::cref(imgpyr_left),
                                        boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new), cam_id_left, cam_id_left, boost::ref(mask_ll));
-    boost::thread t_rr = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_last[cam_id_right]), boost::cref(img_right),
+    boost::thread t_rr = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_pyramid_last[cam_id_right]), boost::cref(imgpyr_right),
                                        boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new), cam_id_right, cam_id_right, boost::ref(mask_rr));
 
     // Wait till both threads finish
     t_ll.join();
     t_rr.join();
-    rT3 =  boost::posix_time::microsec_clock::local_time();
+    rT4 =  boost::posix_time::microsec_clock::local_time();
 
 
     //===================================================================================
@@ -174,8 +198,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // left to right matching
     std::vector<uchar> mask_lr;
-    perform_matching(img_left, img_right, pts_left_new, pts_right_new, cam_id_left, cam_id_right, mask_lr);
-    rT4 =  boost::posix_time::microsec_clock::local_time();
+    perform_matching(imgpyr_left, imgpyr_right, pts_left_new, pts_right_new, cam_id_left, cam_id_right, mask_lr);
+    rT5 =  boost::posix_time::microsec_clock::local_time();
 
 
     //===================================================================================
@@ -185,6 +209,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     if(mask_ll.empty() || mask_rr.empty() || mask_lr.empty()) {
         img_last[cam_id_left] = img_left.clone();
         img_last[cam_id_right] = img_right.clone();
+        img_pyramid_last[cam_id_left] = imgpyr_left;
+        img_pyramid_last[cam_id_right] = imgpyr_right;
         pts_last[cam_id_left].clear();
         pts_last[cam_id_right].clear();
         ids_last[cam_id_left].clear();
@@ -193,11 +219,9 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         return;
     }
 
-
     // Get our "good tracks"
     std::vector<cv::KeyPoint> good_left, good_right;
     std::vector<size_t> good_ids_left, good_ids_right;
-
 
     // Loop through all left points
     for(size_t i=0; i<pts_left_new.size(); i++) {
@@ -222,7 +246,6 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     //===================================================================================
     //===================================================================================
 
-
     // Update our feature database, with theses new observations
     for(size_t i=0; i<good_left.size(); i++) {
         // Assert that our IDs are the same (i.e., stereo )
@@ -239,33 +262,35 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                                  npt_r.x, npt_r.y);
     }
 
-
     // Move forward in time
     img_last[cam_id_left] = img_left.clone();
     img_last[cam_id_right] = img_right.clone();
+    img_pyramid_last[cam_id_left] = imgpyr_left;
+    img_pyramid_last[cam_id_right] = imgpyr_right;
     pts_last[cam_id_left] = good_left;
     pts_last[cam_id_right] = good_right;
     ids_last[cam_id_left] = good_ids_left;
     ids_last[cam_id_right] = good_ids_right;
-    rT5 =  boost::posix_time::microsec_clock::local_time();
+    rT6 =  boost::posix_time::microsec_clock::local_time();
 
 
     // Timing information
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for detection",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for temporal klt",(rT3-rT2).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for stereo klt",(rT4-rT3).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for feature DB update (%d features)",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for total",(rT5-rT1).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for pyramid",(rT2-rT1).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for detection",(rT3-rT2).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for temporal klt",(rT4-rT3).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for stereo klt",(rT5-rT4).total_microseconds() * 1e-6);
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for feature DB update (%d features)",(rT6-rT5).total_microseconds() * 1e-6, (int)good_left.size());
+    //ROS_INFO("[TIME-KLT]: %.4f seconds for total",(rT6-rT1).total_microseconds() * 1e-6);
 
 
 }
 
-void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0) {
+void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0) {
 
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d_current = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d_current = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).cols / min_px_dist) + 10, (int)(img0pyr.at(0).rows / min_px_dist) + 10);
     auto it0 = pts0.begin();
     auto it2 = ids0.begin();
     while(it0 != pts0.end()) {
@@ -292,12 +317,12 @@ void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::
 
     // Extract our features (use fast with griding)
     std::vector<cv::KeyPoint> pts0_ext;
-    Grider_FAST::perform_griding(img0, pts0_ext, num_featsneeded, grid_x, grid_y, threshold, true);
+    Grider_FAST::perform_griding(img0pyr.at(0), pts0_ext, num_featsneeded, grid_x, grid_y, threshold, true);
 
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).cols / min_px_dist) + 10, (int)(img0pyr.at(0).rows / min_px_dist) + 10);
     for(auto& kpt : pts0) {
         grid_2d((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
     }
@@ -329,14 +354,14 @@ void TrackKLT::perform_detection_monocular(const cv::Mat &img0, std::vector<cv::
 }
 
 
-void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1,
+void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, const std::vector<cv::Mat> &img1pyr,
                                         std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
                                         std::vector<size_t> &ids0, std::vector<size_t> &ids1) {
 
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d_current = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d_current = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).cols / min_px_dist) + 10, (int)(img0pyr.at(0).rows / min_px_dist) + 10);
     auto it0 = pts0.begin();
     auto it1 = pts1.begin();
     auto it2 = ids0.begin();
@@ -369,13 +394,13 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
 
     // Extract our features (use fast with griding)
     std::vector<cv::KeyPoint> pts0_ext;
-    Grider_FAST::perform_griding(img0, pts0_ext, num_featsneeded, grid_x, grid_y, threshold, true);
+    Grider_FAST::perform_griding(img0pyr.at(0), pts0_ext, num_featsneeded, grid_x, grid_y, threshold, true);
 
 
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0.cols/min_px_dist)+10,(int)(img0.rows/min_px_dist)+10);
+    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).cols / min_px_dist) + 10, (int)(img0pyr.at(0).rows / min_px_dist) + 10);
     for(auto& kpt : pts0) {
         grid_2d((int)(kpt.pt.x/min_px_dist),(int)(kpt.pt.y/min_px_dist)) = 1;
     }
@@ -407,12 +432,10 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
     // Now do KLT tracking to get the valid projections
     // Note: we have a pretty big window size here since our projection might be bad
     // Note: but this might cause failure in cases of repeated textures (eg. checkerboard)
-    int pyr_levels = 3;
     std::vector<uchar> mask;
     std::vector<float> error;
-    cv::Size win_size(15, 15);
-    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 30, 0.01);
-    cv::calcOpticalFlowPyrLK(img0, img1, pts0_new, pts1_new, mask, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
+    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 15, 0.01);
+    cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0_new, pts1_new, mask, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 
     // Loop through and record only ones that are valid
     for(size_t i=0; i<pts0_new.size(); i++) {
@@ -433,7 +456,7 @@ void TrackKLT::perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1
 }
 
 
-void TrackKLT::perform_matching(const cv::Mat& img0, const cv::Mat& img1,
+void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::vector<cv::Mat>& img1pyr,
                                 std::vector<cv::KeyPoint>& kpts0, std::vector<cv::KeyPoint>& kpts1,
                                 size_t id0, size_t id1,
                                 std::vector<uchar>& mask_out) {
@@ -461,12 +484,10 @@ void TrackKLT::perform_matching(const cv::Mat& img0, const cv::Mat& img1,
     }
 
     // Now do KLT tracking to get the valid new points
-    int pyr_levels = 3;
     std::vector<uchar> mask_klt;
     std::vector<float> error;
-    cv::Size win_size(11, 11);
-    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 20, 0.01);
-    cv::calcOpticalFlowPyrLK(img0, img1, pts0, pts1, mask_klt, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
+    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 15, 0.01);
+    cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0, pts1, mask_klt, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 
 
     // Normalize these points, so we can then do ransac
@@ -483,7 +504,6 @@ void TrackKLT::perform_matching(const cv::Mat& img0, const cv::Mat& img1,
     double max_focallength_img1 = std::max(camera_k_OPENCV.at(id1)(0,0),camera_k_OPENCV.at(id1)(1,1));
     double max_focallength = std::max(max_focallength_img0,max_focallength_img1);
     cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1/max_focallength, 0.999, mask_rsc);
-
 
     // Loop through and record only ones that are valid
     for(size_t i=0; i<mask_klt.size(); i++) {
