@@ -39,6 +39,9 @@ namespace ov_msckf {
         /// Bool to determine whether or not use imu message averaging
         bool imu_avg = false;
 
+        /// Bool to determine if we should use Rk4 imu integration
+        bool use_rk4_integration = false;
+
         /// Bool to determine whether or not to calibrate imu-to-camera pose
         bool do_calib_camera_pose = false;
 

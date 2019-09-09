@@ -41,6 +41,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     StateOptions state_options;
     nh.param<bool>("use_fej", state_options.do_fej, false);
     nh.param<bool>("use_imuavg", state_options.imu_avg, false);
+    nh.param<bool>("use_rk4int", state_options.use_rk4_integration, true);
     nh.param<bool>("calib_cam_extrinsics", state_options.do_calib_camera_pose, false);
     nh.param<bool>("calib_cam_intrinsics", state_options.do_calib_camera_intrinsics, false);
     nh.param<bool>("calib_cam_timeoffset", state_options.do_calib_camera_timeoffset, false);
@@ -513,6 +514,12 @@ void VioManager::do_feature_propagate_update(double timestamp) {
         return;
     }
 
+    // Return if we where unable to propagate
+    if(state->timestamp() != timestamp) {
+        ROS_ERROR("[PROP]: Propagator unable to propagate the state forward in time!");
+        ROS_ERROR("[PROP]: It has been %.3f since last time we propagated",timestamp-state->timestamp());
+        return;
+    }
 
     //===================================================================================
     // MSCKF features and KLT tracks that are SLAM features

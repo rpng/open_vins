@@ -30,26 +30,6 @@ using namespace ov_msckf;
 
 void Propagator::propagate_and_clone(State* state, double timestamp) {
 
-    // First lets construct an IMU vector of measurements we need
-    vector<IMUDATA> prop_data;
-
-    // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
-    double t_off_new = state->calib_dt_CAMtoIMU()->value()(0);
-
-    //===================================================================================
-    //===================================================================================
-    //===================================================================================
-
-    // Ensure we have some measurements in the first place!
-    if(imu_data.empty()) {
-        std::cerr << "Propagator::propagate_and_clone(): There are no IMU measurements!!!!!" << std::endl;
-        std::cerr << "Propagator::propagate_and_clone(): IMU-CAMERA are likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
-        state->set_timestamp(timestamp);
-        last_prop_time_offset = t_off_new;
-        return;
-    }
-
     // If the difference between the current update time and state is zero
     // We should crash, as this means we would have two clones at the same time!!!!
     if(state->timestamp() == timestamp) {
@@ -67,95 +47,22 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
         std::exit(EXIT_FAILURE);
     }
 
-    // Sort our imu data (handles any out of order measurements)
-    //std::sort(imu_data.begin(), imu_data.end(), [](IMUDATA i, IMUDATA j){
-    //    return i.timestamp < j.timestamp;
-    //});
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
 
-    // Loop through and find all the needed measurements to propagate with
-    // Note we split measurements based on the given state time, and the update timestamp
-    for(size_t i=0; i<imu_data.size()-1; i++) {
-
-        // START OF THE INTEGRATION PERIOD
-        // If the next timestamp is greater then our current state time
-        // And the current is not greater then it yet...
-        // Then we should "split" our current IMU measurement
-        if(imu_data.at(i+1).timestamp > state->timestamp()+last_prop_time_offset && imu_data.at(i).timestamp < state->timestamp()+last_prop_time_offset) {
-            IMUDATA data = interpolate_data(imu_data.at(i),imu_data.at(i+1), state->timestamp()+last_prop_time_offset);
-            prop_data.push_back(data);
-            //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,state->timestamp()-prop_data.at(0).timestamp);
-            continue;
-        }
-
-        // MIDDLE OF INTEGRATION PERIOD
-        // If our imu measurement is right in the middle of our propagation period
-        // Then we should just append the whole measurement time to our propagation vector
-        if(imu_data.at(i).timestamp >= state->timestamp()+last_prop_time_offset && imu_data.at(i+1).timestamp <= timestamp+t_off_new) {
-            prop_data.push_back(imu_data.at(i));
-            //ROS_INFO("propagation #%d = CASE 2 = %.3f",(int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp);
-            continue;
-        }
-
-        // END OF THE INTEGRATION PERIOD
-        // If the current timestamp is greater then our update time
-        // We should just "split" the NEXT IMU measurement to the update time,
-        // NOTE: we add the current time, and then the time at the end of the interval (so we can get a dt)
-        // NOTE: we also break out of this loop, as this is the last IMU measurement we need!
-        if(imu_data.at(i+1).timestamp > timestamp+t_off_new) {
-            prop_data.push_back(imu_data.at(i));
-            //ROS_INFO("propagation #%d = CASE 3.1 = %.3f => %.3f", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-state->timestamp());
-            // If the added IMU message doesn't end exactly at the camera time
-            // Then we need to add another one that is right at the ending time
-            if(prop_data.at(prop_data.size()-1).timestamp != timestamp+t_off_new) {
-                IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), timestamp+t_off_new);
-                prop_data.push_back(data);
-                //ROS_INFO("propagation #%d = CASE 3.2 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-state->timestamp());
-            }
-            break;
-        }
-
+    // Set the last time offset value if we have just started the system up
+    if(last_prop_time_offset == -INFINITY) {
+        last_prop_time_offset = state->calib_dt_CAMtoIMU()->value()(0);
     }
 
-    // Check that we have at least one measurement to propagate with
-    if(prop_data.empty()) {
-        std::cerr << "Propagator::propagate_and_clone(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
-        std::cerr << "Propagator::propagate_and_clone(): IMU-CAMERA are likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
-        state->set_timestamp(timestamp);
-        last_prop_time_offset = t_off_new;
-        return;
-    }
+    // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
+    double t_off_new = state->calib_dt_CAMtoIMU()->value()(0);
 
-
-    // If we did not reach the whole integration period (i.e., the last inertial measurement we have is smaller then the time we want to reach)
-    // Then we should just "stretch" the last measurement to be the whole period
-    if(imu_data.at(imu_data.size()-1).timestamp <= timestamp+t_off_new) {
-        IMUDATA data = interpolate_data(imu_data.at(imu_data.size()-2),imu_data.at(imu_data.size()-1),timestamp+t_off_new);
-        prop_data.push_back(data);
-        //ROS_INFO("propagation #%d = CASE 4 = %.3f",(int)(imu_data.size()-1),data.timestamp-prop_data.at(0).timestamp);
-    }
-
-
-    // Loop through and ensure we do not have an zero dt values
-    // This would cause the noise covariance to be Infinity
-    for (size_t i=0; i < prop_data.size()-1; i++){
-        if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-8){
-            std::cerr << "Propagator::propagate_and_clone(): Zero DT between " << i << " and " << i+1 << " measurements (dt = " << (prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) << ")" << std::endl;
-            prop_data.erase(prop_data.begin()+i);
-            i--;
-        }
-    }
-
-    // Check that we have at least one measurement to propagate with
-    if(prop_data.size() < 2) {
-        std::cerr << "Propagator::propagate_and_clone(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
-        std::cerr << "Propagator::propagate_and_clone(): IMU-CAMERA are likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
-        state->set_timestamp(timestamp);
-        last_prop_time_offset = t_off_new;
-        return;
-    }
-
+    // First lets construct an IMU vector of measurements we need
+    double time0 = state->timestamp()+last_prop_time_offset;
+    double time1 = timestamp+t_off_new;
+    vector<IMUDATA> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
 
     // We are going to sum up all the state transition matrices, so we can do a single large multiplication at the end
     // Phi_summed = Phi_i*Phi_summed
@@ -213,6 +120,117 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
 }
 
 
+std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vector<IMUDATA>& imu_data, double time0, double time1) {
+
+    // Our vector imu readings
+    std::vector<Propagator::IMUDATA> prop_data;
+
+    // Ensure we have some measurements in the first place!
+    if(imu_data.empty()) {
+        std::cerr << "Propagator::select_imu_readings(): There are no IMU measurements!!!!!" << std::endl;
+        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA are likely messed up, check time offset value!!!" << std::endl;
+        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        return prop_data;
+    }
+
+    // Sort our imu data (handles any out of order measurements)
+    //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j){
+    //    return i.timestamp < j.timestamp;
+    //});
+
+    // Loop through and find all the needed measurements to propagate with
+    // Note we split measurements based on the given state time, and the update timestamp
+    for(size_t i=0; i<imu_data.size()-1; i++) {
+
+        // START OF THE INTEGRATION PERIOD
+        // If the next timestamp is greater then our current state time
+        // And the current is not greater then it yet...
+        // Then we should "split" our current IMU measurement
+        if(imu_data.at(i+1).timestamp > time0 && imu_data.at(i).timestamp < time0) {
+            IMUDATA data = Propagator::interpolate_data(imu_data.at(i),imu_data.at(i+1), time0);
+            prop_data.push_back(data);
+            //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,time0-prop_data.at(0).timestamp);
+            continue;
+        }
+
+        // MIDDLE OF INTEGRATION PERIOD
+        // If our imu measurement is right in the middle of our propagation period
+        // Then we should just append the whole measurement time to our propagation vector
+        if(imu_data.at(i).timestamp >= time0 && imu_data.at(i+1).timestamp <= time1) {
+            prop_data.push_back(imu_data.at(i));
+            //ROS_INFO("propagation #%d = CASE 2 = %.3f",(int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp);
+            continue;
+        }
+
+        // END OF THE INTEGRATION PERIOD
+        // If the current timestamp is greater then our update time
+        // We should just "split" the NEXT IMU measurement to the update time,
+        // NOTE: we add the current time, and then the time at the end of the interval (so we can get a dt)
+        // NOTE: we also break out of this loop, as this is the last IMU measurement we need!
+        if(imu_data.at(i+1).timestamp > time1) {
+            // If we have a very low frequency IMU then, we could have only recorded the first integration (i.e. case 1) and nothing else
+            // In this case, both the current IMU measurement and the next is greater than the desired intepolation, thus we should just cut the current at the desired time
+            // Else, we have hit CASE2 and this IMU measurement is not past the desired propagation time, thus add the whole IMU reading
+            if(imu_data.at(i).timestamp > time1) {
+                IMUDATA data = interpolate_data(imu_data.at(i-1), imu_data.at(i), time1);
+                prop_data.push_back(data);
+                //ROS_INFO("propagation #%d = CASE 3.1 = %.3f => %.3f", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
+            } else {
+                prop_data.push_back(imu_data.at(i));
+                //ROS_INFO("propagation #%d = CASE 3.2 = %.3f => %.3f", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
+            }
+            // If the added IMU message doesn't end exactly at the camera time
+            // Then we need to add another one that is right at the ending time
+            if(prop_data.at(prop_data.size()-1).timestamp != time1) {
+                IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), time1);
+                prop_data.push_back(data);
+                //ROS_INFO("propagation #%d = CASE 3.3 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-time0);
+            }
+            break;
+        }
+
+    }
+
+    // Check that we have at least one measurement to propagate with
+    if(prop_data.empty()) {
+        std::cerr << "Propagator::select_imu_readings(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
+        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA time offset is likely messed up, check time offset value!!!" << std::endl;
+        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        return prop_data;
+    }
+
+    // If we did not reach the whole integration period (i.e., the last inertial measurement we have is smaller then the time we want to reach)
+    // Then we should just "stretch" the last measurement to be the whole period
+    if(imu_data.at(imu_data.size()-1).timestamp <= time1) {
+        std::cerr << "Propagator::select_imu_readings(): There are not enough measurements to propagate with " << (time1-imu_data.at(imu_data.size()-1).timestamp) << " sec missing" << std::endl;
+        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA time offset is likely messed up, check time offset value!!!" << std::endl;
+        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        return prop_data;
+    }
+
+    // Loop through and ensure we do not have an zero dt values
+    // This would cause the noise covariance to be Infinity
+    for (size_t i=0; i < prop_data.size()-1; i++){
+        if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-12){
+            std::cerr << "Propagator::select_imu_readings(): Zero DT between " << i << " and " << i+1 << " measurements (dt = " << (prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) << ")" << std::endl;
+            prop_data.erase(prop_data.begin()+i);
+            i--;
+        }
+    }
+
+    // Check that we have at least one measurement to propagate with
+    if(prop_data.size() < 2) {
+        std::cerr << "Propagator::select_imu_readings(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
+        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA time offset is likely messed up, check time offset value!!!" << std::endl;
+        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        return prop_data;
+    }
+
+    // Success :D
+    return prop_data;
+
+}
+
 
 void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
                                      Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd) {
@@ -221,44 +239,21 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
     F.setZero();
     Qd.setZero();
 
-    auto imu = state->imu();
-
     // Time elapsed over interval
     double dt = data_plus.timestamp-data_minus.timestamp;
     assert(data_plus.timestamp>data_minus.timestamp);
 
     // Corrected imu measurements
-    Eigen::Matrix<double,3,1> w_hat = data_minus.wm - imu->bias_g();
-    Eigen::Matrix<double,3,1> a_hat = data_minus.am - imu->bias_a();
+    Eigen::Matrix<double,3,1> w_hat = data_minus.wm - state->imu()->bias_g();
+    Eigen::Matrix<double,3,1> a_hat = data_minus.am - state->imu()->bias_a();
+    Eigen::Matrix<double,3,1> w_hat2 = data_plus.wm - state->imu()->bias_g();
+    Eigen::Matrix<double,3,1> a_hat2 = data_plus.am - state->imu()->bias_a();
 
-    // If we are averaging the IMU, then do so
-    if (state->options().imu_avg){
-        Eigen::Matrix<double,3,1> w_hat2 = data_plus.wm - imu->bias_g();
-        Eigen::Matrix<double,3,1> a_hat2 = data_plus.am - imu->bias_a();
-        w_hat = .5*(w_hat+w_hat2);
-        a_hat = .5*(a_hat+a_hat2);
-    }
-
-    // Pre-compute things
-    double w_norm = w_hat.norm();
-    Eigen::Matrix<double,4,4> I_4x4 = Eigen::Matrix<double,4,4>::Identity();
-    Eigen::Matrix<double,3,3> R_Gtoi = imu->Rot();
-
-    // Orientation: Equation (101) and (103) and of Trawny indirect TR
-    Eigen::Matrix<double,4,4> bigO;
-    if(w_norm > 1e-20) {
-        bigO = cos(0.5*w_norm*dt)*I_4x4 + 1/w_norm*sin(0.5*w_norm*dt)*Omega(w_hat);
-    } else {
-        bigO = I_4x4 + 0.5*dt*Omega(w_hat);
-    }
-    Eigen::Matrix<double,4,1> new_q = quatnorm(bigO*imu->quat());
-    //Eigen::Matrix<double,4,1> new_q = rot_2_quat(exp_so3(-w_hat*dt)*R_Gtoi);
-
-    // Velocity: just the acceleration in the local frame, minus global gravity
-    Eigen::Matrix<double,3,1> new_v = imu->vel() + R_Gtoi.transpose()*a_hat*dt - _gravity*dt;
-
-    // Position: just velocity times dt, with the acceleration integrated twice
-    Eigen::Matrix<double,3,1> new_p = imu->pos() + imu->vel()*dt + 0.5*R_Gtoi.transpose()*a_hat*dt*dt - 0.5*_gravity*dt*dt;
+    // Compute the new state mean value
+    Eigen::Vector4d new_q;
+    Eigen::Vector3d new_v, new_p;
+    if(state->options().use_rk4_integration) predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+    else predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
 
     // Get the locations of each entry of the imu state
     int th_id = state->imu()->q()->id()-state->imu()->id();
@@ -275,11 +270,11 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
         // This is the change in the orientation from the end of the last prop to the current prop
         // This is needed since we need to include the "k-th" updated orientation information
-        Eigen::Matrix<double,3,3> Rfej = imu->Rot_fej();
+        Eigen::Matrix<double,3,3> Rfej = state->imu()->Rot_fej();
         Eigen::Matrix<double,3,3> dR = quat_2_Rot(new_q)*Rfej.transpose();
 
-        Eigen::Matrix<double,3,1> v_fej = imu->vel_fej();
-        Eigen::Matrix<double,3,1> p_fej = imu->pos_fej();
+        Eigen::Matrix<double,3,1> v_fej = state->imu()->vel_fej();
+        Eigen::Matrix<double,3,1> p_fej = state->imu()->pos_fej();
 
         F.block(th_id, th_id, 3, 3) = dR;
         F.block(th_id, bg_id, 3, 3).noalias() = -dR * Jr_so3(-w_hat * dt) * dt;
@@ -304,6 +299,8 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         G.block(ba_id, 9, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
 
     } else {
+
+        Eigen::Matrix<double,3,3> R_Gtoi = state->imu()->Rot();
 
         F.block(th_id, th_id, 3, 3) = exp_so3(-w_hat * dt);
         F.block(th_id, bg_id, 3, 3).noalias() = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
@@ -338,11 +335,136 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
     Qd = 0.5*(Qd+Qd.transpose());
 
     //Now replace imu estimate and fej with propagated values
-    Eigen::Matrix<double,16,1> imu_x = imu->value();
+    Eigen::Matrix<double,16,1> imu_x = state->imu()->value();
     imu_x.block(0,0,4,1) = new_q;
     imu_x.block(4,0,3,1) = new_p;
     imu_x.block(7,0,3,1) = new_v;
-    imu->set_value(imu_x);
-    imu->set_fej(imu_x);
+    state->imu()->set_value(imu_x);
+    state->imu()->set_fej(imu_x);
 
 }
+
+
+void Propagator::predict_mean_discrete(State *state, double dt,
+                                        const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
+                                        const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
+                                        Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p) {
+
+    // If we are averaging the IMU, then do so
+    Eigen::Vector3d w_hat = w_hat1;
+    Eigen::Vector3d a_hat = a_hat1;
+    if (state->options().imu_avg) {
+        w_hat = .5*(w_hat1+w_hat2);
+        a_hat = .5*(a_hat1+a_hat2);
+    }
+
+    // Pre-compute things
+    double w_norm = w_hat.norm();
+    Eigen::Matrix<double,4,4> I_4x4 = Eigen::Matrix<double,4,4>::Identity();
+    Eigen::Matrix<double,3,3> R_Gtoi = state->imu()->Rot();
+
+    // Orientation: Equation (101) and (103) and of Trawny indirect TR
+    Eigen::Matrix<double,4,4> bigO;
+    if(w_norm > 1e-20) {
+        bigO = cos(0.5*w_norm*dt)*I_4x4 + 1/w_norm*sin(0.5*w_norm*dt)*Omega(w_hat);
+    } else {
+        bigO = I_4x4 + 0.5*dt*Omega(w_hat);
+    }
+    new_q = quatnorm(bigO*state->imu()->quat());
+    //new_q = rot_2_quat(exp_so3(-w_hat*dt)*R_Gtoi);
+
+    // Velocity: just the acceleration in the local frame, minus global gravity
+    new_v = state->imu()->vel() + R_Gtoi.transpose()*a_hat*dt - _gravity*dt;
+
+    // Position: just velocity times dt, with the acceleration integrated twice
+    new_p = state->imu()->pos() + state->imu()->vel()*dt + 0.5*R_Gtoi.transpose()*a_hat*dt*dt - 0.5*_gravity*dt*dt;
+
+}
+
+
+
+void Propagator::predict_mean_rk4(State *state, double dt,
+                                  const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
+                                  const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
+                                  Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p) {
+
+    // Pre-compute things
+    Eigen::Vector3d w_hat = w_hat1;
+    Eigen::Vector3d a_hat = a_hat1;
+    Eigen::Vector3d w_alpha = (w_hat2-w_hat1)/dt;
+    Eigen::Vector3d a_jerk = (a_hat2-a_hat1)/dt;
+
+    // y0 ================
+    Eigen::Vector4d q_0 = state->imu()->quat();
+    Eigen::Vector3d p_0 = state->imu()->pos();
+    Eigen::Vector3d v_0 = state->imu()->vel();
+
+    // k1 ================
+    Eigen::Vector4d dq_0 = {0,0,0,1};
+    Eigen::Vector4d q0_dot = 0.5*Omega(w_hat)*dq_0;
+    Eigen::Vector3d p0_dot = v_0;
+    Eigen::Matrix3d R_Gto0 = quat_2_Rot(quat_multiply(dq_0,q_0));
+    Eigen::Vector3d v0_dot = R_Gto0.transpose()*a_hat-_gravity;
+
+    Eigen::Vector4d k1_q = q0_dot*dt;
+    Eigen::Vector3d k1_p = p0_dot*dt;
+    Eigen::Vector3d k1_v = v0_dot*dt;
+
+    // k2 ================
+    w_hat += 0.5*w_alpha*dt;
+    a_hat += 0.5*a_jerk*dt;
+
+    Eigen::Vector4d dq_1 = quatnorm(dq_0+0.5*k1_q);
+    //Eigen::Vector3d p_1 = p_0+0.5*k1_p;
+    Eigen::Vector3d v_1 = v_0+0.5*k1_v;
+
+    Eigen::Vector4d q1_dot = 0.5*Omega(w_hat)*dq_1;
+    Eigen::Vector3d p1_dot = v_1;
+    Eigen::Matrix3d R_Gto1 = quat_2_Rot(quat_multiply(dq_1,q_0));
+    Eigen::Vector3d v1_dot = R_Gto1.transpose()*a_hat-_gravity;
+
+    Eigen::Vector4d k2_q = q1_dot*dt;
+    Eigen::Vector3d k2_p = p1_dot*dt;
+    Eigen::Vector3d k2_v = v1_dot*dt;
+
+    // k3 ================
+    Eigen::Vector4d dq_2 = quatnorm(dq_0+0.5*k2_q);
+    //Eigen::Vector3d p_2 = p_0+0.5*k2_p;
+    Eigen::Vector3d v_2 = v_0+0.5*k2_v;
+
+    Eigen::Vector4d q2_dot = 0.5*Omega(w_hat)*dq_2;
+    Eigen::Vector3d p2_dot = v_2;
+    Eigen::Matrix3d R_Gto2 = quat_2_Rot(quat_multiply(dq_2,q_0));
+    Eigen::Vector3d v2_dot = R_Gto2.transpose()*a_hat-_gravity;
+
+    Eigen::Vector4d k3_q = q2_dot*dt;
+    Eigen::Vector3d k3_p = p2_dot*dt;
+    Eigen::Vector3d k3_v = v2_dot*dt;
+
+    // k4 ================
+    w_hat += 0.5*w_alpha*dt;
+    a_hat += 0.5*a_jerk*dt;
+
+    Eigen::Vector4d dq_3 = quatnorm(dq_0+k3_q);
+    //Eigen::Vector3d p_3 = p_0+k3_p;
+    Eigen::Vector3d v_3 = v_0+k3_v;
+
+    Eigen::Vector4d q3_dot = 0.5*Omega(w_hat)*dq_3;
+    Eigen::Vector3d p3_dot = v_3;
+    Eigen::Matrix3d R_Gto3 = quat_2_Rot(quat_multiply(dq_3,q_0));
+    Eigen::Vector3d v3_dot = R_Gto3.transpose()*a_hat-_gravity;
+
+    Eigen::Vector4d k4_q = q3_dot*dt;
+    Eigen::Vector3d k4_p = p3_dot*dt;
+    Eigen::Vector3d k4_v = v3_dot*dt;
+
+    // y+dt ================
+    Eigen::Vector4d dq = quatnorm(dq_0+(1.0/6.0)*k1_q+(1.0/3.0)*k2_q+(1.0/3.0)*k3_q+(1.0/6.0)*k4_q);
+    new_q = quat_multiply(dq, q_0);
+    new_p = p_0+(1.0/6.0)*k1_p+(1.0/3.0)*k2_p+(1.0/3.0)*k3_p+(1.0/6.0)*k4_p;
+    new_v = v_0+(1.0/6.0)*k1_v+(1.0/3.0)*k2_v+(1.0/3.0)*k3_v+(1.0/6.0)*k4_v;
+
+}
+
+
+
