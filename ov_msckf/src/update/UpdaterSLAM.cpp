@@ -472,13 +472,13 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     //==========================================================================
     // OLD: anchor camera position and orientation
     Eigen::Matrix<double,3,3> R_GtoIOLD_fej = state->get_clone(old_feat.anchor_clone_timestamp)->Rot_fej();
-    Eigen::Matrix<double,3,3> R_GtoOLD_fej = state->get_calib_IMUtoCAM(old_feat.anchor_cam_id)->Rot_fej()*R_GtoIOLD_fej;
-    Eigen::Matrix<double,3,1> p_OLDinG_fej = state->get_clone(old_feat.anchor_clone_timestamp)->pos_fej()-R_GtoOLD_fej.transpose()*state->get_calib_IMUtoCAM(old_feat.anchor_cam_id)->pos_fej();
+    Eigen::Matrix<double,3,3> R_GtoOLD_fej = state->get_calib_IMUtoCAM(old_feat.anchor_cam_id)->Rot()*R_GtoIOLD_fej;
+    Eigen::Matrix<double,3,1> p_OLDinG_fej = state->get_clone(old_feat.anchor_clone_timestamp)->pos_fej()-R_GtoOLD_fej.transpose()*state->get_calib_IMUtoCAM(old_feat.anchor_cam_id)->pos();
 
     // NEW: anchor camera position and orientation
     Eigen::Matrix<double,3,3> R_GtoINEW_fej = state->get_clone(new_feat.anchor_clone_timestamp)->Rot_fej();
-    Eigen::Matrix<double,3,3> R_GtoNEW_fej = state->get_calib_IMUtoCAM(new_feat.anchor_cam_id)->Rot_fej()*R_GtoINEW_fej;
-    Eigen::Matrix<double,3,1> p_NEWinG_fej = state->get_clone(new_feat.anchor_clone_timestamp)->pos_fej()-R_GtoNEW_fej.transpose()*state->get_calib_IMUtoCAM(new_feat.anchor_cam_id)->pos_fej();
+    Eigen::Matrix<double,3,3> R_GtoNEW_fej = state->get_calib_IMUtoCAM(new_feat.anchor_cam_id)->Rot()*R_GtoINEW_fej;
+    Eigen::Matrix<double,3,1> p_NEWinG_fej = state->get_clone(new_feat.anchor_clone_timestamp)->pos_fej()-R_GtoNEW_fej.transpose()*state->get_calib_IMUtoCAM(new_feat.anchor_cam_id)->pos();
 
     // Calculate transform between the old anchor and new one
     Eigen::Matrix<double,3,3> R_OLDtoNEW_fej = R_GtoNEW_fej*R_GtoOLD_fej.transpose();

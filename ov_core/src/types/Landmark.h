@@ -72,9 +72,9 @@ namespace ov_core {
             set_value(_value+dx);
             // If we are using a relative and we have not anchor changed yet, then update linearization / FEJ value
             //if(FeatureRepresentation::is_relative_representation(_feat_representation) && !has_had_anchor_change) {
-            if(FeatureRepresentation::is_relative_representation(_feat_representation)) {
-                set_fej(value());
-            }
+            //if(FeatureRepresentation::is_relative_representation(_feat_representation)) {
+            //    set_fej(value());
+            //}
         }
 
         /**

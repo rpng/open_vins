@@ -76,27 +76,23 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
     assert(feature.anchor_cam_id!=-1);
 
     // Anchor pose orientation and position, and camera calibration for our anchor camera
-    Eigen::Matrix<double, 3, 3> R_ItoC, R_GtoI, R_CtoG;
-    Eigen::Matrix<double, 3, 1> p_IinC, p_IinG, p_FinA;
+    Eigen::Matrix3d R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
+    Eigen::Vector3d p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+    Eigen::Matrix3d R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot();
+    Eigen::Vector3d p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos();
+    Eigen::Vector3d p_FinA = feature.p_FinA;
 
     // If I am doing FEJ, I should FEJ the anchor states (should we fej calibration???)
     // Also get the FEJ position of the feature if we are
-    if(!state->options().do_fej) {
-        R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
-        p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
-        R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot();
-        p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos();
-        p_FinA = feature.p_FinA;
-    } else {
-        //R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej();
-        //p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej();
-        R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot();
-        p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos();
+    if(state->options().do_fej) {
+        // "Best" feature in the global frame
+        Eigen::Vector3d p_FinG_best = R_GtoI.transpose() * R_ItoC.transpose()*(feature.p_FinA - p_IinC) + p_IinG;
+        // Transform the best into our anchor frame using FEJ
         R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot_fej();
         p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos_fej();
-        p_FinA = feature.p_FinA_fej;
+        p_FinA = (R_GtoI.transpose()*R_ItoC.transpose()).transpose()*(p_FinG_best - p_IinG) + p_IinC;
     }
-    R_CtoG = R_GtoI.transpose()*R_ItoC.transpose();
+    Eigen::Matrix3d R_CtoG = R_GtoI.transpose()*R_ItoC.transpose();
 
     // Jacobian for our anchor pose
     Eigen::Matrix<double,3,6> H_anc;
@@ -384,19 +380,10 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     }
 
     // Calculate the position of this feature in the global frame FEJ
-    // If anchored, then we need to calculate the position of the feature in the global
+    // If anchored, then we can use the "best" p_FinG since the value of p_FinA does not matter
     Eigen::Vector3d p_FinG_fej = feature.p_FinG_fej;
     if(FeatureRepresentation::is_relative_representation(feature.feat_representation)) {
-        // Assert that we have an anchor pose for this feature
-        assert(feature.anchor_cam_id!=-1);
-        // Get calibration for our anchor camera
-        Eigen::Matrix<double, 3, 3> R_ItoC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->Rot_fej();
-        Eigen::Matrix<double, 3, 1> p_IinC = state->get_calib_IMUtoCAM(feature.anchor_cam_id)->pos_fej();
-        // Anchor pose orientation and position
-        Eigen::Matrix<double,3,3> R_GtoI = state->get_clone(feature.anchor_clone_timestamp)->Rot_fej();
-        Eigen::Matrix<double,3,1> p_IinG = state->get_clone(feature.anchor_clone_timestamp)->pos_fej();
-        // Feature in the global frame
-        p_FinG_fej = R_GtoI.transpose() * R_ItoC.transpose()*(feature.p_FinA_fej - p_IinC) + p_IinG;
+        p_FinG_fej = p_FinG;
     }
 
     //=========================================================================

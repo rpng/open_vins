@@ -11,16 +11,16 @@ source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
 
 # config locations
 usefej=(
-#    "false"
+    "false"
     "true"
 )
 
 # dataset locations
 representations=(
-#    "GLOBAL_3D"
+    "GLOBAL_3D"
 #    "GLOBAL_FULL_INVERSE_DEPTH"
     "ANCHORED_3D"
-    "ANCHORED_FULL_INVERSE_DEPTH"
+#    "ANCHORED_FULL_INVERSE_DEPTH"
     "ANCHORED_MSCKF_INVERSE_DEPTH"
 )
 
@@ -40,7 +40,7 @@ for h in "${!usefej[@]}"; do
 for i in "${!representations[@]}"; do
 
 # Monte Carlo runs for this dataset
-for j in {00..00}; do
+for j in {00..09}; do
 
 # start timing
 start_time="$(date -u +%s)"
