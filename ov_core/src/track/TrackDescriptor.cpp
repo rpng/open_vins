@@ -35,8 +35,17 @@ void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &imgin, size_t ca
 
     // If we are the first frame (or have lost tracking), initialize our descriptors
     if(pts_last.find(cam_id)==pts_last.end() || pts_last[cam_id].empty()) {
-        perform_detection_monocular(img, pts_last[cam_id], desc_last[cam_id], ids_last[cam_id]);
-        img_last[cam_id] = img.clone();
+        cv::Mat desc;
+        std::vector<size_t> ids;
+        std::vector<cv::KeyPoint> pts;
+        perform_detection_monocular(img, pts, desc, ids);
+        {
+            std::unique_lock<std::mutex> lck(mtx_lastvals);
+            pts_last[cam_id] = pts;
+            desc_last[cam_id] = desc;
+            ids_last[cam_id] = ids;
+            img_last[cam_id] = img.clone();
+        }
         return;
     }
 
@@ -120,10 +129,13 @@ void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &imgin, size_t ca
 
 
     // Move forward in time
-    img_last[cam_id] = img.clone();
-    pts_last[cam_id] = good_left;
-    ids_last[cam_id] = good_ids_left;
-    desc_last[cam_id] = good_desc_left;
+    {
+        std::unique_lock<std::mutex> lck(mtx_lastvals);
+        img_last[cam_id] = img.clone();
+        pts_last[cam_id] = good_left;
+        ids_last[cam_id] = good_ids_left;
+        desc_last[cam_id] = good_desc_left;
+    }
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     // Our timing information
@@ -148,13 +160,22 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
 
     // If we are the first frame (or have lost tracking), initialize our descriptors
     if(pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {
-        perform_detection_stereo(img_left, img_right,
-                                 pts_last[cam_id_left], pts_last[cam_id_right],
-                                 desc_last[cam_id_left], desc_last[cam_id_right],
-                                 cam_id_left, cam_id_right,
-                                 ids_last[cam_id_left], ids_last[cam_id_right]);
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
+        cv::Mat desc0, desc1;
+        std::vector<size_t> ids0, ids1;
+        std::vector<cv::KeyPoint> pts0, pts1;
+        perform_detection_stereo(img_left, img_right,pts0, pts1, desc0, desc1,
+                                 cam_id_left, cam_id_right, ids0, ids1);
+        {
+            std::unique_lock<std::mutex> lck(mtx_lastvals);
+            pts_last[cam_id_left] = pts0;
+            pts_last[cam_id_right] = pts1;
+            desc_last[cam_id_left] = desc0;
+            desc_last[cam_id_right] = desc1;
+            ids_last[cam_id_left] = ids0;
+            ids_last[cam_id_right] = ids1;
+            img_last[cam_id_left] = img_left.clone();
+            img_last[cam_id_right] = img_right.clone();
+        }
         return;
     }
 
@@ -276,14 +297,17 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
 
 
     // Move forward in time
-    img_last[cam_id_left] = img_left.clone();
-    img_last[cam_id_right] = img_right.clone();
-    pts_last[cam_id_left] = good_left;
-    pts_last[cam_id_right] = good_right;
-    ids_last[cam_id_left] = good_ids_left;
-    ids_last[cam_id_right] = good_ids_right;
-    desc_last[cam_id_left] = good_desc_left;
-    desc_last[cam_id_right] = good_desc_right;
+    {
+        std::unique_lock<std::mutex> lck(mtx_lastvals);
+        img_last[cam_id_left] = img_left.clone();
+        img_last[cam_id_right] = img_right.clone();
+        pts_last[cam_id_left] = good_left;
+        pts_last[cam_id_right] = good_right;
+        ids_last[cam_id_left] = good_ids_left;
+        ids_last[cam_id_right] = good_ids_right;
+        desc_last[cam_id_left] = good_desc_left;
+        desc_last[cam_id_right] = good_desc_right;
+    }
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     // Our timing information
@@ -315,8 +339,11 @@ void TrackDescriptor::perform_detection_monocular(const cv::Mat& img0, std::vect
         pts0.push_back(pts0_ext.at(i));
         desc0.push_back(desc0_ext.row((int)i));
         // Set our IDs to be unique IDs here, will later replace with corrected ones, after temporal matching
-        currid++;
-        ids0.push_back(currid);
+        {
+            std::unique_lock<std::mutex> lck(mtx_currid);
+            currid++;
+            ids0.push_back(currid);
+        }
     }
 
 }
@@ -370,9 +397,12 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
         desc0.push_back(desc0_ext.row(index_pt0));
         desc1.push_back(desc1_ext.row(index_pt1));
         // Set our IDs to be unique IDs here, will later replace with corrected ones, after temporal matching
-        currid++;
-        ids0.push_back(currid);
-        ids1.push_back(currid);
+        {
+            std::unique_lock<std::mutex> lck(mtx_currid);
+            currid++;
+            ids0.push_back(currid);
+            ids1.push_back(currid);
+        }
     }
 
 }

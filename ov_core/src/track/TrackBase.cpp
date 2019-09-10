@@ -26,6 +26,9 @@ using namespace ov_core;
 
 void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
+    // Lock our last image and pt data
+    std::unique_lock<std::mutex> lck(mtx_lastvals);
+
     // Get the largest width and height
     int max_width = -1;
     int max_height = -1;
@@ -73,6 +76,9 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
 
 
 void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
+
+    // Lock our image last data
+    std::unique_lock<std::mutex> lck(mtx_lastvals);
 
     // Get the largest width and height
     int max_width = -1;

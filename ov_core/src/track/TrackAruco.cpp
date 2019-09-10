@@ -29,6 +29,9 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
+    // Lock our aruco display value
+    std::unique_lock<std::mutex> lck1(mtx_aruco);
+
     // Histogram equalize
     cv::Mat img;
     cv::equalizeHist(imgin, img);
@@ -102,8 +105,11 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
 
 
     // Move forward in time
-    img_last[cam_id] = img.clone();
-    ids_last[cam_id] = ids_new;
+    {
+        std::unique_lock<std::mutex> lck2(mtx_lastvals);
+        img_last[cam_id] = img.clone();
+        ids_last[cam_id] = ids_new;
+    }
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -118,6 +124,9 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Lock our aruco display value
+    std::unique_lock<std::mutex> lck1(mtx_aruco);
 
     // Histogram equalize
     cv::Mat img_left, img_right;
@@ -225,10 +234,13 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
 
     // Move forward in time
-    img_last[cam_id_left] = img_left.clone();
-    img_last[cam_id_right] = img_right.clone();
-    ids_last[cam_id_left] = ids_left_new;
-    ids_last[cam_id_right] = ids_right_new;
+    {
+        std::unique_lock<std::mutex> lck2(mtx_lastvals);
+        img_last[cam_id_left] = img_left.clone();
+        img_last[cam_id_right] = img_right.clone();
+        ids_last[cam_id_left] = ids_left_new;
+        ids_last[cam_id_right] = ids_right_new;
+    }
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -240,6 +252,12 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
 
 void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
+
+    // Lock our aruco display value
+    std::unique_lock<std::mutex> lck1(mtx_aruco);
+
+    // Lock our image last data
+    std::unique_lock<std::mutex> lck2(mtx_lastvals);
 
     // Get the largest width and height
     int max_width = -1;

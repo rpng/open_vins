@@ -24,6 +24,7 @@
 
 #include <iostream>
 #include <thread>
+#include <mutex>
 #include <unordered_map>
 #include <Eigen/StdVector>
 
@@ -274,6 +275,9 @@ namespace ov_core {
         /// Number of features we should try to track frame to frame
         int num_features;
 
+        /// Mutex for our last set of image storage (img_last, pts_last, and ids_last)
+        std::mutex mtx_lastvals;
+
         /// Last set of images (use map so all trackers render in the same order)
         std::map<size_t, cv::Mat> img_last;
 
@@ -282,6 +286,9 @@ namespace ov_core {
 
         /// Set of IDs of each current feature in the database
         std::unordered_map<size_t, std::vector<size_t>> ids_last;
+
+        /// Mutex current id value, ensures we have sequential id values
+        std::mutex mtx_currid;
 
         /// Master ID for this tracker
         size_t currid = 0;

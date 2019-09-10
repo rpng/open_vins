@@ -23,6 +23,7 @@
 
 
 #include <vector>
+#include <mutex>
 #include <Eigen/Eigen>
 
 #include "Feature.h"
@@ -52,11 +53,15 @@ namespace ov_core {
         /**
          * @brief Get a specified feature
          * @param id What feature we want to get
+         * @param remove Set to true if you want to remove the feature from the database (you will need to handle the freeing of memory)
          * @return Either a feature object, or null if it is not in the database.
          */
-        Feature *get_feature(size_t id) {
+        Feature *get_feature(size_t id, bool remove=false) {
+            std::unique_lock<std::mutex> lck(mtx);
             if (features_idlookup.find(id) != features_idlookup.end()) {
-                return features_idlookup[id];
+                Feature* temp = features_idlookup[id];
+                if(remove) features_idlookup.erase(id);
+                return temp;
             } else {
                 return nullptr;
             }
@@ -80,6 +85,7 @@ namespace ov_core {
                             float u, float v, float u_n, float v_n) {
 
             // Find this feature using the ID lookup
+            std::unique_lock<std::mutex> lck(mtx);
             if (features_idlookup.find(id) != features_idlookup.end()) {
                 // Get our feature
                 Feature *feat = features_idlookup[id];
@@ -112,12 +118,13 @@ namespace ov_core {
          * For example this could be used to get features that have not been successfully tracked into the newest frame.
          * All features returned will not have any measurements occurring at a time greater then the specified.
          */
-        std::vector<Feature *> features_not_containing_newer(double timestamp) {
+        std::vector<Feature *> features_not_containing_newer(double timestamp, bool remove=false) {
 
             // Our vector of features that do not have measurements after the specified time
             std::vector<Feature *> feats_old;
 
             // Now lets loop through all features, and just make sure they are not old
+            std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // Loop through each camera
                 bool has_newer_measurement = false;
@@ -131,8 +138,11 @@ namespace ov_core {
                 // If it is not being actively tracked, then it is old
                 if (!has_newer_measurement) {
                     feats_old.push_back((*it).second);
+                    if(remove) features_idlookup.erase(it++);
+                    else it++;
+                } else {
+                    it++;
                 }
-                it++;
             }
 
             // Debugging
@@ -150,21 +160,30 @@ namespace ov_core {
          * This will collect all features that have measurements occurring before the specified timestamp.
          * For example, we would want to remove all features older then the last clone/state in our sliding window.
          */
-        std::vector<Feature *> features_containing_older(double timestamp) {
+        std::vector<Feature *> features_containing_older(double timestamp, bool remove=false) {
 
             // Our vector of old features
             std::vector<Feature *> feats_old;
 
             // Now lets loop through all features, and just make sure they are not old
+            std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // Loop through each camera
+                bool found_containing_older = false;
                 for (auto const &pair : (*it).second->timestamps) {
                     if (!pair.second.empty() && pair.second.at(0) < timestamp) {
-                        feats_old.push_back((*it).second);
+                        found_containing_older = true;
                         break;
                     }
                 }
-                it++;
+                // If it has an older timestamp, then add it
+                if(found_containing_older) {
+                    feats_old.push_back((*it).second);
+                    if(remove) features_idlookup.erase(it++);
+                    else it++;
+                } else {
+                    it++;
+                }
             }
 
             // Debugging
@@ -181,12 +200,13 @@ namespace ov_core {
          * This function will return all features that have the specified time in them.
          * This would be used to get all features that occurred at a specific clone/state.
          */
-        std::vector<Feature *> features_containing(double timestamp) {
+        std::vector<Feature *> features_containing(double timestamp, bool remove=false) {
 
             // Our vector of old features
             std::vector<Feature *> feats_has_timestamp;
 
             // Now lets loop through all features, and just make sure they are not
+            std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // Boolean if it has the timestamp
                 bool has_timestamp = false;
@@ -206,8 +226,11 @@ namespace ov_core {
                 // Remove this feature if it contains the specified timestamp
                 if (has_timestamp) {
                     feats_has_timestamp.push_back((*it).second);
+                    if(remove) features_idlookup.erase(it++);
+                    else it++;
+                } else {
+                    it++;
                 }
-                it++;
             }
 
             // Debugging
@@ -228,6 +251,7 @@ namespace ov_core {
             // Debug
             //int sizebefore = (int)features_idlookup.size();
             // Loop through all features
+            std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // If delete flag is set, then delete it
                 if ((*it).second->to_delete) {
@@ -246,6 +270,7 @@ namespace ov_core {
          * @brief Returns the size of the feature database
          */
         size_t size() {
+            std::unique_lock<std::mutex> lck(mtx);
             return features_idlookup.size();
         }
 
@@ -254,10 +279,14 @@ namespace ov_core {
          * @brief Returns the internal data (should not normally be used)
          */
         std::unordered_map<size_t, Feature *> get_internal_data() {
+            std::unique_lock<std::mutex> lck(mtx);
             return features_idlookup;
         }
 
     protected:
+
+        /// Mutex lock for our map
+        std::mutex mtx;
 
         /// Our lookup array that allow use to query based on ID
         std::unordered_map<size_t, Feature *> features_idlookup;
