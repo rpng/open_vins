@@ -98,6 +98,7 @@ namespace ov_msckf {
          * Uses Givens to separate into updating and initializing systems (therefore system must be fed as isotropic).
          * If you are not isotropic first whiten your system (TODO: we should add a helper function to do this).
          * If your H_L Jacobian is already directly invertable, the just call the initialize_invertible() instead of this function.
+         * Please refer to @ref update-delay page for detailed derivation.
          *
          * @param state Pointer to state
          * @param new_variable Pointer to variable to be initialized
@@ -114,6 +115,9 @@ namespace ov_msckf {
 
         /**
          * @brief Initializes new variable into covariance (H_L must be invertible)
+         *
+         * Please refer to @ref update-delay page for detailed derivation.
+         * This is just the update assuming that H_L is invertable (and thus square) and isotropic noise.
          *
          * @param state Pointer to state
          * @param new_variable Pointer to variable to be initialized
@@ -134,6 +138,19 @@ namespace ov_msckf {
          * This augmentation clones the IMU pose and adds it to our state's clone map.
          * If we are doing time offset calibration we also make our cloning a function of the time offset.
          * Time offset logic is based on Mingyang Li and Anastasios I. Mourikis paper: http://journals.sagepub.com/doi/pdf/10.1177/0278364913515286
+         * We can write the current clone at the true imu base clock time as the follow:
+         * \f{align*}{
+         * {}^{I_{t+t_d}}_G\bar{q} &= \begin{bmatrix}\frac{1}{2} {}^{I_{t+\hat{t}_d}}\boldsymbol\omega \tilde{t}_d \\ 0\end{bmatrix}\otimes{}^{I_{t+\hat{t}_d}}_G\bar{q} \\
+         * {}^G\mathbf{p}_{I_{t+t_d}} &= {}^G\mathbf{p}_{I_{t+\hat{t}_d}} + {}^G\mathbf{v}_{I_{t+\hat{t}_d}}\tilde{t}_d
+         * \f}
+         * where we say that we have propagated our state up to the current estimated true imaging time for the current image,
+         * \f${}^{I_{t+\hat{t}_d}}\boldsymbol\omega\f$ is the angular velocity at the end of propagation with biases removed.
+         * This is off by some smaller error, so to get to the true imaging time in the imu base clock, we can append some small timeoffset error.
+         * Thus the Jacobian in respect to our time offset during our cloning procedure is the following:
+         * \f{align*}{
+         * \frac{\partial {}^{I_{t+t_d}}_G\tilde{\boldsymbol\theta}}{\partial \tilde{t}_d} &= {}^{I_{t+\hat{t}_d}}\boldsymbol\omega \\
+         * \frac{\partial {}^G\tilde{\mathbf{p}}_{I_{t+t_d}}}{\partial \tilde{t}_d} &= {}^G\mathbf{v}_{I_{t+\hat{t}_d}}
+         * \f}
          *
          * @param state Pointer to state
          * @param last_w The estimated angular velocity at cloning time (used to estimate imu-cam time offset)

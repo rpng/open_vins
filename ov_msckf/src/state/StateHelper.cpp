@@ -379,6 +379,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     // Part of the Kalman Gain K = (P*H^T)*S^{-1} = M*S^{-1}
     assert(res.rows() == R.rows());
     assert(H_L.rows() == res.rows());
+    assert(H_L.rows() == H_R.rows());
     Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->n_vars(), res.rows());
 
     // Get the location in small jacobian for each measuring variable
@@ -415,6 +416,8 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     M.triangularView<Eigen::Upper>() += R;
 
     // Covariance of the variable/landmark that will be initialized
+    assert(H_L.rows()==H_L.cols());
+    assert(H_L.rows() == new_variable->size());
     Eigen::MatrixXd H_Linv = H_L.inverse();
     Eigen::MatrixXd P_LL = H_Linv * M.selfadjointView<Eigen::Upper>() * H_Linv.transpose();
 
