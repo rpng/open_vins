@@ -140,7 +140,7 @@ namespace ov_msckf {
          * Time offset logic is based on Mingyang Li and Anastasios I. Mourikis paper: http://journals.sagepub.com/doi/pdf/10.1177/0278364913515286
          * We can write the current clone at the true imu base clock time as the follow:
          * \f{align*}{
-         * {}^{I_{t+t_d}}_G\bar{q} &= \begin{bmatrix}\frac{1}{2} {}^{I_{t+\hat{t}_d}}\boldsymbol\omega \tilde{t}_d \\ 0\end{bmatrix}\otimes{}^{I_{t+\hat{t}_d}}_G\bar{q} \\
+         * {}^{I_{t+t_d}}_G\bar{q} &= \begin{bmatrix}\frac{1}{2} {}^{I_{t+\hat{t}_d}}\boldsymbol\omega \tilde{t}_d \\ 1\end{bmatrix}\otimes{}^{I_{t+\hat{t}_d}}_G\bar{q} \\
          * {}^G\mathbf{p}_{I_{t+t_d}} &= {}^G\mathbf{p}_{I_{t+\hat{t}_d}} + {}^G\mathbf{v}_{I_{t+\hat{t}_d}}\tilde{t}_d
          * \f}
          * where we say that we have propagated our state up to the current estimated true imaging time for the current image,
