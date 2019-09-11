@@ -65,7 +65,7 @@
             </li>
           </ul>
         </div>
-<p>This is the base class for all our visual trackers. The goal here is to provide a common interface so all underlying trackers can simply hide away all the complexities. We have something called the &quot;feature database&quot; which has all the tracking information inside of it. The user can ask this database for features which can then be used in an MSCKF or batch-based setting. The feature tracks store both the raw (distorted) and undistorted/normalized values. Right now we just support two camera models, see: <a href="classov__core_1_1TrackBase.html#a9ccde97a49519204713b86b7d8669649" class="m-doc">undistort_<wbr />point_<wbr />brown()</a> and <a href="classov__core_1_1TrackBase.html#a3cbb0736d74105309b487d5bf0a00552" class="m-doc">undistort_<wbr />point_<wbr />fisheye()</a>.</p><p>This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override this and do their own logic if they want (i.e. the <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a> has its own logic for visualization).</p>
+<p>This is the base class for all our visual trackers. The goal here is to provide a common interface so all underlying trackers can simply hide away all the complexities. We have something called the &quot;feature database&quot; which has all the tracking information inside of it. The user can ask this database for features which can then be used in an MSCKF or batch-based setting. The feature tracks store both the raw (distorted) and undistorted/normalized values. Right now we just support two camera models, see: <a href="classov__core_1_1TrackBase.html#a9ccde97a49519204713b86b7d8669649" class="m-doc">undistort_<wbr />point_<wbr />brown()</a> and <a href="classov__core_1_1TrackBase.html#a3cbb0736d74105309b487d5bf0a00552" class="m-doc">undistort_<wbr />point_<wbr />fisheye()</a>.</p><aside class="m-note m-warning"><h3>A Note on Multi-Threading Support</h3><p>There is some support for asynchronous multi-threaded feature tracking of independent cameras. The key assumption during implementation is that the user will not try to track on the same camera in parallel, and instead call on different cameras. For example, if I have two cameras, I can either sequentially call the feed function, or I spin each of these into separate threads and wait for their return. The <a href="classov__core_1_1TrackBase.html#af59db0441bf16f0e7c62d8f3bd09e5f0" class="m-doc">currid</a> is atomic to allow for multiple threads to access it without issue and ensure that all features have unique id values. We also have mutex for access for the calibration and previous images and tracks (used during visualization). It should be noted that if a thread calls visualization, it might hang or the feed thread might, due to acquiring the mutex for that specific camera id / feed.</p></aside><p>This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override this and do their own logic if they want (i.e. the <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a> has its own logic for visualization). This visualization needs access to the prior images and their tracks, thus must synchronise in the case of multi-threading. This shouldn&#x27;t impact performance, but high frequency visualization calls can negatively effect the performance.</p>
         <section id="derived-classes">
           <h2><a href="#derived-classes">Derived classes</a></h2>
           <dl class="m-doc">
@@ -196,6 +196,10 @@
             </dt>
             <dd>Number of features we should try to track frame to frame.</dd>
             <dt>
+              std::vector&lt;std::mutex&gt; <a href="#a8d9a970b148abdee71e1ace835c38c7c" class="m-doc-self" name="a8d9a970b148abdee71e1ace835c38c7c">mtx_feeds</a>
+            </dt>
+            <dd>Mutexs for our last set of image storage (img_last, pts_last, and ids_last)</dd>
+            <dt>
               std::map&lt;size_t, cv::Mat&gt; <a href="#a84396d08375c2c796fc759de12d28469" class="m-doc-self" name="a84396d08375c2c796fc759de12d28469">img_last</a>
             </dt>
             <dd>Last set of images (use map so all trackers render in the same order)</dd>
@@ -208,9 +212,9 @@
             </dt>
             <dd>Set of IDs of each current feature in the database.</dd>
             <dt>
-              size_t <a href="#a623ae6bf8ed290cc1ecdfcba3e86bde6" class="m-doc-self" name="a623ae6bf8ed290cc1ecdfcba3e86bde6">currid</a>
+              std::atomic&lt;size_t&gt; <a href="#af59db0441bf16f0e7c62d8f3bd09e5f0" class="m-doc-self" name="af59db0441bf16f0e7c62d8f3bd09e5f0">currid</a>
             </dt>
-            <dd>Master ID for this tracker.</dd>
+            <dd>Master ID for this tracker (atomic to allow for multi-threading)</dd>
           </dl>
         </section>
         <section>
