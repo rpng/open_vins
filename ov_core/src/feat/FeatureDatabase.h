@@ -37,6 +37,18 @@ namespace ov_core {
      * Each visual tracker has this database in it and it contains all features that we are tracking.
      * The trackers will insert information into this database when they get new measurements from doing tracking.
      * A user would then query this database for features that can be used for update and remove them after they have been processed.
+     *
+     *
+     * @m_class{m-note m-warning}
+     *
+     * @par A Note on Multi-Threading Support
+     * There is some support for asynchronous multi-threaded access.
+     * Since each feature is a pointer just directly returning and using them is not thread safe.
+     * Thus, to be thread safe, use the "remove" flag for each function which will remove it from this feature database.
+     * This prevents the trackers from adding new measurements and editing the feature information.
+     * For example, if you are asynchronous tracking cameras and you chose to update the state, then remove all features you will use in update.
+     * The feature trackers will continue to add features while you update, whose measurements can be used in the next update step!
+     *
      */
     class FeatureDatabase {
 
