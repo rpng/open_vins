@@ -29,6 +29,9 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
+    // Lock this data feed for this camera
+    std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
+
     // Histogram equalize
     cv::equalizeHist(img, img);
 
@@ -41,35 +44,16 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id].empty()) {
         // Detect new features
-        std::vector<size_t> ids;
-        std::vector<cv::KeyPoint> pts;
-        perform_detection_monocular(imgpyr,pts,ids);
+        perform_detection_monocular(imgpyr, pts_last[cam_id], ids_last[cam_id]);
         // Save the current image and pyramid
-        {
-            std::unique_lock<std::mutex> lck(mtx_lastvals);
-            pts_last[cam_id] = pts;
-            ids_last[cam_id] = ids;
-            img_last[cam_id] = img.clone();
-            img_pyramid_last[cam_id] = imgpyr;
-        }
+        img_last[cam_id] = img.clone();
+        img_pyramid_last[cam_id] = imgpyr;
         return;
     }
 
     // First we should make that the last images have enough features so we can do KLT
     // This will "top-off" our number of tracks so always have a constant number
-    std::vector<size_t> idslast;
-    std::vector<cv::KeyPoint> ptslast;
-    {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
-        idslast = ids_last[cam_id];
-        ptslast = pts_last[cam_id];
-    }
-    perform_detection_monocular(img_pyramid_last[cam_id], ptslast, idslast);
-    {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
-        ids_last[cam_id] = idslast;
-        pts_last[cam_id] = ptslast;
-    }
+    perform_detection_monocular(img_pyramid_last[cam_id], pts_last[cam_id], ids_last[cam_id]);
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     //===================================================================================
@@ -91,7 +75,6 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
     // If any of our mask is empty, that means we didn't have enough to do ransac, so just return
     if(mask_ll.empty()) {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
         img_last[cam_id] = img.clone();
         img_pyramid_last[cam_id] = imgpyr;
         pts_last[cam_id].clear();
@@ -130,13 +113,10 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     }
 
     // Move forward in time
-    {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
-        img_last[cam_id] = img.clone();
-        img_pyramid_last[cam_id] = imgpyr;
-        pts_last[cam_id] = good_left;
-        ids_last[cam_id] = good_ids_left;
-    }
+    img_last[cam_id] = img.clone();
+    img_pyramid_last[cam_id] = imgpyr;
+    pts_last[cam_id] = good_left;
+    ids_last[cam_id] = good_ids_left;
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -154,6 +134,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Lock this data feed for this camera
+    std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
+    std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
     // Histogram equalize
     cv::Mat img_left, img_right;
@@ -178,44 +162,20 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // This also handles, the tracking initalization on the first call to this extractor
     if(pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {
         // Track into the new image
-        std::vector<size_t> ids0, ids1;
-        std::vector<cv::KeyPoint> pts0, pts1;
-        perform_detection_stereo(imgpyr_left, imgpyr_right, pts0, pts1, ids0, ids1);
+        perform_detection_stereo(imgpyr_left, imgpyr_right, pts_last[cam_id_left], pts_last[cam_id_right], ids_last[cam_id_left], ids_last[cam_id_right]);
         // Save the current image and pyramid
-        {
-            std::unique_lock<std::mutex> lck(mtx_lastvals);
-            pts_last[cam_id_left] = pts0;
-            pts_last[cam_id_right] = pts1;
-            ids_last[cam_id_left] = ids0;
-            ids_last[cam_id_right] = ids1;
-            img_last[cam_id_left] = img_left.clone();
-            img_last[cam_id_right] = img_right.clone();
-            img_pyramid_last[cam_id_left] = imgpyr_left;
-            img_pyramid_last[cam_id_right] = imgpyr_right;
-        }
+        img_last[cam_id_left] = img_left.clone();
+        img_last[cam_id_right] = img_right.clone();
+        img_pyramid_last[cam_id_left] = imgpyr_left;
+        img_pyramid_last[cam_id_right] = imgpyr_right;
         return;
     }
 
     // First we should make that the last images have enough features so we can do KLT
     // This will "top-off" our number of tracks so always have a constant number
-    std::vector<size_t> idslast0, idslast1;
-    std::vector<cv::KeyPoint> ptslast0, ptslast1;
-    {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
-        idslast0 = ids_last[cam_id_left];
-        idslast1 = ids_last[cam_id_right];
-        ptslast0 = pts_last[cam_id_left];
-        ptslast1 = pts_last[cam_id_right];
-    }
     perform_detection_stereo(img_pyramid_last[cam_id_left], img_pyramid_last[cam_id_right],
-                             ptslast0, ptslast1, idslast0, idslast1);
-    {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
-        ids_last[cam_id_left] = idslast0;
-        ids_last[cam_id_right] = idslast1;
-        pts_last[cam_id_left] = ptslast0;
-        pts_last[cam_id_right] = ptslast1;
-    }
+                             pts_last[cam_id_left], pts_last[cam_id_right],
+                             ids_last[cam_id_left], ids_last[cam_id_right]);
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -224,8 +184,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Our return success masks, and predicted new features
     std::vector<uchar> mask_ll, mask_rr;
-    std::vector<cv::KeyPoint> pts_left_new = ptslast0;
-    std::vector<cv::KeyPoint> pts_right_new = ptslast1;
+    std::vector<cv::KeyPoint> pts_left_new = pts_last[cam_id_left];
+    std::vector<cv::KeyPoint> pts_right_new = pts_last[cam_id_right];
 
     // Lets track temporally
     boost::thread t_ll = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_pyramid_last[cam_id_left]), boost::cref(imgpyr_left),
@@ -254,7 +214,6 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // If any of our masks are empty, that means we didn't have enough to do ransac, so just return
     if(mask_ll.empty() || mask_rr.empty() || mask_lr.empty()) {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
         img_last[cam_id_left] = img_left.clone();
         img_last[cam_id_right] = img_right.clone();
         img_pyramid_last[cam_id_left] = imgpyr_left;
@@ -280,8 +239,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         if(mask_ll[i] && mask_rr[i] && mask_lr[i]) {
             good_left.push_back(pts_left_new[i]);
             good_right.push_back(pts_right_new[i]);
-            good_ids_left.push_back(idslast0[i]);
-            good_ids_right.push_back(idslast1[i]);
+            good_ids_left.push_back(ids_last[cam_id_left][i]);
+            good_ids_right.push_back(ids_last[cam_id_right][i]);
         }
         // We can also track mono features, so lets handle them here
         //if(mask_ll[i]) {
@@ -311,17 +270,14 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     }
 
     // Move forward in time
-    {
-        std::unique_lock<std::mutex> lck(mtx_lastvals);
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
-        img_pyramid_last[cam_id_left] = imgpyr_left;
-        img_pyramid_last[cam_id_right] = imgpyr_right;
-        pts_last[cam_id_left] = good_left;
-        pts_last[cam_id_right] = good_right;
-        ids_last[cam_id_left] = good_ids_left;
-        ids_last[cam_id_right] = good_ids_right;
-    }
+    img_last[cam_id_left] = img_left.clone();
+    img_last[cam_id_right] = img_right.clone();
+    img_pyramid_last[cam_id_left] = imgpyr_left;
+    img_pyramid_last[cam_id_right] = imgpyr_right;
+    pts_last[cam_id_left] = good_left;
+    pts_last[cam_id_right] = good_right;
+    ids_last[cam_id_left] = good_ids_left;
+    ids_last[cam_id_right] = good_ids_right;
     rT6 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -398,11 +354,8 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
         // append the new uv coordinate
         pts0.push_back(kpts0_new.at(i));
         // move id foward and append this new point
-        {
-            std::unique_lock<std::mutex> lck(mtx_currid);
-            currid++;
-            ids0.push_back(currid);
-        }
+        size_t temp = ++currid;
+        ids0.push_back(temp);
     }
 
 }
@@ -501,12 +454,9 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
             pts0.push_back(kpts0_new.at(i));
             pts1.push_back(kpts1_new.at(i));
             // move id foward and append this new point
-            {
-                std::unique_lock<std::mutex> lck(mtx_currid);
-                currid++;
-                ids0.push_back(currid);
-                ids1.push_back(currid);
-            }
+            size_t temp = ++currid;
+            ids0.push_back(temp);
+            ids1.push_back(temp);
         }
     }
 

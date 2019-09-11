@@ -29,8 +29,8 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
-    // Lock our aruco display value
-    std::unique_lock<std::mutex> lck1(mtx_aruco);
+    // Lock this data feed for this camera
+    std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
 
     // Histogram equalize
     cv::Mat img;
@@ -105,11 +105,8 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
 
 
     // Move forward in time
-    {
-        std::unique_lock<std::mutex> lck2(mtx_lastvals);
-        img_last[cam_id] = img.clone();
-        ids_last[cam_id] = ids_new;
-    }
+    img_last[cam_id] = img.clone();
+    ids_last[cam_id] = ids_new;
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -125,8 +122,9 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
-    // Lock our aruco display value
-    std::unique_lock<std::mutex> lck1(mtx_aruco);
+    // Lock this data feed for this camera
+    std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
+    std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
     // Histogram equalize
     cv::Mat img_left, img_right;
@@ -234,13 +232,10 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
 
     // Move forward in time
-    {
-        std::unique_lock<std::mutex> lck2(mtx_lastvals);
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
-        ids_last[cam_id_left] = ids_left_new;
-        ids_last[cam_id_right] = ids_right_new;
-    }
+    img_last[cam_id_left] = img_left.clone();
+    img_last[cam_id_right] = img_right.clone();
+    ids_last[cam_id_left] = ids_left_new;
+    ids_last[cam_id_right] = ids_right_new;
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -253,11 +248,11 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
 void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
-    // Lock our aruco display value
-    std::unique_lock<std::mutex> lck1(mtx_aruco);
-
-    // Lock our image last data
-    std::unique_lock<std::mutex> lck2(mtx_lastvals);
+    // Lock all our feeds (this prevents other threads from editing our data)
+    //std::vector<std::unique_lock<std::mutex>> lcks;
+    //for(size_t i=0; i<mtx_feeds.size(); i++) {
+    //    lcks.push_back(std::unique_lock<std::mutex>(mtx_feeds.at(i)));
+    //}
 
     // Get the largest width and height
     int max_width = -1;
@@ -277,6 +272,8 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
     // Loop through each image, and draw
     int ct = 0;
     for(auto const& pair : img_last) {
+        // Lock this image
+        std::unique_lock<std::mutex> lck(mtx_feeds.at(pair.first));
         // select the subset of the image
         cv::Mat img_temp;
         if(image_new) cv::cvtColor(img_last[pair.first], img_temp, CV_GRAY2RGB);

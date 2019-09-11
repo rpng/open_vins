@@ -25,6 +25,7 @@
 #include <iostream>
 #include <thread>
 #include <mutex>
+#include <atomic>
 #include <unordered_map>
 #include <Eigen/StdVector>
 
@@ -51,8 +52,20 @@ namespace ov_core {
      * The feature tracks store both the raw (distorted) and undistorted/normalized values.
      * Right now we just support two camera models, see: undistort_point_brown() and undistort_point_fisheye().
      *
+     * @m_class{m-note m-warning}
+     *
+     * @par A Note on Multi-Threading Support
+     * There is some support for asynchronous multi-threaded feature tracking of independent cameras.
+     * The key assumption during implementation is that the user will not try to track on the same camera in parallel, and instead call on different cameras.
+     * For example, if I have two cameras, I can either sequentially call the feed function, or I spin each of these into separate threads and wait for their return.
+     * The @ref currid is atomic to allow for multiple threads to access it without issue and ensure that all features have unique id values.
+     * We also have mutex for access for the calibration and previous images and tracks (used during visualization).
+     * It should be noted that if a thread calls visualization, it might hang or the feed thread might, due to acquiring the mutex for that specific camera id / feed.
+     *
      * This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override
      * this and do their own logic if they want (i.e. the TrackAruco has its own logic for visualization).
+     * This visualization needs access to the prior images and their tracks, thus must synchronise in the case of multi-threading.
+     * This shouldn't impact performance, but high frequency visualization calls can negatively effect the performance.
      */
     class TrackBase {
 
@@ -85,19 +98,57 @@ namespace ov_core {
         void set_calibration(std::map<size_t,Eigen::VectorXd> camera_calib,
                              std::map<size_t, bool> camera_fisheye, bool correct_active=false) {
 
-            // Clear old maps
-            camera_k_OPENCV.clear();
-            camera_d_OPENCV.clear();
+            // Assert vectors are equal
+            assert(camera_calib.size()==camera_fisheye.size());
 
-            // Overwrite our fisheye calibration
-            this->camera_fisheye = camera_fisheye;
+            // Initialize our mutex and camera intrinsic values if we are just starting up
+            // The number of cameras should not change over time, thus we just need to check if our initial data is empty
+            if(mtx_feeds.empty() || camera_k_OPENCV.empty() || camera_k_OPENCV.empty() || this->camera_fisheye.empty()) {
+                // Create our mutex array based on the number of cameras we have
+                // See https://stackoverflow.com/a/24170141/7718197
+                std::vector<std::mutex> list(camera_calib.size());
+                mtx_feeds.swap(list);
+                // Overwrite our fisheye calibration
+                this->camera_fisheye = camera_fisheye;
+                // Convert values to the OpenCV format
+                for (auto const &cam : camera_calib) {
+                    // Assert we are of size eight
+                    assert(cam.second.rows()==8);
+                    // Camera matrix
+                    cv::Matx33d tempK;
+                    tempK(0, 0) = cam.second(0);
+                    tempK(0, 1) = 0;
+                    tempK(0, 2) = cam.second(2);
+                    tempK(1, 0) = 0;
+                    tempK(1, 1) = cam.second(1);
+                    tempK(1, 2) = cam.second(3);
+                    tempK(2, 0) = 0;
+                    tempK(2, 1) = 0;
+                    tempK(2, 2) = 1;
+                    camera_k_OPENCV.insert({cam.first, tempK});
+                    // Distortion parameters
+                    cv::Vec4d tempD;
+                    tempD(0) = cam.second(4);
+                    tempD(1) = cam.second(5);
+                    tempD(2) = cam.second(6);
+                    tempD(3) = cam.second(7);
+                    camera_d_OPENCV.insert({cam.first, tempD});
+                }
+                return;
+            }
+
+            // assert that the number of cameras can not change
+            assert(camera_k_OPENCV.size()==camera_calib.size());
+            assert(camera_k_OPENCV.size()==camera_fisheye.size());
 
             // Convert values to the OpenCV format
             for (auto const &cam : camera_calib) {
-
+                // Lock this image feed
+                std::unique_lock<std::mutex> lck(mtx_feeds.at(cam.first));
+                // Fisheye value
+                this->camera_fisheye.at(cam.first) = camera_fisheye.at(cam.first);
                 // Assert we are of size eight
                 assert(cam.second.rows()==8);
-
                 // Camera matrix
                 cv::Matx33d tempK;
                 tempK(0, 0) = cam.second(0);
@@ -109,16 +160,14 @@ namespace ov_core {
                 tempK(2, 0) = 0;
                 tempK(2, 1) = 0;
                 tempK(2, 2) = 1;
-                camera_k_OPENCV.insert({cam.first, tempK});
-
+                camera_k_OPENCV.at(cam.first) = tempK;
                 // Distortion parameters
                 cv::Vec4d tempD;
                 tempD(0) = cam.second(4);
                 tempD(1) = cam.second(5);
                 tempD(2) = cam.second(6);
                 tempD(3) = cam.second(7);
-                camera_d_OPENCV.insert({cam.first, tempD});
-
+                camera_d_OPENCV.at(cam.first) = tempD;
             }
 
             // If we are calibrating camera intrinsics our normalize coordinates will be stale
@@ -136,6 +185,7 @@ namespace ov_core {
                     // Loop through each camera for this feature
                     for (auto const& meas_pair : feat->timestamps) {
                         size_t camid = meas_pair.first;
+                        std::unique_lock<std::mutex> lck(mtx_feeds.at(camid));
                         for(size_t m=0; m<feat->uvs.at(camid).size(); m++) {
                             cv::Point2f pt(feat->uvs.at(camid).at(m)(0), feat->uvs.at(camid).at(m)(1));
                             cv::Point2f pt_n = undistort_point(pt,camid);
@@ -275,8 +325,8 @@ namespace ov_core {
         /// Number of features we should try to track frame to frame
         int num_features;
 
-        /// Mutex for our last set of image storage (img_last, pts_last, and ids_last)
-        std::mutex mtx_lastvals;
+        /// Mutexs for our last set of image storage (img_last, pts_last, and ids_last)
+        std::vector<std::mutex> mtx_feeds;
 
         /// Last set of images (use map so all trackers render in the same order)
         std::map<size_t, cv::Mat> img_last;
@@ -287,11 +337,8 @@ namespace ov_core {
         /// Set of IDs of each current feature in the database
         std::unordered_map<size_t, std::vector<size_t>> ids_last;
 
-        /// Mutex current id value, ensures we have sequential id values
-        std::mutex mtx_currid;
-
-        /// Master ID for this tracker
-        size_t currid = 0;
+        /// Master ID for this tracker (atomic to allow for multi-threading)
+        std::atomic<size_t> currid;
 
 
     };

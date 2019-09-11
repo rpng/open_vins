@@ -47,16 +47,19 @@ void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<i
         // NOTE: ids by the number of aruoc tags we have specified as tracking
         for(const auto &feat : feats.at(i)) {
 
+            // Get our id value
+            size_t id = feat.first+currid;
+
             // Create the keypoint
             cv::KeyPoint kpt;
             kpt.pt.x = feat.second(0);
             kpt.pt.y = feat.second(1);
             good_left.push_back(kpt);
-            good_ids_left.push_back(feat.first+currid);
+            good_ids_left.push_back(id);
 
             // Append to the database
             cv::Point2f npt_l = undistort_point(kpt.pt, cam_id);
-            database->update_feature(feat.first+currid, timestamp, cam_id,
+            database->update_feature(id, timestamp, cam_id,
                                      kpt.pt.x, kpt.pt.y, npt_l.x, npt_l.y);
         }
 
