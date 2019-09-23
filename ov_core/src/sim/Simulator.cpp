@@ -114,6 +114,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
 
     // Load number of cameras and number of points
     nh.param<int>("max_cameras", max_cameras, 1);
+    nh.param<bool>("use_stereo", use_stereo, true);
     nh.param<int>("num_pts", num_pts, 200);
 
     // Create generator for our camera
@@ -497,6 +498,12 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
         // If greater than only select the first set
         if((int)uvs.size() > num_pts) {
             uvs.erase(uvs.begin()+num_pts, uvs.end());
+        }
+
+        // Append the map size so all cameras have unique features in them (but the same map)
+        // Only do this if we are not enforcing stereo constraints between all our cameras
+        for (size_t f=0; f<uvs.size() && !use_stereo; f++){
+            uvs.at(f).first += i*featmap.size();
         }
 
         // Loop through and add noise to each uv measurement

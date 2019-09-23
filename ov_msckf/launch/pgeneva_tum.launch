@@ -20,6 +20,7 @@
         <param name="use_fej"                type="bool"   value="true" />
         <param name="use_imuavg"             type="bool"   value="true" />
         <param name="use_rk4int"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="true" />
         <param name="calib_cam_extrinsics"   type="bool"   value="true" />
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />

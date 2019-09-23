@@ -23,13 +23,14 @@
         <param name="use_fej"                type="bool"   value="true" />
         <param name="use_imuavg"             type="bool"   value="true" />
         <param name="use_rk4int"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="true" />
         <param name="calib_cam_extrinsics"   type="bool"   value="true" />
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="50" />
-        <param name="max_cameras"            type="int"    value="2" />
+        <param name="max_cameras"            type="int"    value="1" />
         <param name="dt_slam_delay"          type="double" value="5" />
         <param name="feat_representation"    type="string" value="GLOBAL_3D" />
         <param name="init_window_time"       type="double" value="0.75" />

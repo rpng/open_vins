@@ -211,6 +211,9 @@ namespace ov_core {
         /// Number of cameras we should simulate
         int max_cameras;
 
+        /// If we should enforce that all cameras see the same map
+        bool use_stereo;
+
         /// Frequency of our camera sensors
         double freq_cam;
 

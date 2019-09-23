@@ -222,6 +222,9 @@ namespace ov_msckf {
         /// Propagator of our state
         Propagator* propagator;
 
+        /// Boolean if we should do stereo tracking or if false do binocular
+        bool use_stereo = true;
+
         /// Our sparse feature tracker (klt or descriptor)
         TrackBase* trackFEATS = nullptr;
 

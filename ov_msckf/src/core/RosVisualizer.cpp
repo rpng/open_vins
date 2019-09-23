@@ -143,6 +143,15 @@ void RosVisualizer::visualize_final() {
         ROS_INFO("\033[0;95mRMSE average: %.3f (m) position\033[0m",summed_rmse_pos/summed_number);
     }
 
+    // Publish RMSE and NEES if doing simulation
+    if(_sim != nullptr) {
+        ROS_INFO("\033[0;95mRMSE average: %.3f (deg) orientation\033[0m",summed_rmse_ori/summed_number);
+        ROS_INFO("\033[0;95mRMSE average: %.3f (m) position\033[0m",summed_rmse_pos/summed_number);
+        ROS_INFO("\033[0;95mNEES average: %.3f (deg) orientation\033[0m",summed_nees_ori/summed_number);
+        ROS_INFO("\033[0;95mNEES average: %.3f (m) position\033[0m",summed_nees_pos/summed_number);
+    }
+
+
 }
 
 

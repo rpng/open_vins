@@ -42,6 +42,7 @@ VioManager::VioManager(ros::NodeHandle &nh) {
     nh.param<bool>("use_fej", state_options.do_fej, false);
     nh.param<bool>("use_imuavg", state_options.imu_avg, false);
     nh.param<bool>("use_rk4int", state_options.use_rk4_integration, true);
+    nh.param<bool>("use_stereo", use_stereo, true);
     nh.param<bool>("calib_cam_extrinsics", state_options.do_calib_camera_pose, false);
     nh.param<bool>("calib_cam_intrinsics", state_options.do_calib_camera_intrinsics, false);
     nh.param<bool>("calib_cam_timeoffset", state_options.do_calib_camera_timeoffset, false);
@@ -384,10 +385,22 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
-    // Feed our trackers
-    trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
+    // Assert we have good ids
+    assert(cam_id0!=cam_id1);
+
+    // Feed our stereo trackers, if we are not doing binocular
+    if(use_stereo) {
+        trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
+    } else {
+        boost::thread t_l = boost::thread(&TrackBase::feed_monocular, trackFEATS, boost::ref(timestamp), boost::ref(img0), boost::ref(cam_id0));
+        boost::thread t_r = boost::thread(&TrackBase::feed_monocular, trackFEATS, boost::ref(timestamp), boost::ref(img1), boost::ref(cam_id1));
+        t_l.join();
+        t_r.join();
+    }
 
     // If aruoc is avalible, the also pass to it
+    // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids
+    // NOTE: thus we just call the stereo tracking if we are doing binocular!
     if(trackARUCO != nullptr) {
         trackARUCO->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     }

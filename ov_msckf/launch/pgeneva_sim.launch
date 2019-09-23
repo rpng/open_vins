@@ -11,9 +11,9 @@
     <arg name="num_clones"  default="11" />
     <arg name="num_slam"    default="0" />
     <arg name="num_pts"     default="50" />
-    <arg name="max_cameras" default="1" />
+    <arg name="max_cameras" default="2" />
 
-    <arg name="freq_cam"    default="20" />
+    <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
 
     <arg name="dataset"    default="udel_gore.txt" /> <!-- euroc_V1_01_easy, udel_gore, tum_corridor1_512_16_okvis, udel_arl -->
@@ -69,6 +69,7 @@
         <param name="use_fej"                type="bool"   value="$(arg fej)" />
         <param name="use_imuavg"             type="bool"   value="true" />
         <param name="use_rk4int"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="true" />
         <param name="calib_cam_extrinsics"   type="bool"   value="$(arg sim_do_calibration)" />
         <param name="calib_cam_intrinsics"   type="bool"   value="$(arg sim_do_calibration)" />
         <param name="calib_cam_timeoffset"   type="bool"   value="$(arg sim_do_calibration)" />
