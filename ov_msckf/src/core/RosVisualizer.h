@@ -31,6 +31,7 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #include <std_msgs/Float64.h>
 #include <nav_msgs/Path.h>
+#include <nav_msgs/Odometry.h>
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <tf/transform_broadcaster.h>
@@ -108,6 +109,7 @@ namespace ov_msckf {
 
         // Our publishers
         ros::Publisher pub_poseimu;
+        ros::Publisher pub_odomimu;
         ros::Publisher pub_pathimu;
         ros::Publisher pub_points_msckf;
         ros::Publisher pub_points_slam;

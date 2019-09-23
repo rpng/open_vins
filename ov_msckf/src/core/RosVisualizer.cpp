@@ -34,6 +34,8 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     // Setup pose and path publisher
     pub_poseimu = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
     ROS_INFO("Publishing: %s", pub_poseimu.getTopic().c_str());
+    pub_odomimu = nh.advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
+    ROS_INFO("Publishing: %s", pub_odomimu.getTopic().c_str());
     pub_pathimu = nh.advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
     ROS_INFO("Publishing: %s", pub_pathimu.getTopic().c_str());
 
@@ -167,13 +169,45 @@ void RosVisualizer::publish_state() {
     std::vector<Type*> statevars;
     statevars.push_back(state->imu()->pose()->p());
     statevars.push_back(state->imu()->pose()->q());
-    Eigen::Matrix<double,6,6> covariance = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
+    Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
     for(int r=0; r<6; r++) {
         for(int c=0; c<6; c++) {
-            poseIinM.pose.covariance[6*r+c] = covariance(r,c);
+            poseIinM.pose.covariance[6*r+c] = covariance_posori(r,c);
         }
     }
     pub_poseimu.publish(poseIinM);
+
+    //=========================================================
+    //=========================================================
+
+    // Our odometry message (note we do not fill out angular velocities)
+    nav_msgs::Odometry odomIinM;
+    odomIinM.header = poseIinM.header;
+    odomIinM.pose.pose = poseIinM.pose.pose;
+    odomIinM.pose.covariance = poseIinM.pose.covariance;
+    odomIinM.child_frame_id = "imu";
+    odomIinM.twist.twist.angular.x = 0; // we do not estimate this...
+    odomIinM.twist.twist.angular.y = 0; // we do not estimate this...
+    odomIinM.twist.twist.angular.z = 0; // we do not estimate this...
+    odomIinM.twist.twist.linear.x = state->imu()->vel()(0);
+    odomIinM.twist.twist.linear.y = state->imu()->vel()(1);
+    odomIinM.twist.twist.linear.z = state->imu()->vel()(2);
+
+    // Velocity covariance (linear then angular)
+    statevars.clear();
+    statevars.push_back(state->imu()->v());
+    Eigen::Matrix<double,6,6> covariance_linang = INFINITY*Eigen::Matrix<double,6,6>::Identity();
+    covariance_linang.block(0,0,3,3) = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
+    for(int r=0; r<6; r++) {
+        for(int c=0; c<6; c++) {
+            odomIinM.twist.covariance[6*r+c] = (std::isnan(covariance_linang(r,c))) ? 0 : covariance_linang(r,c);
+        }
+    }
+    pub_odomimu.publish(odomIinM);
+
+
+    //=========================================================
+    //=========================================================
 
     // Append to our pose vector
     geometry_msgs::PoseStamped posetemp;
