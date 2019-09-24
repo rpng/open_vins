@@ -131,6 +131,10 @@ namespace ov_msckf {
         double summed_nees_pos = 0.0;
         size_t summed_number = 0;
 
+        // Start and end timestamps
+        bool start_time_set = false;
+        boost::posix_time::ptime rT1, rT2;
+
         // Our groundtruth states
         std::map<double, Eigen::Matrix<double,17,1>> gt_states;
 

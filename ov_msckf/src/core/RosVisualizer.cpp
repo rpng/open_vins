@@ -114,6 +114,12 @@ void RosVisualizer::visualize() {
     if(!_app->intialized())
         return;
 
+    // Save the start time of this dataset
+    if(!start_time_set) {
+        rT1 =  boost::posix_time::microsec_clock::local_time();
+        start_time_set = true;
+    }
+
     // publish state
     publish_state();
 
@@ -151,6 +157,9 @@ void RosVisualizer::visualize_final() {
         ROS_INFO("\033[0;95mNEES average: %.3f (m) position\033[0m",summed_nees_pos/summed_number);
     }
 
+    // Print the total time
+    rT2 =  boost::posix_time::microsec_clock::local_time();
+    ROS_INFO("\033[0;95mTIME: %.3f seconds\033[0m",(rT2-rT1).total_microseconds()*1e-6);
 
 }
 

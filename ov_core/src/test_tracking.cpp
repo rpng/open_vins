@@ -66,8 +66,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
 int main(int argc, char** argv)
 {
     ros::init(argc, argv, "test_tracking");
-    ros::NodeHandle nh;
-    ros::NodeHandle nhPrivate("~");
+    ros::NodeHandle nh("~");
 
     // Our camera topics (left and right stereo)
     std::string topic_camera0;
@@ -84,8 +83,8 @@ int main(int argc, char** argv)
     // Get our start location and how much of the bag we want to play
     // Make the bag duration < 0 to just process to the end of the bag
     double bag_start, bag_durr;
-    nh.param<double>("bag_start", bag_start, 2);
-    nh.param<double>("bag_durr", bag_durr, 10);
+    nh.param<double>("bag_start", bag_start, 0);
+    nh.param<double>("bag_durr", bag_durr, -1);
 
 
     //===================================================================================
@@ -246,8 +245,9 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
                     
 
     // Process this new image
-    extractor->feed_stereo(time0, img0, img1, 0, 1);
-    //extractor->feed_monocular(time0, img0, 2);
+    //extractor->feed_stereo(time0, img0, img1, 0, 1);
+    extractor->feed_monocular(time0, img0, 0);
+    extractor->feed_monocular(time0, img1, 1);
 
 
     // Display the resulting tracks
