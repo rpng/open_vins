@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<url>
+  <loc>https://docs.openvins.com/</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/annotated.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/citelist.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1BsplineSE3.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1CpiBase.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1CpiV1.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1CpiV2.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1DatasetReader.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Feature.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1FeatureDatabase.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1FeatureInitializer.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1FeatureRepresentation.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Grider__DOG.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Grider__FAST.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1IMU.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1InertialInitializer.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1JPLQuat.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Landmark.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1PoseJPL.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Simulator.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1TrackAruco.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1TrackBase.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1TrackDescriptor.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1TrackKLT.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1TrackSIM.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Type.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__core_1_1Vec.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1AlignTrajectory.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1AlignUtils.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1Loader.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1Math.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1Recorder.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1ResultSimulation.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__eval_1_1ResultTrajectory.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1Propagator.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1RosVisualizer.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1State.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1StateHelper.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1UpdaterHelper.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1UpdaterMSCKF.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1UpdaterSLAM.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/classov__msckf_1_1VioManager.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/dev-coding-style.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/dev-docs.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/dev-index.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/dev-roadmap.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/dev-welcome.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/evaluation.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/fej.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/getting-started.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/gs-calibration.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/gs-datasets.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/gs-installing.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/gs-tutorial.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/index.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/namespaceov__core.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/namespaceov__eval.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/namespaceov__msckf.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/pages.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/propagation.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/simulation.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__core_1_1FeatureInitializerOptions.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__core_1_1FeatureInitializer_1_1ClonePose.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__core_1_1InertialInitializer_1_1IMUDATA.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__eval_1_1Statistics.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__msckf_1_1Propagator_1_1IMUDATA.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__msckf_1_1Propagator_1_1NoiseManager.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__msckf_1_1StateOptions.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__msckf_1_1UpdaterHelper_1_1UpdaterHelperFeature.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/structov__msckf_1_1UpdaterOptions.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/update-compress.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/update-delay.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/update-feat.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/update-featinit.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/update-null.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+<url>
+  <loc>https://docs.openvins.com/update.html</loc>
+  <lastmod>2019-09-23</lastmod>
+</url>
+</urlset>
