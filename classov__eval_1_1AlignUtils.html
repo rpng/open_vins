@@ -83,6 +83,28 @@
               bool yaw_only)</span>
             </dt>
             <dd>Given a set of points in a model frame and a set of points in a data frame, finds best transform between frames (subject to constraints).</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#a222cc11925f47bb8055aaf73d4336490" class="m-doc">perform_association</a>(</span><span class="m-doc-wrap">double offset,
+              double max_difference,
+              std::vector&lt;double&gt;&amp; est_times,
+              std::vector&lt;double&gt;&amp; gt_times,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; est_poses,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; gt_poses)</span>
+            </dt>
+            <dd>Will intersect our loaded data so that we have common timestamps.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#afd79761c342430237a1ecf563d5c0d05" class="m-doc">perform_association</a>(</span><span class="m-doc-wrap">double offset,
+              double max_difference,
+              std::vector&lt;double&gt;&amp; est_times,
+              std::vector&lt;double&gt;&amp; gt_times,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; est_poses,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; gt_poses,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; est_covori,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; est_covpos,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; gt_covori,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; gt_covpos)</span>
+            </dt>
+            <dd>Will intersect our loaded data so that we have common timestamps.</dd>
           </dl>
         </section>
         <section>
@@ -170,6 +192,110 @@
                 <tr>
                   <td>yaw_only</td>
                   <td>Whether to only use yaw orientation (such as when frames are already gravity aligned)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a222cc11925f47bb8055aaf73d4336490"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />AlignUtils::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a222cc11925f47bb8055aaf73d4336490" class="m-doc-self">perform_association</a>(</span><span class="m-doc-wrap">double offset,
+              double max_difference,
+              std::vector&lt;double&gt;&amp; est_times,
+              std::vector&lt;double&gt;&amp; gt_times,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; est_poses,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; gt_poses)</span></span>
+            </h3>
+            <p>Will intersect our loaded data so that we have common timestamps.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">offset</td>
+                  <td>Time offset to append to our estimate</td>
+                </tr>
+                <tr>
+                  <td>max_difference</td>
+                  <td>Biggest allowed difference between matched timesteps</td>
+                </tr>
+                <tr>
+                  <td>est_times</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>gt_times</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>est_poses</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>gt_poses</td>
+                  <td></td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="afd79761c342430237a1ecf563d5c0d05"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />AlignUtils::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afd79761c342430237a1ecf563d5c0d05" class="m-doc-self">perform_association</a>(</span><span class="m-doc-wrap">double offset,
+              double max_difference,
+              std::vector&lt;double&gt;&amp; est_times,
+              std::vector&lt;double&gt;&amp; gt_times,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; est_poses,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; gt_poses,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; est_covori,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; est_covpos,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; gt_covori,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; gt_covpos)</span></span>
+            </h3>
+            <p>Will intersect our loaded data so that we have common timestamps.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">offset</td>
+                  <td>Time offset to append to our estimate</td>
+                </tr>
+                <tr>
+                  <td>max_difference</td>
+                  <td>Biggest allowed difference between matched timesteps</td>
+                </tr>
+                <tr>
+                  <td>est_times</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>gt_times</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>est_poses</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>gt_poses</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>est_covori</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>est_covpos</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>gt_covori</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>gt_covpos</td>
+                  <td></td>
                 </tr>
               </tbody>
             </table>
