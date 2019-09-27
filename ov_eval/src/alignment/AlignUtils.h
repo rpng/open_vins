@@ -26,6 +26,7 @@
 #include <sstream>
 #include <iostream>
 #include <Eigen/Eigen>
+#include <ros/ros.h>
 
 #include "utils/Math.h"
 
@@ -87,6 +88,27 @@ namespace ov_eval {
                                   const std::vector<Eigen::Matrix<double, 3, 1>> &model,
                                   Eigen::Matrix<double, 3, 3> &R, Eigen::Matrix<double, 3, 1> &t,
                                   double &s, bool known_scale, bool yaw_only);
+
+        /**
+         * @brief Will intersect our loaded data so that we have common timestamps.
+         * @param offset Time offset to append to our estimate
+         * @param max_difference Biggest allowed difference between matched timesteps
+         */
+        static void perform_association(double offset, double max_difference,
+                                        std::vector<double> &est_times, std::vector<double> &gt_times,
+                                        std::vector<Eigen::Matrix<double,7,1>> &est_poses, std::vector<Eigen::Matrix<double,7,1>> &gt_poses);
+
+        /**
+         * @brief Will intersect our loaded data so that we have common timestamps.
+         * @param offset Time offset to append to our estimate
+         * @param max_difference Biggest allowed difference between matched timesteps
+         */
+        static void perform_association(double offset, double max_difference,
+                                        std::vector<double> &est_times, std::vector<double> &gt_times,
+                                        std::vector<Eigen::Matrix<double,7,1>> &est_poses, std::vector<Eigen::Matrix<double,7,1>> &gt_poses,
+                                        std::vector<Eigen::Matrix3d> &est_covori, std::vector<Eigen::Matrix3d> &est_covpos,
+                                        std::vector<Eigen::Matrix3d> &gt_covori, std::vector<Eigen::Matrix3d> &gt_covpos);
+
 
 
     };

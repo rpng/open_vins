@@ -113,6 +113,8 @@ target_link_libraries(timing_singlerun ov_eval_lib ${thirdparty_libraries})
 add_executable(timing_comparison src/timing_comparison.cpp)
 target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
 
+add_executable(plot_trajectories src/plot_trajectories.cpp)
+target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
 
 
 ##################################################

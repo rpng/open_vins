@@ -150,15 +150,6 @@ namespace ov_eval {
         std::vector<Eigen::Matrix<double,7,1>> est_poses_aignedtoGT;
         std::vector<Eigen::Matrix<double,7,1>> gt_poses_aignedtoEST;
 
-
-        /**
-         * @brief Will intersect our loaded data so that we have common timestamps.
-         * @param offset Time offset to append to our estimate
-         * @param max_difference Biggest allowed difference between matched timesteps
-         */
-        void perform_association(double offset, double max_difference);
-
-
         /**
          * @brief Gets the indices at the end of subtractories of a given length when starting at each index.
          * For each starting pose, find the end pose index which is the desired distance away.

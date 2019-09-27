@@ -278,6 +278,10 @@ void RosVisualizer::publish_state() {
 
 void RosVisualizer::publish_images() {
 
+    // Check if we have subscribers
+    if(pub_tracks.getNumSubscribers()==0)
+        return;
+
     // Get our trackers
     TrackBase *trackFEATS = _app->get_track_feat();
     TrackBase *trackARUCO = _app->get_track_aruco();
@@ -304,6 +308,11 @@ void RosVisualizer::publish_images() {
 
 
 void RosVisualizer::publish_features() {
+
+    // Check if we have subscribers
+    if(pub_points_msckf.getNumSubscribers()==0 && pub_points_slam.getNumSubscribers()==0 &&
+       pub_points_aruco.getNumSubscribers()==0 && pub_points_sim.getNumSubscribers()==0)
+        return;
 
     // Get our good features
     std::vector<Eigen::Vector3d> feats_msckf = _app->get_good_features_MSCKF();
