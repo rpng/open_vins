@@ -67,12 +67,14 @@ This code was written by the [Robot Perception and Navigation Group (RPNG)](http
 If you have any issues with the code please open an issue on our github page with relevant implementation details and references.
 For researchers that have leveraged or compared to this work, please cite the following:
 ```txt
-@article{TBD,
-  author    = {},
-  title     = {},
-  journal   = {},
-  volume    = {},
-  year      = {2019},
+@Conference{Geneva2019IROSws,
+  Title      = {OpenVINS: A Research Platform for Visual-Inertial Estimation},
+  Author     = {Patrick Geneva and Kevin Eckenhoff and Woosik Lee and Yulin Yang and Guoquan Huang},
+  Booktitle  = {{IROS} 2019 Workshop on Visual-Inertial Navigation: Challenges and Applications},
+  Year       = {2019},
+  Address    = {Macau, China},
+  Month      = nov,
+  Url        = {\url{https://github.com/rpng/open_vins}}
 }
 ```
 
