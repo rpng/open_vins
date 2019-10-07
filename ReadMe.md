@@ -19,6 +19,8 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **October 1, 2019** - We will be presenting at the [Visual-Inertial Navigation: Challenges and Applications
+](http://udel.edu/~ghuang/iros19-vins-workshop/index.html) workshop at [IROS 2019](https://www.iros2019.org/). The submitted workshop paper can be found at [this](http://udel.edu/~ghuang/iros19-vins-workshop/papers/06.pdf) link.
 * **August 21, 2019** - Open sourced [ov_maplab](https://github.com/rpng/ov_maplab) for interfacing OpenVINS with the [maplab](https://github.com/ethz-asl/maplab) library.
 * **August 15, 2019** - Initial release of OpenVINS repository and documentation website! 
 
