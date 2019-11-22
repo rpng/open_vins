@@ -221,7 +221,7 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
                     Eigen::Matrix<double,3,1> p_CiinA;
                     p_CiinA.noalias() = R_GtoA*(p_CiinG-p_AinG);
                     Eigen::Matrix<double,3,1> p_AinCi;
-                    p_AinCi.noalias() -= R_AtoCi*p_CiinA;
+                    p_AinCi.noalias() = -R_AtoCi*p_CiinA;
 
                     //=====================================================================================
                     //=====================================================================================
@@ -268,6 +268,9 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
 
         // Check if error has gone down
         double cost = compute_error(clonesCAM,feat,alpha+dx(0,0),beta+dx(1,0),rho+dx(2,0));
+
+        // Debug print
+        //cout << "run = " << runs << " | cost = " << dx.norm() << " | lamda = " << lam << " | depth = " << 1/rho << endl;
 
         // Check if converged
         if (cost <= cost_old && (cost_old-cost)/cost_old < _options.min_dcost) {

@@ -19,6 +19,10 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **October 23, 2019** - OpenVINS placed first in the [IROS 2019 FPV Drone Racing VIO Competition
+](http://rpg.ifi.uzh.ch/uzh-fpv.html). We will be giving a short presentation at the [workshop](https://wp.nyu.edu/workshopiros2019mav/) at 12:45pm in Macau on November 8th.
+* **October 1, 2019** - We will be presenting at the [Visual-Inertial Navigation: Challenges and Applications
+](http://udel.edu/~ghuang/iros19-vins-workshop/index.html) workshop at [IROS 2019](https://www.iros2019.org/). The submitted workshop paper can be found at [this](http://udel.edu/~ghuang/iros19-vins-workshop/papers/06.pdf) link.
 * **August 21, 2019** - Open sourced [ov_maplab](https://github.com/rpng/ov_maplab) for interfacing OpenVINS with the [maplab](https://github.com/ethz-asl/maplab) library.
 * **August 15, 2019** - Initial release of OpenVINS repository and documentation website! 
 
@@ -65,12 +69,14 @@ This code was written by the [Robot Perception and Navigation Group (RPNG)](http
 If you have any issues with the code please open an issue on our github page with relevant implementation details and references.
 For researchers that have leveraged or compared to this work, please cite the following:
 ```txt
-@article{TBD,
-  author    = {},
-  title     = {},
-  journal   = {},
-  volume    = {},
-  year      = {2019},
+@Conference{Geneva2019IROSws,
+  Title      = {OpenVINS: A Research Platform for Visual-Inertial Estimation},
+  Author     = {Patrick Geneva and Kevin Eckenhoff and Woosik Lee and Yulin Yang and Guoquan Huang},
+  Booktitle  = {{IROS} 2019 Workshop on Visual-Inertial Navigation: Challenges and Applications},
+  Year       = {2019},
+  Address    = {Macau, China},
+  Month      = nov,
+  Url        = {\url{https://github.com/rpng/open_vins}}
 }
 ```
 
