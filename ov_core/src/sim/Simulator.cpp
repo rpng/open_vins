@@ -38,7 +38,7 @@ Simulator::Simulator(ros::NodeHandle& nh) {
     ROS_INFO("=======================================");
 
     // Load the groundtruth trajectory and its spline
-    std::string path_traj = "/home/patrick/workspace/catkin_ws_ov/src/open_vins/ov_data/sim/udel_gore.txt";
+    std::string path_traj = "./src/open_vins/ov_data/sim/udel_gore.txt";
     nh.param<std::string>("sim_traj_path", path_traj, path_traj);
     load_data(path_traj);
     spline.feed_trajectory(traj_data);
