@@ -724,7 +724,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     ROS_INFO("\u001b[34m[TIME]: %.4f seconds for total\u001b[0m",(rT6-rT1).total_microseconds() * 1e-6);
 
     // Update our distance traveled
-    if(state->get_clones().find(timelastupdate) != state->get_clones().end()) {
+    if(timelastupdate != -1 && state->get_clones().find(timelastupdate) != state->get_clones().end()) {
         Eigen::Matrix<double,3,1> dx = state->imu()->pos() - state->get_clone(timelastupdate)->pos();
         distance += dx.norm();
     }
