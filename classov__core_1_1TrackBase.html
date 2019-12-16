@@ -148,16 +148,21 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a2502acec48c294534be3100e137614ff" class="m-doc">get_feature_database</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>*</span>
             </dt>
             <dd>Get the feature database with all the track information.</dd>
-          </dl>
-        </section>
-        <section id="pro-methods">
-          <h2><a href="#pro-methods">Protected functions</a></h2>
-          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a14c9b34477ca6aa86e7b8f7cca7a4173" class="m-doc">change_feat_id</a>(</span><span class="m-doc-wrap">size_t id_old,
+              size_t id_new)</span>
+            </dt>
+            <dd>Changes the ID of an actively tracked feature to another one.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#ae4d6d23cff828ac9a04c47c36743280a" class="m-doc">undistort_point</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
               size_t cam_id) -&gt; cv::Point2f</span>
             </dt>
             <dd>Main function that will undistort/normalize a point.</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a9ccde97a49519204713b86b7d8669649" class="m-doc">undistort_point_brown</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
               cv::Matx33d&amp; camK,
@@ -440,10 +445,32 @@
               </tfoot>
             </table>
           </div></section>
+          <section class="m-doc-details" id="a14c9b34477ca6aa86e7b8f7cca7a4173"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a14c9b34477ca6aa86e7b8f7cca7a4173" class="m-doc-self">change_feat_id</a>(</span><span class="m-doc-wrap">size_t id_old,
+              size_t id_new)</span></span>
+            </h3>
+            <p>Changes the ID of an actively tracked feature to another one.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">id_old</td>
+                  <td>Old id we want to change</td>
+                </tr>
+                <tr>
+                  <td>id_new</td>
+                  <td>Id we want to change the old id to</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="ae4d6d23cff828ac9a04c47c36743280a"><div>
             <h3>
               <span class="m-doc-wrap-bumper">cv::Point2f ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae4d6d23cff828ac9a04c47c36743280a" class="m-doc-self">undistort_point</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
-              size_t cam_id) <span class="m-label m-warning">protected</span></span></span>
+              size_t cam_id)</span></span>
             </h3>
             <p>Main function that will undistort/normalize a point.</p>
             <table class="m-table m-fullwidth m-flat">
