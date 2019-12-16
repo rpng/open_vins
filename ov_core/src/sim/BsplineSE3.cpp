@@ -274,12 +274,12 @@ bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Ma
     bool found_newer = false;
 
     // Find the bounding poses for interpolation.
-    auto lower_bound = poses.lower_bound(timestamp); // Finds timestamp or next(timestamp) if not availible
+    auto lower_bound = poses.lower_bound(timestamp); // Finds timestamp or next(timestamp) if not available
     auto upper_bound = poses.upper_bound(timestamp); // Finds next(timestamp)
 
     if(lower_bound != poses.end()) {
-        // Check that the lower bound is the timestamp. If not then we move iterator to previous timestamp so that
-        // the timestamp is bounded
+        // Check that the lower bound is the timestamp.
+        // If not then we move iterator to previous timestamp so that the timestamp is bounded
         if(lower_bound->first == timestamp) {
             found_older = true;
         } else if(lower_bound != poses.begin()) {
@@ -292,6 +292,7 @@ bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Ma
         found_newer = true;
     }
 
+    // If we found the older one, set it
     if (found_older) {
         t0 = lower_bound->first;
         pose0 = lower_bound->second;
@@ -338,11 +339,14 @@ bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,
     // Now find the poses that are below and above
     auto iter_t1 = poses.find(t1);
     auto iter_t2 = poses.find(t2);
+
     // Check that t1 is not the first timestamp
     if(iter_t1 == poses.begin()) {
         return false;
     }
 
+    // Move the older pose backwards in time
+    // Move the newer one forwards in time
     auto iter_t0 = --iter_t1;
     auto iter_t3 = ++iter_t2;
 
@@ -354,7 +358,6 @@ bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,
     // Set the oldest one
     t0 = iter_t0->first;
     pose0 = iter_t0->second;
-
 
     // Set the newest one
     t3 = iter_t3->first;
@@ -368,7 +371,7 @@ bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,
     }
 
     // Return true if we found all four bounding poses
-    return (success );
+    return success;
  
 }
 
