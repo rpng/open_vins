@@ -305,14 +305,14 @@ For the orientation error propagation, we start with the \f$\mathbf{SO}(3)\f$ pe
 {}^{I_{k+1}}_G \mathbf{R} &= \text{}^{I_{k+1}}_{I_{k}} \mathbf{R}  \text{}^{I_{k}}_G \mathbf{R} \\
 (\mathbf{I}_3 - \lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k+1}}_{G}
 \hat{\mathbf{R}}
-&\approx \textrm{exp}({}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t + {}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t)
+&\approx \textrm{exp}(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t - {}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t)
 (\mathbf{I}_3 - \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k}}_{G}
 \hat{\mathbf{R}}\\
-&=\textrm{exp}({}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t)\textrm{exp}(\mathbf{J}_r({}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t){}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t)
+&=\textrm{exp}(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t)\textrm{exp}(-\mathbf{J}_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t){}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t)
 (\mathbf{I}_3 - \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k}}_{G}
 \hat{\mathbf{R}}\\
 &=\text{}^{I_{k+1}}_{I_{k}} \hat{\mathbf{R}}
-         (\mathbf{I}_3 - \lfloor \mathbf J_r(^{I_{k+1}}_{I_k}\hat{\boldsymbol{\theta}})
+         (\mathbf{I}_3 - \lfloor \mathbf J_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t)
          \tilde{\boldsymbol{\omega}}_k\Delta t \times\rfloor)
 (\mathbf{I}_3 - \lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)
 \text{}^{I_{k}}_G \hat{\mathbf{R}}
