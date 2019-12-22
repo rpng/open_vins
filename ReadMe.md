@@ -14,7 +14,7 @@ Please take a look at the feature list below for full details on what the system
 * Github project page - https://github.com/rpng/open_vins
 * Documentation - https://docs.openvins.com/
 * Getting started guide - https://docs.openvins.com/getting-started.html
-* Publication reference - TBD
+* Publication reference - http://udel.edu/~ghuang/iros19-vins-workshop/papers/06.pdf
 
 
 ## News / Events
