@@ -19,6 +19,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **January 21, 2020** - Our paper has been accepted for presentation in [ICRA 2020](https://www.icra2020.org/). We look forward to seeing everybody there! We have also added links to a few videos of the system running on different datasets.
 * **October 23, 2019** - OpenVINS placed first in the [IROS 2019 FPV Drone Racing VIO Competition
 ](http://rpg.ifi.uzh.ch/uzh-fpv.html). We will be giving a short presentation at the [workshop](https://wp.nyu.edu/workshopiros2019mav/) at 12:45pm in Macau on November 8th.
 * **October 1, 2019** - We will be presenting at the [Visual-Inertial Navigation: Challenges and Applications
@@ -60,7 +61,17 @@ Please take a look at the feature list below for full details on what the system
 * Out of the box evaluation on EurocMav and TUM-VI datasets
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
+## Demo Videos
 
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/KCX51GvYGss/1.jpg)](http://www.youtube.com/watch?v=KCX51GvYGss "OpenVINS - EuRoC MAV Vicon Rooms Flyby")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/Lc7VQHngSuQ/1.jpg)](http://www.youtube.com/watch?v=Lc7VQHngSuQ "OpenVINS - TUM VI Datasets Flyby")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/vaia7iPaRW8/1.jpg)](http://www.youtube.com/watch?v=vaia7iPaRW8 "OpenVINS - UZH-FPV Drone Racing Dataset Flyby")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/MCzTF9ye2zw/1.jpg)](http://www.youtube.com/watch?v=MCzTF9ye2zw "OpenVINS - KAIST Urban 39 Dataset Demonstration")
+
+
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/187AXuuGNNw/1.jpg)](http://www.youtube.com/watch?v=187AXuuGNNw "OpenVINS - EuRoC MAV Vicon Rooms Demonstration")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/oUoLlrFryk0/1.jpg)](http://www.youtube.com/watch?v=oUoLlrFryk0 "OpenVINS - TUM VI Datasets Demostration")
+[![IMAGE ALT TEXT](http://img.youtube.com/vi/ExPIGwORm4E/1.jpg)](http://www.youtube.com/watch?v=ExPIGwORm4E "OpenVINS - UZH-FPV Drone Racing Dataset Demonstration")
 
 
 ## Credit / Licensing
@@ -69,13 +80,12 @@ This code was written by the [Robot Perception and Navigation Group (RPNG)](http
 If you have any issues with the code please open an issue on our github page with relevant implementation details and references.
 For researchers that have leveraged or compared to this work, please cite the following:
 ```txt
-@Conference{Geneva2019IROSws,
+@Conference{Geneva2020ICRA,
   Title      = {OpenVINS: A Research Platform for Visual-Inertial Estimation},
   Author     = {Patrick Geneva and Kevin Eckenhoff and Woosik Lee and Yulin Yang and Guoquan Huang},
-  Booktitle  = {{IROS} 2019 Workshop on Visual-Inertial Navigation: Challenges and Applications},
-  Year       = {2019},
-  Address    = {Macau, China},
-  Month      = nov,
+  Booktitle  = {Proc. of the IEEE International Conference on Robotics and Automation},
+  Year       = {2020},
+  Address    = {Paris, France},
   Url        = {\url{https://github.com/rpng/open_vins}}
 }
 ```
