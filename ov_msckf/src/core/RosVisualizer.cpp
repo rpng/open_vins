@@ -245,6 +245,8 @@ void RosVisualizer::publish_state() {
     poses_seq_imu++;
 
     // Publish our transform on TF
+    // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
+    // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
     tf::StampedTransform trans;
     trans.stamp_ = ros::Time::now();
     trans.frame_id_ = "global";
@@ -258,16 +260,18 @@ void RosVisualizer::publish_state() {
     // Loop through each camera calibration and publish it
     for(const auto &calib : state->get_calib_IMUtoCAMs()) {
         // need to flip the transform to the IMU frame
-        Eigen::Vector4d q_CtoI = Inv(calib.second->quat());
-        Eigen::Vector3d p_IinC = -calib.second->Rot().transpose()*calib.second->pos();
-        // publish
+        Eigen::Vector4d q_ItoC = calib.second->quat();
+        Eigen::Vector3d p_CinI = -calib.second->Rot().transpose()*calib.second->pos();
+        // publish our transform on TF
+        // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
+        // NOTE: a rotation from ItoC in JPL has the same xyzw as a CtoI Hamilton rotation
         tf::StampedTransform trans;
         trans.stamp_ = ros::Time::now();
         trans.frame_id_ = "imu";
         trans.child_frame_id_ = "cam"+std::to_string(calib.first);
-        tf::Quaternion quat(q_CtoI(0),q_CtoI(1),q_CtoI(2),q_CtoI(3));
+        tf::Quaternion quat(q_ItoC(0),q_ItoC(1),q_ItoC(2),q_ItoC(3));
         trans.setRotation(quat);
-        tf::Vector3 orig(p_IinC(0),p_IinC(1),p_IinC(2));
+        tf::Vector3 orig(p_CinI(0),p_CinI(1),p_CinI(2));
         trans.setOrigin(orig);
         mTfBr->sendTransform(trans);
     }

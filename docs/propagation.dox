@@ -297,23 +297,29 @@ That is,
 where \f$\mathbf{n} = [ \mathbf{n}_g ~ \mathbf{n}_a ~ \mathbf{n}_{bg} ~ \mathbf{n}_{ba} ]^\top\f$ are the IMU sensor noises.
 
 
-For the orientation error propagation, we start with the rotation matrix perturbation using 
-\f${}^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$:
-
+For the orientation error propagation, we start with the \f$\mathbf{SO}(3)\f$ perturbation using 
+\f${}^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$
+:
 
 \f{align*}{
-^{I_{k+1}}_G \mathbf{R} &= \text{}^{I_{k+1}}_{I_{k}} \mathbf{R}  \text{}^{I_{k}}_G \mathbf{R} \\
+{}^{I_{k+1}}_G \mathbf{R} &= \text{}^{I_{k+1}}_{I_{k}} \mathbf{R}  \text{}^{I_{k}}_G \mathbf{R} \\
 (\mathbf{I}_3 - \lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k+1}}_{G}
 \hat{\mathbf{R}}
-&\approx \text{}^{I_{k+1}}_{I_{k}} \hat{\mathbf{R}}
-         (\mathbf{I}_3 - \lfloor \mathbf J_r(^{I_{k+1}}_{I_k}\hat{\boldsymbol{\theta}})
+&\approx \textrm{exp}(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t - {}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t)
+(\mathbf{I}_3 - \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k}}_{G}
+\hat{\mathbf{R}}\\
+&=\textrm{exp}(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t)\textrm{exp}(-\mathbf{J}_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t){}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t)
+(\mathbf{I}_3 - \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k}}_{G}
+\hat{\mathbf{R}}\\
+&=\text{}^{I_{k+1}}_{I_{k}} \hat{\mathbf{R}}
+         (\mathbf{I}_3 - \lfloor \mathbf J_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t)
          \tilde{\boldsymbol{\omega}}_k\Delta t \times\rfloor)
 (\mathbf{I}_3 - \lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)
 \text{}^{I_{k}}_G \hat{\mathbf{R}}
 \f}
 
 where \f$\tilde{\boldsymbol{\omega}} = \boldsymbol{\omega} - \hat{\boldsymbol{\omega}}
-= -(\tilde{\mathbf{b}}_{\mathbf{g}} + \mathbf{n}_g)\f$.
+= -(\tilde{\mathbf{b}}_{\mathbf{g}} + \mathbf{n}_g)\f$ handles both the perturbation to the bias and measurement noise.
 \f$\mathbf {J}_r(\boldsymbol{\theta})\f$ is the right Jacobian of \f$\mathbf{SO}(3)\f$ 
 that maps the variation of rotation angle in the parameter vector space into the variation in the tangent vector space to the manifold
 [see @ref ov_core::Jr_so3()].

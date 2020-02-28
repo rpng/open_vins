@@ -245,7 +245,7 @@ namespace ov_core {
         /**
          * @brief Changes the ID of an actively tracked feature to another one
          * @param id_old Old id we want to change
-         * @param id_old Id we want to change the old id to
+         * @param id_new Id we want to change the old id to
          */
         void change_feat_id(size_t id_old, size_t id_new) {
 
