@@ -148,7 +148,7 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
     std::vector<double> accum_distances(gt_poses.size());
     accum_distances[0] = 0;
     for (size_t i = 1; i < gt_poses.size(); i++) {
-        accum_distances[i] = accum_distances[i - 1] + (gt_poses[i] - gt_poses[i - 1]).norm();
+        accum_distances[i] = accum_distances[i - 1] + (gt_poses[i].block(0,0,3,1) - gt_poses[i - 1].block(0,0,3,1)).norm();
     }
 
     // Loop through each segment length

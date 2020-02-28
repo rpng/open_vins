@@ -258,7 +258,7 @@ double Loader::get_total_length(const std::vector<Eigen::Matrix<double,7,1>> &po
     // Loop through every pose and append its segment
     double distance = 0.0;
     for (size_t i=1; i<poses.size(); i++) {
-        distance += (poses[i] - poses[i-1]).norm();
+        distance += (poses[i].block(0,0,3,1) - poses[i-1].block(0,0,3,1)).norm();
     }
 
     // return the distance
