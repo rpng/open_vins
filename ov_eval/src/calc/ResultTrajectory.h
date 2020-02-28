@@ -82,6 +82,20 @@ namespace ov_eval {
          */
         void calculate_ate(Statistics &error_ori, Statistics &error_pos);
 
+        /**
+         * @brief Computes the Absolute Trajectory Error (ATE) for this trajectory in the 2d x-y plane.
+         *
+         * This will first do our alignment of the two trajectories.
+         * We just grab the yaw component of the orientation and the xy plane error.
+         * Then at each point the error will be calculated and normed as follows:
+         * \f{align*}{
+         * e_{ATE} &= \sqrt{ \frac{1}{K} \sum_{k=1}^{K} ||\mathbf{x}_{k,i} \boxminus \hat{\mathbf{x}}^+_{k,i}||^2_{2} }
+         * \f}
+         *
+         * @param error_ori Error values for the orientation (yaw error)
+         * @param error_pos Error values for the position (xy error)
+         */
+        void calculate_ate_2d(Statistics &error_ori, Statistics &error_pos);
 
         /**
          * @brief Computes the Relative Pose Error (RPE) for this trajectory

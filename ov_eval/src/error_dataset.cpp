@@ -117,11 +117,13 @@ int main(int argc, char **argv) {
 
         // Errors for this specific dataset (i.e. our averages over the total runs)
         ov_eval::Statistics ate_dataset_ori, ate_dataset_pos;
+        ov_eval::Statistics ate_2d_dataset_ori, ate_2d_dataset_pos;
         std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> rpe_dataset;
         for(const auto& len : segments) {
             rpe_dataset.insert({len,{ov_eval::Statistics(),ov_eval::Statistics()}});
         }
         std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> rmse_dataset;
+        std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> rmse_2d_dataset;
         std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> nees_dataset;
 
         // Loop though the different runs for this dataset
@@ -145,6 +147,17 @@ int main(int argc, char **argv) {
                     rmse_dataset[error_ori.timestamps.at(j)].first.values.push_back(error_ori.values.at(j));
                     rmse_dataset[error_pos.timestamps.at(j)].second.values.push_back(error_pos.values.at(j));
                     assert(error_ori.timestamps.at(j)==error_pos.timestamps.at(j));
+                }
+
+                // Calculate ATE 2D error for this dataset
+                ov_eval::Statistics error_ori_2d, error_pos_2d;
+                traj.calculate_ate_2d(error_ori_2d, error_pos_2d);
+                ate_2d_dataset_ori.values.push_back(error_ori_2d.rmse);
+                ate_2d_dataset_pos.values.push_back(error_pos_2d.rmse);
+                for(size_t j=0; j<error_ori_2d.values.size(); j++) {
+                    rmse_2d_dataset[error_ori_2d.timestamps.at(j)].first.values.push_back(error_ori_2d.values.at(j));
+                    rmse_2d_dataset[error_pos_2d.timestamps.at(j)].second.values.push_back(error_pos_2d.values.at(j));
+                    assert(error_ori_2d.timestamps.at(j)==error_pos_2d.timestamps.at(j));
                 }
 
                 // NEES error for this dataset
@@ -182,10 +195,14 @@ int main(int argc, char **argv) {
         // Compute our mean ATE score
         ate_dataset_ori.calculate();
         ate_dataset_pos.calculate();
+        ate_2d_dataset_ori.calculate();
+        ate_2d_dataset_pos.calculate();
 
         // Print stats for this specific dataset
         ROS_INFO("\tATE: mean_ori = %.3f | mean_pos = %.3f",ate_dataset_ori.mean,ate_dataset_pos.mean);
         ROS_INFO("\tATE: std_ori  = %.5f | std_pos  = %.5f",ate_dataset_ori.std,ate_dataset_pos.std);
+        ROS_INFO("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f",ate_2d_dataset_ori.mean,ate_2d_dataset_pos.mean);
+        ROS_INFO("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f",ate_2d_dataset_ori.std,ate_2d_dataset_pos.std);
         for(auto &seg : rpe_dataset) {
             seg.second.first.calculate();
             seg.second.second.calculate();
@@ -208,6 +225,22 @@ int main(int argc, char **argv) {
         rmse_ori.calculate();
         rmse_pos.calculate();
         ROS_INFO("\tRMSE: mean_ori = %.3f | mean_pos = %.3f",rmse_ori.mean,rmse_pos.mean);
+
+        // RMSE: Convert into the right format (only use times where all runs have an error)
+        ov_eval::Statistics rmse_2d_ori, rmse_2d_pos;
+        for(auto &elm : rmse_2d_dataset) {
+            if(elm.second.first.values.size()==total_runs) {
+                elm.second.first.calculate();
+                elm.second.second.calculate();
+                rmse_2d_ori.timestamps.push_back(elm.first);
+                rmse_2d_ori.values.push_back(elm.second.first.rmse);
+                rmse_2d_pos.timestamps.push_back(elm.first);
+                rmse_2d_pos.values.push_back(elm.second.second.rmse);
+            }
+        }
+        rmse_2d_ori.calculate();
+        rmse_2d_pos.calculate();
+        ROS_INFO("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f",rmse_2d_ori.mean,rmse_2d_pos.mean);
 
         // NEES: Convert into the right format (only use times where all runs have an error)
         ov_eval::Statistics nees_ori, nees_pos;

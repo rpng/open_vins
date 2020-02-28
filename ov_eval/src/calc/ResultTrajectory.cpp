@@ -110,6 +110,36 @@ void ResultTrajectory::calculate_ate(Statistics &error_ori, Statistics &error_po
 }
 
 
+void ResultTrajectory::calculate_ate_2d(Statistics &error_ori, Statistics &error_pos) {
+
+    // Clear any old data
+    error_ori.clear();
+    error_pos.clear();
+
+    // Calculate the position and orientation error at every timestep
+    for(size_t i=0; i<est_poses_aignedtoGT.size(); i++) {
+
+        // Calculate orientation error
+        Eigen::Matrix3d e_R = Math::quat_2_Rot(est_poses_aignedtoGT.at(i).block(3,0,4,1)).transpose() * Math::quat_2_Rot(gt_poses.at(i).block(3,0,4,1));
+        double ori_err = 180.0/M_PI*Math::log_so3(e_R)(2);
+
+        // Calculate position error
+        double pos_err = (gt_poses.at(i).block(0,0,2,1)-est_poses_aignedtoGT.at(i).block(0,0,2,1)).norm();
+
+        // Append this error!
+        error_ori.timestamps.push_back(est_times.at(i));
+        error_ori.values.push_back(ori_err);
+        error_pos.timestamps.push_back(est_times.at(i));
+        error_pos.values.push_back(pos_err);
+
+    }
+
+    // Update stat information
+    error_ori.calculate();
+    error_pos.calculate();
+
+}
+
 
 
 void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths, std::map<double,std::pair<Statistics,Statistics>> &error_rpe) {
