@@ -389,7 +389,7 @@ hr {
   border-style: solid;
 }
 blockquote, hr {
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
 }
 strong, .m-text.m-strong { font-weight: bold; }
 em, .m-text.m-em { font-style: italic; }
@@ -526,7 +526,7 @@ p.m-poem {
   margin-left: 1.5rem;
 }
 p.m-transition {
-  color: #ebf4ff;
+  color: #c7cfd9;
   text-indent: 0;
   text-align: center;
   font-size: 2rem;
@@ -585,7 +585,7 @@ dl.m-footnote dd span.m-footnote a {
   border-style: solid;
   border-width: 0.125rem;
   border-radius: 0.2rem;
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
   padding: 0.875rem;
 }
 .m-block {
@@ -593,7 +593,7 @@ dl.m-footnote dd span.m-footnote a {
   border-width: 0.0625rem;
   border-left-width: 0.25rem;
   border-radius: 0.2rem;
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
   padding: 0.9375rem 0.9375rem 0.9375rem 0.75rem;
 }
 .m-block.m-badge::after {
@@ -664,7 +664,7 @@ div.m-scroll > table.m-table:last-child {
   margin-bottom: 0.0625rem;
 }
 table.m-table:not(.m-flat) tbody tr:hover {
-  background-color: #ebf4ff;
+  background-color: #c7cfd9;
 }
 table.m-table th, table.m-table td {
   vertical-align: top;
@@ -673,7 +673,7 @@ table.m-table th, table.m-table td {
   border-left-width: 0;
   border-right-width: 0;
   border-bottom-width: 0;
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
 }
 table.m-table caption {
   padding-bottom: 0.5rem;
@@ -799,7 +799,7 @@ figure.m-figure:before {
   border-style: solid;
   border-width: 0.125rem;
   border-radius: 0.2rem;
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
 }
 figure.m-figure.m-flat:before {
   border-color: transparent;
@@ -1208,9 +1208,9 @@ figure.m-figure > svg.m-graph:first-child {
 }
 figure.m-figure:not(.m-flat) > svg.m-math:first-child,
 figure.m-figure:not(.m-flat) > svg.m-graph:first-child {
-  background-color: #ebf4ff;
+  background-color: #c7cfd9;
 }
-.m-block.m-default { border-left-color: #ebf4ff; }
+.m-block.m-default { border-left-color: #c7cfd9; }
 .m-block.m-default h3, .m-block.m-default h4, .m-block.m-default h5, .m-block.m-default h6,
 .m-text.m-default, .m-label.m-flat.m-default {
   color: #000000;
@@ -2418,7 +2418,7 @@ article:last-child, article section:last-child { margin-bottom: 0; }
 .m-container-inflatable section:target [class*='m-right-'] > figure.m-console-figure::before,
 .m-container-inflatable section:target .m-container-inflatable > figure.m-code-figure::before,
 .m-container-inflatable section:target .m-container-inflatable > figure.m-console-figure::before {
-  border-left-color: #ebf4ff;
+  border-left-color: #c7cfd9;
 }
 @media screen and (min-width: 576px) {
   .m-container-inflatable section:target .m-center-s > figure.m-code-figure::before,
@@ -2453,10 +2453,10 @@ article:last-child, article section:last-child { margin-bottom: 0; }
 .m-container-inflatable section:target pre,
 .m-container-inflatable section:target figure.m-code-figure > pre:first-child,
 .m-container-inflatable section:target figure.m-console-figure > pre:first-child {
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
 }
 .m-container-inflatable section:target .m-note.m-default {
-  border-color: #ebf4ff;
+  border-color: #c7cfd9;
 }
 .m-container-inflatable section:target .m-note.m-primary  {
   border-color: #205275;
@@ -2645,7 +2645,7 @@ ul.m-doc {
   list-style: none;
   margin-left:  1.0375rem;
   padding-left: 0.9rem;
-  border-left-color: #ebf4ff;
+  border-left-color: #c7cfd9;
   border-left-width: 0.0625rem;
   border-left-style: solid;
 }
