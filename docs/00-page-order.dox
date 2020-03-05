@@ -13,7 +13,11 @@
 @page fej First-Estimate Jacobian Estimators
 @page update Measurement Update Derivations
 @page simulation Visual-Inertial Simulator
+
+
 @page evaluation Estimator Evaluation Methods
+@page eval-metrics Estimator Evaluation Metrics
+
 
 @page dev-welcome Developer and Internals
 

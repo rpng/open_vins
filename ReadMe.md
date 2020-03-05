@@ -1,10 +1,10 @@
 
 
-# Open VINS
+# OpenVINS
 
 
-Welcome to the Open VINS project!
-The Open VINS project houses some core computer vision code along with a state-of-the art filter-based visual-inertial estimator.
+Welcome to the OpenVINS project!
+The OpenVINS project houses some core computer vision code along with a state-of-the art filter-based visual-inertial estimator.
 The core filter is an [Extended Kalman filter](https://en.wikipedia.org/wiki/Extended_Kalman_filter) which fuses inertial information with sparse visual feature tracks.
 These visual feature tracks are fused leveraging the [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) sliding window formulation which allows for 3D features to update the state estimate without directly estimating the feature states in the filter.
 Inspired by graph-based optimization systems, the included filter has modularity allowing for convenient covariance management with a proper type-based state system.
@@ -14,7 +14,7 @@ Please take a look at the feature list below for full details on what the system
 * Github project page - https://github.com/rpng/open_vins
 * Documentation - https://docs.openvins.com/
 * Getting started guide - https://docs.openvins.com/getting-started.html
-* Publication reference - http://udel.edu/~ghuang/iros19-vins-workshop/papers/06.pdf
+* Publication reference - http://udel.edu/~pgeneva/downloads/papers/c10.pdf
 
 
 ## News / Events
@@ -63,15 +63,15 @@ Please take a look at the feature list below for full details on what the system
 
 ## Demo Videos
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/KCX51GvYGss/1.jpg)](http://www.youtube.com/watch?v=KCX51GvYGss "OpenVINS - EuRoC MAV Vicon Rooms Flyby")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/Lc7VQHngSuQ/1.jpg)](http://www.youtube.com/watch?v=Lc7VQHngSuQ "OpenVINS - TUM VI Datasets Flyby")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/vaia7iPaRW8/1.jpg)](http://www.youtube.com/watch?v=vaia7iPaRW8 "OpenVINS - UZH-FPV Drone Racing Dataset Flyby")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/MCzTF9ye2zw/1.jpg)](http://www.youtube.com/watch?v=MCzTF9ye2zw "OpenVINS - KAIST Urban 39 Dataset Demonstration")
 
+[![](docs/youtube/KCX51GvYGss.jpg)](http://www.youtube.com/watch?v=KCX51GvYGss "OpenVINS - EuRoC MAV Vicon Rooms Flyby")
+[![](docs/youtube/Lc7VQHngSuQ.jpg)](http://www.youtube.com/watch?v=Lc7VQHngSuQ "OpenVINS - TUM VI Datasets Flyby")
+[![](docs/youtube/vaia7iPaRW8.jpg)](http://www.youtube.com/watch?v=vaia7iPaRW8 "OpenVINS - UZH-FPV Drone Racing Dataset Flyby")
+[![](docs/youtube/MCzTF9ye2zw.jpg)](http://www.youtube.com/watch?v=MCzTF9ye2zw "OpenVINS - KAIST Urban 39 Dataset Demonstration")
 
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/187AXuuGNNw/1.jpg)](http://www.youtube.com/watch?v=187AXuuGNNw "OpenVINS - EuRoC MAV Vicon Rooms Demonstration")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/oUoLlrFryk0/1.jpg)](http://www.youtube.com/watch?v=oUoLlrFryk0 "OpenVINS - TUM VI Datasets Demostration")
-[![IMAGE ALT TEXT](http://img.youtube.com/vi/ExPIGwORm4E/1.jpg)](http://www.youtube.com/watch?v=ExPIGwORm4E "OpenVINS - UZH-FPV Drone Racing Dataset Demonstration")
+[![](docs/youtube/187AXuuGNNw.jpg)](http://www.youtube.com/watch?v=187AXuuGNNw "OpenVINS - EuRoC MAV Vicon Rooms Demonstration")
+[![](docs/youtube/oUoLlrFryk0.jpg)](http://www.youtube.com/watch?v=oUoLlrFryk0 "OpenVINS - TUM VI Datasets Demostration")
+[![](docs/youtube/ExPIGwORm4E.jpg)](http://www.youtube.com/watch?v=ExPIGwORm4E "OpenVINS - UZH-FPV Drone Racing Dataset Demonstration")
 
 
 ## Credit / Licensing

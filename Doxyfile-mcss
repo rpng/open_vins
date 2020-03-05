@@ -5,8 +5,9 @@ XML_PROGRAMLISTING      = NO
 
 HTML_EXTRA_STYLESHEET = \
     https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&subset=latin-ext \
-    ../css/m-dark+documentation.compiled.css \
+    docs/css/m-udel+documentation.compiled.css \
     docs/css/custom.css
+####    ../css/m-light+documentation.compiled.css \
 
 
 
@@ -33,8 +34,8 @@ ALIASES += \
     "m_enum_values_as_keywords=@xmlonly<mcss:search xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:enum-values-as-keywords=\"true\" />@endxmlonly"
 
 
-##! M_THEME_COLOR           = #22272e
-##! M_FAVICON               = docs/img/favicon-dark.png
+##! M_THEME_COLOR           = #2f73a3
+##! M_FAVICON               = docs/img/favicon-light.png
 
 
 ##! M_LINKS_NAVBAR1 = pages namespaceov__core namespaceov__eval namespaceov__msckf annotated

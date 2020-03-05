@@ -4,7 +4,7 @@
 @page dev-docs Documentation Guide
 
 
-@section developers-addpage Adding a website page
+@section developers-addpage Adding a Website Page
 
 1. Add a `doc/pagename.dox` file, copy up-to-date license header.
 2. Add a @c \@page definition and title to your page
@@ -27,7 +27,7 @@
 
 
 
-@section developers-building Building the documentation site
+@section developers-building Building the Documentation Site
 
 1. Clone the m.css repository which has scripts to build
     - Ensure that it is **not** in the same folder as your open_vins
@@ -54,6 +54,19 @@
 8. Open the html page `/open_vins/doxgen_generated/html/index.html` to view documentation
 
 
+@section developers-theme Custom m.css Theme
+
+1. This is based on the [m.css docs](https://mcss.mosra.cz/css/themes/#make-your-own) for custom theme
+2. Files needed are in `open_vins/docs/mcss_theme/`
+3. Copy the following files into the `m.css/css/` folder
+    - m-theme-udel.css
+    - pygments-tango.css
+    - m-udel.css
+4. Most settings are in the `m-theme-udel.css` file
+5. To generate / compile the edited theme do:
+    - `python3.6 postprocess.py m-udel.css m-documentation.css -o m-udel+documentation.compiled.css`
+    - Copy this generated file into `open_vins/docs/css/`
+    - Regenerate the website and it should change the theme
 
 
 @section developers-figures Creating Figures

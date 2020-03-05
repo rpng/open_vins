@@ -41,7 +41,7 @@ sudo make install
 
 
 
-@section gs-install-openvins Cloning Open VINS
+@section gs-install-openvins Cloning OpenVINS
 
 
 Now that we have ROS and OpenCV install we can setup a catkin workspace and build the project!
