@@ -2,22 +2,22 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_msckf::RosVisualizer class | Open VINS</title>
+  <title>ov_msckf::RosVisualizer class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
-  <link rel="stylesheet" href="m-dark+documentation.compiled.css" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
-  <link rel="icon" href="favicon-dark.png" type="image/png" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="theme-color" content="#22272e" />
+  <meta name="theme-color" content="#2f73a3" />
 </head>
 <body>
 <header><nav id="navigation">
   <div class="m-container">
     <div class="m-row">
-      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">Open VINS</a>
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
       <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
         <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
-          <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
         </svg></a>
         <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
         <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
@@ -34,7 +34,7 @@
           <ol class="m-col-t-6 m-col-m-none" start="6">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
-              <path d="m6 0c-3.3144 0-6 2.6856-6 6 0 3.3144 2.6856 6 6 6 1.4858 0 2.8463-0.54083 3.8945-1.4355-0.0164 0.33797 0.14734 0.75854 0.5 1.1504l3.2227 3.7891c0.55185 0.6139 1.4517 0.66544 2.002 0.11524 0.55022-0.55022 0.49866-1.4501-0.11524-2.002l-3.7891-3.2246c-0.39184-0.35266-0.81242-0.51469-1.1504-0.5 0.89472-1.0482 1.4355-2.4088 1.4355-3.8945 0-3.3128-2.6856-5.998-6-5.998zm0 1.5625a4.4375 4.4375 0 0 1 4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375 4.4375 4.4375 4.4375 0 0 1-4.4375-4.4375 4.4375 4.4375 0 0 1 4.4375-4.4375z"/>
+              <use href="#m-doc-search-icon-path" />
             </svg></a></li>
           </ol>
         </div>
@@ -79,12 +79,12 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a5ba7b560b00d0a312378b4fcf6101321" class="m-doc-self" name="a5ba7b560b00d0a312378b4fcf6101321">visualize</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a5ba7b560b00d0a312378b4fcf6101321">
+              <span class="m-doc-wrap-bumper">void <a href="#a5ba7b560b00d0a312378b4fcf6101321" class="m-doc-self">visualize</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Will visualize the system if we have new things.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#af7742f2e349e47b948b18b8426c7b39d" class="m-doc-self" name="af7742f2e349e47b948b18b8426c7b39d">visualize_final</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="af7742f2e349e47b948b18b8426c7b39d">
+              <span class="m-doc-wrap-bumper">void <a href="#af7742f2e349e47b948b18b8426c7b39d" class="m-doc-self">visualize_final</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>After the run has ended, print results.</dd>
           </dl>
@@ -92,24 +92,24 @@
         <section id="pro-methods">
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a630ce450fc6acb528b248af5e4e5735d" class="m-doc-self" name="a630ce450fc6acb528b248af5e4e5735d">publish_state</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a630ce450fc6acb528b248af5e4e5735d">
+              <span class="m-doc-wrap-bumper">void <a href="#a630ce450fc6acb528b248af5e4e5735d" class="m-doc-self">publish_state</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish the current state.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#aefe2ba58c19ca3d89e8e5fcd2fd42909" class="m-doc-self" name="aefe2ba58c19ca3d89e8e5fcd2fd42909">publish_images</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="aefe2ba58c19ca3d89e8e5fcd2fd42909">
+              <span class="m-doc-wrap-bumper">void <a href="#aefe2ba58c19ca3d89e8e5fcd2fd42909" class="m-doc-self">publish_images</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish the active tracking image.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a6773e7c1953f6c21551a8ee078559cb2" class="m-doc-self" name="a6773e7c1953f6c21551a8ee078559cb2">publish_features</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a6773e7c1953f6c21551a8ee078559cb2">
+              <span class="m-doc-wrap-bumper">void <a href="#a6773e7c1953f6c21551a8ee078559cb2" class="m-doc-self">publish_features</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish current features.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a97757b4dd59f20fb28487c1a4d0dc233" class="m-doc-self" name="a97757b4dd59f20fb28487c1a4d0dc233">publish_groundtruth</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a97757b4dd59f20fb28487c1a4d0dc233">
+              <span class="m-doc-wrap-bumper">void <a href="#a97757b4dd59f20fb28487c1a4d0dc233" class="m-doc-self">publish_groundtruth</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish groundtruth (if we have it)</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a0f031981480cafe4833d6ab4d6da46a4" class="m-doc-self" name="a0f031981480cafe4833d6ab4d6da46a4">sim_save_total_state_to_file</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a0f031981480cafe4833d6ab4d6da46a4">
+              <span class="m-doc-wrap-bumper">void <a href="#a0f031981480cafe4833d6ab4d6da46a4" class="m-doc-self">sim_save_total_state_to_file</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Save current estimate state and groundtruth including calibration.</dd>
           </dl>
@@ -117,16 +117,16 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt>
-              ros::NodeHandle <a href="#a9abb516f8c8ef4ae1239911d68ab1d77" class="m-doc-self" name="a9abb516f8c8ef4ae1239911d68ab1d77">_nh</a>
+            <dt id="a9abb516f8c8ef4ae1239911d68ab1d77">
+              ros::NodeHandle <a href="#a9abb516f8c8ef4ae1239911d68ab1d77" class="m-doc-self">_nh</a>
             </dt>
             <dd>ROS node handle that we publish onto.</dd>
-            <dt>
-              <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* <a href="#a8d8b61c5c6606f97b6b716ec4a93d3bb" class="m-doc-self" name="a8d8b61c5c6606f97b6b716ec4a93d3bb">_app</a>
+            <dt id="a8d8b61c5c6606f97b6b716ec4a93d3bb">
+              <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* <a href="#a8d8b61c5c6606f97b6b716ec4a93d3bb" class="m-doc-self">_app</a>
             </dt>
             <dd>Core application of the filter system.</dd>
-            <dt>
-              <a href="classov__core_1_1Simulator.html" class="m-doc">Simulator</a>* <a href="#a730d5ac5c353b535dc374a1f9d3d4911" class="m-doc-self" name="a730d5ac5c353b535dc374a1f9d3d4911">_sim</a>
+            <dt id="a730d5ac5c353b535dc374a1f9d3d4911">
+              <a href="classov__core_1_1Simulator.html" class="m-doc">Simulator</a>* <a href="#a730d5ac5c353b535dc374a1f9d3d4911" class="m-doc-self">_sim</a>
             </dt>
             <dd>Simulator (is nullptr if we are not sim&#x27;ing)</dd>
           </dl>
@@ -199,8 +199,8 @@
     </div>
   </div>
 </div>
-<script src="search.js"></script>
-<script src="searchdata.js" async="async"></script>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
 <footer><nav>
   <div class="m-container">
     <div class="m-row">
