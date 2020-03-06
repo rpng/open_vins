@@ -123,6 +123,16 @@ namespace ov_msckf {
             // Append it to our vector
             imu_data.emplace_back(data);
 
+            // Loop through and delete imu messages that are older then 30 seconds
+            auto it0 = imu_data.begin();
+            while(it0 != imu_data.end()) {
+                if(timestamp-(*it0).timestamp > 30) {
+                    it0 = imu_data.erase(it0);
+                } else {
+                    it0++;
+                }
+            }
+
         }
 
 

@@ -45,7 +45,7 @@ namespace ov_core {
 
 
     /**
-     * @brief Master simulator class that will create artificial measurements for our visual-inertial algorithms.
+     * @brief Master simulator class that generated visual-inertial measurements
      *
      * Given a trajectory this will generate a SE(3) BsplineSE3 for that trajectory.
      * This allows us to get the inertial measurement information at each timestep during this trajectory.

@@ -41,7 +41,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // 0. Get all timestamps our clones are at (and thus valid measurement times)
     std::vector<double> clonetimes;
-    for(const auto& clone_imu : state->get_clones()) {
+    for(const auto& clone_imu : state->_clones_IMU) {
         clonetimes.emplace_back(clone_imu.first);
     }
 
@@ -72,11 +72,11 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // 2. Create vector of cloned *CAMERA* poses at each of our clone timesteps
     std::unordered_map<size_t, std::unordered_map<double, FeatureInitializer::ClonePose>> clones_cam;
-    for(const auto &clone_calib : state->get_calib_IMUtoCAMs()) {
+    for(const auto &clone_calib : state->_calib_IMUtoCAM) {
 
         // For this camera, create the vector of camera poses
         std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
-        for(const auto &clone_imu : state->get_clones()) {
+        for(const auto &clone_imu : state->_clones_IMU) {
 
             // Get current camera pose
             Eigen::Matrix<double,3,3> R_GtoCi = clone_calib.second->Rot()*clone_imu.second->Rot();
@@ -126,8 +126,8 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     }
 
     // Calculate max possible state size (i.e. the size of our covariance)
-    size_t max_hx_size = state->n_vars();
-    max_hx_size -= 3*state->features_SLAM().size();
+    size_t max_hx_size = state->max_covariance_size();
+    max_hx_size -= 3*state->_features_SLAM.size();
 
     // Large Jacobian and residual of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
@@ -148,10 +148,10 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.uvs = (*it2)->uvs;
         feat.uvs_norm = (*it2)->uvs_norm;
         feat.timestamps = (*it2)->timestamps;
-        feat.feat_representation = state->options().feat_representation;
+        feat.feat_representation = state->_options.feat_representation;
 
         // Save the position and its fej value
-        if(FeatureRepresentation::is_relative_representation(feat.feat_representation)) {
+        if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
             feat.anchor_cam_id = (*it2)->anchor_cam_id;
             feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
             feat.p_FinA = (*it2)->p_FinA;

@@ -18,15 +18,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_CORE_TYPE_LANDMARK_H
-#define OV_CORE_TYPE_LANDMARK_H
+#ifndef OV_TYPE_TYPE_LANDMARK_H
+#define OV_TYPE_TYPE_LANDMARK_H
 
 
 #include "Vec.h"
-#include "feat/FeatureRepresentation.h"
+#include "LandmarkRepresentation.h"
 
 
-namespace ov_core {
+namespace ov_type {
 
 
     /**
@@ -59,7 +59,7 @@ namespace ov_core {
         bool should_marg = false;
 
         /// What feature representation this feature currently has
-        FeatureRepresentation::Representation _feat_representation;
+        LandmarkRepresentation::Representation _feat_representation;
 
         /**
          * @brief Overrides the default vector update rule
@@ -71,8 +71,8 @@ namespace ov_core {
             assert(dx.rows() == _size);
             set_value(_value+dx);
             // If we are using a relative and we have not anchor changed yet, then update linearization / FEJ value
-            //if(FeatureRepresentation::is_relative_representation(_feat_representation) && !has_had_anchor_change) {
-            //if(FeatureRepresentation::is_relative_representation(_feat_representation)) {
+            //if(LandmarkRepresentation::is_relative_representation(_feat_representation) && !has_had_anchor_change) {
+            //if(LandmarkRepresentation::is_relative_representation(_feat_representation)) {
             //    set_fej(value());
             //}
         }
@@ -98,4 +98,4 @@ namespace ov_core {
 
 
 
-#endif //OV_CORE_TYPE_LANDMARK_H
+#endif //OV_TYPE_TYPE_LANDMARK_H

@@ -18,14 +18,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_CORE_TYPE_VEC_H
-#define OV_CORE_TYPE_VEC_H
+#ifndef OV_TYPE_TYPE_VEC_H
+#define OV_TYPE_TYPE_VEC_H
 
 
 #include "Type.h"
 
 
-namespace ov_core {
+namespace ov_type {
 
     /**
      * @brief Derived Type class that implements vector variables
@@ -69,4 +69,4 @@ namespace ov_core {
 
 }
 
-#endif //OV_CORE_TYPE_VEC_H
+#endif //OV_TYPE_TYPE_VEC_H

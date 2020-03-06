@@ -18,15 +18,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_CORE_TYPE_JPLQUAT_H
-#define OV_CORE_TYPE_JPLQUAT_H
+#ifndef OV_TYPE_TYPE_JPLQUAT_H
+#define OV_TYPE_TYPE_JPLQUAT_H
 
 
 #include "Type.h"
 #include "utils/quat_ops.h"
 
 
-namespace ov_core {
+namespace ov_type {
 
 
     /**
@@ -69,10 +69,10 @@ namespace ov_core {
             //Build perturbing quaternion
             Eigen::Matrix<double, 4, 1> dq;
             dq << .5 * dx, 1.0;
-            dq = quatnorm(dq);
+            dq = ov_core::quatnorm(dq);
 
             //Update estimate and recompute R
-            set_value(quat_multiply(dq, _value));
+            set_value(ov_core::quat_multiply(dq, _value));
 
         }
 
@@ -88,7 +88,7 @@ namespace ov_core {
             _value = new_value;
 
             //compute associated rotation
-            _R = quat_2_Rot(new_value);
+            _R = ov_core::quat_2_Rot(new_value);
         }
 
         Type *clone() override {
@@ -110,7 +110,7 @@ namespace ov_core {
             _fej = new_value;
 
             //compute associated rotation
-            _Rfej = quat_2_Rot(new_value);
+            _Rfej = ov_core::quat_2_Rot(new_value);
         }
 
         /// Rotation access
@@ -136,4 +136,4 @@ namespace ov_core {
 
 }
 
-#endif //OV_CORE_TYPE_JPLQUAT_H
+#endif //OV_TYPE_TYPE_JPLQUAT_H

@@ -26,21 +26,23 @@ using namespace ov_msckf;
 
 
 
-void State::initialize_variables() {
+State::State(StateOptions &options) {
 
-    int current_id = 0;
+    // Save our options
+    _options = options;
 
     // Append the imu to the state and covariance
+    int current_id = 0;
     _imu = new IMU();
     _imu->set_local_id(current_id);
-    insert_variable(_imu);
+    _variables.push_back(_imu);
     current_id += _imu->size();
 
     // Camera to IMU time offset
     _calib_dt_CAMtoIMU = new Vec(1);
     if (_options.do_calib_camera_timeoffset) {
         _calib_dt_CAMtoIMU->set_local_id(current_id);
-        insert_variable(_calib_dt_CAMtoIMU);
+        _variables.push_back(_calib_dt_CAMtoIMU);
         current_id += _calib_dt_CAMtoIMU->size();
     }
 
@@ -61,14 +63,14 @@ void State::initialize_variables() {
         // If calibrating camera-imu pose, add to variables
         if (_options.do_calib_camera_pose) {
             pose->set_local_id(current_id);
-            insert_variable(pose);
+            _variables.push_back(pose);
             current_id += pose->size();
         }
 
         // If calibrating camera intrinsics, add to variables
         if (_options.do_calib_camera_intrinsics) {
             intrin->set_local_id(current_id);
-            insert_variable(intrin);
+            _variables.push_back(intrin);
             current_id += intrin->size();
         }
     }
@@ -77,16 +79,16 @@ void State::initialize_variables() {
     _Cov = 1e-3*Eigen::MatrixXd::Identity(current_id, current_id);
 
     // Finally, set some of our priors for our calibration parameters
-    if (_options.do_calib_camera_timeoffset){
+    if (_options.do_calib_camera_timeoffset) {
         _Cov(_calib_dt_CAMtoIMU->id(),_calib_dt_CAMtoIMU->id()) = std::pow(0.01,2);
     }
-    if (_options.do_calib_camera_pose){
+    if (_options.do_calib_camera_pose) {
         for(int i=0; i<_options.num_cameras; i++) {
             _Cov.block(_calib_IMUtoCAM.at(i)->id(),_calib_IMUtoCAM.at(i)->id(),3,3) = std::pow(0.001,2)*Eigen::MatrixXd::Identity(3,3);
             _Cov.block(_calib_IMUtoCAM.at(i)->id()+3,_calib_IMUtoCAM.at(i)->id()+3,3,3) = std::pow(0.01,2)*Eigen::MatrixXd::Identity(3,3);
         }
     }
-    if (_options.do_calib_camera_intrinsics){
+    if (_options.do_calib_camera_intrinsics) {
         for(int i=0; i<_options.num_cameras; i++) {
             _Cov.block(_cam_intrinsics.at(i)->id(),_cam_intrinsics.at(i)->id(),4,4) = std::pow(1.0,2)*Eigen::MatrixXd::Identity(4,4);
             _Cov.block(_cam_intrinsics.at(i)->id()+4,_cam_intrinsics.at(i)->id()+4,4,4) = std::pow(0.005,2)*Eigen::MatrixXd::Identity(4,4);

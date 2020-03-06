@@ -18,15 +18,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_CORE_TYPE_IMU_H
-#define OV_CORE_TYPE_IMU_H
+#ifndef OV_TYPE_TYPE_IMU_H
+#define OV_TYPE_TYPE_IMU_H
 
 
 #include "PoseJPL.h"
 #include "utils/quat_ops.h"
 
 
-namespace ov_core {
+namespace ov_type {
 
 
     /**
@@ -90,9 +90,9 @@ namespace ov_core {
 
             Eigen::Matrix<double, 4, 1> dq;
             dq << .5 * dx.block(0, 0, 3, 1), 1.0;
-            dq = quatnorm(dq);
+            dq = ov_core::quatnorm(dq);
 
-            newX.block(0, 0, 4, 1) = quat_multiply(dq, quat());
+            newX.block(0, 0, 4, 1) = ov_core::quat_multiply(dq, quat());
             newX.block(4, 0, 3, 1) += dx.block(3, 0, 3, 1);
 
             newX.block(7, 0, 3, 1) += dx.block(6, 0, 3, 1);
@@ -282,4 +282,4 @@ namespace ov_core {
 }
 
 
-#endif //OV_CORE_TYPE_IMU_H
+#endif //OV_TYPE_TYPE_IMU_H

@@ -172,21 +172,21 @@ void RosVisualizer::publish_state() {
 
     // Create pose of IMU (note we use the bag time)
     geometry_msgs::PoseWithCovarianceStamped poseIinM;
-    poseIinM.header.stamp = ros::Time(state->timestamp());
+    poseIinM.header.stamp = ros::Time(state->_timestamp);
     poseIinM.header.seq = poses_seq_imu;
     poseIinM.header.frame_id = "global";
-    poseIinM.pose.pose.orientation.x = state->imu()->quat()(0);
-    poseIinM.pose.pose.orientation.y = state->imu()->quat()(1);
-    poseIinM.pose.pose.orientation.z = state->imu()->quat()(2);
-    poseIinM.pose.pose.orientation.w = state->imu()->quat()(3);
-    poseIinM.pose.pose.position.x = state->imu()->pos()(0);
-    poseIinM.pose.pose.position.y = state->imu()->pos()(1);
-    poseIinM.pose.pose.position.z = state->imu()->pos()(2);
+    poseIinM.pose.pose.orientation.x = state->_imu->quat()(0);
+    poseIinM.pose.pose.orientation.y = state->_imu->quat()(1);
+    poseIinM.pose.pose.orientation.z = state->_imu->quat()(2);
+    poseIinM.pose.pose.orientation.w = state->_imu->quat()(3);
+    poseIinM.pose.pose.position.x = state->_imu->pos()(0);
+    poseIinM.pose.pose.position.y = state->_imu->pos()(1);
+    poseIinM.pose.pose.position.z = state->_imu->pos()(2);
 
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
     std::vector<Type*> statevars;
-    statevars.push_back(state->imu()->pose()->p());
-    statevars.push_back(state->imu()->pose()->q());
+    statevars.push_back(state->_imu->pose()->p());
+    statevars.push_back(state->_imu->pose()->q());
     Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
     for(int r=0; r<6; r++) {
         for(int c=0; c<6; c++) {
@@ -207,13 +207,13 @@ void RosVisualizer::publish_state() {
     odomIinM.twist.twist.angular.x = 0; // we do not estimate this...
     odomIinM.twist.twist.angular.y = 0; // we do not estimate this...
     odomIinM.twist.twist.angular.z = 0; // we do not estimate this...
-    odomIinM.twist.twist.linear.x = state->imu()->vel()(0);
-    odomIinM.twist.twist.linear.y = state->imu()->vel()(1);
-    odomIinM.twist.twist.linear.z = state->imu()->vel()(2);
+    odomIinM.twist.twist.linear.x = state->_imu->vel()(0);
+    odomIinM.twist.twist.linear.y = state->_imu->vel()(1);
+    odomIinM.twist.twist.linear.z = state->_imu->vel()(2);
 
     // Velocity covariance (linear then angular)
     statevars.clear();
-    statevars.push_back(state->imu()->v());
+    statevars.push_back(state->_imu->v());
     Eigen::Matrix<double,6,6> covariance_linang = INFINITY*Eigen::Matrix<double,6,6>::Identity();
     covariance_linang.block(0,0,3,3) = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
     for(int r=0; r<6; r++) {
@@ -251,14 +251,14 @@ void RosVisualizer::publish_state() {
     trans.stamp_ = ros::Time::now();
     trans.frame_id_ = "global";
     trans.child_frame_id_ = "imu";
-    tf::Quaternion quat(state->imu()->quat()(0),state->imu()->quat()(1),state->imu()->quat()(2),state->imu()->quat()(3));
+    tf::Quaternion quat(state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2),state->_imu->quat()(3));
     trans.setRotation(quat);
-    tf::Vector3 orig(state->imu()->pos()(0),state->imu()->pos()(1),state->imu()->pos()(2));
+    tf::Vector3 orig(state->_imu->pos()(0),state->_imu->pos()(1),state->_imu->pos()(2));
     trans.setOrigin(orig);
     mTfBr->sendTransform(trans);
 
     // Loop through each camera calibration and publish it
-    for(const auto &calib : state->get_calib_IMUtoCAMs()) {
+    for(const auto &calib : state->_calib_IMUtoCAM) {
         // need to flip the transform to the IMU frame
         Eigen::Vector4d q_ItoC = calib.second->quat();
         Eigen::Vector3d p_CinI = -calib.second->Rot().transpose()*calib.second->pos();
@@ -470,21 +470,21 @@ void RosVisualizer::publish_groundtruth() {
     Eigen::Matrix<double,17,1> state_gt;
 
     // Check that we have the timestamp in our GT file [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
-    if(_sim == nullptr && (gt_states.empty() || !DatasetReader::get_gt_state(_app->get_state()->timestamp(), state_gt, gt_states))) {
+    if(_sim == nullptr && (gt_states.empty() || !DatasetReader::get_gt_state(_app->get_state()->_timestamp, state_gt, gt_states))) {
         return;
     }
 
     // Get the simulated groundtruth
-    if(_sim != nullptr && !_sim->get_state(_app->get_state()->timestamp(),state_gt)) {
+    if(_sim != nullptr && !_sim->get_state(_app->get_state()->_timestamp,state_gt)) {
         return;
     }
 
     // Get the GT and system state state
-    Eigen::Matrix<double,16,1> state_ekf = _app->get_state()->imu()->value();
+    Eigen::Matrix<double,16,1> state_ekf = _app->get_state()->_imu->value();
 
     // Create pose of IMU
     geometry_msgs::PoseStamped poseIinM;
-    poseIinM.header.stamp = ros::Time(_app->get_state()->timestamp());
+    poseIinM.header.stamp = ros::Time(_app->get_state()->_timestamp);
     poseIinM.header.seq = poses_seq_gt;
     poseIinM.header.frame_id = "global";
     poseIinM.pose.orientation.x = state_gt(1,0);
@@ -542,7 +542,10 @@ void RosVisualizer::publish_groundtruth() {
     //==========================================================================
 
     // Get covariance of pose
-    Eigen::Matrix<double,6,6> covariance = _app->get_state()->Cov().block(_app->get_state()->imu()->pose()->id(),_app->get_state()->imu()->pose()->id(),6,6);
+    std::vector<Type*> statevars;
+    statevars.push_back(_app->get_state()->_imu->q());
+    statevars.push_back(_app->get_state()->_imu->p());
+    Eigen::Matrix<double,6,6> covariance = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
 
     // Calculate NEES values
     double ori_nees = 2*quat_diff.block(0,0,3,1).dot(covariance.block(0,0,3,3).inverse()*2*quat_diff.block(0,0,3,1));
@@ -582,7 +585,7 @@ void RosVisualizer::sim_save_total_state_to_file() {
 
     // If we have our simulator, then save it to our groundtruth file
     Eigen::Matrix<double,17,1> state_gt;
-    if(_sim != nullptr && _sim->get_state(state->timestamp(),state_gt)) {
+    if(_sim != nullptr && _sim->get_state(state->_timestamp,state_gt)) {
 
         // STATE: write current true state
         of_state_gt.precision(5);
@@ -599,12 +602,12 @@ void RosVisualizer::sim_save_total_state_to_file() {
         of_state_gt.precision(7);
         of_state_gt << _sim->get_true_imucamdt() << " ";
         of_state_gt.precision(0);
-        of_state_gt << state->options().num_cameras << " ";
+        of_state_gt << state->_options.num_cameras << " ";
         of_state_gt.precision(6);
 
         // CALIBRATION: Write the camera values to file
-        assert(state->options().num_cameras==_sim->get_num_cameras());
-        for(int i=0; i<state->options().num_cameras; i++) {
+        assert(state->_options.num_cameras==_sim->get_num_cameras());
+        for(int i=0; i<state->_options.num_cameras; i++) {
             // Intrinsics values
             of_state_gt << _sim->get_true_intrinsics().at(i)(0) << " " << _sim->get_true_intrinsics().at(i)(1) << " " << _sim->get_true_intrinsics().at(i)(2) << " " << _sim->get_true_intrinsics().at(i)(3) << " ";
             of_state_gt << _sim->get_true_intrinsics().at(i)(4) << " " << _sim->get_true_intrinsics().at(i)(5) << " " << _sim->get_true_intrinsics().at(i)(6) << " " << _sim->get_true_intrinsics().at(i)(7) << " ";
@@ -629,71 +632,74 @@ void RosVisualizer::sim_save_total_state_to_file() {
     //==========================================================================
     //==========================================================================
 
+    // Get the covariance of the whole system
+    Eigen::MatrixXd cov = StateHelper::get_full_covariance(state);
+
     // STATE: Write the current state to file
     of_state_est.precision(5);
     of_state_est.setf(std::ios::fixed, std::ios::floatfield);
-    of_state_est << state->timestamp() << " ";
+    of_state_est << state->_timestamp << " ";
     of_state_est.precision(6);
-    of_state_est << state->imu()->quat()(0) << " " << state->imu()->quat()(1) << " " << state->imu()->quat()(2) << " " << state->imu()->quat()(3) << " ";
-    of_state_est << state->imu()->pos()(0) << " " << state->imu()->pos()(1) << " " << state->imu()->pos()(2) << " ";
-    of_state_est << state->imu()->vel()(0) << " " << state->imu()->vel()(1) << " " << state->imu()->vel()(2) << " ";
-    of_state_est << state->imu()->bias_g()(0) << " " << state->imu()->bias_g()(1) << " " << state->imu()->bias_g()(2) << " ";
-    of_state_est << state->imu()->bias_a()(0) << " " << state->imu()->bias_a()(1) << " " << state->imu()->bias_a()(2) << " ";
+    of_state_est << state->_imu->quat()(0) << " " << state->_imu->quat()(1) << " " << state->_imu->quat()(2) << " " << state->_imu->quat()(3) << " ";
+    of_state_est << state->_imu->pos()(0) << " " << state->_imu->pos()(1) << " " << state->_imu->pos()(2) << " ";
+    of_state_est << state->_imu->vel()(0) << " " << state->_imu->vel()(1) << " " << state->_imu->vel()(2) << " ";
+    of_state_est << state->_imu->bias_g()(0) << " " << state->_imu->bias_g()(1) << " " << state->_imu->bias_g()(2) << " ";
+    of_state_est << state->_imu->bias_a()(0) << " " << state->_imu->bias_a()(1) << " " << state->_imu->bias_a()(2) << " ";
 
     // STATE: Write current uncertainty to file
     of_state_std.precision(5);
     of_state_std.setf(std::ios::fixed, std::ios::floatfield);
-    of_state_std << state->timestamp() << " ";
+    of_state_std << state->_timestamp << " ";
     of_state_std.precision(6);
-    int id = state->imu()->q()->id();
-    of_state_std << std::sqrt(state->Cov()(id+0, id+0)) << " " << std::sqrt(state->Cov()(id+1, id+1)) << " " << std::sqrt(state->Cov()(id+2, id+2)) << " ";
-    id = state->imu()->p()->id();
-    of_state_std << std::sqrt(state->Cov()(id+0, id+0)) << " " << std::sqrt(state->Cov()(id+1, id+1)) << " " << std::sqrt(state->Cov()(id+2, id+2)) << " ";
-    id = state->imu()->v()->id();
-    of_state_std << std::sqrt(state->Cov()(id+0, id+0)) << " " << std::sqrt(state->Cov()(id+1, id+1)) << " " << std::sqrt(state->Cov()(id+2, id+2)) << " ";
-    id = state->imu()->bg()->id();
-    of_state_std << std::sqrt(state->Cov()(id+0, id+0)) << " " << std::sqrt(state->Cov()(id+1, id+1)) << " " << std::sqrt(state->Cov()(id+2, id+2)) << " ";
-    id = state->imu()->ba()->id();
-    of_state_std << std::sqrt(state->Cov()(id+0, id+0)) << " " << std::sqrt(state->Cov()(id+1, id+1)) << " " << std::sqrt(state->Cov()(id+2, id+2)) << " ";
+    int id = state->_imu->q()->id();
+    of_state_std << std::sqrt(cov(id+0, id+0)) << " " << std::sqrt(cov(id+1, id+1)) << " " << std::sqrt(cov(id+2, id+2)) << " ";
+    id = state->_imu->p()->id();
+    of_state_std << std::sqrt(cov(id+0, id+0)) << " " << std::sqrt(cov(id+1, id+1)) << " " << std::sqrt(cov(id+2, id+2)) << " ";
+    id = state->_imu->v()->id();
+    of_state_std << std::sqrt(cov(id+0, id+0)) << " " << std::sqrt(cov(id+1, id+1)) << " " << std::sqrt(cov(id+2, id+2)) << " ";
+    id = state->_imu->bg()->id();
+    of_state_std << std::sqrt(cov(id+0, id+0)) << " " << std::sqrt(cov(id+1, id+1)) << " " << std::sqrt(cov(id+2, id+2)) << " ";
+    id = state->_imu->ba()->id();
+    of_state_std << std::sqrt(cov(id+0, id+0)) << " " << std::sqrt(cov(id+1, id+1)) << " " << std::sqrt(cov(id+2, id+2)) << " ";
 
     // TIMEOFF: Get the current estimate time offset
     of_state_est.precision(7);
-    of_state_est << state->calib_dt_CAMtoIMU()->value()(0) << " ";
+    of_state_est << state->_calib_dt_CAMtoIMU->value()(0) << " ";
     of_state_est.precision(0);
-    of_state_est << state->options().num_cameras << " ";
+    of_state_est << state->_options.num_cameras << " ";
     of_state_est.precision(6);
 
     // TIMEOFF: Get the current std values
-    if(state->options().do_calib_camera_timeoffset) {
-        of_state_std << std::sqrt(state->Cov()(state->calib_dt_CAMtoIMU()->id(), state->calib_dt_CAMtoIMU()->id())) << " ";
+    if(state->_options.do_calib_camera_timeoffset) {
+        of_state_std << std::sqrt(cov(state->_calib_dt_CAMtoIMU->id(), state->_calib_dt_CAMtoIMU->id())) << " ";
     } else {
         of_state_std << 0.0 << " ";
     }
     of_state_std.precision(0);
-    of_state_std << state->options().num_cameras << " ";
+    of_state_std << state->_options.num_cameras << " ";
     of_state_std.precision(6);
 
     // CALIBRATION: Write the camera values to file
-    for(int i=0; i<state->options().num_cameras; i++) {
+    for(int i=0; i<state->_options.num_cameras; i++) {
         // Intrinsics values
-        of_state_est << state->get_intrinsics_CAM(i)->value()(0) << " " << state->get_intrinsics_CAM(i)->value()(1) << " " << state->get_intrinsics_CAM(i)->value()(2) << " " << state->get_intrinsics_CAM(i)->value()(3) << " ";
-        of_state_est << state->get_intrinsics_CAM(i)->value()(4) << " " << state->get_intrinsics_CAM(i)->value()(5) << " " << state->get_intrinsics_CAM(i)->value()(6) << " " << state->get_intrinsics_CAM(i)->value()(7) << " ";
+        of_state_est << state->_cam_intrinsics.at(i)->value()(0) << " " << state->_cam_intrinsics.at(i)->value()(1) << " " << state->_cam_intrinsics.at(i)->value()(2) << " " << state->_cam_intrinsics.at(i)->value()(3) << " ";
+        of_state_est << state->_cam_intrinsics.at(i)->value()(4) << " " << state->_cam_intrinsics.at(i)->value()(5) << " " << state->_cam_intrinsics.at(i)->value()(6) << " " << state->_cam_intrinsics.at(i)->value()(7) << " ";
         // Rotation and position
-        of_state_est << state->get_calib_IMUtoCAM(i)->value()(0) << " " << state->get_calib_IMUtoCAM(i)->value()(1) << " " << state->get_calib_IMUtoCAM(i)->value()(2) << " " << state->get_calib_IMUtoCAM(i)->value()(3) << " ";
-        of_state_est << state->get_calib_IMUtoCAM(i)->value()(4) << " " << state->get_calib_IMUtoCAM(i)->value()(5) << " " << state->get_calib_IMUtoCAM(i)->value()(6) << " ";
+        of_state_est << state->_calib_IMUtoCAM.at(i)->value()(0) << " " << state->_calib_IMUtoCAM.at(i)->value()(1) << " " << state->_calib_IMUtoCAM.at(i)->value()(2) << " " << state->_calib_IMUtoCAM.at(i)->value()(3) << " ";
+        of_state_est << state->_calib_IMUtoCAM.at(i)->value()(4) << " " << state->_calib_IMUtoCAM.at(i)->value()(5) << " " << state->_calib_IMUtoCAM.at(i)->value()(6) << " ";
         // Covariance
-        if(state->options().do_calib_camera_intrinsics) {
-            int index_in = state->get_intrinsics_CAM(i)->id();
-            of_state_std << std::sqrt(state->Cov()(index_in + 0, index_in + 0)) << " " << std::sqrt(state->Cov()(index_in + 1, index_in + 1)) << " " << std::sqrt(state->Cov()(index_in + 2, index_in + 2)) << " " << std::sqrt(state->Cov()(index_in + 3, index_in + 3)) << " ";
-            of_state_std << std::sqrt(state->Cov()(index_in + 4, index_in + 4)) << " " << std::sqrt(state->Cov()(index_in + 5, index_in + 5)) << " " << std::sqrt(state->Cov()(index_in + 6, index_in + 6)) << " " << std::sqrt(state->Cov()(index_in + 7, index_in + 7)) << " ";
+        if(state->_options.do_calib_camera_intrinsics) {
+            int index_in = state->_cam_intrinsics.at(i)->id();
+            of_state_std << std::sqrt(cov(index_in + 0, index_in + 0)) << " " << std::sqrt(cov(index_in + 1, index_in + 1)) << " " << std::sqrt(cov(index_in + 2, index_in + 2)) << " " << std::sqrt(cov(index_in + 3, index_in + 3)) << " ";
+            of_state_std << std::sqrt(cov(index_in + 4, index_in + 4)) << " " << std::sqrt(cov(index_in + 5, index_in + 5)) << " " << std::sqrt(cov(index_in + 6, index_in + 6)) << " " << std::sqrt(cov(index_in + 7, index_in + 7)) << " ";
         } else {
             of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " ";
             of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " ";
         }
-        if(state->options().do_calib_camera_pose) {
-            int index_ex = state->get_calib_IMUtoCAM(i)->id();
-            of_state_std << std::sqrt(state->Cov()(index_ex + 0, index_ex + 0)) << " " << std::sqrt(state->Cov()(index_ex + 1, index_ex + 1)) << " " << std::sqrt(state->Cov()(index_ex + 2, index_ex + 2)) << " ";
-            of_state_std << std::sqrt(state->Cov()(index_ex + 3, index_ex + 3)) << " " << std::sqrt(state->Cov()(index_ex + 4, index_ex + 4)) << " " << std::sqrt(state->Cov()(index_ex + 5, index_ex + 5)) << " ";
+        if(state->_options.do_calib_camera_pose) {
+            int index_ex = state->_calib_IMUtoCAM.at(i)->id();
+            of_state_std << std::sqrt(cov(index_ex + 0, index_ex + 0)) << " " << std::sqrt(cov(index_ex + 1, index_ex + 1)) << " " << std::sqrt(cov(index_ex + 2, index_ex + 2)) << " ";
+            of_state_std << std::sqrt(cov(index_ex + 3, index_ex + 3)) << " " << std::sqrt(cov(index_ex + 4, index_ex + 4)) << " " << std::sqrt(cov(index_ex + 5, index_ex + 5)) << " ";
         } else {
             of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
             of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";

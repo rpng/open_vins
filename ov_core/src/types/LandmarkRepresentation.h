@@ -18,17 +18,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OPEN_VINS_FEATUREREPRESENTATION_H
-#define OPEN_VINS_FEATUREREPRESENTATION_H
+#ifndef OV_TYPE_LANDMARKREPRESENTATION_H
+#define OV_TYPE_LANDMARKREPRESENTATION_H
 
 
 
-namespace ov_core {
+namespace ov_type {
 
     /**
      * @brief Class has useful feature representation types
      */
-    class FeatureRepresentation
+    class LandmarkRepresentation
     {
 
     public:
@@ -62,7 +62,7 @@ namespace ov_core {
          * All function in this class should be static.
          * Thus an instance of this class cannot be created.
          */
-        FeatureRepresentation() {};
+        LandmarkRepresentation() {};
 
     };
 
@@ -71,4 +71,4 @@ namespace ov_core {
 }
 
 
-#endif //OPEN_VINS_FEATUREREPRESENTATION_H
+#endif //OV_TYPE_LANDMARKREPRESENTATION_H

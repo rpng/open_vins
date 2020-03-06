@@ -21,9 +21,10 @@
 #ifndef OV_MSCKF_STATE_OPTIONS_H
 #define OV_MSCKF_STATE_OPTIONS_H
 
-#include "feat/FeatureRepresentation.h"
+#include "types/LandmarkRepresentation.h"
 
 using namespace ov_core;
+using namespace ov_type;
 
 namespace ov_msckf {
 
@@ -57,6 +58,9 @@ namespace ov_msckf {
         /// Max number of estimated SLAM features
         int max_slam_features = 0;
 
+        /// Max number of SLAM features we allow to be included in a single EKF update.
+        int max_slam_in_update = INT_MAX;
+
         /// Max number of estimated ARUCO features
         int max_aruco_features = 1024;
 
@@ -64,7 +68,7 @@ namespace ov_msckf {
         int num_cameras = 1;
 
         /// What representation our features are in
-        FeatureRepresentation::Representation feat_representation = FeatureRepresentation::Representation::GLOBAL_3D;
+        LandmarkRepresentation::Representation feat_representation = LandmarkRepresentation::Representation::GLOBAL_3D;
 
     };
 
