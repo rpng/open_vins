@@ -54,15 +54,15 @@ namespace ov_core {
 
         /// @warning This function should not be used!! Use @ref feed_measurement_simulation() instead.
         void feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) override {
-            ROS_ERROR("[SIM]: SIM TRACKER FEED MONOCULAR CALLED!!!");
-            ROS_ERROR("[SIM]: THIS SHOULD NEVER HAPPEN!");
+            printf(RED "[SIM]: SIM TRACKER FEED MONOCULAR CALLED!!!\n" RESET);
+            printf(RED "[SIM]: THIS SHOULD NEVER HAPPEN!\n" RESET);
             std::exit(EXIT_FAILURE);
         }
 
         /// @warning This function should not be used!! Use @ref feed_measurement_simulation() instead.
         void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) override {
-            ROS_ERROR("[SIM]: SIM TRACKER FEED STEREO CALLED!!!");
-            ROS_ERROR("[SIM]: THIS SHOULD NEVER HAPPEN!");
+            printf(RED "[SIM]: SIM TRACKER FEED STEREO CALLED!!!\n" RESET);
+            printf(RED "[SIM]: THIS SHOULD NEVER HAPPEN!\n" RESET);
             std::exit(EXIT_FAILURE);
         }
 

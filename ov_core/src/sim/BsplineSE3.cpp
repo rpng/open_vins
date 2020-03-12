@@ -37,7 +37,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
     }
     dt = sumdt/(traj_points.size()-1);
     dt = (dt < 0.05)? 0.05 : dt;
-    ROS_INFO("[B-SPLINE]: control point dt = %.3f (original dt of %.3f)",dt,sumdt/(traj_points.size()-1));
+    printf("[B-SPLINE]: control point dt = %.3f (original dt of %.3f)\n",dt,sumdt/(traj_points.size()-1));
 
     // convert all our trajectory points into SE(3) matrices
     // we are given [timestamp, p_IinG, q_GtoI]
@@ -60,8 +60,8 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
             timestamp_max = pose.first;
         }
     }
-    ROS_INFO("[B-SPLINE]: trajectory start time = %.6f",timestamp_min);
-    ROS_INFO("[B-SPLINE]: trajectory end time = %.6f",timestamp_max);
+    printf("[B-SPLINE]: trajectory start time = %.6f\n",timestamp_min);
+    printf("[B-SPLINE]: trajectory end time = %.6f\n",timestamp_max);
 
 
     // then create spline control points
@@ -72,7 +72,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
         double t0, t1;
         Eigen::Matrix4d pose0, pose1;
         bool success = find_bounding_poses(timestamp_curr, trajectory_points, t0, pose0, t1, pose1);
-        //ROS_INFO("[SIM]: time curr = %.6f | lambda = %.3f | dt = %.3f | dtmeas = %.3f",timestamp_curr,(timestamp_curr-t0)/(t1-t0),dt,(t1-t0));
+        //printf("[SIM]: time curr = %.6f | lambda = %.3f | dt = %.3f | dtmeas = %.3f\n",timestamp_curr,(timestamp_curr-t0)/(t1-t0),dt,(t1-t0));
 
         // If we didn't find a bounding pose, then that means we are at the end of the dataset
         // Thus break out of this loop since we have created our max number of control points
@@ -90,7 +90,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
 
     // The start time of the system is two dt in since we need at least two older control points
     timestamp_start = timestamp_min + 2*dt;
-    ROS_INFO("[B-SPLINE]: start trajectory time of %.6f",timestamp_start);
+    printf("[B-SPLINE]: start trajectory time of %.6f\n",timestamp_start);
 
 }
 
@@ -104,7 +104,7 @@ bool BsplineSE3::get_pose(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vect
     double t0, t1, t2, t3;
     Eigen::Matrix4d pose0, pose1, pose2, pose3;
     bool success = find_bounding_control_points(timestamp, control_points, t0, pose0, t1, pose1, t2, pose2, t3, pose3);
-    //ROS_INFO("[SIM]: time curr = %.6f | dt1 = %.3f | dt2 = %.3f | dt3 = %.3f | dt4 = %.3f | success = %d",timestamp,t0-timestamp,t1-timestamp,t2-timestamp,t3-timestamp,(int)success);
+    //printf("[SIM]: time curr = %.6f | dt1 = %.3f | dt2 = %.3f | dt3 = %.3f | dt4 = %.3f | success = %d\n",timestamp,t0-timestamp,t1-timestamp,t2-timestamp,t3-timestamp,(int)success);
 
     // Return failure if we can't get bounding poses
     if(!success) {
@@ -142,7 +142,7 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::
     double t0, t1, t2, t3;
     Eigen::Matrix4d pose0, pose1, pose2, pose3;
     bool success = find_bounding_control_points(timestamp, control_points, t0, pose0, t1, pose1, t2, pose2, t3, pose3);
-    //ROS_INFO("[SIM]: time curr = %.6f | dt1 = %.3f | dt2 = %.3f | dt3 = %.3f | dt4 = %.3f | success = %d",timestamp,t0-timestamp,t1-timestamp,t2-timestamp,t3-timestamp,(int)success);
+    //printf("[SIM]: time curr = %.6f | dt1 = %.3f | dt2 = %.3f | dt3 = %.3f | dt4 = %.3f | success = %d\n",timestamp,t0-timestamp,t1-timestamp,t2-timestamp,t3-timestamp,(int)success);
 
     // Return failure if we can't get bounding poses
     if(!success) {

@@ -36,11 +36,13 @@
 #include <opencv2/core/core.hpp>
 
 
-#include "BsplineSE3.h"
+#include "sim/BsplineSE3.h"
 
 
+using namespace ov_core;
 
-namespace ov_core {
+
+namespace ov_msckf {
 
 
 

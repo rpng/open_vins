@@ -110,9 +110,9 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for detection",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for total",(rT3-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
+    //printf("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 
@@ -239,9 +239,9 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for detection",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for total",(rT3-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
+    //printf("[TIME-ARUCO]: %.4f seconds for total\m",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 

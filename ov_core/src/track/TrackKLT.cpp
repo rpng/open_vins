@@ -60,7 +60,7 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     //===================================================================================
 
     // Debug
-    //ROS_INFO("current points = %d,%d",(int)pts_left_last.size(),(int)pts_right_last.size());
+    //printf("current points = %d,%d\n",(int)pts_left_last.size(),(int)pts_right_last.size());
 
     // Our return success masks, and predicted new features
     std::vector<uchar> mask_ll;
@@ -79,7 +79,7 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
         img_pyramid_last[cam_id] = imgpyr;
         pts_last[cam_id].clear();
         ids_last[cam_id].clear();
-        ROS_ERROR("[KLT-EXTRACTOR]: Failed to get enough points to do RANSAC, resetting.....");
+        printf(RED "[KLT-EXTRACTOR]: Failed to get enough points to do RANSAC, resetting.....\n" RESET);
         return;
     }
 
@@ -120,11 +120,11 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for pyramid",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for detection",(rT3-rT2).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for temporal klt",(rT4-rT3).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for feature DB update (%d features)",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for total",(rT5-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for pyramid\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for detection\n",(rT3-rT2).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for temporal klt\n",(rT4-rT3).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
+    //printf("[TIME-KLT]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
 
 
 }
@@ -222,7 +222,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         pts_last[cam_id_right].clear();
         ids_last[cam_id_left].clear();
         ids_last[cam_id_right].clear();
-        ROS_ERROR("[KLT-EXTRACTOR]: Failed to get enough points to do RANSAC, resetting.....");
+        printf(RED "[KLT-EXTRACTOR]: Failed to get enough points to do RANSAC, resetting....." RESET);
         return;
     }
 
@@ -282,12 +282,12 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
 
     // Timing information
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for pyramid",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for detection",(rT3-rT2).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for temporal klt",(rT4-rT3).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for stereo klt",(rT5-rT4).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for feature DB update (%d features)",(rT6-rT5).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-KLT]: %.4f seconds for total",(rT6-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for pyramid\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for detection\n",(rT3-rT2).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for temporal klt\n",(rT4-rT3).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for stereo klt\n",(rT5-rT4).total_microseconds() * 1e-6);
+    //printf("[TIME-KLT]: %.4f seconds for feature DB update (%d features)\n",(rT6-rT5).total_microseconds() * 1e-6, (int)good_left.size());
+    //printf("[TIME-KLT]: %.4f seconds for total\n",(rT6-rT1).total_microseconds() * 1e-6);
 
 
 }
