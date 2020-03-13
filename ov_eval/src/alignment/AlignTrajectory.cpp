@@ -49,8 +49,8 @@ void AlignTrajectory::align_trajectory(const std::vector<Eigen::Matrix<double,7,
         R.setIdentity();
         t.setZero();
     } else {
-        ROS_ERROR("ERROR: Invalid alignment method!");
-        ROS_ERROR("ERROR: Possible options: posyaw, posyawsingle, se3, se3single, sim3, none");
+        printf(RED "[ALIGN]: Invalid alignment method!\n" RESET);
+        printf(RED "[ALIGN]: Possible options: posyaw, posyawsingle, se3, se3single, sim3, none\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 

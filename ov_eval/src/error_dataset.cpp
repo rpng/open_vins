@@ -21,17 +21,13 @@
 
 
 #include <string>
-#include <iostream>
-#include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
-#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 
 
 #include "calc/ResultTrajectory.h"
 #include "utils/Loader.h"
+#include "utils/Colors.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -45,13 +41,11 @@
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "error_dataset");
-
     // Ensure we have a path
     if(argc < 4) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval error_dataset <align_mode> <file_gt.txt> <folder_algorithms>");
+        printf(RED "ERROR: Please specify a align mode, folder, and algorithms\n" RESET);
+        printf(RED "ERROR: ./error_dataset <align_mode> <file_gt.txt> <folder_algorithms>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval error_dataset <align_mode> <file_gt.txt> <folder_algorithms>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -63,7 +57,7 @@ int main(int argc, char **argv) {
     ov_eval::Loader::load_data(argv[2], times, poses, cov_ori, cov_pos);
     // Print its length and stats
     double length = ov_eval::Loader::get_total_length(poses);
-    ROS_INFO("[COMP]: %d poses in %s => length of %.2f meters",(int)times.size(),path_gt.stem().string().c_str(),length);
+    printf("[COMP]: %d poses in %s => length of %.2f meters\n",(int)times.size(),path_gt.stem().string().c_str(),length);
 
 
     // Get the algorithms we will process
@@ -98,8 +92,8 @@ int main(int argc, char **argv) {
     for(size_t i=0; i<path_algorithms.size(); i++) {
 
         // Debug print
-        ROS_INFO("======================================");
-        ROS_INFO("[COMP]: processing %s algorithm", path_algorithms.at(i).stem().c_str());
+        printf("======================================\n");
+        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
 
         // Get the list of datasets this algorithm records
         std::map<std::string,boost::filesystem::path> path_algo_datasets;
@@ -111,7 +105,7 @@ int main(int argc, char **argv) {
 
         // Check if we have runs for our dataset
         if(path_algo_datasets.find(path_gt.stem().string())==path_algo_datasets.end()) {
-            ROS_ERROR("[COMP]: %s dataset does not have any runs for %s!!!!!",path_algorithms.at(i).stem().c_str(),path_gt.stem().c_str());
+            printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET,path_algorithms.at(i).stem().c_str(),path_gt.stem().c_str());
             continue;
         }
 
@@ -188,7 +182,7 @@ int main(int argc, char **argv) {
 
         // Check if we have runs
         if(total_runs < 1) {
-            ROS_ERROR("\tERROR: No runs found for %s, is the folder structure right??", path_algorithms.at(i).stem().c_str());
+            printf(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).stem().c_str());
             continue;
         }
 
@@ -199,15 +193,15 @@ int main(int argc, char **argv) {
         ate_2d_dataset_pos.calculate();
 
         // Print stats for this specific dataset
-        ROS_INFO("\tATE: mean_ori = %.3f | mean_pos = %.3f",ate_dataset_ori.mean,ate_dataset_pos.mean);
-        ROS_INFO("\tATE: std_ori  = %.5f | std_pos  = %.5f",ate_dataset_ori.std,ate_dataset_pos.std);
-        ROS_INFO("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f",ate_2d_dataset_ori.mean,ate_2d_dataset_pos.mean);
-        ROS_INFO("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f",ate_2d_dataset_ori.std,ate_2d_dataset_pos.std);
+        printf("\tATE: mean_ori = %.3f | mean_pos = %.3f\n",ate_dataset_ori.mean,ate_dataset_pos.mean);
+        printf("\tATE: std_ori  = %.5f | std_pos  = %.5f\n",ate_dataset_ori.std,ate_dataset_pos.std);
+        printf("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f\n",ate_2d_dataset_ori.mean,ate_2d_dataset_pos.mean);
+        printf("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n",ate_2d_dataset_ori.std,ate_2d_dataset_pos.std);
         for(auto &seg : rpe_dataset) {
             seg.second.first.calculate();
             seg.second.second.calculate();
-            ROS_INFO("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
-            //ROS_INFO("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
+            printf("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)\n",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
+            //printf("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
         }
 
         // RMSE: Convert into the right format (only use times where all runs have an error)
@@ -224,7 +218,7 @@ int main(int argc, char **argv) {
         }
         rmse_ori.calculate();
         rmse_pos.calculate();
-        ROS_INFO("\tRMSE: mean_ori = %.3f | mean_pos = %.3f",rmse_ori.mean,rmse_pos.mean);
+        printf("\tRMSE: mean_ori = %.3f | mean_pos = %.3f\n",rmse_ori.mean,rmse_pos.mean);
 
         // RMSE: Convert into the right format (only use times where all runs have an error)
         ov_eval::Statistics rmse_2d_ori, rmse_2d_pos;
@@ -240,7 +234,7 @@ int main(int argc, char **argv) {
         }
         rmse_2d_ori.calculate();
         rmse_2d_pos.calculate();
-        ROS_INFO("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f",rmse_2d_ori.mean,rmse_2d_pos.mean);
+        printf("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f\n",rmse_2d_ori.mean,rmse_2d_pos.mean);
 
         // NEES: Convert into the right format (only use times where all runs have an error)
         ov_eval::Statistics nees_ori, nees_pos;
@@ -256,7 +250,7 @@ int main(int argc, char **argv) {
         }
         nees_ori.calculate();
         nees_pos.calculate();
-        ROS_INFO("\tNEES: mean_ori = %.3f | mean_pos = %.3f",nees_ori.mean,nees_pos.mean);
+        printf("\tNEES: mean_ori = %.3f | mean_pos = %.3f\n",nees_ori.mean,nees_pos.mean);
 
 
 #ifdef HAVE_PYTHONLIBS
@@ -326,14 +320,13 @@ int main(int argc, char **argv) {
     }
 
     // Final line for our printed stats
-    ROS_INFO("============================================");
+    printf("============================================\n");
 
 
 #ifdef HAVE_PYTHONLIBS
 
     // Wait till the user kills this node
     matplotlibcpp::show(true);
-    //ros::spin();
 
 #endif
 

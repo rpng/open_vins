@@ -20,13 +20,10 @@
  */
 
 
-#include <string>
-#include <iostream>
-#include <fstream>
-#include <Eigen/Eigen>
-#include <ros/ros.h>
 
 #include "calc/ResultSimulation.h"
+#include "utils/Colors.h"
+
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -40,34 +37,30 @@
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "error_simulation");
-
     // Ensure we have a path
     if(argc < 4) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>");
+        printf(RED "ERROR: ./error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
-
 
     // Create our trajectory object
     ov_eval::ResultSimulation traj(argv[1], argv[2], argv[3]);
 
     // Plot the state errors
-    ROS_INFO("Plotting state variable errors...");
+    printf("Plotting state variable errors...\n");
     traj.plot_state(true);
 
     // Plot time offset
-    ROS_INFO("Plotting time offset error...");
+    printf("Plotting time offset error...\n");
     traj.plot_timeoff(true, 10);
 
     // Plot camera intrinsics
-    ROS_INFO("Plotting camera intrinsics...");
+    printf("Plotting camera intrinsics...\n");
     traj.plot_cam_instrinsics(true, 60);
 
     // Plot camera extrinsics
-    ROS_INFO("Plotting camera extrinsics...");
+    printf("Plotting camera extrinsics...\n");
     traj.plot_cam_extrinsics(true, 60);
 
 

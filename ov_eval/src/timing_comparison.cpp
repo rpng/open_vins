@@ -24,13 +24,13 @@
 #include <iostream>
 #include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "utils/Statistics.h"
 #include "utils/Loader.h"
+#include "utils/Colors.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -44,13 +44,12 @@
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "timing_comparison");
 
     // Ensure we have a path
     if(argc < 2) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval timing_comparison <timings_folder>");
+        printf(RED "ERROR: Please specify a timing and memory percent folder\n" RESET);
+        printf(RED "ERROR: ./timing_comparison <timings_folder>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval timing_comparison <timings_folder>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -80,8 +79,8 @@ int main(int argc, char **argv) {
     for(size_t i=0; i<path_algorithms.size(); i++) {
 
         // Debug print
-        ROS_INFO("======================================");
-        ROS_INFO("[COMP]: processing %s algorithm", path_algorithms.at(i).stem().c_str());
+        printf("======================================\n");
+        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
 
         // our total summed values
         std::vector<double> total_times;
@@ -122,13 +121,13 @@ int main(int argc, char **argv) {
         }
 
         // Display for the user
-        ROS_INFO("\tloaded %d timestamps from file!!",(int)algo_timings.at(algo).at(0).timestamps.size());
+        printf("\tloaded %d timestamps from file!!\n",(int)algo_timings.at(algo).at(0).timestamps.size());
         algo_timings.at(algo).at(0).calculate();
         algo_timings.at(algo).at(1).calculate();
         algo_timings.at(algo).at(2).calculate();
-        ROS_INFO("\tPREC: mean_cpu = %.3f +- %.3f",algo_timings.at(algo).at(0).mean,algo_timings.at(algo).at(0).std);
-        ROS_INFO("\tPREC: mean_mem = %.3f +- %.3f",algo_timings.at(algo).at(1).mean,algo_timings.at(algo).at(1).std);
-        ROS_INFO("\t#THR: mean_threads = %.3f +- %.3f",algo_timings.at(algo).at(2).mean,algo_timings.at(algo).at(2).std);
+        printf("\tPREC: mean_cpu = %.3f +- %.3f\n",algo_timings.at(algo).at(0).mean,algo_timings.at(algo).at(0).std);
+        printf("\tPREC: mean_mem = %.3f +- %.3f\n",algo_timings.at(algo).at(1).mean,algo_timings.at(algo).at(1).std);
+        printf("\t#THR: mean_threads = %.3f +- %.3f\n",algo_timings.at(algo).at(2).mean,algo_timings.at(algo).at(2).std);
 
     }
 
@@ -189,8 +188,6 @@ int main(int argc, char **argv) {
     matplotlibcpp::show(true);
 
 #endif
-
-
 
     // Done!
     return EXIT_SUCCESS;

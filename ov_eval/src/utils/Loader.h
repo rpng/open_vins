@@ -29,7 +29,7 @@
 #include <Eigen/Eigen>
 #include <boost/filesystem.hpp>
 
-#include <ros/ros.h>
+#include "Colors.h"
 
 
 namespace ov_eval {

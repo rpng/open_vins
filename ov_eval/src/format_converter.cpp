@@ -24,12 +24,10 @@
 #include <iostream>
 #include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
-#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
-
+#include "utils/Colors.h"
 
 
 
@@ -42,19 +40,19 @@ void process_csv(std::string infile) {
     std::ifstream file1;
     std::string line;
     file1.open(infile);
-    ROS_INFO("Opening file %s",boost::filesystem::path(infile).filename().c_str());
+    printf("Opening file %s\n",boost::filesystem::path(infile).filename().c_str());
 
     // Check that it was successful
     if (!file1) {
-        ROS_ERROR("ERROR: Unable to open input file...");
-        ROS_ERROR("ERROR: %s", infile.c_str());
+        printf(RED "ERROR: Unable to open input file...\n" RESET);
+        printf(RED "ERROR: %s\n" RESET, infile.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Loop through each line of this file
     std::vector<Eigen::VectorXd> traj_data;
     std::string current_line;
-    while(std::getline(file1, current_line) && ros::ok()) {
+    while(std::getline(file1, current_line)) {
 
         // Skip if we start with a comment
         if(!current_line.find("#"))
@@ -67,7 +65,7 @@ void process_csv(std::string infile) {
         Eigen::Matrix<double,8,1> data;
 
         // Loop through this line (timestamp(ns) tx ty tz qw qx qy qz)
-        while(std::getline(s,field,',') && ros::ok()) {
+        while(std::getline(s,field,',')) {
             // Skip if empty
             if(field.empty() || i >= data.rows())
                 continue;
@@ -89,17 +87,17 @@ void process_csv(std::string infile) {
 
     // Error if we don't have any data
     if (traj_data.empty()) {
-        ROS_ERROR("ERROR: Could not parse any data from the file!!");
-        ROS_ERROR("ERROR: %s",infile.c_str());
+        printf(RED "ERROR: Could not parse any data from the file!!\n" RESET);
+        printf(RED "ERROR: %s\n" RESET,infile.c_str());
         std::exit(EXIT_FAILURE);
     }
-    ROS_INFO("\t- Loaded %d poses from file",(int)traj_data.size());
+    printf("\t- Loaded %d poses from file\n",(int)traj_data.size());
 
     // If file exists already then crash
     std::string outfile = infile.substr(0,infile.find_last_of('.'))+".txt";
     if(boost::filesystem::exists(outfile)) {
-        ROS_ERROR("\t- ERROR: Output file already exists, please delete and re-run this script!!");
-        ROS_ERROR("\t- ERROR: %s",outfile.c_str());
+        printf(RED "\t- ERROR: Output file already exists, please delete and re-run this script!!\n" RESET);
+        printf(RED "\t- ERROR: %s\n" RESET,outfile.c_str());
         return;
     }
 
@@ -107,8 +105,8 @@ void process_csv(std::string infile) {
     std::ofstream file2;
     file2.open(outfile.c_str());
     if(file2.fail()) {
-        ROS_ERROR("ERROR: Unable to open output file!!");
-        ROS_ERROR("ERROR: %s",outfile.c_str());
+        printf(RED "ERROR: Unable to open output file!!\n" RESET);
+        printf(RED "ERROR: %s\n" RESET,outfile.c_str());
         std::exit(EXIT_FAILURE);
     }
     file2 << "# timestamp(s) tx ty tz qx qy qz qw" << std::endl;
@@ -122,7 +120,7 @@ void process_csv(std::string infile) {
         file2 << traj_data.at(i)(1) << " " << traj_data.at(i)(2) << " " << traj_data.at(i)(3) << " "
               << traj_data.at(i)(5) << " " << traj_data.at(i)(6) << " " << traj_data.at(i)(7) << " " << traj_data.at(i)(4) << std::endl;
     }
-    ROS_INFO("\t- Saved to file %s",boost::filesystem::path(outfile).filename().c_str());
+    printf("\t- Saved to file %s\n",boost::filesystem::path(outfile).filename().c_str());
 
     // Finally close the file
     file2.close();
@@ -135,14 +133,11 @@ void process_csv(std::string infile) {
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "format_converter");
-
     // Ensure we have a path
     if(argc < 2) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval format_convert <file.csv>");
-        ROS_ERROR("ERROR: rosrun ov_eval format_convert <folder>");
+        printf(RED "ERROR: Please specify a file to convert\n" RESET);
+        printf(RED "ERROR: ./format_convert <file.csv or folder\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval format_convert <file.csv or folder>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -163,10 +158,6 @@ int main(int argc, char **argv) {
         }
 
     }
-
-
-
-
 
     // Done!
     return EXIT_SUCCESS;

@@ -24,13 +24,13 @@
 #include <iostream>
 #include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
 
 #include "utils/Statistics.h"
 #include "utils/Loader.h"
+#include "utils/Colors.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -44,13 +44,12 @@
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "timing_singlerun");
 
     // Ensure we have a path
     if(argc < 2) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval timing_singlerun <file_times.txt>");
+        printf(RED "ERROR: Please specify a file to convert\n" RESET);
+        printf(RED "ERROR: ./timing_singlerun <file_times.txt>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval timing_singlerun <file_times.txt>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -59,7 +58,7 @@ int main(int argc, char **argv) {
     std::vector<Eigen::Vector3d> summed_values;
     std::vector<Eigen::VectorXd> node_values;
     ov_eval::Loader::load_timing(argv[1], times, summed_values, node_values);
-    ROS_INFO("[TIME]: loaded %d timestamps from file!!",(int)times.size());
+    printf("[TIME]: loaded %d timestamps from file!!\n",(int)times.size());
 
 
 

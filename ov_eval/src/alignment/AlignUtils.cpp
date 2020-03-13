@@ -170,15 +170,15 @@ void AlignUtils::perform_association(double offset, double max_difference,
         }
     }
 
-    // Ensure that we have enough assosiations
+    // Ensure that we have enough associations
     if(est_times.size() < 3) {
-        ROS_ERROR("[TRAJ]: Was unable to assosiate groundtruth and estimate trajectories");
-        ROS_ERROR("[TRAJ]: %d total matches....",(int)est_times.size());
-        ROS_ERROR("[TRAJ]: Do the time of the files match??");
+        printf(RED "[ALIGN]: Was unable to associate groundtruth and estimate trajectories\n" RESET);
+        printf(RED "[ALIGN]: %d total matches....\n" RESET,(int)est_times.size());
+        printf(RED "[ALIGN]: Do the time of the files match??\n" RESET);
         std::exit(EXIT_FAILURE);
     }
     assert(est_times_temp.size()==gt_times_temp.size());
-    //ROS_INFO("[TRAJ]: %d est poses and %d gt poses => %d matches",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
+    //printf("[TRAJ]: %d est poses and %d gt poses => %d matches\n",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
 
     // Overwrite with intersected values
     est_times = est_times_temp;

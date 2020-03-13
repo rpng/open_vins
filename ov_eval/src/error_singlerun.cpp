@@ -21,16 +21,11 @@
 
 
 #include <string>
-#include <iostream>
-#include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
-#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
-#include <boost/algorithm/string/predicate.hpp>
-
 
 #include "calc/ResultTrajectory.h"
+#include "utils/Colors.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -91,13 +86,12 @@ void plot_3errors(ov_eval::Statistics sx, ov_eval::Statistics sy, ov_eval::Stati
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "error_singlerun");
 
     // Ensure we have a path
     if(argc < 4) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval error_singlerun <align_mode> <file_gt.txt> <file_est.txt>");
+        printf(RED "ERROR: Please specify a align mode, groudtruth, and algorithm run file\n" RESET);
+        printf(RED "ERROR: ./error_singlerun <align_mode> <file_gt.txt> <file_est.txt>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval error_singlerun <align_mode> <file_gt.txt> <file_est.txt>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -109,7 +103,7 @@ int main(int argc, char **argv) {
     ov_eval::Loader::load_data(argv[2], times, poses, cov_ori, cov_pos);
     // Print its length and stats
     double length = ov_eval::Loader::get_total_length(poses);
-    ROS_INFO("[COMP]: %d poses in %s => length of %.2f meters",(int)times.size(),path_gt.stem().string().c_str(),length);
+    printf("[COMP]: %d poses in %s => length of %.2f meters\n",(int)times.size(),path_gt.stem().string().c_str(),length);
 
     // Create our trajectory object
     ov_eval::ResultTrajectory traj(argv[3], argv[2], argv[1]);
@@ -123,14 +117,14 @@ int main(int argc, char **argv) {
     traj.calculate_ate(error_ori, error_pos);
 
     // Print it
-    ROS_INFO("======================================");
-    ROS_INFO("Absolute Trajectory Error");
-    ROS_INFO("======================================");
-    ROS_INFO("rmse_ori = %.3f | rmse_pos = %.3f",error_ori.rmse,error_pos.rmse);
-    ROS_INFO("mean_ori = %.3f | mean_pos = %.3f",error_ori.mean,error_pos.mean);
-    ROS_INFO("min_ori  = %.3f | min_pos  = %.3f",error_ori.min,error_pos.min);
-    ROS_INFO("max_ori  = %.3f | max_pos  = %.3f",error_ori.max,error_pos.max);
-    ROS_INFO("std_ori  = %.3f | std_pos  = %.3f",error_ori.std,error_pos.std);
+    printf("======================================\n");
+    printf("Absolute Trajectory Error\n");
+    printf("======================================\n");
+    printf("rmse_ori = %.3f | rmse_pos = %.3f\n",error_ori.rmse,error_pos.rmse);
+    printf("mean_ori = %.3f | mean_pos = %.3f\n",error_ori.mean,error_pos.mean);
+    printf("min_ori  = %.3f | min_pos  = %.3f\n",error_ori.min,error_pos.min);
+    printf("max_ori  = %.3f | max_pos  = %.3f\n",error_ori.max,error_pos.max);
+    printf("std_ori  = %.3f | std_pos  = %.3f\n",error_ori.std,error_pos.std);
 
     //===========================================================
     // Relative pose error
@@ -142,12 +136,12 @@ int main(int argc, char **argv) {
     traj.calculate_rpe(segments, error_rpe);
 
     // Print it
-    ROS_INFO("======================================");
-    ROS_INFO("Relative Pose Error");
-    ROS_INFO("======================================");
+    printf("======================================\n");
+    printf("Relative Pose Error\n");
+    printf("======================================\n");
     for(const auto &seg : error_rpe) {
-        ROS_INFO("seg %d - median_ori = %.3f | median_pos = %.3f (%d samples)",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
-        //ROS_INFO("seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
+        printf("seg %d - median_ori = %.3f | median_pos = %.3f (%d samples)\n",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
+        //printf("seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
     }
 
 #ifdef HAVE_PYTHONLIBS
@@ -207,14 +201,14 @@ int main(int argc, char **argv) {
     traj.calculate_nees(nees_ori, nees_pos);
 
     // Print it
-    ROS_INFO("======================================");
-    ROS_INFO("Normalized Estimation Error Squared");
-    ROS_INFO("======================================");
-    ROS_INFO("mean_ori = %.3f | mean_pos = %.3f",nees_ori.mean,nees_pos.mean);
-    ROS_INFO("min_ori  = %.3f | min_pos  = %.3f",nees_ori.min,nees_pos.min);
-    ROS_INFO("max_ori  = %.3f | max_pos  = %.3f",nees_ori.max,nees_pos.max);
-    ROS_INFO("std_ori  = %.3f | std_pos  = %.3f",nees_ori.std,nees_pos.std);
-    ROS_INFO("======================================");
+    printf("======================================\n");
+    printf("Normalized Estimation Error Squared\n");
+    printf("======================================\n");
+    printf("mean_ori = %.3f | mean_pos = %.3f\n",nees_ori.mean,nees_pos.mean);
+    printf("min_ori  = %.3f | min_pos  = %.3f\n",nees_ori.min,nees_pos.min);
+    printf("max_ori  = %.3f | max_pos  = %.3f\n",nees_ori.max,nees_pos.max);
+    printf("std_ori  = %.3f | std_pos  = %.3f\n",nees_ori.std,nees_pos.std);
+    printf("======================================\n");
 
 
 
@@ -356,8 +350,6 @@ int main(int argc, char **argv) {
     matplotlibcpp::tight_layout();
     matplotlibcpp::show(true);
 
-    // Wait till the user kills this node
-    //ros::spin();
 
 #endif
 
