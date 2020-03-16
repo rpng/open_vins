@@ -29,11 +29,14 @@ endif()
 
 # Describe catkin project
 if (catkin_FOUND)
+    add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs
             INCLUDE_DIRS src
             LIBRARIES ov_eval_lib
     )
+else()
+    message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
 endif()
 
 # Try to compile with c++11

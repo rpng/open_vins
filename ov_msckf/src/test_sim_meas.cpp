@@ -25,29 +25,48 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
-
+#include <csignal>
 
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#ifdef ROS_AVAILABLE
+#include <ros/ros.h>
+#include "utils/parse_ros.h"
+#endif
+
+#include "core/VioManagerOptions.h"
 #include "sim/Simulator.h"
+#include "utils/parse_cmd.h"
+
+using namespace ov_msckf;
 
 
-using namespace ov_core;
-
+// Define the function to be called when ctrl-c (SIGINT) is sent to process
+void signal_callback_handler(int signum) {
+    std::exit(signum);
+}
 
 
 // Main function
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "test_simulator");
+
+    // Read in our paramters
+    VioManagerOptions params;
+#ifdef ROS_AVAILABLE
+    ros::init(argc, argv, "test_sim_meas");
     ros::NodeHandle nh("~");
+#else
+    params = parse_command_line_arguments(argc, argv);
+#endif
 
     // Create the simulator
-    Simulator sim(nh);
+    Simulator sim(params);
 
     // Continue to simulate until we have processed all the measurements
-    while(ros::ok() && sim.ok()) {
+    signal(SIGINT, signal_callback_handler);
+    while(sim.ok()) {
 
         // IMU: get the next simulated IMU measurement if we have it
         double time_imu;

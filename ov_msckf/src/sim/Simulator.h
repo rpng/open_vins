@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_CORE_SIMULATOR_H
-#define OV_CORE_SIMULATOR_H
+#ifndef OV_MSCKF_SIMULATOR_H
+#define OV_MSCKF_SIMULATOR_H
 
 
 #include <fstream>
@@ -28,7 +28,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 #include <Eigen/StdVector>
 
@@ -36,7 +35,9 @@
 #include <opencv2/core/core.hpp>
 
 
+#include "core/VioManagerOptions.h"
 #include "sim/BsplineSE3.h"
+#include "utils/colors.h"
 
 
 using namespace ov_core;
@@ -64,9 +65,9 @@ namespace ov_msckf {
 
         /**
          * @brief Default constructor, will load all configuration variables
-         * @param nh ROS node handler which we will load parameters from
+         * @param params_ VioManager parameters. Should have already been loaded from cmd.
          */
-        Simulator(ros::NodeHandle& nh);
+        Simulator(VioManagerOptions& params_);
 
         /**
          * @brief Returns if we are actively simulating
@@ -117,24 +118,9 @@ namespace ov_msckf {
             return featmap;
         }
 
-        /// Access function for the true camera intrinsics
-        std::unordered_map<size_t,Eigen::VectorXd> get_true_intrinsics() {
-            return camera_intrinsics;
-        }
-
-        /// Access function for the true camera extrinsics
-        std::unordered_map<size_t,Eigen::VectorXd> get_true_extrinsics() {
-            return camera_extrinsics;
-        }
-
-        /// Access function for the true imu+camera time calibration
-        double get_true_imucamdt() {
-            return calib_camimu_dt;
-        }
-
-        /// Get number of cameras that we have
-        int get_num_cameras() {
-            return max_cameras;
+        /// Access function to get the true parameters (i.e. calibration and settings)
+        VioManagerOptions get_true_paramters() {
+            return params;
         }
 
 
@@ -167,6 +153,13 @@ namespace ov_msckf {
          * @param numpts Number of points we should generate
          */
         void generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid, std::unordered_map<size_t,Eigen::Vector3d> &feats, int numpts);
+
+        //===================================================================
+        // Configuration variables
+        //===================================================================
+
+        /// True vio manager params (a copy of the parsed ones)
+        VioManagerOptions params;
 
         //===================================================================
         // State related variables
@@ -210,18 +203,6 @@ namespace ov_msckf {
         /// Last time we had an CAMERA reading
         double timestamp_last_cam;
 
-        /// Number of cameras we should simulate
-        int max_cameras;
-
-        /// If we should enforce that all cameras see the same map
-        bool use_stereo;
-
-        /// Frequency of our camera sensors
-        double freq_cam;
-
-        /// Frequency of our imu sensor
-        double freq_imu;
-
         /// Our running acceleration bias
         Eigen::Vector3d true_bias_accel = Eigen::Vector3d::Zero();
 
@@ -233,32 +214,10 @@ namespace ov_msckf {
         std::vector<Eigen::Vector3d> hist_true_bias_accel;
         std::vector<Eigen::Vector3d> hist_true_bias_gyro;
 
-        //===================================================================
-        // Sensor measurement specific variables
-        //===================================================================
-
-        /// Gravity in the global frame
-        Eigen::Vector3d gravity;
-
-        /// Timeoffset between camera and imu (t_cam = t_imu - t_off)
-        double calib_camimu_dt;
-
-        // Camera intrinsics that we will load in
-        std::unordered_map<size_t,bool> camera_fisheye;
-        std::unordered_map<size_t,Eigen::VectorXd> camera_intrinsics;
-        std::unordered_map<size_t,Eigen::VectorXd> camera_extrinsics;
-        std::unordered_map<size_t,std::pair<int,int>> camera_wh;
-
-        /// Max number of features to have in a single image
-        int num_pts;
-
-        // Our sensor noises
-        double sigma_w,sigma_a,sigma_wb,sigma_ab,sigma_pix;
-
 
     };
 
 
 }
 
-#endif //OV_CORE_SIMULATOR_H
+#endif //OV_MSCKF_SIMULATOR_H

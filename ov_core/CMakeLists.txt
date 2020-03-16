@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.8)
 project(ov_core)
 
 # Find catkin (the ROS build system)
-find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge)
+#find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge)
 
 # Include libraries
 find_package(Eigen3 REQUIRED)
@@ -18,13 +18,16 @@ message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 
 # Describe catkin project
 if (catkin_FOUND)
-    message(STATUS "CATKIN FOUND BUILDING WITH ROS!")
+    add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge
             INCLUDE_DIRS src
             LIBRARIES ov_core_lib
     )
+else()
+    message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
 endif()
+
 
 # Try to compile with c++11
 # http://stackoverflow.com/a/25836953
@@ -63,7 +66,7 @@ list(APPEND thirdparty_libraries
 ##################################################
 # Make the core library
 ##################################################
-add_library(ov_core_lib
+add_library(ov_core_lib SHARED
         src/dummy.cpp
         src/init/InertialInitializer.cpp
         src/sim/BsplineSE3.cpp
@@ -77,6 +80,7 @@ add_library(ov_core_lib
         src/feat/FeatureInitializer.cpp
 )
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
+target_include_directories(ov_core_lib PUBLIC src)
 
 
 ##################################################

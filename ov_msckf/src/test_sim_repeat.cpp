@@ -25,29 +25,49 @@
 #include <fstream>
 #include <sstream>
 #include <unistd.h>
-
+#include <csignal>
 
 #include <boost/filesystem.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
+#ifdef ROS_AVAILABLE
+#include <ros/ros.h>
+#include "utils/parse_ros.h"
+#endif
+
 #include "sim/Simulator.h"
+#include "core/VioManagerOptions.h"
+#include "utils/parse_cmd.h"
 
 
-using namespace ov_core;
+using namespace ov_msckf;
 
+
+// Define the function to be called when ctrl-c (SIGINT) is sent to process
+void signal_callback_handler(int signum) {
+    std::exit(signum);
+}
 
 
 // Main function
 int main(int argc, char** argv)
 {
-    ros::init(argc, argv, "test_repeat");
+
+    // Register failure handler
+    signal(SIGINT, signal_callback_handler);
 
     //===================================================
     //===================================================
 
     // Create the simulator
-    ros::NodeHandle nh1("~");
-    Simulator sim1(nh1);
+    VioManagerOptions params1;
+#ifdef ROS_AVAILABLE
+    ros::init(argc, argv, "test_sim_repeat");
+    ros::NodeHandle nh("~");
+#else
+    params1 = parse_command_line_arguments(argc, argv);
+#endif
+    Simulator sim1(params1);
 
     // Vector of stored measurements
     std::vector<double> vec_imutime;
@@ -57,7 +77,7 @@ int main(int argc, char** argv)
     std::vector<std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>>> vec_feats;
 
     // Continue to simulate until we have processed all the measurements
-    while(ros::ok() && sim1.ok()) {
+    while(sim1.ok()) {
 
         // IMU: get the next simulated IMU measurement if we have it
         double time_imu;
@@ -87,13 +107,19 @@ int main(int argc, char** argv)
 
 
     // Create the simulator
-    ros::NodeHandle nh2("~");
-    Simulator sim2(nh2);
+    VioManagerOptions params2;
+#ifdef ROS_AVAILABLE
+    ros::init(argc, argv, "test_sim_repeat");
+    ros::NodeHandle nh("~");
+#else
+    params2 = parse_command_line_arguments(argc, argv);
+#endif
+    Simulator sim2(params2);
     size_t ct_imu = 0;
     size_t ct_cam = 0;
 
     // Continue to simulate until we have processed all the measurements
-    while(ros::ok() && sim2.ok()) {
+    while(sim2.ok()) {
 
         // IMU: get the next simulated IMU measurement if we have it
         double time_imu;
@@ -132,7 +158,7 @@ int main(int argc, char** argv)
 
 
     // Done!
-    ROS_INFO("success! they all are the same!");
+    printf("success! they all are the same!\n");
     return EXIT_SUCCESS;
 
 
