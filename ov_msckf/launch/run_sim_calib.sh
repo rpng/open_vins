@@ -20,8 +20,8 @@ datasets=(
 
 
 # location to save log files into
-save_path_est="/home/patrick/github/pubs_data/pgeneva/2019_openvins/sim_calibration/algorithms"
-save_path_gt="/home/patrick/github/pubs_data/pgeneva/2019_openvins/sim_calibration/truths"
+save_path_est="/home/patrick/github/pubs_data/pgeneva/2020_openvins/sim_calibration/algorithms"
+save_path_gt="/home/patrick/github/pubs_data/pgeneva/2020_openvins/sim_calibration/truths"
 
 
 #=============================================================

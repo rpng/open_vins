@@ -41,7 +41,9 @@ namespace ov_type {
             GLOBAL_FULL_INVERSE_DEPTH,
             ANCHORED_3D,
             ANCHORED_FULL_INVERSE_DEPTH,
-            ANCHORED_MSCKF_INVERSE_DEPTH
+            ANCHORED_MSCKF_INVERSE_DEPTH,
+            ANCHORED_INVERSE_DEPTH_SINGLE,
+            UNKNOWN
         };
 
 
@@ -57,9 +59,25 @@ namespace ov_type {
             if(feat_representation==ANCHORED_3D) return "ANCHORED_3D";
             if(feat_representation==ANCHORED_FULL_INVERSE_DEPTH) return "ANCHORED_FULL_INVERSE_DEPTH";
             if(feat_representation==ANCHORED_MSCKF_INVERSE_DEPTH) return "ANCHORED_MSCKF_INVERSE_DEPTH";
+            if(feat_representation==ANCHORED_INVERSE_DEPTH_SINGLE) return "ANCHORED_INVERSE_DEPTH_SINGLE";
             return "UNKNOWN";
         }
 
+        /**
+         * @brief Returns a string representation of this enum value.
+         * Used to debug print out what the user has selected as the representation.
+         * @param feat_representation String we want to find the enum of
+         * @return Representation, will be "unknown" if we coun't parse it
+         */
+        static inline Representation from_string(const std::string& feat_representation) {
+            if(feat_representation=="GLOBAL_3D") return GLOBAL_3D;
+            if(feat_representation=="GLOBAL_FULL_INVERSE_DEPTH") return GLOBAL_FULL_INVERSE_DEPTH;
+            if(feat_representation=="ANCHORED_3D") return ANCHORED_3D;
+            if(feat_representation=="ANCHORED_FULL_INVERSE_DEPTH") return ANCHORED_FULL_INVERSE_DEPTH;
+            if(feat_representation=="ANCHORED_MSCKF_INVERSE_DEPTH") return ANCHORED_MSCKF_INVERSE_DEPTH;
+            if(feat_representation=="ANCHORED_INVERSE_DEPTH_SINGLE") return ANCHORED_INVERSE_DEPTH_SINGLE;
+            return UNKNOWN;
+        }
 
         /**
          * @brief Helper function that checks if the passed feature representation is a relative or global
@@ -69,7 +87,8 @@ namespace ov_type {
         static inline bool is_relative_representation(Representation feat_representation) {
             return (feat_representation == Representation::ANCHORED_3D ||
                     feat_representation == Representation::ANCHORED_FULL_INVERSE_DEPTH ||
-                    feat_representation == Representation::ANCHORED_MSCKF_INVERSE_DEPTH);
+                    feat_representation == Representation::ANCHORED_MSCKF_INVERSE_DEPTH ||
+                    feat_representation == Representation::ANCHORED_INVERSE_DEPTH_SINGLE);
         }
 
     private:

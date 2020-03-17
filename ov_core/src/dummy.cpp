@@ -30,7 +30,7 @@
  *
  * - 3d feature initialization (see @ref ov_core::FeatureInitializer)
  * - Inertial state initialization (see @ref ov_core::InertialInitializer)
- * - Visual-inertial simulator and SE(3) b-spline (see @ref ov_core::Simulator)
+ * - SE(3) b-spline (see @ref ov_core::BsplineSE3)
  * - KLT, descriptor, aruco, and simulation feature trackers
  * - Groundtruth dataset reader (see @ref ov_core::DatasetReader)
  * - Quaternion and other manifold math operations

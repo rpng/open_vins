@@ -25,8 +25,8 @@ using namespace ov_core;
 using namespace ov_msckf;
 
 
-void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::Matrix<double,3,3> &H_f,
-                                                        std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order) {
+void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
+                                                        std::vector<Eigen::MatrixXd> &H_x, std::vector<Type*> &x_order) {
 
     // Global XYZ representation
     if (feature.feat_representation == LandmarkRepresentation::Representation::GLOBAL_3D) {
@@ -169,6 +169,24 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
         H_f = R_CtoG*d_pfinA_dpinv;
         return;
     }
+
+    /// CASE: Estimate single depth of the feature using the initial bearing
+    if (feature.feat_representation == LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+
+        // Get inverse depth representation (should match what is in Landmark.cpp)
+        double rho = 1.0/p_FinA(2);
+        Eigen::Vector3d bearing = rho*p_FinA;
+
+        // Jacobian of anchored 3D position wrt inverse depth parameters
+        Eigen::Vector3d d_pfinA_drho;
+        d_pfinA_drho << -(1.0/(rho*rho))*bearing;
+        H_f = R_CtoG*d_pfinA_drho;
+        return;
+
+    }
+
+    // Failure, invalid representation that is not programmed
+    assert(false);
 
 }
 
@@ -391,17 +409,22 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
 
     // Allocate our residual and Jacobians
     int c = 0;
+    int jacobsize = (feature.feat_representation!=LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) ? 3 : 1;
     res = Eigen::VectorXd::Zero(2*total_meas);
-    H_f = Eigen::MatrixXd::Zero(2*total_meas,3);
+    H_f = Eigen::MatrixXd::Zero(2*total_meas,jacobsize);
     H_x = Eigen::MatrixXd::Zero(2*total_meas,total_hx);
 
     // Derivative of p_FinG in respect to feature representation.
     // This only needs to be computed once and thus we pull it out of the loop
-    Eigen::Matrix<double,3,3> dpfg_dlambda;
-    std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> dpfg_dx;
+    Eigen::MatrixXd dpfg_dlambda;
+    std::vector<Eigen::MatrixXd> dpfg_dx;
     std::vector<Type*> dpfg_dx_order;
     UpdaterHelper::get_feature_jacobian_representation(state, feature, dpfg_dlambda, dpfg_dx, dpfg_dx_order);
 
+    // Assert that all the ones in our order are already in our local jacobian mapping
+    for(auto &type : dpfg_dx_order) {
+        assert(map_hx.find(type)!=map_hx.end());
+    }
 
     // Loop through each camera for this feature
     for (auto const& pair : feature.timestamps) {
@@ -514,7 +537,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             Eigen::Matrix<double,2,3> dz_dpfg = dz_dpfc*dpfc_dpfg;
 
             // CHAINRULE: get the total feature Jacobian
-            H_f.block(2*c,0,2,3).noalias() = dz_dpfg*dpfg_dlambda;
+            H_f.block(2*c,0,2,H_f.cols()).noalias() = dz_dpfg*dpfg_dlambda;
 
             // CHAINRULE: get state clone Jacobian
             H_x.block(2*c,map_hx[clone_Ii],2,clone_Ii->size()).noalias() = dz_dpfc*dpfc_dclone;

@@ -190,7 +190,7 @@ int main(int argc, char **argv) {
             ate_dataset_pos.calculate();
 
             // Print stats for this specific dataset
-            printf("\tATE: mean_ori = %.3f | mean_pos = %.3f\n",ate_dataset_ori.mean,ate_dataset_pos.mean);
+            printf("\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n",ate_dataset_ori.mean,ate_dataset_pos.mean,(int)ate_dataset_pos.values.size());
             printf("\tATE: std_ori  = %.3f | std_pos  = %.3f\n",ate_dataset_ori.std,ate_dataset_pos.std);
             for(auto &seg : rpe_dataset) {
                 seg.second.first.calculate();

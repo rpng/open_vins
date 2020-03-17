@@ -132,7 +132,7 @@ namespace ov_msckf {
             imu_data.emplace_back(data);
 
             // Sort our imu data (handles any out of order measurements)
-            //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j){
+            //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j) {
             //    return i.timestamp < j.timestamp;
             //});
 

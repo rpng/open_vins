@@ -96,12 +96,12 @@ namespace ov_msckf {
          *
          * @param[in] state State of the filter system
          * @param[in] feature Feature we want to get Jacobians of (must have feature means)
-         * @param[out] H_f Jacobians in respect to the feature error state
+         * @param[out] H_f Jacobians in respect to the feature error state (will be either 3x3 or 3x1 for single depth)
          * @param[out] H_x Extra Jacobians in respect to the state (for example anchored pose)
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::Matrix<double,3,3> &H_f,
-                                                        std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
+        static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
+                                                        std::vector<Eigen::MatrixXd> &H_x, std::vector<Type*> &x_order);
 
         /**
          * @brief This will compute the Jacobian in respect to the intrinsic calibration parameters and normalized coordinates

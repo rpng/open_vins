@@ -377,7 +377,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
 
         // Append the map size so all cameras have unique features in them (but the same map)
         // Only do this if we are not enforcing stereo constraints between all our cameras
-        for (size_t f=0; f<uvs.size() && !params.use_stereo; f++){
+        for (size_t f=0; f<uvs.size() && !params.use_stereo; f++) {
             uvs.at(f).first += i*featmap.size();
         }
 

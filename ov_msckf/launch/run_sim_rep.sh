@@ -18,15 +18,16 @@ usefej=(
 # dataset locations
 representations=(
     "GLOBAL_3D"
-#    "GLOBAL_FULL_INVERSE_DEPTH"
+    "GLOBAL_FULL_INVERSE_DEPTH"
     "ANCHORED_3D"
-#    "ANCHORED_FULL_INVERSE_DEPTH"
+    "ANCHORED_FULL_INVERSE_DEPTH"
     "ANCHORED_MSCKF_INVERSE_DEPTH"
+    "ANCHORED_INVERSE_DEPTH_SINGLE"
 )
 
 
 # location to save log files into
-save_path="/home/patrick/github/pubs_data/pgeneva/2019_openvins/sim_representations/algorithms"
+save_path="/home/patrick/github/pubs_data/pgeneva/2020_openvins/sim_representations/algorithms"
 
 
 #=============================================================

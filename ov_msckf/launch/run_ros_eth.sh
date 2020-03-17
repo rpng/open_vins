@@ -26,8 +26,8 @@ bagnames=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2019_openvins/exp_testing/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2019_openvins/exp_testing/timings"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/timings"
 bag_path="/home/patrick/datasets/eth"
 
 

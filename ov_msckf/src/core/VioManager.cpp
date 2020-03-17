@@ -33,6 +33,12 @@ using namespace ov_msckf;
 
 VioManager::VioManager(VioManagerOptions& params_) {
 
+
+    // Nice startup message
+    printf("=======================================\n");
+    printf("OPENVINS ON-MANIFOLD EKF IS STARTING\n");
+    printf("=======================================\n");
+
     // Nice debug
     this->params = params_;
     params.print_estimator();
@@ -335,8 +341,8 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     while(it2 != feats_marg.end()) {
         // See if any of our camera's reached max track
         bool reached_max = false;
-        for (const auto &cams: (*it2)->timestamps){
-            if ((int)cams.second.size() > state->_options.max_clone_size){
+        for (const auto &cams: (*it2)->timestamps) {
+            if ((int)cams.second.size() > state->_options.max_clone_size) {
                 reached_max = true;
                 break;
             }

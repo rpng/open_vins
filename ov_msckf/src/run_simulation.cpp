@@ -101,7 +101,11 @@ int main(int argc, char** argv)
 
     // Step through the rosbag
     signal(SIGINT, signal_callback_handler);
+#ifdef ROS_AVAILABLE
+    while(sim->ok() && ros::ok()) {
+#else
     while(sim->ok()) {
+#endif
 
         // IMU: get the next simulated IMU measurement if we have it
         double time_imu;

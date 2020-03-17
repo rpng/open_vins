@@ -34,7 +34,7 @@
  * - Time offset between camera and imu calibration
  * - Standard MSCKF features with nullspace projection
  * - 3d slam feature support (with five different representations)
- * - Generic simulation of trajectories through and environment
+ * - Generic simulation of trajectories through and environment (see @ref ov_mskcf::Simulator)
  *
  * We suggest those that are interested to first checkout the State and Propagator which should provide a nice introduction to the code.
  * Both the slam and msckf features leverage the same Jacobian code, and thus we also recommend looking at the UpdaterHelper class for details on that.

@@ -64,7 +64,7 @@ namespace ov_msckf {
          * @param options Updater options (include measurement noise value)
          * @param feat_init_options Feature initializer options
          */
-        UpdaterMSCKF(UpdaterOptions &options, FeatureInitializerOptions &feat_init_options) : _options(options){
+        UpdaterMSCKF(UpdaterOptions &options, FeatureInitializerOptions &feat_init_options) : _options(options) {
 
             // Save our raw pixel noise squared
             _options.sigma_pix_sq = std::pow(_options.sigma_pix,2);

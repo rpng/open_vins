@@ -157,7 +157,7 @@ namespace ov_msckf {
         /// Returns 3d SLAM features in the global frame
         std::vector<Eigen::Vector3d> get_features_SLAM() {
             std::vector<Eigen::Vector3d> slam_feats;
-            for (auto &f : state->_features_SLAM){
+            for (auto &f : state->_features_SLAM) {
                 if((int)f.first <= state->_options.max_aruco_features) continue;
                 if(LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
                     // Assert that we have an anchor pose for this feature
@@ -180,7 +180,7 @@ namespace ov_msckf {
         /// Returns 3d ARUCO features in the global frame
         std::vector<Eigen::Vector3d> get_features_ARUCO() {
             std::vector<Eigen::Vector3d> aruco_feats;
-            for (auto &f : state->_features_SLAM){
+            for (auto &f : state->_features_SLAM) {
                 if((int)f.first > state->_options.max_aruco_features) continue;
                 if(LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
                     // Assert that we have an anchor pose for this feature

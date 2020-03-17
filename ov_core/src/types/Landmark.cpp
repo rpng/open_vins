@@ -46,7 +46,7 @@ Eigen::Matrix<double,3,1> Landmark::get_xyz(bool getfej) {
     }
 
     /// CASE: Anchored MSCKF inverse depth feature representation
-    if (_feat_representation == LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH){
+    if (_feat_representation == LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH) {
         Eigen::Matrix<double, 3, 1> p_FinA;
         Eigen::Matrix<double, 3, 1> p_invFinA = value();
         p_FinA << (1 / p_invFinA(2)) * p_invFinA(0),
@@ -55,8 +55,15 @@ Eigen::Matrix<double,3,1> Landmark::get_xyz(bool getfej) {
         return p_FinA;
     }
 
+    /// CASE: Estimate single depth of the feature using the initial bearing
+    if (_feat_representation == LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+        //if(getfej) return 1.0/fej()(0)*uv_norm_zero_fej;
+        return 1.0/value()(0)*uv_norm_zero;
+    }
+
     // Failure
     assert(false);
+    return Eigen::Vector3d::Zero();
 }
 
 
@@ -107,6 +114,24 @@ void Landmark::set_from_xyz(Eigen::Matrix<double,3,1> p_FinG, bool isfej) {
         // Set our feature value
         if(isfej) set_fej(p_invFinA_MSCKF);
         else set_value(p_invFinA_MSCKF);
+        return;
+    }
+
+    /// CASE: Estimate single depth of the feature using the initial bearing
+    if (_feat_representation == LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+
+        // Get the inverse depth
+        Eigen::VectorXd temp;
+        temp.resize(1,1);
+        temp(0) = 1.0/p_FinG(2);
+
+        // Set our bearing vector
+        if(!isfej) uv_norm_zero = 1.0/p_FinG(2)*p_FinG;
+        else uv_norm_zero_fej = 1.0/p_FinG(2)*p_FinG;
+
+        // Set our feature value
+        if(isfej) set_fej(temp);
+        else set_value(temp);
         return;
     }
 

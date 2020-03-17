@@ -240,6 +240,20 @@ namespace ov_msckf {
             }
         }
 
+        /**
+         * @brief Convert a msckf inverse feature representation into just the depth estimate of the feature.
+         *
+         * A msckf anchored inverse depth represention is represented as [rho, beta, depth].
+         * Thus, to convert to just single depth representation we will first insert this representation into the state.
+         * From there we want to marginalize the rho and beta terms which are not needed.
+         * Thus, we can remove the rows and columns of the covariance matrix which correspond to marginalize them.
+         * Note that we have an identity state transition matrix (thus don't need to propagate the covariance as for anchor change),
+         * since in this case the depth of the msckf inverse depth is what we want exactly.
+         *
+         * @param state Pointer to state
+         * @param landmark Pointer to to-be-converted landmark
+         */
+        static void convert_msckfslam_to_singledepth(State *state, Landmark*& landmark);
 
 
     private:

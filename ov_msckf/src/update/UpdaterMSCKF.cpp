@@ -126,8 +126,11 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     }
 
     // Calculate max possible state size (i.e. the size of our covariance)
+    // NOTE: that when we have the single inverse depth representations, those are only 1dof in size
     size_t max_hx_size = state->max_covariance_size();
-    max_hx_size -= 3*state->_features_SLAM.size();
+    for(auto &landmark : state->_features_SLAM) {
+        max_hx_size -= landmark.second->size();
+    }
 
     // Large Jacobian and residual of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
@@ -148,7 +151,12 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.uvs = (*it2)->uvs;
         feat.uvs_norm = (*it2)->uvs_norm;
         feat.timestamps = (*it2)->timestamps;
-        feat.feat_representation = state->_options.feat_representation;
+
+        // If we are using single inverse depth, then it is equivalent to using the msckf inverse depth
+        feat.feat_representation = state->_options.feat_rep_msckf;
+        if(state->_options.feat_rep_msckf==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+            feat.feat_representation = LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
+        }
 
         // Save the position and its fej value
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
@@ -226,7 +234,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // We have appended all features to our Hx_big, res_big
     // Delete it so we do not reuse information
-    for (size_t f=0; f < feature_vec.size(); f++){
+    for (size_t f=0; f < feature_vec.size(); f++) {
         feature_vec[f]->to_delete = true;
     }
 

@@ -124,7 +124,13 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         feat.uvs = (*it2)->uvs;
         feat.uvs_norm = (*it2)->uvs_norm;
         feat.timestamps = (*it2)->timestamps;
-        feat.feat_representation = state->_options.feat_representation;
+
+        // If we are using single inverse depth, then it is equivalent to using the msckf inverse depth
+        auto feat_rep = ((int)feat.featid < state->_options.max_aruco_features)? state->_options.feat_rep_aruco : state->_options.feat_rep_slam;
+        feat.feat_representation = feat_rep;
+        if(feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+            feat.feat_representation = LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
+        }
 
         // Save the position and its fej value
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
@@ -146,8 +152,8 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         // Get the Jacobian for this feature
         UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
 
-        // Create feature pointer
-        Landmark* landmark = new Landmark();
+        // Create feature pointer (we will always create it of size three since we initialize the single invese depth as a msckf anchored representation)
+        Landmark* landmark = new Landmark(3);
         landmark->_featid = feat.featid;
         landmark->_feat_representation = feat.feat_representation;
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
@@ -166,7 +172,13 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
 
         // Try to initialize, delete new pointer if we failed
         double chi2_multipler = ((int)feat.featid < state->_options.max_aruco_features)? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
-        if (StateHelper::initialize(state, landmark, Hx_order, H_x, H_f, R, res, chi2_multipler)){
+        if (StateHelper::initialize(state, landmark, Hx_order, H_x, H_f, R, res, chi2_multipler)) {
+            // If we are doing single depth, then we have initialized an anchored MSCKF feature
+            // Now we will convert that feature into only its depth by marginalizing the bearing of the feature
+            if(feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+                StateHelper::convert_msckfslam_to_singledepth(state, landmark);
+            }
+            // Finally insert the feature into our state
             state->_features_SLAM.insert({(*it2)->featid, landmark});
             (*it2)->to_delete = true;
             it2++;
@@ -271,7 +283,12 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.uvs = (*it2)->uvs;
         feat.uvs_norm = (*it2)->uvs_norm;
         feat.timestamps = (*it2)->timestamps;
+
+        // If we are using single inverse depth, then it is equivalent to using the msckf inverse depth
         feat.feat_representation = landmark->_feat_representation;
+        if(landmark->_feat_representation==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+            feat.feat_representation = LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
+        }
 
         // Save the position and its fej value
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
@@ -295,8 +312,25 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
         // Place Jacobians in one big Jacobian, since the landmark is already in our state vector
         Eigen::MatrixXd H_xf = H_x;
-        H_xf.conservativeResize(H_x.rows(), H_x.cols()+3);
-        H_xf.block(0, H_x.cols(), H_x.rows(), 3) = H_f;
+        if(landmark->_feat_representation==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+
+            // Append the Jacobian in respect to the depth of the feature
+            H_xf.conservativeResize(H_x.rows(), H_x.cols()+1);
+            H_xf.block(0, H_x.cols(), H_x.rows(), 1) = H_f.block(0,H_f.cols()-1,H_f.rows(),1);
+            H_f.conservativeResize(H_f.rows(), H_f.cols()-1);
+
+            // Nullspace project the bearing portion
+            // This takes into account that we have marginalized the bearing already
+            // Thus this is crucial to ensuring estimator consistency as we are not taking the bearing to be true
+            UpdaterHelper::nullspace_project_inplace(H_f, H_xf, res);
+
+        } else {
+
+            // Else we have the full feature in our state, so just append it
+            H_xf.conservativeResize(H_x.rows(), H_x.cols()+H_f.cols());
+            H_xf.block(0, H_x.cols(), H_x.rows(), H_f.cols()) = H_f;
+
+        }
 
         // Append to our Jacobian order vector
         std::vector<Type*> Hxf_order = Hx_order;
@@ -363,7 +397,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // We have appended all features to our Hx_big, res_big
     // Delete it so we do not reuse information
-    for(size_t f=0; f < feature_vec.size(); f++){
+    for(size_t f=0; f < feature_vec.size(); f++) {
         feature_vec[f]->to_delete = true;
     }
 
@@ -393,7 +427,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
 
 
-void UpdaterSLAM::change_anchors(State* state){
+void UpdaterSLAM::change_anchors(State* state) {
 
     // Return if we do not have enough clones
     if ((int)state->_clones_IMU.size() <= state->_options.max_clone_size) {
@@ -404,7 +438,7 @@ void UpdaterSLAM::change_anchors(State* state){
     // NOTE: for now we have anchor the feature in the same camera as it is before
     // NOTE: this also does not change the representation of the feature at all right now
     double marg_timestep = state->margtimestep();
-    for (auto &f : state->_features_SLAM){
+    for (auto &f : state->_features_SLAM) {
         // Skip any features that are in the global frame
         if(f.second->_feat_representation == LandmarkRepresentation::Representation::GLOBAL_3D
             || f.second->_feat_representation == LandmarkRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH)
@@ -437,8 +471,8 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     old_feat.p_FinA_fej = landmark->get_xyz(true);
 
     // Get Jacobians of p_FinG wrt old representation
-    Eigen::Matrix<double,3,3> H_f_old;
-    std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> H_x_old;
+    Eigen::MatrixXd H_f_old;
+    std::vector<Eigen::MatrixXd> H_x_old;
     std::vector<Type*> x_order_old;
     UpdaterHelper::get_feature_jacobian_representation(state, old_feat, H_f_old, H_x_old, x_order_old);
 
@@ -486,8 +520,8 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     new_feat.p_FinA_fej = R_OLDtoNEW_fej*landmark->get_xyz(true)+p_OLDinNEW_fej;
 
     // Get Jacobians of p_FinG wrt new representation
-    Eigen::Matrix<double,3,3> H_f_new;
-    std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> H_x_new;
+    Eigen::MatrixXd H_f_new;
+    std::vector<Eigen::MatrixXd> H_x_new;
     std::vector<Type*> x_order_new;
     UpdaterHelper::get_feature_jacobian_representation(state, new_feat, H_f_new, H_x_new, x_order_new);
 
@@ -521,24 +555,30 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     current_it += landmark->size();
 
     // Anchor change Jacobian
-    Eigen::MatrixXd Phi = Eigen::MatrixXd::Zero(3, current_it);
-    Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(3, 3);
+    int phisize = (new_feat.feat_representation!=LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) ? 3 : 1;
+    Eigen::MatrixXd Phi = Eigen::MatrixXd::Zero(phisize, current_it);
+    Eigen::MatrixXd Q = Eigen::MatrixXd::Zero(phisize, phisize);
 
     // Inverse of our new representation
     // pf_new_error = Hfnew^{-1}*(Hfold*pf_olderror+Hxold*x_olderror-Hxnew*x_newerror)
-    Eigen::Matrix<double,3,3> H_f_new_inv = H_f_new.colPivHouseholderQr().solve(Eigen::Matrix<double,3,3>::Identity());
+    Eigen::MatrixXd H_f_new_inv;
+    if(phisize==1) {
+        H_f_new_inv = 1.0/H_f_new.squaredNorm()*H_f_new.transpose();
+    } else {
+        H_f_new_inv = H_f_new.colPivHouseholderQr().solve(Eigen::Matrix<double,3,3>::Identity());
+    }
 
     // Place Jacobians for old anchor
-    for (size_t i=0; i<H_x_old.size(); i++){
-        Phi.block(0,Phi_id_map.at(x_order_old[i]),3,x_order_old[i]->size()).noalias() += H_f_new_inv*H_x_old[i];
+    for (size_t i=0; i<H_x_old.size(); i++) {
+        Phi.block(0,Phi_id_map.at(x_order_old[i]),phisize,x_order_old[i]->size()).noalias() += H_f_new_inv*H_x_old[i];
     }
 
     // Place Jacobians for old feat
-    Phi.block(0,Phi_id_map.at(landmark),3,3) = H_f_new_inv*H_f_old;
+    Phi.block(0,Phi_id_map.at(landmark),phisize,phisize) = H_f_new_inv*H_f_old;
 
     // Place Jacobians for new anchor
-    for (size_t i=0; i<H_x_new.size(); i++){
-        Phi.block(0,Phi_id_map.at(x_order_new[i]),3,x_order_new[i]->size()).noalias() -= H_f_new_inv*H_x_new[i];
+    for (size_t i=0; i<H_x_new.size(); i++) {
+        Phi.block(0,Phi_id_map.at(x_order_new[i]),phisize,x_order_new[i]->size()).noalias() -= H_f_new_inv*H_x_new[i];
     }
 
     // Perform covariance propagation

@@ -26,7 +26,7 @@ using namespace ov_eval;
 void AlignUtils::align_umeyama(const std::vector<Eigen::Matrix<double, 3, 1>> &data,
                                const std::vector<Eigen::Matrix<double, 3, 1>> &model,
                                Eigen::Matrix<double, 3, 3> &R, Eigen::Matrix<double, 3, 1> &t,
-                               double &s, bool known_scale, bool yaw_only){
+                               double &s, bool known_scale, bool yaw_only) {
 
     assert(model.size() == data.size());
 
@@ -117,7 +117,7 @@ void AlignUtils::perform_association(double offset, double max_difference,
     size_t gt_pointer = 0;
 
     // Try to find closest GT pose for each estimate
-    for (size_t i = 0 ; i < est_times.size(); i++){
+    for (size_t i = 0 ; i < est_times.size(); i++) {
 
         // Default params
         double best_diff = max_difference;
@@ -133,7 +133,7 @@ void AlignUtils::perform_association(double offset, double max_difference,
         // If we are closer than max difference, see if we can do any better
         while (gt_pointer < gt_times.size() && std::abs(gt_times.at(gt_pointer)-(est_times.at(i)+offset)) <= max_difference) {
             // Break if we found a good match but are getting worse, we are done
-            if (std::abs(gt_times.at(gt_pointer)-(est_times.at(i)+offset)) >= best_diff){
+            if (std::abs(gt_times.at(gt_pointer)-(est_times.at(i)+offset)) >= best_diff) {
                 break;
             }
             // We have a closer match, save it and move on

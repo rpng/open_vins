@@ -24,6 +24,7 @@
 
 #include "Vec.h"
 #include "LandmarkRepresentation.h"
+#include "utils/colors.h"
 
 
 namespace ov_type {
@@ -40,8 +41,8 @@ namespace ov_type {
 
     public:
 
-        /// Default constructor (feature is always a Vec of size 3)
-        Landmark() : Vec(3) {}
+        /// Default constructor (feature is a Vec of size 3 or Vec of size 1 )
+        Landmark(int dim) : Vec(dim) {}
 
         /// Feature ID of this landmark (corresponds to frontend id)
         size_t _featid;
@@ -58,6 +59,12 @@ namespace ov_type {
         /// Boolean if this landmark should be marginalized out
         bool should_marg = false;
 
+        /// First normalized uv coordinate bearing of this measurement (used for single depth representation)
+        Eigen::Vector3d uv_norm_zero;
+
+        /// First estimate normalized uv coordinate bearing of this measurement (used for single depth representation)
+        Eigen::Vector3d uv_norm_zero_fej;
+
         /// What feature representation this feature currently has
         LandmarkRepresentation::Representation _feat_representation;
 
@@ -70,11 +77,11 @@ namespace ov_type {
             // Update estimate
             assert(dx.rows() == _size);
             set_value(_value+dx);
-            // If we are using a relative and we have not anchor changed yet, then update linearization / FEJ value
-            //if(LandmarkRepresentation::is_relative_representation(_feat_representation) && !has_had_anchor_change) {
-            //if(LandmarkRepresentation::is_relative_representation(_feat_representation)) {
-            //    set_fej(value());
-            //}
+            // Ensure we are not near zero in the z-direction
+            if (LandmarkRepresentation::is_relative_representation(_feat_representation) && _value(_value.rows()-1) < 1e-8) {
+                printf(YELLOW "WARNING DEPTH %.8f BECAME CLOSE TO ZERO IN UPDATE!!!\n" RESET, _value(2));
+                _value(2) = 1e-8;
+            }
         }
 
         /**

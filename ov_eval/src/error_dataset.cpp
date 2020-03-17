@@ -193,9 +193,9 @@ int main(int argc, char **argv) {
         ate_2d_dataset_pos.calculate();
 
         // Print stats for this specific dataset
-        printf("\tATE: mean_ori = %.3f | mean_pos = %.3f\n",ate_dataset_ori.mean,ate_dataset_pos.mean);
+        printf("\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n",ate_dataset_ori.mean,ate_dataset_pos.mean,(int)ate_dataset_ori.values.size());
         printf("\tATE: std_ori  = %.5f | std_pos  = %.5f\n",ate_dataset_ori.std,ate_dataset_pos.std);
-        printf("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f\n",ate_2d_dataset_ori.mean,ate_2d_dataset_pos.mean);
+        printf("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n",ate_2d_dataset_ori.mean,ate_2d_dataset_pos.mean,(int)ate_2d_dataset_ori.values.size());
         printf("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n",ate_2d_dataset_ori.std,ate_2d_dataset_pos.std);
         for(auto &seg : rpe_dataset) {
             seg.second.first.calculate();

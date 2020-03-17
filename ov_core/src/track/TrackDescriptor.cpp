@@ -81,7 +81,7 @@ void TrackDescriptor::feed_monocular(double timestamp, cv::Mat &imgin, size_t ca
 
         // Loop through all left matches, and find the old "train" id
         int idll = -1;
-        for(size_t j=0; j<matches_ll.size(); j++){
+        for(size_t j=0; j<matches_ll.size(); j++) {
             if(matches_ll[j].trainIdx == (int)i) {
                 idll = matches_ll[j].queryIdx;
             }
@@ -217,7 +217,7 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
 
         // Loop through all left matches, and find the old "train" id
         int idll = -1;
-        for(size_t j=0; j<matches_ll.size(); j++){
+        for(size_t j=0; j<matches_ll.size(); j++) {
             if(matches_ll[j].trainIdx == (int)i) {
                 idll = matches_ll[j].queryIdx;
             }
@@ -225,7 +225,7 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
 
         // Loop through all left matches, and find the old "train" id
         int idrr = -1;
-        for(size_t j=0; j<matches_rr.size(); j++){
+        for(size_t j=0; j<matches_rr.size(); j++) {
             if(matches_rr[j].trainIdx == (int)i) {
                 idrr = matches_rr[j].queryIdx;
             }

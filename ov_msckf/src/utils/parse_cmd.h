@@ -63,8 +63,12 @@ namespace ov_msckf {
         app1.add_option("--dt_slam_delay", params.dt_slam_delay, "");
 
         // Read in what representation our feature is
-        std::string feat_rep_str = "GLOBAL_3D";
-        app1.add_option("--feat_representation", feat_rep_str, "");
+        std::string feat_rep_msckf_str = "GLOBAL_3D";
+        std::string feat_rep_slam_str = "GLOBAL_3D";
+        std::string feat_rep_aruco_str = "GLOBAL_3D";
+        app1.add_option("--feat_rep_msckf", feat_rep_msckf_str, "");
+        app1.add_option("--feat_rep_slam", feat_rep_slam_str, "");
+        app1.add_option("--feat_rep_aruco", feat_rep_aruco_str, "");
 
         // Filter initialization
         app1.add_option("--init_window_time", params.init_window_time, "");
@@ -154,20 +158,22 @@ namespace ov_msckf {
         }
 
         // Set what representation we should be using
-        std::transform(feat_rep_str.begin(), feat_rep_str.end(),feat_rep_str.begin(), ::toupper);
-        if(feat_rep_str == "GLOBAL_3D") params.state_options.feat_representation = LandmarkRepresentation::Representation::GLOBAL_3D;
-        else if(feat_rep_str == "GLOBAL_FULL_INVERSE_DEPTH") params.state_options.feat_representation = LandmarkRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH;
-        else if(feat_rep_str == "ANCHORED_3D") params.state_options.feat_representation = LandmarkRepresentation::Representation::ANCHORED_3D;
-        else if(feat_rep_str == "ANCHORED_FULL_INVERSE_DEPTH") params.state_options.feat_representation = LandmarkRepresentation::Representation::ANCHORED_FULL_INVERSE_DEPTH;
-        else if(feat_rep_str == "ANCHORED_MSCKF_INVERSE_DEPTH") params.state_options.feat_representation = LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
-        else {
-            printf(RED "VioManager(): invalid feature representation specified = %s\n" RESET, feat_rep_str.c_str());
-            printf(RED "VioManager(): the valid types are:\n" RESET);
+        std::transform(feat_rep_msckf_str.begin(), feat_rep_msckf_str.end(),feat_rep_msckf_str.begin(), ::toupper);
+        std::transform(feat_rep_slam_str.begin(), feat_rep_slam_str.end(),feat_rep_slam_str.begin(), ::toupper);
+        std::transform(feat_rep_aruco_str.begin(), feat_rep_aruco_str.end(),feat_rep_aruco_str.begin(), ::toupper);
+        params.state_options.feat_rep_msckf = LandmarkRepresentation::from_string(feat_rep_msckf_str);
+        params.state_options.feat_rep_slam = LandmarkRepresentation::from_string(feat_rep_slam_str);
+        params.state_options.feat_rep_aruco = LandmarkRepresentation::from_string(feat_rep_aruco_str);
+        if(params.state_options.feat_rep_msckf == LandmarkRepresentation::Representation::UNKNOWN ||
+        params.state_options.feat_rep_slam == LandmarkRepresentation::Representation::UNKNOWN ||
+        params.state_options.feat_rep_aruco == LandmarkRepresentation::Representation::UNKNOWN) {
+            printf(RED "VioManager(): invalid feature representation specified:\n" RESET);
             printf(RED "\t- GLOBAL_3D\n" RESET);
             printf(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
             printf(RED "\t- ANCHORED_3D\n" RESET);
             printf(RED "\t- ANCHORED_FULL_INVERSE_DEPTH\n" RESET);
             printf(RED "\t- ANCHORED_MSCKF_INVERSE_DEPTH\n" RESET);
+            printf(RED "\t- ANCHORED_INVERSE_DEPTH_SINGLE\n" RESET);
             std::exit(EXIT_FAILURE);
         }
 
