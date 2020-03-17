@@ -144,7 +144,7 @@ namespace ov_msckf {
                 std::cout << "cam_" << n << "_extrinsic(4:6):" << endl << camera_extrinsics.at(n).block(4,0,3,1).transpose() << std::endl;
                 Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();
                 T_CtoI.block(0,0,3,3) = quat_2_Rot(camera_extrinsics.at(n).block(0,0,4,1)).transpose();
-                T_CtoI.block(0,3,3,1) = T_CtoI.block(0,0,3,3)*camera_extrinsics.at(n).block(4,0,3,1);
+                T_CtoI.block(0,3,3,1) = -T_CtoI.block(0,0,3,3)*camera_extrinsics.at(n).block(4,0,3,1);
                 std::cout << "T_C" << n << "toI:" << endl << T_CtoI << std::endl << std::endl;
             }
         }

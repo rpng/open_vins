@@ -142,67 +142,40 @@ Simulator::Simulator(VioManagerOptions& params_) {
     //===============================================================
     //===============================================================
 
-
-
     // One std generator
     std::normal_distribution<double> w(0,1);
 
     // Perturb all calibration if we should
     if(params.sim_do_perturbation) {
 
-        // TODO: actually re-do this part...
-        assert(false);
+        // cam imu offset
+        params_.calib_camimu_dt += 0.01*w(gen_state_perturb);
 
-//        // cam imu offset
-//        double temp = calib_camimu_dt+0.01*w(gen_state_perturb);
-//        nh.setParam("calib_camimu_dt", temp);
-//
-//        // camera intrinsics and extrinsics
-//        for(int i=0; i<max_cameras; i++) {
-//
-//            // Camera intrinsic properties
-//            std::vector<double> matrix_k = matrix_k_vec.at(i);
-//            matrix_k.at(0) += 1.0*w(gen_state_perturb); // k1
-//            matrix_k.at(1) += 1.0*w(gen_state_perturb); // k2
-//            matrix_k.at(2) += 1.0*w(gen_state_perturb); // p1
-//            matrix_k.at(3) += 1.0*w(gen_state_perturb); // p2
-//            std::vector<double> matrix_d = matrix_d_vec.at(i);
-//            matrix_d.at(0) += 0.005*w(gen_state_perturb); // r1
-//            matrix_d.at(1) += 0.005*w(gen_state_perturb); // r2
-//            matrix_d.at(2) += 0.005*w(gen_state_perturb); // r3
-//            matrix_d.at(3) += 0.005*w(gen_state_perturb); // r4
-//
-//            // Our camera extrinsics transform
-//            std::vector<double> matrix_TCtoI = matrix_TCtoI_vec.at(i);
-//            matrix_TCtoI.at(3) += 0.01*w(gen_state_perturb); // x
-//            matrix_TCtoI.at(7) += 0.01*w(gen_state_perturb); // y
-//            matrix_TCtoI.at(11) += 0.01*w(gen_state_perturb); // z
-//
-//            // Perturb the orientation calibration
-//            Eigen::Matrix3d R_calib;
-//            R_calib << matrix_TCtoI.at(0),matrix_TCtoI.at(1),matrix_TCtoI.at(2),
-//                    matrix_TCtoI.at(4),matrix_TCtoI.at(5),matrix_TCtoI.at(6),
-//                    matrix_TCtoI.at(8),matrix_TCtoI.at(9),matrix_TCtoI.at(10);
-//            Eigen::Vector3d w_vec;
-//            w_vec << 0.001*w(gen_state_perturb), 0.001*w(gen_state_perturb), 0.001*w(gen_state_perturb);
-//            R_calib = exp_so3(w_vec)*R_calib;
-//
-//            matrix_TCtoI.at(0) = R_calib(0,0);
-//            matrix_TCtoI.at(1) = R_calib(0,1);
-//            matrix_TCtoI.at(2) = R_calib(0,2);
-//            matrix_TCtoI.at(4) = R_calib(1,0);
-//            matrix_TCtoI.at(5) = R_calib(1,1);
-//            matrix_TCtoI.at(6) = R_calib(1,2);
-//            matrix_TCtoI.at(8) = R_calib(2,0);
-//            matrix_TCtoI.at(9) = R_calib(2,1);
-//            matrix_TCtoI.at(10) = R_calib(2,2);
-//
-//            // Overwrite their values
-//            nh.setParam("cam"+std::to_string(i)+"_k", matrix_k);
-//            nh.setParam("cam"+std::to_string(i)+"_d", matrix_d);
-//            nh.setParam("T_C"+std::to_string(i)+"toI", matrix_TCtoI);
-//
-//        }
+        // camera intrinsics and extrinsics
+        for(int i=0; i<params_.state_options.num_cameras; i++) {
+
+            // Camera intrinsic properties (k1, k2, p1, p2)
+            for(int r=0; r<4; r++) {
+                params_.camera_intrinsics.at(i)(r) += 1.0*w(gen_state_perturb);
+            }
+
+            // Camera intrinsic properties (r1, r2, r3, r4)
+            for(int r=4; r<8; r++) {
+                params_.camera_intrinsics.at(i)(r) += 0.005*w(gen_state_perturb);
+            }
+
+            // Our camera extrinsics transform (position)
+            for(int r=4; r<7; r++) {
+                params_.camera_extrinsics.at(i)(r) += 0.01*w(gen_state_perturb);
+            }
+
+            // Our camera extrinsics transform (orientation)
+            Eigen::Vector3d w_vec;
+            w_vec << 0.001*w(gen_state_perturb), 0.001*w(gen_state_perturb), 0.001*w(gen_state_perturb);
+           params_.camera_extrinsics.at(i).block(0,0,4,1) =
+                   rot_2_quat(exp_so3(w_vec)*quat_2_Rot(params_.camera_extrinsics.at(i).block(0,0,4,1)));
+
+        }
 
     }
 
@@ -253,10 +226,7 @@ Simulator::Simulator(VioManagerOptions& params_) {
 
     }
 
-    // Print our map features
-    //for(const auto &feat : featmap) {
-    //    cout << feat.second(0) << "," << feat.second(1) << "," << feat.second(2) << std::endl;
-    //}
+    // Nice sleep so the user can look at the printout
     sleep(3);
 
 }

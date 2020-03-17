@@ -30,6 +30,7 @@
 #include "feat/FeatureInitializer.h"
 #include "feat/FeatureInitializerOptions.h"
 #include "utils/quat_ops.h"
+#include "utils/colors.h"
 
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"

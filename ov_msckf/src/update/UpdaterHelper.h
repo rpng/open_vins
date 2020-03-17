@@ -29,6 +29,7 @@
 #include "state/State.h"
 #include "state/StateOptions.h"
 #include "utils/quat_ops.h"
+#include "utils/colors.h"
 
 
 namespace ov_msckf {

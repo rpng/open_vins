@@ -316,6 +316,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         } else {
             boost::math::chi_squared chi_squared_dist(res.rows());
             chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
+            printf(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
         }
 
         // Check if we should delete or not

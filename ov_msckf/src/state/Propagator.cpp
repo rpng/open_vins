@@ -33,17 +33,14 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     // If the difference between the current update time and state is zero
     // We should crash, as this means we would have two clones at the same time!!!!
     if(state->_timestamp == timestamp) {
-        std::cerr << "Propagator::propagate_and_clone(): Propagation called again at same timestep at last update timestep!!!!" << std::endl;
-        std::cerr << "Propagator::propagate_and_clone(): " << state->_timestamp << " vs " << timestamp << " timestamps" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        printf(RED "Propagator::propagate_and_clone(): Propagation called again at same timestep at last update timestep!!!!\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
     // We should crash if we are trying to propagate backwards
     if(state->_timestamp > timestamp) {
-        std::cerr << "Propagator::propagate_and_clone(): Propagation called trying to propagate backwards in time!!!!" << std::endl;
-        std::cerr << "Propagator::propagate_and_clone(): desired propagation = " << (timestamp-state->_timestamp) << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        printf(RED "Propagator::propagate_and_clone(): Propagation called trying to propagate backwards in time!!!!\n" RESET);
+        printf(RED "Propagator::propagate_and_clone(): desired propagation = %.4f\n" RESET, (timestamp-state->_timestamp));
         std::exit(EXIT_FAILURE);
     }
 
@@ -119,9 +116,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
 
     // Ensure we have some measurements in the first place!
     if(imu_data.empty()) {
-        std::cerr << "Propagator::select_imu_readings(): There are no IMU measurements!!!!!" << std::endl;
-        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA are likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements. IMU-CAMERA are likely messed up!!!\n" RESET);
         return prop_data;
     }
 
@@ -141,7 +136,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
         if(imu_data.at(i+1).timestamp > time0 && imu_data.at(i).timestamp < time0) {
             IMUDATA data = Propagator::interpolate_data(imu_data.at(i),imu_data.at(i+1), time0);
             prop_data.push_back(data);
-            //ROS_INFO("propagation #%d = CASE 1 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,time0-prop_data.at(0).timestamp);
+            //printf("propagation #%d = CASE 1 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,time0-prop_data.at(0).timestamp);
             continue;
         }
 
@@ -150,7 +145,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
         // Then we should just append the whole measurement time to our propagation vector
         if(imu_data.at(i).timestamp >= time0 && imu_data.at(i+1).timestamp <= time1) {
             prop_data.push_back(imu_data.at(i));
-            //ROS_INFO("propagation #%d = CASE 2 = %.3f",(int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp);
+            //printf("propagation #%d = CASE 2 = %.3f\n",(int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp);
             continue;
         }
 
@@ -166,17 +161,17 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
             if(imu_data.at(i).timestamp > time1) {
                 IMUDATA data = interpolate_data(imu_data.at(i-1), imu_data.at(i), time1);
                 prop_data.push_back(data);
-                //ROS_INFO("propagation #%d = CASE 3.1 = %.3f => %.3f", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
+                //printf("propagation #%d = CASE 3.1 = %.3f => %.3f\n", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
             } else {
                 prop_data.push_back(imu_data.at(i));
-                //ROS_INFO("propagation #%d = CASE 3.2 = %.3f => %.3f", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
+                //printf("propagation #%d = CASE 3.2 = %.3f => %.3f\n", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
             }
             // If the added IMU message doesn't end exactly at the camera time
             // Then we need to add another one that is right at the ending time
             if(prop_data.at(prop_data.size()-1).timestamp != time1) {
                 IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), time1);
                 prop_data.push_back(data);
-                //ROS_INFO("propagation #%d = CASE 3.3 = %.3f => %.3f", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-time0);
+                //printf("propagation #%d = CASE 3.3 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-time0);
             }
             break;
         }
@@ -185,18 +180,14 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
 
     // Check that we have at least one measurement to propagate with
     if(prop_data.empty()) {
-        std::cerr << "Propagator::select_imu_readings(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
-        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA time offset is likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements to propagate with (%d of 2). IMU-CAMERA are likely messed up!!!\n" RESET, (int)prop_data.size());
         return prop_data;
     }
 
     // If we did not reach the whole integration period (i.e., the last inertial measurement we have is smaller then the time we want to reach)
     // Then we should just "stretch" the last measurement to be the whole period
     if(imu_data.at(imu_data.size()-1).timestamp <= time1) {
-        std::cerr << "Propagator::select_imu_readings(): There are not enough measurements to propagate with " << (time1-imu_data.at(imu_data.size()-1).timestamp) << " sec missing" << std::endl;
-        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA time offset is likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        printf(YELLOW "Propagator::select_imu_readings(): Missing inertial measurements to propagate with (%.3f sec missing). IMU-CAMERA are likely messed up!!!\n" RESET, (time1-imu_data.at(imu_data.size()-1).timestamp));
         return prop_data;
     }
 
@@ -204,7 +195,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
     // This would cause the noise covariance to be Infinity
     for (size_t i=0; i < prop_data.size()-1; i++){
         if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-12){
-            std::cerr << "Propagator::select_imu_readings(): Zero DT between " << i << " and " << i+1 << " measurements (dt = " << (prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) << ")" << std::endl;
+            printf(YELLOW "Propagator::select_imu_readings(): Zero DT between IMU reading %d and %d, removing it!\n" RESET, (int)i, (int)(i+1));
             prop_data.erase(prop_data.begin()+i);
             i--;
         }
@@ -212,9 +203,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
 
     // Check that we have at least one measurement to propagate with
     if(prop_data.size() < 2) {
-        std::cerr << "Propagator::select_imu_readings(): There are not enough measurements to propagate with " << (int)prop_data.size() << " of 2" << std::endl;
-        std::cerr << "Propagator::select_imu_readings(): IMU-CAMERA time offset is likely messed up, check time offset value!!!" << std::endl;
-        std::cerr << __FILE__ << " on line " << __LINE__ << std::endl;
+        printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements to propagate with (%d of 2). IMU-CAMERA are likely messed up!!!\n" RESET, (int)prop_data.size());
         return prop_data;
     }
 
