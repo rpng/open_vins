@@ -137,6 +137,75 @@ void RosVisualizer::visualize() {
 
 
 
+void RosVisualizer::visualize_odometry(double timestamp) {
+
+    // Return if we have not inited
+    if(!_app->intialized())
+        return;
+
+    // Get fast propagate state at the desired timestamp
+    State* state = _app->get_state();
+    Eigen::Matrix<double,13,1> state_plus = Eigen::Matrix<double,13,1>::Zero();
+    _app->get_propagator()->fast_state_propagate(state, timestamp, state_plus);
+
+    // Our odometry message
+    nav_msgs::Odometry odomIinM;
+    odomIinM.header.stamp = ros::Time(timestamp);
+    odomIinM.header.frame_id = "global";
+
+    // The POSE component (orientation and position)
+    odomIinM.pose.pose.orientation.x = state_plus(0);
+    odomIinM.pose.pose.orientation.y = state_plus(1);
+    odomIinM.pose.pose.orientation.z = state_plus(2);
+    odomIinM.pose.pose.orientation.w = state_plus(3);
+    odomIinM.pose.pose.position.x = state_plus(4);
+    odomIinM.pose.pose.position.y = state_plus(5);
+    odomIinM.pose.pose.position.z = state_plus(6);
+
+    // Finally set the covariance in the message (in the order position then orientation as per ros convention)
+    // TODO: this currently is an approximation since this should actually evolve over our propagation period
+    // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
+    std::vector<Type*> statevars;
+    statevars.push_back(state->_imu->pose()->p());
+    statevars.push_back(state->_imu->pose()->q());
+    Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
+    for(int r=0; r<6; r++) {
+        for(int c=0; c<6; c++) {
+            odomIinM.pose.covariance[6*r+c] = covariance_posori(r,c);
+        }
+    }
+
+    // The TWIST component (angular and linear velocities)
+    odomIinM.child_frame_id = "imu";
+    odomIinM.twist.twist.linear.x = state_plus(7);
+    odomIinM.twist.twist.linear.y = state_plus(8);
+    odomIinM.twist.twist.linear.z = state_plus(9);
+    odomIinM.twist.twist.angular.x = state_plus(10); // we do not estimate this...
+    odomIinM.twist.twist.angular.y = state_plus(11); // we do not estimate this...
+    odomIinM.twist.twist.angular.z = state_plus(12); // we do not estimate this...
+
+    // Velocity covariance (linear then angular)
+    // TODO: this currently is an approximation since this should actually evolve over our propagation period
+    // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
+    // TODO: can we come up with an approx covariance for the omega based on the w_hat = w_m - b_w ??
+    statevars.clear();
+    statevars.push_back(state->_imu->v());
+    Eigen::Matrix<double,6,6> covariance_linang = INFINITY*Eigen::Matrix<double,6,6>::Identity();
+    covariance_linang.block(0,0,3,3) = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
+    for(int r=0; r<6; r++) {
+        for(int c=0; c<6; c++) {
+            odomIinM.twist.covariance[6*r+c] = (std::isnan(covariance_linang(r,c))) ? 0 : covariance_linang(r,c);
+        }
+    }
+
+    // Finally, publish the resulting odometry message
+    pub_odomimu.publish(odomIinM);
+
+
+}
+
+
+
 void RosVisualizer::visualize_final() {
 
 
@@ -221,34 +290,6 @@ void RosVisualizer::publish_state() {
         }
     }
     pub_poseimu.publish(poseIinM);
-
-    //=========================================================
-    //=========================================================
-
-    // Our odometry message (note we do not fill out angular velocities)
-    nav_msgs::Odometry odomIinM;
-    odomIinM.header = poseIinM.header;
-    odomIinM.pose.pose = poseIinM.pose.pose;
-    odomIinM.pose.covariance = poseIinM.pose.covariance;
-    odomIinM.child_frame_id = "imu";
-    odomIinM.twist.twist.angular.x = 0; // we do not estimate this...
-    odomIinM.twist.twist.angular.y = 0; // we do not estimate this...
-    odomIinM.twist.twist.angular.z = 0; // we do not estimate this...
-    odomIinM.twist.twist.linear.x = state->_imu->vel()(0);
-    odomIinM.twist.twist.linear.y = state->_imu->vel()(1);
-    odomIinM.twist.twist.linear.z = state->_imu->vel()(2);
-
-    // Velocity covariance (linear then angular)
-    statevars.clear();
-    statevars.push_back(state->_imu->v());
-    Eigen::Matrix<double,6,6> covariance_linang = INFINITY*Eigen::Matrix<double,6,6>::Identity();
-    covariance_linang.block(0,0,3,3) = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
-    for(int r=0; r<6; r++) {
-        for(int c=0; c<6; c++) {
-            odomIinM.twist.covariance[6*r+c] = (std::isnan(covariance_linang(r,c))) ? 0 : covariance_linang(r,c);
-        }
-    }
-    pub_odomimu.publish(odomIinM);
 
 
     //=========================================================

@@ -72,27 +72,31 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
 
     // Loop through all IMU messages, and use them to move the state forward in time
     // This uses the zero'th order quat, and then constant acceleration discrete
-    for(size_t i=0; i<prop_data.size()-1; i++) {
+    if(prop_data.size() > 1) {
+        for(size_t i=0; i<prop_data.size()-1; i++) {
 
-        // Get the next state Jacobian and noise Jacobian for this IMU reading
-        Eigen::Matrix<double, 15, 15> F = Eigen::Matrix<double, 15, 15>::Zero();
-        Eigen::Matrix<double, 15, 15> Qdi = Eigen::Matrix<double, 15, 15>::Zero();
-        predict_and_compute(state, prop_data.at(i), prop_data.at(i+1), F, Qdi);
+            // Get the next state Jacobian and noise Jacobian for this IMU reading
+            Eigen::Matrix<double, 15, 15> F = Eigen::Matrix<double, 15, 15>::Zero();
+            Eigen::Matrix<double, 15, 15> Qdi = Eigen::Matrix<double, 15, 15>::Zero();
+            predict_and_compute(state, prop_data.at(i), prop_data.at(i+1), F, Qdi);
 
-        // Next we should propagate our IMU covariance
-        // Pii' = F*Pii*F.transpose() + G*Q*G.transpose()
-        // Pci' = F*Pci and Pic' = Pic*F.transpose()
-        // NOTE: Here we are summing the state transition F so we can do a single mutiplication later
-        // NOTE: Phi_summed = Phi_i*Phi_summed
-        // NOTE: Q_summed = Phi_i*Q_summed*Phi_i^T + G*Q_i*G^T
-        Phi_summed = F * Phi_summed;
-        Qd_summed = F * Qd_summed * F.transpose() + Qdi;
-        Qd_summed = 0.5*(Qd_summed+Qd_summed.transpose());
-        dt_summed +=  prop_data.at(i+1).timestamp-prop_data.at(i).timestamp;
+            // Next we should propagate our IMU covariance
+            // Pii' = F*Pii*F.transpose() + G*Q*G.transpose()
+            // Pci' = F*Pci and Pic' = Pic*F.transpose()
+            // NOTE: Here we are summing the state transition F so we can do a single mutiplication later
+            // NOTE: Phi_summed = Phi_i*Phi_summed
+            // NOTE: Q_summed = Phi_i*Q_summed*Phi_i^T + G*Q_i*G^T
+            Phi_summed = F * Phi_summed;
+            Qd_summed = F * Qd_summed * F.transpose() + Qdi;
+            Qd_summed = 0.5*(Qd_summed+Qd_summed.transpose());
+            dt_summed +=  prop_data.at(i+1).timestamp-prop_data.at(i).timestamp;
+        }
     }
 
     // Last angular velocity (used for cloning when estimating time offset)
-    Eigen::Matrix<double,3,1> last_w = prop_data.at(prop_data.size()-2).wm - state->_imu->bias_g();
+    Eigen::Matrix<double,3,1> last_w = Eigen::Matrix<double,3,1>::Zero();
+    if(prop_data.size() > 1) last_w = prop_data.at(prop_data.size()-2).wm - state->_imu->bias_g();
+    else if(!prop_data.empty()) last_w = prop_data.at(prop_data.size()-1).wm - state->_imu->bias_g();
 
     // Do the update to the covariance with our "summed" state transition and IMU noise addition...
     std::vector<Type*> Phi_order;
@@ -109,6 +113,76 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
 }
 
 
+
+
+void Propagator::fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus) {
+
+    // Set the last time offset value if we have just started the system up
+    if(last_prop_time_offset == -INFINITY) {
+        last_prop_time_offset = state->_calib_dt_CAMtoIMU->value()(0);
+    }
+
+    // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
+    double t_off_new = state->_calib_dt_CAMtoIMU->value()(0);
+
+    // First lets construct an IMU vector of measurements we need
+    double time0 = state->_timestamp+last_prop_time_offset;
+    double time1 = timestamp+t_off_new;
+    vector<IMUDATA> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
+
+    // Save the original IMU state
+    Eigen::VectorXd orig_val = state->_imu->value();
+    Eigen::VectorXd orig_fej = state->_imu->fej();
+
+    // Loop through all IMU messages, and use them to move the state forward in time
+    // This uses the zero'th order quat, and then constant acceleration discrete
+    if(prop_data.size() > 1) {
+        for(size_t i=0; i<prop_data.size()-1; i++) {
+
+            // Time elapsed over interval
+            double dt = prop_data.at(i+1).timestamp-prop_data.at(i).timestamp;
+            //assert(data_plus.timestamp>data_minus.timestamp);
+
+            // Corrected imu measurements
+            Eigen::Matrix<double,3,1> w_hat = prop_data.at(i).wm - state->_imu->bias_g();
+            Eigen::Matrix<double,3,1> a_hat = prop_data.at(i).am - state->_imu->bias_a();
+            Eigen::Matrix<double,3,1> w_hat2 = prop_data.at(i+1).wm - state->_imu->bias_g();
+            Eigen::Matrix<double,3,1> a_hat2 = prop_data.at(i+1).am - state->_imu->bias_a();
+
+            // Compute the new state mean value
+            Eigen::Vector4d new_q;
+            Eigen::Vector3d new_v, new_p;
+            if(state->_options.use_rk4_integration) predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+            else predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+
+            //Now replace imu estimate and fej with propagated values
+            Eigen::Matrix<double,16,1> imu_x = state->_imu->value();
+            imu_x.block(0,0,4,1) = new_q;
+            imu_x.block(4,0,3,1) = new_p;
+            imu_x.block(7,0,3,1) = new_v;
+            state->_imu->set_value(imu_x);
+            state->_imu->set_fej(imu_x);
+
+        }
+    }
+
+    // Now record what the predicted state should be
+    state_plus = Eigen::Matrix<double,13,1>::Zero();
+    state_plus.block(0,0,4,1) = state->_imu->quat();
+    state_plus.block(4,0,3,1) = state->_imu->pos();
+    state_plus.block(7,0,3,1) = state->_imu->vel();
+    if(prop_data.size() > 1) state_plus.block(10,0,3,1) = prop_data.at(prop_data.size()-2).wm - state->_imu->bias_g();
+    else if(!prop_data.empty()) state_plus.block(10,0,3,1) = prop_data.at(prop_data.size()-1).wm - state->_imu->bias_g();
+
+    // Finally replace the imu with the original state we had
+    state->_imu->set_value(orig_val);
+    state->_imu->set_fej(orig_fej);
+
+}
+
+
+
+
 std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vector<IMUDATA>& imu_data, double time0, double time1) {
 
     // Our vector imu readings
@@ -119,11 +193,6 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
         printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements. IMU-CAMERA are likely messed up!!!\n" RESET);
         return prop_data;
     }
-
-    // Sort our imu data (handles any out of order measurements)
-    //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j){
-    //    return i.timestamp < j.timestamp;
-    //});
 
     // Loop through and find all the needed measurements to propagate with
     // Note we split measurements based on the given state time, and the update timestamp
@@ -185,16 +254,16 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
     }
 
     // If we did not reach the whole integration period (i.e., the last inertial measurement we have is smaller then the time we want to reach)
-    // Then we should just "stretch" the last measurement to be the whole period
-    if(imu_data.at(imu_data.size()-1).timestamp <= time1) {
-        printf(YELLOW "Propagator::select_imu_readings(): Missing inertial measurements to propagate with (%.3f sec missing). IMU-CAMERA are likely messed up!!!\n" RESET, (time1-imu_data.at(imu_data.size()-1).timestamp));
-        return prop_data;
-    }
+    // Then we should just "stretch" the last measurement to be the whole period (case 3 in the above loop)
+    //if(time1-imu_data.at(imu_data.size()-1).timestamp > 1e-3) {
+    //    printf(YELLOW "Propagator::select_imu_readings(): Missing inertial measurements to propagate with (%.6f sec missing). IMU-CAMERA are likely messed up!!!\n" RESET, (time1-imu_data.at(imu_data.size()-1).timestamp));
+    //    return prop_data;
+    //}
 
     // Loop through and ensure we do not have an zero dt values
     // This would cause the noise covariance to be Infinity
-    for (size_t i=0; i < prop_data.size()-1; i++){
-        if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-12){
+    for (size_t i=0; i < prop_data.size()-1; i++) {
+        if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-12) {
             printf(YELLOW "Propagator::select_imu_readings(): Zero DT between IMU reading %d and %d, removing it!\n" RESET, (int)i, (int)(i+1));
             prop_data.erase(prop_data.begin()+i);
             i--;
@@ -222,7 +291,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 
     // Time elapsed over interval
     double dt = data_plus.timestamp-data_minus.timestamp;
-    assert(data_plus.timestamp>data_minus.timestamp);
+    //assert(data_plus.timestamp>data_minus.timestamp);
 
     // Corrected imu measurements
     Eigen::Matrix<double,3,1> w_hat = data_minus.wm - state->_imu->bias_g();

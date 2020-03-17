@@ -39,6 +39,18 @@ Simulator::Simulator(VioManagerOptions& params_) {
 
     // Store a copy of our params
     this->params = params_;
+    params.print_estimator();
+    params.print_noise();
+    params.print_state();
+    params.print_trackers();
+    params.print_simulation();
+
+    // Check that the max cameras matches the size of our cam matrices
+    if(params.state_options.num_cameras != (int)params.camera_fisheye.size()) {
+        printf(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
+        printf(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(), params.state_options.num_cameras);
+        std::exit(EXIT_FAILURE);
+    }
 
     // Load the groundtruth trajectory and its spline
     load_data(params.sim_traj_path);
@@ -117,26 +129,6 @@ Simulator::Simulator(VioManagerOptions& params_) {
         gen_meas_cams.push_back(std::mt19937(params.sim_seed_measurements));
         gen_meas_cams.at(i).seed(params.sim_seed_measurements);
     }
-
-    // Debug print
-    params.print_simulation();
-
-    //===============================================================
-    //===============================================================
-
-    // Debug print
-    params.print_estimator();
-
-    // Check that the max cameras matches the size of our cam matrices
-    if(params.state_options.num_cameras != (int)params.camera_fisheye.size()) {
-        printf(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
-        printf(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(), params.state_options.num_cameras);
-        std::exit(EXIT_FAILURE);
-    }
-
-    // Debug print
-    params.print_state();
-    params.print_noise();
 
 
     //===============================================================

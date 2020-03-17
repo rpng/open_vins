@@ -135,6 +135,7 @@ namespace ov_msckf {
         void print_state() {
             printf("STATE PARAMETERS:\n");
             printf("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
+            assert(state_options.num_cameras==(int)camera_fisheye.size());
             for(int n=0; n<state_options.num_cameras; n++) {
                 std::cout << "cam_" << n << "_fisheye:" << camera_fisheye.at(n) << std::endl;
                 std::cout << "cam_" << n << "_wh:" << endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;

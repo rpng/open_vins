@@ -134,6 +134,11 @@ namespace ov_msckf {
             return state;
         }
 
+        /// Accessor to get the current propagator
+        Propagator* get_propagator() {
+            return propagator;
+        }
+
         /// Get feature tracker
         TrackBase* get_track_feat() {
             return trackFEATS;

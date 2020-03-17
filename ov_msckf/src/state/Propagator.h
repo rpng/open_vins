@@ -131,10 +131,17 @@ namespace ov_msckf {
             // Append it to our vector
             imu_data.emplace_back(data);
 
-            // Loop through and delete imu messages that are older then 30 seconds
+            // Sort our imu data (handles any out of order measurements)
+            //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j){
+            //    return i.timestamp < j.timestamp;
+            //});
+
+            // Loop through and delete imu messages that are older then 20 seconds
+            // TODO: we should probably have more elegant logic then this
+            // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
             auto it0 = imu_data.begin();
             while(it0 != imu_data.end()) {
-                if(timestamp-(*it0).timestamp > 30) {
+                if(timestamp-(*it0).timestamp > 20) {
                     it0 = imu_data.erase(it0);
                 } else {
                     it0++;
@@ -157,6 +164,20 @@ namespace ov_msckf {
          * @param timestamp Time to propagate to and clone at
          */
         void propagate_and_clone(State *state, double timestamp);
+
+
+        /**
+         * @brief Gets what the state and its covariance will be at a given timestamp
+         *
+         * This can be used to find what the state will be in the "future" without propagating it.
+         * This will propagate a clone of the current IMU state and its covariance matrix.
+         * This is typically used to provide high frequency pose estimates between updates.
+         *
+         * @param state Pointer to state
+         * @param timestamp Time to propagate to
+         * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
+         */
+        void fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus);
 
 
         /**

@@ -151,7 +151,7 @@ int main(int argc, char** argv)
 
         // Handle IMU measurement
         sensor_msgs::Imu::ConstPtr s2 = m.instantiate<sensor_msgs::Imu>();
-        if (s2 != NULL && m.getTopic() == topic_imu) {
+        if (s2 != nullptr && m.getTopic() == topic_imu) {
             // convert into correct format
             double timem = (*s2).header.stamp.toSec();
             Eigen::Matrix<double, 3, 1> wm, am;
@@ -159,11 +159,12 @@ int main(int argc, char** argv)
             am << (*s2).linear_acceleration.x, (*s2).linear_acceleration.y, (*s2).linear_acceleration.z;
             // send it to our VIO system
             sys->feed_measurement_imu(timem, wm, am);
+            viz->visualize_odometry(timem);
         }
 
         // Handle LEFT camera
         sensor_msgs::Image::ConstPtr s0 = m.instantiate<sensor_msgs::Image>();
-        if (s0 != NULL && m.getTopic() == topic_camera0) {
+        if (s0 != nullptr && m.getTopic() == topic_camera0) {
             // Get the image
             cv_bridge::CvImageConstPtr cv_ptr;
             try {
@@ -180,7 +181,7 @@ int main(int argc, char** argv)
 
         // Handle RIGHT camera
         sensor_msgs::Image::ConstPtr s1 = m.instantiate<sensor_msgs::Image>();
-        if (s1 != NULL && m.getTopic() == topic_camera1) {
+        if (s1 != nullptr && m.getTopic() == topic_camera1) {
             // Get the image
             cv_bridge::CvImageConstPtr cv_ptr;
             try {

@@ -76,6 +76,13 @@ namespace ov_msckf {
         void visualize();
 
         /**
+         * @brief Will publish our odometry message for the current timestep.
+         * This will take the current state estimate and get the propagated pose to the desired time.
+         * This can be used to get pose estimates on systems which require high frequency pose estimates.
+         */
+        void visualize_odometry(double timestamp);
+
+        /**
          * @brief After the run has ended, print results
          */
         void visualize_final();

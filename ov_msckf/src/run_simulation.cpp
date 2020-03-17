@@ -109,6 +109,9 @@ int main(int argc, char** argv)
         bool hasimu = sim->get_next_imu(time_imu, wm, am);
         if(hasimu) {
             sys->feed_measurement_imu(time_imu, wm, am);
+#ifdef ROS_AVAILABLE
+            viz->visualize_odometry(time_imu);
+#endif
         }
 
         // CAM: get the next simulated camera uv measurements if we have them
