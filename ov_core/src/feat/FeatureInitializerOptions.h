@@ -60,6 +60,19 @@ namespace ov_core {
         /// Max condition number of linear triangulation matrix accept triangulated features
         double max_cond_number = 1000;
 
+        /// Nice print function of what parameters we have loaded
+        void print() {
+            printf("\t- max_runs: %d\n", max_runs);
+            printf("\t- init_lamda: %.3f\n", init_lamda);
+            printf("\t- max_lamda: %.3f\n", max_lamda);
+            printf("\t- min_dx: %.7f\n", min_dx);
+            printf("\t- min_dcost: %.7f\n", min_dcost);
+            printf("\t- lam_mult: %.3f\n", lam_mult);
+            printf("\t- min_dist: %.3f\n", min_dist);
+            printf("\t- max_dist: %.3f\n", max_dist);
+            printf("\t- max_baseline: %.3f\n", max_baseline);
+            printf("\t- max_cond_number: %.3f\n", max_cond_number);
+        }
 
     };
 

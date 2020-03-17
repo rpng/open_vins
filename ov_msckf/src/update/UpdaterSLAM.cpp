@@ -180,10 +180,10 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Debug print timing information
-    ROS_INFO("[SLAM-DELAY]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
-    ROS_INFO("[SLAM-DELAY]: %.4f seconds to triangulate",(rT2-rT1).total_microseconds() * 1e-6);
-    ROS_INFO("[SLAM-DELAY]: %.4f seconds initialize (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
-    ROS_INFO("[SLAM-DELAY]: %.4f seconds total",(rT3-rT1).total_microseconds() * 1e-6);
+    printf("[SLAM-DELAY]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
+    printf("[SLAM-DELAY]: %.4f seconds to triangulate\n",(rT2-rT1).total_microseconds() * 1e-6);
+    printf("[SLAM-DELAY]: %.4f seconds initialize (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+    printf("[SLAM-DELAY]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 
@@ -322,7 +322,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         double chi2_multipler = ((int)feat.featid < state->_options.max_aruco_features)? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
         if(chi2 > chi2_multipler*chi2_check) {
             if((int)feat.featid < state->_options.max_aruco_features)
-                ROS_WARN("[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)",(int)feat.featid,chi2,chi2_multipler*chi2_check);
+                printf(YELLOW "[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)\n" RESET,(int)feat.featid,chi2,chi2_multipler*chi2_check);
             (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
             continue;
@@ -330,7 +330,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
         // Debug print when we are going to update the aruco tags
         if((int)feat.featid < state->_options.max_aruco_features)
-            ROS_INFO("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)",(int)feat.featid,chi2,chi2_multipler*chi2_check);
+            printf("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)\n",(int)feat.featid,chi2,chi2_multipler*chi2_check);
 
         // We are good!!! Append to our large H vector
         size_t ct_hx = 0;
@@ -381,10 +381,10 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Debug print timing information
-    ROS_INFO("[SLAM-UP]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
-    ROS_INFO("[SLAM-UP]: %.4f seconds creating linear system",(rT2-rT1).total_microseconds() * 1e-6);
-    ROS_INFO("[SLAM-UP]: %.4f seconds to update (%d feats of %d size)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size(), (int)Hx_big.rows());
-    ROS_INFO("[SLAM-UP]: %.4f seconds total",(rT3-rT1).total_microseconds() * 1e-6);
+    printf("[SLAM-UP]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
+    printf("[SLAM-UP]: %.4f seconds creating linear system\n",(rT2-rT1).total_microseconds() * 1e-6);
+    printf("[SLAM-UP]: %.4f seconds to update (%d feats of %d size)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size(), (int)Hx_big.rows());
+    printf("[SLAM-UP]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 

@@ -32,8 +32,10 @@
 #include <message_filters/sync_policies/approximate_time.h>
 
 #include "core/VioManager.h"
+#include "core/VioManagerOptions.h"
 #include "core/RosVisualizer.h"
 #include "utils/dataset_reader.h"
+#include "utils/parse_ros.h"
 
 
 using namespace ov_msckf;
@@ -62,7 +64,8 @@ int main(int argc, char** argv) {
     ros::NodeHandle nh("~");
 
     // Create our VIO system
-    sys = new VioManager(nh);
+    VioManagerOptions params = parse_ros_nodehandler(nh);
+    sys = new VioManager(params);
     viz = new RosVisualizer(nh, sys);
 
 
@@ -72,15 +75,10 @@ int main(int argc, char** argv) {
 
     // Our camera topics (left and right stereo)
     std::string topic_imu;
-    std::string topic_camera0;
-    std::string topic_camera1;
+    std::string topic_camera0, topic_camera1;
     nh.param<std::string>("topic_imu", topic_imu, "/imu0");
     nh.param<std::string>("topic_camera0", topic_camera0, "/cam0/image_raw");
     nh.param<std::string>("topic_camera1", topic_camera1, "/cam1/image_raw");
-
-    // Read in what mode we should be processing in (1=mono, 2=stereo)
-    int max_cameras;
-    nh.param<int>("max_cameras", max_cameras, 1);
 
     // Logic for sync stereo subscriber
     // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
@@ -93,10 +91,10 @@ int main(int argc, char** argv) {
     // Create subscribers
     ros::Subscriber subimu = nh.subscribe(topic_imu.c_str(), 9999, callback_inertial);
     ros::Subscriber subcam;
-    if(max_cameras == 1) {
+    if(params.state_options.num_cameras == 1) {
         ROS_INFO("subscribing to: %s", topic_camera0.c_str());
         subcam = nh.subscribe(topic_camera0.c_str(), 1, callback_monocular);
-    } else if(max_cameras == 2) {
+    } else if(params.state_options.num_cameras == 2) {
         ROS_INFO("subscribing to: %s", topic_camera0.c_str());
         ROS_INFO("subscribing to: %s", topic_camera1.c_str());
         sync.registerCallback(boost::bind(&callback_stereo, _1, _2));

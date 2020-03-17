@@ -40,6 +40,8 @@
 #include "update/UpdaterMSCKF.h"
 #include "update/UpdaterSLAM.h"
 
+#include "VioManagerOptions.h"
+
 
 namespace ov_msckf {
 
@@ -60,9 +62,9 @@ namespace ov_msckf {
 
         /**
          * @brief Default constructor, will load all configuration variables
-         * @param nh ROS node handler which we will load parameters from
+         * @param params_ Parameters loaded from either ROS or CMDLINE
          */
-        VioManager(ros::NodeHandle& nh);
+        VioManager(VioManagerOptions& params_);
 
 
         /**
@@ -112,12 +114,12 @@ namespace ov_msckf {
             is_initialized_vio = true;
 
             // Print what we init'ed with
-            ROS_INFO("\033[0;32m[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\033[0m");
-            ROS_INFO("\033[0;32m[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\033[0m",state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2),state->_imu->quat()(3));
-            ROS_INFO("\033[0;32m[INIT]: bias gyro = %.4f, %.4f, %.4f\033[0m",state->_imu->bias_g()(0),state->_imu->bias_g()(1),state->_imu->bias_g()(2));
-            ROS_INFO("\033[0;32m[INIT]: velocity = %.4f, %.4f, %.4f\033[0m",state->_imu->vel()(0),state->_imu->vel()(1),state->_imu->vel()(2));
-            ROS_INFO("\033[0;32m[INIT]: bias accel = %.4f, %.4f, %.4f\033[0m",state->_imu->bias_a()(0),state->_imu->bias_a()(1),state->_imu->bias_a()(2));
-            ROS_INFO("\033[0;32m[INIT]: position = %.4f, %.4f, %.4f\033[0m",state->_imu->pos()(0),state->_imu->pos()(1),state->_imu->pos()(2));
+            printf(GREEN "[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\n" RESET);
+            printf(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET,state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2),state->_imu->quat()(3));
+            printf(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET,state->_imu->bias_g()(0),state->_imu->bias_g()(1),state->_imu->bias_g()(2));
+            printf(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET,state->_imu->vel()(0),state->_imu->vel()(1),state->_imu->vel()(2));
+            printf(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET,state->_imu->bias_a()(0),state->_imu->bias_a()(1),state->_imu->bias_a()(2));
+            printf(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET,state->_imu->pos()(0),state->_imu->pos()(1),state->_imu->pos()(2));
 
         }
 
@@ -215,6 +217,8 @@ namespace ov_msckf {
          */
         void do_feature_propagate_update(double timestamp);
 
+        /// Manager parameters
+        VioManagerOptions params;
 
         /// Our master state object :D
         State* state;
@@ -253,14 +257,8 @@ namespace ov_msckf {
         double timelastupdate = -1;
         double distance = 0;
 
-        // Start delay we should wait before inserting the first slam feature
-        double dt_statupdelay;
+        // Startup time of the filter
         double startup_time = -1;
-
-        // Camera intrinsics that we will load in
-        std::map<size_t,bool> camera_fisheye;
-        std::map<size_t,Eigen::VectorXd> camera_calib;
-        std::map<size_t,std::pair<int,int>> camera_wh;
 
     };
 

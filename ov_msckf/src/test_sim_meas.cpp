@@ -57,6 +57,7 @@ int main(int argc, char** argv)
 #ifdef ROS_AVAILABLE
     ros::init(argc, argv, "test_sim_meas");
     ros::NodeHandle nh("~");
+    params = parse_ros_nodehandler(nh);
 #else
     params = parse_command_line_arguments(argc, argv);
 #endif

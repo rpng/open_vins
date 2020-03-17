@@ -29,8 +29,10 @@
 #include <cv_bridge/cv_bridge.h>
 
 #include "core/VioManager.h"
+#include "core/VioManagerOptions.h"
 #include "core/RosVisualizer.h"
 #include "utils/dataset_reader.h"
+#include "utils/parse_ros.h"
 
 
 using namespace ov_msckf;
@@ -49,7 +51,8 @@ int main(int argc, char** argv)
     ros::NodeHandle nh("~");
 
     // Create our VIO system
-    sys = new VioManager(nh);
+    VioManagerOptions params = parse_ros_nodehandler(nh);
+    sys = new VioManager(params);
     viz = new RosVisualizer(nh, sys);
 
 
@@ -59,8 +62,7 @@ int main(int argc, char** argv)
 
     // Our camera topics (left and right stereo)
     std::string topic_imu;
-    std::string topic_camera0;
-    std::string topic_camera1;
+    std::string topic_camera0, topic_camera1;
     nh.param<std::string>("topic_imu", topic_imu, "/imu0");
     nh.param<std::string>("topic_camera0", topic_camera0, "/cam0/image_raw");
     nh.param<std::string>("topic_camera1", topic_camera1, "/cam1/image_raw");

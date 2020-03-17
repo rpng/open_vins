@@ -3,11 +3,8 @@ cmake_minimum_required(VERSION 2.8.8)
 # Project name
 project(ov_eval)
 
-# Include our cmake files
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
-
 # Find catkin (the ROS build system)
-#find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs)
 
 # Include libraries
 find_package(Eigen3 REQUIRED)

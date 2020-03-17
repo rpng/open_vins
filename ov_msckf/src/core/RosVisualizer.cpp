@@ -600,20 +600,20 @@ void RosVisualizer::sim_save_total_state_to_file() {
 
         // TIMEOFF: Get the current true time offset
         of_state_gt.precision(7);
-        of_state_gt << _sim->get_true_imucamdt() << " ";
+        of_state_gt << _sim->get_true_paramters().calib_camimu_dt << " ";
         of_state_gt.precision(0);
         of_state_gt << state->_options.num_cameras << " ";
         of_state_gt.precision(6);
 
         // CALIBRATION: Write the camera values to file
-        assert(state->_options.num_cameras==_sim->get_num_cameras());
+        assert(state->_options.num_cameras==_sim->get_true_paramters().state_options.num_cameras);
         for(int i=0; i<state->_options.num_cameras; i++) {
             // Intrinsics values
-            of_state_gt << _sim->get_true_intrinsics().at(i)(0) << " " << _sim->get_true_intrinsics().at(i)(1) << " " << _sim->get_true_intrinsics().at(i)(2) << " " << _sim->get_true_intrinsics().at(i)(3) << " ";
-            of_state_gt << _sim->get_true_intrinsics().at(i)(4) << " " << _sim->get_true_intrinsics().at(i)(5) << " " << _sim->get_true_intrinsics().at(i)(6) << " " << _sim->get_true_intrinsics().at(i)(7) << " ";
+            of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(1) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(2) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(3) << " ";
+            of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(5) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(6) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(7) << " ";
             // Rotation and position
-            of_state_gt << _sim->get_true_extrinsics().at(i)(0) << " " << _sim->get_true_extrinsics().at(i)(1) << " " << _sim->get_true_extrinsics().at(i)(2) << " " << _sim->get_true_extrinsics().at(i)(3) << " ";
-            of_state_gt << _sim->get_true_extrinsics().at(i)(4) << " " << _sim->get_true_extrinsics().at(i)(5) << " " << _sim->get_true_extrinsics().at(i)(6) << " ";
+            of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(1) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(2) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(3) << " ";
+            of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(5) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(6) << " ";
         }
 
         // New line

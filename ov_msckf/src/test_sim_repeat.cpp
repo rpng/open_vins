@@ -32,12 +32,12 @@
 
 #ifdef ROS_AVAILABLE
 #include <ros/ros.h>
-#include "utils/parse_ros.h"
 #endif
 
 #include "sim/Simulator.h"
 #include "core/VioManagerOptions.h"
 #include "utils/parse_cmd.h"
+#include "utils/parse_ros.h"
 
 
 using namespace ov_msckf;
@@ -63,7 +63,8 @@ int main(int argc, char** argv)
     VioManagerOptions params1;
 #ifdef ROS_AVAILABLE
     ros::init(argc, argv, "test_sim_repeat");
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh1("~");
+    params1 = parse_ros_nodehandler(nh1);
 #else
     params1 = parse_command_line_arguments(argc, argv);
 #endif
@@ -109,8 +110,8 @@ int main(int argc, char** argv)
     // Create the simulator
     VioManagerOptions params2;
 #ifdef ROS_AVAILABLE
-    ros::init(argc, argv, "test_sim_repeat");
-    ros::NodeHandle nh("~");
+    ros::NodeHandle nh2("~");
+    params2 = parse_ros_nodehandler(nh2);
 #else
     params2 = parse_command_line_arguments(argc, argv);
 #endif

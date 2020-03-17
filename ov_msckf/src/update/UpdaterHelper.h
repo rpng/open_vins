@@ -22,7 +22,6 @@
 #define OV_MSCKF_UPDATER_HELPER_H
 
 
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 
 #include "feat/Feature.h"

@@ -32,13 +32,13 @@ Simulator::Simulator(VioManagerOptions& params_) {
     //===============================================================
     //===============================================================
 
-    // Store a copy of our params
-    this->params = params_;
-
     // Nice startup message
     printf("=======================================\n");
     printf("VISUAL-INERTIAL SIMULATOR STARTING\n");
     printf("=======================================\n");
+
+    // Store a copy of our params
+    this->params = params_;
 
     // Load the groundtruth trajectory and its spline
     load_data(params.sim_traj_path);
@@ -113,35 +113,29 @@ Simulator::Simulator(VioManagerOptions& params_) {
     gen_meas_imu.seed(params.sim_seed_measurements);
 
     // Create generator for our camera
-    for(int i=0; i<params.max_cameras; i++) {
+    for(int i=0; i<params.state_options.num_cameras; i++) {
         gen_meas_cams.push_back(std::mt19937(params.sim_seed_measurements));
         gen_meas_cams.at(i).seed(params.sim_seed_measurements);
     }
 
     // Debug print
-    printf("SIMULATION PARAMETERS:\n");
     params.print_simulation();
 
     //===============================================================
     //===============================================================
 
     // Debug print
-    printf("ESTIMATOR PARAMETERS:\n");
     params.print_estimator();
 
     // Check that the max cameras matches the size of our cam matrices
-    if(params.max_cameras != (int)params.camera_fisheye.size()) {
+    if(params.state_options.num_cameras != (int)params.camera_fisheye.size()) {
         printf(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
-        printf(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(), params.max_cameras);
+        printf(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(), params.state_options.num_cameras);
         std::exit(EXIT_FAILURE);
     }
 
     // Debug print
-    printf("STATE PARAMETERS:\n");
     params.print_state();
-
-    // Debug print
-    printf("NOISE PARAMETERS:\n");
     params.print_noise();
 
 
@@ -149,16 +143,16 @@ Simulator::Simulator(VioManagerOptions& params_) {
     //===============================================================
 
 
-//    // Get if we should perturb the initial state estimates for this system
-//    bool should_perturb;
-//    nh.param<bool>("sim_do_perturbation", should_perturb, false);
-//
-//    // One std generator
-//    std::normal_distribution<double> w(0,1);
-//
-//    // Perturb all calibration if we should
-//    if(should_perturb) {
-//
+
+    // One std generator
+    std::normal_distribution<double> w(0,1);
+
+    // Perturb all calibration if we should
+    if(params.sim_do_perturbation) {
+
+        // TODO: actually re-do this part...
+        assert(false);
+
 //        // cam imu offset
 //        double temp = calib_camimu_dt+0.01*w(gen_state_perturb);
 //        nh.setParam("calib_camimu_dt", temp);
@@ -209,8 +203,8 @@ Simulator::Simulator(VioManagerOptions& params_) {
 //            nh.setParam("T_C"+std::to_string(i)+"toI", matrix_TCtoI);
 //
 //        }
-//
-//    }
+
+    }
 
     //===============================================================
     //===============================================================
@@ -225,7 +219,7 @@ Simulator::Simulator(VioManagerOptions& params_) {
     // Loop through each camera
     // NOTE: we loop through cameras here so that the feature map for camera 1 will always be the same
     // NOTE: thus when we add more cameras the first camera should get the same measurements
-    for(int i=0; i<params.max_cameras; i++) {
+    for(int i=0; i<params.state_options.num_cameras; i++) {
 
         // Reset the start time
         double time_synth = spline.get_start_time();
@@ -354,20 +348,20 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
     // Now add noise to these measurements
     double dt = 1.0/params.sim_freq_imu;
     std::normal_distribution<double> w(0,1);
-    wm(0) = omega_inI(0) + true_bias_gyro(0) + params.gyroscope_noise_density/std::sqrt(dt)*w(gen_meas_imu);
-    wm(1) = omega_inI(1) + true_bias_gyro(1) + params.gyroscope_noise_density/std::sqrt(dt)*w(gen_meas_imu);
-    wm(2) = omega_inI(2) + true_bias_gyro(2) + params.gyroscope_noise_density/std::sqrt(dt)*w(gen_meas_imu);
-    am(0) = accel_inI(0) + true_bias_accel(0) + params.accelerometer_noise_density/std::sqrt(dt)*w(gen_meas_imu);
-    am(1) = accel_inI(1) + true_bias_accel(1) + params.accelerometer_noise_density/std::sqrt(dt)*w(gen_meas_imu);
-    am(2) = accel_inI(2) + true_bias_accel(2) + params.accelerometer_noise_density/std::sqrt(dt)*w(gen_meas_imu);
+    wm(0) = omega_inI(0) + true_bias_gyro(0) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+    wm(1) = omega_inI(1) + true_bias_gyro(1) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+    wm(2) = omega_inI(2) + true_bias_gyro(2) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+    am(0) = accel_inI(0) + true_bias_accel(0) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+    am(1) = accel_inI(1) + true_bias_accel(1) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+    am(2) = accel_inI(2) + true_bias_accel(2) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
 
     // Move the biases forward in time
-    true_bias_gyro(0) += params.gyroscope_random_walk*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_gyro(1) += params.gyroscope_random_walk*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_gyro(2) += params.gyroscope_random_walk*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_accel(0) += params.accelerometer_random_walk*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_accel(1) += params.accelerometer_random_walk*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_accel(2) += params.accelerometer_random_walk*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_gyro(0) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_gyro(1) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_gyro(2) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_accel(0) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_accel(1) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+    true_bias_accel(2) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
 
     // Append the current true bias to our history
     hist_true_bias_time.push_back(timestamp_last_imu);
@@ -404,7 +398,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
     }
 
     // Loop through each camera
-    for(int i=0; i<params.max_cameras; i++) {
+    for(int i=0; i<params.state_options.num_cameras; i++) {
 
         // Get the uv features for this frame
         std::vector<std::pair<size_t,Eigen::VectorXf>> uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
@@ -428,8 +422,8 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
         // Loop through and add noise to each uv measurement
         std::normal_distribution<double> w(0,1);
         for(size_t j=0; j<uvs.size(); j++) {
-            uvs.at(j).second(0) += params.up_msckf_sigma_px*w(gen_meas_cams.at(i));
-            uvs.at(j).second(1) += params.up_msckf_sigma_px*w(gen_meas_cams.at(i));
+            uvs.at(j).second(0) += params.msckf_options.sigma_pix*w(gen_meas_cams.at(i));
+            uvs.at(j).second(1) += params.msckf_options.sigma_pix*w(gen_meas_cams.at(i));
         }
 
         // Push back for this camera
@@ -516,11 +510,11 @@ std::vector<std::pair<size_t,Eigen::VectorXf>> Simulator::project_pointcloud(con
                                                                              int camid, const std::unordered_map<size_t,Eigen::Vector3d> &feats) {
 
     // Assert we have good camera
-    assert(camid < params.max_cameras);
-    assert((int)params.camera_fisheye.size() == params.max_cameras);
-    assert((int)params.camera_wh.size() == params.max_cameras);
-    assert((int)params.camera_intrinsics.size() == params.max_cameras);
-    assert((int)params.camera_extrinsics.size() == params.max_cameras);
+    assert(camid < params.state_options.num_cameras);
+    assert((int)params.camera_fisheye.size() == params.state_options.num_cameras);
+    assert((int)params.camera_wh.size() == params.state_options.num_cameras);
+    assert((int)params.camera_intrinsics.size() == params.state_options.num_cameras);
+    assert((int)params.camera_extrinsics.size() == params.state_options.num_cameras);
 
     // Grab our extrinsic and intrinsic values
     Eigen::Matrix<double,3,3> R_ItoC = quat_2_Rot(params.camera_extrinsics.at(camid).block(0,0,4,1));
@@ -601,11 +595,11 @@ void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vect
                                 int camid, std::unordered_map<size_t,Eigen::Vector3d> &feats, int numpts) {
 
     // Assert we have good camera
-    assert(camid < params.max_cameras);
-    assert((int)params.camera_fisheye.size() == params.max_cameras);
-    assert((int)params.camera_wh.size() == params.max_cameras);
-    assert((int)params.camera_intrinsics.size() == params.max_cameras);
-    assert((int)params.camera_extrinsics.size() == params.max_cameras);
+    assert(camid < params.state_options.num_cameras);
+    assert((int)params.camera_fisheye.size() == params.state_options.num_cameras);
+    assert((int)params.camera_wh.size() == params.state_options.num_cameras);
+    assert((int)params.camera_intrinsics.size() == params.state_options.num_cameras);
+    assert((int)params.camera_extrinsics.size() == params.state_options.num_cameras);
 
     // Grab our extrinsic and intrinsic values
     Eigen::Matrix<double,3,3> R_ItoC = quat_2_Rot(params.camera_extrinsics.at(camid).block(0,0,4,1));

@@ -46,6 +46,22 @@ namespace ov_type {
 
 
         /**
+         * @brief Returns a string representation of this enum value.
+         * Used to debug print out what the user has selected as the representation.
+         * @param feat_representation  Representation we want to check
+         * @return String version of the passed enum
+         */
+        static inline std::string as_string(Representation feat_representation) {
+            if(feat_representation==GLOBAL_3D) return "GLOBAL_3D";
+            if(feat_representation==GLOBAL_FULL_INVERSE_DEPTH) return "GLOBAL_FULL_INVERSE_DEPTH";
+            if(feat_representation==ANCHORED_3D) return "ANCHORED_3D";
+            if(feat_representation==ANCHORED_FULL_INVERSE_DEPTH) return "ANCHORED_FULL_INVERSE_DEPTH";
+            if(feat_representation==ANCHORED_MSCKF_INVERSE_DEPTH) return "ANCHORED_MSCKF_INVERSE_DEPTH";
+            return "UNKNOWN";
+        }
+
+
+        /**
          * @brief Helper function that checks if the passed feature representation is a relative or global
          * @param feat_representation Representation we want to check
          * @return True if it is a relative representation

@@ -84,7 +84,7 @@ namespace ov_core {
             std::getline(file, line);
 
             // Loop through each line in the file
-            while (std::getline(file, line) && ros::ok()) {
+            while (std::getline(file, line)) {
                 // Loop variables
                 int i = 0;
                 std::istringstream s(line);
@@ -127,7 +127,7 @@ namespace ov_core {
             // Loop through gt states and find the closest time stamp
             double closest_time = INFINITY;
             auto it0 = gt_states.begin();
-            while(it0 != gt_states.end() && ros::ok()) {
+            while(it0 != gt_states.end()) {
                 if(std::abs(it0->first-timestep) < std::abs(closest_time-timestep)) {
                     closest_time = it0->first;
                 }

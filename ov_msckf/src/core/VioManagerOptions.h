@@ -25,6 +25,11 @@
 #include <iostream>
 #include <Eigen/Eigen>
 
+
+#include "state/StateOptions.h"
+#include "state/Propagator.h"
+#include "update/UpdaterOptions.h"
+#include "feat/FeatureInitializerOptions.h"
 #include "utils/colors.h"
 #include "utils/quat_ops.h"
 
@@ -47,61 +52,64 @@ namespace ov_msckf {
     struct VioManagerOptions {
 
 
-
         // ESTIMATOR ===============================
 
-        /// Number of cameras we should process. These should all be time synchronized. 1=mono, 2=stereo/binocular
-        int max_cameras = 1;
-
-        /// If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.
-        bool use_stereo = true;
+        /// Core state options (e.g. number of cameras, use fej, stereo, what calibration to enable etc)
+        StateOptions state_options;
 
         /// Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)
         Eigen::Vector3d gravity = {0.0, 0.0, 9.81};
 
+        /// Delay, in seconds, that we should wait from init before we start estimating SLAM features
+        double dt_slam_delay = 2.0;
+
+        /// Amount of time we will initialize over (seconds)
+        double init_window_time = 1.0;
+
+        ///  Variance threshold on our acceleration to be classified as moving
+        double init_imu_thresh = 1.0;
 
         /**
          * @brief This function will print out all estimator settings loaded.
          * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
          */
         void print_estimator() {
-            printf("\t- max_cameras: %d\n", max_cameras);
-            printf("\t- use_stereo: %d\n", use_stereo);
+            printf("ESTIMATOR PARAMETERS:\n");
+            state_options.print();
             printf("\t- gravity: %.3f, %.3f, %.3f\n", gravity(0), gravity(1), gravity(2));
+            printf("\t- gravity: %.1f\n", dt_slam_delay);
+            printf("\t- init_window_time: %.2f\n", init_window_time);
+            printf("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
         }
-
-
 
         // NOISE / CHI2 ============================
 
-        /// IMU gyroscope "white noise" (rad/s/sqrt(hz))
-        double gyroscope_noise_density = 1.6968e-04;
+        /// IMU noise (gyroscope and accelerometer)
+        Propagator::NoiseManager imu_noises;
 
-        /// IMU accelerometer "white noise" (m/s^2/sqrt(hz))
-        double accelerometer_noise_density = 2.0000e-3;
+        /// Update options for MSCKF features (pixel noise and chi2 multiplier)
+        UpdaterOptions msckf_options;
 
-        /// IMU gyroscope "random walk" (rad/s^2/sqrt(hz))
-        double gyroscope_random_walk = 1.9393e-05;
+        /// Update options for SLAM features (pixel noise and chi2 multiplier)
+        UpdaterOptions slam_options;
 
-        /// IMU accelerometer "random walk" (m/s^3/sqrt(hz))
-        double accelerometer_random_walk = 3.0000e-03;
-
-        /// Image reprojection pixel noise on the *raw* image (this is not on the normalized image plane).
-        double up_msckf_sigma_px = 1;
-
+        /// Update options for ARUCO features (pixel noise and chi2 multiplier)
+        UpdaterOptions aruco_options;
 
         /**
          * @brief This function will print out all noise parameters loaded.
          * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
          */
         void print_noise() {
-            printf("\t- gyroscope_noise_density: %.2f\n", gyroscope_noise_density);
-            printf("\t- accelerometer_noise_density: %.2f\n", accelerometer_noise_density);
-            printf("\t- gyroscope_random_walk: %.2f\n", gyroscope_random_walk);
-            printf("\t- accelerometer_random_walk: %.2f\n", accelerometer_random_walk);
-            printf("\t- up_msckf_sigma_px: %.2f\n", up_msckf_sigma_px);
+            printf("NOISE PARAMETERS:\n");
+            imu_noises.print();
+            printf("\tUpdater MSCKF Feats:\n");
+            msckf_options.print();
+            printf("\tUpdater SLAM Feats:\n");
+            slam_options.print();
+            printf("\tUpdater ARUCO Tags:\n");
+            aruco_options.print();
         }
-
 
         // STATE DEFAULTS ==========================
 
@@ -120,15 +128,14 @@ namespace ov_msckf {
         /// Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.
         std::map<size_t,std::pair<int,int>> camera_wh;
 
-
-
         /**
          * @brief This function will print out all simulated parameters loaded.
          * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
          */
         void print_state() {
+            printf("STATE PARAMETERS:\n");
             printf("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
-            for(int n=0; n<max_cameras; n++) {
+            for(int n=0; n<state_options.num_cameras; n++) {
                 std::cout << "cam_" << n << "_fisheye:" << camera_fisheye.at(n) << std::endl;
                 std::cout << "cam_" << n << "_wh:" << endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;
                 std::cout << "cam_" << n << "_intrinsic(0:3):" << endl << camera_intrinsics.at(n).block(0,0,4,1).transpose() << std::endl;
@@ -142,16 +149,50 @@ namespace ov_msckf {
             }
         }
 
-
         // TRACKERS ===============================
 
+        /// If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.
+        bool use_stereo = true;
+
+        /// If we should use KLT tracking, or descriptor matcher
+        bool use_klt = true;
+
+        /// If should extract aruco tags and estimate them
+        bool use_aruco = true;
+
+        /// Will half the resolution of the aruco tag image (will be faster)
+        bool downsize_aruco = true;
+
         /// The number of points we should extract and track in *each* image frame. This highly effects the computation required for tracking.
-        int num_pts = 100;
+        int num_pts = 150;
 
+        /// Fast extraction threshold
+        int fast_threshold = 20;
 
+        /// Number of grids we should split column-wise to do feature extraction in
+        int grid_x = 5;
 
+        /// Number of grids we should split row-wise to do feature extraction in
+        int grid_y = 5;
 
+        /// Will check after doing KLT track and remove any features closer than this
+        int min_px_dist = 10;
 
+        /// KNN ration between top two descriptor matcher which is required to be a good match
+        double knn_ratio = 0.85;
+
+        /// Parameters used by our feature initialize / triangulator
+        FeatureInitializerOptions featinit_options;
+
+        /**
+         * @brief This function will print out all parameters releated to our visual trackers.
+         */
+        void print_trackers() {
+            printf("FEATURE TRACKING PARAMETERS:\n");
+            printf("\t- num_pts: %d\n", num_pts);
+            printf("\t- use_stereo: %d\n", use_stereo);
+            featinit_options.print();
+        }
 
         // SIMULATOR ===============================
 
@@ -176,13 +217,15 @@ namespace ov_msckf {
         /// Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.
         int sim_seed_measurements = 0;
 
-
+        /// If we should perturb the calibration that the estimator starts with
+        bool sim_do_perturbation = false;
 
         /**
          * @brief This function will print out all simulated parameters loaded.
          * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
          */
         void print_simulation() {
+            printf("SIMULATION PARAMETERS:\n");
             printf(BOLDRED "\t- state init seed: %d \n" RESET, sim_seed_state_init);
             printf(BOLDRED "\t- perturb seed: %d \n" RESET, sim_seed_preturb);
             printf(BOLDRED "\t- measurement seed: %d \n" RESET, sim_seed_measurements);

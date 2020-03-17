@@ -34,7 +34,6 @@
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
 
-#include <ros/ros.h>
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
