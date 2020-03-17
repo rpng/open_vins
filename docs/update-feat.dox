@@ -466,4 +466,37 @@ The Jacobians with respect to the IMU-camera extrinsics are:
 
 
 
+
+@subsection feat-rep-anchor-inv3 Anchored Inverse Depth (MSCKF Single Depth Version)
+
+This feature representation is based on the MSCKF representation @cite Mourikis2007ICRA, and the the single depth from VINS-Mono @cite Qin2018TRO.
+As compared to the implementation in @cite Qin2018TRO, we are careful about how we handle treating of the bearing of the feature.
+During initialization we initialize a full 3D feature and then follow that by marginalize the bearing portion of it leaving the depth in the state vector.
+The marginalized bearing is then fixed for all future linearizations.
+
+Then during update, we perform nullspace projection at every timestep to remove the feature dependence on this bearing.
+To do so, we need at least *two* sets of UV measurements to perform this bearing nullspace operation since we loose two dimensions of the feature in the process.
+We can define the feature measurement function as follows:
+
+\f{align*}{
+{}^{G}\mathbf{p}_f
+&= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I})  \\
+&=
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\
+&=
+{}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top\Big(\frac{1}{\rho}\hat{\mathbf{b}}-{}^{C}\mathbf{p}_{I}\Big) + {}^{G}\mathbf{p}_{I_a} \\
+\text{where} &\quad \boldsymbol\lambda = \begin{bmatrix} \rho \end{bmatrix}
+\f}
+
+In the above case we have defined a bearing \f$\hat{\mathbf{b}}\f$ which is the marginalized bearing of the feature after initialization.
+After collecting two measurement, we can nullspace project to remove the Jacobian in respect to this bearing variable.
+
+
+
+
+
+
+
+
+
 */

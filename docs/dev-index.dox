@@ -42,7 +42,7 @@ As compared to passing a Jacobian matrix that is the full size of state wide, we
 For example, if we have a global 3D SLAM feature update (implemented in @ref ov_msckf::UpdaterSLAM) our Jacobian will only be a function of the newest clone and the feature.
 This means that our Jacobian is only of size 9 as compared to the size our state.
 In addition to the matrix containing the Jacobian elements, we need to know what order this Jacobian is in, thus we pass a vector of types which correspond to the state elements our Jacobian is a function of.
-Thus in our example, it would contain two types: our newest clone @ref ov_core::PoseJPL and current landmark feature @ref ov_core::Landmark with our Jacobian being the type size of the pose plus the type size of the landmark in width.
+Thus in our example, it would contain two types: our newest clone @ref ov_type::PoseJPL and current landmark feature @ref ov_type::Landmark with our Jacobian being the type size of the pose plus the type size of the landmark in width.
 
 
 

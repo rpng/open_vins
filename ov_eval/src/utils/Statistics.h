@@ -32,8 +32,10 @@ namespace ov_eval {
 
 
     /**
-     * @brief Stat object for a given set scalar time series values.
+     * @brief Statistics object for a given set scalar time series values.
+     *
      * Ensure that you call the calculate() function to update the values before using them.
+     * This will compute all the final results from the values in @ref values vector.
      */
     struct Statistics {
 

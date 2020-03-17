@@ -50,7 +50,7 @@ namespace ov_msckf {
     /**
      * @brief Master simulator class that generated visual-inertial measurements
      *
-     * Given a trajectory this will generate a SE(3) BsplineSE3 for that trajectory.
+     * Given a trajectory this will generate a SE(3) @ref ov_core::BsplineSE3 for that trajectory.
      * This allows us to get the inertial measurement information at each timestep during this trajectory.
      * After creating the bspline we will generate an environmental feature map which will be used as our feature measurements.
      * This map will be projected into the frame at each timestep to get our "raw" uv measurements.

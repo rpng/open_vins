@@ -152,10 +152,33 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         // Get the Jacobian for this feature
         UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
 
+        // If we are doing the single feature representation, then we need to remove the bearing portion
+        // To do so, we project the bearing portion onto the state and depth Jacobians and the residual.
+        // This allows us to directly initialize the feature as a depth-old feature
+        if(feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+
+            // Append the Jacobian in respect to the depth of the feature
+            Eigen::MatrixXd H_xf = H_x;
+            H_xf.conservativeResize(H_x.rows(), H_x.cols()+1);
+            H_xf.block(0, H_x.cols(), H_x.rows(), 1) = H_f.block(0,H_f.cols()-1,H_f.rows(),1);
+            H_f.conservativeResize(H_f.rows(), H_f.cols()-1);
+
+            // Nullspace project the bearing portion
+            // This takes into account that we have marginalized the bearing already
+            // Thus this is crucial to ensuring estimator consistency as we are not taking the bearing to be true
+            UpdaterHelper::nullspace_project_inplace(H_f, H_xf, res);
+
+            // Split out the state portion and feature portion
+            H_x = H_xf.block(0,0,H_xf.rows(),H_xf.cols()-1);
+            H_f = H_xf.block(0,H_xf.cols()-1,H_xf.rows(),1);
+
+        }
+
         // Create feature pointer (we will always create it of size three since we initialize the single invese depth as a msckf anchored representation)
-        Landmark* landmark = new Landmark(3);
+        int landmark_size = (feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 1 : 3;
+        Landmark* landmark = new Landmark(landmark_size);
         landmark->_featid = feat.featid;
-        landmark->_feat_representation = feat.feat_representation;
+        landmark->_feat_representation = feat_rep;
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
             landmark->_anchor_cam_id = feat.anchor_cam_id;
             landmark->_anchor_clone_timestamp = feat.anchor_clone_timestamp;
@@ -173,12 +196,6 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         // Try to initialize, delete new pointer if we failed
         double chi2_multipler = ((int)feat.featid < state->_options.max_aruco_features)? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
         if (StateHelper::initialize(state, landmark, Hx_order, H_x, H_f, R, res, chi2_multipler)) {
-            // If we are doing single depth, then we have initialized an anchored MSCKF feature
-            // Now we will convert that feature into only its depth by marginalizing the bearing of the feature
-            if(feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
-                StateHelper::convert_msckfslam_to_singledepth(state, landmark);
-            }
-            // Finally insert the feature into our state
             state->_features_SLAM.insert({(*it2)->featid, landmark});
             (*it2)->to_delete = true;
             it2++;
@@ -198,9 +215,6 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
     printf("[SLAM-DELAY]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
-
-
-
 
 
 
@@ -235,9 +249,17 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
             ct_meas += (*it0)->timestamps[pair.first].size();
         }
 
+        // Get the landmark and its representation
+        // For single depth representation we need at least two measurement
+        // This is because we do nullspace projection
+        Landmark* landmark = state->_features_SLAM.at((*it0)->featid);
+        int required_meas = (landmark->_feat_representation==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 3 : 2;
+
         // Remove if we don't have enough
         if(ct_meas < 1) {
             (*it0)->to_delete = true;
+            it0 = feature_vec.erase(it0);
+        } else if(ct_meas < required_meas) {
             it0 = feature_vec.erase(it0);
         } else {
             it0++;

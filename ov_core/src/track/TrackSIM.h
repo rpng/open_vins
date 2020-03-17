@@ -31,7 +31,7 @@ namespace ov_core {
     /**
      * @brief Simulated tracker for when we already have uv measurements!
      *
-     * This class should be used when we are using the @ref Simulator class to generate measurements.
+     * This class should be used when we are using the @ref ov_msckf::Simulator class to generate measurements.
      * It simply takes the resulting simulation data and appends it to the internal feature database.
      */
     class TrackSIM : public TrackBase {

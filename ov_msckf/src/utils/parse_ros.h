@@ -17,7 +17,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifdef ROS_AVAILABLE
+#if defined(ROS_AVAILABLE) || defined(DOXYGEN)
 #ifndef OV_MSCKF_PARSE_ROSHANDLER_H
 #define OV_MSCKF_PARSE_ROSHANDLER_H
 
