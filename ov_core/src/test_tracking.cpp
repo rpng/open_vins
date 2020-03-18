@@ -96,12 +96,12 @@ int main(int argc, char** argv)
     int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
     bool do_downsizing;
-    nh.param<int>("num_pts", num_pts, 1000);
+    nh.param<int>("num_pts", num_pts, 100);
     nh.param<int>("num_aruco", num_aruco, 1024);
-    nh.param<int>("clone_states", clone_states, 10);
+    nh.param<int>("clone_states", clone_states, 11);
     nh.param<int>("fast_threshold", fast_threshold, 15);
-    nh.param<int>("grid_x", grid_x, 5);
-    nh.param<int>("grid_y", grid_y, 3);
+    nh.param<int>("grid_x", grid_x, 10);
+    nh.param<int>("grid_y", grid_y, 8);
     nh.param<int>("min_px_dist", min_px_dist, 10);
     nh.param<double>("knn_ratio", knn_ratio, 0.85);
     nh.param<bool>("downsize_aruco", do_downsizing, false);
@@ -245,9 +245,9 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
                     
 
     // Process this new image
-    //extractor->feed_stereo(time0, img0, img1, 0, 1);
-    extractor->feed_monocular(time0, img0, 0);
-    extractor->feed_monocular(time0, img1, 1);
+    extractor->feed_stereo(time0, img0, img1, 0, 1);
+    //extractor->feed_monocular(time0, img0, 0);
+    //extractor->feed_monocular(time0, img1, 1);
 
 
     // Display the resulting tracks

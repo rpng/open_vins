@@ -262,7 +262,7 @@ namespace ov_msckf {
         std::vector<Eigen::Vector3d> good_features_MSCKF;
 
         // Timing variables
-        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6;
+        boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
 
         // Track how much distance we have traveled
         double timelastupdate = -1;

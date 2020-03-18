@@ -26,12 +26,6 @@ using namespace ov_core;
 
 void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
-    // Lock all our feeds (this prevents other threads from editing our data)
-    //std::vector<std::unique_lock<std::mutex>> lcks;
-    //for(size_t i=0; i<mtx_feeds.size(); i++) {
-    //    lcks.push_back(std::unique_lock<std::mutex>(mtx_feeds.at(i)));
-    //}
-
     // Get the largest width and height
     int max_width = -1;
     int max_height = -1;
@@ -82,12 +76,6 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
 
 void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
-    // Lock all our feeds (this prevents other threads from editing our data)
-    //std::vector<std::unique_lock<std::mutex>> lcks;
-    //for(size_t i=0; i<mtx_feeds.size(); i++) {
-    //    lcks.push_back(std::unique_lock<std::mutex>(mtx_feeds.at(i)));
-    //}
-
     // Get the largest width and height
     int max_width = -1;
     int max_height = -1;
@@ -106,7 +94,6 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
 
     // If new, then resize the current image
     if(image_new) img_out = cv::Mat(max_height,(int)img_last.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
-
 
     // Max tracks to show (otherwise it clutters up the screen)
     //size_t maxtracks = 10;
@@ -133,9 +120,10 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
                 if(feat->uvs[pair.first].size()-z > maxtracks)
                     break;
                 // Calculate what color we are drawing in
-                int color_r = r2-(int)(r1/feat->uvs[pair.first].size()*z);
-                int color_g = g2-(int)(g1/feat->uvs[pair.first].size()*z);
-                int color_b = b2-(int)(b1/feat->uvs[pair.first].size()*z);
+                bool is_stereo = (feat->uvs.size() > 1);
+                int color_r = (is_stereo? b2 : r2)-(int)((is_stereo? b1 : r1)/feat->uvs[pair.first].size()*z);
+                int color_g = (is_stereo? r2 : g2)-(int)((is_stereo? r1 : g1)/feat->uvs[pair.first].size()*z);
+                int color_b = (is_stereo? g2 : b2)-(int)((is_stereo? g1 : b1)/feat->uvs[pair.first].size()*z);
                 // Draw current point
                 cv::Point2f pt_c(feat->uvs[pair.first].at(z)(0),feat->uvs[pair.first].at(z)(1));
                 cv::circle(img_temp, pt_c, 2, cv::Scalar(color_r,color_g,color_b), CV_FILLED);

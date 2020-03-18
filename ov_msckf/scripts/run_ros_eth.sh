@@ -11,7 +11,7 @@ source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
 
 # config locations
 modes=(
-    "mono"
+#    "mono"
     "stereo"
 )
 
@@ -26,8 +26,8 @@ bagnames=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/timings"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_newstereotracking/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_newstereotracking/timings"
 bag_path="/home/patrick/datasets/eth"
 
 

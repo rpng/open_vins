@@ -434,8 +434,9 @@ void VioManager::do_feature_propagate_update(double timestamp) {
         feats_slam_UPDATE_TEMP.insert(feats_slam_UPDATE_TEMP.end(), featsup_TEMP.begin(), featsup_TEMP.end());
     }
     feats_slam_UPDATE = feats_slam_UPDATE_TEMP;
-    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
     rT5 =  boost::posix_time::microsec_clock::local_time();
+    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
+    rT6 =  boost::posix_time::microsec_clock::local_time();
 
 
     //===================================================================================
@@ -487,7 +488,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
             trackARUCO->set_calibration(cameranew_calib, cameranew_fisheye, true);
         }
     }
-    rT6 =  boost::posix_time::microsec_clock::local_time();
+    rT7 =  boost::posix_time::microsec_clock::local_time();
 
 
     //===================================================================================
@@ -500,11 +501,11 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     printf(BLUE "[TIME]: %.4f seconds for propagation\n" RESET,(rT3-rT2).total_microseconds() * 1e-6);
     printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d features)\n" RESET,(rT4-rT3).total_microseconds() * 1e-6, (int)good_features_MSCKF.size());
     if(state->_options.max_slam_features > 0) {
-        printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET,(rT5-rT4).total_microseconds() * 1e-6, (int)feats_slam_DELAYED.size());
         printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET,(rT5-rT4).total_microseconds() * 1e-6, (int)feats_slam_UPDATE.size());
+        printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET,(rT6-rT5).total_microseconds() * 1e-6, (int)feats_slam_DELAYED.size());
     }
-    printf(BLUE "[TIME]: %.4f seconds for marginalization (%d clones in state)\n" RESET,(rT6-rT5).total_microseconds() * 1e-6, (int)state->_clones_IMU.size());
-    printf(BLUE "[TIME]: %.4f seconds for total\n" RESET,(rT6-rT1).total_microseconds() * 1e-6);
+    printf(BLUE "[TIME]: %.4f seconds for marginalization (%d clones in state)\n" RESET,(rT7-rT6).total_microseconds() * 1e-6, (int)state->_clones_IMU.size());
+    printf(BLUE "[TIME]: %.4f seconds for total\n" RESET,(rT7-rT1).total_microseconds() * 1e-6);
 
     // Update our distance traveled
     if(timelastupdate != -1 && state->_clones_IMU.find(timelastupdate) != state->_clones_IMU.end()) {
