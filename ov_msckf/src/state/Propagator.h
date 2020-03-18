@@ -222,6 +222,7 @@ namespace ov_msckf {
 
         /// Estimate for time offset at last propagation time
         double last_prop_time_offset = -INFINITY;
+        bool have_last_prop_time_offset = false;
 
         /**
          * @brief Propagates the state forward using the imu data and computes the noise covariance and state-transition

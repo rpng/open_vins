@@ -24,7 +24,7 @@
  * @namespace ov_msckf
  *
  * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) @cite Mourikis2007ICRA which leverages inertial and visual feature information.
- * We want to stress that this is not a "vanilla" implementation of the filter and instead has many more features and improvements over the original.
+ * We want to stress that this is **not** a "vanilla" implementation of the filter and instead has many more features and improvements over the original.
  * In additional we have a modular type system which allows us to initialize and marginalizing variables out of state with ease.
  * The key features of the system are the following:
  *
@@ -33,7 +33,7 @@
  * - Camera intrinsics and extrinsic online calibration
  * - Time offset between camera and imu calibration
  * - Standard MSCKF features with nullspace projection
- * - 3d slam feature support (with five different representations)
+ * - 3d SLAM feature support (with six different representations)
  * - Generic simulation of trajectories through and environment (see @ref ov_msckf::Simulator)
  *
  * We suggest those that are interested to first checkout the State and Propagator which should provide a nice introduction to the code.

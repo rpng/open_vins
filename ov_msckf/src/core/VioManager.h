@@ -111,6 +111,7 @@ namespace ov_msckf {
             // Initialize the system
             state->_imu->set_value(imustate.block(1,0,16,1));
             state->_timestamp = imustate(0,0);
+            startup_time = imustate(0,0);
             is_initialized_vio = true;
 
             // Print what we init'ed with
@@ -127,6 +128,11 @@ namespace ov_msckf {
         /// If we are initialized or not
         bool intialized() {
             return is_initialized_vio;
+        }
+
+        /// Timestamp that the system was initialized at
+        double intialized_time() {
+            return startup_time;
         }
 
         /// Accessor to get the current state

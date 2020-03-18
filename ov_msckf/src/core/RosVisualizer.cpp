@@ -139,8 +139,8 @@ void RosVisualizer::visualize() {
 
 void RosVisualizer::visualize_odometry(double timestamp) {
 
-    // Return if we have not inited
-    if(!_app->intialized())
+    // Return if we have not inited and a second has passes
+    if(!_app->intialized() || (timestamp-_app->intialized_time()) < 1)
         return;
 
     // Get fast propagate state at the desired timestamp

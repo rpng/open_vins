@@ -255,6 +255,7 @@ bool VioManager::try_to_initialize() {
     //imu_val.block(13,0,3,1) << 0,0,0;
     state->_imu->set_value(imu_val);
     state->_timestamp = time0;
+    startup_time = time0;
 
     // Else we are good to go, print out our stats
     printf(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET,state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2),state->_imu->quat()(3));
@@ -279,11 +280,6 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     if(state->_timestamp >= timestamp) {
         printf(YELLOW "image received out of order (prop dt = %3f)\n" RESET,(timestamp-state->_timestamp));
         return;
-    }
-
-    // If we have just started up, we should record this time as the current time
-    if(startup_time == -1) {
-        startup_time = timestamp;
     }
 
     // Propagate the state forward to the current update time
@@ -503,8 +499,10 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     printf(BLUE "[TIME]: %.4f seconds for tracking\n" RESET,(rT2-rT1).total_microseconds() * 1e-6);
     printf(BLUE "[TIME]: %.4f seconds for propagation\n" RESET,(rT3-rT2).total_microseconds() * 1e-6);
     printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d features)\n" RESET,(rT4-rT3).total_microseconds() * 1e-6, (int)good_features_MSCKF.size());
-    if(state->_options.max_slam_features > 0)
-        printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d delayed, %d update)\n" RESET,(rT5-rT4).total_microseconds() * 1e-6, (int)feats_slam_DELAYED.size(), (int)feats_slam_UPDATE.size());
+    if(state->_options.max_slam_features > 0) {
+        printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET,(rT5-rT4).total_microseconds() * 1e-6, (int)feats_slam_DELAYED.size());
+        printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET,(rT5-rT4).total_microseconds() * 1e-6, (int)feats_slam_UPDATE.size());
+    }
     printf(BLUE "[TIME]: %.4f seconds for marginalization (%d clones in state)\n" RESET,(rT6-rT5).total_microseconds() * 1e-6, (int)state->_clones_IMU.size());
     printf(BLUE "[TIME]: %.4f seconds for total\n" RESET,(rT6-rT1).total_microseconds() * 1e-6);
 

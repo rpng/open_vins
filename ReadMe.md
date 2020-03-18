@@ -45,6 +45,7 @@ Please take a look at the feature list below for full details on what the system
     3. Anchored XYZ
     4. Anchored inverse depth
     5. Anchored MSCKF inverse depth
+    6. Anchored single inverse depth
 * Calibration of sensor intrinsics and extrinsics
     * Camera to IMU transform 
     * Camera to IMU time offset

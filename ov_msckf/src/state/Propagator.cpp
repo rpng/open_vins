@@ -49,8 +49,9 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     //===================================================================================
 
     // Set the last time offset value if we have just started the system up
-    if(last_prop_time_offset == -INFINITY) {
+    if(!have_last_prop_time_offset) {
         last_prop_time_offset = state->_calib_dt_CAMtoIMU->value()(0);
+        have_last_prop_time_offset = true;
     }
 
     // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
@@ -118,8 +119,9 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
 void Propagator::fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus) {
 
     // Set the last time offset value if we have just started the system up
-    if(last_prop_time_offset == -INFINITY) {
+    if(!have_last_prop_time_offset) {
         last_prop_time_offset = state->_calib_dt_CAMtoIMU->value()(0);
+        have_last_prop_time_offset = true;
     }
 
     // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
