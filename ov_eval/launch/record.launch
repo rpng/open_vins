@@ -2,7 +2,7 @@
 
 
     <!-- what ros bag to play -->
-    <arg name="bag_name"    default="indoor_45_2_snapdragon_with_gt" />
+    <arg name="bag_name"    default="indoor_forward_5_snapdragon_with_gt" />
     <arg name="bag_path"    default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv" />
 
 
