@@ -33,16 +33,16 @@
         <param name="init_window_time"       type="double" value="1.0" />
         <param name="init_imu_thresh"        type="double" value="0.8" />
         <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
-        <param name="feat_rep_msckf"         type="string" value="ANCHORED_3D" />
-        <param name="feat_rep_slam"          type="string" value="ANCHORED_3D" />
-        <param name="feat_rep_aruco"         type="string" value="ANCHORED_3D" />
+        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+        <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
         <param name="num_pts"          type="int"    value="200" />
-        <param name="fast_threshold"   type="int"    value="10" />
+        <param name="fast_threshold"   type="int"    value="15" />
         <param name="grid_x"           type="int"    value="5" />
-        <param name="grid_y"           type="int"    value="3" />
+        <param name="grid_y"           type="int"    value="5" />
         <param name="min_px_dist"      type="int"    value="5" />
         <param name="knn_ratio"        type="double" value="0.65" />
 
@@ -65,6 +65,8 @@
 
 
         <!-- camera intrinsics -->
+        <rosparam param="cam0_wh">[512, 512]</rosparam>
+        <rosparam param="cam1_wh">[512, 512]</rosparam>
         <param name="cam0_is_fisheye" type="bool" value="true" />
         <param name="cam1_is_fisheye" type="bool" value="true" />
         <rosparam param="cam0_k">[190.97847715128717, 190.9733070521226, 254.93170605935475, 256.8974428996504]</rosparam>

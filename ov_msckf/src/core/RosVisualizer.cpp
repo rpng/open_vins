@@ -139,6 +139,10 @@ void RosVisualizer::visualize() {
 
 void RosVisualizer::visualize_odometry(double timestamp) {
 
+    // Check if we have subscribers
+    if(pub_odomimu.getNumSubscribers()==0)
+        return;
+
     // Return if we have not inited and a second has passes
     if(!_app->intialized() || (timestamp-_app->intialized_time()) < 1)
         return;

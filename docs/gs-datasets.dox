@@ -23,12 +23,12 @@ Note that we also focus on the vicon room datasets as full 6 dof pose collection
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| Vicon Room 1 01 | 97 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_01_easy/V1_01_easy.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
-| Vicon Room 1 02 | 96 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_02_medium/V1_02_medium.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
-| Vicon Room 1 03 | 109 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_03_difficult/V1_03_difficult.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
-| Vicon Room 2 01 | 72 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_01_easy/V2_01_easy.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
-| Vicon Room 2 02 | 103 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_02_medium/V2_02_medium.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
-| Vicon Room 2 03 | 111 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_03_difficult/V2_03_difficult.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_eth.launch) |
+| Vicon Room 1 01 | 97 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_01_easy/V1_01_easy.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_eth.launch) |
+| Vicon Room 1 02 | 96 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_02_medium/V1_02_medium.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_eth.launch) |
+| Vicon Room 1 03 | 109 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_03_difficult/V1_03_difficult.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_eth.launch) |
+| Vicon Room 2 01 | 72 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_01_easy/V2_01_easy.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_eth.launch) |
+| Vicon Room 2 02 | 103 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_02_medium/V2_02_medium.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_eth.launch) |
+| Vicon Room 2 03 | 111 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_03_difficult/V2_03_difficult.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_eth.launch) |
 @m_enddiv
 
 
@@ -39,7 +39,7 @@ Note that we also focus on the vicon room datasets as full 6 dof pose collection
 The TUM [Visual-Inertial Dataset](https://vision.in.tum.de/data/datasets/visual-inertial-dataset) @cite Schubert2018IROS is a more recent dataset that was presented to provide a way to evaluate state-of-the-art visual inertial odometery approaches.
 As compared to the EuRoC MAV datasets, this dataset provides photometric calibration of the cameras which has not been available in any other visual-inertal dataset for researchers.
 Monochrome stereo images are collected by two IDS uEye UI-3241LE-M-GL global shutter cameras at 20 frames per second, while a Bosch BMI160 inertial unit provides linear accelerations and angular velocities at a rate of 200 samples per second.
-Not all datasets have groundtruth avalible throughout the entire trajectory as the motion capture system is limited to the starting and ending room.
+Not all datasets have groundtruth available throughout the entire trajectory as the motion capture system is limited to the starting and ending room.
 There are quite a few very challenging outdoor handheld datasets which are a challenging direction for research.
 Note that we focus on the room datasets as full 6 dof pose collection is available over the total trajectory.
 
@@ -47,12 +47,12 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| room1 | 239 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room1_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
-| room2 | 203 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room2_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
-| room3 | 194 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room3_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
-| room4 | 122 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room4_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
-| room5 | 255 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room5_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
-| room6 | 99 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room6_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_tum.launch) |
+| room1 | 239 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room1_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_tum.launch) |
+| room2 | 203 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room2_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_tum.launch) |
+| room3 | 194 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room3_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_tum.launch) |
+| room4 | 122 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room4_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_tum.launch) |
+| room5 | 255 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room5_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_tum.launch) |
+| room6 | 99 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room6_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_tum.launch) |
 @m_enddiv
 
 
@@ -61,7 +61,7 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
 @section gs-data-rpng RPNG Dataset
 
 In additional the above community maintained datasets, we have also released a few datasets.
-Please cite the Open VINS paper if you use any of these datasets in your works 
+Please cite the OpenVINS paper if you use any of these datasets in your works 
 Most of these datasets do not have perfect calibration parameters, and some are not time synchronised.
 Thus, please ensure that you have enabled online calibration of these parameters.
 
@@ -69,10 +69,10 @@ Thus, please ensure that you have enabled online calibration of these parameters
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1ytjo8V6pCroaVd8-QSop7R4DbsvvKyRQ/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1l_hnPUW6ufqxPtrLqRRHHI4mfGRZB1ha/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1FQBo3uHqRd0qm8GUb50Q-sj5gukcwaoU/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
-| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1oAbnV3MPOeaUSjnSc3g8t-pWV1nVjbys/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_aruco.launch) |
+| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1ytjo8V6pCroaVd8-QSop7R4DbsvvKyRQ/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1l_hnPUW6ufqxPtrLqRRHHI4mfGRZB1ha/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1FQBo3uHqRd0qm8GUb50Q-sj5gukcwaoU/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1oAbnV3MPOeaUSjnSc3g8t-pWV1nVjbys/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
 @m_enddiv
 
 

@@ -2,7 +2,12 @@
 
     <!-- mono or stereo and what ros bag to play -->
     <arg name="max_cameras" default="2" />
+    <arg name="bag_start"   default="0" />
     <arg name="bag"         default="/home/patrick/datasets/tum/dataset-room2_512_16.bag" />
+
+    <!-- imu starting thresholds -->
+    <arg name="init_window_time"  default="1.0" />
+    <arg name="init_imu_thresh"   default="0.75" />
 
     <!-- saving trajectory paths -->
     <arg name="dosave"      default="false" />
@@ -26,25 +31,24 @@
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
-        <param name="max_clones"             type="int"    value="15" />
-        <param name="max_slam"               type="int"    value="30" />
-        <param name="max_slam_in_update"     type="int"    value="999" /> <!-- 25 seems to work well -->
+        <param name="max_clones"             type="int"    value="11" />
+        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="dt_slam_delay"          type="double" value="5" />
-        <param name="init_window_time"       type="double" value="1.0" />
-        <param name="init_imu_thresh"        type="double" value="0.8" /> <!-- works for 1-5 -->
-        <!-- <param name="init_imu_thresh"        type="double" value="0.5" /> &lt;!&ndash; works for 6 &ndash;&gt;-->
+        <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
+        <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
         <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
-        <param name="feat_rep_msckf"         type="string" value="ANCHORED_3D" />
-        <param name="feat_rep_slam"          type="string" value="ANCHORED_3D" />
-        <param name="feat_rep_aruco"         type="string" value="ANCHORED_3D" />
+        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+        <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
         <param name="num_pts"          type="int"    value="200" />
-        <param name="fast_threshold"   type="int"    value="10" />
+        <param name="fast_threshold"   type="int"    value="15" />
         <param name="grid_x"           type="int"    value="5" />
-        <param name="grid_y"           type="int"    value="3" />
+        <param name="grid_y"           type="int"    value="5" />
         <param name="min_px_dist"      type="int"    value="5" />
         <param name="knn_ratio"        type="double" value="0.65" />
 
@@ -65,15 +69,15 @@
         <param name="accelerometer_noise_density"  type="double"   value="0.0028" />
         <param name="accelerometer_random_walk"    type="double"   value="0.00086" />
 
-
         <!-- camera intrinsics -->
+        <rosparam param="cam0_wh">[512, 512]</rosparam>
+        <rosparam param="cam1_wh">[512, 512]</rosparam>
         <param name="cam0_is_fisheye" type="bool" value="true" />
         <param name="cam1_is_fisheye" type="bool" value="true" />
         <rosparam param="cam0_k">[190.97847715128717, 190.9733070521226, 254.93170605935475, 256.8974428996504]</rosparam>
         <rosparam param="cam0_d">[0.0034823894022493434, 0.0007150348452162257, -0.0020532361418706202, 0.00020293673591811182]</rosparam>
         <rosparam param="cam1_k">[190.44236969414825, 190.4344384721956, 252.59949716835982, 254.91723064636983]</rosparam>
         <rosparam param="cam1_d">[0.0034003170790442797, 0.001766278153469831, -0.00266312569781606, 0.0003299517423931039]</rosparam>
-
 
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">
@@ -98,7 +102,7 @@
 
 
     <!-- play the dataset -->
-    <node pkg="rosbag" type="play" name="rosbag" args="-d 1 $(arg bag)" required="true"/>
+    <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -s $(arg bag_start) $(arg bag)" required="true"/>
 
     <!-- record the trajectory if enabled -->
     <group if="$(arg dosave)">

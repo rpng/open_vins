@@ -17,17 +17,12 @@ modes=(
 
 # dataset locations
 bagnames=(
-    "V1_01_easy"
-    "V1_02_medium"
-    "V1_03_difficult"
-    "V2_01_easy"
-    "V2_02_medium"
-    "V2_03_difficult"
-    "MH_01_easy"
-    "MH_02_easy"
-    "MH_03_medium"
-    "MH_04_difficult"
-    "MH_05_difficult"
+    "dataset-room1_512_16"
+    "dataset-room2_512_16"
+    "dataset-room3_512_16"
+    "dataset-room4_512_16"
+    "dataset-room5_512_16"
+    "dataset-room6_512_16"
 )
 
 # how far we should start into the dataset
@@ -39,30 +34,22 @@ bagstarttimes=(
     "0"
     "0"
     "0"
-    "40"
-    "35"
-    "15"
-    "20"
-    "20"
 )
 
 # threshold for variance to detect if the unit has moved yet
+# these datasets seem to have very large variablity in their starts
 imuthreshold=(
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
-    "1.5"
+    "0.70"
+    "0.75"
+    "0.70"
+    "0.70"
+    "0.70"
+    "0.50"
 )
 
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/algorithms"
-bag_path="/media/patrick/RPNG\ FLASH\ 2/euroc"
+bag_path="/home/patrick/datasets/tum"
 
 
 #=============================================================
@@ -92,7 +79,7 @@ else
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_eth.launch max_cameras:="$temp" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" &> /dev/null
+roslaunch ov_msckf pgeneva_ros_tum.launch max_cameras:="$temp" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"
