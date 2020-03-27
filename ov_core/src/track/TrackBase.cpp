@@ -31,11 +31,15 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
     //for(size_t i=0; i<mtx_feeds.size(); i++) {
     //    lcks.push_back(std::unique_lock<std::mutex>(mtx_feeds.at(i)));
     //}
+    std::map<size_t, cv::Mat> img_last_cache;
+    for(auto const& pair : img_last) {
+        img_last_cache.insert({pair.first,pair.second.clone()});
+    }
 
     // Get the largest width and height
     int max_width = -1;
     int max_height = -1;
-    for(auto const& pair : img_last) {
+    for(auto const& pair : img_last_cache) {
         if(max_width < pair.second.cols) max_width = pair.second.cols;
         if(max_height < pair.second.rows) max_height = pair.second.rows;
     }
@@ -46,19 +50,19 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
 
     // If the image is "new" then draw the images from scratch
     // Otherwise, we grab the subset of the main image and draw on top of it
-    bool image_new = ((int)img_last.size()*max_width != img_out.cols || max_height != img_out.rows);
+    bool image_new = ((int)img_last_cache.size()*max_width != img_out.cols || max_height != img_out.rows);
 
     // If new, then resize the current image
-    if(image_new) img_out = cv::Mat(max_height,(int)img_last.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
+    if(image_new) img_out = cv::Mat(max_height,(int)img_last_cache.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
 
     // Loop through each image, and draw
     int index_cam = 0;
-    for(auto const& pair : img_last) {
+    for(auto const& pair : img_last_cache) {
         // Lock this image
         std::unique_lock<std::mutex> lck(mtx_feeds.at(pair.first));
         // select the subset of the image
         cv::Mat img_temp;
-        if(image_new) cv::cvtColor(img_last[pair.first], img_temp, CV_GRAY2RGB);
+        if(image_new) cv::cvtColor(img_last_cache[pair.first], img_temp, CV_GRAY2RGB);
         else img_temp = img_out(cv::Rect(max_width*index_cam,0,max_width,max_height));
         // draw, loop through all keypoints
         for(size_t i=0; i<pts_last[pair.first].size(); i++) {
@@ -75,7 +79,7 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
         // Draw what camera this is
         cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), cv::Point(30,60), cv::FONT_HERSHEY_COMPLEX_SMALL, 3.0, cv::Scalar(0,255,0),3);
         // Replace the output image
-        img_temp.copyTo(img_out(cv::Rect(max_width*index_cam,0,img_last[pair.first].cols,img_last[pair.first].rows)));
+        img_temp.copyTo(img_out(cv::Rect(max_width*index_cam,0,img_last_cache[pair.first].cols,img_last_cache[pair.first].rows)));
         index_cam++;
     }
 
@@ -89,11 +93,15 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
     //for(size_t i=0; i<mtx_feeds.size(); i++) {
     //    lcks.push_back(std::unique_lock<std::mutex>(mtx_feeds.at(i)));
     //}
+    std::map<size_t, cv::Mat> img_last_cache;
+    for(auto const& pair : img_last) {
+        img_last_cache.insert({pair.first,pair.second.clone()});
+    }
 
     // Get the largest width and height
     int max_width = -1;
     int max_height = -1;
-    for(auto const& pair : img_last) {
+    for(auto const& pair : img_last_cache) {
         if(max_width < pair.second.cols) max_width = pair.second.cols;
         if(max_height < pair.second.rows) max_height = pair.second.rows;
     }
@@ -104,10 +112,10 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
 
     // If the image is "new" then draw the images from scratch
     // Otherwise, we grab the subset of the main image and draw on top of it
-    bool image_new = ((int)img_last.size()*max_width != img_out.cols || max_height != img_out.rows);
+    bool image_new = ((int)img_last_cache.size()*max_width != img_out.cols || max_height != img_out.rows);
 
     // If new, then resize the current image
-    if(image_new) img_out = cv::Mat(max_height,(int)img_last.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
+    if(image_new) img_out = cv::Mat(max_height,(int)img_last_cache.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
 
 
     // Max tracks to show (otherwise it clutters up the screen)
@@ -116,12 +124,12 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
 
     // Loop through each image, and draw
     int index_cam = 0;
-    for(auto const& pair : img_last) {
+    for(auto const& pair : img_last_cache) {
         // Lock this image
         std::unique_lock<std::mutex> lck(mtx_feeds.at(pair.first));
         // select the subset of the image
         cv::Mat img_temp;
-        if(image_new) cv::cvtColor(img_last[pair.first], img_temp, CV_GRAY2RGB);
+        if(image_new) cv::cvtColor(img_last_cache[pair.first], img_temp, CV_GRAY2RGB);
         else img_temp = img_out(cv::Rect(max_width*index_cam,0,max_width,max_height));
         // draw, loop through all keypoints
         for(size_t i=0; i<ids_last[pair.first].size(); i++) {
@@ -157,7 +165,7 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
         // Draw what camera this is
         cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), cv::Point(30,60), cv::FONT_HERSHEY_COMPLEX_SMALL, 3.0, cv::Scalar(0,255,0),3);
         // Replace the output image
-        img_temp.copyTo(img_out(cv::Rect(max_width*index_cam,0,img_last[pair.first].cols,img_last[pair.first].rows)));
+        img_temp.copyTo(img_out(cv::Rect(max_width*index_cam,0,img_last_cache[pair.first].cols,img_last_cache[pair.first].rows)));
         index_cam++;
     }
 
