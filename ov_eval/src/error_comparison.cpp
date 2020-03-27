@@ -155,33 +155,37 @@ int main(int argc, char **argv) {
             }
 
             // Loop though the different runs for this dataset
+            std::vector<std::string> file_paths;
             for(auto& entry : boost::filesystem::directory_iterator(path_algo_datasets.at(path_groundtruths.at(j).stem().string()))) {
-                if(entry.path().extension() == ".txt") {
+                if(entry.path().extension() != ".txt")
+                    continue;
+                file_paths.push_back(entry.path().string());
+            }
+            std::sort(file_paths.begin(), file_paths.end());
 
-                    // Our paths
-                    std::string dataset = path_groundtruths.at(j).stem().string();
-                    std::string path_gttxt = path_groundtruths.at(j).string();
-                    std::string path_esttxt = entry.path().string();
+            // Now loop through the sorted vector
+            for(auto &path_esttxt : file_paths) {
+                // Our paths
+                std::string dataset = path_groundtruths.at(j).stem().string();
+                std::string path_gttxt = path_groundtruths.at(j).string();
 
-                    // Create our trajectory object
-                    ov_eval::ResultTrajectory traj(path_esttxt, path_gttxt, argv[1]);
+                // Create our trajectory object
+                ov_eval::ResultTrajectory traj(path_esttxt, path_gttxt, argv[1]);
 
-                    // Calculate ATE error for this dataset
-                    ov_eval::Statistics error_ori, error_pos;
-                    traj.calculate_ate(error_ori, error_pos);
-                    ate_dataset_ori.values.push_back(error_ori.rmse);
-                    ate_dataset_pos.values.push_back(error_pos.rmse);
+                // Calculate ATE error for this dataset
+                ov_eval::Statistics error_ori, error_pos;
+                traj.calculate_ate(error_ori, error_pos);
+                ate_dataset_ori.values.push_back(error_ori.rmse);
+                ate_dataset_pos.values.push_back(error_pos.rmse);
 
-                    // Calculate RPE error for this dataset
-                    std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> error_rpe;
-                    traj.calculate_rpe(segments, error_rpe);
-                    for(const auto& elm : error_rpe) {
-                        rpe_dataset.at(elm.first).first.values.insert(rpe_dataset.at(elm.first).first.values.end(),elm.second.first.values.begin(),elm.second.first.values.end());
-                        rpe_dataset.at(elm.first).first.timestamps.insert(rpe_dataset.at(elm.first).first.timestamps.end(),elm.second.first.timestamps.begin(),elm.second.first.timestamps.end());
-                        rpe_dataset.at(elm.first).second.values.insert(rpe_dataset.at(elm.first).second.values.end(),elm.second.second.values.begin(),elm.second.second.values.end());
-                        rpe_dataset.at(elm.first).second.timestamps.insert(rpe_dataset.at(elm.first).second.timestamps.end(),elm.second.second.timestamps.begin(),elm.second.second.timestamps.end());
-                    }
-
+                // Calculate RPE error for this dataset
+                std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> error_rpe;
+                traj.calculate_rpe(segments, error_rpe);
+                for(const auto& elm : error_rpe) {
+                    rpe_dataset.at(elm.first).first.values.insert(rpe_dataset.at(elm.first).first.values.end(),elm.second.first.values.begin(),elm.second.first.values.end());
+                    rpe_dataset.at(elm.first).first.timestamps.insert(rpe_dataset.at(elm.first).first.timestamps.end(),elm.second.first.timestamps.begin(),elm.second.first.timestamps.end());
+                    rpe_dataset.at(elm.first).second.values.insert(rpe_dataset.at(elm.first).second.values.end(),elm.second.second.values.begin(),elm.second.second.values.end());
+                    rpe_dataset.at(elm.first).second.timestamps.insert(rpe_dataset.at(elm.first).second.timestamps.end(),elm.second.second.timestamps.begin(),elm.second.second.timestamps.end());
                 }
             }
 
@@ -190,7 +194,8 @@ int main(int argc, char **argv) {
             ate_dataset_pos.calculate();
 
             // Print stats for this specific dataset
-            printf("\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n",ate_dataset_ori.mean,ate_dataset_pos.mean,(int)ate_dataset_pos.values.size());
+            std::string prefix = (ate_dataset_ori.mean > 10 || ate_dataset_pos.mean > 10)? RED : "";
+            printf("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET,prefix.c_str(),ate_dataset_ori.mean,ate_dataset_pos.mean,(int)ate_dataset_pos.values.size());
             printf("\tATE: std_ori  = %.3f | std_pos  = %.3f\n",ate_dataset_ori.std,ate_dataset_pos.std);
             for(auto &seg : rpe_dataset) {
                 seg.second.first.calculate();
