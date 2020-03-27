@@ -123,7 +123,7 @@ namespace ov_msckf {
 
 
         /// If we are initialized or not
-        bool intialized() {
+        bool initialized() {
             return is_initialized_vio;
         }
 
