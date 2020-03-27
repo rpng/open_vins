@@ -54,6 +54,7 @@ namespace ov_msckf {
         nh.param<int>("max_clones", params.state_options.max_clone_size, params.state_options.max_clone_size);
         nh.param<int>("max_slam", params.state_options.max_slam_features, params.state_options.max_slam_features);
         nh.param<int>("max_slam_in_update", params.state_options.max_slam_in_update, params.state_options.max_slam_in_update);
+        nh.param<int>("max_msckf_in_update", params.state_options.max_msckf_in_update, params.state_options.max_msckf_in_update);
         nh.param<int>("max_aruco", params.state_options.max_aruco_features, params.state_options.max_aruco_features);
         nh.param<int>("max_cameras", params.state_options.num_cameras, params.state_options.num_cameras);
         nh.param<double>("dt_slam_delay", params.dt_slam_delay, params.dt_slam_delay);

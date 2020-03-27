@@ -114,6 +114,12 @@ namespace ov_msckf {
             startup_time = imustate(0,0);
             is_initialized_vio = true;
 
+            // Cleanup any features older then the intialization time
+            trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
+            if(trackARUCO != nullptr) {
+                trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
+            }
+
             // Print what we init'ed with
             printf(GREEN "[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\n" RESET);
             printf(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET,state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2),state->_imu->quat()(3));
@@ -236,9 +242,6 @@ namespace ov_msckf {
 
         /// Propagator of our state
         Propagator* propagator;
-
-        /// Boolean if we should do stereo tracking or if false do binocular
-        bool use_stereo = true;
 
         /// Our sparse feature tracker (klt or descriptor)
         TrackBase* trackFEATS = nullptr;

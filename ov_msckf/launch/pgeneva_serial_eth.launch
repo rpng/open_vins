@@ -31,6 +31,7 @@
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="50" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
+        <param name="max_msckf_in_update"    type="int"    value="999" />
         <param name="max_cameras"            type="int"    value="2" />
         <param name="dt_slam_delay"          type="double" value="5" />
         <param name="init_window_time"       type="double" value="0.75" />

@@ -12,6 +12,7 @@ source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
 # estimator configurations
 modes=(
     "mono"
+    "binocular"
     "stereo"
 )
 
@@ -126,7 +127,7 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..00}; do
+for j in {00..03}; do
 
 # start timing
 start_time="$(date -u +%s)"
@@ -135,13 +136,22 @@ filename_est="$save_path1/ov_${modes[h]}/${bagnames[i]}/${start_time}_estimate.t
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
 then
-    temp="1"
-else
-    temp="2"
+    temp1="1"
+    temp2="true"
+fi
+if [ "${modes[h]}" == "binocular" ]
+then
+    temp1="2"
+    temp2="false"
+fi
+if [ "${modes[h]}" == "stereo" ]
+then
+    temp1="2"
+    temp2="true"
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_uzhfpv.launch max_cameras:="$temp" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" sensor_config:="${sensorconfig[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" &> /dev/null
+roslaunch ov_msckf pgeneva_ros_uzhfpv.launch max_cameras:="$temp1" use_stereo:="$temp2" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" sensor_config:="${sensorconfig[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" &> /dev/null
 
 
 # print out the time elapsed

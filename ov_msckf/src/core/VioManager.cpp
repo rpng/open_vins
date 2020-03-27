@@ -161,7 +161,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
     assert(cam_id0!=cam_id1);
 
     // Feed our stereo trackers, if we are not doing binocular
-    if(use_stereo) {
+    if(params.use_stereo) {
         trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     } else {
         boost::thread t_l = boost::thread(&TrackBase::feed_monocular, trackFEATS, boost::ref(timestamp), boost::ref(img0), boost::ref(cam_id0));
@@ -256,6 +256,12 @@ bool VioManager::try_to_initialize() {
     state->_imu->set_value(imu_val);
     state->_timestamp = time0;
     startup_time = time0;
+
+    // Cleanup any features older then the intialization time
+    trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
+    if(trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
+    }
 
     // Else we are good to go, print out our stats
     printf(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET,state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2),state->_imu->quat()(3));
@@ -416,7 +422,10 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
 
     // Pass them to our MSCKF updater
-    // We update first so that our SLAM initialization will be more accurate??
+    // NOTE: if we have more then the max, we select the "best" ones (i.e. max tracks) for this update
+    // NOTE: this should only really be used if you want to track a lot of features, or have limited computational resources
+    if((int)featsup_MSCKF.size() > state->_options.max_msckf_in_update)
+        featsup_MSCKF.erase(featsup_MSCKF.begin(), featsup_MSCKF.end()-state->_options.max_msckf_in_update);
     updaterMSCKF->update(state, featsup_MSCKF);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
@@ -468,6 +477,12 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // Marginalize the oldest clone of the state if we are at max length
     if((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
+        // Cleanup any features older then the marginalization time
+        trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
+        if(trackARUCO != nullptr) {
+            trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
+        }
+        // Finally marginalize that clone
         StateHelper::marginalize_old_clone(state);
     }
 
@@ -499,7 +514,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Timing information
     printf(BLUE "[TIME]: %.4f seconds for tracking\n" RESET,(rT2-rT1).total_microseconds() * 1e-6);
     printf(BLUE "[TIME]: %.4f seconds for propagation\n" RESET,(rT3-rT2).total_microseconds() * 1e-6);
-    printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d features)\n" RESET,(rT4-rT3).total_microseconds() * 1e-6, (int)good_features_MSCKF.size());
+    printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d features)\n" RESET,(rT4-rT3).total_microseconds() * 1e-6, (int)featsup_MSCKF.size());
     if(state->_options.max_slam_features > 0) {
         printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET,(rT5-rT4).total_microseconds() * 1e-6, (int)feats_slam_UPDATE.size());
         printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET,(rT6-rT5).total_microseconds() * 1e-6, (int)feats_slam_DELAYED.size());

@@ -277,6 +277,29 @@ namespace ov_core {
             //std::cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << std::endl;
         }
 
+        /**
+         * @brief This function will delete all feature measurements that are older then the specified timestamp
+         */
+        void cleanup_measurements(double timestamp) {
+            std::unique_lock<std::mutex> lck(mtx);
+            for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
+                // Remove the older measurements
+                (*it).second->clean_older_measurements(timestamp);
+                // Count how many measurements
+                int ct_meas = 0;
+                for(const auto &pair : (*it).second->timestamps) {
+                    ct_meas += (*it).second->timestamps[pair.first].size();
+                }
+                // If delete flag is set, then delete it
+                if (ct_meas < 1) {
+                    delete (*it).second;
+                    features_idlookup.erase(it++);
+                } else {
+                    it++;
+                }
+            }
+        }
+
 
         /**
          * @brief Returns the size of the feature database

@@ -58,6 +58,7 @@ namespace ov_msckf {
         app1.add_option("--max_clones", params.state_options.max_clone_size, "");
         app1.add_option("--max_slam", params.state_options.max_slam_features, "");
         app1.add_option("--max_slam_in_update", params.state_options.max_slam_in_update, "");
+        app1.add_option("--max_msckf_in_update", params.state_options.max_msckf_in_update, "");
         app1.add_option("--max_aruco", params.state_options.max_aruco_features, "");
         app1.add_option("--max_cameras", params.state_options.num_cameras, "");
         app1.add_option("--dt_slam_delay", params.dt_slam_delay, "");

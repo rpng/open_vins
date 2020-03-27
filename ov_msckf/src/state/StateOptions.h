@@ -60,6 +60,9 @@ namespace ov_msckf {
         /// Max number of SLAM features we allow to be included in a single EKF update.
         int max_slam_in_update = INT_MAX;
 
+        /// Max number of MSCKF features we will use at a given image timestep.
+        int max_msckf_in_update = INT_MAX;
+
         /// Max number of estimated ARUCO features
         int max_aruco_features = 1024;
 
@@ -86,6 +89,7 @@ namespace ov_msckf {
             printf("\t- max_clones: %d\n", max_clone_size);
             printf("\t- max_slam: %d\n", max_slam_features);
             printf("\t- max_slam_in_update: %d\n", max_slam_in_update);
+            printf("\t- max_msckf_in_update: %d\n", max_msckf_in_update);
             printf("\t- max_aruco: %d\n", max_aruco_features);
             printf("\t- max_cameras: %d\n", num_cameras);
             printf("\t- feat_rep_msckf: %s\n", LandmarkRepresentation::as_string(feat_rep_msckf).c_str());

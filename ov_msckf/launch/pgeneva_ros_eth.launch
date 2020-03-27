@@ -2,6 +2,7 @@
 
     <!-- mono or stereo and what ros bag to play -->
     <arg name="max_cameras" default="2" />
+    <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3-5: 20 -->
     <arg name="bag"         default="/home/patrick/datasets/eth/V1_01_easy.bag" />
 
@@ -26,16 +27,17 @@
         <param name="use_fej"                type="bool"   value="true" />
         <param name="use_imuavg"             type="bool"   value="true" />
         <param name="use_rk4int"             type="bool"   value="true" />
-        <param name="use_stereo"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
         <param name="calib_cam_extrinsics"   type="bool"   value="true" />
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
-        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam"               type="int"    value="75" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
+        <param name="max_msckf_in_update"    type="int"    value="999" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
-        <param name="dt_slam_delay"          type="double" value="4" />
+        <param name="dt_slam_delay"          type="double" value="3" />
         <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
         <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
@@ -45,10 +47,10 @@
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
-        <param name="num_pts"          type="int"    value="200" />
+        <param name="num_pts"          type="int"    value="150" />
         <param name="fast_threshold"   type="int"    value="15" />
-        <param name="grid_x"           type="int"    value="10" />
-        <param name="grid_y"           type="int"    value="8" />
+        <param name="grid_x"           type="int"    value="5" />
+        <param name="grid_y"           type="int"    value="3" />
         <param name="min_px_dist"      type="int"    value="10" />
         <param name="knn_ratio"        type="double" value="0.70" />
 
