@@ -114,7 +114,7 @@ namespace ov_msckf {
             startup_time = imustate(0,0);
             is_initialized_vio = true;
 
-            // Cleanup any features older then the intialization time
+            // Cleanup any features older then the initialization time
             trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
             if(trackARUCO != nullptr) {
                 trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
@@ -132,12 +132,12 @@ namespace ov_msckf {
 
 
         /// If we are initialized or not
-        bool intialized() {
+        bool initialized() {
             return is_initialized_vio;
         }
 
         /// Timestamp that the system was initialized at
-        double intialized_time() {
+        double initialized_time() {
             return startup_time;
         }
 
@@ -220,7 +220,7 @@ namespace ov_msckf {
         /**
          * @brief This function will try to initialize the state.
          *
-         * This should call on our initalizer and try to init the state.
+         * This should call on our initializer and try to init the state.
          * In the future we should call the structure-from-motion code from here.
          * This function could also be repurposed to re-initialize the system after failure.         *
          * @return True if we have successfully initialized

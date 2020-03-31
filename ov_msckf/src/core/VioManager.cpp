@@ -257,7 +257,7 @@ bool VioManager::try_to_initialize() {
     state->_timestamp = time0;
     startup_time = time0;
 
-    // Cleanup any features older then the intialization time
+    // Cleanup any features older then the initialization time
     trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
     if(trackARUCO != nullptr) {
         trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);

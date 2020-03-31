@@ -219,11 +219,11 @@ int main(int argc, char** argv)
         if(max_cameras==1 && has_left) {
             // process once we have initialized with the GT
             Eigen::Matrix<double, 17, 1> imustate;
-            if(!gt_states.empty() && !sys->intialized() && DatasetReader::get_gt_state(time_buffer,imustate,gt_states)) {
+            if(!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(time_buffer, imustate, gt_states)) {
                 //biases are pretty bad normally, so zero them
                 //imustate.block(11,0,6,1).setZero();
                 sys->initialize_with_gt(imustate);
-            } else if(gt_states.empty() || sys->intialized()) {
+            } else if(gt_states.empty() || sys->initialized()) {
                 sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
             }
             // visualize
@@ -240,11 +240,11 @@ int main(int argc, char** argv)
         if(max_cameras==2 && has_left && has_right) {
             // process once we have initialized with the GT
             Eigen::Matrix<double, 17, 1> imustate;
-            if(!gt_states.empty() && !sys->intialized() && DatasetReader::get_gt_state(time_buffer,imustate,gt_states)) {
+            if(!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(time_buffer, imustate, gt_states)) {
                 //biases are pretty bad normally, so zero them
                 //imustate.block(11,0,6,1).setZero();
                 sys->initialize_with_gt(imustate);
-            } else if(gt_states.empty() || sys->intialized()) {
+            } else if(gt_states.empty() || sys->initialized()) {
                 sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);
             }
             // visualize

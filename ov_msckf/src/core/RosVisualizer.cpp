@@ -111,7 +111,7 @@ void RosVisualizer::visualize() {
     publish_images();
 
     // Return if we have not inited
-    if(!_app->intialized())
+    if(!_app->initialized())
         return;
 
     // Save the start time of this dataset
@@ -144,7 +144,7 @@ void RosVisualizer::visualize_odometry(double timestamp) {
         return;
 
     // Return if we have not inited and a second has passes
-    if(!_app->intialized() || (timestamp-_app->intialized_time()) < 1)
+    if(!_app->initialized() || (timestamp - _app->initialized_time()) < 1)
         return;
 
     // Get fast propagate state at the desired timestamp
