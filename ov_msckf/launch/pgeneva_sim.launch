@@ -5,13 +5,13 @@
     <!-- ================================================================ -->
 
 
-    <arg name="seed"        default="7" />
+    <arg name="seed"        default="3" />
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
-    <arg name="num_slam"    default="25" />
-    <arg name="num_pts"     default="25" />
-    <arg name="max_cameras" default="2" />
+    <arg name="num_slam"    default="50" />
+    <arg name="num_pts"     default="100" />
+    <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
@@ -52,10 +52,6 @@
         <param name="sim_freq_imu"           type="int"    value="$(arg freq_imu)" />
         <param name="sim_do_perturbation"    type="bool"   value="$(arg sim_do_perturbation)" />
         <param name="sim_distance_threshold" type="double" value="1.2" />
-
-        <rosparam param="cam0_wh">[752,480]</rosparam>
-        <rosparam param="cam1_wh">[752,480]</rosparam>
-        <rosparam param="cam2_wh">[752,480]</rosparam>
 
         <param name="save_total_state"  type="bool"   value="$(arg dosave_state)" />
         <param name="filepath_est"      type="string" value="$(arg path_state_est)" />
@@ -112,6 +108,9 @@
         <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
 
         <!-- camera intrinsics -->
+        <rosparam param="cam0_wh">[752,480]</rosparam>
+        <rosparam param="cam1_wh">[752,480]</rosparam>
+        <rosparam param="cam2_wh">[752,480]</rosparam>
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <param name="cam1_is_fisheye" type="bool" value="false" />
         <param name="cam2_is_fisheye" type="bool" value="false" />

@@ -212,7 +212,6 @@ void RosVisualizer::visualize_odometry(double timestamp) {
 
 void RosVisualizer::visualize_final() {
 
-
     // Final time offset value
     if(_app->get_state()->_options.do_calib_camera_timeoffset) {
         printf(REDPURPLE "camera-imu timeoffset = %.5f\n\n" RESET,_app->get_state()->_calib_dt_CAMtoIMU->value()(0));
@@ -270,9 +269,14 @@ void RosVisualizer::publish_state() {
     // Get the current state
     State* state = _app->get_state();
 
+    // We want to publish in the IMU clock frame
+    // The timestamp in the state will be the last camera time
+    double t_ItoC = state->_calib_dt_CAMtoIMU->value()(0);
+    double timestamp_inI = state->_timestamp + t_ItoC;
+
     // Create pose of IMU (note we use the bag time)
     geometry_msgs::PoseWithCovarianceStamped poseIinM;
-    poseIinM.header.stamp = ros::Time(state->_timestamp);
+    poseIinM.header.stamp = ros::Time(timestamp_inI);
     poseIinM.header.seq = poses_seq_imu;
     poseIinM.header.frame_id = "global";
     poseIinM.pose.pose.orientation.x = state->_imu->quat()(0);
@@ -541,14 +545,22 @@ void RosVisualizer::publish_groundtruth() {
     // Our groundtruth state
     Eigen::Matrix<double,17,1> state_gt;
 
+    // We want to publish in the IMU clock frame
+    // The timestamp in the state will be the last camera time
+    double t_ItoC = _app->get_state()->_calib_dt_CAMtoIMU->value()(0);
+    double timestamp_inI = _app->get_state()->_timestamp + t_ItoC;
+
     // Check that we have the timestamp in our GT file [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
-    if(_sim == nullptr && (gt_states.empty() || !DatasetReader::get_gt_state(_app->get_state()->_timestamp, state_gt, gt_states))) {
+    if(_sim == nullptr && (gt_states.empty() || !DatasetReader::get_gt_state(timestamp_inI, state_gt, gt_states))) {
         return;
     }
 
     // Get the simulated groundtruth
-    if(_sim != nullptr && !_sim->get_state(_app->get_state()->_timestamp,state_gt)) {
-        return;
+    // NOTE: we get the true time in the IMU clock frame
+    if(_sim != nullptr) {
+        timestamp_inI = _app->get_state()->_timestamp + _sim->get_true_paramters().calib_camimu_dt;
+        if(!_sim->get_state(timestamp_inI,state_gt))
+            return;
     }
 
     // Get the GT and system state state
@@ -556,7 +568,7 @@ void RosVisualizer::publish_groundtruth() {
 
     // Create pose of IMU
     geometry_msgs::PoseStamped poseIinM;
-    poseIinM.header.stamp = ros::Time(_app->get_state()->_timestamp);
+    poseIinM.header.stamp = ros::Time(timestamp_inI);
     poseIinM.header.seq = poses_seq_gt;
     poseIinM.header.frame_id = "global";
     poseIinM.pose.orientation.x = state_gt(1,0);
@@ -655,48 +667,51 @@ void RosVisualizer::sim_save_total_state_to_file() {
     // Get current state
     State* state = _app->get_state();
 
+    // We want to publish in the IMU clock frame
+    // The timestamp in the state will be the last camera time
+    double t_ItoC = state->_calib_dt_CAMtoIMU->value()(0);
+    double timestamp_inI = state->_timestamp + t_ItoC;
+
     // If we have our simulator, then save it to our groundtruth file
-    Eigen::Matrix<double,17,1> state_gt;
-    if(_sim != nullptr && _sim->get_state(state->_timestamp,state_gt)) {
+    if(_sim != nullptr) {
 
-        // STATE: write current true state
-        of_state_gt.precision(5);
-        of_state_gt.setf(std::ios::fixed, std::ios::floatfield);
-        of_state_gt << state_gt(0) << " ";
-        of_state_gt.precision(6);
-        of_state_gt << state_gt(1) << " " << state_gt(2) << " " << state_gt(3) << " " << state_gt(4) << " ";
-        of_state_gt << state_gt(5) << " " << state_gt(6) << " " << state_gt(7) << " ";
-        of_state_gt << state_gt(8) << " " << state_gt(9) << " " << state_gt(10) << " ";
-        of_state_gt << state_gt(11) << " " << state_gt(12) << " " << state_gt(13) << " ";
-        of_state_gt << state_gt(14) << " " << state_gt(15) << " " << state_gt(16) << " ";
+        // Note that we get the true time in the IMU clock frame
+        // NOTE: we record both the estimate and groundtruth with the same "true" timestamp if we are doing simulation
+        Eigen::Matrix<double,17,1> state_gt;
+        timestamp_inI = state->_timestamp + _sim->get_true_paramters().calib_camimu_dt;
+        if(_sim->get_state(timestamp_inI,state_gt)) {
+            // STATE: write current true state
+            of_state_gt.precision(5);
+            of_state_gt.setf(std::ios::fixed, std::ios::floatfield);
+            of_state_gt << state_gt(0) << " ";
+            of_state_gt.precision(6);
+            of_state_gt << state_gt(1) << " " << state_gt(2) << " " << state_gt(3) << " " << state_gt(4) << " ";
+            of_state_gt << state_gt(5) << " " << state_gt(6) << " " << state_gt(7) << " ";
+            of_state_gt << state_gt(8) << " " << state_gt(9) << " " << state_gt(10) << " ";
+            of_state_gt << state_gt(11) << " " << state_gt(12) << " " << state_gt(13) << " ";
+            of_state_gt << state_gt(14) << " " << state_gt(15) << " " << state_gt(16) << " ";
 
-        // TIMEOFF: Get the current true time offset
-        of_state_gt.precision(7);
-        of_state_gt << _sim->get_true_paramters().calib_camimu_dt << " ";
-        of_state_gt.precision(0);
-        of_state_gt << state->_options.num_cameras << " ";
-        of_state_gt.precision(6);
+            // TIMEOFF: Get the current true time offset
+            of_state_gt.precision(7);
+            of_state_gt << _sim->get_true_paramters().calib_camimu_dt << " ";
+            of_state_gt.precision(0);
+            of_state_gt << state->_options.num_cameras << " ";
+            of_state_gt.precision(6);
 
-        // CALIBRATION: Write the camera values to file
-        assert(state->_options.num_cameras==_sim->get_true_paramters().state_options.num_cameras);
-        for(int i=0; i<state->_options.num_cameras; i++) {
-            // Intrinsics values
-            of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(1) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(2) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(3) << " ";
-            of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(5) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(6) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(7) << " ";
-            // Rotation and position
-            of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(1) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(2) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(3) << " ";
-            of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(5) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(6) << " ";
+            // CALIBRATION: Write the camera values to file
+            assert(state->_options.num_cameras==_sim->get_true_paramters().state_options.num_cameras);
+            for(int i=0; i<state->_options.num_cameras; i++) {
+                // Intrinsics values
+                of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(1) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(2) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(3) << " ";
+                of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(5) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(6) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(7) << " ";
+                // Rotation and position
+                of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(1) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(2) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(3) << " ";
+                of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(5) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(6) << " ";
+            }
+
+            // New line
+            of_state_gt << endl;
         }
-
-        // New line
-        of_state_gt << endl;
-
-    } else if(_sim != nullptr) {
-
-        // Don't write anything to file if we can't get the groundtruth
-        // If we don't have the simulator we will still write
-        // But if we have the simulator lets only write the estimate if we have the groundtruth
-        return;
 
     }
 
@@ -710,7 +725,7 @@ void RosVisualizer::sim_save_total_state_to_file() {
     // STATE: Write the current state to file
     of_state_est.precision(5);
     of_state_est.setf(std::ios::fixed, std::ios::floatfield);
-    of_state_est << state->_timestamp << " ";
+    of_state_est << timestamp_inI << " ";
     of_state_est.precision(6);
     of_state_est << state->_imu->quat()(0) << " " << state->_imu->quat()(1) << " " << state->_imu->quat()(2) << " " << state->_imu->quat()(3) << " ";
     of_state_est << state->_imu->pos()(0) << " " << state->_imu->pos()(1) << " " << state->_imu->pos()(2) << " ";
@@ -721,7 +736,7 @@ void RosVisualizer::sim_save_total_state_to_file() {
     // STATE: Write current uncertainty to file
     of_state_std.precision(5);
     of_state_std.setf(std::ios::fixed, std::ios::floatfield);
-    of_state_std << state->_timestamp << " ";
+    of_state_std << timestamp_inI << " ";
     of_state_std.precision(6);
     int id = state->_imu->q()->id();
     of_state_std << std::sqrt(cov(id+0, id+0)) << " " << std::sqrt(cov(id+1, id+1)) << " " << std::sqrt(cov(id+2, id+2)) << " ";
