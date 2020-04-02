@@ -127,7 +127,8 @@ int main(int argc, char **argv) {
         algo_timings.at(algo).at(2).calculate();
         printf("\tPREC: mean_cpu = %.3f +- %.3f\n",algo_timings.at(algo).at(0).mean,algo_timings.at(algo).at(0).std);
         printf("\tPREC: mean_mem = %.3f +- %.3f\n",algo_timings.at(algo).at(1).mean,algo_timings.at(algo).at(1).std);
-        printf("\t#THR: mean_threads = %.3f +- %.3f\n",algo_timings.at(algo).at(2).mean,algo_timings.at(algo).at(2).std);
+        printf("\tTHR: mean_threads = %.3f +- %.3f\n",algo_timings.at(algo).at(2).mean,algo_timings.at(algo).at(2).std);
+        printf("======================================\n");
 
     }
 
@@ -149,6 +150,8 @@ int main(int argc, char **argv) {
     params_rpe.insert({"notch","false"});
     params_rpe.insert({"sym",""});
 
+    //============================================================
+    //============================================================
     // Plot this figure
     matplotlibcpp::figure_size(1500, 400);
 
@@ -184,7 +187,49 @@ int main(int argc, char **argv) {
     // Display to the user
     matplotlibcpp::ylim(1.0-1*width, ct_pos+1*width);
     matplotlibcpp::yticks(yticks,labels);
-    //matplotlibcpp::xlabel("CPU Percent Usage");
+    matplotlibcpp::xlabel("CPU Percent Usage");
+    matplotlibcpp::tight_layout();
+    matplotlibcpp::show(false);
+
+    //============================================================
+    //============================================================
+    // Plot this figure
+    matplotlibcpp::figure_size(1500, 400);
+
+    // Plot each RPE next to each other
+    width = 0.1/(algo_timings.size()+1);
+    yticks.clear();
+    labels.clear();
+    ct_algo = 0;
+    ct_pos = 0;
+    for(auto &algo : algo_timings) {
+        // Start based on what algorithm we are doing
+        ct_pos = 1+1.5*ct_algo*width;
+        yticks.push_back(ct_pos);
+        labels.push_back(algo.first);
+        // Plot it!!!
+        matplotlibcpp::boxplot(algo.second.at(1).values, ct_pos, width, colors.at(ct_algo%colors.size()), linestyle.at(ct_algo/colors.size()), params_rpe, false);
+        // Move forward
+        ct_algo++;
+    }
+
+    // Add "fake" plots for our legend
+    ct_algo = 0;
+    for(const auto &algo : algo_timings) {
+        std::map<std::string, std::string> params_empty;
+        params_empty.insert({"label", algo.first});
+        params_empty.insert({"linestyle", linestyle.at(ct_algo/colors.size())});
+        params_empty.insert({"color", colors.at(ct_algo%colors.size())});
+        std::vector<double> vec_empty;
+        matplotlibcpp::plot(vec_empty, vec_empty, params_empty);
+        ct_algo++;
+    }
+
+    // Display to the user
+    matplotlibcpp::ylim(1.0-1*width, ct_pos+1*width);
+    matplotlibcpp::yticks(yticks,labels);
+    matplotlibcpp::xlabel("Memory Percent Usage");
+    matplotlibcpp::tight_layout();
     matplotlibcpp::show(true);
 
 #endif

@@ -1,0 +1,34 @@
+/**
+
+
+@page evaluation System Evaluation
+
+
+The goal of our evaluation is to ensure fair comparison to other methods and our own.
+The actual metrics we use can be found on the @ref eval-metrics page.
+Using our metrics we wish to provide insight into *why* our method does better and in what ways (as no method will outperform in all aspects).
+Since we are also interested in applying the systems to real robotic applications, the realtime performance is also a key metric we need to investigate.
+Timing of different system components is also key to removing bottlenecks and seeing where performance improvements or estimator approximations might help reduce complexity.
+
+The key metrics we are interested in evaluating are the following:
+
+- Absolute Trajectory Error (ATE)
+- Relative Pose Error (RPE)
+- Root Mean Squared Error (RMSE)
+- Normalized Estimation Error Squared (NEES)
+- Estimator Component Timing
+- System Hardware Usage (memory and computation)
+
+
+
+@section evaluation-more System Evaluation Guides
+
+-   @subpage eval-metrics --- Definitions of different metrics for estimator accuracy.
+-   @subpage eval-error --- Error evaluation methods for evaluating system performance.
+-   @subpage eval-timing --- Timing of estimator components and complexity.
+
+
+
+
+
+*/

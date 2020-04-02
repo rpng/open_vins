@@ -92,8 +92,8 @@ if __name__ == '__main__':
             sum_threads += threads
 
         # print what the total summed value is
-        print("cpu percent = %.2f"%sum_perc_cpu)
-        print("mem percent = %.2f"%sum_perc_mem)
+        print("cpu percent = %.3f"%sum_perc_cpu)
+        print("mem percent = %.3f"%sum_perc_mem)
         print("num threads = %d"%sum_threads)
         processes = False
 

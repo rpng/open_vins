@@ -131,7 +131,7 @@ int main(int argc, char **argv) {
     for(size_t n=0; n<names.size(); n++) {
 
         // Sub-sample the time and values
-        int keep_every = 50;
+        int keep_every = 10;
         std::vector<double> times_skipped;
         for(size_t t=0; t<total_times.at(n).timestamps.size(); t++) {
             if(t % keep_every == 0) {

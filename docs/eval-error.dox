@@ -1,14 +1,7 @@
 /**
 
 
-@page evaluation Filter Evaluation Methods
-
-The goal of our evaluation is to ensure fair comparison to other methods and our own.
-The actual metrics we use can be found on the @ref eval-metrics page.
-Using our metrics we wish to provide insight into *why* our method does better and in what ways (as no method will outperform in all aspects).
-We additionally need to account for the inherent randomness of the methods and thus should treat each estimated trajectory as a random output.
-The key steps that we follow are the following:  
-
+@page eval-error Filter Error Evaluation Methods
 
 
 @m_class{m-note m-warning}
@@ -34,16 +27,6 @@ Works with topics of type `PoseWithCovarianceStamped`, `PoseStamped`, `Transform
 @endcode
 
 
-To evaluate the computational load, we have a python script that leverages the [psutil](https://github.com/giampaolo/psutil) python package to record percent CPU and memory consumption.
-
-@code{.xml}
-<node name="recorder_timing" pkg="ov_eval" type="pid_ros.py" output="screen">
-    <param name="nodes"   type="str" value="/run_subscribe_msckf" />
-    <param name="output"  type="str" value="/home/user/data/time_log.txt" />
-</node>
-@endcode
-
-
 
 @section eval-ov-transform Transformation
 
@@ -63,7 +46,7 @@ We store trajectories by first their algorithm name and then a folder for each d
 The folder names of the datasets need to match the groundtruth trajectory files which should be in their own separate folder.
 Please see the example recorded datasets for how to structure your folders.
 
-@code{.text}
+@code{.txt}
 truth/
     dateset_name_1.txt
     dateset_name_2.txt
@@ -116,6 +99,7 @@ It will use the filename as the name in the legend, so you can change that to ch
 rosrun ov_eval plot_trajectories <align_mode> <file_gt.txt> ... <file_est9.txt>
 rosrun ov_eval plot_trajectories posyaw 1565371553_estimate.txt truths/V1_01_easy.txt
 @endcode
+
 @image html eval/plot_xy.png width=70%
 @image html eval/plot_z.png width=70%
 
@@ -133,7 +117,9 @@ To change the RPE distances you will need to edit the code currently.
 rosrun ov_eval error_singlerun <align_mode> <file_gt.txt> <file_est.txt>
 rosrun ov_eval error_singlerun posyaw 1565371553_estimate.txt truths/V1_01_easy.txt
 @endcode
+
 Example output:
+
 @code{.shell-session}
 [ INFO] [1583422165.069376426]: [COMP]: 2813 poses in 1565371553_estimate => length of 57.36 meters
 [ INFO] [1583422165.091423722]: ======================================
@@ -153,6 +139,7 @@ Example output:
 [ INFO] [1583422165.127934904]: seg 32 - median_ori = 0.715 | median_pos = 0.071 (1943 samples)
 [ INFO] [1583422165.127942178]: seg 40 - median_ori = 0.540 | median_pos = 0.063 (1792 samples)
 @endcode
+
 @image html eval/singlerun.png width=80%
 
 
@@ -168,7 +155,9 @@ To change the RPE distances you will need to edit the code currently.
 rosrun ov_eval error_dataset <align_mode> <file_gt.txt> <folder_algorithms>
 rosrun ov_eval error_dataset posyaw truths/V1_01_easy.txt algorithms/
 @endcode
+
 Example output:
+
 @code{.shell-session}
 [ INFO] [1583422654.333642977]: ======================================
 [ INFO] [1583422654.333915102]: [COMP]: processing mono_ov_slam algorithm
@@ -207,6 +196,7 @@ Example output:
 [ INFO] [1583422658.194763413]: ======================================
 ....
 @endcode
+
 @image html eval/dataset.png width=100%
 
 
@@ -227,7 +217,9 @@ To change the RPE distances you will need to edit the code currently.
 rosrun ov_eval error_comparison <align_mode> <folder_groundtruth> <folder_algorithms>
 rosrun ov_eval error_comparison posyaw truths/ algorithms/
 @endcode
+
 Example output:
+
 @code{.shell-session}
 [ INFO] [1583425216.054023187]: [COMP]: 2895 poses in V1_01_easy.txt => length of 58.35 meters
 [ INFO] [1583425216.092355692]: [COMP]: 16702 poses in V1_02_medium.txt => length of 75.89 meters
@@ -261,6 +253,7 @@ mono\_ov\_vio & 0.826 / 0.094 & 1.039 / 0.106 & 1.215 / 0.111 & 1.283 / 0.132 & 
 ....
 [ INFO] [1583425262.514587296]: ============================================
 @endcode
+
 @image html eval/comparison.png width=100%
 
 

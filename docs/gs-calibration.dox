@@ -18,7 +18,7 @@ The IMU is crucial in providing robustness to the estimator while also providing
 However, there are some challenges when leveraging the IMU in estimation.
 An IMU requires estimating of additional bias terms and requires highly accurate calibration between the camera and IMU.
 Additionally small errors in the relative timestamps between the sensors can also degrade performance very quickly in dynamic trajectories.
-Within this *Open VINS* project we address these by advocating the *online* estimation of these extrinsic and time offset parameters between the cameras and IMU.
+Within this *OpenVINS* project we address these by advocating the *online* estimation of these extrinsic and time offset parameters between the cameras and IMU.
 
 
 @image html rig_hydra_old.jpg width=60%

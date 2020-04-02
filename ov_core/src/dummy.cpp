@@ -53,6 +53,7 @@ namespace ov_core { }
  * Each also has an update function that takes a vector delta and updates their manifold representation.
  * Please see each type for details on what they represent, but their names should be straightforward.
  * Each type is described by the following:
+ *
  * @code{.cpp}
  * class Type {
  * protected:
