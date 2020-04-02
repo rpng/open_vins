@@ -112,7 +112,7 @@ imuthreshold=(
 
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/algorithms"
-bag_path="/media/patrick/RPNG\ FLASH\ 2/uzhfpv"
+bag_path="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer"
 
 
 #=============================================================

@@ -24,7 +24,9 @@
 
 #include <string>
 #include <algorithm>
+#include <fstream>
 #include <Eigen/StdVector>
+#include <boost/filesystem.hpp>
 
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
@@ -264,7 +266,8 @@ namespace ov_msckf {
         /// Good features that where used in the last update
         std::vector<Eigen::Vector3d> good_features_MSCKF;
 
-        // Timing variables
+        // Timing statistic file and variables
+        std::ofstream of_statistics;
         boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
 
         // Track how much distance we have traveled
@@ -273,6 +276,7 @@ namespace ov_msckf {
 
         // Startup time of the filter
         double startup_time = -1;
+
 
     };
 

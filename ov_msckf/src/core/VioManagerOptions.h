@@ -69,6 +69,12 @@ namespace ov_msckf {
         ///  Variance threshold on our acceleration to be classified as moving
         double init_imu_thresh = 1.0;
 
+        /// If we should record the timing performance to file
+        bool record_timing_information = false;
+
+        /// The path to the file we will record the timing information into
+        std::string record_timing_filepath = "ov_msckf_timing.txt";
+
         /**
          * @brief This function will print out all estimator settings loaded.
          * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -80,6 +86,8 @@ namespace ov_msckf {
             printf("\t- gravity: %.1f\n", dt_slam_delay);
             printf("\t- init_window_time: %.2f\n", init_window_time);
             printf("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
+            printf("\t- record timing?: %d\n", (int)record_timing_information);
+            printf("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
         }
 
         // NOISE / CHI2 ============================

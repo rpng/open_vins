@@ -40,6 +40,10 @@
         <param name="feat_rep_slam"          type="string" value="GLOBAL_3D" />
         <param name="feat_rep_aruco"         type="string" value="GLOBAL_3D" />
 
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="false" />
+        <param name="record_timing_filepath"      type="string" value="/tmp/traj_timing.txt" />
+
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
         <param name="num_pts"          type="int"    value="150" />

@@ -17,9 +17,11 @@
     <arg name="init_window_time"  default="1.0" />
     <arg name="init_imu_thresh"   default="5.0" />
 
-    <!-- saving trajectory paths -->
+    <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
+    <arg name="dotime"      default="false" />
     <arg name="path_est"    default="/tmp/traj_estimate.txt" />
+    <arg name="path_time"   default="/tmp/traj_timing.txt" />
 
 
     <!-- MASTER NODE! -->
@@ -51,6 +53,10 @@
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
+        <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />

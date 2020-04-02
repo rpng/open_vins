@@ -180,9 +180,91 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
 }
 
 
+void Loader::load_timing_flamegraph(std::string path, std::vector<std::string> &names,
+                                    std::vector<double> &times, std::vector<Eigen::VectorXd> &timing_values) {
 
-void Loader::load_timing(std::string path, std::vector<double> &times,
-                         std::vector<Eigen::Vector3d> &summed_values, std::vector<Eigen::VectorXd> &node_values) {
+    // Try to open our trajectory file
+    std::ifstream file(path);
+    if(!file.is_open()) {
+        printf(RED "[LOAD]: Unable to open file...\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Loop through each line of this file
+    std::string current_line;
+    while(std::getline(file, current_line)) {
+
+        // We should have a commented line of the names of the categories
+        // Here we will process them (skip the first since it is just the timestamps)
+        if(!current_line.find("#")) {
+            // Loop variables
+            std::istringstream s(current_line);
+            std::string field;
+            names.clear();
+            // Loop through this line
+            bool skipped_first = false;
+            while(std::getline(s,field,',')) {
+                // Skip if empty
+                if(field.empty())
+                    continue;
+                // Skip the first ever one
+                if(skipped_first)
+                    names.push_back(field);
+                skipped_first = true;
+            }
+            continue;
+        }
+
+        // Loop variables
+        std::istringstream s(current_line);
+        std::string field;
+        std::vector<double> vec;
+
+        // Loop through this line (timestamp(s) values....)
+        while(std::getline(s,field,',')) {
+            // Skip if empty
+            if(field.empty())
+                continue;
+            // save the data to our vector
+            vec.push_back(std::atof(field.c_str()));
+        }
+
+        // Create eigen vector
+        Eigen::VectorXd temp(vec.size()-1);
+        for(size_t i=1; i<vec.size(); i++) {
+            temp(i-1) = vec.at(i);
+        }
+        times.push_back(vec.at(0));
+        timing_values.push_back(temp);
+
+    }
+
+    // Finally close the file
+    file.close();
+
+    // Error if we don't have any data
+    if (timing_values.empty()) {
+        printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Assert that all rows in this file are of the same length
+    int rowsize = names.size();
+    for(size_t i=0; i<timing_values.size(); i++) {
+        if(timing_values.at(i).rows() != rowsize) {
+            printf(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET,(int)i,(int)timing_values.at(i).rows(),rowsize);
+            printf(RED "[LOAD]: %s\n" RESET,path.c_str());
+            std::exit(EXIT_FAILURE);
+        }
+    }
+
+}
+
+
+void Loader::load_timing_percent(std::string path, std::vector<double> &times,
+                                 std::vector<Eigen::Vector3d> &summed_values, std::vector<Eigen::VectorXd> &node_values) {
 
     // Try to open our trajectory file
     std::ifstream file(path);

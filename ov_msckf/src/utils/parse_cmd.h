@@ -75,6 +75,9 @@ namespace ov_msckf {
         app1.add_option("--init_window_time", params.init_window_time, "");
         app1.add_option("--init_imu_thresh", params.init_imu_thresh, "");
 
+        // Recording of timing information to file
+        app1.add_option("--record_timing_information", params.record_timing_information, "");
+        app1.add_option("--record_timing_filepath", params.record_timing_filepath, "");
 
         // NOISE ======================================================================
 

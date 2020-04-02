@@ -38,6 +38,10 @@
         <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
 
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="false" />
+        <param name="record_timing_filepath"      type="string" value="home/patrick/datasets/tum/ov_msckf_timing.txt" />
+
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
         <param name="num_pts"          type="int"    value="200" />

@@ -46,6 +46,7 @@ namespace matplotlibcpp {
             PyObject *s_python_function_plot;
             PyObject *s_python_function_quiver;
             PyObject *s_python_function_boxplot;
+            PyObject *s_python_function_stackplot;
             PyObject *s_python_function_semilogx;
             PyObject *s_python_function_semilogy;
             PyObject *s_python_function_loglog;
@@ -180,6 +181,7 @@ namespace matplotlibcpp {
                 s_python_function_plot = safe_import(pymod, "plot");
                 s_python_function_quiver = safe_import(pymod, "quiver");
                 s_python_function_boxplot = safe_import(pymod, "boxplot");
+                s_python_function_stackplot = safe_import(pymod, "stackplot");
                 s_python_function_semilogx = safe_import(pymod, "semilogx");
                 s_python_function_semilogy = safe_import(pymod, "semilogy");
                 s_python_function_loglog = safe_import(pymod, "loglog");
@@ -805,7 +807,8 @@ PyObject* get_array(const std::vector<Numeric>& v)
     }
 
     template<typename NumericX>
-    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::string &linestyle, const std::map<std::string, std::string>& keywords = {}, bool vert=true)
+    bool boxplot(const std::vector<NumericX>& x, const double &position, const double &width, const std::string &color, const std::string &linestyle,
+                 const std::map<std::string, std::string>& keywords = {}, bool vert=true)
     {
 
         // Create a sequence of vectors
@@ -841,6 +844,52 @@ PyObject* get_array(const std::vector<Numeric>& v)
 
         // finally call the external python function
         PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_boxplot, plot_args, kwargs);
+
+        Py_DECREF(kwargs);
+        Py_DECREF(plot_args);
+        if (res)
+            Py_DECREF(res);
+        return res;
+    }
+
+    template<typename NumericX, typename NumericY>
+    bool stackplot(const std::vector<NumericX>& x, const std::vector<std::vector<NumericY>>& ys,
+            const std::vector<std::string>& labels, const std::vector<std::string>& colors, const std::string &baseline="zero")
+    {
+
+        // assert we have enough labels and colors to go around
+        assert(ys.size() == labels.size());
+        assert(ys.size() == colors.size());
+
+        // Append the datapoints
+        PyObject* plot_args = PyTuple_New(1+(int)ys.size());
+        PyTuple_SetItem(plot_args, 0, get_array(x));
+        for(size_t i=0; i<ys.size(); i++) {
+            assert(x.size() == ys.at(i).size());
+            PyTuple_SetItem(plot_args, 1+(int)i, get_array(ys.at(i)));
+        }
+
+        // Labels
+        PyObject* list_labels = PyList_New(labels.size());
+        for(size_t i = 0; i < labels.size(); i++) {
+            PyList_SetItem(list_labels, i, PyString_FromString(labels.at(i).c_str()));
+        }
+
+        // Colors
+        PyObject* list_colors = PyList_New(colors.size());
+        for(size_t i = 0; i < colors.size(); i++) {
+            PyList_SetItem(list_colors, i, PyString_FromString(colors.at(i).c_str()));
+        }
+
+        // append the baseline [‘zero’, ‘sym’, ‘wiggle’, ‘weighted_wiggle’]
+        PyObject* kwargs = PyDict_New();
+        PyDict_SetItemString(kwargs, "baseline", PyUnicode_FromString(baseline.c_str()));
+        PyDict_SetItemString(kwargs, "labels", list_labels);
+        PyDict_SetItemString(kwargs, "colors", list_colors);
+        PyDict_SetItemString(kwargs, "edgecolors", PyUnicode_FromString("none"));
+
+        // finally call the external python function
+        PyObject* res = PyObject_Call(detail::_interpreter::get().s_python_function_stackplot, plot_args, kwargs);
 
         Py_DECREF(kwargs);
         Py_DECREF(plot_args);

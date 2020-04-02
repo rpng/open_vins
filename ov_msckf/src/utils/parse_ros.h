@@ -98,6 +98,10 @@ namespace ov_msckf {
         nh.param<double>("init_window_time", params.init_window_time, params.init_window_time);
         nh.param<double>("init_imu_thresh", params.init_imu_thresh, params.init_imu_thresh);
 
+        // Recording of timing information to file
+        nh.param<bool>("record_timing_information", params.record_timing_information, params.record_timing_information);
+        nh.param<std::string>("record_timing_filepath", params.record_timing_filepath, params.record_timing_filepath);
+
 
         // NOISE ======================================================================
 

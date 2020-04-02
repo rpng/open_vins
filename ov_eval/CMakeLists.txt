@@ -113,11 +113,14 @@ target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
 add_executable(error_simulation src/error_simulation.cpp)
 target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
 
-add_executable(timing_singlerun src/timing_singlerun.cpp)
-target_link_libraries(timing_singlerun ov_eval_lib ${thirdparty_libraries})
+add_executable(timing_flamegraph src/timing_flamegraph.cpp)
+target_link_libraries(timing_flamegraph ov_eval_lib ${thirdparty_libraries})
 
 add_executable(timing_comparison src/timing_comparison.cpp)
 target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
+
+add_executable(timing_percentages src/timing_percentages.cpp)
+target_link_libraries(timing_percentages ov_eval_lib ${thirdparty_libraries})
 
 add_executable(plot_trajectories src/plot_trajectories.cpp)
 target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})

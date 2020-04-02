@@ -47,147 +47,127 @@ int main(int argc, char **argv) {
 
     // Ensure we have a path
     if(argc < 2) {
-        printf(RED "ERROR: Please specify a timing and memory percent folder\n" RESET);
-        printf(RED "ERROR: ./timing_comparison <timings_folder>\n" RESET);
-        printf(RED "ERROR: rosrun ov_eval timing_comparison <timings_folder>\n" RESET);
+        printf(RED "ERROR: Please specify a timing file\n" RESET);
+        printf(RED "ERROR: ./timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
-    // Get the algorithms we will process
-    // Also create empty statistic objects for each of our datasets
-    std::string path_algos(argv[1]);
-    std::vector<boost::filesystem::path> path_algorithms;
-    for(const auto& entry : boost::filesystem::directory_iterator(path_algos)) {
-        if(boost::filesystem::is_directory(entry)) {
-            path_algorithms.push_back(entry.path());
-        }
-    }
-    std::sort(path_algorithms.begin(), path_algorithms.end());
 
-    //===============================================================================
-    //===============================================================================
-    //===============================================================================
 
-    // Summary information (%cpu, %mem, threads)
-    std::map<std::string,std::vector<ov_eval::Statistics>> algo_timings;
-    for(const auto& p : path_algorithms) {
-        std::vector<ov_eval::Statistics> temp = {ov_eval::Statistics(),ov_eval::Statistics(),ov_eval::Statistics()};
-        algo_timings.insert({p.stem().string(),temp});
-    }
+    // Read in all our trajectories from file
+    std::vector<std::string> names;
+    std::vector<ov_eval::Statistics> total_times;
+    for(int z=1; z<argc; z++) {
 
-    // Loop through each algorithm type
-    for(size_t i=0; i<path_algorithms.size(); i++) {
-
-        // Debug print
+        // Parse the name of this timing
+        boost::filesystem::path path(argv[z]);
+        std::string name = path.stem().string();
         printf("======================================\n");
-        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
+        printf("[TIME]: loading data for %s\n",name.c_str());
 
-        // our total summed values
-        std::vector<double> total_times;
-        std::vector<Eigen::Vector3d> total_summed_values;
+        // Load it!!
+        std::vector<std::string> names_temp;
+        std::vector<double> times;
+        std::vector<Eigen::VectorXd> timing_values;
+        ov_eval::Loader::load_timing_flamegraph(argv[z], names_temp, times, timing_values);
+        printf("[TIME]: loaded %d timestamps from file (%d categories)!!\n",(int)times.size(),(int)names_temp.size());
 
-        // Loop through each sub-directory in this folder
-        for(auto& entry : boost::filesystem::recursive_directory_iterator(path_algorithms.at(i))) {
+        // Our categories
+        std::vector<ov_eval::Statistics> stats;
+        for(size_t i=0; i<names_temp.size(); i++)
+            stats.push_back(ov_eval::Statistics());
 
-            // skip if not a directory
-            if(boost::filesystem::is_directory(entry))
-                continue;
-
-            // skip if not a text file
-            if(entry.path().extension() != ".txt")
-                continue;
-
-            // Load the data from file
-            std::vector<double> times;
-            std::vector<Eigen::Vector3d> summed_values;
-            std::vector<Eigen::VectorXd> node_values;
-            ov_eval::Loader::load_timing(entry.path().string(), times, summed_values, node_values);
-
-            // Append to our summed values
-            total_times.insert(total_times.end(),times.begin(),times.end());
-            total_summed_values.insert(total_summed_values.end(),summed_values.begin(),summed_values.end());
-
+        // Loop through each and report the average timing information
+        for(size_t i=0; i<times.size(); i++) {
+            for(size_t c=0; c<names_temp.size(); c++) {
+                stats.at(c).timestamps.push_back(times.at(i));
+                stats.at(c).values.push_back(timing_values.at(i)(c));
+            }
         }
 
-        // append to the map
-        std::string algo = path_algorithms.at(i).stem().string();
-        for(size_t j=0; j<total_times.size(); j++) {
-            algo_timings.at(algo).at(0).timestamps.push_back(total_times.at(j));
-            algo_timings.at(algo).at(0).values.push_back(total_summed_values.at(j)(0));
-            algo_timings.at(algo).at(1).timestamps.push_back(total_times.at(j));
-            algo_timings.at(algo).at(1).values.push_back(total_summed_values.at(j)(1));
-            algo_timings.at(algo).at(2).timestamps.push_back(total_times.at(j));
-            algo_timings.at(algo).at(2).values.push_back(total_summed_values.at(j)(2));
+        // Now print the statistic for this run
+        for(size_t i=0; i<names_temp.size(); i++) {
+            stats.at(i).calculate();
+            printf("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n",stats.at(i).mean,stats.at(i).std,stats.at(i).ninetynine,stats.at(i).max,names_temp.at(i).c_str());
         }
 
-        // Display for the user
-        printf("\tloaded %d timestamps from file!!\n",(int)algo_timings.at(algo).at(0).timestamps.size());
-        algo_timings.at(algo).at(0).calculate();
-        algo_timings.at(algo).at(1).calculate();
-        algo_timings.at(algo).at(2).calculate();
-        printf("\tPREC: mean_cpu = %.3f +- %.3f\n",algo_timings.at(algo).at(0).mean,algo_timings.at(algo).at(0).std);
-        printf("\tPREC: mean_mem = %.3f +- %.3f\n",algo_timings.at(algo).at(1).mean,algo_timings.at(algo).at(1).std);
-        printf("\t#THR: mean_threads = %.3f +- %.3f\n",algo_timings.at(algo).at(2).mean,algo_timings.at(algo).at(2).std);
+        // Append the total stats to the big vector
+        if(!stats.empty()) {
+            names.push_back(name);
+            total_times.push_back(stats.at(stats.size()-1));
+        } else {
+            printf(RED "[TIME]: unable to load any data.....\n" RESET);
+        }
+        printf("======================================\n");
 
     }
 
 
-    //===============================================================================
-    //===============================================================================
-    //===============================================================================
 
 
 #ifdef HAVE_PYTHONLIBS
 
-    // Plot line colors
-    std::vector<std::string> colors = {"blue","red","black","green","cyan","magenta"};
-    std::vector<std::string> linestyle = {"-","--","-."};
-    assert(algo_timings.size() <= colors.size()*linestyle.size());
 
-    // Parameters
-    std::map<std::string, std::string> params_rpe;
-    params_rpe.insert({"notch","false"});
-    params_rpe.insert({"sym",""});
+    // Valid colors
+    // https://matplotlib.org/tutorials/colors/colors.html
+    //std::vector<std::string> colors = {"blue","aqua","lightblue","lightgreen","yellowgreen","green"};
+    //std::vector<std::string> colors = {"navy","blue","lightgreen","green","gold","goldenrod"};
+    std::vector<std::string> colors = {"black","blue","red","green","cyan","magenta"};
 
     // Plot this figure
-    matplotlibcpp::figure_size(1500, 400);
+    matplotlibcpp::figure_size(1200, 400);
 
-    // Plot each RPE next to each other
-    double width = 0.1/(algo_timings.size()+1);
-    std::vector<double> yticks;
-    std::vector<std::string> labels;
-    int ct_algo = 0;
-    double ct_pos = 0;
-    for(auto &algo : algo_timings) {
-        // Start based on what algorithm we are doing
-        ct_pos = 1+1.5*ct_algo*width;
-        yticks.push_back(ct_pos);
-        labels.push_back(algo.first);
-        // Plot it!!!
-        matplotlibcpp::boxplot(algo.second.at(0).values, ct_pos, width, colors.at(ct_algo%colors.size()), linestyle.at(ct_algo/colors.size()), params_rpe, false);
-        // Move forward
-        ct_algo++;
+    // Zero our time arrays
+    double starttime = (total_times.at(0).timestamps.empty())? 0 : total_times.at(0).timestamps.at(0);
+    double endtime = (total_times.at(0).timestamps.empty())? 0 : total_times.at(0).timestamps.at(total_times.at(0).timestamps.size()-1);
+    for(size_t i=0; i<total_times.size(); i++) {
+        for(size_t j=0; j<total_times.at(i).timestamps.size(); j++) {
+            total_times.at(i).timestamps.at(j) -= starttime;
+        }
     }
 
-    // Add "fake" plots for our legend
-    ct_algo = 0;
-    for(const auto &algo : algo_timings) {
-        std::map<std::string, std::string> params_empty;
-        params_empty.insert({"label", algo.first});
-        params_empty.insert({"linestyle", linestyle.at(ct_algo/colors.size())});
-        params_empty.insert({"color", colors.at(ct_algo%colors.size())});
-        std::vector<double> vec_empty;
-        matplotlibcpp::plot(vec_empty, vec_empty, params_empty);
-        ct_algo++;
+    // Now loop through each and plot it!
+    for(size_t n=0; n<names.size(); n++) {
+
+        // Sub-sample the time and values
+        int keep_every = 50;
+        std::vector<double> times_skipped;
+        for(size_t t=0; t<total_times.at(n).timestamps.size(); t++) {
+            if(t % keep_every == 0) {
+                times_skipped.push_back(total_times.at(n).timestamps.at(t));
+            }
+        }
+        std::vector<double> values_skipped;
+        for(size_t t=0; t<total_times.at(n).values.size(); t++) {
+            if(t % keep_every == 0) {
+                values_skipped.push_back(total_times.at(n).values.at(t));
+            }
+        }
+
+        // Paramters for our line
+        std::map<std::string, std::string> params;
+        params.insert({"label", names.at(n)});
+        params.insert({"linestyle", "-"});
+        params.insert({"color", colors.at(n%colors.size())});
+
+        // Finally plot
+        matplotlibcpp::plot(times_skipped, values_skipped, params);
+
     }
+
+    // Finally add labels and show it
+    matplotlibcpp::ylabel("execution time (s)");
+    matplotlibcpp::xlim(0.0,endtime-starttime);
+    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::legend();
+    matplotlibcpp::tight_layout();
 
     // Display to the user
-    matplotlibcpp::ylim(1.0-1*width, ct_pos+1*width);
-    matplotlibcpp::yticks(yticks,labels);
-    //matplotlibcpp::xlabel("CPU Percent Usage");
     matplotlibcpp::show(true);
 
 #endif
+
 
     // Done!
     return EXIT_SUCCESS;
