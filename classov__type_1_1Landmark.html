@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_core::Landmark class | OpenVINS</title>
+  <title>ov_type::Landmark class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,9 +47,9 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>Landmark <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__type.html">ov_type</a>::<wbr/></span>Landmark <span class="m-thin">class</span>
         </h1>
-        <p><a href="classov__core_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</p>
+        <p><a href="classov__type_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -69,25 +69,25 @@
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>
+              class <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>
             </dt>
-            <dd>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements vector variables.</dd>
+            <dd>Derived <a href="classov__type_1_1Type.html" class="m-doc">Type</a> class that implements vector variables.</dd>
           </dl>
         </section>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="aebaa1fd1a45e303f5431cb65e0c160cb">
-              <span class="m-doc-wrap-bumper"><a href="#aebaa1fd1a45e303f5431cb65e0c160cb" class="m-doc-self">Landmark</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="afdfcac1cff90284cc815bd1c17c2659d">
+              <span class="m-doc-wrap-bumper"><a href="#afdfcac1cff90284cc815bd1c17c2659d" class="m-doc-self">Landmark</a>(</span><span class="m-doc-wrap">int dim)</span>
             </dt>
-            <dd>Default constructor (feature is always a <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a> of size 3)</dd>
+            <dd>Default constructor (feature is a <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a> of size 3 or <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a> of size 1 )</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad8e8c8b0477862440eb787e4b2032fcd" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a3d8900f302b2227b10d321ad8008cbcd" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Overrides the default vector update rule We want to selectively update the FEJ value if we are using an anchored representation.</dd>
             <dt>
@@ -104,37 +104,45 @@
         <section id="pub-attribs">
           <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="a3a8efcdbac98654a1f9a6c1aeec704d2">
-              size_t <a href="#a3a8efcdbac98654a1f9a6c1aeec704d2" class="m-doc-self">_featid</a>
+            <dt id="ad8e61393e2cf88ad04055081d93c1281">
+              size_t <a href="#ad8e61393e2cf88ad04055081d93c1281" class="m-doc-self">_featid</a>
             </dt>
-            <dd><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a> ID of this landmark (corresponds to frontend id)</dd>
-            <dt id="af3e8650123382857392257f54703d129">
-              int <a href="#af3e8650123382857392257f54703d129" class="m-doc-self">_anchor_cam_id</a>
+            <dd>Feature ID of this landmark (corresponds to frontend id)</dd>
+            <dt id="acbc8b8af7f85c0dc123365046f1af432">
+              int <a href="#acbc8b8af7f85c0dc123365046f1af432" class="m-doc-self">_anchor_cam_id</a>
             </dt>
             <dd>What camera ID our pose is anchored in!! By default the first measurement is the anchor.</dd>
-            <dt id="ac1eda5b2b1ae865e17cb14a4496732a0">
-              double <a href="#ac1eda5b2b1ae865e17cb14a4496732a0" class="m-doc-self">_anchor_clone_timestamp</a>
+            <dt id="a734c934cc4bf108ad228bd0f0596ef2a">
+              double <a href="#a734c934cc4bf108ad228bd0f0596ef2a" class="m-doc-self">_anchor_clone_timestamp</a>
             </dt>
             <dd>Timestamp of anchor clone.</dd>
-            <dt id="aa299b320a9cc181cf76c43bacb2b9fea">
-              bool <a href="#aa299b320a9cc181cf76c43bacb2b9fea" class="m-doc-self">has_had_anchor_change</a>
+            <dt id="a8c2faa8e153b95606c9062527fdd029e">
+              bool <a href="#a8c2faa8e153b95606c9062527fdd029e" class="m-doc-self">has_had_anchor_change</a>
             </dt>
             <dd>Boolean if this landmark has had at least one anchor change.</dd>
-            <dt id="a632a92f6b7c83766b25384f0fc3897fd">
-              bool <a href="#a632a92f6b7c83766b25384f0fc3897fd" class="m-doc-self">should_marg</a>
+            <dt id="af1020195008ececef0aceec655af7b66">
+              bool <a href="#af1020195008ececef0aceec655af7b66" class="m-doc-self">should_marg</a>
             </dt>
             <dd>Boolean if this landmark should be marginalized out.</dd>
-            <dt id="aad43d6fde03f42ae92f00342a190c929">
-              <a href="classov__core_1_1FeatureRepresentation.html#a6da28654fec70a2010f1826d316abc44" class="m-doc">FeatureRepresentation::<wbr />Representation</a> <a href="#aad43d6fde03f42ae92f00342a190c929" class="m-doc-self">_feat_representation</a>
+            <dt id="a91175b33f67648b4613a4e8fbf45c57b">
+              Eigen::Vector3d <a href="#a91175b33f67648b4613a4e8fbf45c57b" class="m-doc-self">uv_norm_zero</a>
+            </dt>
+            <dd>First normalized uv coordinate bearing of this measurement (used for single depth representation)</dd>
+            <dt id="a1ec99a64bd719ecde264279aa7e45b5f">
+              Eigen::Vector3d <a href="#a1ec99a64bd719ecde264279aa7e45b5f" class="m-doc-self">uv_norm_zero_fej</a>
+            </dt>
+            <dd>First estimate normalized uv coordinate bearing of this measurement (used for single depth representation)</dd>
+            <dt id="a0935ff64bd9d96b24e8437c96a6bbe3d">
+              <a href="classov__type_1_1LandmarkRepresentation.html#a7f5783df6932ace7f098ae243b6d298e" class="m-doc">LandmarkRepresentation::<wbr />Representation</a> <a href="#a0935ff64bd9d96b24e8437c96a6bbe3d" class="m-doc-self">_feat_representation</a>
             </dt>
             <dd>What feature representation this feature currently has.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="ad8e8c8b0477862440eb787e4b2032fcd"><div>
+          <section class="m-doc-details" id="a3d8900f302b2227b10d321ad8008cbcd"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad8e8c8b0477862440eb787e4b2032fcd" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3d8900f302b2227b10d321ad8008cbcd" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Overrides the default vector update rule We want to selectively update the FEJ value if we are using an anchored representation.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -151,7 +159,7 @@
           </div></section>
           <section class="m-doc-details" id="ac4f8e2cecf6c4fc00b7680ebe95c2fa9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 1&gt; ov_core::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac4f8e2cecf6c4fc00b7680ebe95c2fa9" class="m-doc-self">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej)</span></span>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 1&gt; ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac4f8e2cecf6c4fc00b7680ebe95c2fa9" class="m-doc-self">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej)</span></span>
             </h3>
             <p>Will return the position of the feature in the global frame of reference.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -171,11 +179,11 @@
                 </tr>
               </tfoot>
             </table>
-<p>CASE: Global 3d feature representation CASE: Anchored 3D feature representation</p><p>CASE: Global inverse depth feature representation CASE: Anchored full inverse depth feature representation</p><p>CASE: Anchored MSCKF inverse depth feature representation</p>
+<p>CASE: Global 3d feature representation CASE: Anchored 3D feature representation</p><p>CASE: Global inverse depth feature representation CASE: Anchored full inverse depth feature representation</p><p>CASE: Anchored MSCKF inverse depth feature representation</p><p>CASE: Estimate single depth of the feature using the initial bearing</p>
           </div></section>
           <section class="m-doc-details" id="ac34319e2057c3c63154cef9a9aa08a2e"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac34319e2057c3c63154cef9a9aa08a2e" class="m-doc-self">set_from_xyz</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; p_FinG,
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac34319e2057c3c63154cef9a9aa08a2e" class="m-doc-self">set_from_xyz</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; p_FinG,
               bool isfej)</span></span>
             </h3>
             <p>Will set the current value based on the representation.</p>
@@ -194,7 +202,7 @@
                 </tr>
               </tbody>
             </table>
-<p>CASE: Global 3d feature representation CASE: Anchored 3d feature representation</p><p>CASE: Global inverse depth feature representation CASE: Anchored inverse depth feature representation</p><p>CASE: MSCKF anchored inverse depth representation</p>
+<p>CASE: Global 3d feature representation CASE: Anchored 3d feature representation</p><p>CASE: Global inverse depth feature representation CASE: Anchored inverse depth feature representation</p><p>CASE: MSCKF anchored inverse depth representation</p><p>CASE: Estimate single depth of the feature using the initial bearing</p>
           </div></section>
         </section>
       </div>

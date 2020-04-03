@@ -121,6 +121,12 @@
               double timestamp)</span>
             </dt>
             <dd>Propagate state up to given timestamp and then clone.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a1fcea908c1a4bde109b89385b1eb6c17" class="m-doc">fast_state_propagate</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              double timestamp,
+              Eigen::Matrix&lt;double, 13, 1&gt;&amp; state_plus)</span>
+            </dt>
+            <dd>Gets what the state and its covariance will be at a given timestamp.</dd>
           </dl>
         </section>
         <section id="pro-methods">
@@ -316,6 +322,34 @@
               </tbody>
             </table>
 <p>This will first collect all imu readings that occured between the <em>current</em> state time and the new time we want the state to be at. If we don&#x27;t have any imu readings we will try to extrapolate into the future. After propagating the mean and covariance using our dynamics, We clone the current imu pose as a new clone in our state.</p>
+          </div></section>
+          <section class="m-doc-details" id="a1fcea908c1a4bde109b89385b1eb6c17"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Propagator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1fcea908c1a4bde109b89385b1eb6c17" class="m-doc-self">fast_state_propagate</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              double timestamp,
+              Eigen::Matrix&lt;double, 13, 1&gt;&amp; state_plus)</span></span>
+            </h3>
+            <p>Gets what the state and its covariance will be at a given timestamp.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">state</td>
+                  <td>Pointer to state</td>
+                </tr>
+                <tr>
+                  <td>timestamp</td>
+                  <td>Time to propagate to</td>
+                </tr>
+                <tr>
+                  <td>state_plus</td>
+                  <td>The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)</td>
+                </tr>
+              </tbody>
+            </table>
+<p>This can be used to find what the state will be in the &quot;future&quot; without propagating it. This will propagate a clone of the current IMU state and its covariance matrix. This is typically used to provide high frequency pose estimates between updates.</p>
           </div></section>
           <section class="m-doc-details" id="a998044549446a06b94fe885b3f279ebf"><div>
             <h3>

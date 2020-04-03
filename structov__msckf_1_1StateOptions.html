@@ -56,11 +56,21 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="a33235a40ef436ee7c9d92a44cd9b9fd3">
+              <span class="m-doc-wrap-bumper">void <a href="#a33235a40ef436ee7c9d92a44cd9b9fd3" class="m-doc-self">print</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Nice print function of what parameters we have loaded.</dd>
+          </dl>
+        </section>
         <section id="pub-attribs">
           <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
@@ -96,6 +106,14 @@
               int <a href="#af486dff48a918b3afed0176558d86f65" class="m-doc-self">max_slam_features</a>
             </dt>
             <dd>Max number of estimated SLAM features.</dd>
+            <dt id="a13760012f68a944b2b59e9f83bbc9bc5">
+              int <a href="#a13760012f68a944b2b59e9f83bbc9bc5" class="m-doc-self">max_slam_in_update</a>
+            </dt>
+            <dd>Max number of SLAM features we allow to be included in a single EKF update.</dd>
+            <dt id="a6fb28c6eb0838363eee0ce37a2828ed9">
+              int <a href="#a6fb28c6eb0838363eee0ce37a2828ed9" class="m-doc-self">max_msckf_in_update</a>
+            </dt>
+            <dd>Max number of MSCKF features we will use at a given image timestep.</dd>
             <dt id="ad26177fc751cdcf12e9e19ef698f91eb">
               int <a href="#ad26177fc751cdcf12e9e19ef698f91eb" class="m-doc-self">max_aruco_features</a>
             </dt>
@@ -104,10 +122,18 @@
               int <a href="#a1de43b7611b68b3bbae742adfd0e20e5" class="m-doc-self">num_cameras</a>
             </dt>
             <dd>Number of cameras.</dd>
-            <dt id="af8f3b46cb5760dd22b174e183ac6fc92">
-              <a href="classov__core_1_1FeatureRepresentation.html#a6da28654fec70a2010f1826d316abc44" class="m-doc">FeatureRepresentation::<wbr />Representation</a> <a href="#af8f3b46cb5760dd22b174e183ac6fc92" class="m-doc-self">feat_representation</a>
+            <dt id="af08d4cc9b7c0e12b01b889e81533ef53">
+              <a href="classov__type_1_1LandmarkRepresentation.html#a7f5783df6932ace7f098ae243b6d298e" class="m-doc">LandmarkRepresentation::<wbr />Representation</a> <a href="#af08d4cc9b7c0e12b01b889e81533ef53" class="m-doc-self">feat_rep_msckf</a>
             </dt>
-            <dd>What representation our features are in.</dd>
+            <dd>What representation our features are in (msckf features)</dd>
+            <dt id="abd9ba4da5b1efd7d635fbb55b8e91795">
+              <a href="classov__type_1_1LandmarkRepresentation.html#a7f5783df6932ace7f098ae243b6d298e" class="m-doc">LandmarkRepresentation::<wbr />Representation</a> <a href="#abd9ba4da5b1efd7d635fbb55b8e91795" class="m-doc-self">feat_rep_slam</a>
+            </dt>
+            <dd>What representation our features are in (slam features)</dd>
+            <dt id="a124ccb154c3aefa9aa969c267522c51e">
+              <a href="classov__type_1_1LandmarkRepresentation.html#a7f5783df6932ace7f098ae243b6d298e" class="m-doc">LandmarkRepresentation::<wbr />Representation</a> <a href="#a124ccb154c3aefa9aa969c267522c51e" class="m-doc-self">feat_rep_aruco</a>
+            </dt>
+            <dd>What representation our features are in (aruco tag features)</dd>
           </dl>
         </section>
       </div>

@@ -69,7 +69,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#aff9a191791ac11746873fcba88113ded" class="m-doc">VioManager</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh)</span>
+              <span class="m-doc-wrap-bumper"><a href="#aa2376a11794739f8d7811d6e7c0dd447" class="m-doc">VioManager</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span>
             </dt>
             <dd>Default constructor, will load all configuration variables.</dd>
           </dl>
@@ -107,14 +107,22 @@
               <span class="m-doc-wrap-bumper">void <a href="#a163c357d9ac0fc89061212f6ba19b5c8" class="m-doc">initialize_with_gt</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 17, 1&gt; imustate)</span>
             </dt>
             <dd>Given a state, this will initialize our IMU state.</dd>
-            <dt id="a55e1889dd7339128107385a3b3849e83">
-              <span class="m-doc-wrap-bumper">auto <a href="#a55e1889dd7339128107385a3b3849e83" class="m-doc-self">intialized</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            <dt id="ae463166d4a27c3576fab416751bea40f">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae463166d4a27c3576fab416751bea40f" class="m-doc-self">initialized</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd>If we are initialized or not.</dd>
+            <dt id="a12069947bc27ee0595978f2d188551bc">
+              <span class="m-doc-wrap-bumper">auto <a href="#a12069947bc27ee0595978f2d188551bc" class="m-doc-self">initialized_time</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+            </dt>
+            <dd>Timestamp that the system was initialized at.</dd>
             <dt id="aec22fef6ea015b3c5bd011ffab57baaa">
               <span class="m-doc-wrap-bumper">auto <a href="#aec22fef6ea015b3c5bd011ffab57baaa" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1State.html" class="m-doc">State</a>*</span>
             </dt>
             <dd>Accessor to get the current state.</dd>
+            <dt id="acc031017030234eb6b1e95332f1ea028">
+              <span class="m-doc-wrap-bumper">auto <a href="#acc031017030234eb6b1e95332f1ea028" class="m-doc-self">get_propagator</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>*</span>
+            </dt>
+            <dd>Accessor to get the current propagator.</dd>
             <dt id="a878afc0e50ebdb91ba8bb46622f722d1">
               <span class="m-doc-wrap-bumper">auto <a href="#a878afc0e50ebdb91ba8bb46622f722d1" class="m-doc-self">get_track_feat</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>*</span>
             </dt>
@@ -153,6 +161,10 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
+            <dt id="a69eebf475686d6e17af5f7a5c7f0a8ac">
+              <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> <a href="#a69eebf475686d6e17af5f7a5c7f0a8ac" class="m-doc-self">params</a>
+            </dt>
+            <dd>Manager parameters.</dd>
             <dt id="ad9b928a55e84837fe4d71d586c075c4c">
               <a href="classov__msckf_1_1State.html" class="m-doc">State</a>* <a href="#ad9b928a55e84837fe4d71d586c075c4c" class="m-doc-self">state</a>
             </dt>
@@ -161,10 +173,6 @@
               <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>* <a href="#a282146143a4da3cc0733e3c35dbd7f53" class="m-doc-self">propagator</a>
             </dt>
             <dd><a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> of our state.</dd>
-            <dt id="a041c2c558ff298e48b8b6c299953b780">
-              bool <a href="#a041c2c558ff298e48b8b6c299953b780" class="m-doc-self">use_stereo</a>
-            </dt>
-            <dd>Boolean if we should do stereo tracking or if false do binocular.</dd>
             <dt id="a2fbb98ac93fd7f242b0f84c9c6dbfc1c">
               <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>* <a href="#a2fbb98ac93fd7f242b0f84c9c6dbfc1c" class="m-doc-self">trackFEATS</a>
             </dt>
@@ -197,9 +205,9 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="aff9a191791ac11746873fcba88113ded"><div>
+          <section class="m-doc-details" id="aa2376a11794739f8d7811d6e7c0dd447"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aff9a191791ac11746873fcba88113ded" class="m-doc-self">VioManager</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa2376a11794739f8d7811d6e7c0dd447" class="m-doc-self">VioManager</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span></span>
             </h3>
             <p>Default constructor, will load all configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -208,8 +216,8 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">nh</td>
-                  <td>ROS node handler which we will load parameters from</td>
+                  <td style="width: 1%">params_</td>
+                  <td>Parameters loaded from either ROS or CMDLINE</td>
                 </tr>
               </tbody>
             </table>
@@ -362,7 +370,7 @@
                 </tr>
               </tfoot>
             </table>
-<p>This should call on our initalizer and try to init the state. In the future we should call the structure-from-motion code from here. This function could also be repurposed to re-initialize the system after failure. *</p>
+<p>This should call on our initializer and try to init the state. In the future we should call the structure-from-motion code from here. This function could also be repurposed to re-initialize the system after failure. *</p>
           </div></section>
           <section class="m-doc-details" id="a71372cd87f15b9ebfd12d3b86d16aa2a"><div>
             <h3>

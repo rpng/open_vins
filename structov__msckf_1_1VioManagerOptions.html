@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_msckf::VioManagerOptions struct | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>VioManagerOptions <span class="m-thin">struct</span>
+        </h1>
+        <p>Struct which stores all options needed for state estimation.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This is broken into a few different parts: estimator, trackers, and simulation. If you are going to add a parameter here you will need to add it to the parsers. You will also need to add it to the print statement at the bottom of each.</p>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="afde43a7a425504f9e88c48178aaf2bc5">
+              <span class="m-doc-wrap-bumper">void <a href="#afde43a7a425504f9e88c48178aaf2bc5" class="m-doc-self">print_estimator</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>This function will print out all estimator settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt id="aff173b4dccff5bab799dc7a3c8d84509">
+              <span class="m-doc-wrap-bumper">void <a href="#aff173b4dccff5bab799dc7a3c8d84509" class="m-doc-self">print_noise</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>This function will print out all noise parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt id="a5c6a8217d11f73ee76c0551d20cb0f23">
+              <span class="m-doc-wrap-bumper">void <a href="#a5c6a8217d11f73ee76c0551d20cb0f23" class="m-doc-self">print_state</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>This function will print out all simulated parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt id="a3a21a0c95fdf005683659cd56368aa4d">
+              <span class="m-doc-wrap-bumper">void <a href="#a3a21a0c95fdf005683659cd56368aa4d" class="m-doc-self">print_trackers</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>This function will print out all parameters releated to our visual trackers.</dd>
+            <dt id="a8dac378be0242a742f9b87bd8fe439cb">
+              <span class="m-doc-wrap-bumper">void <a href="#a8dac378be0242a742f9b87bd8fe439cb" class="m-doc-self">print_simulation</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>This function will print out all simulated parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+          </dl>
+        </section>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="a578756373f9bcd2eadae31c419fb8c43">
+              <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a578756373f9bcd2eadae31c419fb8c43" class="m-doc-self">state_options</a>
+            </dt>
+            <dd>Core state options (e.g. number of cameras, use fej, stereo, what calibration to enable etc)</dd>
+            <dt id="a6a413a710da13d447def5dae370f6c68">
+              Eigen::Vector3d <a href="#a6a413a710da13d447def5dae370f6c68" class="m-doc-self">gravity</a>
+            </dt>
+            <dd>Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)</dd>
+            <dt id="ae921221a9db709f06fbd7379e3430bf8">
+              double <a href="#ae921221a9db709f06fbd7379e3430bf8" class="m-doc-self">dt_slam_delay</a>
+            </dt>
+            <dd>Delay, in seconds, that we should wait from init before we start estimating SLAM features.</dd>
+            <dt id="aebb2f0982775b7bff756b389c1548224">
+              double <a href="#aebb2f0982775b7bff756b389c1548224" class="m-doc-self">init_window_time</a>
+            </dt>
+            <dd>Amount of time we will initialize over (seconds)</dd>
+            <dt id="a0af9805017c4871384791e5dbb9d4e5d">
+              double <a href="#a0af9805017c4871384791e5dbb9d4e5d" class="m-doc-self">init_imu_thresh</a>
+            </dt>
+            <dd>Variance threshold on our acceleration to be classified as moving.</dd>
+            <dt id="af1c76781e016ae09e49bd4d8e42006e6">
+              bool <a href="#af1c76781e016ae09e49bd4d8e42006e6" class="m-doc-self">record_timing_information</a>
+            </dt>
+            <dd>If we should record the timing performance to file.</dd>
+            <dt id="a3cd20d912a15dc8cbe4b71a5bb9daf89">
+              std::string <a href="#a3cd20d912a15dc8cbe4b71a5bb9daf89" class="m-doc-self">record_timing_filepath</a>
+            </dt>
+            <dd>The path to the file we will record the timing information into.</dd>
+            <dt id="a5140dc57ac5ecef5c7eb5d215d7d10b3">
+              <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a> <a href="#a5140dc57ac5ecef5c7eb5d215d7d10b3" class="m-doc-self">imu_noises</a>
+            </dt>
+            <dd>IMU noise (gyroscope and accelerometer)</dd>
+            <dt id="a8e9f183d26954a03cd2da0511d96b0f3">
+              <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#a8e9f183d26954a03cd2da0511d96b0f3" class="m-doc-self">msckf_options</a>
+            </dt>
+            <dd>Update options for MSCKF features (pixel noise and chi2 multiplier)</dd>
+            <dt id="a3972f04e248b39ee50d7a6ef5dfbc086">
+              <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#a3972f04e248b39ee50d7a6ef5dfbc086" class="m-doc-self">slam_options</a>
+            </dt>
+            <dd>Update options for SLAM features (pixel noise and chi2 multiplier)</dd>
+            <dt id="a7f72e601f8b772aeb3a59304fd615667">
+              <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#a7f72e601f8b772aeb3a59304fd615667" class="m-doc-self">aruco_options</a>
+            </dt>
+            <dd>Update options for ARUCO features (pixel noise and chi2 multiplier)</dd>
+            <dt id="a10bb45ab36e74b8e4d25f8e68bc2ffd7">
+              double <a href="#a10bb45ab36e74b8e4d25f8e68bc2ffd7" class="m-doc-self">calib_camimu_dt</a>
+            </dt>
+            <dd>Time offset between camera and IMU.</dd>
+            <dt id="a7f5034c6adf02ff2794087e6b2eac02d">
+              std::map&lt;size_t, bool&gt; <a href="#a7f5034c6adf02ff2794087e6b2eac02d" class="m-doc-self">camera_fisheye</a>
+            </dt>
+            <dd>Map between camid and camera model (true=fisheye, false=radtan)</dd>
+            <dt id="a2e324572662b7db66589a468050cee3b">
+              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#a2e324572662b7db66589a468050cee3b" class="m-doc-self">camera_intrinsics</a>
+            </dt>
+            <dd>Map between camid and intrinsics. Values depends on the model but each should be a 4x1 vector normally.</dd>
+            <dt id="a435dece7314aa005691b9383b756ac69">
+              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#a435dece7314aa005691b9383b756ac69" class="m-doc-self">camera_extrinsics</a>
+            </dt>
+            <dd>Map between camid and camera extrinsics (q_ItoC, p_IinC).</dd>
+            <dt id="aa9610a658c51215ed6e3a1af9380e25c">
+              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#aa9610a658c51215ed6e3a1af9380e25c" class="m-doc-self">camera_wh</a>
+            </dt>
+            <dd>Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.</dd>
+            <dt id="af01535da59b1d2d5e3309aaa34e69c8e">
+              bool <a href="#af01535da59b1d2d5e3309aaa34e69c8e" class="m-doc-self">use_stereo</a>
+            </dt>
+            <dd>If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.</dd>
+            <dt id="a1885c647c47cb5216fc4b868553ec0fa">
+              bool <a href="#a1885c647c47cb5216fc4b868553ec0fa" class="m-doc-self">use_klt</a>
+            </dt>
+            <dd>If we should use KLT tracking, or descriptor matcher.</dd>
+            <dt id="a731396cbfdf81f8519981d6e4b6374fd">
+              bool <a href="#a731396cbfdf81f8519981d6e4b6374fd" class="m-doc-self">use_aruco</a>
+            </dt>
+            <dd>If should extract aruco tags and estimate them.</dd>
+            <dt id="afa1f6f0e1422dc41ea98c80077580c60">
+              bool <a href="#afa1f6f0e1422dc41ea98c80077580c60" class="m-doc-self">downsize_aruco</a>
+            </dt>
+            <dd>Will half the resolution of the aruco tag image (will be faster)</dd>
+            <dt id="a1bde650ec917e7a3df221a1524e33429">
+              int <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
+            </dt>
+            <dd>The number of points we should extract and track in <em>each</em> image frame. This highly effects the computation required for tracking.</dd>
+            <dt id="a27d862f8f1811211f895b27a3b789e3a">
+              int <a href="#a27d862f8f1811211f895b27a3b789e3a" class="m-doc-self">fast_threshold</a>
+            </dt>
+            <dd>Fast extraction threshold.</dd>
+            <dt id="ab52b09d507ef33dabe72d65a223fe067">
+              int <a href="#ab52b09d507ef33dabe72d65a223fe067" class="m-doc-self">grid_x</a>
+            </dt>
+            <dd>Number of grids we should split column-wise to do feature extraction in.</dd>
+            <dt id="a678920b0804fb40a14b22da61d49d631">
+              int <a href="#a678920b0804fb40a14b22da61d49d631" class="m-doc-self">grid_y</a>
+            </dt>
+            <dd>Number of grids we should split row-wise to do feature extraction in.</dd>
+            <dt id="a66d1e76bc9e8ffdd1c669d99fdce76b7">
+              int <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
+            </dt>
+            <dd>Will check after doing KLT track and remove any features closer than this.</dd>
+            <dt id="a62800a75870b19213d1c44e69b2c32f7">
+              double <a href="#a62800a75870b19213d1c44e69b2c32f7" class="m-doc-self">knn_ratio</a>
+            </dt>
+            <dd>KNN ration between top two descriptor matcher which is required to be a good match.</dd>
+            <dt id="adb73a6bc125800109a3a334cf0386203">
+              <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a> <a href="#adb73a6bc125800109a3a334cf0386203" class="m-doc-self">featinit_options</a>
+            </dt>
+            <dd>Parameters used by our feature initialize / triangulator.</dd>
+            <dt id="aa9c57558a61ebbdb3ef98cc529f3f01a">
+              string <a href="#aa9c57558a61ebbdb3ef98cc529f3f01a" class="m-doc-self">sim_traj_path</a>
+            </dt>
+            <dd>Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.</dd>
+            <dt id="a3b6af0048e6bb9b903088f30f9be7221">
+              double <a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc-self">sim_distance_threshold</a>
+            </dt>
+            <dd>We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in simulation.</dd>
+            <dt id="a093cc163f266b0c013d7eda528bb1e80">
+              double <a href="#a093cc163f266b0c013d7eda528bb1e80" class="m-doc-self">sim_freq_cam</a>
+            </dt>
+            <dd>Frequency (Hz) that we will simulate our cameras.</dd>
+            <dt id="aaf63d79014853441849b5e6a2813020f">
+              double <a href="#aaf63d79014853441849b5e6a2813020f" class="m-doc-self">sim_freq_imu</a>
+            </dt>
+            <dd>Frequency (Hz) that we will simulate our inertial measurement unit.</dd>
+            <dt id="a04e82ff351254354378cd7568aaef6ed">
+              int <a href="#a04e82ff351254354378cd7568aaef6ed" class="m-doc-self">sim_seed_state_init</a>
+            </dt>
+            <dd>Seed for initial states (i.e. random feature 3d positions in the generated map)</dd>
+            <dt id="afe2c433c61d25c18901b089a2215114c">
+              int <a href="#afe2c433c61d25c18901b089a2215114c" class="m-doc-self">sim_seed_preturb</a>
+            </dt>
+            <dd>Seed for calibration perturbations. Change this to perturb by different random values if perturbations are enabled.</dd>
+            <dt id="a9b3fee122a7d3b2069a424b5ef1b1155">
+              int <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
+            </dt>
+            <dd>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</dd>
+            <dt id="a4d595d5277582b53d12ad75bc7a6ad57">
+              bool <a href="#a4d595d5277582b53d12ad75bc7a6ad57" class="m-doc-self">sim_do_perturbation</a>
+            </dt>
+            <dd>If we should perturb the calibration that the estimator starts with.</dd>
+          </dl>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

@@ -58,7 +58,7 @@
               <ul>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
-                <li><a href="#pro-attribs">Protected variables</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
@@ -68,7 +68,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a2e5938c30d425410594a5c9ef159fb3f" class="m-doc">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span>
+              <span class="m-doc-wrap-bumper"><a href="#ad6098accfeb57e7eb8c8a22bfd45ec0b" class="m-doc">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span>
             </dt>
             <dd>Default Constructor (will initialize variables to defaults)</dd>
           </dl>
@@ -77,86 +77,17 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a3be1ed8de7e0d498dfee11b31a4398b7" class="m-doc">initialize_variables</a>(</span><span class="m-doc-wrap">)</span>
-            </dt>
-            <dd>Initializes pointers and covariance.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ae9c27a3a937d5c837cd1c51dd44ff998" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd dx)</span>
-            </dt>
-            <dd>Given an update vector for the <strong>entire covariance</strong>, updates each variable.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a167f44efb9d0136ef1d29312560d5863" class="m-doc">set_timestamp</a>(</span><span class="m-doc-wrap">double timestamp)</span>
-            </dt>
-            <dd>Set the current timestamp of the filter.</dd>
-            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a36420e71ffa54625667eac2a8a345582" class="m-doc">margtimestep</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
             </dt>
-            <dd>Will return the timestep that we will marginalize next.</dd>
-            <dt id="aa89a34944c29d45371a5eb63ca982c58">
-              <span class="m-doc-wrap-bumper">auto <a href="#aa89a34944c29d45371a5eb63ca982c58" class="m-doc-self">timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+            <dd>Will return the timestep that we will marginalize next. As of right now, since we are using a sliding window, this is the oldest clone. But if you wanted to do a keyframe system, you could selectively marginalize clones.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc">max_covariance_size</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
-            <dd>Access current timestamp.</dd>
-            <dt id="ae4804480dde4171360cdcfd4d3224d78">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae4804480dde4171360cdcfd4d3224d78" class="m-doc-self">options</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp;</span>
-            </dt>
-            <dd>Access options struct.</dd>
-            <dt id="a3a7febe740c3d61e63b432964a9c4909">
-              <span class="m-doc-wrap-bumper">auto <a href="#a3a7febe740c3d61e63b432964a9c4909" class="m-doc-self">imu</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a>*</span>
-            </dt>
-            <dd>Access to IMU type.</dd>
-            <dt id="abb5370684ae3f4dfe91b60955280ba41">
-              <span class="m-doc-wrap-bumper">auto <a href="#abb5370684ae3f4dfe91b60955280ba41" class="m-doc-self">Cov</a>(</span><span class="m-doc-wrap">) -&gt; Eigen::MatrixXd&amp;</span>
-            </dt>
-            <dd>Access covariance matrix.</dd>
-            <dt id="a66f018a98ae072eaecfa4cb05e32fb36">
-              <span class="m-doc-wrap-bumper">auto <a href="#a66f018a98ae072eaecfa4cb05e32fb36" class="m-doc-self">n_vars</a>(</span><span class="m-doc-wrap">) -&gt; size_t</span>
-            </dt>
-            <dd>Get size of covariance.</dd>
-            <dt id="aea2bfa7a52e146365ebe6089809083d8">
-              <span class="m-doc-wrap-bumper">auto <a href="#aea2bfa7a52e146365ebe6089809083d8" class="m-doc-self">calib_dt_CAMtoIMU</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>*</span>
-            </dt>
-            <dd>Access imu-camera time offset type.</dd>
-            <dt id="a0f81d48853196cb205b92c2ce9ff0d7d">
-              <span class="m-doc-wrap-bumper">auto <a href="#a0f81d48853196cb205b92c2ce9ff0d7d" class="m-doc-self">get_clone</a>(</span><span class="m-doc-wrap">double timestamp) -&gt; <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
-            </dt>
-            <dd>Access to a given clone.</dd>
-            <dt id="a8ed7a4c4b560c6f5eefef4ef509da32c">
-              <span class="m-doc-wrap-bumper">auto <a href="#a8ed7a4c4b560c6f5eefef4ef509da32c" class="m-doc-self">get_clones</a>(</span><span class="m-doc-wrap">) -&gt; std::map&lt;double, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
-            </dt>
-            <dd>Access to all current clones in the state.</dd>
-            <dt id="ae09b3d4d7bef41760e2afdec3fc4b0a9">
-              <span class="m-doc-wrap-bumper">auto <a href="#ae09b3d4d7bef41760e2afdec3fc4b0a9" class="m-doc-self">n_clones</a>(</span><span class="m-doc-wrap">) -&gt; size_t</span>
-            </dt>
-            <dd>Get current number of clones.</dd>
-            <dt id="a7f0ee02941ff70b8d1881b7cf4aa17cf">
-              <span class="m-doc-wrap-bumper">auto <a href="#a7f0ee02941ff70b8d1881b7cf4aa17cf" class="m-doc-self">get_calib_IMUtoCAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
-            </dt>
-            <dd>Access to a given camera extrinsics.</dd>
-            <dt id="a3639e7a84aeaea3cadab871f4aa04941">
-              <span class="m-doc-wrap-bumper">auto <a href="#a3639e7a84aeaea3cadab871f4aa04941" class="m-doc-self">get_calib_IMUtoCAMs</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt;</span>
-            </dt>
-            <dd>Access to all current extrinsic calibration between IMU and each camera.</dd>
-            <dt id="a6e86454e3420f1f1392cecab1127bcee">
-              <span class="m-doc-wrap-bumper">auto <a href="#a6e86454e3420f1f1392cecab1127bcee" class="m-doc-self">get_intrinsics_CAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>*</span>
-            </dt>
-            <dd>Access to a given camera intrinsics.</dd>
-            <dt id="aebc2cbcd0c7a4de784b17fc1bbd35559">
-              <span class="m-doc-wrap-bumper">auto <a href="#aebc2cbcd0c7a4de784b17fc1bbd35559" class="m-doc-self">get_model_CAM</a>(</span><span class="m-doc-wrap">size_t id) -&gt; bool&amp;</span>
-            </dt>
-            <dd>Access to a given camera intrinsics.</dd>
-            <dt id="a2b5c609828c6f940f3c4a43093741d52">
-              <span class="m-doc-wrap-bumper">void <a href="#a2b5c609828c6f940f3c4a43093741d52" class="m-doc-self">insert_SLAM_feature</a>(</span><span class="m-doc-wrap">size_t featid,
-              <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>* landmark)</span>
-            </dt>
-            <dd>Add a SLAM feature.</dd>
-            <dt id="add4cbead8f1bec9c29626b7ca31bab2a">
-              <span class="m-doc-wrap-bumper">auto <a href="#add4cbead8f1bec9c29626b7ca31bab2a" class="m-doc-self">features_SLAM</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>*&gt;&amp;</span>
-            </dt>
-            <dd>Access SLAM features.</dd>
+            <dd>Calculates the current max size of the covariance.</dd>
           </dl>
         </section>
-        <section id="pro-attribs">
-          <h2><a href="#pro-attribs">Protected variables</a></h2>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
             <dt id="ae7615177e3edeb8eac39eb05867dc72f">
               double <a href="#ae7615177e3edeb8eac39eb05867dc72f" class="m-doc-self">_timestamp</a>
@@ -167,48 +98,40 @@
             </dt>
             <dd>Struct containing filter options.</dd>
             <dt id="a7e5401c6f6241a32615b071147a40b54">
-              <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a>* <a href="#a7e5401c6f6241a32615b071147a40b54" class="m-doc-self">_imu</a>
+              <a href="classov__type_1_1IMU.html" class="m-doc">IMU</a>* <a href="#a7e5401c6f6241a32615b071147a40b54" class="m-doc-self">_imu</a>
             </dt>
             <dd>Pointer to the &quot;active&quot; IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)</dd>
             <dt id="a2f6328c77dd8e4c99dfbbe8ee9126959">
-              std::map&lt;double, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a2f6328c77dd8e4c99dfbbe8ee9126959" class="m-doc-self">_clones_IMU</a>
+              std::map&lt;double, <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a2f6328c77dd8e4c99dfbbe8ee9126959" class="m-doc-self">_clones_IMU</a>
             </dt>
             <dd>Map between imaging times and clone poses (q_GtoIi, p_IiinG)</dd>
             <dt id="a890a6cb1245465a0acae30149de3dc18">
-              std::unordered_map&lt;size_t, <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>*&gt; <a href="#a890a6cb1245465a0acae30149de3dc18" class="m-doc-self">_features_SLAM</a>
+              std::unordered_map&lt;size_t, <a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>*&gt; <a href="#a890a6cb1245465a0acae30149de3dc18" class="m-doc-self">_features_SLAM</a>
             </dt>
             <dd>Our current set of SLAM features (3d positions)</dd>
             <dt id="ab74adf6c3e2bed34c5ae2bd00b640541">
-              <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>* <a href="#ab74adf6c3e2bed34c5ae2bd00b640541" class="m-doc-self">_calib_dt_CAMtoIMU</a>
+              <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>* <a href="#ab74adf6c3e2bed34c5ae2bd00b640541" class="m-doc-self">_calib_dt_CAMtoIMU</a>
             </dt>
             <dd>Time offset base IMU to camera (t_imu = t_cam + t_off)</dd>
             <dt id="a78eebc01de3742b79ff0cac34ca2e500">
-              std::unordered_map&lt;size_t, <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a78eebc01de3742b79ff0cac34ca2e500" class="m-doc-self">_calib_IMUtoCAM</a>
+              std::unordered_map&lt;size_t, <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a78eebc01de3742b79ff0cac34ca2e500" class="m-doc-self">_calib_IMUtoCAM</a>
             </dt>
             <dd>Calibration poses for each camera (R_ItoC, p_IinC)</dd>
             <dt id="a24985916b003b6c024c7795ca1de0b29">
-              std::unordered_map&lt;size_t, <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>*&gt; <a href="#a24985916b003b6c024c7795ca1de0b29" class="m-doc-self">_cam_intrinsics</a>
+              std::unordered_map&lt;size_t, <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>*&gt; <a href="#a24985916b003b6c024c7795ca1de0b29" class="m-doc-self">_cam_intrinsics</a>
             </dt>
             <dd>Camera intrinsics.</dd>
             <dt id="a284f1502a059cfeac644485f8ca587fb">
               std::unordered_map&lt;size_t, bool&gt; <a href="#a284f1502a059cfeac644485f8ca587fb" class="m-doc-self">_cam_intrinsics_model</a>
             </dt>
             <dd>What distortion model we are using (false=radtan, true=fisheye)</dd>
-            <dt id="a40fe7851cbb0030af7a42e98fd9782d1">
-              Eigen::MatrixXd <a href="#a40fe7851cbb0030af7a42e98fd9782d1" class="m-doc-self">_Cov</a>
-            </dt>
-            <dd>Covariance of all active variables.</dd>
-            <dt id="a28db988e77a9298672a157b12b92245c">
-              std::vector&lt;<a href="classov__core_1_1Type.html" class="m-doc">Type</a>*&gt; <a href="#a28db988e77a9298672a157b12b92245c" class="m-doc-self">_variables</a>
-            </dt>
-            <dd>Vector of variables.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a2e5938c30d425410594a5c9ef159fb3f"><div>
+          <section class="m-doc-details" id="ad6098accfeb57e7eb8c8a22bfd45ec0b"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2e5938c30d425410594a5c9ef159fb3f" class="m-doc-self">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad6098accfeb57e7eb8c8a22bfd45ec0b" class="m-doc-self">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span></span>
             </h3>
             <p>Default Constructor (will initialize variables to defaults)</p>
             <table class="m-table m-fullwidth m-flat">
@@ -223,52 +146,11 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a3be1ed8de7e0d498dfee11b31a4398b7"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3be1ed8de7e0d498dfee11b31a4398b7" class="m-doc-self">initialize_variables</a>(</span><span class="m-doc-wrap">)</span></span>
-            </h3>
-            <p>Initializes pointers and covariance.</p>
-<p>TODO: Read initial values and covariance from options</p>
-          </div></section>
-          <section class="m-doc-details" id="ae9c27a3a937d5c837cd1c51dd44ff998"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae9c27a3a937d5c837cd1c51dd44ff998" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd dx)</span></span>
-            </h3>
-            <p>Given an update vector for the <strong>entire covariance</strong>, updates each variable.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">dx</td>
-                  <td>Correction vector for the entire filter state</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a167f44efb9d0136ef1d29312560d5863"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a167f44efb9d0136ef1d29312560d5863" class="m-doc-self">set_timestamp</a>(</span><span class="m-doc-wrap">double timestamp)</span></span>
-            </h3>
-            <p>Set the current timestamp of the filter.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>New timestamp</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
           <section class="m-doc-details" id="a36420e71ffa54625667eac2a8a345582"><div>
             <h3>
               <span class="m-doc-wrap-bumper">double ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a36420e71ffa54625667eac2a8a345582" class="m-doc-self">margtimestep</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
-            <p>Will return the timestep that we will marginalize next.</p>
+            <p>Will return the timestep that we will marginalize next. As of right now, since we are using a sliding window, this is the oldest clone. But if you wanted to do a keyframe system, you could selectively marginalize clones.</p>
             <table class="m-table m-fullwidth m-flat">
               <tfoot>
                 <tr>
@@ -277,7 +159,20 @@
                 </tr>
               </tfoot>
             </table>
-<p>As of right now, since we are using a sliding window, this is the oldest clone. But if you wanted to do a keyframe system, you could selectively marginalize clones.</p>
+          </div></section>
+          <section class="m-doc-details" id="a37c45cc1d3d1a3dcc46d3799a997355f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">int ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc-self">max_covariance_size</a>(</span><span class="m-doc-wrap">)</span></span>
+            </h3>
+            <p>Calculates the current max size of the covariance.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>Size of the current covariance matrix</td>
+                </tr>
+              </tfoot>
+            </table>
           </div></section>
         </section>
       </div>

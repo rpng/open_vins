@@ -71,19 +71,26 @@
               std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_ori,
               std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_pos)</span>
             </dt>
-            <dd>This will load space seperated trajectory into memory.</dd>
+            <dd>This will load <em>space</em> separated trajectory into memory.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#a6ecab01ce0d594bc3a635925ea8a7321" class="m-doc">load_simulation</a>(</span><span class="m-doc-wrap">std::string path,
               std::vector&lt;Eigen::VectorXd&gt;&amp; values)</span>
             </dt>
-            <dd>Load a arbitrary sized row of values, used for our simulation.</dd>
+            <dd>Load an arbitrary sized row of <em>space</em> separated values, used for our simulation.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#aa5ac4cd4fbf653e5a5b6becb130e80db" class="m-doc">load_timing</a>(</span><span class="m-doc-wrap">std::string path,
+              <span class="m-doc-wrap-bumper">static void <a href="#aef2c74f0ad3dc52f0ce47bfe22ae6ed4" class="m-doc">load_timing_flamegraph</a>(</span><span class="m-doc-wrap">std::string path,
+              std::vector&lt;std::string&gt;&amp; names,
+              std::vector&lt;double&gt;&amp; times,
+              std::vector&lt;Eigen::VectorXd&gt;&amp; timing_values)</span>
+            </dt>
+            <dd>Load <em>comma</em> separated timing file from pid_ros.py file.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#aebb4fa55e3b3c9399dfebe11fe940112" class="m-doc">load_timing_percent</a>(</span><span class="m-doc-wrap">std::string path,
               std::vector&lt;double&gt;&amp; times,
               std::vector&lt;Eigen::Vector3d&gt;&amp; summed_values,
               std::vector&lt;Eigen::VectorXd&gt;&amp; node_values)</span>
             </dt>
-            <dd>Load space seperated timing file from pid_ros.py file.</dd>
+            <dd>Load space separated timing file from pid_ros.py file.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">static auto <a href="#af4f3f47d194febe39fe1a97a915b7add" class="m-doc">get_total_length</a>(</span><span class="m-doc-wrap">const std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; poses) -&gt; double</span>
             </dt>
@@ -100,7 +107,7 @@
               std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_ori,
               std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_pos)</span></span>
             </h3>
-            <p>This will load space seperated trajectory into memory.</p>
+            <p>This will load <em>space</em> separated trajectory into memory.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -112,7 +119,7 @@
                 </tr>
                 <tr>
                   <td>times</td>
-                  <td>Timesteps in seconds</td>
+                  <td>Timesteps in seconds for each pose</td>
                 </tr>
                 <tr>
                   <td>poses</td>
@@ -134,7 +141,7 @@
               <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />Loader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6ecab01ce0d594bc3a635925ea8a7321" class="m-doc-self">load_simulation</a>(</span><span class="m-doc-wrap">std::string path,
               std::vector&lt;Eigen::VectorXd&gt;&amp; values)</span></span>
             </h3>
-            <p>Load a arbitrary sized row of values, used for our simulation.</p>
+            <p>Load an arbitrary sized row of <em>space</em> separated values, used for our simulation.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -151,14 +158,46 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="aa5ac4cd4fbf653e5a5b6becb130e80db"><div>
+          <section class="m-doc-details" id="aef2c74f0ad3dc52f0ce47bfe22ae6ed4"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />Loader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa5ac4cd4fbf653e5a5b6becb130e80db" class="m-doc-self">load_timing</a>(</span><span class="m-doc-wrap">std::string path,
+              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />Loader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aef2c74f0ad3dc52f0ce47bfe22ae6ed4" class="m-doc-self">load_timing_flamegraph</a>(</span><span class="m-doc-wrap">std::string path,
+              std::vector&lt;std::string&gt;&amp; names,
+              std::vector&lt;double&gt;&amp; times,
+              std::vector&lt;Eigen::VectorXd&gt;&amp; timing_values)</span></span>
+            </h3>
+            <p>Load <em>comma</em> separated timing file from pid_ros.py file.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">path</td>
+                  <td>Path to our text file to load</td>
+                </tr>
+                <tr>
+                  <td>names</td>
+                  <td>Names of each timing category</td>
+                </tr>
+                <tr>
+                  <td>times</td>
+                  <td>Timesteps in seconds for each measurement</td>
+                </tr>
+                <tr>
+                  <td>timing_values</td>
+                  <td>Component timing values for the given timestamp</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="aebb4fa55e3b3c9399dfebe11fe940112"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />Loader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aebb4fa55e3b3c9399dfebe11fe940112" class="m-doc-self">load_timing_percent</a>(</span><span class="m-doc-wrap">std::string path,
               std::vector&lt;double&gt;&amp; times,
               std::vector&lt;Eigen::Vector3d&gt;&amp; summed_values,
               std::vector&lt;Eigen::VectorXd&gt;&amp; node_values)</span></span>
             </h3>
-            <p>Load space seperated timing file from pid_ros.py file.</p>
+            <p>Load space separated timing file from pid_ros.py file.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -170,7 +209,7 @@
                 </tr>
                 <tr>
                   <td>times</td>
-                  <td>Timesteps in seconds</td>
+                  <td>Timesteps in seconds for each measurement</td>
                 </tr>
                 <tr>
                   <td>summed_values</td>
@@ -178,7 +217,7 @@
                 </tr>
                 <tr>
                   <td>node_values</td>
-                  <td>Values for each seperate node [cpu,mem,num_threads]</td>
+                  <td>Values for each separate node [cpu,mem,num_threads]</td>
                 </tr>
               </tbody>
             </table>

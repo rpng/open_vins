@@ -56,11 +56,12 @@
               Reference
               <ul>
                 <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#func-members">Functions</a></li>
               </ul>
             </li>
           </ul>
         </div>
-<p>This is an implementation of a <a href="https://ieeexplore.ieee.org/document/4209642">Multi-State Constraint Kalman Filter (MSCKF)</a> <a href="citelist.html#CITEREF_Mourikis2007ICRA" class="m-doc">[10]</a> which leverages inertial and visual feature information. We want to stress that this is not a &quot;vanilla&quot; implementation of the filter and instead has many more features and improvements over the original. In additional we have a modular type system which allows us to initialize and marginalizing variables out of state with ease. The key features of the system are the following:</p><ul><li>Sliding stochastic imu clones</li><li>First estimate Jacobians</li><li>Camera intrinsics and extrinsic online calibration</li><li>Time offset between camera and imu calibration</li><li>Standard MSCKF features with nullspace projection</li><li>3d slam feature support (with five different representations)</li><li>Generic simulation of trajectories through and environment</li></ul><p>We suggest those that are interested to first checkout the <a href="classov__msckf_1_1State.html" class="m-doc">State</a> and <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> which should provide a nice introduction to the code. Both the slam and msckf features leverage the same Jacobian code, and thus we also recommend looking at the <a href="classov__msckf_1_1UpdaterHelper.html" class="m-doc">UpdaterHelper</a> class for details on that.</p>
+<p>This is an implementation of a <a href="https://ieeexplore.ieee.org/document/4209642">Multi-State Constraint Kalman Filter (MSCKF)</a> <a href="citelist.html#CITEREF_Mourikis2007ICRA" class="m-doc">[10]</a> which leverages inertial and visual feature information. We want to stress that this is <strong>not</strong> a &quot;vanilla&quot; implementation of the filter and instead has many more features and improvements over the original. In additional we have a modular type system which allows us to initialize and marginalizing variables out of state with ease. Please see the following documentation pages for derivation details:</p><ul><li><a href="propagation.html" class="m-doc">IMU Propagation Derivations</a> &mdash; Inertial propagation derivations and details.</li><li><a href="update.html" class="m-doc">Measurement Update Derivations</a> &mdash; General state update for the different measurements.</li><li><a href="fej.html" class="m-doc">First-Estimate Jacobian Estimators</a> &mdash; Background on First-Estimate Jacobians and how we use them.</li><li><a href="dev-index.html" class="m-doc">Covariance Index Internals</a> &mdash; High level details on how the type system and covariance management works.</li></ul><p>The key features of the system are the following:</p><ul><li>Sliding stochastic imu clones</li><li>First estimate Jacobians</li><li>Camera intrinsics and extrinsic online calibration</li><li>Time offset between camera and imu calibration</li><li>Standard MSCKF features with nullspace projection</li><li>3d SLAM feature support (with six different representations)</li><li>Generic simulation of trajectories through and environment (see <a href="classov__msckf_1_1Simulator.html" class="m-doc">ov_msckf::<wbr />Simulator</a>)</li></ul><p>We suggest those that are interested to first checkout the <a href="classov__msckf_1_1State.html" class="m-doc">State</a> and <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> which should provide a nice introduction to the code. Both the slam and msckf features leverage the same Jacobian code, and thus we also recommend looking at the <a href="classov__msckf_1_1UpdaterHelper.html" class="m-doc">UpdaterHelper</a> class for details on that.</p>
         <section id="nested-classes">
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
@@ -72,6 +73,10 @@
               class <a href="classov__msckf_1_1RosVisualizer.html" class="m-doc">RosVisualizer</a>
             </dt>
             <dd>Helper class that will publish results onto the ROS framework.</dd>
+            <dt>
+              class <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>
+            </dt>
+            <dd>Master simulator class that generated visual-inertial measurements.</dd>
             <dt>
               class <a href="classov__msckf_1_1State.html" class="m-doc">State</a>
             </dt>
@@ -104,7 +109,79 @@
               class <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>
             </dt>
             <dd>Core class that manages the entire system.</dd>
+            <dt>
+              struct <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>
+            </dt>
+            <dd>Struct which stores all options needed for state estimation.</dd>
           </dl>
+        </section>
+        <section id="func-members">
+          <h2><a href="#func-members">Functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a756a38e47e4be4da989f2b8d22af6d9d" class="m-doc">parse_command_line_arguments</a>(</span><span class="m-doc-wrap">int argc,
+              char** argv) -&gt; <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a></span>
+            </dt>
+            <dd>This function will parse the command line arugments using <a href="https://github.com/CLIUtils/CLI11">CLI11</a>. This is only used if you are not building with ROS, and thus isn&#x27;t the primary supported way to pass arguments. We recommend building with ROS as compared using this parser.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3d1a48ea4126d6f97c6d4e4decd7632a" class="m-doc">parse_ros_nodehandler</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh) -&gt; <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a></span>
+            </dt>
+            <dd>This function will load paramters from the ros node handler / paramter server This is the recommended way of loading parameters as compared to the command line version.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a756a38e47e4be4da989f2b8d22af6d9d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> ov_<wbr />msckf::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a756a38e47e4be4da989f2b8d22af6d9d" class="m-doc-self">parse_command_line_arguments</a>(</span><span class="m-doc-wrap">int argc,
+              char** argv)</span></span>
+            </h3>
+            <p>This function will parse the command line arugments using <a href="https://github.com/CLIUtils/CLI11">CLI11</a>. This is only used if you are not building with ROS, and thus isn&#x27;t the primary supported way to pass arguments. We recommend building with ROS as compared using this parser.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">argc</td>
+                  <td>Number of parameters</td>
+                </tr>
+                <tr>
+                  <td>argv</td>
+                  <td>Pointer to string passed as options</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>A fully loaded <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> object</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a3d1a48ea4126d6f97c6d4e4decd7632a"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> ov_<wbr />msckf::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3d1a48ea4126d6f97c6d4e4decd7632a" class="m-doc-self">parse_ros_nodehandler</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh)</span></span>
+            </h3>
+            <p>This function will load paramters from the ros node handler / paramter server This is the recommended way of loading parameters as compared to the command line version.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">nh</td>
+                  <td>ROS node handler</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>A fully loaded <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> object</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>

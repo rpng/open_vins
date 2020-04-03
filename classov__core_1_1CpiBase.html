@@ -64,7 +64,7 @@
             </li>
           </ul>
         </div>
-<p>This is the base class that both continuous-time preintegrators extend. Please take a look at the derived classes <a href="classov__core_1_1CpiV1.html" class="m-doc">CpiV1</a> and <a href="classov__core_1_1CpiV2.html" class="m-doc">CpiV2</a> for the actual implementation. Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[3]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiBase.html#af3b192b968d702b484a672a5557bea13" class="m-doc">feed_<wbr />IMU()</a> will all <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
+<p>This is the base class that both continuous-time preintegrators extend. Please take a look at the derived classes <a href="classov__core_1_1CpiV1.html" class="m-doc">CpiV1</a> and <a href="classov__core_1_1CpiV2.html" class="m-doc">CpiV2</a> for the actual implementation. Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[3]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiBase.html#af3b192b968d702b484a672a5557bea13" class="m-doc">feed_<wbr />IMU()</a> will all IMU measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
         <section id="derived-classes">
           <h2><a href="#derived-classes">Derived classes</a></h2>
           <dl class="m-doc">
@@ -270,11 +270,11 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">t_0&nbsp;<span class="m-label m-flat m-info">in</span></td>
-                  <td>first <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> timestamp</td>
+                  <td>first IMU timestamp</td>
                 </tr>
                 <tr>
                   <td>t_1&nbsp;<span class="m-label m-flat m-info">in</span></td>
-                  <td>second <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> timestamp</td>
+                  <td>second IMU timestamp</td>
                 </tr>
                 <tr>
                   <td>w_m_0&nbsp;<span class="m-label m-flat m-info">in</span></td>
@@ -294,7 +294,7 @@
                 </tr>
               </tbody>
             </table>
-<p>This new <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> messages and will precompound our measurements, jacobians, and measurement covariance. Please see both <a href="classov__core_1_1CpiV1.html" class="m-doc">CpiV1</a> and <a href="classov__core_1_1CpiV2.html" class="m-doc">CpiV2</a> classes for implementation details on how this works.</p>
+<p>This new IMU messages and will precompound our measurements, jacobians, and measurement covariance. Please see both <a href="classov__core_1_1CpiV1.html" class="m-doc">CpiV1</a> and <a href="classov__core_1_1CpiV2.html" class="m-doc">CpiV2</a> classes for implementation details on how this works.</p>
           </div></section>
         </section>
       </div>

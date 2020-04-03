@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Estimator Evaluation Metrics | OpenVINS</title>
+  <title>System Evaluation &raquo; Filter Evaluation Metrics | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,9 +47,10 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          Estimator Evaluation Metrics
+          <span class="m-breadcrumb"><a href="evaluation.html">System Evaluation</a> &raquo;</span>
+          Filter Evaluation Metrics
         </h1>
-<section id="eval-ate"><h2><a href="#eval-ate">Absolute Trajectory Error (ATE)</a></h2><p>The Absolute Trajectory Error (ATE) is given by the simple difference between the estimated trajectory and groundtruth after it has been aligned so that it has minimal error. First the &quot;best&quot; transform between the groundtruth and estimate is computed, afterwhich the error is computed at every timestep and then averaged. We recommend reading Zhang and Scaramuzza <a href="citelist.html#CITEREF_Zhang2018IROS" class="m-doc">[15]</a> paper for details. For a given dataset with <svg class="m-math" style="width: 1.107em; height: 0.851em; vertical-align: -0.000em;" viewBox="0 -8.16936 10.6226 8.16936">
+<section id="eval-ate"><h2><a href="#eval-ate">Absolute Trajectory Error (ATE)</a></h2><p>The Absolute Trajectory Error (ATE) is given by the simple difference between the estimated trajectory and groundtruth after it has been aligned so that it has minimal error. First the &quot;best&quot; transform between the groundtruth and estimate is computed, afterwhich the error is computed at every timestep and then averaged. We recommend reading Zhang and Scaramuzza <a href="citelist.html#CITEREF_Zhang2018IROS" class="m-doc">[16]</a> paper for details. For a given dataset with <svg class="m-math" style="width: 1.107em; height: 0.851em; vertical-align: -0.000em;" viewBox="0 -8.16936 10.6226 8.16936">
 <title>
 $N$
 </title>
@@ -163,7 +164,7 @@ $\hat{\mathbf{x}}^+$
 <use x='284.222' xlink:href='#eq4-g6-50' y='-14.323'/>
 </g>
 </svg>
-</div></section><section id="eval-rpe"><h2><a href="#eval-rpe">Relative Pose Error (RPE)</a></h2><p>The Relative Pose Error (RPE) is calculated for segments of the dataset and allows for introspection of how localization solutions drift as the length of the trajectory increases. The other key advantage over ATE error is that it is less sensitive to jumps in estimation error due to sampling the trajectory over many smaller segments. This allows for a much fairer comparision of methods and is what we recommend all authors publish results for. We recommend reading Zhang and Scaramuzza <a href="citelist.html#CITEREF_Zhang2018IROS" class="m-doc">[15]</a> paper for details. We first define a set of segment lengths <svg class="m-math" style="width: 11.091em; height: 1.245em; vertical-align: -0.312em;" viewBox="0 -8.96638 106.471 11.9552">
+</div></section><section id="eval-rpe"><h2><a href="#eval-rpe">Relative Pose Error (RPE)</a></h2><p>The Relative Pose Error (RPE) is calculated for segments of the dataset and allows for introspection of how localization solutions drift as the length of the trajectory increases. The other key advantage over ATE error is that it is less sensitive to jumps in estimation error due to sampling the trajectory over many smaller segments. This allows for a much fairer comparision of methods and is what we recommend all authors publish results for. We recommend reading Zhang and Scaramuzza <a href="citelist.html#CITEREF_Zhang2018IROS" class="m-doc">[16]</a> paper for details. We first define a set of segment lengths <svg class="m-math" style="width: 11.091em; height: 1.245em; vertical-align: -0.312em;" viewBox="0 -8.96638 106.471 11.9552">
 <title>
 $\mathcal{D} = [d_1,~d_2,\cdots,~d_V]$
 </title>

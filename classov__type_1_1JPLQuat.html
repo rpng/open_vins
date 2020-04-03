@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_core::JPLQuat class | OpenVINS</title>
+  <title>ov_type::JPLQuat class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,9 +47,9 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>JPLQuat <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__type.html">ov_type</a>::<wbr/></span>JPLQuat <span class="m-thin">class</span>
         </h1>
-        <p>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements JPL quaternion.</p>
+        <p>Derived <a href="classov__type_1_1Type.html" class="m-doc">Type</a> class that implements JPL quaternion.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -67,7 +67,7 @@
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
             <dt>
-              class <a href="classov__core_1_1Type.html" class="m-doc">Type</a>
+              class <a href="classov__type_1_1Type.html" class="m-doc">Type</a>
             </dt>
             <dd>Base class for estimated variables.</dd>
           </dl>
@@ -76,36 +76,36 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a44593490e8a3348d09b6873b72f17b71" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#ad846f411e111ca304348c03f8abb5b94" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Implements update operation by left-multiplying the current quaternion with a quaternion built from a small axis-angle perturbation.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a1bbbf68090cbdf2272aa074034ab1968" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#ae7d74336ac05ae972ae32449a4c32c15" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets the value of the estimate and recomputes the internal rotation matrix.</dd>
-            <dt id="acb94c079356cd7e5b3e93332703fe950">
-              <span class="m-doc-wrap-bumper">auto <a href="#acb94c079356cd7e5b3e93332703fe950" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
+            <dt id="aa937ef482c74ad13fd93d97e2b3fb7a6">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa937ef482c74ad13fd93d97e2b3fb7a6" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Create a clone of this variable.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a28fa76154b151c5830de1447c56157b3" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a9762ef2ba49dfab27b6f1c58c6502a81" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets the fej value and recomputes the fej rotation matrix.</dd>
-            <dt id="ad6aa8179e92b42acf5bd00277775c945">
-              <span class="m-doc-wrap-bumper">auto <a href="#ad6aa8179e92b42acf5bd00277775c945" class="m-doc-self">Rot</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+            <dt id="a8066e5417183815c51035932f3027f74">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8066e5417183815c51035932f3027f74" class="m-doc-self">Rot</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
             <dd>Rotation access.</dd>
-            <dt id="a23421e24e738db1c5b6a9fb3f81c1336">
-              <span class="m-doc-wrap-bumper">auto <a href="#a23421e24e738db1c5b6a9fb3f81c1336" class="m-doc-self">Rot_fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+            <dt id="a2747deed39c33fe3cd2caeb7096dbc56">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2747deed39c33fe3cd2caeb7096dbc56" class="m-doc-self">Rot_fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
             <dd>FEJ Rotation access.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a44593490e8a3348d09b6873b72f17b71"><div>
+          <section class="m-doc-details" id="ad846f411e111ca304348c03f8abb5b94"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />JPLQuat::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a44593490e8a3348d09b6873b72f17b71" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />JPLQuat::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad846f411e111ca304348c03f8abb5b94" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Implements update operation by left-multiplying the current quaternion with a quaternion built from a small axis-angle perturbation.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -172,9 +172,9 @@
 </svg>
 </div>
           </div></section>
-          <section class="m-doc-details" id="a1bbbf68090cbdf2272aa074034ab1968"><div>
+          <section class="m-doc-details" id="ae7d74336ac05ae972ae32449a4c32c15"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />JPLQuat::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1bbbf68090cbdf2272aa074034ab1968" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />JPLQuat::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae7d74336ac05ae972ae32449a4c32c15" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets the value of the estimate and recomputes the internal rotation matrix.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -189,9 +189,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a28fa76154b151c5830de1447c56157b3"><div>
+          <section class="m-doc-details" id="a9762ef2ba49dfab27b6f1c58c6502a81"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />JPLQuat::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a28fa76154b151c5830de1447c56157b3" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />JPLQuat::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9762ef2ba49dfab27b6f1c58c6502a81" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets the fej value and recomputes the fej rotation matrix.</p>
             <table class="m-table m-fullwidth m-flat">

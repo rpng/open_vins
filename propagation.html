@@ -744,7 +744,7 @@ $\tilde{\boldsymbol{\theta}} = \tilde{\theta}~\hat{\mathbf{k}}$
 <use x='231.018' xlink:href='#eq28-g2-53' y='-22.756'/>
 </g>
 </svg>
-</div></section><section id="imu_kinematic"><h2><a href="#imu_kinematic">IMU Kinematics</a></h2><p>The IMU state evolves over time as follows (see <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a> <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[14]</a>).</p><div class="m-math"><svg style="width: 40.473em; height: 15.231em;" viewBox="0 -146.218 388.543 146.218">
+</div></section><section id="imu_kinematic"><h2><a href="#imu_kinematic">IMU Kinematics</a></h2><p>The IMU state evolves over time as follows (see <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a> <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[15]</a>).</p><div class="m-math"><svg style="width: 40.473em; height: 15.231em;" viewBox="0 -146.218 388.543 146.218">
 <title>
 \begin{align*} \newcommand{\comm}[1]{} ^I_G\dot{\bar{q}}(t) \comm{ &amp;= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I_{t + \delta t}}_G\bar{q} - \text{}^{I_{t}}_G\bar{q})\\ &amp;= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I_{t + \delta t}}_{L_{t}}\bar{q} \otimes ^{I_{t}}_{G}\bar{q} - \bar{q}_0 \otimes \text{}^{I_{t}}_G\bar{q})\\ &amp;= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I_{t + \delta t}}_{L_{t}}\bar{q} - \bar{q}_0 ) \otimes \text{}^{I_{t}}_{G}\bar{q}\\ &amp;\approx \lim_{\delta t \to 0} \frac{1}{\delta t} \Bigg (\begin{bmatrix} \frac{1}{2}\delta \boldsymbol{\theta}\\ 1 \end{bmatrix} -\begin{bmatrix} \boldsymbol{0}\\ 1 \end{bmatrix} \Bigg ) \otimes \text{}^{I_{t}}_{G}\bar{q} \\ &amp;= \frac{1}{2} \begin{bmatrix} \boldsymbol{\omega}\\ 0 \end{bmatrix} \otimes \text{}^{I_{t}}_{G}\bar{q}\\} &amp;= \frac{1}{2} \begin{bmatrix} -\lfloor \boldsymbol{\omega}(t) \times \rfloor &amp;&amp; \boldsymbol{\omega}(t) \\ -\boldsymbol{\omega}^\top(t) &amp;&amp; 0 \end{bmatrix} \text{}^{I_{t}}_{G}\bar{q}\\ &amp;=: \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \text{}^{I_{t}}_{G}\bar{q}\\ ^G\dot{\mathbf{p}}_I(t) &amp;=\text{} ^G\mathbf{v}_I(t)\\ ^G\dot{\mathbf{v}}_I(t) &amp;=\text{} ^{I_{t}}_G\mathbf{R}^\top\mathbf{a}(t) \\ \dot{\mathbf{b}}_{\mathbf{g}}(t) &amp;= \mathbf{n}_{wg}\\ \dot{\mathbf{b}}_{\mathbf{a}}(t) &amp;= \mathbf{n}_{wa} \end{align*}
 </title>
@@ -2373,7 +2373,7 @@ $\mathbf{Q}_d$
 <use x='10.0633' xlink:href='#eq67-g1-100' y='1.79326'/>
 </g>
 </svg>
- can be computed as (see [<a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>] <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[14]</a>):</p><div class="m-math"><svg style="width: 40.473em; height: 3.848em;" viewBox="0 -36.9443 388.543 36.9443">
+ can be computed as (see [<a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>] <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[15]</a>):</p><div class="m-math"><svg style="width: 40.473em; height: 3.848em;" viewBox="0 -36.9443 388.543 36.9443">
 <title>
 \begin{align*} \mathbf{Q}_d = \frac{1}{\Delta t} \mathbf{Q}_c \end{align*}
 </title>

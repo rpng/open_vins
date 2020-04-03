@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_core::Simulator class | OpenVINS</title>
+  <title>ov_msckf::Simulator class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,9 +47,9 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>Simulator <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>Simulator <span class="m-thin">class</span>
         </h1>
-        <p>Master simulator class that will create artificial measurements for our visual-inertial algorithms.</p>
+        <p>Master simulator class that generated visual-inertial measurements.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -64,12 +64,12 @@
             </li>
           </ul>
         </div>
-<p>Given a trajectory this will generate a SE(3) <a href="classov__core_1_1BsplineSE3.html" class="m-doc">BsplineSE3</a> for that trajectory. This allows us to get the inertial measurement information at each timestep during this trajectory. After creating the bspline we will generate an environmental feature map which will be used as our feature measurements. This map will be projected into the frame at each timestep to get our &quot;raw&quot; uv measurements. We inject bias and white noises into our inertial readings while adding our white noise to the uv measurements also. The user should specify the sensor rates that they desire along with the seeds of the random number generators.</p>
+<p>Given a trajectory this will generate a SE(3) <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a> for that trajectory. This allows us to get the inertial measurement information at each timestep during this trajectory. After creating the bspline we will generate an environmental feature map which will be used as our feature measurements. This map will be projected into the frame at each timestep to get our &quot;raw&quot; uv measurements. We inject bias and white noises into our inertial readings while adding our white noise to the uv measurements also. The user should specify the sensor rates that they desire along with the seeds of the random number generators.</p>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#abee9ab65a0efc8f59e319c68e94e402b" class="m-doc">Simulator</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh)</span>
+              <span class="m-doc-wrap-bumper"><a href="#ab36fe774609d9e764219266867e21c4d" class="m-doc">Simulator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span>
             </dt>
             <dd>Default constructor, will load all configuration variables.</dd>
           </dl>
@@ -78,11 +78,11 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#aa65019092086edc32f69771d87ef6755" class="m-doc">ok</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a23596249c56e31c4a74567b4f4601a7c" class="m-doc">ok</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd>Returns if we are actively simulating.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a0c368f0ced7358da689948e2a5a27e7b" class="m-doc">current_timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a10fbc2c949b380e152a3b9097b5b6643" class="m-doc">current_timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
             </dt>
             <dd>Gets the timestamp we have simulated up too.</dd>
             <dt>
@@ -102,26 +102,14 @@
               std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats) -&gt; bool</span>
             </dt>
             <dd>Gets the next inertial reading if we have one.</dd>
-            <dt id="a2f19891f2328f98a7fdce1cf4edafa34">
-              <span class="m-doc-wrap-bumper">auto <a href="#a2f19891f2328f98a7fdce1cf4edafa34" class="m-doc-self">get_map</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::Vector3d&gt;</span>
+            <dt id="ae0150d48864ffa6423108c1c3ee315f1">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae0150d48864ffa6423108c1c3ee315f1" class="m-doc-self">get_map</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::Vector3d&gt;</span>
             </dt>
             <dd>Returns the true 3d map of features.</dd>
-            <dt id="ad2cf1177d886826104ee02ff07412429">
-              <span class="m-doc-wrap-bumper">auto <a href="#ad2cf1177d886826104ee02ff07412429" class="m-doc-self">get_true_intrinsics</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::VectorXd&gt;</span>
+            <dt id="a58c20c739823602e6a943bde2411bf7e">
+              <span class="m-doc-wrap-bumper">auto <a href="#a58c20c739823602e6a943bde2411bf7e" class="m-doc-self">get_true_paramters</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a></span>
             </dt>
-            <dd>Access function for the true camera intrinsics.</dd>
-            <dt id="a57faa7bcb6d0e48bcf2c997fed82bf89">
-              <span class="m-doc-wrap-bumper">auto <a href="#a57faa7bcb6d0e48bcf2c997fed82bf89" class="m-doc-self">get_true_extrinsics</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::VectorXd&gt;</span>
-            </dt>
-            <dd>Access function for the true camera extrinsics.</dd>
-            <dt id="a93424680051ba1436063c34e4cdad6ee">
-              <span class="m-doc-wrap-bumper">auto <a href="#a93424680051ba1436063c34e4cdad6ee" class="m-doc-self">get_true_imucamdt</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
-            </dt>
-            <dd>Access function for the true imu+camera time calibration.</dd>
-            <dt id="ab97f79a7a6966d5c49c5e9124f48f9d3">
-              <span class="m-doc-wrap-bumper">auto <a href="#ab97f79a7a6966d5c49c5e9124f48f9d3" class="m-doc-self">get_num_cameras</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
-            </dt>
-            <dd>Get number of cameras that we have.</dd>
+            <dd>Access function to get the true parameters (i.e. calibration and settings)</dd>
           </dl>
         </section>
         <section id="pro-methods">
@@ -151,93 +139,69 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a9af06f857023d2b055ea73e30936e71c">
-              std::vector&lt;Eigen::VectorXd&gt; <a href="#a9af06f857023d2b055ea73e30936e71c" class="m-doc-self">traj_data</a>
+            <dt id="aaf26d06a73b0773018df69382dc2b3bc">
+              <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> <a href="#aaf26d06a73b0773018df69382dc2b3bc" class="m-doc-self">params</a>
+            </dt>
+            <dd>True vio manager params (a copy of the parsed ones)</dd>
+            <dt id="af1e667cafe40b3f648ebd773153de72e">
+              std::vector&lt;Eigen::VectorXd&gt; <a href="#af1e667cafe40b3f648ebd773153de72e" class="m-doc-self">traj_data</a>
             </dt>
             <dd>Our loaded trajectory data (timestamp(s), q_GtoI, p_IinG)</dd>
-            <dt id="aced5de218c8530e345767042af1a6182">
-              <a href="classov__core_1_1BsplineSE3.html" class="m-doc">BsplineSE3</a> <a href="#aced5de218c8530e345767042af1a6182" class="m-doc-self">spline</a>
+            <dt id="a1d648f4937b67fac92948db15c998e69">
+              <a href="classov__core_1_1BsplineSE3.html" class="m-doc">BsplineSE3</a> <a href="#a1d648f4937b67fac92948db15c998e69" class="m-doc-self">spline</a>
             </dt>
             <dd>Our b-spline trajectory.</dd>
-            <dt id="adf9fbe0f4534d0cbc8dde9364429b83c">
-              size_t <a href="#adf9fbe0f4534d0cbc8dde9364429b83c" class="m-doc-self">id_map</a>
+            <dt id="a125ad6c49a2f30934a1b233534fbfb27">
+              size_t <a href="#a125ad6c49a2f30934a1b233534fbfb27" class="m-doc-self">id_map</a>
             </dt>
             <dd>Our map of 3d features.</dd>
-            <dt id="ae13a93d1d212c6e89eeb35dc74f612fb">
-              std::mt19937 <a href="#ae13a93d1d212c6e89eeb35dc74f612fb" class="m-doc-self">gen_meas_imu</a>
+            <dt id="a5a21cc7b02ea84f58193093a3066cb52">
+              std::mt19937 <a href="#a5a21cc7b02ea84f58193093a3066cb52" class="m-doc-self">gen_meas_imu</a>
             </dt>
-            <dd>Mersenne twister PRNG for measurements (<a href="classov__core_1_1IMU.html" class="m-doc">IMU</a>)</dd>
-            <dt id="a5f0bdbfc2e26718d5e43b6259b03d9d6">
-              std::vector&lt;std::mt19937&gt; <a href="#a5f0bdbfc2e26718d5e43b6259b03d9d6" class="m-doc-self">gen_meas_cams</a>
+            <dd>Mersenne twister PRNG for measurements (IMU)</dd>
+            <dt id="a31b3202d5b9b277bc695970b4f1beeb9">
+              std::vector&lt;std::mt19937&gt; <a href="#a31b3202d5b9b277bc695970b4f1beeb9" class="m-doc-self">gen_meas_cams</a>
             </dt>
             <dd>Mersenne twister PRNG for measurements (CAMERAS)</dd>
-            <dt id="a5ce4cad748a3a2cd68b861fa431a6f22">
-              std::mt19937 <a href="#a5ce4cad748a3a2cd68b861fa431a6f22" class="m-doc-self">gen_state_init</a>
+            <dt id="a4933a78e8768bdbc0bac91572f6b6d42">
+              std::mt19937 <a href="#a4933a78e8768bdbc0bac91572f6b6d42" class="m-doc-self">gen_state_init</a>
             </dt>
             <dd>Mersenne twister PRNG for state initialization.</dd>
-            <dt id="a3b1ea07f47f2f75af7b2578439746aed">
-              std::mt19937 <a href="#a3b1ea07f47f2f75af7b2578439746aed" class="m-doc-self">gen_state_perturb</a>
+            <dt id="a7e6903d5e046acabb9c177ba3dd2dbff">
+              std::mt19937 <a href="#a7e6903d5e046acabb9c177ba3dd2dbff" class="m-doc-self">gen_state_perturb</a>
             </dt>
             <dd>Mersenne twister PRNG for state perturbations.</dd>
-            <dt id="ad6422325232a1c12dcc42d2b7fa2b288">
-              bool <a href="#ad6422325232a1c12dcc42d2b7fa2b288" class="m-doc-self">is_running</a>
+            <dt id="a287cc404a867d549ec7c72613a884ee4">
+              bool <a href="#a287cc404a867d549ec7c72613a884ee4" class="m-doc-self">is_running</a>
             </dt>
             <dd>If our simulation is running.</dd>
-            <dt id="a5a68707258cbeb58b9c2432ac318a0c1">
-              double <a href="#a5a68707258cbeb58b9c2432ac318a0c1" class="m-doc-self">timestamp</a>
+            <dt id="a159c617f73068f44833ed697255e5b86">
+              double <a href="#a159c617f73068f44833ed697255e5b86" class="m-doc-self">timestamp</a>
             </dt>
             <dd>Current timestamp of the system.</dd>
-            <dt id="affe77e3790ab3392a2b25191f28fdfa1">
-              double <a href="#affe77e3790ab3392a2b25191f28fdfa1" class="m-doc-self">timestamp_last_imu</a>
+            <dt id="ac7ab83038e9ef893633e4290e5342ac9">
+              double <a href="#ac7ab83038e9ef893633e4290e5342ac9" class="m-doc-self">timestamp_last_imu</a>
             </dt>
-            <dd>Last time we had an <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> reading.</dd>
-            <dt id="ad694fb910ce2b71931f5e507a5780f27">
-              double <a href="#ad694fb910ce2b71931f5e507a5780f27" class="m-doc-self">timestamp_last_cam</a>
+            <dd>Last time we had an IMU reading.</dd>
+            <dt id="a1e473df4f12ac26610c19bb0d4bc0a67">
+              double <a href="#a1e473df4f12ac26610c19bb0d4bc0a67" class="m-doc-self">timestamp_last_cam</a>
             </dt>
             <dd>Last time we had an CAMERA reading.</dd>
-            <dt id="adf295769115e8829bbfb4fc58cecb507">
-              int <a href="#adf295769115e8829bbfb4fc58cecb507" class="m-doc-self">max_cameras</a>
-            </dt>
-            <dd>Number of cameras we should simulate.</dd>
-            <dt id="ac914fddc882d317331f29b33ceaba708">
-              bool <a href="#ac914fddc882d317331f29b33ceaba708" class="m-doc-self">use_stereo</a>
-            </dt>
-            <dd>If we should enforce that all cameras see the same map.</dd>
-            <dt id="aeebb2625516908261d0eb865f44eab29">
-              double <a href="#aeebb2625516908261d0eb865f44eab29" class="m-doc-self">freq_cam</a>
-            </dt>
-            <dd>Frequency of our camera sensors.</dd>
-            <dt id="a19d013b0052e6cf4e41ea05ebb0e9695">
-              double <a href="#a19d013b0052e6cf4e41ea05ebb0e9695" class="m-doc-self">freq_imu</a>
-            </dt>
-            <dd>Frequency of our imu sensor.</dd>
-            <dt id="ad1ee9d0ad90d38dacaddcde9a4fe83e0">
-              Eigen::Vector3d <a href="#ad1ee9d0ad90d38dacaddcde9a4fe83e0" class="m-doc-self">true_bias_accel</a>
+            <dt id="a9b97c9c0cc01e127bc9f178edd8b12c4">
+              Eigen::Vector3d <a href="#a9b97c9c0cc01e127bc9f178edd8b12c4" class="m-doc-self">true_bias_accel</a>
             </dt>
             <dd>Our running acceleration bias.</dd>
-            <dt id="ac717f7d1f509535ecc700be0f7b3362e">
-              Eigen::Vector3d <a href="#ac717f7d1f509535ecc700be0f7b3362e" class="m-doc-self">true_bias_gyro</a>
+            <dt id="a9ca24090484965ea8344a1b1605b963a">
+              Eigen::Vector3d <a href="#a9ca24090484965ea8344a1b1605b963a" class="m-doc-self">true_bias_gyro</a>
             </dt>
             <dd>Our running gyroscope bias.</dd>
-            <dt id="ac1af8e13beec76baf61ed9bdcfe231b6">
-              Eigen::Vector3d <a href="#ac1af8e13beec76baf61ed9bdcfe231b6" class="m-doc-self">gravity</a>
-            </dt>
-            <dd>Gravity in the global frame.</dd>
-            <dt id="a59d4e6ba849d424a28fd94a26ec81620">
-              double <a href="#a59d4e6ba849d424a28fd94a26ec81620" class="m-doc-self">calib_camimu_dt</a>
-            </dt>
-            <dd>Timeoffset between camera and imu (t_cam = t_imu - t_off)</dd>
-            <dt id="a3fdac5e11d201a1bdf3ad5e5a7a36ee8">
-              int <a href="#a3fdac5e11d201a1bdf3ad5e5a7a36ee8" class="m-doc-self">num_pts</a>
-            </dt>
-            <dd>Max number of features to have in a single image.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="abee9ab65a0efc8f59e319c68e94e402b"><div>
+          <section class="m-doc-details" id="ab36fe774609d9e764219266867e21c4d"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abee9ab65a0efc8f59e319c68e94e402b" class="m-doc-self">Simulator</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab36fe774609d9e764219266867e21c4d" class="m-doc-self">Simulator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span></span>
             </h3>
             <p>Default constructor, will load all configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -246,15 +210,15 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">nh</td>
-                  <td>ROS node handler which we will load parameters from</td>
+                  <td style="width: 1%">params_</td>
+                  <td><a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a> parameters. Should have already been loaded from cmd.</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="aa65019092086edc32f69771d87ef6755"><div>
+          <section class="m-doc-details" id="a23596249c56e31c4a74567b4f4601a7c"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa65019092086edc32f69771d87ef6755" class="m-doc-self">ok</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a23596249c56e31c4a74567b4f4601a7c" class="m-doc-self">ok</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Returns if we are actively simulating.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -266,9 +230,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a0c368f0ced7358da689948e2a5a27e7b"><div>
+          <section class="m-doc-details" id="a10fbc2c949b380e152a3b9097b5b6643"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">double ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0c368f0ced7358da689948e2a5a27e7b" class="m-doc-self">current_timestamp</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">double ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a10fbc2c949b380e152a3b9097b5b6643" class="m-doc-self">current_timestamp</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Gets the timestamp we have simulated up too.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -282,7 +246,7 @@
           </div></section>
           <section class="m-doc-details" id="a3ccf4a1249f70725edad1f9f4e80f9e9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3ccf4a1249f70725edad1f9f4e80f9e9" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">double desired_time,
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3ccf4a1249f70725edad1f9f4e80f9e9" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">double desired_time,
               Eigen::Matrix&lt;double, 17, 1&gt;&amp; imustate)</span></span>
             </h3>
             <p>Get the simulation state at a specified timestep.</p>
@@ -297,7 +261,7 @@
                 </tr>
                 <tr>
                   <td>imustate</td>
-                  <td>State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]</td>
+                  <td><a href="classov__msckf_1_1State.html" class="m-doc">State</a> in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]</td>
                 </tr>
               </tbody>
               <tfoot>
@@ -310,7 +274,7 @@
           </div></section>
           <section class="m-doc-details" id="a1a5c6dd7e892a8948d3c2d2a3824fb39"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1a5c6dd7e892a8948d3c2d2a3824fb39" class="m-doc-self">get_next_imu</a>(</span><span class="m-doc-wrap">double&amp; time_imu,
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1a5c6dd7e892a8948d3c2d2a3824fb39" class="m-doc-self">get_next_imu</a>(</span><span class="m-doc-wrap">double&amp; time_imu,
               Eigen::Vector3d&amp; wm,
               Eigen::Vector3d&amp; am)</span></span>
             </h3>
@@ -343,7 +307,7 @@
           </div></section>
           <section class="m-doc-details" id="add03be2fbfa53224369b07411b6a81b7"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#add03be2fbfa53224369b07411b6a81b7" class="m-doc-self">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#add03be2fbfa53224369b07411b6a81b7" class="m-doc-self">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
               std::vector&lt;int&gt;&amp; camids,
               std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span></span>
             </h3>
@@ -376,7 +340,7 @@
           </div></section>
           <section class="m-doc-details" id="a1be4cc060b90a75cb1bbdfb4214deab4"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1be4cc060b90a75cb1bbdfb4214deab4" class="m-doc-self">load_data</a>(</span><span class="m-doc-wrap">std::string path_traj) <span class="m-label m-warning">protected</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1be4cc060b90a75cb1bbdfb4214deab4" class="m-doc-self">load_data</a>(</span><span class="m-doc-wrap">std::string path_traj) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>This will load the trajectory into memory.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -393,7 +357,7 @@
           </div></section>
           <section class="m-doc-details" id="a1c6947099892bd64e2bad9b4c9303226"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt; ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc-self">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
+              <span class="m-doc-wrap-bumper">std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt; ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc-self">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
               int camid,
               const std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats) <span class="m-label m-warning">protected</span></span></span>
@@ -406,11 +370,11 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">R_GtoI</td>
-                  <td>Orientation of the <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> pose</td>
+                  <td>Orientation of the IMU pose</td>
                 </tr>
                 <tr>
                   <td>p_IinG</td>
-                  <td>Position of the <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> pose</td>
+                  <td>Position of the IMU pose</td>
                 </tr>
                 <tr>
                   <td>camid</td>
@@ -431,7 +395,7 @@
           </div></section>
           <section class="m-doc-details" id="a511b2edf20545972ced008fddb0654ae"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a511b2edf20545972ced008fddb0654ae" class="m-doc-self">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a511b2edf20545972ced008fddb0654ae" class="m-doc-self">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
               int camid,
               std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats,
@@ -445,11 +409,11 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">R_GtoI</td>
-                  <td>Orientation of the <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> pose</td>
+                  <td>Orientation of the IMU pose</td>
                 </tr>
                 <tr>
                   <td>p_IinG</td>
-                  <td>Position of the <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> pose</td>
+                  <td>Position of the IMU pose</td>
                 </tr>
                 <tr>
                   <td>camid</td>

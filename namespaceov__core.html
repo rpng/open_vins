@@ -62,7 +62,7 @@
             </li>
           </ul>
         </div>
-<p>This has the core algorithms that all projects within the Open VINS ecosystem leverage. The purpose is to allow for the reuse of code that could be shared between different localization systems (i.e. msckf-based, batch-based, etc.). These algorithms are the foundation which is necessary before we can even write an estimator that can perform localization. The key components of the <a href="namespaceov__core.html" class="m-doc">ov_<wbr />core</a> codebase are the following:</p><ul><li>Closed-form preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[3]</a></li><li>3d feature initialization</li><li>Inertial state initialization</li><li>Visual-inertial simulator and SE(3) b-spline</li><li>KLT, descriptor, aruco, and simulation feature trackers</li><li>Groundtruth dataset reader</li><li>Quaternion and other manifold math operations</li><li>Generic type system and their implementations</li></ul><p>Please take a look at classes that we offer for the user to leverage as each has its own documentation. If you are looking for the estimator please take a look at the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> project which leverages these algorithms.</p>
+<p>This has the core algorithms that all projects within the OpenVINS ecosystem leverage. The purpose is to allow for the reuse of code that could be shared between different localization systems (i.e. msckf-based, batch-based, etc.). These algorithms are the foundation which is necessary before we can even write an estimator that can perform localization. The key components of the <a href="namespaceov__core.html" class="m-doc">ov_<wbr />core</a> codebase are the following:</p><ul><li>3d feature initialization (see <a href="classov__core_1_1FeatureInitializer.html" class="m-doc">ov_core::<wbr />FeatureInitializer</a>)</li><li>Inertial state initialization (see <a href="classov__core_1_1InertialInitializer.html" class="m-doc">ov_core::<wbr />InertialInitializer</a>)</li><li>SE(3) b-spline (see <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a>)</li><li>KLT, descriptor, aruco, and simulation feature trackers</li><li>Groundtruth dataset reader (see <a href="classov__core_1_1DatasetReader.html" class="m-doc">ov_core::<wbr />DatasetReader</a>)</li><li>Quaternion and other manifold math operations</li><li>Generic type system and their implementations (see <a href="namespaceov__type.html" class="m-doc">ov_<wbr />type</a> namespace)</li><li>Closed-form preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[3]</a></li></ul><p>Please take a look at classes that we offer for the user to leverage as each has its own documentation. If you are looking for the estimator please take a look at the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> project which leverages these algorithms. If you are looking for the different types please take a look at the <a href="namespaceov__type.html" class="m-doc">ov_<wbr />type</a> namespace for the ones we have.</p>
         <section id="nested-classes">
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
@@ -103,10 +103,6 @@
             </dt>
             <dd>Struct which stores all our feature initializer options.</dd>
             <dt>
-              class <a href="classov__core_1_1FeatureRepresentation.html" class="m-doc">FeatureRepresentation</a>
-            </dt>
-            <dd>Class has useful feature representation types.</dd>
-            <dt>
               class <a href="classov__core_1_1Grider__DOG.html" class="m-doc">Grider_DOG</a>
             </dt>
             <dd>Does Difference of Gaussian (DoG) in a grid pattern.</dd>
@@ -115,29 +111,9 @@
             </dt>
             <dd>Extracts FAST features in a grid pattern.</dd>
             <dt>
-              class <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a>
-            </dt>
-            <dd>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements an <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> state.</dd>
-            <dt>
               class <a href="classov__core_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a>
             </dt>
             <dd>Initializer for visual-inertial system.</dd>
-            <dt>
-              class <a href="classov__core_1_1JPLQuat.html" class="m-doc">JPLQuat</a>
-            </dt>
-            <dd>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements JPL quaternion.</dd>
-            <dt>
-              class <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>
-            </dt>
-            <dd><a href="classov__core_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</dd>
-            <dt>
-              class <a href="classov__core_1_1PoseJPL.html" class="m-doc">PoseJPL</a>
-            </dt>
-            <dd>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements a 6 d.o.f pose.</dd>
-            <dt>
-              class <a href="classov__core_1_1Simulator.html" class="m-doc">Simulator</a>
-            </dt>
-            <dd>Master simulator class that will create artificial measurements for our visual-inertial algorithms.</dd>
             <dt>
               class <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a>
             </dt>
@@ -158,14 +134,6 @@
               class <a href="classov__core_1_1TrackSIM.html" class="m-doc">TrackSIM</a>
             </dt>
             <dd>Simulated tracker for when we already have uv measurements!</dd>
-            <dt>
-              class <a href="classov__core_1_1Type.html" class="m-doc">Type</a>
-            </dt>
-            <dd>Base class for estimated variables.</dd>
-            <dt>
-              class <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>
-            </dt>
-            <dd>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements vector variables.</dd>
           </dl>
         </section>
         <section id="func-members">

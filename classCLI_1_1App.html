@@ -1,0 +1,1533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CLI::App class | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="6">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceCLI.html">CLI</a>::<wbr/></span>App <span class="m-thin">class</span>
+        </h1>
+        <p>Creates a command line program, with very few defaults.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
+                <li><a href="#basics">Basics</a></li>
+                <li><a href="#options">Options</a></li>
+                <li><a href="#help">Help</a></li>
+                <li><a href="#parsing">Parsing</a></li>
+                <li><a href="#subcommands">Subcommands</a></li>
+                <li><a href="#config">Config</a></li>
+                <li><a href="#basic">Basic</a></li>
+                <li><a href="#adding-options">Adding options</a></li>
+                <li><a href="#subcommmands">Subcommmands</a></li>
+                <li><a href="#extras-for-subclassing">Extras for subclassing</a></li>
+                <li><a href="#post-parsing">Post parsing</a></li>
+                <li><a href="#getters">Getters</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>To use, create a new <code>Program()</code> instance with <code>argc</code>, <code>argv</code>, and a help description. The templated add_option methods make it easy to prepare options. Remember to call <code>.start</code> before starting your program, so that the options can be evaluated and the help option doesn&#x27;t accidentally run your program.</p>
+        <section id="derived-classes">
+          <h2><a href="#derived-classes">Derived classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classCLI_1_1Option__group.html" class="m-doc">Option_group</a>
+            </dt>
+            <dd>Extension of <a href="classCLI_1_1App.html" class="m-doc">App</a> to better manage groups of options.</dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#aaa53fda3b6aa477158ea8b1768342cc0" class="m-doc">App</a>(</span><span class="m-doc-wrap">std::string app_description,
+              std::string app_name,
+              <a href="classCLI_1_1App.html" class="m-doc">App</a>* parent) <span class="m-label m-flat m-warning">protected</span></span>
+            </dt>
+            <dd>Special private constructor for subcommand.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="aaabfb31d7fb10ee7465716b948b376dc">
+              <span class="m-doc-wrap-bumper">void <a href="#aaabfb31d7fb10ee7465716b948b376dc" class="m-doc-self">_move_option</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* opt,
+              <a href="classCLI_1_1App.html" class="m-doc">App</a>* app)</span>
+            </dt>
+            <dd>function that could be used by subclasses of <a href="classCLI_1_1App.html" class="m-doc">App</a> to shift options around into subcommands</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ae2908ce3eded7e3d6bb2e6fdd2410576" class="m-doc">_validate</a>(</span><span class="m-doc-wrap">) const</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#acd99119433fcca2901ad13714d3acb0a" class="m-doc">_configure</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd></dd>
+            <dt id="ae42bbb6618616072e520a0cebe62d240">
+              <span class="m-doc-wrap-bumper">void <a href="#ae42bbb6618616072e520a0cebe62d240" class="m-doc-self">run_callback</a>(</span><span class="m-doc-wrap">bool final_mode = false)</span>
+            </dt>
+            <dd>Internal function to run (<a href="classCLI_1_1App.html" class="m-doc">App</a>) callback, bottom up.</dd>
+            <dt id="a2c9093efb2ffc55224f2acf2239fd5ce">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2c9093efb2ffc55224f2acf2239fd5ce" class="m-doc-self">_valid_subcommand</a>(</span><span class="m-doc-wrap">const std::string&amp; current,
+              bool ignore_used = true) const -&gt; bool</span>
+            </dt>
+            <dd>Check to see if a subcommand is valid. Give up immediately if subcommand max has been reached.</dd>
+            <dt id="addab9d99dce6a2f96b5c8748d20ebea8">
+              <span class="m-doc-wrap-bumper">auto <a href="#addab9d99dce6a2f96b5c8748d20ebea8" class="m-doc-self">_recognize</a>(</span><span class="m-doc-wrap">const std::string&amp; current,
+              bool ignore_used_subcommands = true) const -&gt; <a href="namespaceCLI_1_1detail.html#aba10771e3ff645fe1305be4cae517573" class="m-doc">detail::<wbr />Classifier</a></span>
+            </dt>
+            <dd>Selects a Classifier enum based on the type of the current argument.</dd>
+            <dt id="a7a15e5743d4a8eccac57955ed5a6a3b6">
+              <span class="m-doc-wrap-bumper">void <a href="#a7a15e5743d4a8eccac57955ed5a6a3b6" class="m-doc-self">_process_config_file</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Read and process a configuration file (main app only)</dd>
+            <dt id="a0a367021eca99facc7968bb24333a8fb">
+              <span class="m-doc-wrap-bumper">void <a href="#a0a367021eca99facc7968bb24333a8fb" class="m-doc-self">_process_env</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Get envname options if not yet passed. Runs on <em>all</em> subcommands.</dd>
+            <dt id="ad9e5d41a1efd28da92235b72682cbf74">
+              <span class="m-doc-wrap-bumper">void <a href="#ad9e5d41a1efd28da92235b72682cbf74" class="m-doc-self">_process_callbacks</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Process callbacks. Runs on <em>all</em> subcommands.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a3d04865bf341cea82bcb164b10db578b" class="m-doc">_process_help_flags</a>(</span><span class="m-doc-wrap">bool trigger_help = false,
+              bool trigger_all_help = false) const</span>
+            </dt>
+            <dd></dd>
+            <dt id="a4e0c00ce18bbfca1ae890a653bbd2b93">
+              <span class="m-doc-wrap-bumper">void <a href="#a4e0c00ce18bbfca1ae890a653bbd2b93" class="m-doc-self">_process_requirements</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Verify required options and cross requirements. Subcommands too (only if selected).</dd>
+            <dt id="a0fec24c804daf5b458bb5762e4e75a73">
+              <span class="m-doc-wrap-bumper">void <a href="#a0fec24c804daf5b458bb5762e4e75a73" class="m-doc-self">_process</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Process callbacks and such.</dd>
+            <dt id="a4d57bf638f00715cbf27dcf055580398">
+              <span class="m-doc-wrap-bumper">void <a href="#a4d57bf638f00715cbf27dcf055580398" class="m-doc-self">_process_extras</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Throw an error if anything is left over and should not be.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a7e8e59098befcc1f10969b9e5c88e0f9" class="m-doc">_process_extras</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args)</span>
+            </dt>
+            <dd></dd>
+            <dt id="ae8d614e3f5c703216da768dd85d98d8f">
+              <span class="m-doc-wrap-bumper">void <a href="#ae8d614e3f5c703216da768dd85d98d8f" class="m-doc-self">increment_parsed</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Internal function to recursively increment the parsed counter on the current app as well unnamed subcommands.</dd>
+            <dt id="a241ba75a6c98b36349ae2f71a9137291">
+              <span class="m-doc-wrap-bumper">void <a href="#a241ba75a6c98b36349ae2f71a9137291" class="m-doc-self">_parse</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args)</span>
+            </dt>
+            <dd>Internal parse function.</dd>
+            <dt id="a26a92886a7d7f10a9afbd39b6535f42b">
+              <span class="m-doc-wrap-bumper">void <a href="#a26a92886a7d7f10a9afbd39b6535f42b" class="m-doc-self">_parse</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp;&amp; args)</span>
+            </dt>
+            <dd>Internal parse function.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#aee09795046c3b47948e6c2fa45349eca" class="m-doc">_parse_config</a>(</span><span class="m-doc-wrap">std::vector&lt;<a href="structCLI_1_1ConfigItem.html" class="m-doc">ConfigItem</a>&gt;&amp; args)</span>
+            </dt>
+            <dd></dd>
+            <dt id="a1f7a70f4bc4c375a7de10073a5de709d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a1f7a70f4bc4c375a7de10073a5de709d" class="m-doc-self">_parse_single_config</a>(</span><span class="m-doc-wrap">const <a href="structCLI_1_1ConfigItem.html" class="m-doc">ConfigItem</a>&amp; item,
+              std::size_t level = 0) -&gt; bool</span>
+            </dt>
+            <dd>Fill in a single config option.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a02368e2fe89470ab9b4131c7e3288349" class="m-doc">_parse_single</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args,
+              bool&amp; positional_only) -&gt; bool</span>
+            </dt>
+            <dd></dd>
+            <dt id="a6e3eedf148351dabd1868bd7e63d24bc">
+              <span class="m-doc-wrap-bumper">auto <a href="#a6e3eedf148351dabd1868bd7e63d24bc" class="m-doc-self">_count_remaining_positionals</a>(</span><span class="m-doc-wrap">bool required_only = false) const -&gt; std::size_t</span>
+            </dt>
+            <dd>Count the required remaining positional arguments.</dd>
+            <dt id="af15231547d53a51458059588a1c34a0b">
+              <span class="m-doc-wrap-bumper">auto <a href="#af15231547d53a51458059588a1c34a0b" class="m-doc-self">_has_remaining_positionals</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Count the required remaining positional arguments.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3b564aa8c90f25152f5379c661ab82b1" class="m-doc">_parse_positional</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args,
+              bool haltOnSubcommand) -&gt; bool</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9670591ce14529c3a153c972c76e9eef" class="m-doc">_find_subcommand</a>(</span><span class="m-doc-wrap">const std::string&amp; subc_name,
+              bool ignore_disabled,
+              bool ignore_used) const -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>* <span class="m-label m-flat m-success">noexcept</span></span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af20c05b97b9de2a4543a2de9bcc0993d" class="m-doc">_parse_subcommand</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args) -&gt; bool</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a73c9decd5eb2b0c7eeda63cc4bd5048e" class="m-doc">_parse_arg</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args,
+              <a href="namespaceCLI_1_1detail.html#aba10771e3ff645fe1305be4cae517573" class="m-doc">detail::<wbr />Classifier</a> current_type) -&gt; bool</span>
+            </dt>
+            <dd></dd>
+            <dt id="adec0b4c1ae96c8ea1a031b416772e87c">
+              <span class="m-doc-wrap-bumper">void <a href="#adec0b4c1ae96c8ea1a031b416772e87c" class="m-doc-self">_trigger_pre_parse</a>(</span><span class="m-doc-wrap">std::size_t remaining_args)</span>
+            </dt>
+            <dd>Trigger the pre_parse callback if needed.</dd>
+            <dt id="a2234b83d2e7e62866e73b3d698426406">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2234b83d2e7e62866e73b3d698426406" class="m-doc-self">_get_fallthrough_parent</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Get the appropriate parent to fallthrough to which is the first one that has a name or the main app.</dd>
+            <dt id="aa3cd2a87739421210d0b2a457d38e5bc">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa3cd2a87739421210d0b2a457d38e5bc" class="m-doc-self">_compare_subcommand_names</a>(</span><span class="m-doc-wrap">const <a href="classCLI_1_1App.html" class="m-doc">App</a>&amp; subcom,
+              const <a href="classCLI_1_1App.html" class="m-doc">App</a>&amp; base) const -&gt; const std::string&amp;</span>
+            </dt>
+            <dd>Helper function to run through all possible comparisons of subcommand names to check there is no overlap.</dd>
+            <dt id="afe454e935514c0acd6bd81e68d908206">
+              <span class="m-doc-wrap-bumper">void <a href="#afe454e935514c0acd6bd81e68d908206" class="m-doc-self">_move_to_missing</a>(</span><span class="m-doc-wrap"><a href="namespaceCLI_1_1detail.html#aba10771e3ff645fe1305be4cae517573" class="m-doc">detail::<wbr />Classifier</a> val_type,
+              const std::string&amp; val)</span>
+            </dt>
+            <dd>Helper function to place extra values in the most appropriate position.</dd>
+          </dl>
+        </section>
+        <section id="basics">
+          <h2><a href="#basics">Basics</a></h2>
+          <dl class="m-doc">
+            <dt id="a61a36f7297a3199b9e789887510fa3fa">
+              std::string <a href="#a61a36f7297a3199b9e789887510fa3fa" class="m-doc-self">name_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Subcommand name or program name (from parser if name is empty)</dd>
+            <dt id="aa6a2e79e0a5990b44bc5d76504437fcd">
+              std::string <a href="#aa6a2e79e0a5990b44bc5d76504437fcd" class="m-doc-self">description_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Description of the current program/subcommand.</dd>
+            <dt id="ae994679fee098b93cbc654a99b8019ee">
+              bool <a href="#ae994679fee098b93cbc654a99b8019ee" class="m-doc-self">allow_extras_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If true, allow extra arguments (ie, don&#x27;t throw an error). INHERITABLE.</dd>
+            <dt>
+              <a href="namespaceCLI.html#a474d5665894fe9a318ddbdb9ebf194d4" class="m-doc">config_<wbr />extras_<wbr />mode</a> <a href="#a4ff932cdfe4237c0f63a00216d0d86b9" class="m-doc">allow_config_extras_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt id="ad9ad6cc617a88525ee966a7d49c6331e">
+              bool <a href="#ad9ad6cc617a88525ee966a7d49c6331e" class="m-doc-self">prefix_command_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If true, return immediately on an unrecognized option (implies allow_extras) INHERITABLE.</dd>
+            <dt id="a76fcdccb7d70b6104b59390195f80112">
+              bool <a href="#a76fcdccb7d70b6104b59390195f80112" class="m-doc-self">has_automatic_name_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If set to true the name was automatically generated from the command line vs a user set name.</dd>
+            <dt id="a42e3309983fe836cd26df3d1aadf08d6">
+              bool <a href="#a42e3309983fe836cd26df3d1aadf08d6" class="m-doc-self">required_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If set to true the subcommand is required to be processed and used, ignored for main app.</dd>
+            <dt id="a405d0642ba4245a6ea61b230c4854667">
+              bool <a href="#a405d0642ba4245a6ea61b230c4854667" class="m-doc-self">disabled_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If set to true the subcommand is disabled and cannot be used, ignored for main app.</dd>
+            <dt id="ac53aba006f3aae0cba0e4e9fd4c264ea">
+              bool <a href="#ac53aba006f3aae0cba0e4e9fd4c264ea" class="m-doc-self">pre_parse_called_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Flag indicating that the pre_parse_callback has been triggered.</dd>
+            <dt>
+              bool <a href="#a99175d2ee21f9b1983acf62db0749f56" class="m-doc">immediate_callback_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt id="ac296d0ff15f240ffe0a3ff14e49fdf19">
+              std::function&lt;void(std::size_t)&gt; <a href="#ac296d0ff15f240ffe0a3ff14e49fdf19" class="m-doc-self">pre_parse_callback_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is a function that runs prior to the start of parsing.</dd>
+            <dt id="a5cbd4b05946428eefe79041bbafb7f0a">
+              std::function&lt;void()&gt; <a href="#a5cbd4b05946428eefe79041bbafb7f0a" class="m-doc-self">parse_complete_callback_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is a function that runs when parsing has finished.</dd>
+            <dt id="a8c798351bee01da305e7b9570ac7dab2">
+              std::function&lt;void()&gt; <a href="#a8c798351bee01da305e7b9570ac7dab2" class="m-doc-self">final_callback_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is a function that runs when all processing has completed.</dd>
+          </dl>
+        </section>
+        <section id="options">
+          <h2><a href="#options">Options</a></h2>
+          <dl class="m-doc">
+            <dt id="a34da062f6cc255048384b72e0ec6c276">
+              <a href="classCLI_1_1OptionDefaults.html" class="m-doc">OptionDefaults</a> <a href="#a34da062f6cc255048384b72e0ec6c276" class="m-doc-self">option_defaults_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>The default values for options, customizable and changeable INHERITABLE.</dd>
+            <dt id="a862e55a8c1fe3676452aadc6a222f865">
+              std::vector&lt;<a href="namespaceCLI.html#a64b0009243a9d2e0dee466f0a1b04d59" class="m-doc">Option_<wbr />p</a>&gt; <a href="#a862e55a8c1fe3676452aadc6a222f865" class="m-doc-self">options_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>The list of options, stored locally.</dd>
+          </dl>
+        </section>
+        <section id="help">
+          <h2><a href="#help">Help</a></h2>
+          <dl class="m-doc">
+            <dt id="a4fbf8b55a33e24d4c5a0532568dd7302">
+              std::string <a href="#a4fbf8b55a33e24d4c5a0532568dd7302" class="m-doc-self">footer_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Footer to put after all options in the help output INHERITABLE.</dd>
+            <dt id="a585c61650d02a0169122e55811d78d89">
+              std::function&lt;std::string()&gt; <a href="#a585c61650d02a0169122e55811d78d89" class="m-doc-self">footer_callback_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is a function that generates a footer to put after all other options in help output.</dd>
+            <dt id="ac7ee114dd086a41f0f144416bcdba097">
+              <a href="classCLI_1_1Option.html" class="m-doc">Option</a>* <a href="#ac7ee114dd086a41f0f144416bcdba097" class="m-doc-self">help_ptr_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>A pointer to the help flag if there is one INHERITABLE.</dd>
+            <dt id="a86d617145bbba16f8575159456f4c255">
+              <a href="classCLI_1_1Option.html" class="m-doc">Option</a>* <a href="#a86d617145bbba16f8575159456f4c255" class="m-doc-self">help_all_ptr_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>A pointer to the help all flag if there is one INHERITABLE.</dd>
+            <dt id="af55e852ed6e916b2b0182f46d6daabfc">
+              std::shared_ptr&lt;<a href="classCLI_1_1FormatterBase.html" class="m-doc">FormatterBase</a>&gt; <a href="#af55e852ed6e916b2b0182f46d6daabfc" class="m-doc-self">formatter_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is the formatter for help printing. Default provided. INHERITABLE (same pointer)</dd>
+            <dt id="a716e2e750769c9e39c96921caddb1689">
+              std::function&lt;std::string(const <a href="classCLI_1_1App.html" class="m-doc">App</a>*, const <a href="classCLI_1_1Error.html" class="m-doc">Error</a>&amp;e)&gt; <a href="#a716e2e750769c9e39c96921caddb1689" class="m-doc-self">failure_message_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>The error message printing function INHERITABLE.</dd>
+            <dt id="a93df23ce51e932a77601d10f37368609">
+              <span class="m-doc-wrap-bumper">auto <a href="#a93df23ce51e932a77601d10f37368609" class="m-doc-self">footer</a>(</span><span class="m-doc-wrap">std::string footer_string) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set footer.</dd>
+            <dt id="a745c859437be8fa6d6269774afead766">
+              <span class="m-doc-wrap-bumper">auto <a href="#a745c859437be8fa6d6269774afead766" class="m-doc-self">footer</a>(</span><span class="m-doc-wrap">std::function&lt;std::string()&gt; footer_function) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set footer.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aca552f0b8af9eec4d079538e9efe0f06" class="m-doc">config_to_str</a>(</span><span class="m-doc-wrap">bool default_also = false,
+              bool write_description = false) const -&gt; std::string</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a2d6847ad9eec079214a61d834f29e35f" class="m-doc">help</a>(</span><span class="m-doc-wrap">std::string prev = &quot;&quot;,
+              <a href="namespaceCLI.html#a97e7d97131e3889f32b721570eca119c" class="m-doc">AppFormatMode</a> mode = <a href="namespaceCLI.html#a97e7d97131e3889f32b721570eca119ca960b44c579bc2f6818d2daaf9e4c16f0" class="m-doc">AppFormatMode::<wbr />Normal</a>) const -&gt; std::string</span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section id="parsing">
+          <h2><a href="#parsing">Parsing</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <a href="classCLI_1_1App.html#a51ebef2d1d91383bc76cb9c0f04b90a3" class="m-doc">missing_<wbr />t</a> <a href="#a664a3162461b3121caf5cae7f65a95e6" class="m-doc">missing_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt id="add8dcf3a51639b56a50bf9e1ab983606">
+              std::vector&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt; <a href="#add8dcf3a51639b56a50bf9e1ab983606" class="m-doc-self">parse_order_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is a list of pointers to options with the original parse order.</dd>
+            <dt id="a61eae39a2e5238322d21f6ff31aa6f4b">
+              std::vector&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; <a href="#a61eae39a2e5238322d21f6ff31aa6f4b" class="m-doc-self">parsed_subcommands_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is a list of the subcommands collected, in order.</dd>
+            <dt id="ab95644f6cb3babcf2d31b3fea8304a82">
+              std::set&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; <a href="#ab95644f6cb3babcf2d31b3fea8304a82" class="m-doc-self">exclude_subcommands_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>this is a list of subcommands that are exclusionary to this one</dd>
+            <dt>
+              std::set&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt; <a href="#a56990d551dba3360f0f3fb0db10ae510" class="m-doc">exclude_options_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              std::set&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; <a href="#ad8d1f603e89a28555a09b754420054ca" class="m-doc">need_subcommands_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              std::set&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt; <a href="#ad375a844780daa83420f9821434e187d" class="m-doc">need_options_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt id="a6b5a085a039cab7e5906b3cd4407fdc8">
+              <span class="m-doc-wrap-bumper">void <a href="#a6b5a085a039cab7e5906b3cd4407fdc8" class="m-doc-self">clear</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Reset the parsed data.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a5ddf139d5fe065289aca7b83d5d045d9" class="m-doc">parse</a>(</span><span class="m-doc-wrap">int argc,
+              const char*const* argv)</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a187f08c5326d89319802162e33faff4e" class="m-doc">parse</a>(</span><span class="m-doc-wrap">std::string commandline,
+              bool program_name_included = false)</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a878c1067ade7145aa11478d64f5173ed" class="m-doc">parse</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args)</span>
+            </dt>
+            <dd></dd>
+            <dt id="a8ffb155a1153ee23d442c5bfed21225c">
+              <span class="m-doc-wrap-bumper">void <a href="#a8ffb155a1153ee23d442c5bfed21225c" class="m-doc-self">parse</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp;&amp; args)</span>
+            </dt>
+            <dd>The real work is done here. Expects a reversed vector.</dd>
+            <dt id="a75d7117019ea60a2f83d91f401aa9f4b">
+              <span class="m-doc-wrap-bumper">void <a href="#a75d7117019ea60a2f83d91f401aa9f4b" class="m-doc-self">failure_message</a>(</span><span class="m-doc-wrap">std::function&lt;std::string(const <a href="classCLI_1_1App.html" class="m-doc">App</a>*, const <a href="classCLI_1_1Error.html" class="m-doc">Error</a>&amp;e)&gt; function)</span>
+            </dt>
+            <dd>Provide a function to print a help message. The function gets access to the <a href="classCLI_1_1App.html" class="m-doc">App</a> pointer and error.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aac000657ef11647125ba91af38fd7d9c" class="m-doc">exit</a>(</span><span class="m-doc-wrap">const <a href="classCLI_1_1Error.html" class="m-doc">Error</a>&amp; e,
+              std::ostream&amp; out = std::cout,
+              std::ostream&amp; err = std::cerr) const -&gt; int</span>
+            </dt>
+            <dd>Print a nice error message and return the exit code.</dd>
+          </dl>
+        </section>
+        <section id="subcommands">
+          <h2><a href="#subcommands">Subcommands</a></h2>
+          <dl class="m-doc">
+            <dt id="a2c912598c2a49e41536ca88f2786195b">
+              std::vector&lt;<a href="namespaceCLI.html#ad6d256a0cca01f58faf90f0b4595aca4" class="m-doc">App_<wbr />p</a>&gt; <a href="#a2c912598c2a49e41536ca88f2786195b" class="m-doc-self">subcommands_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Storage for subcommand list.</dd>
+            <dt id="ac0ded9f408801bccc14d6390b99c11b5">
+              bool <a href="#ac0ded9f408801bccc14d6390b99c11b5" class="m-doc-self">ignore_case_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If true, the program name is not case sensitive INHERITABLE.</dd>
+            <dt id="a632f10cfa5ee5894a67011f7a6097728">
+              bool <a href="#a632f10cfa5ee5894a67011f7a6097728" class="m-doc-self">ignore_underscore_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If true, the program should ignore underscores INHERITABLE.</dd>
+            <dt id="ad3196989217de9162ffa0a5c1e81e92c">
+              bool <a href="#ad3196989217de9162ffa0a5c1e81e92c" class="m-doc-self">fallthrough_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Allow subcommand fallthrough, so that parent commands can collect commands after subcommand. INHERITABLE.</dd>
+            <dt id="afdcf791220d111363ac12526a693227b">
+              bool <a href="#afdcf791220d111363ac12526a693227b" class="m-doc-self">allow_windows_style_options_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Allow &#x27;/&#x27; for options for Windows like options. Defaults to true on Windows, false otherwise. INHERITABLE.</dd>
+            <dt id="a963ce3e24f0652591e5c751083a57670">
+              bool <a href="#a963ce3e24f0652591e5c751083a57670" class="m-doc-self">positionals_at_end_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>specify that positional arguments come at the end of the argument sequence not inheritable</dd>
+            <dt>
+              <a href="classCLI_1_1App.html#a44223dc510ba0f7b680990476828e2e8" class="m-doc">startup_<wbr />mode</a> <a href="#ae55bdb283aa20595c30a0cbb83d833d3" class="m-doc">default_startup</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd></dd>
+            <dt id="aa2b35c6b5a5f471663634f94b7b2337e">
+              bool <a href="#aa2b35c6b5a5f471663634f94b7b2337e" class="m-doc-self">configurable_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>if set to true the subcommand can be triggered via configuration files INHERITABLE</dd>
+            <dt id="ae037cfa9b207f8ae4f17d8e0086c5380">
+              bool <a href="#ae037cfa9b207f8ae4f17d8e0086c5380" class="m-doc-self">validate_positionals_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>If set to true positional options are validated before assigning INHERITABLE.</dd>
+            <dt id="a557239f7b3a655d0e0d6be8820f3e043">
+              <a href="classCLI_1_1App.html" class="m-doc">App</a>* <a href="#a557239f7b3a655d0e0d6be8820f3e043" class="m-doc-self">parent_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>A pointer to the parent if this is a subcommand.</dd>
+            <dt id="a7f7e05bd10a85f0d7178c004d45b5689">
+              std::size_t <a href="#a7f7e05bd10a85f0d7178c004d45b5689" class="m-doc-self">parsed_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Counts the number of times this command/subcommand was parsed.</dd>
+            <dt id="a6b0653a65afed143f774aabf881905a1">
+              std::size_t <a href="#a6b0653a65afed143f774aabf881905a1" class="m-doc-self">require_subcommand_min_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Minimum required subcommands (not inheritable!)</dd>
+            <dt id="a2c55daa71d2e35868f7e192211a801f2">
+              std::size_t <a href="#a2c55daa71d2e35868f7e192211a801f2" class="m-doc-self">require_subcommand_max_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Max number of subcommands allowed (parsing stops after this number). 0 is unlimited INHERITABLE.</dd>
+            <dt id="a23af1dbdb22e1083c3593157cb9b1bd3">
+              std::size_t <a href="#a23af1dbdb22e1083c3593157cb9b1bd3" class="m-doc-self">require_option_min_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Minimum required options (not inheritable!)</dd>
+            <dt id="aaff272565daecbe6eaad738ef21d6ebd">
+              std::size_t <a href="#aaff272565daecbe6eaad738ef21d6ebd" class="m-doc-self">require_option_max_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Max number of options allowed. 0 is unlimited (not inheritable)</dd>
+            <dt id="ac31738f617c3ce7aaf9fd94c3f54fc0f">
+              std::string <a href="#ac31738f617c3ce7aaf9fd94c3f54fc0f" class="m-doc-self">group_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>The group membership INHERITABLE.</dd>
+            <dt id="ab6069c968af1eea4a89980e6f1487464">
+              std::vector&lt;std::string&gt; <a href="#ab6069c968af1eea4a89980e6f1487464" class="m-doc-self">aliases_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Alias names for the subcommand.</dd>
+          </dl>
+        </section>
+        <section id="config">
+          <h2><a href="#config">Config</a></h2>
+          <dl class="m-doc">
+            <dt id="a16180e7605e07c7a3f8e6b458569bc02">
+              <a href="classCLI_1_1Option.html" class="m-doc">Option</a>* <a href="#a16180e7605e07c7a3f8e6b458569bc02" class="m-doc-self">config_ptr_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>Pointer to the config option.</dd>
+            <dt id="afec4182982dfca15a835ee7b3abf8660">
+              std::shared_ptr&lt;<a href="classCLI_1_1Config.html" class="m-doc">Config</a>&gt; <a href="#afec4182982dfca15a835ee7b3abf8660" class="m-doc-self">config_formatter_</a> <span class="m-label m-flat m-warning">protected</span>
+            </dt>
+            <dd>This is the formatter for help printing. Default provided. INHERITABLE (same pointer)</dd>
+          </dl>
+        </section>
+        <section id="basic">
+          <h2><a href="#basic">Basic</a></h2>
+          <dl class="m-doc">
+            <dt id="a61fe9472ef81b1503159511bb8e76430">
+              <span class="m-doc-wrap-bumper"><a href="#a61fe9472ef81b1503159511bb8e76430" class="m-doc-self">App</a>(</span><span class="m-doc-wrap">std::string app_description = &quot;&quot;,
+              std::string app_name = &quot;&quot;) <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd>Create a new program. Pass in the same arguments as <a href="build_2CMakeFiles_23_812_82_2CompilerIdC_2CMakeCCompilerId_8c.html#a0ddf1224851353fc92bfbff6f499fa97" class="m-doc">main()</a>, along with a help string.</dd>
+            <dt id="a8180d86b6a163d270f69ce6dd1c12e35">
+              <span class="m-doc-wrap-bumper"><a href="#a8180d86b6a163d270f69ce6dd1c12e35" class="m-doc-self">~App</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-info">defaulted</span> <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>virtual destructor</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab77e4c2f88388a9cc715c3e9d8ad37bc" class="m-doc">callback</a>(</span><span class="m-doc-wrap">std::function&lt;void()&gt; app_callback) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a8ca317ef8d0401067748a1b9b4f6a74c" class="m-doc">final_callback</a>(</span><span class="m-doc-wrap">std::function&lt;void()&gt; app_callback) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a7672af4238f27c1a6d8fad77f0507e53" class="m-doc">parse_complete_callback</a>(</span><span class="m-doc-wrap">std::function&lt;void()&gt; pc_callback) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a385b883066431fd34fe847311729fd5f" class="m-doc">preparse_callback</a>(</span><span class="m-doc-wrap">std::function&lt;void(std::size_t)&gt; pp_callback) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="aff6ec09062edd6024c3f29a7792da554">
+              <span class="m-doc-wrap-bumper">auto <a href="#aff6ec09062edd6024c3f29a7792da554" class="m-doc-self">name</a>(</span><span class="m-doc-wrap">std::string app_name = &quot;&quot;) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set a name for the app (empty will use parser to set the name)</dd>
+            <dt id="a1bdb54630537e40bcdcf4b80a809dc1c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a1bdb54630537e40bcdcf4b80a809dc1c" class="m-doc-self">alias</a>(</span><span class="m-doc-wrap">std::string app_name) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set an alias for the app.</dd>
+            <dt id="a4a9c762c56b6ff0f5b3505bcb75d0bbe">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4a9c762c56b6ff0f5b3505bcb75d0bbe" class="m-doc-self">allow_extras</a>(</span><span class="m-doc-wrap">bool allow = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Remove the error when extras are left over on the command line.</dd>
+            <dt id="a33c3eb125a4e70d387dd9fc49c25432b">
+              <span class="m-doc-wrap-bumper">auto <a href="#a33c3eb125a4e70d387dd9fc49c25432b" class="m-doc-self">required</a>(</span><span class="m-doc-wrap">bool require = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Remove the error when extras are left over on the command line.</dd>
+            <dt id="abafac323b1dac58044509a62938daa9a">
+              <span class="m-doc-wrap-bumper">auto <a href="#abafac323b1dac58044509a62938daa9a" class="m-doc-self">disabled</a>(</span><span class="m-doc-wrap">bool disable = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Disable the subcommand or option group.</dd>
+            <dt id="a8aa17ef86c76df64bb67dc87b7e0f4bf">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8aa17ef86c76df64bb67dc87b7e0f4bf" class="m-doc-self">disabled_by_default</a>(</span><span class="m-doc-wrap">bool disable = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the subcommand to be disabled by default, so on <a href="classCLI_1_1App.html#a6b5a085a039cab7e5906b3cd4407fdc8" class="m-doc">clear()</a>, at the start of each parse it is disabled.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#afce0e89d19f39a0ba4532bb82315b817" class="m-doc">enabled_by_default</a>(</span><span class="m-doc-wrap">bool enable = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="ae280d400d92cbca79c057036099f0b7f">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae280d400d92cbca79c057036099f0b7f" class="m-doc-self">immediate_callback</a>(</span><span class="m-doc-wrap">bool immediate = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the subcommand callback to be executed immediately on subcommand completion.</dd>
+            <dt id="ad107f40cfb9d4301a47713465e6c66e7">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad107f40cfb9d4301a47713465e6c66e7" class="m-doc-self">validate_positionals</a>(</span><span class="m-doc-wrap">bool validate = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the subcommand to validate positional arguments before assigning.</dd>
+            <dt id="ab79c8db4726b90b6fef32998b56931df">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab79c8db4726b90b6fef32998b56931df" class="m-doc-self">allow_config_extras</a>(</span><span class="m-doc-wrap">bool allow = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>ignore extras in config files</dd>
+            <dt id="acfc30379cf3cb10ff49f7471ab87add5">
+              <span class="m-doc-wrap-bumper">auto <a href="#acfc30379cf3cb10ff49f7471ab87add5" class="m-doc-self">allow_config_extras</a>(</span><span class="m-doc-wrap"><a href="namespaceCLI.html#a474d5665894fe9a318ddbdb9ebf194d4" class="m-doc">config_<wbr />extras_<wbr />mode</a> mode) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>ignore extras in config files</dd>
+            <dt id="ab8c668b5d28db6faed5716ab8feeb6ad">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab8c668b5d28db6faed5716ab8feeb6ad" class="m-doc-self">prefix_command</a>(</span><span class="m-doc-wrap">bool allow = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Do not parse anything after the first unrecognized option and return.</dd>
+            <dt id="abc06fa2dcf43b1eb2da3fc013c5336f4">
+              <span class="m-doc-wrap-bumper">auto <a href="#abc06fa2dcf43b1eb2da3fc013c5336f4" class="m-doc-self">ignore_case</a>(</span><span class="m-doc-wrap">bool value = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Ignore case. Subcommands inherit value.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a7d8c3ab60b46e4ac79fbdba0d473e97b" class="m-doc">allow_windows_style_options</a>(</span><span class="m-doc-wrap">bool value = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="af536e72074301adc697fd8f06cd7d6f5">
+              <span class="m-doc-wrap-bumper">auto <a href="#af536e72074301adc697fd8f06cd7d6f5" class="m-doc-self">positionals_at_end</a>(</span><span class="m-doc-wrap">bool value = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Specify that the positional arguments are only at the end of the sequence.</dd>
+            <dt id="abb3478595ba469884249b28b3f39b737">
+              <span class="m-doc-wrap-bumper">auto <a href="#abb3478595ba469884249b28b3f39b737" class="m-doc-self">configurable</a>(</span><span class="m-doc-wrap">bool value = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Specify that the subcommand can be triggered by a config file.</dd>
+            <dt id="aed1c005724aa987ef6d9a375ec90c6ed">
+              <span class="m-doc-wrap-bumper">auto <a href="#aed1c005724aa987ef6d9a375ec90c6ed" class="m-doc-self">ignore_underscore</a>(</span><span class="m-doc-wrap">bool value = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Ignore underscore. Subcommands inherit value.</dd>
+            <dt id="ada603686fffbfb31bc76d77a62d11a0e">
+              <span class="m-doc-wrap-bumper">auto <a href="#ada603686fffbfb31bc76d77a62d11a0e" class="m-doc-self">formatter</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classCLI_1_1FormatterBase.html" class="m-doc">FormatterBase</a>&gt; fmt) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the help formatter.</dd>
+            <dt id="aa38148af0f7a368e03610a0590fbb406">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa38148af0f7a368e03610a0590fbb406" class="m-doc-self">formatter_fn</a>(</span><span class="m-doc-wrap">std::function&lt;std::string(const <a href="classCLI_1_1App.html" class="m-doc">App</a>*, std::string, <a href="namespaceCLI.html#a97e7d97131e3889f32b721570eca119c" class="m-doc">AppFormatMode</a>)&gt; fmt) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the help formatter.</dd>
+            <dt id="aa6f22ec4216f4e44833df281d95cb124">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa6f22ec4216f4e44833df281d95cb124" class="m-doc-self">config_formatter</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classCLI_1_1Config.html" class="m-doc">Config</a>&gt; fmt) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the config formatter.</dd>
+            <dt id="a31f30e3313c5d0d2646556b0e232bbbc">
+              <span class="m-doc-wrap-bumper">auto <a href="#a31f30e3313c5d0d2646556b0e232bbbc" class="m-doc-self">parsed</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check to see if this subcommand was parsed, true only if received on command line.</dd>
+            <dt id="a2aee3915a2e24fc7806e25b9bbc2b37c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2aee3915a2e24fc7806e25b9bbc2b37c" class="m-doc-self">option_defaults</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1OptionDefaults.html" class="m-doc">OptionDefaults</a>*</span>
+            </dt>
+            <dd>Get the OptionDefault object, to set option defaults.</dd>
+          </dl>
+        </section>
+        <section id="adding-options">
+          <h2><a href="#adding-options">Adding options</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a1f9503a8cdceb4e5b42c9fd4ae6b7b10" class="m-doc">add_option</a>(</span><span class="m-doc-wrap">std::string option_name,
+              <a href="namespaceCLI.html#ac9e16923ffafaa89111b4a134267ce20" class="m-doc">callback_<wbr />t</a> option_callback,
+              std::string option_description = &quot;&quot;,
+              bool defaulted = false,
+              std::function&lt;std::string()&gt; func = {}) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="ad1273eccb5c318a5253c3e8cad4724d2">
+              <div class="m-doc-template">template&lt;typename AssignTo, typename ConvertTo = AssignTo, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;!std::is_const&lt;ConvertTo&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad1273eccb5c318a5253c3e8cad4724d2" class="m-doc-self">add_option</a>(</span><span class="m-doc-wrap">std::string option_name,
+              AssignTo&amp; variable,
+              std::string option_description = &quot;&quot;,
+              bool defaulted = false) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add option for assigning to a variable.</dd>
+            <dt id="a10cd073cbf01b99f595c9f10dc2113d3">
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a10cd073cbf01b99f595c9f10dc2113d3" class="m-doc-self">add_option_function</a>(</span><span class="m-doc-wrap">std::string option_name,
+              const std::function&lt;void(const T&amp;)&gt;&amp; func,
+              std::string option_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add option for a callback of a specific type.</dd>
+            <dt id="a0c62e8c76bdded7014554c9f417fa45d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a0c62e8c76bdded7014554c9f417fa45d" class="m-doc-self">add_option</a>(</span><span class="m-doc-wrap">std::string option_name) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add option with no description or variable assignment.</dd>
+            <dt id="a57784f44a9e43f55d176b5fd1910a12f">
+              <div class="m-doc-template">template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;std::is_const&lt;T&gt;::value &amp;&amp; std::is_constructible&lt;std::string, T&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a57784f44a9e43f55d176b5fd1910a12f" class="m-doc-self">add_option</a>(</span><span class="m-doc-wrap">std::string option_name,
+              T&amp; option_description) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add option with description but with no variable assignment or callback.</dd>
+            <dt id="abe50e78fd6074cec393102adb9114a14">
+              <span class="m-doc-wrap-bumper">auto <a href="#abe50e78fd6074cec393102adb9114a14" class="m-doc-self">set_help_flag</a>(</span><span class="m-doc-wrap">std::string flag_name = &quot;&quot;,
+              const std::string&amp; help_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Set a help flag, replace the existing one if present.</dd>
+            <dt id="a48b15f921a89e4d7c23fc6c79247d2f7">
+              <span class="m-doc-wrap-bumper">auto <a href="#a48b15f921a89e4d7c23fc6c79247d2f7" class="m-doc-self">set_help_all_flag</a>(</span><span class="m-doc-wrap">std::string help_name = &quot;&quot;,
+              const std::string&amp; help_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Set a help all flag, replaced the existing one if present.</dd>
+            <dt id="a8f7500a81c09b8eecc301226e018ddfe">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8f7500a81c09b8eecc301226e018ddfe" class="m-doc-self">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add a flag with no description or variable assignment.</dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;std::is_const&lt;T&gt;::value &amp;&amp; std::is_constructible&lt;std::string, T&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#afc8f3d442356ee884f007bafaca12015" class="m-doc">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              T&amp; flag_description) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;std::is_integral&lt;T&gt;::value &amp;&amp; !<a href="structCLI_1_1is__bool.html" class="m-doc">is_<wbr />bool</a>&lt;T&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a0e11ed2467b046bd8ea664152c2a9004" class="m-doc">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              T&amp; flag_count,
+              std::string flag_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <div class="m-doc-template">template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;!<a href="structCLI_1_1is__vector.html" class="m-doc">is_<wbr />vector</a>&lt;T&gt;::value &amp;&amp; !std::is_const&lt;T&gt;::value &amp;&amp; (!std::is_integral&lt;T&gt;::value||<a href="structCLI_1_1is__bool.html" class="m-doc">is_<wbr />bool</a>&lt;T&gt;::value&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a496bc8b2f77bf24c638e4c6c3e018131" class="m-doc">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              T&amp; flag_result,
+              std::string flag_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="a5b552451fa3f6fe9ef9b802e7b3e46dd">
+              <div class="m-doc-template">template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;!std::is_assignable&lt;std::function&lt;void(int64_t)&gt;, T&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a5b552451fa3f6fe9ef9b802e7b3e46dd" class="m-doc-self">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              std::vector&lt;T&gt;&amp; flag_results,
+              std::string flag_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Vector version to capture multiple flags.</dd>
+            <dt id="a289fc3770be292724cd8fcd962db4de5">
+              <span class="m-doc-wrap-bumper">auto <a href="#a289fc3770be292724cd8fcd962db4de5" class="m-doc-self">add_flag_callback</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              std::function&lt;void(void)&gt; function,
+              std::string flag_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add option for callback that is triggered with a true flag and takes no arguments.</dd>
+            <dt id="ad5cf31e774d21a497f2ea71f5e953696">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad5cf31e774d21a497f2ea71f5e953696" class="m-doc-self">add_flag_function</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              std::function&lt;void(int64_t)&gt; function,
+              std::string flag_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add option for callback with an integer value.</dd>
+            <dt id="af004ba90bbb8ba494e2e13d731d87f98">
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#af004ba90bbb8ba494e2e13d731d87f98" class="m-doc-self">add_set</a>(</span><span class="m-doc-wrap">std::string option_name,
+              T&amp; member,
+              std::set&lt;T&gt; options,
+              std::string option_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add set of options (No default, temp reference, such as an inline set) DEPRECATED.</dd>
+            <dt id="a5884b9a50eef3f8f6a1769b52073c57c">
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a5884b9a50eef3f8f6a1769b52073c57c" class="m-doc-self">add_mutable_set</a>(</span><span class="m-doc-wrap">std::string option_name,
+              T&amp; member,
+              const std::set&lt;T&gt;&amp; options,
+              std::string option_description = &quot;&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add set of options (No default, set can be changed afterwards - do not destroy the set) DEPRECATED.</dd>
+            <dt id="a5371ce3c7ff0e36b2899321aed4d8393">
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a5371ce3c7ff0e36b2899321aed4d8393" class="m-doc-self">add_set</a>(</span><span class="m-doc-wrap">std::string option_name,
+              T&amp; member,
+              std::set&lt;T&gt; options,
+              std::string option_description,
+              bool defaulted) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add set of options (with default, static set, such as an inline set) DEPRECATED.</dd>
+            <dt id="ac0052bd76083c47973cdf5944c4547ea">
+              <div class="m-doc-template">template&lt;typename T&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac0052bd76083c47973cdf5944c4547ea" class="m-doc-self">add_mutable_set</a>(</span><span class="m-doc-wrap">std::string option_name,
+              T&amp; member,
+              const std::set&lt;T&gt;&amp; options,
+              std::string option_description,
+              bool defaulted) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add set of options (with default, set can be changed afterwards - do not destroy the set) DEPRECATED.</dd>
+            <dt id="a057a5f76e055a25cdc91c130de8bdf0b">
+              <div class="m-doc-template">template&lt;typename T, typename XC = double&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a057a5f76e055a25cdc91c130de8bdf0b" class="m-doc-self">add_complex</a>(</span><span class="m-doc-wrap">std::string option_name,
+              T&amp; variable,
+              std::string option_description = &quot;&quot;,
+              bool defaulted = false,
+              std::string label = &quot;COMPLEX&quot;) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Add a complex number.</dd>
+            <dt id="a5775e30426fb3eb1c5f244d4e649601b">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5775e30426fb3eb1c5f244d4e649601b" class="m-doc-self">set_config</a>(</span><span class="m-doc-wrap">std::string option_name = &quot;&quot;,
+              std::string default_filename = &quot;&quot;,
+              const std::string&amp; help_message = &quot;Read an ini file&quot;,
+              bool config_required = false) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Set a configuration ini file option, or clear it if no name passed.</dd>
+            <dt id="a3058b128735eec0813589b56c5453115">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3058b128735eec0813589b56c5453115" class="m-doc-self">remove_option</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* opt) -&gt; bool</span>
+            </dt>
+            <dd>Removes an option from the <a href="classCLI_1_1App.html" class="m-doc">App</a>. Takes an option pointer. Returns true if found and removed.</dd>
+            <dt id="a07322ccc502028693a1cafa101f4fecd">
+              <div class="m-doc-template">template&lt;typename T = <a href="classCLI_1_1Option__group.html" class="m-doc">Option_<wbr />group</a>&gt;</div>
+              <span class="m-doc-wrap-bumper">auto <a href="#a07322ccc502028693a1cafa101f4fecd" class="m-doc-self">add_option_group</a>(</span><span class="m-doc-wrap">std::string group_name,
+              std::string group_description = &quot;&quot;) -&gt; T*</span>
+            </dt>
+            <dd>creates an option group as part of the given app</dd>
+          </dl>
+        </section>
+        <section id="subcommmands">
+          <h2><a href="#subcommmands">Subcommmands</a></h2>
+          <dl class="m-doc">
+            <dt id="a7ad6eb4ec4c5f4a0a9593af9f3fcf9cc">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7ad6eb4ec4c5f4a0a9593af9f3fcf9cc" class="m-doc-self">add_subcommand</a>(</span><span class="m-doc-wrap">std::string subcommand_name = &quot;&quot;,
+              std::string subcommand_description = &quot;&quot;) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Add a subcommand. Inherits INHERITABLE and <a href="classCLI_1_1OptionDefaults.html" class="m-doc">OptionDefaults</a>, and help flag.</dd>
+            <dt id="a9add649c4bc409afcb6b99650417b68d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9add649c4bc409afcb6b99650417b68d" class="m-doc-self">add_subcommand</a>(</span><span class="m-doc-wrap"><a href="namespaceCLI.html#ad6d256a0cca01f58faf90f0b4595aca4" class="m-doc">CLI::<wbr />App_p</a> subcom) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Add a previously created app as a subcommand.</dd>
+            <dt id="acfd0b05943b8acba2a38c58f47140534">
+              <span class="m-doc-wrap-bumper">auto <a href="#acfd0b05943b8acba2a38c58f47140534" class="m-doc-self">remove_subcommand</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1App.html" class="m-doc">App</a>* subcom) -&gt; bool</span>
+            </dt>
+            <dd>Removes a subcommand from the <a href="classCLI_1_1App.html" class="m-doc">App</a>. Takes a subcommand pointer. Returns true if found and removed.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#acdd12c32ce380240cbc0184b372c0f30" class="m-doc">get_subcommand</a>(</span><span class="m-doc-wrap">const <a href="classCLI_1_1App.html" class="m-doc">App</a>* subcom) const -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="a396b7972923f837f8fe2fd1257799078">
+              <span class="m-doc-wrap-bumper">auto <a href="#a396b7972923f837f8fe2fd1257799078" class="m-doc-self">get_subcommand</a>(</span><span class="m-doc-wrap">std::string subcom) const -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Check to see if a subcommand is part of this command (text version)</dd>
+            <dt id="ac50486e0c2fdeae950f2d1d701a62560">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac50486e0c2fdeae950f2d1d701a62560" class="m-doc-self">get_subcommand</a>(</span><span class="m-doc-wrap">int index = 0) const -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Get a pointer to subcommand by index.</dd>
+            <dt id="a63c0110a3e63515e3b9b70b7b560d676">
+              <span class="m-doc-wrap-bumper">auto <a href="#a63c0110a3e63515e3b9b70b7b560d676" class="m-doc-self">get_subcommand_ptr</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1App.html" class="m-doc">App</a>* subcom) const -&gt; <a href="namespaceCLI.html#ad6d256a0cca01f58faf90f0b4595aca4" class="m-doc">CLI::<wbr />App_p</a></span>
+            </dt>
+            <dd>Check to see if a subcommand is part of this command and get a shared_ptr to it.</dd>
+            <dt id="a47a0d67f7d0f856613d45691b8822962">
+              <span class="m-doc-wrap-bumper">auto <a href="#a47a0d67f7d0f856613d45691b8822962" class="m-doc-self">get_subcommand_ptr</a>(</span><span class="m-doc-wrap">std::string subcom) const -&gt; <a href="namespaceCLI.html#ad6d256a0cca01f58faf90f0b4595aca4" class="m-doc">CLI::<wbr />App_p</a></span>
+            </dt>
+            <dd>Check to see if a subcommand is part of this command (text version)</dd>
+            <dt id="a4b5075daadca7c1f7aa1781bc3c9024f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4b5075daadca7c1f7aa1781bc3c9024f" class="m-doc-self">get_subcommand_ptr</a>(</span><span class="m-doc-wrap">int index = 0) const -&gt; <a href="namespaceCLI.html#ad6d256a0cca01f58faf90f0b4595aca4" class="m-doc">CLI::<wbr />App_p</a></span>
+            </dt>
+            <dd>Get an owning pointer to subcommand by index.</dd>
+            <dt id="ae73a2ea9fc02ab4fdb56682d6a31e34b">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae73a2ea9fc02ab4fdb56682d6a31e34b" class="m-doc-self">get_option_group</a>(</span><span class="m-doc-wrap">std::string group_name) const -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Check to see if an option group is part of this <a href="classCLI_1_1App.html" class="m-doc">App</a>.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac882ae7b667d460501d77aebfd9a5d26" class="m-doc">count</a>(</span><span class="m-doc-wrap">) const -&gt; std::size_t</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a4933a7e5603ab5eaa9705d4027e6cb12" class="m-doc">count_all</a>(</span><span class="m-doc-wrap">) const -&gt; std::size_t</span>
+            </dt>
+            <dd></dd>
+            <dt id="a190faa07c199753e02dec21652cfc611">
+              <span class="m-doc-wrap-bumper">auto <a href="#a190faa07c199753e02dec21652cfc611" class="m-doc-self">group</a>(</span><span class="m-doc-wrap">std::string group_name) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Changes the group membership.</dd>
+            <dt id="a9cb090791a2594ffca877fd6afbf858a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9cb090791a2594ffca877fd6afbf858a" class="m-doc-self">require_subcommand</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>The argumentless form of require subcommand requires 1 or more subcommands.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae1bb42a7f768d636671552cb345f2d6c" class="m-doc">require_subcommand</a>(</span><span class="m-doc-wrap">int value) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a41628b1a9cd4437bb81851fcfe9cdeef" class="m-doc">require_subcommand</a>(</span><span class="m-doc-wrap">std::size_t min,
+              std::size_t max) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt id="ad77cd2ce39f74e6bd871d05f377d8cc8">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad77cd2ce39f74e6bd871d05f377d8cc8" class="m-doc-self">require_option</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>The argumentless form of require option requires 1 or more options be used.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a6003073a5ae4904cb27a978282363e99" class="m-doc">require_option</a>(</span><span class="m-doc-wrap">int value) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a0e50594ad2ebfe6ce58e1d17398aeaac" class="m-doc">require_option</a>(</span><span class="m-doc-wrap">std::size_t min,
+              std::size_t max) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a2e32bb0c9270c996488cc8dfa28ec8b1" class="m-doc">fallthrough</a>(</span><span class="m-doc-wrap">bool value = true) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a91720aaf4c92c867dc042c723503b74e" class="m-doc">operator bool</a>(</span><span class="m-doc-wrap">) const <span class="m-label m-flat m-info">explicit</span> </span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section id="extras-for-subclassing">
+          <h2><a href="#extras-for-subclassing">Extras for subclassing</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a5d74be8e210e779874584a3336aaf506" class="m-doc">pre_callback</a>(</span><span class="m-doc-wrap">) <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd></dd>
+          </dl>
+        </section>
+        <section id="post-parsing">
+          <h2><a href="#post-parsing">Post parsing</a></h2>
+          <dl class="m-doc">
+            <dt id="a89776486006cb61d112ae1cdd73848e1">
+              <span class="m-doc-wrap-bumper">auto <a href="#a89776486006cb61d112ae1cdd73848e1" class="m-doc-self">count</a>(</span><span class="m-doc-wrap">std::string option_name) const -&gt; std::size_t</span>
+            </dt>
+            <dd>Counts the number of times the given option was passed.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#adf5b6792ad7849c6966825320fc9b85d" class="m-doc">get_subcommands</a>(</span><span class="m-doc-wrap">) const -&gt; std::vector&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt;</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ac03e5e9ca00d2d0b5d20c362e6dcbe9f" class="m-doc">get_subcommands</a>(</span><span class="m-doc-wrap">const std::function&lt;bool(const <a href="classCLI_1_1App.html" class="m-doc">App</a>*)&gt;&amp; filter) const -&gt; std::vector&lt;const <a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt;</span>
+            </dt>
+            <dd></dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9dca85c30eb14dd7e3f02f07e4f68c5c" class="m-doc">get_subcommands</a>(</span><span class="m-doc-wrap">const std::function&lt;bool(<a href="classCLI_1_1App.html" class="m-doc">App</a>*)&gt;&amp; filter) -&gt; std::vector&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt;</span>
+            </dt>
+            <dd></dd>
+            <dt id="ad07c68d1fcede041fa7fed647e5e3d84">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad07c68d1fcede041fa7fed647e5e3d84" class="m-doc-self">got_subcommand</a>(</span><span class="m-doc-wrap">const <a href="classCLI_1_1App.html" class="m-doc">App</a>* subcom) const -&gt; bool</span>
+            </dt>
+            <dd>Check to see if given subcommand was selected.</dd>
+            <dt id="a5afd7a600223bae58b46aaff670e2d25">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5afd7a600223bae58b46aaff670e2d25" class="m-doc-self">got_subcommand</a>(</span><span class="m-doc-wrap">std::string subcommand_name) const -&gt; bool</span>
+            </dt>
+            <dd>Check with name instead of pointer to see if subcommand was selected.</dd>
+            <dt id="af8af6e58e767ec987d5ca0ee9fad16b9">
+              <span class="m-doc-wrap-bumper">auto <a href="#af8af6e58e767ec987d5ca0ee9fad16b9" class="m-doc-self">excludes</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* opt) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Sets excluded options for the subcommand.</dd>
+            <dt id="a4ccf4cf49a8e221507a56224a353b860">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4ccf4cf49a8e221507a56224a353b860" class="m-doc-self">excludes</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1App.html" class="m-doc">App</a>* app) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Sets excluded subcommands for the subcommand.</dd>
+            <dt id="a9ea4153f3081d8424e772254135237fd">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9ea4153f3081d8424e772254135237fd" class="m-doc-self">remove_excludes</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* opt) -&gt; bool</span>
+            </dt>
+            <dd>Removes an option from the excludes list of this subcommand.</dd>
+            <dt id="a1c0670f27afe97a4e7ba12fcfb65a81c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a1c0670f27afe97a4e7ba12fcfb65a81c" class="m-doc-self">remove_excludes</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1App.html" class="m-doc">App</a>* app) -&gt; bool</span>
+            </dt>
+            <dd>Removes a subcommand from the excludes list of this subcommand.</dd>
+            <dt id="aaa7bc9f48fc24b24742fd2fbe01c13f6">
+              <span class="m-doc-wrap-bumper">auto <a href="#aaa7bc9f48fc24b24742fd2fbe01c13f6" class="m-doc-self">remove_needs</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* opt) -&gt; bool</span>
+            </dt>
+            <dd>Removes an option from the needs list of this subcommand.</dd>
+            <dt id="a73a87ddd7511abb67e5f293817e5df73">
+              <span class="m-doc-wrap-bumper">auto <a href="#a73a87ddd7511abb67e5f293817e5df73" class="m-doc-self">remove_needs</a>(</span><span class="m-doc-wrap"><a href="classCLI_1_1App.html" class="m-doc">App</a>* app) -&gt; bool</span>
+            </dt>
+            <dd>Removes a subcommand from the needs list of this subcommand.</dd>
+          </dl>
+        </section>
+        <section id="getters">
+          <h2><a href="#getters">Getters</a></h2>
+          <dl class="m-doc">
+            <dt id="a342b67dba58e624e7e5aad2274ad53a3">
+              <span class="m-doc-wrap-bumper">auto <a href="#a342b67dba58e624e7e5aad2274ad53a3" class="m-doc-self">get_formatter</a>(</span><span class="m-doc-wrap">) const -&gt; std::shared_ptr&lt;<a href="classCLI_1_1FormatterBase.html" class="m-doc">FormatterBase</a>&gt;</span>
+            </dt>
+            <dd>Access the formatter.</dd>
+            <dt id="ac43ddaae03c02145cccdc268f2e6d38e">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac43ddaae03c02145cccdc268f2e6d38e" class="m-doc-self">get_config_formatter</a>(</span><span class="m-doc-wrap">) const -&gt; std::shared_ptr&lt;<a href="classCLI_1_1Config.html" class="m-doc">Config</a>&gt;</span>
+            </dt>
+            <dd>Access the config formatter.</dd>
+            <dt id="a577368be9856f4b2e39f8c4c13626577">
+              <span class="m-doc-wrap-bumper">auto <a href="#a577368be9856f4b2e39f8c4c13626577" class="m-doc-self">get_config_formatter_base</a>(</span><span class="m-doc-wrap">) const -&gt; std::shared_ptr&lt;<a href="classCLI_1_1ConfigBase.html" class="m-doc">ConfigBase</a>&gt;</span>
+            </dt>
+            <dd>Access the config formatter as a configBase pointer.</dd>
+            <dt id="ab7637441b1cd7fb2fcf5e7e095e779a7">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab7637441b1cd7fb2fcf5e7e095e779a7" class="m-doc-self">get_description</a>(</span><span class="m-doc-wrap">) const -&gt; std::string</span>
+            </dt>
+            <dd>Get the app or subcommand description.</dd>
+            <dt id="a5c26c64a49536e623739685f42475fc2">
+              <span class="m-doc-wrap-bumper">auto <a href="#a5c26c64a49536e623739685f42475fc2" class="m-doc-self">description</a>(</span><span class="m-doc-wrap">std::string app_description) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Set the description of the app.</dd>
+            <dt id="a75712a759ad90c77df128c01844b75fb">
+              <span class="m-doc-wrap-bumper">auto <a href="#a75712a759ad90c77df128c01844b75fb" class="m-doc-self">get_options</a>(</span><span class="m-doc-wrap">const std::function&lt;bool(const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*)&gt; filter = {}) const -&gt; std::vector&lt;const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt;</span>
+            </dt>
+            <dd>Get the list of options (user facing function, so returns raw pointers), has optional filter function.</dd>
+            <dt id="af5ee1dea56dac6986063871536b4eba3">
+              <span class="m-doc-wrap-bumper">auto <a href="#af5ee1dea56dac6986063871536b4eba3" class="m-doc-self">get_options</a>(</span><span class="m-doc-wrap">const std::function&lt;bool(<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*)&gt; filter = {}) -&gt; std::vector&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt;</span>
+            </dt>
+            <dd>Non-const version of the above.</dd>
+            <dt id="a965d588ba3c90c8dbd7708bf4dd1f53a">
+              <span class="m-doc-wrap-bumper">auto <a href="#a965d588ba3c90c8dbd7708bf4dd1f53a" class="m-doc-self">get_option_no_throw</a>(</span><span class="m-doc-wrap">std::string option_name) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>* <span class="m-label m-flat m-success">noexcept</span></span>
+            </dt>
+            <dd>Get an option by name (noexcept non-const version)</dd>
+            <dt id="ab411f7f4dc22684f795fbdda4b8639ee">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab411f7f4dc22684f795fbdda4b8639ee" class="m-doc-self">get_option_no_throw</a>(</span><span class="m-doc-wrap">std::string option_name) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>* <span class="m-label m-flat m-success">noexcept</span></span>
+            </dt>
+            <dd>Get an option by name (noexcept const version)</dd>
+            <dt id="a947c36b1f8acad786a30d8b26edf4116">
+              <span class="m-doc-wrap-bumper">auto <a href="#a947c36b1f8acad786a30d8b26edf4116" class="m-doc-self">get_option</a>(</span><span class="m-doc-wrap">std::string option_name) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get an option by name.</dd>
+            <dt id="aa781566f8028b97d0c26fd973d880864">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa781566f8028b97d0c26fd973d880864" class="m-doc-self">get_option</a>(</span><span class="m-doc-wrap">std::string option_name) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get an option by name (non-const version)</dd>
+            <dt id="a9d9a4dbfc968456b1ba9e988d27c3bc9">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9d9a4dbfc968456b1ba9e988d27c3bc9" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap">const std::string&amp; option_name) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Shortcut bracket operator for getting a pointer to an option.</dd>
+            <dt id="aa52aa8786d2be70543e36d1c668f49c3">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa52aa8786d2be70543e36d1c668f49c3" class="m-doc-self">operator[]</a>(</span><span class="m-doc-wrap">const char* option_name) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Shortcut bracket operator for getting a pointer to an option.</dd>
+            <dt id="a590129f76003fcf849eeb18d05e4571c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a590129f76003fcf849eeb18d05e4571c" class="m-doc-self">get_ignore_case</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check the status of ignore_case.</dd>
+            <dt id="ad6af9821d55785a8d56744db78057cdd">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad6af9821d55785a8d56744db78057cdd" class="m-doc-self">get_ignore_underscore</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check the status of ignore_underscore.</dd>
+            <dt id="ab89a4979a6e0ea340188f28556136a6b">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab89a4979a6e0ea340188f28556136a6b" class="m-doc-self">get_fallthrough</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check the status of fallthrough.</dd>
+            <dt id="a3620a019821239f7d8be472cead88cd2">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3620a019821239f7d8be472cead88cd2" class="m-doc-self">get_allow_windows_style_options</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check the status of the allow windows style options.</dd>
+            <dt id="af77a6cd4835a53b0446576fdbe8ac39c">
+              <span class="m-doc-wrap-bumper">auto <a href="#af77a6cd4835a53b0446576fdbe8ac39c" class="m-doc-self">get_positionals_at_end</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check the status of the allow windows style options.</dd>
+            <dt id="a2976c5b0cccca69d24ed5ad52924ab54">
+              <span class="m-doc-wrap-bumper">auto <a href="#a2976c5b0cccca69d24ed5ad52924ab54" class="m-doc-self">get_configurable</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Check the status of the allow windows style options.</dd>
+            <dt id="aa109e6eeffd6ac72c1ec7e5c9c234f21">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa109e6eeffd6ac72c1ec7e5c9c234f21" class="m-doc-self">get_group</a>(</span><span class="m-doc-wrap">) const -&gt; const std::string&amp;</span>
+            </dt>
+            <dd>Get the group of this subcommand.</dd>
+            <dt id="ad1a6871e4384311fae85e5e03fdcd3fa">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad1a6871e4384311fae85e5e03fdcd3fa" class="m-doc-self">get_footer</a>(</span><span class="m-doc-wrap">) const -&gt; std::string</span>
+            </dt>
+            <dd>Generate and return the footer.</dd>
+            <dt id="af990c1f077d815768ca3d2f250d058d9">
+              <span class="m-doc-wrap-bumper">auto <a href="#af990c1f077d815768ca3d2f250d058d9" class="m-doc-self">get_require_subcommand_min</a>(</span><span class="m-doc-wrap">) const -&gt; std::size_t</span>
+            </dt>
+            <dd>Get the required min subcommand value.</dd>
+            <dt id="a76fa6784188f97df35ceb6b8207accd2">
+              <span class="m-doc-wrap-bumper">auto <a href="#a76fa6784188f97df35ceb6b8207accd2" class="m-doc-self">get_require_subcommand_max</a>(</span><span class="m-doc-wrap">) const -&gt; std::size_t</span>
+            </dt>
+            <dd>Get the required max subcommand value.</dd>
+            <dt id="a242b3d549b70e9f8785b727703371d40">
+              <span class="m-doc-wrap-bumper">auto <a href="#a242b3d549b70e9f8785b727703371d40" class="m-doc-self">get_require_option_min</a>(</span><span class="m-doc-wrap">) const -&gt; std::size_t</span>
+            </dt>
+            <dd>Get the required min option value.</dd>
+            <dt id="ac0458768d5cd311ef361e039ce58c45a">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac0458768d5cd311ef361e039ce58c45a" class="m-doc-self">get_require_option_max</a>(</span><span class="m-doc-wrap">) const -&gt; std::size_t</span>
+            </dt>
+            <dd>Get the required max option value.</dd>
+            <dt id="a60e3e9d4198e855cd721887502acca54">
+              <span class="m-doc-wrap-bumper">auto <a href="#a60e3e9d4198e855cd721887502acca54" class="m-doc-self">get_prefix_command</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the prefix command status.</dd>
+            <dt id="a82efdb6d3d77d2faff51a4960034a133">
+              <span class="m-doc-wrap-bumper">auto <a href="#a82efdb6d3d77d2faff51a4960034a133" class="m-doc-self">get_allow_extras</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of allow extras.</dd>
+            <dt id="a74fa8829acfe2311724ecad5bdb91dce">
+              <span class="m-doc-wrap-bumper">auto <a href="#a74fa8829acfe2311724ecad5bdb91dce" class="m-doc-self">get_required</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of required.</dd>
+            <dt id="a770812d1989ce390b1919080d55a65d3">
+              <span class="m-doc-wrap-bumper">auto <a href="#a770812d1989ce390b1919080d55a65d3" class="m-doc-self">get_disabled</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of disabled.</dd>
+            <dt id="affb7cd37fada9a7470e5bf2f7444249f">
+              <span class="m-doc-wrap-bumper">auto <a href="#affb7cd37fada9a7470e5bf2f7444249f" class="m-doc-self">get_immediate_callback</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of disabled.</dd>
+            <dt id="a025af752c08a28736d5f6d3c10d6ca35">
+              <span class="m-doc-wrap-bumper">auto <a href="#a025af752c08a28736d5f6d3c10d6ca35" class="m-doc-self">get_disabled_by_default</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of disabled by default.</dd>
+            <dt id="af35ca552ab4b1ee3ea975183c94e2f9c">
+              <span class="m-doc-wrap-bumper">auto <a href="#af35ca552ab4b1ee3ea975183c94e2f9c" class="m-doc-self">get_enabled_by_default</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of disabled by default.</dd>
+            <dt id="a7563b3694b8ee4b14e7183966dc77f69">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7563b3694b8ee4b14e7183966dc77f69" class="m-doc-self">get_validate_positionals</a>(</span><span class="m-doc-wrap">) const -&gt; bool</span>
+            </dt>
+            <dd>Get the status of validating positionals.</dd>
+            <dt id="aeab6a6f6ddc3540f56a7494be5281a5a">
+              <span class="m-doc-wrap-bumper">auto <a href="#aeab6a6f6ddc3540f56a7494be5281a5a" class="m-doc-self">get_allow_config_extras</a>(</span><span class="m-doc-wrap">) const -&gt; <a href="namespaceCLI.html#a474d5665894fe9a318ddbdb9ebf194d4" class="m-doc">config_<wbr />extras_<wbr />mode</a></span>
+            </dt>
+            <dd>Get the status of allow extras.</dd>
+            <dt id="ae3ed738a07047fd1d76c228d41804a76">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae3ed738a07047fd1d76c228d41804a76" class="m-doc-self">get_help_ptr</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get a pointer to the help flag.</dd>
+            <dt id="ad3b89865119fcdaf213880e25f7cff87">
+              <span class="m-doc-wrap-bumper">auto <a href="#ad3b89865119fcdaf213880e25f7cff87" class="m-doc-self">get_help_ptr</a>(</span><span class="m-doc-wrap">) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get a pointer to the help flag. (const)</dd>
+            <dt id="a9afd276477475cfddc1f1d8f3af6e095">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9afd276477475cfddc1f1d8f3af6e095" class="m-doc-self">get_help_all_ptr</a>(</span><span class="m-doc-wrap">) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get a pointer to the help all flag. (const)</dd>
+            <dt id="aa516fbfd33a220af66deccd8e6a465a0">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa516fbfd33a220af66deccd8e6a465a0" class="m-doc-self">get_config_ptr</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get a pointer to the config option.</dd>
+            <dt id="aa3108b9777788e910610454f06ecfaf6">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa3108b9777788e910610454f06ecfaf6" class="m-doc-self">get_config_ptr</a>(</span><span class="m-doc-wrap">) const -&gt; const <a href="classCLI_1_1Option.html" class="m-doc">Option</a>*</span>
+            </dt>
+            <dd>Get a pointer to the config option. (const)</dd>
+            <dt id="a31c5906bfb17ef02514367d09c83aa0d">
+              <span class="m-doc-wrap-bumper">auto <a href="#a31c5906bfb17ef02514367d09c83aa0d" class="m-doc-self">get_parent</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Get the parent of this subcommand (or nullptr if master app)</dd>
+            <dt id="a661f95dc902304bbabe8d6e31eb7d9fc">
+              <span class="m-doc-wrap-bumper">auto <a href="#a661f95dc902304bbabe8d6e31eb7d9fc" class="m-doc-self">get_parent</a>(</span><span class="m-doc-wrap">) const -&gt; const <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>Get the parent of this subcommand (or nullptr if master app) (const version)</dd>
+            <dt id="ae0ce655e69580d2d8439a0f3c993821c">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae0ce655e69580d2d8439a0f3c993821c" class="m-doc-self">get_name</a>(</span><span class="m-doc-wrap">) const -&gt; const std::string&amp;</span>
+            </dt>
+            <dd>Get the name of the current app.</dd>
+            <dt id="a19470326ecaff474ad37e4904edaff55">
+              <span class="m-doc-wrap-bumper">auto <a href="#a19470326ecaff474ad37e4904edaff55" class="m-doc-self">get_aliases</a>(</span><span class="m-doc-wrap">) const -&gt; const std::vector&lt;std::string&gt;&amp;</span>
+            </dt>
+            <dd>Get the aliases of the current app.</dd>
+            <dt id="a76622f9e42441e154b7cf642aead799f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a76622f9e42441e154b7cf642aead799f" class="m-doc-self">clear_aliases</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classCLI_1_1App.html" class="m-doc">App</a>*</span>
+            </dt>
+            <dd>clear all the aliases of the current <a href="classCLI_1_1App.html" class="m-doc">App</a></dd>
+            <dt id="ae29f7783c9d8725a6262b1f025f6a4d4">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae29f7783c9d8725a6262b1f025f6a4d4" class="m-doc-self">get_display_name</a>(</span><span class="m-doc-wrap">) const -&gt; std::string</span>
+            </dt>
+            <dd>Get a display name for an app.</dd>
+            <dt id="a3ba6eb33f3ee9cd1a126385fa44f2c16">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3ba6eb33f3ee9cd1a126385fa44f2c16" class="m-doc-self">check_name</a>(</span><span class="m-doc-wrap">std::string name_to_check) const -&gt; bool</span>
+            </dt>
+            <dd>Check the name, case insensitive and underscore insensitive if set.</dd>
+            <dt id="aaf87132f47c738652b6d281c1e3c717a">
+              <span class="m-doc-wrap-bumper">auto <a href="#aaf87132f47c738652b6d281c1e3c717a" class="m-doc-self">get_groups</a>(</span><span class="m-doc-wrap">) const -&gt; std::vector&lt;std::string&gt;</span>
+            </dt>
+            <dd>Get the groups available directly from this option (in order)</dd>
+            <dt id="a6a350a9b89b87e35e83b390bc34f71d4">
+              <span class="m-doc-wrap-bumper">auto <a href="#a6a350a9b89b87e35e83b390bc34f71d4" class="m-doc-self">parse_order</a>(</span><span class="m-doc-wrap">) const -&gt; const std::vector&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt;&amp;</span>
+            </dt>
+            <dd>This gets a vector of pointers with the original parse order.</dd>
+            <dt id="a0474d71afa5672f645d2b645723c9818">
+              <span class="m-doc-wrap-bumper">auto <a href="#a0474d71afa5672f645d2b645723c9818" class="m-doc-self">remaining</a>(</span><span class="m-doc-wrap">bool recurse = false) const -&gt; std::vector&lt;std::string&gt;</span>
+            </dt>
+            <dd>This returns the missing options from the current subcommand.</dd>
+            <dt id="ab3b93e0ab2e848b5160e932bd62de8eb">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab3b93e0ab2e848b5160e932bd62de8eb" class="m-doc-self">remaining_for_passthrough</a>(</span><span class="m-doc-wrap">bool recurse = false) const -&gt; std::vector&lt;std::string&gt;</span>
+            </dt>
+            <dd>This returns the missing options in a form ready for processing by another command line program.</dd>
+            <dt id="a7a94b729128d22a6cc3e4998149d7101">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7a94b729128d22a6cc3e4998149d7101" class="m-doc-self">remaining_size</a>(</span><span class="m-doc-wrap">bool recurse = false) const -&gt; std::size_t</span>
+            </dt>
+            <dd>This returns the number of remaining options, minus the &ndash; separator.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="aaa53fda3b6aa477158ea8b1768342cc0"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aaa53fda3b6aa477158ea8b1768342cc0" class="m-doc-self">App</a>(</span><span class="m-doc-wrap">std::string app_description,
+              std::string app_name,
+              <a href="classCLI_1_1App.html" class="m-doc">App</a>* parent) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Special private constructor for subcommand.</p>
+<p><a href="classCLI_1_1OptionDefaults.html" class="m-doc">OptionDefaults</a></p>
+          </div></section>
+          <section class="m-doc-details" id="ae2908ce3eded7e3d6bb2e6fdd2410576"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae2908ce3eded7e3d6bb2e6fdd2410576" class="m-doc-self">_validate</a>(</span><span class="m-doc-wrap">) const <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Check the options to make sure there are no conflicts.</p><p>Currently checks to see if multiple positionals exist with unlimited args and checks if the min and max options are feasible</p>
+          </div></section>
+          <section class="m-doc-details" id="acd99119433fcca2901ad13714d3acb0a"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acd99119433fcca2901ad13714d3acb0a" class="m-doc-self">_configure</a>(</span><span class="m-doc-wrap">) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>configure subcommands to enable parsing through the current object set the correct fallthrough and prefix for nameless subcommands and manage the automatic enable or disable makes sure parent is set correctly</p>
+          </div></section>
+          <section class="m-doc-details" id="a3d04865bf341cea82bcb164b10db578b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3d04865bf341cea82bcb164b10db578b" class="m-doc-self">_process_help_flags</a>(</span><span class="m-doc-wrap">bool trigger_help = false,
+              bool trigger_all_help = false) const <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Run help flag processing if any are found.</p><p>The flags allow recursive calls to remember if there was a help flag on a parent.</p>
+          </div></section>
+          <section class="m-doc-details" id="a7e8e59098befcc1f10969b9e5c88e0f9"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7e8e59098befcc1f10969b9e5c88e0f9" class="m-doc-self">_process_extras</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Throw an error if anything is left over and should not be. Modifies the args to fill in the missing items before throwing.</p>
+          </div></section>
+          <section class="m-doc-details" id="aee09795046c3b47948e6c2fa45349eca"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aee09795046c3b47948e6c2fa45349eca" class="m-doc-self">_parse_config</a>(</span><span class="m-doc-wrap">std::vector&lt;<a href="structCLI_1_1ConfigItem.html" class="m-doc">ConfigItem</a>&gt;&amp; args) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Parse one config param, return false if not found in any subcommand, remove if it is</p><p>If this has more than one dot.separated.name, go into the subcommand matching it Returns true if it managed to find the option, if false you&#x27;ll need to remove the arg manually.</p>
+          </div></section>
+          <section class="m-doc-details" id="a02368e2fe89470ab9b4131c7e3288349"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a02368e2fe89470ab9b4131c7e3288349" class="m-doc-self">_parse_single</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args,
+              bool&amp; positional_only) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Parse &quot;one&quot; argument (some may eat more than one), delegate to parent if fails, add to missing if missing from master return false if the parse has failed and needs to return to parent</p>
+          </div></section>
+          <section class="m-doc-details" id="a3b564aa8c90f25152f5379c661ab82b1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3b564aa8c90f25152f5379c661ab82b1" class="m-doc-self">_parse_positional</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args,
+              bool haltOnSubcommand) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">args</td>
+                  <td></td>
+                </tr>
+                <tr>
+                  <td>haltOnSubcommand</td>
+                  <td>if set to true the operation will not process subcommands merely return false Return true if the positional was used false otherwise</td>
+                </tr>
+              </tbody>
+            </table>
+<p>Parse a positional, go up the tree to check</p><p>Try to find a local subcommand that is repeated</p><p>now try one last gasp at subcommands that have been executed before, go to root app and try to find a subcommand in a broader way, if one exists let the parent deal with it</p><p>If this is an option group don&#x27;t deal with it</p><p>We are out of other options this goes to missing</p>
+          </div></section>
+          <section class="m-doc-details" id="a9670591ce14529c3a153c972c76e9eef"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9670591ce14529c3a153c972c76e9eef" class="m-doc-self">_find_subcommand</a>(</span><span class="m-doc-wrap">const std::string&amp; subc_name,
+              bool ignore_disabled,
+              bool ignore_used) const <span class="m-label m-warning">protected</span> <span class="m-label m-success">noexcept</span></span></span>
+            </h3>
+<p>Locate a subcommand by name with two conditions, should disabled subcommands be ignored, and should used subcommands be ignored</p>
+          </div></section>
+          <section class="m-doc-details" id="af20c05b97b9de2a4543a2de9bcc0993d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af20c05b97b9de2a4543a2de9bcc0993d" class="m-doc-self">_parse_subcommand</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Parse a subcommand, modify args and continue</p><p>Unlike the others, this one will always allow fallthrough return true if the subcommand was processed false otherwise</p>
+          </div></section>
+          <section class="m-doc-details" id="a73c9decd5eb2b0c7eeda63cc4bd5048e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a73c9decd5eb2b0c7eeda63cc4bd5048e" class="m-doc-self">_parse_arg</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args,
+              <a href="namespaceCLI_1_1detail.html#aba10771e3ff645fe1305be4cae517573" class="m-doc">detail::<wbr />Classifier</a> current_type) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+<p>Parse a short (false) or long (true) argument, must be at the top of the list return true if the argument was processed or false if nothing was done</p>
+          </div></section>
+          <section class="m-doc-details" id="aca552f0b8af9eec4d079538e9efe0f06"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::string CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aca552f0b8af9eec4d079538e9efe0f06" class="m-doc-self">config_to_str</a>(</span><span class="m-doc-wrap">bool default_also = false,
+              bool write_description = false) const</span></span>
+            </h3>
+<p>Produce a string that could be read in as a config of the current values of the <a href="classCLI_1_1App.html" class="m-doc">App</a>. Set default_also to include default arguments. Prefix will add a string to the beginning of each option.</p>
+          </div></section>
+          <section class="m-doc-details" id="a2d6847ad9eec079214a61d834f29e35f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::string CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2d6847ad9eec079214a61d834f29e35f" class="m-doc-self">help</a>(</span><span class="m-doc-wrap">std::string prev = &quot;&quot;,
+              <a href="namespaceCLI.html#a97e7d97131e3889f32b721570eca119c" class="m-doc">AppFormatMode</a> mode = <a href="namespaceCLI.html#a97e7d97131e3889f32b721570eca119ca960b44c579bc2f6818d2daaf9e4c16f0" class="m-doc">AppFormatMode::<wbr />Normal</a>) const</span></span>
+            </h3>
+<p>Makes a help message, using the currently configured formatter Will only do one subcommand at a time</p>
+          </div></section>
+          <section class="m-doc-details" id="a5ddf139d5fe065289aca7b83d5d045d9"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5ddf139d5fe065289aca7b83d5d045d9" class="m-doc-self">parse</a>(</span><span class="m-doc-wrap">int argc,
+              const char*const* argv)</span></span>
+            </h3>
+<p>Parses the command line - throws errors. This must be called after the options are in but before the rest of the program.</p>
+          </div></section>
+          <section class="m-doc-details" id="a187f08c5326d89319802162e33faff4e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a187f08c5326d89319802162e33faff4e" class="m-doc-self">parse</a>(</span><span class="m-doc-wrap">std::string commandline,
+              bool program_name_included = false)</span></span>
+            </h3>
+<p>Parse a single string as if it contained command line arguments. This function splits the string into arguments then calls <a href="classCLI_1_1App.html#a878c1067ade7145aa11478d64f5173ed" class="m-doc">parse(std::<wbr />vector&lt;std::<wbr />string&gt; &amp;)</a> the function takes an optional boolean argument specifying if the programName is included in the string to process</p>
+          </div></section>
+          <section class="m-doc-details" id="a878c1067ade7145aa11478d64f5173ed"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a878c1067ade7145aa11478d64f5173ed" class="m-doc-self">parse</a>(</span><span class="m-doc-wrap">std::vector&lt;std::string&gt;&amp; args)</span></span>
+            </h3>
+<p>The real work is done here. Expects a reversed vector. Changes the vector to the remaining options.</p>
+          </div></section>
+          <section class="m-doc-details" id="aac000657ef11647125ba91af38fd7d9c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">int CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aac000657ef11647125ba91af38fd7d9c" class="m-doc-self">exit</a>(</span><span class="m-doc-wrap">const <a href="classCLI_1_1Error.html" class="m-doc">Error</a>&amp; e,
+              std::ostream&amp; out = std::cout,
+              std::ostream&amp; err = std::cerr) const</span></span>
+            </h3>
+            <p>Print a nice error message and return the exit code.</p>
+<p>Avoid printing anything if this is a <a href="classCLI_1_1RuntimeError.html" class="m-doc">CLI::<wbr />RuntimeError</a></p>
+          </div></section>
+          <section class="m-doc-details" id="ab77e4c2f88388a9cc715c3e9d8ad37bc"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab77e4c2f88388a9cc715c3e9d8ad37bc" class="m-doc-self">callback</a>(</span><span class="m-doc-wrap">std::function&lt;void()&gt; app_callback)</span></span>
+            </h3>
+<p>Set a callback for execution when all parsing and processing has completed</p><p>Due to a bug in c++11, it is not possible to overload on std::function (fixed in c++14 and backported to c++11 on newer compilers). Use capture by reference to get a pointer to <a href="classCLI_1_1App.html" class="m-doc">App</a> if needed.</p>
+          </div></section>
+          <section class="m-doc-details" id="a8ca317ef8d0401067748a1b9b4f6a74c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8ca317ef8d0401067748a1b9b4f6a74c" class="m-doc-self">final_callback</a>(</span><span class="m-doc-wrap">std::function&lt;void()&gt; app_callback)</span></span>
+            </h3>
+<p>Set a callback for execution when all parsing and processing has completed aliased as callback</p>
+          </div></section>
+          <section class="m-doc-details" id="a7672af4238f27c1a6d8fad77f0507e53"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7672af4238f27c1a6d8fad77f0507e53" class="m-doc-self">parse_complete_callback</a>(</span><span class="m-doc-wrap">std::function&lt;void()&gt; pc_callback)</span></span>
+            </h3>
+<p>Set a callback to execute when parsing has completed for the app</p>
+          </div></section>
+          <section class="m-doc-details" id="a385b883066431fd34fe847311729fd5f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a385b883066431fd34fe847311729fd5f" class="m-doc-self">preparse_callback</a>(</span><span class="m-doc-wrap">std::function&lt;void(std::size_t)&gt; pp_callback)</span></span>
+            </h3>
+<p>Set a callback to execute prior to parsing.</p>
+          </div></section>
+          <section class="m-doc-details" id="afce0e89d19f39a0ba4532bb82315b817"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afce0e89d19f39a0ba4532bb82315b817" class="m-doc-self">enabled_by_default</a>(</span><span class="m-doc-wrap">bool enable = true)</span></span>
+            </h3>
+<p>Set the subcommand to be enabled by default, so on <a href="classCLI_1_1App.html#a6b5a085a039cab7e5906b3cd4407fdc8" class="m-doc">clear()</a>, at the start of each parse it is enabled (not disabled)</p>
+          </div></section>
+          <section class="m-doc-details" id="a7d8c3ab60b46e4ac79fbdba0d473e97b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7d8c3ab60b46e4ac79fbdba0d473e97b" class="m-doc-self">allow_windows_style_options</a>(</span><span class="m-doc-wrap">bool value = true)</span></span>
+            </h3>
+<p>Allow windows style options, such as <code>/opt</code>. First matching short or long name used. Subcommands inherit value.</p>
+          </div></section>
+          <section class="m-doc-details" id="a1f9503a8cdceb4e5b42c9fd4ae6b7b10"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1f9503a8cdceb4e5b42c9fd4ae6b7b10" class="m-doc-self">add_option</a>(</span><span class="m-doc-wrap">std::string option_name,
+              <a href="namespaceCLI.html#ac9e16923ffafaa89111b4a134267ce20" class="m-doc">callback_<wbr />t</a> option_callback,
+              std::string option_description = &quot;&quot;,
+              bool defaulted = false,
+              std::function&lt;std::string()&gt; func = {})</span></span>
+            </h3>
+<p>Add an option, will automatically understand the type for common types.</p><p>To use, create a variable with the expected type, and pass it in after the name. After start is called, you can use count to see if the value was passed, and the value will be initialized properly. Numbers, vectors, and strings are supported.</p><p>-&gt;<a href="classCLI_1_1App.html#a33c3eb125a4e70d387dd9fc49c25432b" class="m-doc">required()</a>, -&gt;default, and the validators are options, The positional options take an optional number of arguments.</p><p>For example,</p><pre>std::string filename;
+program.add_option(&quot;filename&quot;, filename, &quot;description of filename&quot;);
+</pre>
+          </div></section>
+          <section class="m-doc-details" id="afc8f3d442356ee884f007bafaca12015"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;std::is_const&lt;T&gt;::value &amp;&amp; std::is_constructible&lt;std::string, T&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;
+              </div>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afc8f3d442356ee884f007bafaca12015" class="m-doc-self">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              T&amp; flag_description)</span></span>
+            </h3>
+<p>Add flag with description but with no variable assignment or callback takes a constant string, if a variable string is passed that variable will be assigned the results from the flag</p>
+          </div></section>
+          <section class="m-doc-details" id="a0e11ed2467b046bd8ea664152c2a9004"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;std::is_integral&lt;T&gt;::value &amp;&amp; !<a href="structCLI_1_1is__bool.html" class="m-doc">is_<wbr />bool</a>&lt;T&gt;::value, <a href="namespaceCLI_1_1detail.html#af27dda5da343e609526e3dacf435b1c6" class="m-doc">detail::<wbr />enabler</a>&gt; = <a href="namespaceCLI_1_1detail.html#a01c35a876e2917ffdc1ee618e0c06619" class="m-doc">detail::<wbr />dummy</a>&gt;
+              </div>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0e11ed2467b046bd8ea664152c2a9004" class="m-doc-self">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              T&amp; flag_count,
+              std::string flag_description = &quot;&quot;)</span></span>
+            </h3>
+<p>Add option for flag with integer result - defaults to allowing multiple passings, but can be forced to one if <code>multi_option_policy(CLI::MultiOptionPolicy::Throw)</code> is used.</p>
+          </div></section>
+          <section class="m-doc-details" id="a496bc8b2f77bf24c638e4c6c3e018131"><div>
+            <h3>
+              <div class="m-doc-template">
+                template&lt;typename T, <a href="namespaceCLI.html#a17b4ff2556876f1f42e0d585542a1578" class="m-doc">enable_<wbr />if_<wbr />t</a>&lt;!<a href="structCLI_1_1is__vector.html" class="m-doc">is_<wbr />vector</a>&lt;T&gt;::value &amp;&amp; !std::is_const&lt;T&gt;::value &amp;&amp; (!std::is_integral&lt;T&gt;::value||<a href="structCLI_1_1is__bool.html" class="m-doc">is_<wbr />bool</a>&lt;T&gt;::value&gt;
+              </div>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1Option.html" class="m-doc">Option</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a496bc8b2f77bf24c638e4c6c3e018131" class="m-doc-self">add_flag</a>(</span><span class="m-doc-wrap">std::string flag_name,
+              T&amp; flag_result,
+              std::string flag_description = &quot;&quot;)</span></span>
+            </h3>
+<p>Other type version accepts all other types that are not vectors such as bool, enum, string or other classes that can be converted from a string</p>
+          </div></section>
+          <section class="m-doc-details" id="acdd12c32ce380240cbc0184b372c0f30"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acdd12c32ce380240cbc0184b372c0f30" class="m-doc-self">get_subcommand</a>(</span><span class="m-doc-wrap">const <a href="classCLI_1_1App.html" class="m-doc">App</a>* subcom) const</span></span>
+            </h3>
+<p>Check to see if a subcommand is part of this command (doesn&#x27;t have to be in command line) returns the first subcommand if passed a nullptr</p>
+          </div></section>
+          <section class="m-doc-details" id="ac882ae7b667d460501d77aebfd9a5d26"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::size_t CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac882ae7b667d460501d77aebfd9a5d26" class="m-doc-self">count</a>(</span><span class="m-doc-wrap">) const</span></span>
+            </h3>
+<p>No argument version of count counts the number of times this subcommand was passed in. The main app will return 1. Unnamed subcommands will also return 1 unless otherwise modified in a callback</p>
+          </div></section>
+          <section class="m-doc-details" id="a4933a7e5603ab5eaa9705d4027e6cb12"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::size_t CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4933a7e5603ab5eaa9705d4027e6cb12" class="m-doc-self">count_all</a>(</span><span class="m-doc-wrap">) const</span></span>
+            </h3>
+<p>Get a count of all the arguments processed in options and subcommands, this excludes arguments which were treated as extras.</p>
+          </div></section>
+          <section class="m-doc-details" id="ae1bb42a7f768d636671552cb345f2d6c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae1bb42a7f768d636671552cb345f2d6c" class="m-doc-self">require_subcommand</a>(</span><span class="m-doc-wrap">int value)</span></span>
+            </h3>
+<p>Require a subcommand to be given (does not affect help call) The number required can be given. Negative values indicate maximum number allowed (0 for any number). Max number inheritable.</p>
+          </div></section>
+          <section class="m-doc-details" id="a41628b1a9cd4437bb81851fcfe9cdeef"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a41628b1a9cd4437bb81851fcfe9cdeef" class="m-doc-self">require_subcommand</a>(</span><span class="m-doc-wrap">std::size_t min,
+              std::size_t max)</span></span>
+            </h3>
+<p>Explicitly control the number of subcommands required. Setting 0 for the max means unlimited number allowed. Max number inheritable.</p>
+          </div></section>
+          <section class="m-doc-details" id="a6003073a5ae4904cb27a978282363e99"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6003073a5ae4904cb27a978282363e99" class="m-doc-self">require_option</a>(</span><span class="m-doc-wrap">int value)</span></span>
+            </h3>
+<p>Require an option to be given (does not affect help call) The number required can be given. Negative values indicate maximum number allowed (0 for any number).</p>
+          </div></section>
+          <section class="m-doc-details" id="a0e50594ad2ebfe6ce58e1d17398aeaac"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0e50594ad2ebfe6ce58e1d17398aeaac" class="m-doc-self">require_option</a>(</span><span class="m-doc-wrap">std::size_t min,
+              std::size_t max)</span></span>
+            </h3>
+<p>Explicitly control the number of options required. Setting 0 for the max means unlimited number allowed. Max number inheritable.</p>
+          </div></section>
+          <section class="m-doc-details" id="a2e32bb0c9270c996488cc8dfa28ec8b1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"><a href="classCLI_1_1App.html" class="m-doc">App</a>* CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2e32bb0c9270c996488cc8dfa28ec8b1" class="m-doc-self">fallthrough</a>(</span><span class="m-doc-wrap">bool value = true)</span></span>
+            </h3>
+<p>Stop subcommand fallthrough, so that parent commands cannot collect commands after subcommand. Default from parent, usually set on parent.</p>
+          </div></section>
+          <section class="m-doc-details" id="a91720aaf4c92c867dc042c723503b74e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a91720aaf4c92c867dc042c723503b74e" class="m-doc-self">operator bool</a>(</span><span class="m-doc-wrap">) const <span class="m-label m-info">explicit</span> </span></span>
+            </h3>
+<p>Check to see if this subcommand was parsed, true only if received on command line. This allows the subcommand to be directly checked.</p>
+          </div></section>
+          <section class="m-doc-details" id="a5d74be8e210e779874584a3336aaf506"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5d74be8e210e779874584a3336aaf506" class="m-doc-self">pre_callback</a>(</span><span class="m-doc-wrap">) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+<p>This allows subclasses to inject code before callbacks but after parse.</p><p>This does not run if any errors or help is thrown.</p>
+          </div></section>
+          <section class="m-doc-details" id="adf5b6792ad7849c6966825320fc9b85d"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::vector&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adf5b6792ad7849c6966825320fc9b85d" class="m-doc-self">get_subcommands</a>(</span><span class="m-doc-wrap">) const</span></span>
+            </h3>
+<p>Get a subcommand pointer list to the currently selected subcommands (after parsing by default, in command line order; use parsed = false to get the original definition list.)</p>
+          </div></section>
+          <section class="m-doc-details" id="ac03e5e9ca00d2d0b5d20c362e6dcbe9f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::vector&lt;const <a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac03e5e9ca00d2d0b5d20c362e6dcbe9f" class="m-doc-self">get_subcommands</a>(</span><span class="m-doc-wrap">const std::function&lt;bool(const <a href="classCLI_1_1App.html" class="m-doc">App</a>*)&gt;&amp; filter) const</span></span>
+            </h3>
+<p>Get a filtered subcommand pointer list from the original definition list. An empty function will provide all subcommands (const)</p>
+          </div></section>
+          <section class="m-doc-details" id="a9dca85c30eb14dd7e3f02f07e4f68c5c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">std::vector&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; CLI::<wbr />App::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9dca85c30eb14dd7e3f02f07e4f68c5c" class="m-doc-self">get_subcommands</a>(</span><span class="m-doc-wrap">const std::function&lt;bool(<a href="classCLI_1_1App.html" class="m-doc">App</a>*)&gt;&amp; filter)</span></span>
+            </h3>
+<p>Get a filtered subcommand pointer list from the original definition list. An empty function will provide all subcommands</p>
+          </div></section>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a4ff932cdfe4237c0f63a00216d0d86b9"><div>
+            <h3>
+              <a href="namespaceCLI.html#a474d5665894fe9a318ddbdb9ebf194d4" class="m-doc">config_<wbr />extras_<wbr />mode</a> CLI::<wbr />App::<wbr /><a href="#a4ff932cdfe4237c0f63a00216d0d86b9" class="m-doc-self">allow_config_extras_</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>If ignore, allow extra arguments in the ini file (ie, don&#x27;t throw an error). INHERITABLE if error error on an extra argument, and if capture feed it to the app</p>
+          </div></section>
+          <section class="m-doc-details" id="a99175d2ee21f9b1983acf62db0749f56"><div>
+            <h3>
+              bool CLI::<wbr />App::<wbr /><a href="#a99175d2ee21f9b1983acf62db0749f56" class="m-doc-self">immediate_callback_</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>Flag indicating that the callback for the subcommand should be executed immediately on parse completion which is before help or ini files are processed. INHERITABLE</p>
+          </div></section>
+          <section class="m-doc-details" id="a664a3162461b3121caf5cae7f65a95e6"><div>
+            <h3>
+              <a href="classCLI_1_1App.html#a51ebef2d1d91383bc76cb9c0f04b90a3" class="m-doc">missing_<wbr />t</a> CLI::<wbr />App::<wbr /><a href="#a664a3162461b3121caf5cae7f65a95e6" class="m-doc-self">missing_</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>Pair of classifier, string for missing options. (extra detail is removed on returning from parse)</p><p>This is faster and cleaner than storing just a list of strings and reparsing. This may contain the &ndash; separator.</p>
+          </div></section>
+          <section class="m-doc-details" id="a56990d551dba3360f0f3fb0db10ae510"><div>
+            <h3>
+              std::set&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt; CLI::<wbr />App::<wbr /><a href="#a56990d551dba3360f0f3fb0db10ae510" class="m-doc-self">exclude_options_</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>This is a list of options which are exclusionary to this <a href="classCLI_1_1App.html" class="m-doc">App</a>, if the options were used this subcommand should not be</p>
+          </div></section>
+          <section class="m-doc-details" id="ad8d1f603e89a28555a09b754420054ca"><div>
+            <h3>
+              std::set&lt;<a href="classCLI_1_1App.html" class="m-doc">App</a>*&gt; CLI::<wbr />App::<wbr /><a href="#ad8d1f603e89a28555a09b754420054ca" class="m-doc-self">need_subcommands_</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>this is a list of subcommands or option groups that are required by this one, the list is not mutual, the listed subcommands do not require this one</p>
+          </div></section>
+          <section class="m-doc-details" id="ad375a844780daa83420f9821434e187d"><div>
+            <h3>
+              std::set&lt;<a href="classCLI_1_1Option.html" class="m-doc">Option</a>*&gt; CLI::<wbr />App::<wbr /><a href="#ad375a844780daa83420f9821434e187d" class="m-doc-self">need_options_</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>This is a list of options which are required by this app, the list is not mutual, listed options do not need the subcommand not be</p>
+          </div></section>
+          <section class="m-doc-details" id="ae55bdb283aa20595c30a0cbb83d833d3"><div>
+            <h3>
+              <a href="classCLI_1_1App.html#a44223dc510ba0f7b680990476828e2e8" class="m-doc">startup_<wbr />mode</a> CLI::<wbr />App::<wbr /><a href="#ae55bdb283aa20595c30a0cbb83d833d3" class="m-doc-self">default_startup</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>specify the startup mode for the app stable=no change, enabled= startup enabled, disabled=startup disabled</p>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

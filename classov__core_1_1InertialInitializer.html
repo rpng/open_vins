@@ -64,7 +64,7 @@
             </li>
           </ul>
         </div>
-<p>This class has a series of functions that can be used to initialize your system. Right now we have our implementation that assumes that the imu starts from standing still. In the future we plan to add support for structure-from-motion dynamic initialization.</p>
+<p>This class has a series of functions that can be used to initialize your system. Right now we have our implementation that assumes that the imu starts from standing still. In the future we plan to add support for structure-from-motion dynamic initialization.</p><p>To initialize from standstill:</p><ol><li>Collect all inertial measurements</li><li>See if within the last window there was a jump in acceleration</li><li>If the jump is past our threshold we should init (i.e. we have started moving)</li><li>Use the <em>previous</em> window, which should have been stationary to initialize orientation</li><li>Return a roll and pitch aligned with gravity and biases.</li></ol>
         <section id="pub-types">
           <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
@@ -123,7 +123,7 @@
             <dt id="a07604dc112f6417994c4bb403defa375">
               std::vector&lt;<a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>&gt; <a href="#a07604dc112f6417994c4bb403defa375" class="m-doc-self">imu_data</a>
             </dt>
-            <dd>Our history of <a href="classov__core_1_1IMU.html" class="m-doc">IMU</a> messages (time, angular, linear)</dd>
+            <dd>Our history of IMU messages (time, angular, linear)</dd>
           </dl>
         </section>
         <section>

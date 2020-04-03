@@ -71,7 +71,7 @@
             <dt>
               <span class="m-doc-wrap-bumper"><a href="#aa40cf3af0e9f5571b386bac7780fe5b7" class="m-doc">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
               <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* app,
-              <a href="classov__core_1_1Simulator.html" class="m-doc">Simulator</a>* sim = nullptr)</span>
+              <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>* sim = nullptr)</span>
             </dt>
             <dd>Default constructor.</dd>
           </dl>
@@ -83,6 +83,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#a5ba7b560b00d0a312378b4fcf6101321" class="m-doc-self">visualize</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Will visualize the system if we have new things.</dd>
+            <dt id="ac18c4d5638c9b21740fa5246fb57b7aa">
+              <span class="m-doc-wrap-bumper">void <a href="#ac18c4d5638c9b21740fa5246fb57b7aa" class="m-doc-self">visualize_odometry</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+            </dt>
+            <dd>Will publish our odometry message for the current timestep. This will take the current state estimate and get the propagated pose to the desired time. This can be used to get pose estimates on systems which require high frequency pose estimates.</dd>
             <dt id="af7742f2e349e47b948b18b8426c7b39d">
               <span class="m-doc-wrap-bumper">void <a href="#af7742f2e349e47b948b18b8426c7b39d" class="m-doc-self">visualize_final</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
@@ -126,9 +130,9 @@
             </dt>
             <dd>Core application of the filter system.</dd>
             <dt id="a730d5ac5c353b535dc374a1f9d3d4911">
-              <a href="classov__core_1_1Simulator.html" class="m-doc">Simulator</a>* <a href="#a730d5ac5c353b535dc374a1f9d3d4911" class="m-doc-self">_sim</a>
+              <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>* <a href="#a730d5ac5c353b535dc374a1f9d3d4911" class="m-doc-self">_sim</a>
             </dt>
-            <dd>Simulator (is nullptr if we are not sim&#x27;ing)</dd>
+            <dd><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> (is nullptr if we are not sim&#x27;ing)</dd>
           </dl>
         </section>
         <section>
@@ -137,7 +141,7 @@
             <h3>
               <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />RosVisualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa40cf3af0e9f5571b386bac7780fe5b7" class="m-doc-self">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
               <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* app,
-              <a href="classov__core_1_1Simulator.html" class="m-doc">Simulator</a>* sim = nullptr)</span></span>
+              <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>* sim = nullptr)</span></span>
             </h3>
             <p>Default constructor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -155,7 +159,7 @@
                 </tr>
                 <tr>
                   <td>sim</td>
-                  <td>Simulator if we are simulating</td>
+                  <td><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> if we are simulating</td>
                 </tr>
               </tbody>
             </table>

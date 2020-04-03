@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_core::Vec class | OpenVINS</title>
+  <title>CLI::make_void struct | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -47,100 +47,10 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>Vec <span class="m-thin">class</span>
+          <div class="m-doc-template">template&lt;typename... Ts&gt;</div>
+          <span class="m-breadcrumb"><a href="namespaceCLI.html">CLI</a>::<wbr/></span>make_void <span class="m-thin">struct</span>
         </h1>
-        <p>Derived <a href="classov__core_1_1Type.html" class="m-doc">Type</a> class that implements vector variables.</p>
-        <div class="m-block m-default">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#base-classes">Base classes</a></li>
-                <li><a href="#derived-classes">Derived classes</a></li>
-                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
-                <li><a href="#pub-methods">Public functions</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-        <section id="base-classes">
-          <h2><a href="#base-classes">Base classes</a></h2>
-          <dl class="m-doc">
-            <dt>
-              class <a href="classov__core_1_1Type.html" class="m-doc">Type</a>
-            </dt>
-            <dd>Base class for estimated variables.</dd>
-          </dl>
-        </section>
-        <section id="derived-classes">
-          <h2><a href="#derived-classes">Derived classes</a></h2>
-          <dl class="m-doc">
-            <dt>
-              class <a href="classov__core_1_1Landmark.html" class="m-doc">Landmark</a>
-            </dt>
-            <dd><a href="classov__core_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</dd>
-          </dl>
-        </section>
-        <section id="typeless-methods">
-          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a3fec22507384569dbda2b5834fb8f68a" class="m-doc">Vec</a>(</span><span class="m-doc-wrap">int dim)</span>
-            </dt>
-            <dd>Default constructor for <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>.</dd>
-          </dl>
-        </section>
-        <section id="pub-methods">
-          <h2><a href="#pub-methods">Public functions</a></h2>
-          <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ab76aed61cc9d37f0047e627ec59d2fc0" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>Implements the update operation through standard vector addition.</dd>
-            <dt id="a83aed2009becbcce0d4763909053cbda">
-              <span class="m-doc-wrap-bumper">auto <a href="#a83aed2009becbcce0d4763909053cbda" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>Performs all the cloning.</dd>
-          </dl>
-        </section>
-        <section>
-          <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a3fec22507384569dbda2b5834fb8f68a"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />Vec::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3fec22507384569dbda2b5834fb8f68a" class="m-doc-self">Vec</a>(</span><span class="m-doc-wrap">int dim)</span></span>
-            </h3>
-            <p>Default constructor for <a href="classov__core_1_1Vec.html" class="m-doc">Vec</a>.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">dim</td>
-                  <td>Size of the vector (will be same as error state)</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="ab76aed61cc9d37f0047e627ec59d2fc0"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Vec::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab76aed61cc9d37f0047e627ec59d2fc0" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
-            </h3>
-            <p>Implements the update operation through standard vector addition.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">dx</td>
-                  <td>Additive error state correction</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-        </section>
+        <p>A copy of std::void_t from C++17 (helper for C++11 and C++14)</p>
       </div>
     </div>
   </div>
