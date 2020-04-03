@@ -52,6 +52,7 @@ namespace ov_core { }
  * These types store where they are in the covariance along with their current estimate.
  * Each also has an update function that takes a vector delta and updates their manifold representation.
  * Please see each type for details on what they represent, but their names should be straightforward.
+ * See @ref dev-index for high level details on how the type system and covariance management works.
  * Each type is described by the following:
  *
  * @code{.cpp}

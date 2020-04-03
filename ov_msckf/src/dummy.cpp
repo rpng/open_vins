@@ -26,6 +26,13 @@
  * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) @cite Mourikis2007ICRA which leverages inertial and visual feature information.
  * We want to stress that this is **not** a "vanilla" implementation of the filter and instead has many more features and improvements over the original.
  * In additional we have a modular type system which allows us to initialize and marginalizing variables out of state with ease.
+ * Please see the following documentation pages for derivation details:
+ *
+ * - @ref propagation --- Inertial propagation derivations and details.
+ * - @ref update --- General state update for the different measurements.
+ * - @ref fej --- Background on First-Estimate Jacobians and how we use them.
+ * - @ref dev-index --- High level details on how the type system and covariance management works.
+ *
  * The key features of the system are the following:
  *
  * - Sliding stochastic imu clones

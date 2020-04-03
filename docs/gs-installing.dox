@@ -10,6 +10,14 @@ Our codebase is built on top of the [Robot Operating System (ROS)](https://www.r
 We also recommend installing the [catkin_tools](https://github.com/catkin/catkin_tools) build for easy ROS building.
 Please see the official instructions [here](http://wiki.ros.org/kinetic/Installation/Ubuntu), which have also been copied below.
 
+@m_class{m-block m-warning}
+
+@par ROS Usage in OpenVINS
+    We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
+    If ROS is not found on the system, one can use command line options to run the simulation without any visualization.
+    If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
+
+
 @code{.shell-session}
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
@@ -41,7 +49,7 @@ sudo make install
 
 
 
-@section gs-install-openvins Cloning OpenVINS
+@section gs-install-openvins Cloning the OpenVINS Project
 
 
 Now that we have ROS and OpenCV install we can setup a catkin workspace and build the project!
