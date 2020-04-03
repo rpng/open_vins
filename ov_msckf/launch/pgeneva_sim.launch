@@ -5,13 +5,13 @@
     <!-- ================================================================ -->
 
 
-    <arg name="seed"        default="4" />
+    <arg name="seed"        default="3" />
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
-    <arg name="num_slam"    default="0" />
-    <arg name="num_pts"     default="50" />
-    <arg name="max_cameras" default="2" />
+    <arg name="num_slam"    default="50" />
+    <arg name="num_pts"     default="100" />
+    <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
@@ -23,10 +23,10 @@
     <arg name="sim_do_calibration"  default="true" />
 
     <!-- saving trajectory paths -->
-    <arg name="dosave_pose"     default="true" />
+    <arg name="dosave_pose"     default="false" />
     <arg name="path_est"        default="$(find ov_eval)/data/sim/traj_estimate.txt" />
     <arg name="path_gt"         default="$(find ov_eval)/data/sim/traj_groundtruth.txt" />
-    <arg name="dosave_state"    default="true" />
+    <arg name="dosave_state"    default="false" />
     <arg name="path_state_est"  default="$(find ov_eval)/data/sim/state_estimate.txt" />
     <arg name="path_state_std"  default="$(find ov_eval)/data/sim/state_deviation.txt" />
     <arg name="path_state_gt"   default="$(find ov_eval)/data/sim/state_groundtruth.txt" />
@@ -38,7 +38,7 @@
 
     <!-- MASTER NODE! -->
     <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">
-<!--        <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+<!--    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->
@@ -52,10 +52,6 @@
         <param name="sim_freq_imu"           type="int"    value="$(arg freq_imu)" />
         <param name="sim_do_perturbation"    type="bool"   value="$(arg sim_do_perturbation)" />
         <param name="sim_distance_threshold" type="double" value="1.2" />
-
-        <rosparam param="cam0_wh">[752,480]</rosparam>
-        <rosparam param="cam1_wh">[752,480]</rosparam>
-        <rosparam param="cam2_wh">[752,480]</rosparam>
 
         <param name="save_total_state"  type="bool"   value="$(arg dosave_state)" />
         <param name="filepath_est"      type="string" value="$(arg path_state_est)" />
@@ -78,10 +74,12 @@
         <param name="max_slam"               type="int"    value="$(arg num_slam)" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="dt_slam_delay"          type="double" value="4" />
-        <param name="feat_representation"    type="string" value="$(arg feat_rep)" />
         <param name="init_window_time"       type="double" value="0.75" />
         <param name="init_imu_thresh"        type="double" value="1.0" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
+        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_slam"          type="string" value="$(arg feat_rep)" />
+        <param name="feat_rep_aruco"         type="string" value="$(arg feat_rep)" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />
@@ -110,6 +108,9 @@
         <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
 
         <!-- camera intrinsics -->
+        <rosparam param="cam0_wh">[752,480]</rosparam>
+        <rosparam param="cam1_wh">[752,480]</rosparam>
+        <rosparam param="cam2_wh">[752,480]</rosparam>
         <param name="cam0_is_fisheye" type="bool" value="false" />
         <param name="cam1_is_fisheye" type="bool" value="false" />
         <param name="cam2_is_fisheye" type="bool" value="false" />

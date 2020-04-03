@@ -20,16 +20,13 @@
  */
 #include <string>
 #include <iostream>
-#include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
-#include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string.hpp>
-#include <boost/algorithm/string/predicate.hpp>
 
 #include "calc/ResultTrajectory.h"
 #include "utils/Loader.h"
+#include "utils/Colors.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -43,13 +40,11 @@
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "error_comparison");
-
     // Ensure we have a path
     if(argc < 4) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval error_comparison <align_mode> <folder_groundtruth> <folder_algorithms>");
+        printf(RED "ERROR: Please specify a align mode, folder, and algorithms\n" RESET);
+        printf(RED "ERROR: ./error_comparison <align_mode> <folder_groundtruth> <folder_algorithms>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval error_comparison <align_mode> <folder_groundtruth> <folder_algorithms>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -72,7 +67,7 @@ int main(int argc, char **argv) {
         ov_eval::Loader::load_data(path_groundtruths.at(i).string(), times, poses, cov_ori, cov_pos);
         // Print its length and stats
         double length = ov_eval::Loader::get_total_length(poses);
-        ROS_INFO("[COMP]: %d poses in %s => length of %.2f meters",(int)times.size(),path_groundtruths.at(i).filename().c_str(),length);
+        printf("[COMP]: %d poses in %s => length of %.2f meters\n",(int)times.size(),path_groundtruths.at(i).filename().c_str(),length);
     }
 
     // Get the algorithms we will process
@@ -128,8 +123,8 @@ int main(int argc, char **argv) {
     for(size_t i=0; i<path_algorithms.size(); i++) {
 
         // Debug print
-        ROS_INFO("======================================");
-        ROS_INFO("[COMP]: processing %s algorithm", path_algorithms.at(i).stem().c_str());
+        printf("======================================\n");
+        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
 
         // Get the list of datasets this algorithm records
         std::map<std::string,boost::filesystem::path> path_algo_datasets;
@@ -144,12 +139,12 @@ int main(int argc, char **argv) {
 
             // Check if we have runs for this dataset
             if(path_algo_datasets.find(path_groundtruths.at(j).stem().string())==path_algo_datasets.end()) {
-                ROS_ERROR("[COMP]: %s dataset does not have any runs for %s!!!!!",path_algorithms.at(i).stem().c_str(),path_groundtruths.at(j).stem().c_str());
+                printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET,path_algorithms.at(i).stem().c_str(),path_groundtruths.at(j).stem().c_str());
                 continue;
             }
 
             // Debug print
-            ROS_INFO("[COMP]: processing %s algorithm => %s dataset", path_algorithms.at(i).stem().c_str(),path_groundtruths.at(j).stem().c_str());
+            printf("[COMP]: processing %s algorithm => %s dataset\n", path_algorithms.at(i).stem().c_str(),path_groundtruths.at(j).stem().c_str());
 
             // Errors for this specific dataset (i.e. our averages over the total runs)
             ov_eval::Statistics ate_dataset_ori;
@@ -160,33 +155,37 @@ int main(int argc, char **argv) {
             }
 
             // Loop though the different runs for this dataset
+            std::vector<std::string> file_paths;
             for(auto& entry : boost::filesystem::directory_iterator(path_algo_datasets.at(path_groundtruths.at(j).stem().string()))) {
-                if(entry.path().extension() == ".txt") {
+                if(entry.path().extension() != ".txt")
+                    continue;
+                file_paths.push_back(entry.path().string());
+            }
+            std::sort(file_paths.begin(), file_paths.end());
 
-                    // Our paths
-                    std::string dataset = path_groundtruths.at(j).stem().string();
-                    std::string path_gttxt = path_groundtruths.at(j).string();
-                    std::string path_esttxt = entry.path().string();
+            // Now loop through the sorted vector
+            for(auto &path_esttxt : file_paths) {
+                // Our paths
+                std::string dataset = path_groundtruths.at(j).stem().string();
+                std::string path_gttxt = path_groundtruths.at(j).string();
 
-                    // Create our trajectory object
-                    ov_eval::ResultTrajectory traj(path_esttxt, path_gttxt, argv[1]);
+                // Create our trajectory object
+                ov_eval::ResultTrajectory traj(path_esttxt, path_gttxt, argv[1]);
 
-                    // Calculate ATE error for this dataset
-                    ov_eval::Statistics error_ori, error_pos;
-                    traj.calculate_ate(error_ori, error_pos);
-                    ate_dataset_ori.values.push_back(error_ori.rmse);
-                    ate_dataset_pos.values.push_back(error_pos.rmse);
+                // Calculate ATE error for this dataset
+                ov_eval::Statistics error_ori, error_pos;
+                traj.calculate_ate(error_ori, error_pos);
+                ate_dataset_ori.values.push_back(error_ori.rmse);
+                ate_dataset_pos.values.push_back(error_pos.rmse);
 
-                    // Calculate RPE error for this dataset
-                    std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> error_rpe;
-                    traj.calculate_rpe(segments, error_rpe);
-                    for(const auto& elm : error_rpe) {
-                        rpe_dataset.at(elm.first).first.values.insert(rpe_dataset.at(elm.first).first.values.end(),elm.second.first.values.begin(),elm.second.first.values.end());
-                        rpe_dataset.at(elm.first).first.timestamps.insert(rpe_dataset.at(elm.first).first.timestamps.end(),elm.second.first.timestamps.begin(),elm.second.first.timestamps.end());
-                        rpe_dataset.at(elm.first).second.values.insert(rpe_dataset.at(elm.first).second.values.end(),elm.second.second.values.begin(),elm.second.second.values.end());
-                        rpe_dataset.at(elm.first).second.timestamps.insert(rpe_dataset.at(elm.first).second.timestamps.end(),elm.second.second.timestamps.begin(),elm.second.second.timestamps.end());
-                    }
-
+                // Calculate RPE error for this dataset
+                std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>> error_rpe;
+                traj.calculate_rpe(segments, error_rpe);
+                for(const auto& elm : error_rpe) {
+                    rpe_dataset.at(elm.first).first.values.insert(rpe_dataset.at(elm.first).first.values.end(),elm.second.first.values.begin(),elm.second.first.values.end());
+                    rpe_dataset.at(elm.first).first.timestamps.insert(rpe_dataset.at(elm.first).first.timestamps.end(),elm.second.first.timestamps.begin(),elm.second.first.timestamps.end());
+                    rpe_dataset.at(elm.first).second.values.insert(rpe_dataset.at(elm.first).second.values.end(),elm.second.second.values.begin(),elm.second.second.values.end());
+                    rpe_dataset.at(elm.first).second.timestamps.insert(rpe_dataset.at(elm.first).second.timestamps.end(),elm.second.second.timestamps.begin(),elm.second.second.timestamps.end());
                 }
             }
 
@@ -195,14 +194,15 @@ int main(int argc, char **argv) {
             ate_dataset_pos.calculate();
 
             // Print stats for this specific dataset
-            ROS_INFO("\tATE: mean_ori = %.3f | mean_pos = %.3f",ate_dataset_ori.mean,ate_dataset_pos.mean);
-            ROS_INFO("\tATE: std_ori  = %.3f | std_pos  = %.3f",ate_dataset_ori.std,ate_dataset_pos.std);
+            std::string prefix = (ate_dataset_ori.mean > 10 || ate_dataset_pos.mean > 10)? RED : "";
+            printf("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET,prefix.c_str(),ate_dataset_ori.mean,ate_dataset_pos.mean,(int)ate_dataset_pos.values.size());
+            printf("\tATE: std_ori  = %.3f | std_pos  = %.3f\n",ate_dataset_ori.std,ate_dataset_pos.std);
             for(auto &seg : rpe_dataset) {
                 seg.second.first.calculate();
                 seg.second.second.calculate();
-                //ROS_INFO("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
-                ROS_INFO("\tRPE: seg %d - median_ori = %.4f | median_pos = %.4f (%d samples)",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
-                //ROS_INFO("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f",(int)seg.first,seg.second.first.std,seg.second.second.std);
+                //printf("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)\n",(int)seg.first,seg.second.first.mean,seg.second.second.mean,(int)seg.second.second.values.size());
+                printf("\tRPE: seg %d - median_ori = %.4f | median_pos = %.4f (%d samples)\n",(int)seg.first,seg.second.first.median,seg.second.second.median,(int)seg.second.second.values.size());
+                //printf("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
             }
 
             // Update the global ATE error stats
@@ -229,15 +229,15 @@ int main(int argc, char **argv) {
     //===============================================================================
 
     // Finally print the ATE for all the runs
-    ROS_INFO("============================================");
-    ROS_INFO("ATE LATEX TABLE");
-    ROS_INFO("============================================");
+    printf("============================================\n");
+    printf("ATE LATEX TABLE\n");
+    printf("============================================\n");
     for(size_t i=0; i<path_groundtruths.size(); i++) {
         std::string gtname = path_groundtruths.at(i).stem().string();
         boost::replace_all(gtname,"_","\\_");
-        cout << " & \\textbf{" << gtname << "}";
+        printf(" & \\textbf{%s}", gtname.c_str());
     }
-    cout << " & \\textbf{Average} \\\\\\hline" << endl;
+    printf(" & \\textbf{Average} \\\\\\hline\n");
     for(auto &algo : algo_ate) {
         std::string algoname = algo.first;
         boost::replace_all(algoname,"_","\\_");
@@ -247,28 +247,27 @@ int main(int argc, char **argv) {
         int sum_ct = 0;
         for(auto &seg : algo.second) {
             if(seg.first.values.empty() || seg.second.values.empty()) {
-                cout << std::fixed << std::setprecision(3) << " & - / -";
+                printf(" & - / -");
             } else {
-                cout << std::fixed << std::setprecision(3) << " & " << seg.first.rmse << " / " << seg.second.rmse;
+                printf(" & %.3f / %.3f", seg.first.rmse, seg.second.rmse);
                 sum_ori += seg.first.rmse;
                 sum_pos += seg.second.rmse;
                 sum_ct++;
             }
         }
-        cout << std::fixed << std::setprecision(3) << " & " << sum_ori/sum_ct << " / " << sum_pos/sum_ct;
-        cout << " \\\\" << endl;
+        printf(" & %.3f / %.3f \\\\\n", sum_ori/sum_ct, sum_pos/sum_ct);
     }
-    ROS_INFO("============================================");
+    printf("============================================\n");
 
 
     // Finally print the RPE for all the runs
-    ROS_INFO("============================================");
-    ROS_INFO("RPE LATEX TABLE");
-    ROS_INFO("============================================");
+    printf("============================================\n");
+    printf("RPE LATEX TABLE\n");
+    printf("============================================\n");
     for(const auto& len : segments) {
-        cout << std::fixed << std::setprecision(0) << " & \\textbf{" << len << "m}";
+        printf(" & \\textbf{%dm}", (int)len);
     }
-    cout << " \\\\\\hline" << endl;
+    printf(" \\\\\\hline\n");
     for(auto &algo : algo_rpe) {
         std::string algoname = algo.first;
         boost::replace_all(algoname,"_","\\_");
@@ -276,11 +275,11 @@ int main(int argc, char **argv) {
         for(auto &seg : algo.second) {
             seg.second.first.calculate();
             seg.second.second.calculate();
-            cout << std::fixed << std::setprecision(3) << " & " << seg.second.first.median << " / " << seg.second.second.median;
+            printf(" & %.3f / %.3f", seg.second.first.median, seg.second.second.median);
         }
-        cout << " \\\\" << endl;
+        printf(" \\\\\n");
     }
-    ROS_INFO("============================================");
+    printf("============================================\n");
 
 
 #ifdef HAVE_PYTHONLIBS
@@ -375,8 +374,6 @@ int main(int argc, char **argv) {
     matplotlibcpp::xlabel("sub-segment lengths (m)");
     matplotlibcpp::show(true);
 
-    // Wait till the user kills this node
-    //ros::spin();
 
 #endif
 

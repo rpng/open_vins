@@ -1,0 +1,105 @@
+<launch>
+
+
+    <!-- MASTER NODE! -->
+    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
+<!--        <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+
+        <!-- bag topics -->
+        <param name="topic_imu"      type="string" value="/imu0" />
+        <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
+        <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+
+        <!-- bag parameters -->
+<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/vi_sensor/aruco_room/aruco_hallway_01.bag" />-->
+        <param name="path_bag"    type="string" value="/home/patrick/datasets/vi_sensor/aruco_room/aruco_hallway_02.bag" />
+<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/vi_sensor/aruco_room/aruco_room_01.bag" />-->
+<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/vi_sensor/aruco_room/aruco_room_02.bag" />-->
+        <param name="bag_start"   type="int"    value="0" />
+        <param name="bag_durr"    type="int"    value="-1" />
+
+        <!-- world/filter parameters -->
+        <param name="use_fej"                type="bool"   value="true" />
+        <param name="use_imuavg"             type="bool"   value="true" />
+        <param name="use_rk4int"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="true" />
+        <param name="calib_cam_extrinsics"   type="bool"   value="true" />
+        <param name="calib_cam_intrinsics"   type="bool"   value="true" />
+        <param name="calib_cam_timeoffset"   type="bool"   value="true" />
+        <param name="calib_camimu_dt"        type="double" value="0.0" />
+        <param name="max_clones"             type="int"    value="15" />
+        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam_in_update"     type="int"    value="25" />
+        <param name="max_msckf_in_update"    type="int"    value="999" />
+        <param name="max_cameras"            type="int"    value="2" />
+        <param name="dt_slam_delay"          type="double" value="2" />
+        <param name="init_window_time"       type="double" value="0.5" />
+        <param name="init_imu_thresh"        type="double" value="1.5" />
+        <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
+        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_slam"          type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_aruco"         type="string" value="GLOBAL_3D" />
+
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="false" />
+        <param name="record_timing_filepath"      type="string" value="/tmp/traj_timing.txt" />
+
+        <!-- tracker/extractor properties -->
+        <param name="use_klt"          type="bool"   value="true" />
+        <param name="num_pts"          type="int"    value="150" />
+        <param name="fast_threshold"   type="int"    value="15" />
+        <param name="grid_x"           type="int"    value="5" />
+        <param name="grid_y"           type="int"    value="3" />
+        <param name="min_px_dist"      type="int"    value="10" />
+        <param name="knn_ratio"        type="double" value="0.85" />
+
+        <!-- aruco tag/mapping properties -->
+        <param name="use_aruco"        type="bool"   value="true" />
+        <param name="num_aruco"        type="int"    value="1024" />
+        <param name="downsize_aruco"   type="bool"   value="true" />
+
+        <!-- sensor noise values / update -->
+        <param name="up_msckf_sigma_px"            type="double"   value="1" />
+        <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
+        <param name="up_slam_sigma_px"             type="double"   value="1" />
+        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
+        <param name="up_aruco_sigma_px"            type="double"   value="1" />
+        <param name="up_aruco_chi2_multipler"      type="double"   value="8" />
+        <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />
+        <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
+        <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
+        <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
+
+
+        <!-- camera intrinsics -->
+        <param name="cam0_is_fisheye" type="bool" value="false" />
+        <param name="cam1_is_fisheye" type="bool" value="false" />
+        <rosparam param="cam0_k">[470.0502737897896,468.7574814232544,405.80799445368035,245.2879780490104]</rosparam>
+        <rosparam param="cam0_d">[-0.292031518680717,0.08753155838496009,0.0009568457669165753,2.3463489813256424e-05]</rosparam>
+        <rosparam param="cam1_k">[472.98384780424163,471.9917417027018,382.1928744696835,268.2536666120421]</rosparam>
+        <rosparam param="cam1_d">[-0.2847596229068525,0.07908861097045865,0.0011071433505703875,0.0005094909873658998]</rosparam>
+
+
+        <!-- camera extrinsics -->
+        <rosparam param="T_C0toI">
+            [
+            -0.99997806, -0.00600501,  0.0027968,   0.03847796,
+            0.00601449, -0.99997615,  0.00339343, -0.0045601,
+            0.00277635,  0.00341018,  0.99999033,  0.00418038,
+            0.0,         0.0,         0.0,         1.0
+            ]
+        </rosparam>
+        <rosparam param="T_C1toI">
+            [
+            -0.99984421, -0.00389232,  0.01721638, -0.07075565,
+            0.00394176, -0.9999882,   0.0028389,  -0.00418534,
+            0.01720512,  0.00290632,  0.99984776,  0.00388861,
+            0.0,         0.0,         0.0,         1.0
+            ]
+        </rosparam>
+
+
+    </node>
+
+
+</launch>

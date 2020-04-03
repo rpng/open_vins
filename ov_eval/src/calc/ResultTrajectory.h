@@ -27,7 +27,6 @@
 #include <string>
 #include <unordered_map>
 
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 #include <Eigen/StdVector>
 
@@ -35,6 +34,7 @@
 #include "utils/Statistics.h"
 #include "utils/Math.h"
 #include "utils/Loader.h"
+#include "utils/Colors.h"
 
 
 namespace ov_eval {

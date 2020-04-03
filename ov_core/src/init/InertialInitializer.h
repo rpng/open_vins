@@ -21,10 +21,9 @@
 #ifndef OV_CORE_INERTIALINITIALIZER_H
 #define OV_CORE_INERTIALINITIALIZER_H
 
-
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 #include "utils/quat_ops.h"
+#include "utils/colors.h"
 
 namespace ov_core {
 
@@ -36,6 +35,14 @@ namespace ov_core {
      * This class has a series of functions that can be used to initialize your system.
      * Right now we have our implementation that assumes that the imu starts from standing still.
      * In the future we plan to add support for structure-from-motion dynamic initialization.
+     *
+     * To initialize from standstill:
+     * 1. Collect all inertial measurements
+     * 2. See if within the last window there was a jump in acceleration
+     * 3. If the jump is past our threshold we should init (i.e. we have started moving)
+     * 4. Use the *previous* window, which should have been stationary to initialize orientation
+     * 5. Return a roll and pitch aligned with gravity and biases.
+     *
      */
     class InertialInitializer {
 

@@ -26,9 +26,9 @@
 #include <sstream>
 #include <iostream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
 
 #include "utils/Math.h"
+#include "utils/Colors.h"
 
 
 namespace ov_eval {

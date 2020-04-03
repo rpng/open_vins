@@ -78,7 +78,7 @@ int main(int argc, char** argv)
     std::string path_to_bag;
     nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
     //nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V2_03_difficult.bag");
-    ROS_INFO("ros bag path is: %s", path_to_bag.c_str());
+    printf("ros bag path is: %s\n", path_to_bag.c_str());
 
     // Get our start location and how much of the bag we want to play
     // Make the bag duration < 0 to just process to the end of the bag
@@ -96,24 +96,24 @@ int main(int argc, char** argv)
     int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
     bool do_downsizing;
-    nh.param<int>("num_pts", num_pts, 1000);
+    nh.param<int>("num_pts", num_pts, 100);
     nh.param<int>("num_aruco", num_aruco, 1024);
-    nh.param<int>("clone_states", clone_states, 10);
+    nh.param<int>("clone_states", clone_states, 11);
     nh.param<int>("fast_threshold", fast_threshold, 15);
-    nh.param<int>("grid_x", grid_x, 5);
-    nh.param<int>("grid_y", grid_y, 3);
+    nh.param<int>("grid_x", grid_x, 10);
+    nh.param<int>("grid_y", grid_y, 8);
     nh.param<int>("min_px_dist", min_px_dist, 10);
     nh.param<double>("knn_ratio", knn_ratio, 0.85);
     nh.param<bool>("downsize_aruco", do_downsizing, false);
 
     // Debug print!
-    ROS_INFO("max features: %d", num_pts);
-    ROS_INFO("max aruco: %d", num_aruco);
-    ROS_INFO("clone states: %d", clone_states);
-    ROS_INFO("grid size: %d x %d", grid_x, grid_y);
-    ROS_INFO("fast threshold: %d", fast_threshold);
-    ROS_INFO("min pixel distance: %d", min_px_dist);
-    ROS_INFO("downsize aruco image: %d", do_downsizing);
+    printf("max features: %d\n", num_pts);
+    printf("max aruco: %d\n", num_aruco);
+    printf("clone states: %d\n", clone_states);
+    printf("grid size: %d x %d\n", grid_x, grid_y);
+    printf("fast threshold: %d\n", fast_threshold);
+    printf("min pixel distance: %d\n", min_px_dist);
+    printf("downsize aruco image: %d\n", do_downsizing);
 
     // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
     Eigen::Matrix<double,8,1> cam0_calib;
@@ -154,13 +154,13 @@ int main(int argc, char** argv)
     ros::Time time_init = view_full.getBeginTime();
     time_init += ros::Duration(bag_start);
     ros::Time time_finish = (bag_durr < 0)? view_full.getEndTime() : time_init + ros::Duration(bag_durr);
-    ROS_INFO("time start = %.6f", time_init.toSec());
-    ROS_INFO("time end   = %.6f", time_finish.toSec());
+    printf("time start = %.6f\n", time_init.toSec());
+    printf("time end   = %.6f\n", time_finish.toSec());
     view.addQuery(bag, time_init, time_finish);
 
     // Check to make sure we have data to play
     if (view.size() == 0) {
-        ROS_ERROR("No messages to play on specified topics.  Exiting.");
+        printf(RED "No messages to play on specified topics. Exiting.\n" RESET);
         ros::shutdown();
         return EXIT_FAILURE;
     }
@@ -190,7 +190,7 @@ int main(int argc, char** argv)
             try {
                 cv_ptr = cv_bridge::toCvShare(s0, sensor_msgs::image_encodings::MONO8);
             } catch (cv_bridge::Exception &e) {
-                ROS_ERROR("cv_bridge exception: %s", e.what());
+                printf(RED "cv_bridge exception: %s\n" RESET, e.what());
                 continue;
             }
             // Save to our temp variable
@@ -208,7 +208,7 @@ int main(int argc, char** argv)
             try {
                 cv_ptr = cv_bridge::toCvShare(s1, sensor_msgs::image_encodings::MONO8);
             } catch (cv_bridge::Exception &e) {
-                ROS_ERROR("cv_bridge exception: %s", e.what());
+                printf(RED "cv_bridge exception: %s\n" RESET, e.what());
                 continue;
             }
             // Save to our temp variable
@@ -245,9 +245,9 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
                     
 
     // Process this new image
-    //extractor->feed_stereo(time0, img0, img1, 0, 1);
-    extractor->feed_monocular(time0, img0, 0);
-    extractor->feed_monocular(time0, img1, 1);
+    extractor->feed_stereo(time0, img0, img1, 0, 1);
+    //extractor->feed_monocular(time0, img0, 0);
+    //extractor->feed_monocular(time0, img1, 1);
 
 
     // Display the resulting tracks
@@ -307,7 +307,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
         double fpf = (double) featslengths / num_lostfeats;
         double mpf = (double) num_margfeats / frames;
         // DEBUG PRINT OUT
-        ROS_INFO("fps = %.2f | lost_feats/frame = %.2f | track_length/lost_feat = %.2f | marg_tracks/frame = %.2f",fps,lpf,fpf,mpf);
+        printf("fps = %.2f | lost_feats/frame = %.2f | track_length/lost_feat = %.2f | marg_tracks/frame = %.2f\n",fps,lpf,fpf,mpf);
         // Reset variables
         frames = 0;
         time_start = time_curr;

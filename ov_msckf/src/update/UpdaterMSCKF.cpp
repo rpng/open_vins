@@ -41,7 +41,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // 0. Get all timestamps our clones are at (and thus valid measurement times)
     std::vector<double> clonetimes;
-    for(const auto& clone_imu : state->get_clones()) {
+    for(const auto& clone_imu : state->_clones_IMU) {
         clonetimes.emplace_back(clone_imu.first);
     }
 
@@ -72,11 +72,11 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // 2. Create vector of cloned *CAMERA* poses at each of our clone timesteps
     std::unordered_map<size_t, std::unordered_map<double, FeatureInitializer::ClonePose>> clones_cam;
-    for(const auto &clone_calib : state->get_calib_IMUtoCAMs()) {
+    for(const auto &clone_calib : state->_calib_IMUtoCAM) {
 
         // For this camera, create the vector of camera poses
         std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
-        for(const auto &clone_imu : state->get_clones()) {
+        for(const auto &clone_imu : state->_clones_IMU) {
 
             // Get current camera pose
             Eigen::Matrix<double,3,3> R_GtoCi = clone_calib.second->Rot()*clone_imu.second->Rot();
@@ -126,8 +126,11 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     }
 
     // Calculate max possible state size (i.e. the size of our covariance)
-    size_t max_hx_size = state->n_vars();
-    max_hx_size -= 3*state->features_SLAM().size();
+    // NOTE: that when we have the single inverse depth representations, those are only 1dof in size
+    size_t max_hx_size = state->max_covariance_size();
+    for(auto &landmark : state->_features_SLAM) {
+        max_hx_size -= landmark.second->size();
+    }
 
     // Large Jacobian and residual of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
@@ -148,10 +151,15 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         feat.uvs = (*it2)->uvs;
         feat.uvs_norm = (*it2)->uvs_norm;
         feat.timestamps = (*it2)->timestamps;
-        feat.feat_representation = state->options().feat_representation;
+
+        // If we are using single inverse depth, then it is equivalent to using the msckf inverse depth
+        feat.feat_representation = state->_options.feat_rep_msckf;
+        if(state->_options.feat_rep_msckf==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+            feat.feat_representation = LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
+        }
 
         // Save the position and its fej value
-        if(FeatureRepresentation::is_relative_representation(feat.feat_representation)) {
+        if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
             feat.anchor_cam_id = (*it2)->anchor_cam_id;
             feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
             feat.p_FinA = (*it2)->p_FinA;
@@ -186,7 +194,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         } else {
             boost::math::chi_squared chi_squared_dist(res.rows());
             chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
-            std::cout << "chi2_check over the residual limit - " << res.rows() << std::endl;
+            printf(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
         }
 
         // Check if we should delete or not
@@ -226,7 +234,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     // We have appended all features to our Hx_big, res_big
     // Delete it so we do not reuse information
-    for (size_t f=0; f < feature_vec.size(); f++){
+    for (size_t f=0; f < feature_vec.size(); f++) {
         feature_vec[f]->to_delete = true;
     }
 
@@ -256,12 +264,12 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     rT5 =  boost::posix_time::microsec_clock::local_time();
 
     // Debug print timing information
-    ROS_INFO("[MSCKF-UP]: %.4f seconds to clean",(rT1-rT0).total_microseconds() * 1e-6);
-    ROS_INFO("[MSCKF-UP]: %.4f seconds to triangulate",(rT2-rT1).total_microseconds() * 1e-6);
-    ROS_INFO("[MSCKF-UP]: %.4f seconds create system (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
-    ROS_INFO("[MSCKF-UP]: %.4f seconds compress system",(rT4-rT3).total_microseconds() * 1e-6);
-    ROS_INFO("[MSCKF-UP]: %.4f seconds update state (%d size)",(rT5-rT4).total_microseconds() * 1e-6, (int)res_big.rows());
-    ROS_INFO("[MSCKF-UP]: %.4f seconds total",(rT5-rT1).total_microseconds() * 1e-6);
+    //printf("[MSCKF-UP]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
+    //printf("[MSCKF-UP]: %.4f seconds to triangulate\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[MSCKF-UP]: %.4f seconds create system (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+    //printf("[MSCKF-UP]: %.4f seconds compress system\n",(rT4-rT3).total_microseconds() * 1e-6);
+    //printf("[MSCKF-UP]: %.4f seconds update state (%d size)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)res_big.rows());
+    //printf("[MSCKF-UP]: %.4f seconds total\n",(rT5-rT1).total_microseconds() * 1e-6);
 
 }
 

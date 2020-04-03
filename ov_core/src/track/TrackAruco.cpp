@@ -110,9 +110,9 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for detection",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for total",(rT3-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
+    //printf("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 
@@ -153,7 +153,7 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
     //===================================================================================
     //===================================================================================
 
-    // Perform extraction (doing this is parallel is actually slower on my machine -pgeneva)
+    // Perform extraction (doing this in parallel is actually slower on my machine -pgeneva)
     cv::aruco::detectMarkers(img0,aruco_dict,corners[cam_id_left],ids_aruco[cam_id_left],aruco_params,rejects[cam_id_left]);
     cv::aruco::detectMarkers(img1,aruco_dict,corners[cam_id_right],ids_aruco[cam_id_right],aruco_params,rejects[cam_id_right]);
     rT2 =  boost::posix_time::microsec_clock::local_time();
@@ -239,54 +239,53 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for detection",(rT2-rT1).total_microseconds() * 1e-6);
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
-    //ROS_INFO("[TIME-ARUCO]: %.4f seconds for total",(rT3-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+    //printf("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)good_left.size());
+    //printf("[TIME-ARUCO]: %.4f seconds for total\m",(rT3-rT1).total_microseconds() * 1e-6);
 
 }
 
 
 void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
-    // Lock all our feeds (this prevents other threads from editing our data)
-    //std::vector<std::unique_lock<std::mutex>> lcks;
-    //for(size_t i=0; i<mtx_feeds.size(); i++) {
-    //    lcks.push_back(std::unique_lock<std::mutex>(mtx_feeds.at(i)));
-    //}
+    // Cache the images to prevent other threads from editing while we viz (which can be slow)
+    std::map<size_t, cv::Mat> img_last_cache;
+    for(auto const& pair : img_last) {
+        img_last_cache.insert({pair.first,pair.second.clone()});
+    }
 
     // Get the largest width and height
     int max_width = -1;
     int max_height = -1;
-    for(auto const& pair : img_last) {
+    for(auto const& pair : img_last_cache) {
         if(max_width < pair.second.cols) max_width = pair.second.cols;
         if(max_height < pair.second.rows) max_height = pair.second.rows;
     }
 
     // If the image is "new" then draw the images from scratch
     // Otherwise, we grab the subset of the main image and draw on top of it
-    bool image_new = ((int)img_last.size()*max_width != img_out.cols || max_height != img_out.rows);
+    bool image_new = ((int)img_last_cache.size()*max_width != img_out.cols || max_height != img_out.rows);
 
     // If new, then resize the current image
-    if(image_new) img_out = cv::Mat(max_height,(int)img_last.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
+    if(image_new) img_out = cv::Mat(max_height,(int)img_last_cache.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
 
     // Loop through each image, and draw
-    int ct = 0;
-    for(auto const& pair : img_last) {
+    int index_cam = 0;
+    for(auto const& pair : img_last_cache) {
         // Lock this image
         std::unique_lock<std::mutex> lck(mtx_feeds.at(pair.first));
         // select the subset of the image
         cv::Mat img_temp;
-        if(image_new) cv::cvtColor(img_last[pair.first], img_temp, CV_GRAY2RGB);
-        else img_temp = img_out(cv::Rect(max_width*ct,0,max_width,max_height));
+        if(image_new) cv::cvtColor(img_last_cache[pair.first], img_temp, CV_GRAY2RGB);
+        else img_temp = img_out(cv::Rect(max_width*index_cam,0,max_width,max_height));
         // draw...
         if(!ids_aruco[pair.first].empty()) cv::aruco::drawDetectedMarkers(img_temp, corners[pair.first], ids_aruco[pair.first]);
-        //if(!rejects[pair.first].empty()) cv::aruco::drawDetectedMarkers(img_temp, rejects[pair.first], cv::noArray(), cv::Scalar(100,0,255));
+        if(!rejects[pair.first].empty()) cv::aruco::drawDetectedMarkers(img_temp, rejects[pair.first], cv::noArray(), cv::Scalar(100,0,255));
         // Draw what camera this is
         cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), cv::Point(30,60), cv::FONT_HERSHEY_COMPLEX_SMALL, 3.0, cv::Scalar(0,255,0),3);
         // Replace the output image
-        img_temp.copyTo(img_out(cv::Rect(max_width*ct,0,img_last[pair.first].cols,img_last[pair.first].rows)));
-        // move fowards
-        ct++;
+        img_temp.copyTo(img_out(cv::Rect(max_width*index_cam,0,img_last_cache[pair.first].cols,img_last_cache[pair.first].rows)));
+        index_cam++;
     }
 
 }

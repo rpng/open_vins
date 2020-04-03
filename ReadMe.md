@@ -45,6 +45,7 @@ Please take a look at the feature list below for full details on what the system
     3. Anchored XYZ
     4. Anchored inverse depth
     5. Anchored MSCKF inverse depth
+    6. Anchored single inverse depth
 * Calibration of sensor intrinsics and extrinsics
     * Camera to IMU transform 
     * Camera to IMU time offset
@@ -79,6 +80,7 @@ Please take a look at the feature list below for full details on what the system
 This code was written by the [Robot Perception and Navigation Group (RPNG)](https://sites.udel.edu/robot/) at the University of Delaware.
 If you have any issues with the code please open an issue on our github page with relevant implementation details and references.
 For researchers that have leveraged or compared to this work, please cite the following:
+
 ```txt
 @Conference{Geneva2020ICRA,
   Title      = {OpenVINS: A Research Platform for Visual-Inertial Estimation},

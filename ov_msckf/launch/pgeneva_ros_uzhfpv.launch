@@ -1,0 +1,202 @@
+<launch>
+
+    <!-- mono or stereo and what ros bag to play -->
+    <arg name="max_cameras" default="2" />
+    <arg name="use_stereo"  default="true" />
+    <arg name="bag_start"   default="15" />
+    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv/indoor_45_2_snapdragon_with_gt.bag" />
+
+    <!-- what configuration mode we are in  -->
+    <!-- 0: indoor forward facing  -->
+    <!-- 1: indoor 45 degree downward facing  -->
+    <!-- 2: outdoor forward facing  -->
+    <!-- 3: outdoor 45 degree downward facing  -->
+    <arg name="sensor_config"   default="1" />
+
+    <!-- imu starting thresholds -->
+    <arg name="init_window_time"  default="1.0" />
+    <arg name="init_imu_thresh"   default="5.0" />
+
+    <!-- saving trajectory path and timing information -->
+    <arg name="dosave"      default="false" />
+    <arg name="dotime"      default="false" />
+    <arg name="path_est"    default="/tmp/traj_estimate.txt" />
+    <arg name="path_time"   default="/tmp/traj_timing.txt" />
+
+
+    <!-- MASTER NODE! -->
+    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+
+        <!-- bag topics -->
+        <param name="topic_imu"      type="string" value="/snappy_imu" />
+        <param name="topic_camera0"  type="string" value="/snappy_cam/stereo_l" />
+        <param name="topic_camera1"  type="string" value="/snappy_cam/stereo_r" />
+
+        <!-- world/filter parameters -->
+        <param name="use_fej"                type="bool"   value="true" />
+        <param name="use_imuavg"             type="bool"   value="true" />
+        <param name="use_rk4int"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
+        <param name="calib_cam_extrinsics"   type="bool"   value="true" />
+        <param name="calib_cam_intrinsics"   type="bool"   value="true" />
+        <param name="calib_cam_timeoffset"   type="bool"   value="true" />
+        <param name="calib_camimu_dt"        type="double" value="-0.015" />
+        <param name="max_clones"             type="int"    value="11" />
+        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
+        <param name="max_msckf_in_update"    type="int"    value="999" />
+        <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
+        <param name="dt_slam_delay"          type="double" value="3" />
+        <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
+        <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
+        <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
+        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+        <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
+        <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
+
+        <!-- tracker/extractor properties -->
+        <param name="use_klt"          type="bool"   value="true" />
+        <param name="num_pts"          type="int"    value="200" />
+        <param name="fast_threshold"   type="int"    value="15" />
+        <param name="grid_x"           type="int"    value="10" />
+        <param name="grid_y"           type="int"    value="8" />
+        <param name="min_px_dist"      type="int"    value="8" />
+        <param name="knn_ratio"        type="double" value="0.65" />
+
+        <!-- aruco tag/mapping properties -->
+        <param name="use_aruco"        type="bool"   value="false" />
+        <param name="num_aruco"        type="int"    value="1024" />
+        <param name="downsize_aruco"   type="bool"   value="true" />
+
+        <!-- sensor noise values / update -->
+        <param name="up_msckf_sigma_px"            type="double"   value="1" />
+        <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
+        <param name="up_slam_sigma_px"             type="double"   value="1" />
+        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
+        <param name="up_aruco_sigma_px"            type="double"   value="1" />
+        <param name="up_aruco_chi2_multipler"      type="double"   value="1" />
+<!--        <param name="gyroscope_noise_density"      type="double"   value="0.05" />-->
+<!--        <param name="gyroscope_random_walk"        type="double"   value="4.0e-05" />-->
+<!--        <param name="accelerometer_noise_density"  type="double"   value="0.10" />-->
+<!--        <param name="accelerometer_random_walk"    type="double"   value="0.002" />-->
+        <param name="gyroscope_noise_density"      type="double"   value="1.6968e-03" />
+        <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
+        <param name="accelerometer_noise_density"  type="double"   value="2.0000e-2" />
+        <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
+
+        <!-- camera intrinsics -->
+        <rosparam param="cam0_wh">[640, 480]</rosparam>
+        <rosparam param="cam1_wh">[640, 480]</rosparam>
+        <param name="cam0_is_fisheye" type="bool" value="true" />
+        <param name="cam1_is_fisheye" type="bool" value="true" />
+
+
+        <!-- indoor forward facing -->
+        <rosparam param="cam0_k" if="$(eval arg('sensor_config') == 0)">[278.66723066149086, 278.48991409740296, 319.75221200593535, 241.96858910358173]</rosparam>
+        <rosparam param="cam0_d" if="$(eval arg('sensor_config') == 0)">[-0.013721808247486035, 0.020727425669427896, -0.012786476702685545, 0.0025242267320687625]</rosparam>
+        <rosparam param="cam1_k" if="$(eval arg('sensor_config') == 0)">[277.61640629770613, 277.63749695723294, 314.8944703346039, 236.04310050462587]</rosparam>
+        <rosparam param="cam1_d" if="$(eval arg('sensor_config') == 0)">[-0.008456929295619607, 0.011407590938612062, -0.006951788325762078, 0.0015368127092821786]</rosparam>
+        <rosparam param="T_C0toI" if="$(eval arg('sensor_config') == 0)">
+            [
+            -0.02822879,  0.01440125,  0.99949774,  0.00110212,
+            -0.99960149, -0.00041887, -0.02822568,  0.02170142,
+            0.00001218, -0.99989621,  0.01440734, -0.00005928,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+        <rosparam param="T_C1toI" if="$(eval arg('sensor_config') == 0)">
+            [
+            -0.01182306,  0.01155299,  0.99986336, -0.00029028,
+            -0.99987014,  0.01081377, -0.01194809, -0.05790695,
+            -0.01095033, -0.99987479,  0.01142364, -0.0001919,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+
+        <!-- indoor 45 degree downward facing -->
+        <rosparam param="cam0_k" if="$(eval arg('sensor_config') == 1)">[275.46015578667294, 274.9948095922592, 315.958384100568, 242.7123497822731]</rosparam>
+        <rosparam param="cam0_d" if="$(eval arg('sensor_config') == 1)">[-6.545154718304953e-06, -0.010379525898159981, 0.014935312423953146, -0.005639061406567785]</rosparam>
+        <rosparam param="cam1_k" if="$(eval arg('sensor_config') == 1)">[274.4628309070672, 273.9261674470783, 315.93654481793794, 235.779167375461]</rosparam>
+        <rosparam param="cam1_d" if="$(eval arg('sensor_config') == 1)">[-0.012138050918285051, 0.02244029339184358, -0.013753165428754275, 0.002725090438517269]</rosparam>
+        <rosparam param="T_C0toI" if="$(eval arg('sensor_config') == 1)">
+            [
+            -0.02725669, -0.71392061,  0.69969596,  0.00751451,
+            -0.99962606,  0.01793147, -0.02064447,  0.02404535,
+            0.00219194, -0.69999702, -0.7141424,   0.00577265,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+        <rosparam param="T_C1toI" if="$(eval arg('sensor_config') == 1)">
+            [
+            -0.01749277, -0.7090992,   0.70489172,  0.00670958,
+            -0.99979146,  0.01983523, -0.00485745, -0.05587358,
+            -0.01053728, -0.70482969, -0.7092983,   0.00423116,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+
+        <!-- outdoor forward facing -->
+        <rosparam param="cam0_k" if="$(eval arg('sensor_config') == 2)">[277.4786896484645, 277.42548548840034, 320.1052053576385, 242.10083077857894]</rosparam>
+        <rosparam param="cam0_d" if="$(eval arg('sensor_config') == 2)">[-0.005719912631104124, 0.004742449009601135, 0.0012060658036136048, -0.001580292679344826]</rosparam>
+        <rosparam param="cam1_k" if="$(eval arg('sensor_config') == 2)">[276.78679780974477, 276.79332134030807, 314.2862327340746, 236.51313088043128]</rosparam>
+        <rosparam param="cam1_d" if="$(eval arg('sensor_config') == 2)">[-0.009025009906076716, 0.009967427035376123, -0.0029538969814842117, -0.0003503551771748748]</rosparam>
+        <rosparam param="T_C0toI" if="$(eval arg('sensor_config') == 2)">
+            [
+            -0.03179778,  0.01282784,  0.999412,    0.01016847,
+            -0.9994934,   0.00095158, -0.03181259,  0.02080346,
+            -0.00135911, -0.99991727,  0.01279109, -0.00074913,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+        <rosparam param="T_C1toI" if="$(eval arg('sensor_config') == 2)">
+            [
+            -0.01145016,  0.00917125,  0.99989239,  0.00880843,
+            -0.99987465,  0.01083058, -0.0115493,  -0.05838405,
+            -0.01093534, -0.99989929,  0.00904609, -0.00078784,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+
+        <!-- outdoor 45 degree downward facing -->
+        <rosparam param="cam0_k" if="$(eval arg('sensor_config') == 3)">[275.3385453506587, 275.0852058534152, 315.7697752181792, 233.72625444124952]</rosparam>
+        <rosparam param="cam0_d" if="$(eval arg('sensor_config') == 3)">[-0.017811595366268803, 0.04897078939103475, -0.041363300782847834, 0.011440891936886532]</rosparam>
+        <rosparam param="cam1_k" if="$(eval arg('sensor_config') == 3)">[273.2895238376505, 273.35830490745764, 314.60557378520133, 251.0359907029701]</rosparam>
+        <rosparam param="cam1_d" if="$(eval arg('sensor_config') == 3)">[0.027860492621377443, -0.027723581962855317, 0.0375199775145906, -0.018152613898714216]</rosparam>
+        <rosparam param="T_C0toI" if="$(eval arg('sensor_config') == 3)">
+            [
+            -0.02404152, -0.71845273,  0.69516018,  0.02496917,
+            -0.99966408,  0.0105427,  -0.02367658,  0.01950941,
+             0.00968164, -0.69549588, -0.71846485, -0.01354663,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+        <rosparam param="T_C1toI" if="$(eval arg('sensor_config') == 3)">
+            [
+            -0.00452775, -0.72082383,  0.69310354,  0.02464282,
+            -0.99995607,  0.00895175,  0.00277748, -0.05987074,
+            -0.00820657, -0.69306052, -0.72083269, -0.01343195,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+
+
+    </node>
+
+
+    <!-- play the dataset -->
+    <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -s $(arg bag_start) $(arg bag)" required="true"/>
+
+    <!-- record the trajectory if enabled -->
+    <group if="$(arg dosave)">
+        <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
+            <param name="topic"      type="str" value="/ov_msckf/poseimu" />
+            <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
+            <param name="output"     type="str" value="$(arg path_est)" />
+        </node>
+    </group>
+
+</launch>

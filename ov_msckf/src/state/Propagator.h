@@ -24,7 +24,7 @@
 
 #include "state/StateHelper.h"
 #include "utils/quat_ops.h"
-#include <ros/ros.h>
+
 
 using namespace ov_core;
 
@@ -65,29 +65,37 @@ namespace ov_msckf {
          */
         struct NoiseManager {
 
-            /// Gyro white noise
-            double sigma_w;
+            /// Gyroscope white noise (rad/s/sqrt(hz))
+            double sigma_w = 1.6968e-04;
 
-            /// Gyro white noise covariance
-            double sigma_w_2;
+            /// Gyroscope white noise covariance
+            double sigma_w_2 = pow(1.6968e-04, 2);
 
-            /// Gyro random walk
-            double sigma_wb;
+            /// Gyroscope random walk (rad/s^2/sqrt(hz))
+            double sigma_wb = 1.9393e-05;
 
-            /// Gyro random walk covariance
-            double sigma_wb_2;
+            /// Gyroscope random walk covariance
+            double sigma_wb_2 = pow(1.9393e-05, 2);
 
-            /// Accel white noise
-            double sigma_a;
+            /// Accelerometer white noise (m/s^2/sqrt(hz))
+            double sigma_a = 2.0000e-3;
 
-            /// Accel white noise covariance
-            double sigma_a_2;
+            /// Accelerometer white noise covariance
+            double sigma_a_2 = pow(2.0000e-3, 2);
 
-            /// Accel random walk
-            double sigma_ab;
+            /// Accelerometer random walk (m/s^3/sqrt(hz))
+            double sigma_ab = 3.0000e-03;
 
-            /// Accel random walk covariance
-            double sigma_ab_2;
+            /// Accelerometer random walk covariance
+            double sigma_ab_2 = pow(3.0000e-03, 2);
+
+            /// Nice print function of what parameters we have loaded
+            void print() {
+                printf("\t- gyroscope_noise_density: %.6f\n", sigma_w);
+                printf("\t- accelerometer_noise_density: %.5f\n", sigma_a);
+                printf("\t- gyroscope_random_walk: %.7f\n", sigma_wb);
+                printf("\t- accelerometer_random_walk: %.6f\n", sigma_ab);
+            }
 
         };
 
@@ -123,6 +131,23 @@ namespace ov_msckf {
             // Append it to our vector
             imu_data.emplace_back(data);
 
+            // Sort our imu data (handles any out of order measurements)
+            //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j) {
+            //    return i.timestamp < j.timestamp;
+            //});
+
+            // Loop through and delete imu messages that are older then 20 seconds
+            // TODO: we should probably have more elegant logic then this
+            // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
+            auto it0 = imu_data.begin();
+            while(it0 != imu_data.end()) {
+                if(timestamp-(*it0).timestamp > 20) {
+                    it0 = imu_data.erase(it0);
+                } else {
+                    it0++;
+                }
+            }
+
         }
 
 
@@ -139,6 +164,20 @@ namespace ov_msckf {
          * @param timestamp Time to propagate to and clone at
          */
         void propagate_and_clone(State *state, double timestamp);
+
+
+        /**
+         * @brief Gets what the state and its covariance will be at a given timestamp
+         *
+         * This can be used to find what the state will be in the "future" without propagating it.
+         * This will propagate a clone of the current IMU state and its covariance matrix.
+         * This is typically used to provide high frequency pose estimates between updates.
+         *
+         * @param state Pointer to state
+         * @param timestamp Time to propagate to
+         * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
+         */
+        void fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus);
 
 
         /**
@@ -183,6 +222,7 @@ namespace ov_msckf {
 
         /// Estimate for time offset at last propagation time
         double last_prop_time_offset = -INFINITY;
+        bool have_last_prop_time_offset = false;
 
         /**
          * @brief Propagates the state forward using the imu data and computes the noise covariance and state-transition

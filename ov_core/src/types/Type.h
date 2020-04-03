@@ -18,14 +18,14 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_CORE_TYPE_BASE_H
-#define OV_CORE_TYPE_BASE_H
+#ifndef OV_TYPE_TYPE_BASE_H
+#define OV_TYPE_TYPE_BASE_H
 
 
 #include <Eigen/Dense>
 
 
-namespace ov_core {
+namespace ov_type {
 
 
     /**
@@ -153,4 +153,4 @@ namespace ov_core {
 
 }
 
-#endif //OV_CORE_TYPE_BASE_H
+#endif //OV_TYPE_TYPE_BASE_H

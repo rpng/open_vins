@@ -22,7 +22,6 @@
 #define OV_CORE_BSPLINESE3_H
 
 
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 
 #include "utils/quat_ops.h"

@@ -32,8 +32,10 @@ namespace ov_eval {
 
 
     /**
-     * @brief Stat object for a given set scalar time series values.
+     * @brief Statistics object for a given set scalar time series values.
+     *
      * Ensure that you call the calculate() function to update the values before using them.
+     * This will compute all the final results from the values in @ref values vector.
      */
     struct Statistics {
 
@@ -56,6 +58,9 @@ namespace ov_eval {
 
         /// Min of the given values
         double min = 0.0;
+
+        /// 99th percentile
+        double ninetynine = 0.0;
 
         /// Timestamp when these values occured at
         std::vector<double> timestamps;
@@ -111,6 +116,11 @@ namespace ov_eval {
                 std += std::pow(values_sorted.at(i) - mean, 2);
             }
             std = std::sqrt(std / (values_sorted.size() - 1));
+
+            // 99th percentile
+            // TODO: is this correct?
+            // TODO: http://sphweb.bumc.bu.edu/otlt/MPH-Modules/BS/BS704_Probability/BS704_Probability10.html
+            ninetynine = mean + 2.326*std;
 
         }
 

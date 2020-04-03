@@ -1,0 +1,25 @@
+<launch>
+
+
+    <!-- what ros bag to play -->
+    <arg name="bag_name"    default="outdoor_forward_5_snapdragon_with_gt" />
+    <arg name="bag_path"    default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer" />
+
+
+    <!-- where to save the recorded poses -->
+    <arg name="path_save"   default="/home/patrick/workspace/catkin_ws_ov/gt" />
+
+
+    <!-- record the trajectory -->
+    <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen" required="true">
+        <param name="topic"      type="str" value="/groundtruth/pose" />
+        <param name="topic_type" type="str" value="PoseStamped" />
+        <param name="output"     type="str" value="$(arg path_save)/$(arg bag_name).txt" />
+    </node>
+
+
+    <!-- play the dataset -->
+    <node pkg="rosbag" type="play" name="rosbag" args="-r 4 $(arg bag_path)/$(arg bag_name).bag" required="true"/>
+
+
+</launch>

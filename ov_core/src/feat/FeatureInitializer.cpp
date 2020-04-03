@@ -152,7 +152,7 @@ bool FeatureInitializer::single_triangulation(Feature* feat, std::unordered_map<
 
     // If we have a bad condition number, or it is too close
     // Then set the flag for bad (i.e. set z-axis to nan)
-    if (std::abs(condA) > _options.max_cond_number || p_f(2,0) < _options.min_dist || p_f(2,0) > _options.max_dist || std::isnan(p_f.norm())){
+    if (std::abs(condA) > _options.max_cond_number || p_f(2,0) < _options.min_dist || p_f(2,0) > _options.max_dist || std::isnan(p_f.norm())) {
         return false;
     }
 
@@ -259,7 +259,7 @@ bool FeatureInitializer::single_gaussnewton(Feature* feat, std::unordered_map<si
 
         // Solve Levenberg iteration
         Eigen::Matrix<double,3,3> Hess_l = Hess;
-        for (size_t r=0; r < (size_t)Hess.rows(); r++){
+        for (size_t r=0; r < (size_t)Hess.rows(); r++) {
             Hess_l(r,r) *= (1.0+lam);
         }
 

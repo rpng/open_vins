@@ -3,11 +3,8 @@ cmake_minimum_required(VERSION 2.8.8)
 # Project name
 project(ov_eval)
 
-# Include our cmake files
-#set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
-
 # Find catkin (the ROS build system)
-find_package(catkin REQUIRED COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs)
+find_package(catkin QUIET COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs)
 
 # Include libraries
 find_package(Eigen3 REQUIRED)
@@ -28,11 +25,16 @@ if(PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
 endif()
 
 # Describe catkin project
-catkin_package(
-        CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs
-        INCLUDE_DIRS src
-        LIBRARIES ov_eval_lib
-)
+if (catkin_FOUND)
+    add_definitions(-DROS_AVAILABLE=1)
+    catkin_package(
+            CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs
+            INCLUDE_DIRS src
+            LIBRARIES ov_eval_lib
+    )
+else()
+    message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
+endif()
 
 # Try to compile with c++11
 # http://stackoverflow.com/a/25836953
@@ -80,7 +82,6 @@ add_library(ov_eval_lib
         src/alignment/AlignUtils.cpp
         src/calc/ResultTrajectory.cpp
         src/calc/ResultSimulation.cpp
-        src/utils/Recorder.h
         src/utils/Loader.cpp
 )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
@@ -89,8 +90,13 @@ target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 ##################################################
 # Make binary files!
 ##################################################
-add_executable(pose_to_file src/pose_to_file.cpp)
-target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
+
+
+if (catkin_FOUND)
+    add_executable(pose_to_file src/pose_to_file.cpp)
+    target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
+endif()
+
 
 add_executable(format_converter src/format_converter.cpp)
 target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
@@ -107,11 +113,14 @@ target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
 add_executable(error_simulation src/error_simulation.cpp)
 target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
 
-add_executable(timing_singlerun src/timing_singlerun.cpp)
-target_link_libraries(timing_singlerun ov_eval_lib ${thirdparty_libraries})
+add_executable(timing_flamegraph src/timing_flamegraph.cpp)
+target_link_libraries(timing_flamegraph ov_eval_lib ${thirdparty_libraries})
 
 add_executable(timing_comparison src/timing_comparison.cpp)
 target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
+
+add_executable(timing_percentages src/timing_percentages.cpp)
+target_link_libraries(timing_percentages ov_eval_lib ${thirdparty_libraries})
 
 add_executable(plot_trajectories src/plot_trajectories.cpp)
 target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
@@ -120,8 +129,10 @@ target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
 ##################################################
 # Python scripts!
 ##################################################
-catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+if (catkin_FOUND)
+    catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+    catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+endif()
 
 
 

@@ -27,12 +27,12 @@
 #include <string>
 #include <unordered_map>
 
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 
 #include "utils/Statistics.h"
 #include "utils/Math.h"
 #include "utils/Loader.h"
+#include "utils/Colors.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -103,12 +103,6 @@ namespace ov_eval {
         // Trajectory data (loaded from file and timestamp intersected)
         std::vector<Eigen::VectorXd> est_state, gt_state;
         std::vector<Eigen::VectorXd> state_cov;
-
-        // Calculated error values
-        Statistics error_ori[3], error_pos[3], error_vel[3], error_bg[3], error_ba[3]; // state
-        Statistics error_time; // timeoff
-        std::vector<std::vector<Statistics>> error_cam_k, error_cam_d; // cameras intrinsics
-        std::vector<std::vector<Statistics>> error_cam_ori, error_cam_pos; // cameras extrinsics
 
 
 #ifdef HAVE_PYTHONLIBS

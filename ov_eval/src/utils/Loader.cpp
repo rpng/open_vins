@@ -31,14 +31,14 @@ void Loader::load_data(std::string path_traj,
     // Try to open our trajectory file
     std::ifstream file(path_traj);
     if(!file.is_open()) {
-        ROS_ERROR("[LOAD]: Unable to open trajectory file...");
-        ROS_ERROR("[LOAD]: %s",path_traj.c_str());
+        printf(RED "[LOAD]: Unable to open trajectory file...\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Loop through each line of this file
     std::string current_line;
-    while(std::getline(file, current_line) && ros::ok()) {
+    while(std::getline(file, current_line)) {
 
         // Skip if we start with a comment
         if(!current_line.find("#"))
@@ -51,7 +51,7 @@ void Loader::load_data(std::string path_traj,
         Eigen::Matrix<double,20,1> data;
 
         // Loop through this line (timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt11 Pt12 Pt13 Pt22 Pt23 Pt33)
-        while(std::getline(s,field,' ') && ros::ok()) {
+        while(std::getline(s,field,' ')) {
             // Skip if empty
             if(field.empty() || i >= data.rows())
                 continue;
@@ -89,28 +89,28 @@ void Loader::load_data(std::string path_traj,
 
     // Error if we don't have any data
     if (times.empty()) {
-        ROS_ERROR("[LOAD]: Could not parse any data from the file!!");
-        ROS_ERROR("[LOAD]: %s",path_traj.c_str());
+        printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Assert that they are all equal
     if(times.size() != poses.size()) {
-        ROS_ERROR("[LOAD]: Parsing error, pose and timestamps do not match!!");
-        ROS_ERROR("[LOAD]: %s",path_traj.c_str());
+        printf(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Assert that they are all equal
     if(!cov_ori.empty() && (times.size() != cov_ori.size() || times.size() != cov_pos.size())) {
-        ROS_ERROR("[LOAD]: Parsing error, timestamps covariance size do not match!!");
-        ROS_ERROR("[LOAD]: %s",path_traj.c_str());
+        printf(RED "[LOAD]: Parsing error, timestamps covariance size do not match!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path_traj.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Debug print amount
     //std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
-    //ROS_INFO("[LOAD]: loaded %d poses from %s",(int)poses.size(),base_filename.c_str());
+    //printf("[LOAD]: loaded %d poses from %s\n",(int)poses.size(),base_filename.c_str());
 
 }
 
@@ -121,14 +121,14 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
     // Try to open our trajectory file
     std::ifstream file(path);
     if(!file.is_open()) {
-        ROS_ERROR("[LOAD]: Unable to open file...");
-        ROS_ERROR("[LOAD]: %s",path.c_str());
+        printf(RED "[LOAD]: Unable to open file...\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Loop through each line of this file
     std::string current_line;
-    while(std::getline(file, current_line) && ros::ok()) {
+    while(std::getline(file, current_line)) {
 
         // Skip if we start with a comment
         if(!current_line.find("#"))
@@ -140,7 +140,7 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
         std::vector<double> vec;
 
         // Loop through this line (timestamp(s) values....)
-        while(std::getline(s,field,' ') && ros::ok()) {
+        while(std::getline(s,field,' ')) {
             // Skip if empty
             if(field.empty())
                 continue;
@@ -162,8 +162,8 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
 
     // Error if we don't have any data
     if (values.empty()) {
-        ROS_ERROR("[LOAD]: Could not parse any data from the file!!");
-        ROS_ERROR("[LOAD]: %s",path.c_str());
+        printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
         std::exit(EXIT_FAILURE);
     }
 
@@ -171,8 +171,8 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
     int rowsize = values.at(0).rows();
     for(size_t i=0; i<values.size(); i++) {
         if(values.at(i).rows() != rowsize) {
-            ROS_ERROR("[LOAD]: Invalid row size on line %d (of size %d instead of %d)",(int)i,(int)values.at(i).rows(),rowsize);
-            ROS_ERROR("[LOAD]: %s",path.c_str());
+            printf(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET,(int)i,(int)values.at(i).rows(),rowsize);
+            printf(RED "[LOAD]: %s\n" RESET,path.c_str());
             std::exit(EXIT_FAILURE);
         }
     }
@@ -180,21 +180,103 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
 }
 
 
-
-void Loader::load_timing(std::string path, std::vector<double> &times,
-                         std::vector<Eigen::Vector3d> &summed_values, std::vector<Eigen::VectorXd> &node_values) {
+void Loader::load_timing_flamegraph(std::string path, std::vector<std::string> &names,
+                                    std::vector<double> &times, std::vector<Eigen::VectorXd> &timing_values) {
 
     // Try to open our trajectory file
     std::ifstream file(path);
     if(!file.is_open()) {
-        ROS_ERROR("[LOAD]: Unable to open timing file...");
-        ROS_ERROR("[LOAD]: %s",path.c_str());
+        printf(RED "[LOAD]: Unable to open file...\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Loop through each line of this file
     std::string current_line;
-    while(std::getline(file, current_line) && ros::ok()) {
+    while(std::getline(file, current_line)) {
+
+        // We should have a commented line of the names of the categories
+        // Here we will process them (skip the first since it is just the timestamps)
+        if(!current_line.find("#")) {
+            // Loop variables
+            std::istringstream s(current_line);
+            std::string field;
+            names.clear();
+            // Loop through this line
+            bool skipped_first = false;
+            while(std::getline(s,field,',')) {
+                // Skip if empty
+                if(field.empty())
+                    continue;
+                // Skip the first ever one
+                if(skipped_first)
+                    names.push_back(field);
+                skipped_first = true;
+            }
+            continue;
+        }
+
+        // Loop variables
+        std::istringstream s(current_line);
+        std::string field;
+        std::vector<double> vec;
+
+        // Loop through this line (timestamp(s) values....)
+        while(std::getline(s,field,',')) {
+            // Skip if empty
+            if(field.empty())
+                continue;
+            // save the data to our vector
+            vec.push_back(std::atof(field.c_str()));
+        }
+
+        // Create eigen vector
+        Eigen::VectorXd temp(vec.size()-1);
+        for(size_t i=1; i<vec.size(); i++) {
+            temp(i-1) = vec.at(i);
+        }
+        times.push_back(vec.at(0));
+        timing_values.push_back(temp);
+
+    }
+
+    // Finally close the file
+    file.close();
+
+    // Error if we don't have any data
+    if (timing_values.empty()) {
+        printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Assert that all rows in this file are of the same length
+    int rowsize = names.size();
+    for(size_t i=0; i<timing_values.size(); i++) {
+        if(timing_values.at(i).rows() != rowsize) {
+            printf(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET,(int)i,(int)timing_values.at(i).rows(),rowsize);
+            printf(RED "[LOAD]: %s\n" RESET,path.c_str());
+            std::exit(EXIT_FAILURE);
+        }
+    }
+
+}
+
+
+void Loader::load_timing_percent(std::string path, std::vector<double> &times,
+                                 std::vector<Eigen::Vector3d> &summed_values, std::vector<Eigen::VectorXd> &node_values) {
+
+    // Try to open our trajectory file
+    std::ifstream file(path);
+    if(!file.is_open()) {
+        printf(RED "[LOAD]: Unable to open timing file...\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Loop through each line of this file
+    std::string current_line;
+    while(std::getline(file, current_line)) {
 
         // Skip if we start with a comment
         if(!current_line.find("#"))
@@ -206,7 +288,7 @@ void Loader::load_timing(std::string path, std::vector<double> &times,
         std::vector<double> vec;
 
         // Loop through this line (timestamp(s) values....)
-        while(std::getline(s,field,' ') && ros::ok()) {
+        while(std::getline(s,field,' ')) {
             // Skip if empty
             if(field.empty())
                 continue;
@@ -236,15 +318,15 @@ void Loader::load_timing(std::string path, std::vector<double> &times,
 
     // Error if we don't have any data
     if (times.empty()) {
-        ROS_ERROR("[LOAD]: Could not parse any data from the file!!");
-        ROS_ERROR("[LOAD]: %s",path.c_str());
+        printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
         std::exit(EXIT_FAILURE);
     }
 
     // Assert that they are all equal
     if(times.size() != summed_values.size() || times.size() != node_values.size()) {
-        ROS_ERROR("[LOAD]: Parsing error, pose and timestamps do not match!!");
-        ROS_ERROR("[LOAD]: %s",path.c_str());
+        printf(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
+        printf(RED "[LOAD]: %s\n" RESET,path.c_str());
         std::exit(EXIT_FAILURE);
     }
 

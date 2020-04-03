@@ -39,6 +39,12 @@ namespace ov_msckf {
         /// Covariance for our raw pixel measurements
         double sigma_pix_sq = 1;
 
+        /// Nice print function of what parameters we have loaded
+        void print() {
+            printf("\t- chi2_multipler: %d\n", chi2_multipler);
+            printf("\t- sigma_pix: %.2f\n", sigma_pix);
+        }
+
     };
 
 

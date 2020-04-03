@@ -24,7 +24,6 @@
 #include <iostream>
 #include <fstream>
 #include <Eigen/Eigen>
-#include <ros/ros.h>
 #include <boost/foreach.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/algorithm/string/predicate.hpp>
@@ -33,6 +32,7 @@
 #include "alignment/AlignUtils.h"
 #include "utils/Loader.h"
 #include "utils/Math.h"
+#include "utils/Colors.h"
 
 
 #ifdef HAVE_PYTHONLIBS
@@ -90,13 +90,11 @@ void plot_z_positions(const std::string &name, const std::string &color, const s
 
 int main(int argc, char **argv) {
 
-    // Create ros node
-    ros::init(argc, argv, "plot_trajectories");
-
     // Ensure we have a path
     if(argc < 3) {
-        ROS_ERROR("ERROR: Please specify a file to convert");
-        ROS_ERROR("ERROR: rosrun ov_eval plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>");
+        printf(RED "ERROR: Please specify a align mode and trajectory file\n" RESET);
+        printf(RED "ERROR: ./plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>\n" RESET);
+        printf(RED "ERROR: rosrun ov_eval plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
@@ -122,8 +120,8 @@ int main(int argc, char **argv) {
 
             // Return failure if we didn't have any common timestamps
             if(poses_temp.size() < 2) {
-                ROS_ERROR("[TRAJ]: unable to get enough common timestamps between trajectories.");
-                ROS_ERROR("[TRAJ]: does the estimated trajectory publish the rosbag timestamps??");
+                printf(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
+                printf(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
                 std::exit(EXIT_FAILURE);
             }
 
@@ -135,7 +133,7 @@ int main(int argc, char **argv) {
 
             // Debug print to the user
             Eigen::Vector4d q_ESTtoGT = ov_eval::Math::rot_2_quat(R_ESTtoGT);
-            ROS_INFO("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f",q_ESTtoGT(0),q_ESTtoGT(1),q_ESTtoGT(2),q_ESTtoGT(3),t_ESTinGT(0),t_ESTinGT(1),t_ESTinGT(2),s_ESTtoGT);
+            printf("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n",q_ESTtoGT(0),q_ESTtoGT(1),q_ESTtoGT(2),q_ESTtoGT(3),t_ESTinGT(0),t_ESTinGT(1),t_ESTinGT(2),s_ESTtoGT);
 
             // Finally lets calculate the aligned trajectories
             std::vector<Eigen::Matrix<double,7,1>> est_poses_aignedtoGT;
@@ -156,7 +154,7 @@ int main(int argc, char **argv) {
         boost::filesystem::path path(argv[i]);
         std::string name = path.stem().string();
         double length = ov_eval::Loader::get_total_length(poses_temp);
-        ROS_INFO("[COMP]: %d poses in %s => length of %.2f meters",(int)times_temp.size(),name.c_str(),length);
+        printf("[COMP]: %d poses in %s => length of %.2f meters\n",(int)times_temp.size(),name.c_str(),length);
 
         // Save this to our arrays
         names.push_back(name);
@@ -212,7 +210,6 @@ int main(int argc, char **argv) {
 
 
 #endif
-
 
 
     // Done!

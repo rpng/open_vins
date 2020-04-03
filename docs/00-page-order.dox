@@ -15,8 +15,7 @@
 @page simulation Visual-Inertial Simulator
 
 
-@page evaluation Estimator Evaluation Methods
-@page eval-metrics Estimator Evaluation Metrics
+@page evaluation System Evaluation
 
 
 @page dev-welcome Developer and Internals

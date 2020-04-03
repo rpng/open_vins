@@ -1,0 +1,108 @@
+<launch>
+
+
+    <!-- MASTER NODE! -->
+    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
+<!--        <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+
+        <!-- bag topics -->
+        <param name="topic_imu"      type="string" value="/imu0" />
+        <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
+        <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+
+        <!-- bag parameters -->
+        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
+        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
+<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V2_03_difficult.bag" />-->
+<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V2_03_difficult.csv" />-->
+        <param name="bag_start"   type="double" value="6.0" />
+        <param name="bag_durr"    type="int"    value="-1" />
+
+
+        <!-- world/filter parameters -->
+        <param name="use_fej"                type="bool"   value="true" />
+        <param name="use_imuavg"             type="bool"   value="true" />
+        <param name="use_rk4int"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="true" />
+        <param name="calib_cam_extrinsics"   type="bool"   value="true" />
+        <param name="calib_cam_intrinsics"   type="bool"   value="true" />
+        <param name="calib_cam_timeoffset"   type="bool"   value="true" />
+        <param name="calib_camimu_dt"        type="double" value="0.0" />
+        <param name="max_clones"             type="int"    value="11" />
+        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
+        <param name="max_msckf_in_update"    type="int"    value="999" />
+        <param name="max_cameras"            type="int"    value="2" />
+        <param name="dt_slam_delay"          type="double" value="5" />
+        <param name="init_window_time"       type="double" value="0.75" />
+        <param name="init_imu_thresh"        type="double" value="1.5" />
+        <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
+        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
+        <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+        <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="false" />
+        <param name="record_timing_filepath"      type="string" value="/tmp/timing_stereo.txt" />
+
+        <!-- tracker/extractor properties -->
+        <param name="use_klt"          type="bool"   value="true" />
+        <param name="num_pts"          type="int"    value="150" />
+        <param name="fast_threshold"   type="int"    value="15" />
+        <param name="grid_x"           type="int"    value="5" />
+        <param name="grid_y"           type="int"    value="3" />
+        <param name="min_px_dist"      type="int"    value="10" />
+        <param name="knn_ratio"        type="double" value="0.70" />
+
+        <!-- aruco tag/mapping properties -->
+        <param name="use_aruco"        type="bool"   value="false" />
+        <param name="num_aruco"        type="int"    value="1024" />
+        <param name="downsize_aruco"   type="bool"   value="true" />
+
+        <!-- sensor noise values / update -->
+        <param name="up_msckf_sigma_px"            type="double"   value="1" />
+        <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
+        <param name="up_slam_sigma_px"             type="double"   value="1" />
+        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
+        <param name="up_aruco_sigma_px"            type="double"   value="1" />
+        <param name="up_aruco_chi2_multipler"      type="double"   value="1" />
+        <param name="gyroscope_noise_density"      type="double"   value="1.6968e-04" />
+        <param name="gyroscope_random_walk"        type="double"   value="1.9393e-05" />
+        <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
+        <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
+
+
+        <!-- camera intrinsics -->
+        <rosparam param="cam0_wh">[752, 480]</rosparam>
+        <rosparam param="cam1_wh">[752, 480]</rosparam>
+        <param name="cam0_is_fisheye" type="bool" value="false" />
+        <param name="cam1_is_fisheye" type="bool" value="false" />
+        <rosparam param="cam0_k">[458.654,457.296,367.215,248.375]</rosparam>
+        <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05]</rosparam>
+        <rosparam param="cam1_k">[457.587,456.134,379.999,255.238]</rosparam>
+        <rosparam param="cam1_d">[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05]</rosparam>
+
+
+        <!-- camera extrinsics -->
+        <rosparam param="T_C0toI">
+            [
+            0.0148655429818, -0.999880929698, 0.00414029679422, -0.0216401454975,
+            0.999557249008, 0.0149672133247, 0.025715529948, -0.064676986768,
+            -0.0257744366974, 0.00375618835797, 0.999660727178, 0.00981073058949,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+        <rosparam param="T_C1toI">
+            [
+            0.0125552670891, -0.999755099723, 0.0182237714554, -0.0198435579556,
+            0.999598781151, 0.0130119051815, 0.0251588363115, 0.0453689425024,
+            -0.0253898008918, 0.0179005838253, 0.999517347078, 0.00786212447038,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        </rosparam>
+
+
+    </node>
+
+
+</launch>

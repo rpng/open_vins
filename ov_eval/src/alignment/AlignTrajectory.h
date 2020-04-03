@@ -25,11 +25,10 @@
 #include <string>
 #include <sstream>
 #include <iostream>
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 
-
 #include "AlignUtils.h"
+#include "utils/Colors.h"
 
 
 namespace ov_eval {

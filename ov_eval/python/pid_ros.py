@@ -87,7 +87,7 @@ if __name__ == '__main__':
             sys.exit(-1)
 
     # open the file we will write the stats into
-    file = open(save_path,"w+")
+    file = open(save_path,"w")
 
     # write header to file
     header = "# timestamp(s) summed_cpu_perc summed_mem_perc summed_threads"
@@ -144,14 +144,15 @@ if __name__ == '__main__':
                 threads.append(0)
 
         # print what the total summed value is
-        rospy.loginfo("cpu%% = %.2f | mem%% = %.2f | threads = %d"%(sum(perc_cpu),sum(perc_mem),sum(threads)))
+        rospy.loginfo("cpu%% = %.3f | mem%% = %.3f | threads = %d"%(sum(perc_cpu),sum(perc_mem),sum(threads)))
 
         # save the current stats to file!
-        data = "%.8f %.2f %.2f %d"%(time.time(),sum(perc_cpu),sum(perc_mem),sum(threads))
+        data = "%.8f %.3f %.3f %d"%(time.time(),sum(perc_cpu),sum(perc_mem),sum(threads))
         for i in range(0,len(node_list)):
-            data += " %.2f %.2f %d"%(perc_cpu[i],perc_mem[i],threads[i])
+            data += " %.3f %.3f %d"%(perc_cpu[i],perc_mem[i],threads[i])
         data += "\n"
         file.write(data)
+        file.flush()
 
     # finally close the file!
     file.close()

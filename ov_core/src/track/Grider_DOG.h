@@ -40,6 +40,14 @@ namespace ov_core {
      * This does "Difference of Gaussian" detection in a grid pattern to try to get good features.
      * We then pick the top features in each grid, and return the top features collected over the entire image.
      * This class hasn't been tested that much, as we normally use the Grider_FAST class instead.
+     *
+     * @m_class{m-block m-danger}
+     *
+     * @par Improve and Test This!
+     *      If you are interested in using this grider, then please give it a try and test if for us.
+     *      Please open a pull request with any impromements, or an issue if you have had any success.
+     *      We still recommend the Grider_FAST class since that is what we normally use.
+     *
      */
     class Grider_DOG {
 

@@ -69,7 +69,7 @@ namespace ov_core {
 
 
         /**
-         * @brief Remove measurements that do not occur at passed timestamps
+         * @brief Remove measurements that do not occur at passed timestamps.
          *
          * Given a series of valid timestamps, this will remove all measurements that have not occurred at these times.
          * This would normally be used to ensure that the measurements that we have occur at our clone times.
@@ -77,6 +77,15 @@ namespace ov_core {
          * @param valid_times Vector of timestamps that our measurements must occur at
          */
         void clean_old_measurements(std::vector<double> valid_times);
+
+        /**
+         * @brief Remove measurements that are older then the specified timestamp.
+         *
+         * Given a valid timestamp, this will remove all measurements that have occured earlier then this.
+         *
+         * @param timestamp Timestamps that our measurements must occur after
+         */
+        void clean_older_measurements(double timestamp);
 
     };
 

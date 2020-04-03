@@ -22,14 +22,14 @@
 #define OV_MSCKF_UPDATER_HELPER_H
 
 
-#include <ros/ros.h>
 #include <Eigen/Eigen>
 
 #include "feat/Feature.h"
-#include "feat/FeatureRepresentation.h"
+#include "types/LandmarkRepresentation.h"
 #include "state/State.h"
 #include "state/StateOptions.h"
 #include "utils/quat_ops.h"
+#include "utils/colors.h"
 
 
 namespace ov_msckf {
@@ -68,7 +68,7 @@ namespace ov_msckf {
             std::unordered_map<size_t, std::vector<double>> timestamps;
 
             /// What representation our feature is in
-            FeatureRepresentation::Representation feat_representation;
+            LandmarkRepresentation::Representation feat_representation;
 
             /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
             int anchor_cam_id = -1;
@@ -96,12 +96,12 @@ namespace ov_msckf {
          *
          * @param[in] state State of the filter system
          * @param[in] feature Feature we want to get Jacobians of (must have feature means)
-         * @param[out] H_f Jacobians in respect to the feature error state
+         * @param[out] H_f Jacobians in respect to the feature error state (will be either 3x3 or 3x1 for single depth)
          * @param[out] H_x Extra Jacobians in respect to the state (for example anchored pose)
          * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
          */
-        static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::Matrix<double,3,3> &H_f,
-                                                        std::vector<Eigen::Matrix<double,3,Eigen::Dynamic>> &H_x, std::vector<Type*> &x_order);
+        static void get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
+                                                        std::vector<Eigen::MatrixXd> &H_x, std::vector<Type*> &x_order);
 
         /**
          * @brief This will compute the Jacobian in respect to the intrinsic calibration parameters and normalized coordinates

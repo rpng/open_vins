@@ -4,7 +4,7 @@
 @page getting-started Getting started
 
 
-Welcome to the Open VINS project!
+Welcome to the OpenVINS project!
 The following guides will help new users through the downloading of the software and running on datasets that we support.
 Additionally, we provide information on how to get your own sensors running on our system and have a guide on how we perform calibration.
 Please feel free to open an issue if you find any missing or areas that could be clarified.
@@ -32,10 +32,10 @@ The ov_eval library has a bunch of evaluation methods and scripts that one can u
 
 
 
-@section getting-started-more Getting started guides
+@section getting-started-more Getting Started Guides
 
--   @subpage gs-installing --- Installation guide for Open VINS and dependencies
--   @subpage gs-tutorial --- Simple tutorial on getting Open VINS running out of the box.
+-   @subpage gs-installing --- Installation guide for OpenVINS and dependencies
+-   @subpage gs-tutorial --- Simple tutorial on getting OpenVINS running out of the box.
 -   @subpage gs-datasets --- Links to supported datasets and configuration files
 -   @subpage gs-calibration --- Guide to how to calibration your own visual-inertial sensors.
 

@@ -37,30 +37,11 @@ ResultSimulation::ResultSimulation(std::string path_est, std::string path_std, s
     assert(est_state.size()==gt_state.size());
 
     // Debug print
-    ROS_INFO("[SIM]: loaded %d timestamps from file!!",(int)est_state.size());
-    ROS_INFO("[SIM]: we have %d cameras in total!!",(int)est_state.at(0)(18));
+    printf("[SIM]: loaded %d timestamps from file!!\n",(int)est_state.size());
+    printf("[SIM]: we have %d cameras in total!!\n",(int)est_state.at(0)(18));
 
-    // Camera intrinsics
-    for(int i=0; i<(int)est_state.at(0)(18); i++) {
-        std::vector<Statistics> temp1, temp2;
-        for(int j=0; j<4; j++) {
-            temp1.push_back(Statistics());
-            temp2.push_back(Statistics());
-        }
-        error_cam_k.push_back(temp1);
-        error_cam_d.push_back(temp2);
-    }
 
-    // Camera extrinsics
-    for(int i=0; i<(int)est_state.at(0)(18); i++) {
-        std::vector<Statistics> temp1, temp2;
-        for(int j=0; j<3; j++) {
-            temp1.push_back(Statistics());
-            temp2.push_back(Statistics());
-        }
-        error_cam_ori.push_back(temp1);
-        error_cam_pos.push_back(temp2);
-    }
+
 
 }
 
@@ -71,13 +52,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
 
 
     // Errors for each xyz direction
-    for(int i=0; i<3; i++) {
-        error_ori[i].clear();
-        error_pos[i].clear();
-        error_vel[i].clear();
-        error_bg[i].clear();
-        error_ba[i].clear();
-    }
+    Statistics error_ori[3], error_pos[3], error_vel[3], error_bg[3], error_ba[3];
 
     // Calculate the position and orientation error at every timestep
     double start_time = est_state.at(0)(0);
@@ -242,7 +217,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
 void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
 
     // Calculate the time offset error at every timestep
-    error_time.clear();
+    Statistics error_time;
     double start_time = est_state.at(0)(0);
     for(size_t i=0; i<est_state.size(); i++) {
 
@@ -255,7 +230,7 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
 
         // If we are not calibrating then don't plot it!
         if(state_cov.at(i)(16) == 0.0) {
-            ROS_WARN("Time offset was not calibrated online, so will not plot...");
+            printf(YELLOW "Time offset was not calibrated online, so will not plot...\n" RESET);
             return;
         }
 
@@ -272,7 +247,7 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
         return;
 
 #ifndef HAVE_PYTHONLIBS
-    ROS_ERROR("Unable to plot the time offset error, just returning..");
+    printf(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
     return;
 #endif
 #ifdef HAVE_PYTHONLIBS
@@ -324,21 +299,25 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
 
 void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
 
-    // Clear the old data from the stats
-    assert((int)error_cam_k.size()==(int)est_state.at(0)(18));
-    assert((int)error_cam_d.size()==(int)est_state.at(0)(18));
-    for(int i=0; i<(int)est_state.at(0)(18); i++) {
-        for(int j=0; j<4; j++) {
-            error_cam_k.at(i).at(j).clear();
-            error_cam_d.at(i).at(j).clear();
-        }
-    }
 
     // Check that we have cameras
     if((int)est_state.at(0)(18) < 1) {
-        ROS_WARN("You need at least one camera to plot intrinsics...");
+        printf(YELLOW "You need at least one camera to plot intrinsics...\n" RESET);
         return;
     }
+
+    // Camera intrinsics statistic storage
+    std::vector<std::vector<Statistics>> error_cam_k, error_cam_d;
+    for(int i=0; i<(int)est_state.at(0)(18); i++) {
+        std::vector<Statistics> temp1, temp2;
+        for(int j=0; j<4; j++) {
+            temp1.push_back(Statistics());
+            temp2.push_back(Statistics());
+        }
+        error_cam_k.push_back(temp1);
+        error_cam_d.push_back(temp2);
+    }
+
 
     // Loop through and calculate error
     double start_time = est_state.at(0)(0);
@@ -353,7 +332,7 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
 
         // If we are not calibrating then don't plot it!
         if(state_cov.at(i)(18) == 0.0) {
-            ROS_WARN("Camera intrinsics not calibrated online, so will not plot...");
+            printf(YELLOW "Camera intrinsics not calibrated online, so will not plot...\n" RESET);
             return;
         }
 
@@ -376,7 +355,7 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
         return;
 
 #ifndef HAVE_PYTHONLIBS
-    ROS_ERROR("Unable to plot the time offset error, just returning..");
+    printf(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
     return;
 #endif
 #ifdef HAVE_PYTHONLIBS
@@ -442,20 +421,23 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
 
 void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
 
-    // Clear the old data from the stats
-    assert((int)error_cam_ori.size()==(int)est_state.at(0)(18));
-    assert((int)error_cam_pos.size()==(int)est_state.at(0)(18));
-    for(int i=0; i<(int)est_state.at(0)(18); i++) {
-        for(int j=0; j<3; j++) {
-            error_cam_ori.at(i).at(j).clear();
-            error_cam_pos.at(i).at(j).clear();
-        }
-    }
 
     // Check that we have cameras
     if((int)est_state.at(0)(18) < 1) {
-        ROS_WARN("You need at least one camera to plot intrinsics...");
+        printf(YELLOW "You need at least one camera to plot intrinsics...\n" RESET);
         return;
+    }
+
+    // Camera extrinsics statistic storage
+    std::vector<std::vector<Statistics>> error_cam_ori, error_cam_pos;
+    for(int i=0; i<(int)est_state.at(0)(18); i++) {
+        std::vector<Statistics> temp1, temp2;
+        for(int j=0; j<3; j++) {
+            temp1.push_back(Statistics());
+            temp2.push_back(Statistics());
+        }
+        error_cam_ori.push_back(temp1);
+        error_cam_pos.push_back(temp2);
     }
 
     // Loop through and calculate error
@@ -471,7 +453,7 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
 
         // If we are not calibrating then don't plot it!
         if(state_cov.at(i)(26) == 0.0) {
-            ROS_WARN("Camera extrinsics not calibrated online, so will not plot...");
+            printf(YELLOW "Camera extrinsics not calibrated online, so will not plot...\n" RESET);
             return;
         }
 
@@ -499,14 +481,14 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
         return;
 
 #ifndef HAVE_PYTHONLIBS
-    ROS_ERROR("Unable to plot the time offset error, just returning..");
+    printf(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
     return;
 #endif
 #ifdef HAVE_PYTHONLIBS
 
     // Plot line colors
     std::vector<std::string> colors = {"blue","red","black","green","cyan","magenta"};
-    assert(error_cam_k.size() <= colors.size());
+    assert(error_cam_ori.size() <= colors.size());
 
     //=====================================================
     // Plot this figure

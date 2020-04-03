@@ -27,15 +27,15 @@
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "feat/Feature.h"
-#include "feat/FeatureRepresentation.h"
+#include "types/LandmarkRepresentation.h"
 #include "feat/FeatureInitializer.h"
 #include "feat/FeatureInitializerOptions.h"
 #include "utils/quat_ops.h"
+#include "utils/colors.h"
 
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
 
-#include <ros/ros.h>
 #include <boost/math/distributions/chi_squared.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
