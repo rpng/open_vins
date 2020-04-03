@@ -40,7 +40,7 @@
 
         <!-- timing statistics recording -->
         <param name="record_timing_information"   type="bool"   value="false" />
-        <param name="record_timing_filepath"      type="string" value="home/patrick/datasets/tum/ov_msckf_timing.txt" />
+        <param name="record_timing_filepath"      type="string" value="/tmp/ov_msckf_timing.txt" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"          type="bool"   value="true" />

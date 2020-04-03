@@ -77,7 +77,7 @@ endif()
 ##################################################
 # Make the core library
 ##################################################
-add_library(ov_msckf_lib SHARED
+list(APPEND library_source_files
         src/sim/Simulator.cpp
         src/state/State.cpp
         src/state/StateHelper.cpp
@@ -87,6 +87,12 @@ add_library(ov_msckf_lib SHARED
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
 )
+if (catkin_FOUND)
+    list(APPEND library_source_files
+        src/core/RosVisualizer.cpp
+    )
+endif()
+add_library(ov_msckf_lib SHARED ${library_source_files})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
 target_include_directories(ov_msckf_lib PUBLIC src)
 
@@ -98,13 +104,13 @@ target_include_directories(ov_msckf_lib PUBLIC src)
 
 if (catkin_FOUND)
 
-    add_executable(run_serial_msckf src/ros_serial_msckf.cpp src/core/RosVisualizer.cpp)
+    add_executable(run_serial_msckf src/ros_serial_msckf.cpp)
     target_link_libraries(run_serial_msckf ov_msckf_lib ${thirdparty_libraries})
 
-    add_executable(run_subscribe_msckf src/ros_subscribe_msckf.cpp src/core/RosVisualizer.cpp)
+    add_executable(run_subscribe_msckf src/ros_subscribe_msckf.cpp)
     target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
 
-    add_executable(run_simulation src/run_simulation.cpp src/core/RosVisualizer.cpp)
+    add_executable(run_simulation src/run_simulation.cpp)
     target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
 
 else()
