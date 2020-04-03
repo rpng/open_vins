@@ -19,6 +19,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **April 3, 2020** - Released [v2.0](https://github.com/rpng/open_vins/releases/tag/v2.0) update to the codebase with some key refactoring, ros-free building, improved dataset support, and single inverse depth feature representation. Please check out the [release page](https://github.com/rpng/open_vins/releases/tag/v2.0) for details.
 * **January 21, 2020** - Our paper has been accepted for presentation in [ICRA 2020](https://www.icra2020.org/). We look forward to seeing everybody there! We have also added links to a few videos of the system running on different datasets.
 * **October 23, 2019** - OpenVINS placed first in the [IROS 2019 FPV Drone Racing VIO Competition
 ](http://rpg.ifi.uzh.ch/uzh-fpv.html). We will be giving a short presentation at the [workshop](https://wp.nyu.edu/workshopiros2019mav/) at 12:45pm in Macau on November 8th.
