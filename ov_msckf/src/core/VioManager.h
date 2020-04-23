@@ -112,6 +112,7 @@ namespace ov_msckf {
 
             // Initialize the system
             state->_imu->set_value(imustate.block(1,0,16,1));
+            state->_imu->set_fej(imustate.block(1,0,16,1));
             state->_timestamp = imustate(0,0);
             startup_time = imustate(0,0);
             is_initialized_vio = true;

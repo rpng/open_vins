@@ -278,6 +278,7 @@ bool VioManager::try_to_initialize() {
     //imu_val.block(10,0,3,1) << 0,0,0;
     //imu_val.block(13,0,3,1) << 0,0,0;
     state->_imu->set_value(imu_val);
+    state->_imu->set_fej(imu_val);
     state->_timestamp = time0;
     startup_time = time0;
 
