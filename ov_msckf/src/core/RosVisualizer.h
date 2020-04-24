@@ -148,6 +148,7 @@ namespace ov_msckf {
         // For path viz
         unsigned int poses_seq_gt = 0;
         vector<geometry_msgs::PoseStamped> poses_gt;
+        bool publish_global2imu_tf = true;
 
         // Files and if we should save total state
         bool save_total_state;
