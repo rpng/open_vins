@@ -57,9 +57,6 @@ namespace ov_msckf {
         /// Core state options (e.g. number of cameras, use fej, stereo, what calibration to enable etc)
         StateOptions state_options;
 
-        /// Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)
-        Eigen::Vector3d gravity = {0.0, 0.0, 9.81};
-
         /// Delay, in seconds, that we should wait from init before we start estimating SLAM features
         double dt_slam_delay = 2.0;
 
@@ -82,8 +79,7 @@ namespace ov_msckf {
         void print_estimator() {
             printf("ESTIMATOR PARAMETERS:\n");
             state_options.print();
-            printf("\t- gravity: %.3f, %.3f, %.3f\n", gravity(0), gravity(1), gravity(2));
-            printf("\t- gravity: %.1f\n", dt_slam_delay);
+            printf("\t- dt_slam_delay: %.1f\n", dt_slam_delay);
             printf("\t- init_window_time: %.2f\n", init_window_time);
             printf("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
             printf("\t- record timing?: %d\n", (int)record_timing_information);
@@ -121,6 +117,9 @@ namespace ov_msckf {
 
         // STATE DEFAULTS ==========================
 
+        /// Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)
+        Eigen::Vector3d gravity = {0.0, 0.0, 9.81};
+
         /// Time offset between camera and IMU.
         double calib_camimu_dt = 0.0;
 
@@ -142,6 +141,7 @@ namespace ov_msckf {
          */
         void print_state() {
             printf("STATE PARAMETERS:\n");
+            printf("\t- gravity: %.3f, %.3f, %.3f\n", gravity(0), gravity(1), gravity(2));
             printf("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
             assert(state_options.num_cameras==(int)camera_fisheye.size());
             for(int n=0; n<state_options.num_cameras; n++) {
@@ -172,6 +172,9 @@ namespace ov_msckf {
         /// Will half the resolution of the aruco tag image (will be faster)
         bool downsize_aruco = true;
 
+        /// Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)
+        bool downsample_cameras = false;
+
         /// The number of points we should extract and track in *each* image frame. This highly effects the computation required for tracking.
         int num_pts = 150;
 
@@ -200,6 +203,8 @@ namespace ov_msckf {
             printf("FEATURE TRACKING PARAMETERS:\n");
             printf("\t- num_pts: %d\n", num_pts);
             printf("\t- use_stereo: %d\n", use_stereo);
+            printf("\t- downsize aruco: %d\n", downsize_aruco);
+            printf("\t- downsize cameras: %d\n", downsample_cameras);
             featinit_options.print();
         }
 

@@ -82,13 +82,14 @@
         <param name="feat_rep_aruco"         type="string" value="$(arg feat_rep)" />
 
         <!-- tracker/extractor properties -->
-        <param name="use_klt"          type="bool"   value="true" />
-        <param name="num_pts"          type="int"    value="$(arg num_pts)" />
-        <param name="fast_threshold"   type="int"    value="20" />
-        <param name="grid_x"           type="int"    value="5" />
-        <param name="grid_y"           type="int"    value="3" />
-        <param name="min_px_dist"      type="int"    value="8" />
-        <param name="knn_ratio"        type="double" value="0.70" />
+        <param name="use_klt"            type="bool"   value="true" />
+        <param name="num_pts"            type="int"    value="$(arg num_pts)" />
+        <param name="fast_threshold"     type="int"    value="20" />
+        <param name="grid_x"             type="int"    value="5" />
+        <param name="grid_y"             type="int"    value="3" />
+        <param name="min_px_dist"        type="int"    value="8" />
+        <param name="knn_ratio"          type="double" value="0.70" />
+        <param name="downsample_cameras" type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />

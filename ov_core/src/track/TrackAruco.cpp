@@ -262,6 +262,9 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
         if(max_height < pair.second.rows) max_height = pair.second.rows;
     }
 
+    // If the image is "small" thus we shoudl use smaller display codes
+    bool is_small = (std::min(max_width,max_height) < 400);
+
     // If the image is "new" then draw the images from scratch
     // Otherwise, we grab the subset of the main image and draw on top of it
     bool image_new = ((int)img_last_cache.size()*max_width != img_out.cols || max_height != img_out.rows);
@@ -282,7 +285,8 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
         if(!ids_aruco[pair.first].empty()) cv::aruco::drawDetectedMarkers(img_temp, corners[pair.first], ids_aruco[pair.first]);
         if(!rejects[pair.first].empty()) cv::aruco::drawDetectedMarkers(img_temp, rejects[pair.first], cv::noArray(), cv::Scalar(100,0,255));
         // Draw what camera this is
-        cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), cv::Point(30,60), cv::FONT_HERSHEY_COMPLEX_SMALL, 3.0, cv::Scalar(0,255,0),3);
+        auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+        cv::putText(img_temp, "CAM:"+std::to_string((int)pair.first), txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0, cv::Scalar(0,255,0), 3);
         // Replace the output image
         img_temp.copyTo(img_out(cv::Rect(max_width*index_cam,0,img_last_cache[pair.first].cols,img_last_cache[pair.first].rows)));
         index_cam++;

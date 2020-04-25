@@ -113,6 +113,7 @@ namespace ov_msckf {
         app1.add_option("--use_klt", params.use_klt, "");
         app1.add_option("--use_aruco", params.use_aruco, "");
         app1.add_option("--downsize_aruco", params.downsize_aruco, "");
+        app1.add_option("--downsample_cameras", params.downsample_cameras, "");
 
         // General parameters
         app1.add_option("--num_pts", params.num_pts, "");
@@ -227,6 +228,14 @@ namespace ov_msckf {
 
         // Finally load it into our params
         for(int i=0; i<params.state_options.num_cameras; i++) {
+
+            // Halve if we are doing downsampling
+            p_wh.at(i).at(0) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            p_wh.at(i).at(1) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            p_intrinsic.at(i).at(0) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            p_intrinsic.at(i).at(1) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            p_intrinsic.at(i).at(2) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            p_intrinsic.at(i).at(3) /= (params.downsample_cameras) ? 2.0 : 1.0;
 
             // Convert to Eigen
             assert(p_intrinsic.at(i).size()==8);

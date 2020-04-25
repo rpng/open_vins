@@ -153,6 +153,13 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
+    // Downsample if we are downsampling
+    if(params.downsample_cameras) {
+        cv::Mat img0_temp;
+        cv::pyrDown(img0,img0_temp,cv::Size(img0.cols/2.0,img0.rows/2.0));
+        img0 = img0_temp.clone();
+    }
+
     // Feed our trackers
     trackFEATS->feed_monocular(timestamp, img0, cam_id);
 
@@ -183,6 +190,15 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
     // Assert we have good ids
     assert(cam_id0!=cam_id1);
+
+    // Downsample if we are downsampling
+    if(params.downsample_cameras) {
+        cv::Mat img0_temp, img1_temp;
+        cv::pyrDown(img0,img0_temp,cv::Size(img0.cols/2.0,img0.rows/2.0));
+        cv::pyrDown(img1,img1_temp,cv::Size(img1.cols/2.0,img1.rows/2.0));
+        img0 = img0_temp.clone();
+        img1 = img1_temp.clone();
+    }
 
     // Feed our stereo trackers, if we are not doing binocular
     if(params.use_stereo) {

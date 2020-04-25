@@ -11,7 +11,6 @@
     <author email="pgeneva@udel.edu">Patrick Geneva</author>
     <author email="keck@udel.edu">Kevin Eckenhoff</author>
     <maintainer email="pgeneva@udel.edu">Patrick Geneva</maintainer>
-    <maintainer email="keck@udel.edu">Kevin Eckenhoff</maintainer>
 
     <!-- Licensing -->
     <license>GNU General Public License v3.0</license>
@@ -44,6 +43,7 @@
     <run_depend>cv_bridge</run_depend>
     <run_depend>ov_core</run_depend>
     <run_depend>ov_eval</run_depend>
+    <run_depend>ov_data</run_depend>
 
 
 </package>

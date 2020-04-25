@@ -235,7 +235,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Loop through all left points
     for(size_t i=0; i<pts_left_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-        if(pts_left_new[i].pt.x < 0 || pts_left_new[i].pt.y < 0)
+        if(pts_left_new[i].pt.x < 0 || pts_left_new[i].pt.y < 0 || (int)pts_right_new[i].pt.x > img_left.cols || (int)pts_right_new[i].pt.y > img_left.rows)
             continue;
         // See if we have the same feature in the right
         bool found_right = false;
@@ -251,7 +251,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         // Else track it as a mono feature in just the left image
         if(mask_ll[i] && found_right && mask_rr[index_right]) {
             // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-            if(pts_right_new.at(index_right).pt.x < 0 || pts_right_new.at(index_right).pt.y < 0)
+            if(pts_right_new.at(index_right).pt.x < 0 || pts_right_new.at(index_right).pt.y < 0 || (int)pts_right_new[i].pt.x > img_right.cols || (int)pts_right_new[i].pt.y > img_right.rows)
                 continue;
             good_left.push_back(pts_left_new.at(i));
             good_right.push_back(pts_right_new.at(index_right));
@@ -268,7 +268,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Loop through all right points
     for(size_t i=0; i<pts_right_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-        if(pts_right_new[i].pt.x < 0 || pts_right_new[i].pt.y < 0)
+        if(pts_right_new[i].pt.x < 0 || pts_right_new[i].pt.y < 0 || (int)pts_right_new[i].pt.x > img_right.cols || (int)pts_right_new[i].pt.y > img_right.rows)
             continue;
         // See if we have the same feature in the right
         bool added_already = (std::find(good_ids_right.begin(),good_ids_right.end(),ids_last[cam_id_right].at(i))!=good_ids_right.end());
@@ -323,7 +323,9 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).rows/min_px_dist)+2, (int)(img0pyr.at(0).cols/min_px_dist)+2);
+    // TODO: figure out why I need to add the windowsize of the klt to handle features that are outside the image bound
+    // TODO: I assume this is because klt of features at the corners is not really well defined, thus if it doesn't get a match it will be out-of-bounds
+    Eigen::MatrixXi grid_2d = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).rows/min_px_dist)+15, (int)(img0pyr.at(0).cols/min_px_dist)+15);
     auto it0 = pts0.begin();
     auto it2 = ids0.begin();
     while(it0 != pts0.end()) {
@@ -386,8 +388,10 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
     // Create a 2D occupancy grid for this current image
     // Note that we scale this down, so that each grid point is equal to a set of pixels
     // This means that we will reject points that less then grid_px_size points away then existing features
-    Eigen::MatrixXi grid_2d_0 = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).rows/min_px_dist)+2, (int)(img0pyr.at(0).cols/min_px_dist)+2);
-    Eigen::MatrixXi grid_2d_1 = Eigen::MatrixXi::Zero((int)(img1pyr.at(0).rows/min_px_dist)+2, (int)(img1pyr.at(0).cols/min_px_dist)+2);
+    // TODO: figure out why I need to add the windowsize of the klt to handle features that are outside the image bound
+    // TODO: I assume this is because klt of features at the corners is not really well defined, thus if it doesn't get a match it will be out-of-bounds
+    Eigen::MatrixXi grid_2d_0 = Eigen::MatrixXi::Zero((int)(img0pyr.at(0).rows/min_px_dist)+15, (int)(img0pyr.at(0).cols/min_px_dist)+15);
+    Eigen::MatrixXi grid_2d_1 = Eigen::MatrixXi::Zero((int)(img1pyr.at(0).rows/min_px_dist)+15, (int)(img1pyr.at(0).cols/min_px_dist)+15);
     auto it0 = pts0.begin();
     auto it1 = ids0.begin();
     while(it0 != pts0.end()) {

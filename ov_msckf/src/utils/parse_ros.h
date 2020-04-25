@@ -139,6 +139,7 @@ namespace ov_msckf {
         nh.param<bool>("use_klt", params.use_klt, params.use_klt);
         nh.param<bool>("use_aruco", params.use_aruco, params.use_aruco);
         nh.param<bool>("downsize_aruco", params.downsize_aruco, params.downsize_aruco);
+        nh.param<bool>("downsample_cameras", params.downsample_cameras, params.downsample_cameras);
 
         // General parameters
         nh.param<int>("num_pts", params.num_pts, params.num_pts);
@@ -195,6 +196,8 @@ namespace ov_msckf {
             std::vector<int> matrix_wh;
             std::vector<int> matrix_wd_default = {752,480};
             nh.param<std::vector<int>>("cam"+std::to_string(i)+"_wh", matrix_wh, matrix_wd_default);
+            matrix_wh.at(0) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            matrix_wh.at(1) /= (params.downsample_cameras) ? 2.0 : 1.0;
             std::pair<int,int> wh(matrix_wh.at(0),matrix_wh.at(1));
 
             // Camera intrinsic properties
@@ -204,6 +207,10 @@ namespace ov_msckf {
             std::vector<double> matrix_d_default = {-0.28340811,0.07395907,0.00019359,1.76187114e-05};
             nh.param<std::vector<double>>("cam"+std::to_string(i)+"_k", matrix_k, matrix_k_default);
             nh.param<std::vector<double>>("cam"+std::to_string(i)+"_d", matrix_d, matrix_d_default);
+            matrix_k.at(0) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            matrix_k.at(1) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            matrix_k.at(2) /= (params.downsample_cameras) ? 2.0 : 1.0;
+            matrix_k.at(3) /= (params.downsample_cameras) ? 2.0 : 1.0;
             cam_calib << matrix_k.at(0),matrix_k.at(1),matrix_k.at(2),matrix_k.at(3),matrix_d.at(0),matrix_d.at(1),matrix_d.at(2),matrix_d.at(3);
 
             // Our camera extrinsics transform
