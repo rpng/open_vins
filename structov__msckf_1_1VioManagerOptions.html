@@ -95,10 +95,6 @@
               <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a578756373f9bcd2eadae31c419fb8c43" class="m-doc-self">state_options</a>
             </dt>
             <dd>Core state options (e.g. number of cameras, use fej, stereo, what calibration to enable etc)</dd>
-            <dt id="a6a413a710da13d447def5dae370f6c68">
-              Eigen::Vector3d <a href="#a6a413a710da13d447def5dae370f6c68" class="m-doc-self">gravity</a>
-            </dt>
-            <dd>Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)</dd>
             <dt id="ae921221a9db709f06fbd7379e3430bf8">
               double <a href="#ae921221a9db709f06fbd7379e3430bf8" class="m-doc-self">dt_slam_delay</a>
             </dt>
@@ -135,6 +131,10 @@
               <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#a7f72e601f8b772aeb3a59304fd615667" class="m-doc-self">aruco_options</a>
             </dt>
             <dd>Update options for ARUCO features (pixel noise and chi2 multiplier)</dd>
+            <dt id="a6a413a710da13d447def5dae370f6c68">
+              Eigen::Vector3d <a href="#a6a413a710da13d447def5dae370f6c68" class="m-doc-self">gravity</a>
+            </dt>
+            <dd>Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)</dd>
             <dt id="a10bb45ab36e74b8e4d25f8e68bc2ffd7">
               double <a href="#a10bb45ab36e74b8e4d25f8e68bc2ffd7" class="m-doc-self">calib_camimu_dt</a>
             </dt>
@@ -171,6 +171,10 @@
               bool <a href="#afa1f6f0e1422dc41ea98c80077580c60" class="m-doc-self">downsize_aruco</a>
             </dt>
             <dd>Will half the resolution of the aruco tag image (will be faster)</dd>
+            <dt id="af08feea8c9e944e727483f6ff3899e8e">
+              bool <a href="#af08feea8c9e944e727483f6ff3899e8e" class="m-doc-self">downsample_cameras</a>
+            </dt>
+            <dd>Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)</dd>
             <dt id="a1bde650ec917e7a3df221a1524e33429">
               int <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
             </dt>
