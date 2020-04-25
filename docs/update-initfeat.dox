@@ -37,17 +37,17 @@ This bearing can be warped into the the anchor frame by substituting into the ab
 \f{align*}{
 	 {}^A\mathbf{p}_f
 	 & = {}^{C_i}_A\mathbf{R}^\top z_{f} {}^{C_i}\mathbf{b}_{f} + {}^A\mathbf{p}_{C_i} \\
-	 & = z_{f} {}^{A}\mathbf{b}_{f} + {}^A\mathbf{p}_{C_i}
+	 & = z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} + {}^A\mathbf{p}_{C_i}
 \f}
             
 To remove the need to estimate the extra degree of freedom of depth \f$z_{f}\f$, we define the following two vectors:
 
 \f{align*}{
-    {}^{A}\mathbf{n}_{1} &= \begin{bmatrix} -{}^{A}{b}_{f}(3) & 0 & {}^{A}{b}_{f}(1) \end{bmatrix}^{\top} \\
-    {}^{A}\mathbf{n}_{2} &= \begin{bmatrix} 0 & {}^{A}{b}_{f}(3) & -{}^{A}{b}_{f}(2) \end{bmatrix}^{\top}
+    {}^{A}\mathbf{n}_{1} &= \begin{bmatrix} -{}^{A}{b}_{C_i \rightarrow f}(3) & 0 & {}^{A}{b}_{C_i \rightarrow f}(1) \end{bmatrix}^{\top} \\
+    {}^{A}\mathbf{n}_{2} &= \begin{bmatrix} 0 & {}^{A}{b}_{C_i \rightarrow f}(3) & -{}^{A}{b}_{C_i \rightarrow f}(2) \end{bmatrix}^{\top}
 \f}
 
-These are perpendicular with the vector \f${}^{A}\mathbf{b}_{f}\f$ and thus \f${}^{A}\mathbf{n}_{1}^{\top}{}^{A}\mathbf{b}_{f}=0\f$ and \f${}^{A}\mathbf{n}_{2}^{\top}{}^{A}\mathbf{b}_{f}=0\f$ holds true.
+These are perpendicular with the vector \f${}^{A}\mathbf{b}_{C_i \rightarrow f}\f$ and thus \f${}^{A}\mathbf{n}_{1}^{\top}{}^{A}\mathbf{b}_{C_i \rightarrow f}=0\f$ and \f${}^{A}\mathbf{n}_{2}^{\top}{}^{A}\mathbf{b}_{C_i \rightarrow f}=0\f$ holds true.
 We can then multiple the transform equation/constraint to form two equation which only relates to the unknown 3 d.o.f \f${}^A\mathbf{p}_f\f$:
 
 \f{align*}{
@@ -60,7 +60,7 @@ We can then multiple the transform equation/constraint to form two equation whic
 	{}^{A}\mathbf{n}_{1}^{\top} \\
 	{}^{A}\mathbf{n}_{2}^{\top} 
 	\end{bmatrix}
-	z_{f} {}^{A}\mathbf{b}_{f} +
+	z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} +
 	\begin{bmatrix}
 	{}^{A}\mathbf{n}_{1}^{\top} \\
 	{}^{A}\mathbf{n}_{2}^{\top} 
