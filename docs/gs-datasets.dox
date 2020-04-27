@@ -105,10 +105,16 @@ Each of these datasets is picked up in the beginning and then set down, we norma
 Please take a look at the [run_ros_uzhfpv.sh](https://github.com/rpng/open_vins/blob/master/ov_msckf/scripts/run_ros_uzhfpv.sh) script for some reasonable default values (they might still need to be tuned).
 
 
+@m_class{m-block m-warning}
+
+@par Outdoor Dataset Support
+    These outdoor datasets seem to give strange relative pose errors (RPE) and thus, while we can run on them, we don't recommend comparing methods on these.
+    Please see the below indoor datasets that we are able to run on and the error results look reasonable.
+    
+
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| Indoor 3 | 275 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_forward_3_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 | Indoor 5 | 157 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_forward_5_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 | Indoor 6 | 204 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_forward_6_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 | Indoor 7 | 314 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_forward_7_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
@@ -119,10 +125,6 @@ Please take a look at the [run_ros_uzhfpv.sh](https://github.com/rpng/open_vins/
 | Indoor 45deg 12 | 112 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_45_12_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 | Indoor 45deg 13 | 159 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_45_13_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 | Indoor 45deg 14 | 211 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_45_14_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
-| Outdoor 1 | 229 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/outdoor_forward_1_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
-| Outdoor 3 | 678 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/outdoor_forward_3_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
-| Outdoor 5 | 151 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/outdoor_forward_5_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
-| Outdoor 45deg 1 | 122 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/outdoor_45_1_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 @m_enddiv
 
 
