@@ -97,10 +97,11 @@ int main(int argc, char **argv) {
     }
 
     // Relative pose error segment lengths
-    std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0, 48.0};
+    //std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0, 48.0};
     //std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
     //std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
     //std::vector<double> segments = {5.0, 15.0, 30.0, 45.0, 60.0};
+    std::vector<double> segments = {40.0, 60.0, 80.0, 100.0, 120.0};
 
     // The overall RPE error calculation for each algorithm type
     std::map<std::string,std::map<double,std::pair<ov_eval::Statistics,ov_eval::Statistics>>> algo_rpe;

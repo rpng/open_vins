@@ -145,10 +145,22 @@ void ResultTrajectory::calculate_ate_2d(Statistics &error_ori, Statistics &error
 void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths, std::map<double,std::pair<Statistics,Statistics>> &error_rpe) {
 
     // Distance at each point along the trajectory
+    double average_pos_difference = 0;
     std::vector<double> accum_distances(gt_poses.size());
     accum_distances[0] = 0;
     for (size_t i = 1; i < gt_poses.size(); i++) {
-        accum_distances[i] = accum_distances[i - 1] + (gt_poses[i].block(0,0,3,1) - gt_poses[i - 1].block(0,0,3,1)).norm();
+        double pos_diff = (gt_poses[i].block(0,0,3,1) - gt_poses[i - 1].block(0,0,3,1)).norm();
+        accum_distances[i] = accum_distances[i - 1] + pos_diff;
+        average_pos_difference += pos_diff;
+    }
+    average_pos_difference /= gt_poses.size();
+
+    // Warn if large pos difference
+    double max_dist_diff = 0.5;
+    if(average_pos_difference > max_dist_diff) {
+        printf(YELLOW "[COMP]: average groundtruth position difference %.2f > %.2f is too large\n" RESET, average_pos_difference, max_dist_diff);
+        printf(YELLOW "[COMP]: this will prevent the RPE from finding valid trajectory segments!!!\n" RESET);
+        printf(YELLOW "[COMP]: the recommendation is to use a higher frequency groundtruth, or relax this trajectory segment logic...\n" RESET);
     }
 
     // Loop through each segment length
@@ -158,7 +170,10 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
         Statistics error_ori, error_pos;
 
         // Get end of subtrajectories for each possible starting point
-        std::vector<size_t> comparisons = compute_comparison_indices_length(accum_distances, distance, 0.4*distance);
+        // NOTE: is there a better way to select which end pos is a valid segments that are of the correct lenght?
+        // NOTE: right now this allows for longer segments to have bigger error in their start-end distance vs the desired segment length
+        //std::vector<size_t> comparisons = compute_comparison_indices_length(accum_distances, distance, 0.1*distance);
+        std::vector<size_t> comparisons = compute_comparison_indices_length(accum_distances, distance, max_dist_diff);
 
         // Loop through each relative comparison
         for (size_t id_start = 0; id_start < comparisons.size(); id_start++) {
@@ -178,7 +193,7 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
             T_c2.block(0, 3, 3, 1) = est_poses_aignedtoGT.at(id_end).block(0,0,3,1);
 
             // Get T I2 to I1 EST
-            Eigen::Matrix4d T_c1_c2 = T_c1.inverse() * T_c2;
+            Eigen::Matrix4d T_c1_c2 = Math::Inv_se3(T_c1) * T_c2;
 
             //===============================================================================
             // Get T I1 to world GT at beginning of subtrajectory (at state idx)
@@ -192,11 +207,11 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
             T_m2.block(0, 3, 3, 1) = gt_poses.at(id_end).block(0,0,3,1);
 
             // Get T I2 to I1 GT
-            Eigen::Matrix4d T_m1_m2 = T_m1.inverse() * T_m2;
+            Eigen::Matrix4d T_m1_m2 = Math::Inv_se3(T_m1) * T_m2;
 
             //===============================================================================
             // Compute error transform between EST and GT start-end transform
-            Eigen::Matrix4d T_error_in_c2 = T_m1_m2.inverse() * T_c1_c2;
+            Eigen::Matrix4d T_error_in_c2 = Math::Inv_se3(T_m1_m2) * T_c1_c2;
 
             Eigen::Matrix4d T_c2_rot = Eigen::Matrix4d::Identity();
             T_c2_rot.block(0, 0, 3, 3) = T_c2.block(0, 0, 3, 3);
