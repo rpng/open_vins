@@ -59,6 +59,10 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
     ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
 
+    // option to enable publishing of global to IMU transformation
+    nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
+    nh.param<bool>("publish_calibration_tf", publish_calibration_tf, true);
+
     // Load groundtruth if we have it and are not doing simulation
     if (nh.hasParam("path_gt") && _sim==nullptr) {
         std::string path_to_gt;
@@ -331,7 +335,9 @@ void RosVisualizer::publish_state() {
     trans.setRotation(quat);
     tf::Vector3 orig(state->_imu->pos()(0),state->_imu->pos()(1),state->_imu->pos()(2));
     trans.setOrigin(orig);
-    mTfBr->sendTransform(trans);
+    if(publish_global2imu_tf) {
+        mTfBr->sendTransform(trans);
+    }
 
     // Loop through each camera calibration and publish it
     for(const auto &calib : state->_calib_IMUtoCAM) {
@@ -349,7 +355,9 @@ void RosVisualizer::publish_state() {
         trans.setRotation(quat);
         tf::Vector3 orig(p_CinI(0),p_CinI(1),p_CinI(2));
         trans.setOrigin(orig);
-        mTfBr->sendTransform(trans);
+        if(publish_calibration_tf) {
+            mTfBr->sendTransform(trans);
+        }
     }
 
 }
@@ -603,7 +611,9 @@ void RosVisualizer::publish_groundtruth() {
     trans.setRotation(quat);
     tf::Vector3 orig(state_gt(5,0),state_gt(6,0),state_gt(7,0));
     trans.setOrigin(orig);
-    mTfBr->sendTransform(trans);
+    if(publish_global2imu_tf) {
+        mTfBr->sendTransform(trans);
+    }
 
     //==========================================================================
     //==========================================================================
