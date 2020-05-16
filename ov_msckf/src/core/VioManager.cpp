@@ -494,6 +494,83 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     //===================================================================================
 
 
+
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+    // Loop through all MSCKF features
+    for(const auto &feat : featsup_MSCKF) {
+        // Get position of feature in the global frame of reference
+        Eigen::Vector3d p_FinG = feat->p_FinG;
+        // Push back this new best estimate to our historical maps
+        if(hist_feat_posinG.find(feat->featid)!=hist_feat_posinG.end()) {
+            hist_feat_posinG.at(feat->featid) = p_FinG;
+            for(const auto &cam2uv : feat->uvs) {
+                if(hist_feat_uvs.at(feat->featid).find(cam2uv.first)!=hist_feat_uvs.at(feat->featid).end()) {
+                    hist_feat_uvs.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs.at(feat->featid).at(cam2uv.first).end(), cam2uv.second.begin(), cam2uv.second.end());
+                    hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).end(), feat->uvs_norm.at(cam2uv.first).begin(), feat->uvs_norm.at(cam2uv.first).end());
+                    hist_feat_timestamps.at(feat->featid).at(cam2uv.first).insert(hist_feat_timestamps.at(feat->featid).at(cam2uv.first).end(), feat->timestamps.at(cam2uv.first).begin(), feat->timestamps.at(cam2uv.first).end());
+                } else {
+                    hist_feat_uvs.at(feat->featid).insert(cam2uv);
+                    hist_feat_uvs_norm.at(feat->featid).insert({cam2uv.first,feat->uvs_norm.at(cam2uv.first)});
+                    hist_feat_timestamps.at(feat->featid).insert({cam2uv.first,feat->timestamps.at(cam2uv.first)});
+                }
+            }
+        } else {
+            hist_feat_posinG.insert({feat->featid,p_FinG});
+            hist_feat_uvs.insert({feat->featid,feat->uvs});
+            hist_feat_uvs_norm.insert({feat->featid,feat->uvs_norm});
+            hist_feat_timestamps.insert({feat->featid,feat->timestamps});
+        }
+    }
+    // SLAM features
+    std::vector<Feature*> featsup_SLAM = feats_slam_UPDATE;
+    featsup_SLAM.insert(featsup_SLAM.end(), feats_slam_DELAYED.begin(), feats_slam_DELAYED.end());
+    for(const auto &feat : featsup_SLAM) {
+        // Ensure this feature is in our state vector
+        if(state->_features_SLAM.find(feat->featid)==state->_features_SLAM.end()) {
+            printf(RED "[ERROR]: slam feature not found in state, but is reported as being in state by updater!\n" RESET);
+            continue;
+        }
+        // Get position of feature in the global frame of reference
+        Eigen::Vector3d p_FinG = state->_features_SLAM.at(feat->featid)->get_xyz(false);
+        // Push back this new best estimate to our historical maps
+        if(hist_feat_posinG.find(feat->featid)!=hist_feat_posinG.end()) {
+            hist_feat_posinG.at(feat->featid) = p_FinG;
+            for(const auto &cam2uv : feat->uvs) {
+                if(hist_feat_uvs.at(feat->featid).find(cam2uv.first)!=hist_feat_uvs.at(feat->featid).end()) {
+                    hist_feat_uvs.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs.at(feat->featid).at(cam2uv.first).end(), cam2uv.second.begin(), cam2uv.second.end());
+                    hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).end(), feat->uvs_norm.at(cam2uv.first).begin(), feat->uvs_norm.at(cam2uv.first).end());
+                    hist_feat_timestamps.at(feat->featid).at(cam2uv.first).insert(hist_feat_timestamps.at(feat->featid).at(cam2uv.first).end(), feat->timestamps.at(cam2uv.first).begin(), feat->timestamps.at(cam2uv.first).end());
+                } else {
+                    hist_feat_uvs.at(feat->featid).insert(cam2uv);
+                    hist_feat_uvs_norm.at(feat->featid).insert({cam2uv.first,feat->uvs_norm.at(cam2uv.first)});
+                    hist_feat_timestamps.at(feat->featid).insert({cam2uv.first,feat->timestamps.at(cam2uv.first)});
+                }
+            }
+        } else {
+            hist_feat_posinG.insert({feat->featid,p_FinG});
+            hist_feat_uvs.insert({feat->featid,feat->uvs});
+            hist_feat_uvs_norm.insert({feat->featid,feat->uvs_norm});
+            hist_feat_timestamps.insert({feat->featid,feat->timestamps});
+        }
+    }
+    // If we have reached our max window size record the oldest clone
+    // This clone is expected to be marginalized from the state
+    if ((int) state->_clones_IMU.size() > state->_options.max_clone_size) {
+        hist_last_marginalized_time = state->margtimestep();
+        assert(hist_last_marginalized_time != INFINITY);
+        Eigen::Matrix<double,7,1> imustate_inG = Eigen::Matrix<double,7,1>::Zero();
+        imustate_inG.block(0,0,4,1) = state->_clones_IMU.at(hist_last_marginalized_time)->quat();
+        imustate_inG.block(4,0,3,1) = state->_clones_IMU.at(hist_last_marginalized_time)->pos();
+        hist_stateinG.insert({hist_last_marginalized_time, imustate_inG});
+    }
+    //===================================================================================
+    //===================================================================================
+    //===================================================================================
+
+
+
     // Save all the MSCKF features used in the update
     good_features_MSCKF.clear();
     for(Feature* feat : featsup_MSCKF) {
@@ -516,16 +593,14 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // First do anchor change if we are about to lose an anchor pose
     updaterSLAM->change_anchors(state);
 
-    // Marginalize the oldest clone of the state if we are at max length
-    if((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
-        // Cleanup any features older then the marginalization time
-        trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
-        if(trackARUCO != nullptr) {
-            trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
-        }
-        // Finally marginalize that clone
-        StateHelper::marginalize_old_clone(state);
+    // Cleanup any features older then the marginalization time
+    trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
+    if(trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
     }
+
+    // Finally marginalize the oldest clone if needed
+    StateHelper::marginalize_old_clone(state);
 
     // Finally if we are optimizing our intrinsics, update our trackers
     if(state->_options.do_calib_camera_intrinsics) {

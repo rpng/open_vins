@@ -216,6 +216,18 @@ namespace ov_msckf {
         }
 
 
+        // TODO: remove these and move to a "history" stucture?
+        // TODO: should figure out a better way to store these
+        double hist_last_marginalized_time = -1;
+        std::map<double,Eigen::Matrix<double,7,1>> hist_stateinG;
+        std::map<size_t,Eigen::Vector3d> hist_feat_posinG;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
+
+
+
+
 
     protected:
 

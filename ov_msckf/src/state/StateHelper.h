@@ -215,6 +215,7 @@ namespace ov_msckf {
         static void marginalize_old_clone(State *state) {
             if ((int) state->_clones_IMU.size() > state->_options.max_clone_size) {
                 double marginal_time = state->margtimestep();
+                assert(marginal_time != INFINITY);
                 StateHelper::marginalize(state, state->_clones_IMU.at(marginal_time));
                 // Note that the marginalizer should have already deleted the clone
                 // Thus we just need to remove the pointer to it from our state
