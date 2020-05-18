@@ -682,31 +682,38 @@ void RosVisualizer::publish_groundtruth() {
 void RosVisualizer::publish_keyframe_information() {
 
 
-    // Skip if we don't have a marginalized frame yet
-    if(_app->hist_last_marginalized_time == -1)
+    // Check if we have subscribers
+    if(pub_keyframe_pose.getNumSubscribers()==0 && pub_keyframe_point.getNumSubscribers()==0 &&
+       pub_keyframe_extrinsic.getNumSubscribers()==0 && pub_keyframe_intrinsics.getNumSubscribers()==0)
         return;
 
 
+    // Skip if we don't have a marginalized frame yet
+    double hist_last_marginalized_time;
+    Eigen::Matrix<double,7,1> stateinG;
+    if(!_app->hist_last_marg_state(hist_last_marginalized_time, stateinG))
+        return;
+
     // Default header
     std_msgs::Header header;
-    header.stamp = ros::Time(_app->hist_last_marginalized_time);
+    header.stamp = ros::Time(hist_last_marginalized_time);
 
     //======================================================
     // PUBLISH IMU TO CAMERA0 EXTRINSIC
     // need to flip the transform to the IMU frame
     Eigen::Vector4d q_ItoC = _app->get_state()->_calib_IMUtoCAM.at(0)->quat();
     Eigen::Vector3d p_CinI = -_app->get_state()->_calib_IMUtoCAM.at(0)->Rot().transpose()*_app->get_state()->_calib_IMUtoCAM.at(0)->pos();
-    nav_msgs::Odometry odometry;
-    odometry.header = header;
-    odometry.header.frame_id = "imu";
-    odometry.pose.pose.position.x = p_CinI(0);
-    odometry.pose.pose.position.y = p_CinI(1);
-    odometry.pose.pose.position.z = p_CinI(2);
-    odometry.pose.pose.orientation.x = q_ItoC(0);
-    odometry.pose.pose.orientation.y = q_ItoC(1);
-    odometry.pose.pose.orientation.z = q_ItoC(2);
-    odometry.pose.pose.orientation.w = q_ItoC(3);
-    pub_keyframe_extrinsic.publish(odometry);
+    nav_msgs::Odometry odometry_calib;
+    odometry_calib.header = header;
+    odometry_calib.header.frame_id = "imu";
+    odometry_calib.pose.pose.position.x = p_CinI(0);
+    odometry_calib.pose.pose.position.y = p_CinI(1);
+    odometry_calib.pose.pose.position.z = p_CinI(2);
+    odometry_calib.pose.pose.orientation.x = q_ItoC(0);
+    odometry_calib.pose.pose.orientation.y = q_ItoC(1);
+    odometry_calib.pose.pose.orientation.z = q_ItoC(2);
+    odometry_calib.pose.pose.orientation.w = q_ItoC(3);
+    pub_keyframe_extrinsic.publish(odometry_calib);
 
 
     //======================================================
@@ -715,51 +722,58 @@ void RosVisualizer::publish_keyframe_information() {
     cameraparams.header = header;
     cameraparams.header.frame_id = "imu";
     cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0))? "equidistant" : "plumb_bob";
-    //cameraparams.width = 752; // todo: add these (but don't normally matter)
-    //cameraparams.height = 480; // todo: add these (but don't normally matter)
     Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
     cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
     cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
     pub_keyframe_intrinsics.publish(cameraparams);
 
 
-
     //======================================================
     // PUBLISH HISTORICAL POSE ESTIMATE
-    odometry.header = header;
-    odometry.header.frame_id = "global";
-    odometry.pose.pose.position.x = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(4);
-    odometry.pose.pose.position.y = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(5);
-    odometry.pose.pose.position.z = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(6);
-    odometry.pose.pose.orientation.x = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(0);
-    odometry.pose.pose.orientation.y = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(1);
-    odometry.pose.pose.orientation.z = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(2);
-    odometry.pose.pose.orientation.w = _app->hist_stateinG.at(_app->hist_last_marginalized_time)(3);
-    pub_keyframe_pose.publish(odometry);
+    nav_msgs::Odometry odometry_pose;
+    odometry_pose.header = header;
+    odometry_pose.header.frame_id = "global";
+    odometry_pose.pose.pose.position.x = stateinG(4);
+    odometry_pose.pose.pose.position.y = stateinG(5);
+    odometry_pose.pose.pose.position.z = stateinG(6);
+    odometry_pose.pose.pose.orientation.x = stateinG(0);
+    odometry_pose.pose.pose.orientation.y = stateinG(1);
+    odometry_pose.pose.pose.orientation.z = stateinG(2);
+    odometry_pose.pose.pose.orientation.w = stateinG(3);
+    pub_keyframe_pose.publish(odometry_pose);
 
 
     //======================================================
-    // PUBLISH FEATURE TRACKS IN THE CURRENT FRAME OF REFERENCE
+    // PUBLISH FEATURE TRACKS IN THE GLOBAL FRAME OF REFERENCE
+
+    // Get historical feature information
+    std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
+    _app->hist_get_features(hist_feat_posinG, hist_feat_uvs, hist_feat_uvs_norm, hist_feat_timestamps);
+
+    // Construct the message
     sensor_msgs::PointCloud point_cloud;
     point_cloud.header = header;
     point_cloud.header.frame_id = "global";
-    for(const auto &feattimes : _app->hist_feat_timestamps) {
+    for(const auto &feattimes : hist_feat_timestamps) {
 
         // Skip if this feature has no extraction in the "zero" camera
         if(feattimes.second.find(0)==feattimes.second.end())
             continue;
 
         // Skip if this feature does not have measurement at this time
-        auto iter = std::find(feattimes.second.at(0).begin(), feattimes.second.at(0).end(), _app->hist_last_marginalized_time);
+        auto iter = std::find(feattimes.second.at(0).begin(), feattimes.second.at(0).end(), hist_last_marginalized_time);
         if(iter==feattimes.second.at(0).end())
             continue;
 
         // Get this feature information
         size_t featid = feattimes.first;
         size_t index = (size_t)std::distance(feattimes.second.at(0).begin(), iter);
-        Eigen::VectorXf uv = _app->hist_feat_uvs.at(featid).at(0).at(index);
-        Eigen::VectorXf uv_n = _app->hist_feat_uvs_norm.at(featid).at(0).at(index);
-        Eigen::Vector3d pFinG = _app->hist_feat_posinG.at(featid);
+        Eigen::VectorXf uv = hist_feat_uvs.at(featid).at(0).at(index);
+        Eigen::VectorXf uv_n = hist_feat_uvs_norm.at(featid).at(0).at(index);
+        Eigen::Vector3d pFinG = hist_feat_posinG.at(featid);
 
         // Push back 3d point
         geometry_msgs::Point32 p;
@@ -781,18 +795,7 @@ void RosVisualizer::publish_keyframe_information() {
     pub_keyframe_point.publish(point_cloud);
 
 
-
-
-
-
-
-
-
 }
-
-
-
-
 
 
 void RosVisualizer::sim_save_total_state_to_file() {

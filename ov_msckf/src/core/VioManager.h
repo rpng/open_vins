@@ -215,18 +215,29 @@ namespace ov_msckf {
             return aruco_feats;
         }
 
+        /// Returns the last timestamp we have marginalized (true if we have a state)
+        bool hist_last_marg_state(double &timestamp, Eigen::Matrix<double,7,1> &stateinG) {
+            if(hist_last_marginalized_time != -1) {
+                timestamp = hist_last_marginalized_time;
+                stateinG = hist_stateinG.at(hist_last_marginalized_time);
+                return true;
+            } else {
+                timestamp = -1;
+                stateinG.setZero();
+                return false;
+            }
+        }
 
-        // TODO: remove these and move to a "history" stucture?
-        // TODO: should figure out a better way to store these
-        double hist_last_marginalized_time = -1;
-        std::map<double,Eigen::Matrix<double,7,1>> hist_stateinG;
-        std::map<size_t,Eigen::Vector3d> hist_feat_posinG;
-        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
-        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
-        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
-
-
-
+        /// Returns historical feature positions, and measurements times and uvs used to get its estimate.
+        void hist_get_features(std::unordered_map<size_t,Eigen::Vector3d> &feat_posinG,
+                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> &feat_uvs,
+                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> &feat_uvs_norm,
+                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> &feat_timestamps) {
+            feat_posinG = hist_feat_posinG;
+            feat_uvs = hist_feat_uvs;
+            feat_uvs_norm = hist_feat_uvs_norm;
+            feat_timestamps = hist_feat_timestamps;
+        }
 
 
     protected:
@@ -248,6 +259,17 @@ namespace ov_msckf {
          * @param timestamp The most recent timestamp we have tracked to
          */
         void do_feature_propagate_update(double timestamp);
+
+
+        /**
+         * @brief This function will update our historical tracking information.
+         * This historical information includes the best estimate of a feature in the global frame.
+         * For all features it also has the normalized and raw pixel coordinates at each timestep.
+         * The state is also recorded after it is marginalized out of the state.
+         * @param features Features using in the last update phase
+         */
+        void update_keyframe_historical_information(const std::vector<Feature*> &features);
+
 
         /// Manager parameters
         VioManagerOptions params;
@@ -289,6 +311,14 @@ namespace ov_msckf {
 
         // Startup time of the filter
         double startup_time = -1;
+
+        // Historical information of the filter (last marg time, historical states, features seen from all frames)
+        double hist_last_marginalized_time = -1;
+        std::map<double,Eigen::Matrix<double,7,1>> hist_stateinG;
+        std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
 
 
     };
