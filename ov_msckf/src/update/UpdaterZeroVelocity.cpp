@@ -59,58 +59,68 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
         return false;
     }
 
-    // If we should use velocity constraint
-    bool velocity_constraint = false;
+    // If we should integrate the acceleration and say the velocity should be zero
+    // Also if we should still inflate the bias based on their random walk noises
+    bool integrated_accel_constraint = false;
+    bool model_time_varying_bias = true;
 
     // Order of our Jacobian
     std::vector<Type*> Hx_order;
     Hx_order.push_back(state->_imu->q());
     Hx_order.push_back(state->_imu->bg());
     Hx_order.push_back(state->_imu->ba());
-    if(velocity_constraint) Hx_order.push_back(state->_imu->v());
+    if(integrated_accel_constraint) Hx_order.push_back(state->_imu->v());
 
     // Large final matrices used for update
-    int h_size = (velocity_constraint)? 12 : 9;
-    int m_size = (velocity_constraint)? 6*(imu_recent.size()-1)+3 : 6*(imu_recent.size()-1);
+    int h_size = (integrated_accel_constraint) ? 12 : 9;
+    int m_size = 6*(imu_recent.size()-1);
     Eigen::MatrixXd H = Eigen::MatrixXd::Zero(m_size,h_size);
     Eigen::VectorXd res = Eigen::VectorXd::Zero(m_size);
     Eigen::MatrixXd R = Eigen::MatrixXd::Identity(m_size,m_size);
 
-    // Cached matrices that will be the same for all of them
-    // Measurement order is: [w_true = 0, a_true = 0]
-    // State order is: [q_GtoI, bg, ba]
-    Eigen::Matrix<double,6,9> H_cached = Eigen::Matrix<double,6,9>::Zero();
-    H_cached.block(0,3,3,3) = -Eigen::Matrix<double,3,3>::Identity();
-    Eigen::Matrix3d R_GtoI_jacob = (state->_options.do_fej)? state->_imu->Rot_fej() : state->_imu->Rot();
-    H_cached.block(3,0,3,3) = -skew_x(R_GtoI_jacob*_gravity);
-    H_cached.block(3,6,3,3) = -Eigen::Matrix<double,3,3>::Identity();
-
     // Loop through all our IMU and construct the residual and Jacobian
+    // State order is: [q_GtoI, bg, ba, v_IinG]
+    // Measurement order is: [w_true = 0, a_true = 0 or v_k+1 = 0]
     // w_true = w_m - bw - nw
     // a_true = a_m - ba - R*g - na
+    // v_true = v_k - g*dt + R^T*(a_m - ba - na)
+    double dt_summed = 0;
     for(size_t i=0; i<imu_recent.size()-1; i++) {
 
-        // Measurement Jacobian
-        H.block(6*i,0,6,9) = H_cached;
+        // Precomputed values
+        double dt = imu_recent.at(i+1).timestamp - imu_recent.at(i).timestamp;
+        Eigen::Vector3d a_hat = imu_recent.at(i).am - state->_imu->bias_a();
 
         // Measurement residual (true value is zero)
         res.block(6*i+0,0,3,1) = -(imu_recent.at(i).wm - state->_imu->bias_g());
-        res.block(6*i+3,0,3,1) = -(imu_recent.at(i).am - state->_imu->bias_a() - state->_imu->Rot()*_gravity);
+        if(!integrated_accel_constraint) {
+            res.block(6*i+3,0,3,1) = -(a_hat - state->_imu->Rot()*_gravity);
+        } else {
+            res.block(6*i+3,0,3,1) = -(state->_imu->vel() - _gravity*dt + state->_imu->Rot().transpose()*a_hat*dt);
+        }
+
+        // Measurement Jacobian
+        Eigen::Matrix3d R_GtoI_jacob = (state->_options.do_fej)? state->_imu->Rot_fej() : state->_imu->Rot();
+        H.block(6*i+0,3,3,3) = -Eigen::Matrix<double,3,3>::Identity();
+        if(!integrated_accel_constraint) {
+            H.block(6*i+3,0,3,3) = -skew_x(R_GtoI_jacob*_gravity);
+            H.block(6*i+3,6,3,3) = -Eigen::Matrix<double,3,3>::Identity();
+        } else {
+            H.block(6*i+3,0,3,3) = -R_GtoI_jacob.transpose()*skew_x(a_hat)*dt;
+            H.block(6*i+3,6,3,3) = -R_GtoI_jacob.transpose()*dt;
+            H.block(6*i+3,9,3,3) = Eigen::Matrix<double,3,3>::Identity();
+        }
 
         // Measurement noise (convert from continuous to discrete)
         // Note the dt time might be different if we have "cut" any imu measurements
-        double dt = imu_recent.at(i+1).timestamp - imu_recent.at(i).timestamp;
         R.block(6*i+0,6*i+0,3,3) *= _noises.sigma_w_2/dt;
-        R.block(6*i+3,6*i+3,3,3) *= _noises.sigma_a_2/dt;
+        if(!integrated_accel_constraint) {
+            R.block(6*i+3,6*i+3,3,3) *= _noises.sigma_a_2/dt;
+        } else {
+            R.block(6*i+3,6*i+3,3,3) *= _noises.sigma_a_2*dt;
+        }
+        dt_summed += dt;
 
-    }
-
-    // If we are applying zero velocity, then add one more measurement
-    // This says that our v_true = 0
-    if(velocity_constraint) {
-        H.block(H.rows()-3,9,3,3) = Eigen::Matrix<double,3,3>::Identity();
-        res.block(res.rows()-3,0,3,1) = -(state->_imu->vel());
-        R.block(R.rows()-3,R.rows()-3,3,3) *= std::pow(_zupt_max_velocity,3);
     }
 
     // Multiply our noise matrix by a fixed amount
@@ -139,11 +149,26 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
         return false;
     }
 
+    // Next propagate the biases forward in time
+    // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
+    if(model_time_varying_bias) {
+        Eigen::MatrixXd Phi_bias = Eigen::MatrixXd::Identity(6,6);
+        Eigen::MatrixXd Q_bias = Eigen::MatrixXd::Identity(6,6);
+        Q_bias.block(0,0,3,3) *= dt_summed*_noises.sigma_wb;
+        Q_bias.block(3,3,3,3) *= dt_summed*_noises.sigma_ab;
+        std::vector<Type*> Phi_order;
+        Phi_order.push_back(state->_imu->bg());
+        Phi_order.push_back(state->_imu->ba());
+        StateHelper::EKFPropagation(state, Phi_order, Phi_order, Phi_bias, Q_bias);
+    }
+
     // Else we are good, update the system
     // We can move our FEJ forward based on the idea that we are zero system dynamics
     // Thus our FEJ should move forward to the current timestep so the next propagation is correct
     printf(CYAN "[ZUPT]: accepted zero velocity |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET,state->_imu->vel().norm(),chi2,_options.chi2_multipler*chi2_check);
     StateHelper::EKFUpdate(state, Hx_order, H, res, R);
+
+    // Finally move the state time forward and the FEJ value
     state->_timestamp = timestamp;
     state->_imu->set_fej(state->_imu->value());
     return true;

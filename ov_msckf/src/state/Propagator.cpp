@@ -90,7 +90,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
             Phi_summed = F * Phi_summed;
             Qd_summed = F * Qd_summed * F.transpose() + Qdi;
             Qd_summed = 0.5*(Qd_summed+Qd_summed.transpose());
-            dt_summed +=  prop_data.at(i+1).timestamp-prop_data.at(i).timestamp;
+            dt_summed += prop_data.at(i+1).timestamp-prop_data.at(i).timestamp;
         }
     }
 
