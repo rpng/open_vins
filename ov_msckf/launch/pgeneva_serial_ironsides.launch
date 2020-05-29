@@ -11,8 +11,7 @@
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
 
         <!-- bag parameters -->
-        <param name="path_bag"    type="string" value="/home/patrick/datasets/tum/dataset-room1_512_16.bag" />
-<!--        <param name="path_gt"     type="string" value="$(find ov_data)/tum_vi/dataset-room1_512_16.csv" />-->
+        <param name="path_bag"    type="string" value="/home/patrick/datasets/ironsides/neighborhood_02.bag" /> <!-- drive_01, neighborhood_01, neighborhood_02 -->
         <param name="bag_start"   type="int"    value="1" />
         <param name="bag_durr"    type="int"    value="-1" />
 
@@ -24,22 +23,22 @@
         <param name="calib_cam_extrinsics"   type="bool"   value="true" />
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
-        <param name="calib_camimu_dt"        type="double" value="0.0" />
-        <param name="max_clones"             type="int"    value="11" />
-        <param name="max_slam"               type="int"    value="30" />
-        <param name="max_slam_in_update"     type="int"    value="999" /> <!-- 15 seems to work well -->
+        <param name="calib_camimu_dt"        type="double" value="0.02" />
+        <param name="max_clones"             type="int"    value="20" />
+        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 15 seems to work well -->
         <param name="max_msckf_in_update"    type="int"    value="999" />
         <param name="max_cameras"            type="int"    value="2" />
-        <param name="dt_slam_delay"          type="double" value="3" />
+        <param name="dt_slam_delay"          type="double" value="1" />
         <param name="init_window_time"       type="double" value="1.0" />
-        <param name="init_imu_thresh"        type="double" value="0.8" />
-        <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
+        <param name="init_imu_thresh"        type="double" value="0.9" />
+        <rosparam param="gravity">[0.0,0.0,9.802]</rosparam>
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
 
         <!-- zero velocity update parameters -->
-        <param name="try_zupt"               type="bool"   value="false" />
+        <param name="try_zupt"               type="bool"   value="true" />
         <param name="zupt_chi2_multipler"    type="int"    value="2" />
         <param name="zupt_max_velocity"      type="double" value="0.5" />
         <param name="zupt_noise_multiplier"  type="double" value="50" />
@@ -51,12 +50,16 @@
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />
         <param name="num_pts"            type="int"    value="200" />
-        <param name="fast_threshold"     type="int"    value="15" />
-        <param name="grid_x"             type="int"    value="5" />
-        <param name="grid_y"             type="int"    value="5" />
-        <param name="min_px_dist"        type="int"    value="5" />
+        <param name="fast_threshold"     type="int"    value="10" />
+        <param name="grid_x"             type="int"    value="10" />
+        <param name="grid_y"             type="int"    value="8" />
+        <param name="min_px_dist"        type="int"    value="10" />
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
+
+        <param name="fi_max_dist"        type="double" value="100" />
+        <param name="fi_max_baseline"    type="double" value="1000" />
+        <param name="fi_max_cond_number" type="double" value="1000" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />
@@ -70,39 +73,39 @@
         <param name="up_slam_chi2_multipler"       type="double"   value="1" />
         <param name="up_aruco_sigma_px"            type="double"   value="1" />
         <param name="up_aruco_chi2_multipler"      type="double"   value="1" />
-        <param name="gyroscope_noise_density"      type="double"   value="0.00016" />
-        <param name="gyroscope_random_walk"        type="double"   value="0.000022" />
-        <param name="accelerometer_noise_density"  type="double"   value="0.0028" />
-        <param name="accelerometer_random_walk"    type="double"   value="0.00086" />
+        <param name="gyroscope_noise_density"      type="double"   value="1.1186830841306218e-04" />
+        <param name="gyroscope_random_walk"        type="double"   value="8.997530210630026e-07" />
+        <param name="accelerometer_noise_density"  type="double"   value="0.0027052931930236323" />
+        <param name="accelerometer_random_walk"    type="double"   value="1.3054568211204843e-04" />
 
 
         <!-- camera intrinsics -->
-        <rosparam param="cam0_wh">[512, 512]</rosparam>
-        <rosparam param="cam1_wh">[512, 512]</rosparam>
+        <rosparam param="cam0_wh">[640, 480]</rosparam>
+        <rosparam param="cam1_wh">[640, 480]</rosparam>
         <param name="cam0_is_fisheye" type="bool" value="true" />
         <param name="cam1_is_fisheye" type="bool" value="true" />
-        <rosparam param="cam0_k">[190.97847715128717, 190.9733070521226, 254.93170605935475, 256.8974428996504]</rosparam>
-        <rosparam param="cam0_d">[0.0034823894022493434, 0.0007150348452162257, -0.0020532361418706202, 0.00020293673591811182]</rosparam>
-        <rosparam param="cam1_k">[190.44236969414825, 190.4344384721956, 252.59949716835982, 254.91723064636983]</rosparam>
-        <rosparam param="cam1_d">[0.0034003170790442797, 0.001766278153469831, -0.00266312569781606, 0.0003299517423931039]</rosparam>
+        <rosparam param="cam0_k">[276.4850207717928, 278.0310503180516, 314.5836189313042, 240.16980920673427]</rosparam>
+        <rosparam param="cam0_d">[-0.03149689493503132, 0.07696336480701078, -0.06608854732019281, 0.019667561645120218]</rosparam>
+        <rosparam param="cam1_k">[277.960323846132, 279.4348778432714, 322.404194404853, 236.72685252691352]</rosparam>
+        <rosparam param="cam1_d">[-0.02998039058251529, 0.07202819722706337, -0.06178718820631651, 0.017655045017816777]</rosparam>
 
 
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">
-            [
-            -0.99952504,  0.00750192, -0.02989013,  0.04557484,
-             0.02961534, -0.03439736, -0.99896935, -0.07116180,
-            -0.00852233, -0.99938008,  0.03415885, -0.04468125,
-            0.0, 0.0, 0.0, 1.0
-            ]
+        [
+        0.99992127, -0.0078594, 0.0097819, -0.05845078,
+        0.00784873, 0.99996856, 0.00112822, -0.00728728,
+        -0.00979046, -0.00105136, 0.99995152, 0.0623674,
+        0.00000000, 0.00000000, 0.00000000, 1.00000000
+        ]
         </rosparam>
         <rosparam param="T_C1toI">
-            [
-            -0.99951105,  0.00810408, -0.03019914, -0.05545634,
-             0.03029912,  0.01251164, -0.99946257, -0.06925002,
-            -0.00772188, -0.99988889, -0.01275107, -0.04745286,
-            0.0, 0.0, 0.0, 1.0
-            ]
+        [
+        0.99995933, 0.00327998, 0.00840069, 0.00793529,
+        -0.00328309, 0.99999455, 0.000356, -0.00716413,
+        -0.00839948, -0.00038357, 0.99996465, 0.06245421,
+        -0.00000000,0.00000000,0.00000000,1.00000000
+        ]
         </rosparam>
 
 

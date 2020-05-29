@@ -86,7 +86,6 @@ void plot_3errors(ov_eval::Statistics sx, ov_eval::Statistics sy, ov_eval::Stati
 
 int main(int argc, char **argv) {
 
-
     // Ensure we have a path
     if(argc < 4) {
         printf(RED "ERROR: Please specify a align mode, groudtruth, and algorithm run file\n" RESET);

@@ -98,10 +98,11 @@ namespace ov_core {
          * @param[out] v_I0inG Velocity at initialization
          * @param[out] b_a0 Acceleration bias at initialization
          * @param[out] p_I0inG Position at initialization
+         * @param[int] wait_for_jerk If true we will wait for a "jerk"
          * @return True if we have successfully initialized our system
          */
         bool initialize_with_imu(double &time0, Eigen::Matrix<double,4,1> &q_GtoI0, Eigen::Matrix<double,3,1> &b_w0,
-                                 Eigen::Matrix<double,3,1> &v_I0inG, Eigen::Matrix<double,3,1> &b_a0, Eigen::Matrix<double,3,1> &p_I0inG);
+                                 Eigen::Matrix<double,3,1> &v_I0inG, Eigen::Matrix<double,3,1> &b_a0, Eigen::Matrix<double,3,1> &p_I0inG, bool wait_for_jerk=true);
 
 
     protected:

@@ -376,10 +376,14 @@ void RosVisualizer::publish_images() {
 
     // Get our image of history tracks
     cv::Mat img_history;
-    trackFEATS->display_history(img_history,255,255,0,255,255,255);
-    if(trackARUCO != nullptr) {
-        trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
-        trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
+    if(_app->did_zero_velocity_update()) {
+        img_history = _app->get_zero_velocity_update_image();
+    } else {
+        trackFEATS->display_history(img_history,255,255,0,255,255,255);
+        if(trackARUCO != nullptr) {
+            trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
+            trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
+        }
     }
 
     // Create our message

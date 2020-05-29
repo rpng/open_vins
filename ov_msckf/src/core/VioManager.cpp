@@ -127,6 +127,11 @@ VioManager::VioManager(VioManagerOptions& params_) {
     updaterMSCKF = new UpdaterMSCKF(params.msckf_options,params.featinit_options);
     updaterSLAM = new UpdaterSLAM(params.slam_options,params.aruco_options,params.featinit_options);
 
+    // If we are using zero velocity updates, then create the updater
+    if(params.try_zupt) {
+        updaterZUPT = new UpdaterZeroVelocity(params.zupt_options,params.imu_noises,params.gravity,params.zupt_max_velocity,params.zupt_noise_multiplier);
+    }
+
 }
 
 
@@ -140,6 +145,11 @@ void VioManager::feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eige
     // Push back to our initializer
     if(!is_initialized_vio) {
         initializer->feed_imu(timestamp, wm, am);
+    }
+
+    // Push back to the zero velocity updater if we have it
+    if(updaterZUPT != nullptr) {
+        updaterZUPT->feed_imu(timestamp, wm, am);
     }
 
 }
@@ -158,6 +168,20 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
         cv::Mat img0_temp;
         cv::pyrDown(img0,img0_temp,cv::Size(img0.cols/2.0,img0.rows/2.0));
         img0 = img0_temp.clone();
+    }
+
+    // Check if we should do zero-velocity, if so update the state with it
+    if(is_initialized_vio && updaterZUPT != nullptr) {
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
+        if(did_zupt_update) {
+            cv::Mat img_outtemp0;
+            cv::cvtColor(img0, img_outtemp0, CV_GRAY2RGB);
+            bool is_small = (std::min(img0.cols,img0.rows) < 400);
+            auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+            cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+            zupt_image = img_outtemp0.clone();
+            return;
+        }
     }
 
     // Feed our trackers
@@ -198,6 +222,22 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
         cv::pyrDown(img1,img1_temp,cv::Size(img1.cols/2.0,img1.rows/2.0));
         img0 = img0_temp.clone();
         img1 = img1_temp.clone();
+    }
+
+    // Check if we should do zero-velocity, if so update the state with it
+    if(is_initialized_vio && updaterZUPT != nullptr) {
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
+        if(did_zupt_update) {
+            cv::Mat img_outtemp0, img_outtemp1;
+            cv::cvtColor(img0, img_outtemp0, CV_GRAY2RGB);
+            cv::cvtColor(img1, img_outtemp1, CV_GRAY2RGB);
+            bool is_small = (std::min(img0.cols,img0.rows) < 400);
+            auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+            cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+            cv::putText(img_outtemp1, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+            cv::hconcat(img_outtemp0, img_outtemp1, zupt_image);
+            return;
+        }
     }
 
     // Feed our stereo trackers, if we are not doing binocular
@@ -246,6 +286,31 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
         printf(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
     }
 
+    // Check if we should do zero-velocity, if so update the state with it
+    if(is_initialized_vio && updaterZUPT != nullptr) {
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
+        if(did_zupt_update) {
+            int max_width = -1;
+            int max_height = -1;
+            for(auto &pair : params.camera_wh) {
+                if(max_width < pair.second.first) max_width = pair.second.first;
+                if(max_height < pair.second.second) max_height = pair.second.second;
+            }
+            for(int n=0; n<params.state_options.num_cameras; n++) {
+                cv::Mat img_outtemp0 = cv::Mat::zeros(cv::Size(max_width,max_height), CV_8UC3);
+                bool is_small = (std::min(img_outtemp0.cols,img_outtemp0.rows) < 400);
+                auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+                cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+                if(n == 0) {
+                    zupt_image = img_outtemp0.clone();
+                } else {
+                    cv::hconcat(zupt_image, img_outtemp0, zupt_image);
+                }
+            }
+            return;
+        }
+    }
+
     // Cast the tracker to our simulation tracker
     trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
     trackSIM->set_width_height(params.camera_wh);
@@ -276,7 +341,10 @@ bool VioManager::try_to_initialize() {
     Eigen::Matrix<double, 3, 1> b_w0, v_I0inG, b_a0, p_I0inG;
 
     // Try to initialize the system
-    bool success = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG);
+    // We will wait for a jerk if we do not have the zero velocity update enabled
+    // Otherwise we can initialize right away as the zero velocity will handle the stationary case
+    bool wait_for_jerk = (updaterZUPT == nullptr);
+    bool success = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG, wait_for_jerk);
 
     // Return if it failed
     if (!success) {

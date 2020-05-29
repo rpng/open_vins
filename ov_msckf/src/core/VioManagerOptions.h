@@ -66,6 +66,15 @@ namespace ov_msckf {
         ///  Variance threshold on our acceleration to be classified as moving
         double init_imu_thresh = 1.0;
 
+        /// If we should try to use zero velocity update
+        bool try_zupt = false;
+
+        /// Max velocity we will consider to try to do a zupt (i.e. if above this, don't do zupt)
+        double zupt_max_velocity = 1.0;
+
+        /// Multiplier of our zupt measurement IMU noise matrix (default should be 1.0)
+        double zupt_noise_multiplier = 1.0;
+
         /// If we should record the timing performance to file
         bool record_timing_information = false;
 
@@ -82,6 +91,9 @@ namespace ov_msckf {
             printf("\t- dt_slam_delay: %.1f\n", dt_slam_delay);
             printf("\t- init_window_time: %.2f\n", init_window_time);
             printf("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
+            printf("\t- zero_velocity_update: %d\n", try_zupt);
+            printf("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
+            printf("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
             printf("\t- record timing?: %d\n", (int)record_timing_information);
             printf("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
         }
@@ -100,6 +112,9 @@ namespace ov_msckf {
         /// Update options for ARUCO features (pixel noise and chi2 multiplier)
         UpdaterOptions aruco_options;
 
+        /// Update options for zero velocity (chi2 multiplier)
+        UpdaterOptions zupt_options;
+
         /**
          * @brief This function will print out all noise parameters loaded.
          * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -113,6 +128,8 @@ namespace ov_msckf {
             slam_options.print();
             printf("\tUpdater ARUCO Tags:\n");
             aruco_options.print();
+            printf("\tUpdater ZUPT:\n");
+            zupt_options.print();
         }
 
         // STATE DEFAULTS ==========================
