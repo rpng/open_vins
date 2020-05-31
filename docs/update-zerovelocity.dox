@@ -3,7 +3,7 @@
 
 @page update-zerovelocity Zero Velocity Update
 
-The key idea of the zero velocity update is to allow for the system to reduce its uncertainty leveraging motion knowledge (i.e. leverage the fact that the system is stationary).
+The key idea of the zero velocity update (ZUPT) is to allow for the system to reduce its uncertainty leveraging motion knowledge (i.e. leverage the fact that the system is stationary).
 This is of particular importance in cases where we have a monocular system without any temporal SLAM features.
 In this case, if we are stationary we will be unable to triangulate features and thus will be unable to update the system.
 This can be avoided by either using a stereo system or temporal SLAM features.
@@ -58,13 +58,21 @@ Where we have the following Jacobians in respect to our state:
 
 @section update-zerovelocity-detect Zero Velocity Detection
 
-To detect that we are currently at zero velocity we can  
+Zero velocity detection in itself is a challenging problem which has seen many different works tried to address this issue @cite Wagstaff2017IPIN, @cite Ramanandan2011TITS, @cite Davidson2009ENC.
+Most works boil down to simple thresholding and the approach is to try to determine the optimal threshold which allows for the best classifications of zero velocity update (ZUPT) portion of the trajectories.
+There have been other works, @cite Wagstaff2017IPIN and @cite Ramanandan2011TITS, which have looked at more complicated methods and try to address the issue that this threshold can be dependent on the type of different motions (such as running vs walking) and characteristics of the platform which the sensor is mounted on (we want to ignore vehicle engine vibrations and other non-essential observed vibrations).
 
 
+We approach this detection problem based on tuning of a \f$\chi^2\f$, chi-squared, thresholding based on the measurement model above.
+It is important to note that we also have a velocity magnitude check which is aimed at preventing constant velocity cases which have non-zero magnitude.
+More specifically, we perform the following threshold check to see if we are current at zero velocity:
 
+\f{align*}{
+\tilde{\mathbf{z}}^\top(\mathbf{H}\mathbf{P}\mathbf{H}^\top + \mathbf{R})^{-1}\tilde{\mathbf{z}} < \chi^2
+\f}
 
-
-
+We found that in the real world experiments, typically the inertial measurement noise \f$\mathbf{R}\f$ needs to be inflated by 50-100 times to allow for proper detection.
+This can hint that we are using overconfident inertial noises, or that there are additional frequencies (such as the vibration of motors) which inject additional noises.
 
 
 
