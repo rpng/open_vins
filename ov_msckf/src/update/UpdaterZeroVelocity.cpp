@@ -83,7 +83,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     // Measurement order is: [w_true = 0, a_true = 0 or v_k+1 = 0]
     // w_true = w_m - bw - nw
     // a_true = a_m - ba - R*g - na
-    // v_true = v_k - g*dt + R^T*(a_m - ba - na)
+    // v_true = v_k - g*dt + R^T*(a_m - ba - na)*dt
     double dt_summed = 0;
     for(size_t i=0; i<imu_recent.size()-1; i++) {
 
@@ -127,8 +127,17 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     // We typically need to treat the IMU as being "worst" to detect / not become over confident
     R *= _zupt_noise_multiplier;
 
-    /// Chi2 distance check
+    // Next propagate the biases forward in time
+    // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
+    Eigen::MatrixXd Q_bias = Eigen::MatrixXd::Identity(6,6);
+    Q_bias.block(0,0,3,3) *= dt_summed*_noises.sigma_wb;
+    Q_bias.block(3,3,3,3) *= dt_summed*_noises.sigma_ab;
+
+    // Chi2 distance check
+    // NOTE: we also append the propagation we "would do before the update" if this was to be accepted
+    // NOTE: we don't propagate first since if we fail the chi2 then we just want to return and do normal logic
     Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hx_order);
+    P_marg.block(3,3,6,6) += Q_bias;
     Eigen::MatrixXd S = H*P_marg*H.transpose() + R;
     double chi2 = res.dot(S.llt().solve(res));
 
@@ -153,9 +162,6 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
     if(model_time_varying_bias) {
         Eigen::MatrixXd Phi_bias = Eigen::MatrixXd::Identity(6,6);
-        Eigen::MatrixXd Q_bias = Eigen::MatrixXd::Identity(6,6);
-        Q_bias.block(0,0,3,3) *= dt_summed*_noises.sigma_wb;
-        Q_bias.block(3,3,3,3) *= dt_summed*_noises.sigma_ab;
         std::vector<Type*> Phi_order;
         Phi_order.push_back(state->_imu->bg());
         Phi_order.push_back(state->_imu->ba());
@@ -163,14 +169,11 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     }
 
     // Else we are good, update the system
-    // We can move our FEJ forward based on the idea that we are zero system dynamics
-    // Thus our FEJ should move forward to the current timestep so the next propagation is correct
     printf(CYAN "[ZUPT]: accepted zero velocity |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET,state->_imu->vel().norm(),chi2,_options.chi2_multipler*chi2_check);
     StateHelper::EKFUpdate(state, Hx_order, H, res, R);
 
-    // Finally move the state time forward and the FEJ value
+    // Finally move the state time forward
     state->_timestamp = timestamp;
-    state->_imu->set_fej(state->_imu->value());
     return true;
 
 
