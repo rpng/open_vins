@@ -574,8 +574,6 @@ void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w
                 state->_Cov.block(0, state->_calib_dt_CAMtoIMU->id(), state->_Cov.rows(), 1) * dnc_dt.transpose();
         state->_Cov.block(pose->id(), 0, 6, state->_Cov.rows()) +=
                 dnc_dt * state->_Cov.block(state->_calib_dt_CAMtoIMU->id(), 0, 1, state->_Cov.rows());
-        state->_Cov.block(pose->id(), pose->id(), 6, 6) +=
-                dnc_dt * state->_Cov(state->_calib_dt_CAMtoIMU->id(), state->_calib_dt_CAMtoIMU->id()) * dnc_dt.transpose();
     }
 
 }
