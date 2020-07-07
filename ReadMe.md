@@ -19,6 +19,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **May 18, 2020** - Released secondary pose graph example repository [ov_secondary](https://github.com/rpng/ov_secondary) based on [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion). OpenVINS now publishes marginalized feature track, feature 3d position, and first camera intrinsics and extrinsics. See [PR#66](https://github.com/rpng/open_vins/pull/66) for details and discussion.
 * **April 3, 2020** - Released [v2.0](https://github.com/rpng/open_vins/releases/tag/v2.0) update to the codebase with some key refactoring, ros-free building, improved dataset support, and single inverse depth feature representation. Please check out the [release page](https://github.com/rpng/open_vins/releases/tag/v2.0) for details.
 * **January 21, 2020** - Our paper has been accepted for presentation in [ICRA 2020](https://www.icra2020.org/). We look forward to seeing everybody there! We have also added links to a few videos of the system running on different datasets.
 * **October 23, 2019** - OpenVINS placed first in the [IROS 2019 FPV Drone Racing VIO Competition
@@ -63,8 +64,26 @@ Please take a look at the feature list below for full details on what the system
 * Out of the box evaluation on EurocMav and TUM-VI datasets
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
-## Demo Videos
 
+
+## Codebase Extensions
+
+* **[ov_secondary](https://github.com/rpng/ov_secondary)** -
+This is an example secondary thread which provides loop closure in a loosely coupled manner for [OpenVINS](https://github.com/rpng/open_vins).
+This is a modification of the code originally developed by the HKUST aerial robotics group and can be found in their [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion) repository.
+Here we stress that this is a loosely coupled method, thus no information is returned to the estimator to improve the underlying OpenVINS odometry.
+This codebase has been modified in a few key areas including: exposing more loop closure parameters, subscribing to camera intrinsics, simplifying configuration such that only topics need to be supplied, and some tweaks to the loop closure detection to improve frequency.
+
+* **[ov_maplab](https://github.com/rpng/ov_maplab)** - 
+This codebase contains the interface wrapper for exporting visual-inertial runs from [OpenVINS](https://github.com/rpng/open_vins) into the ViMap structure taken by [maplab](https://github.com/ethz-asl/maplab).
+The state estimates and raw images are appended to the ViMap as OpenVINS runs through a dataset.
+After completion of the dataset, features are re-extract and triangulate with maplab's feature system.
+This can be used to merge multi-session maps, or to perform a batch optimization after first running the data through OpenVINS.
+Some example have been provided along with a helper script to export trajectories into the standard groundtruth format.
+
+
+
+## Demo Videos
 
 [![](docs/youtube/KCX51GvYGss.jpg)](http://www.youtube.com/watch?v=KCX51GvYGss "OpenVINS - EuRoC MAV Vicon Rooms Flyby")
 [![](docs/youtube/Lc7VQHngSuQ.jpg)](http://www.youtube.com/watch?v=Lc7VQHngSuQ "OpenVINS - TUM VI Datasets Flyby")
@@ -74,6 +93,7 @@ Please take a look at the feature list below for full details on what the system
 [![](docs/youtube/187AXuuGNNw.jpg)](http://www.youtube.com/watch?v=187AXuuGNNw "OpenVINS - EuRoC MAV Vicon Rooms Demonstration")
 [![](docs/youtube/oUoLlrFryk0.jpg)](http://www.youtube.com/watch?v=oUoLlrFryk0 "OpenVINS - TUM VI Datasets Demostration")
 [![](docs/youtube/ExPIGwORm4E.jpg)](http://www.youtube.com/watch?v=ExPIGwORm4E "OpenVINS - UZH-FPV Drone Racing Dataset Demonstration")
+
 
 
 ## Credit / Licensing
