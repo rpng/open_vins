@@ -562,6 +562,13 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     //===================================================================================
 
 
+    // Collect all slam features into single vector
+    std::vector<Feature*> features_used_in_update = featsup_MSCKF;
+    features_used_in_update.insert(features_used_in_update.end(), feats_slam_UPDATE.begin(), feats_slam_UPDATE.end());
+    features_used_in_update.insert(features_used_in_update.end(), feats_slam_DELAYED.begin(), feats_slam_DELAYED.end());
+    update_keyframe_historical_information(features_used_in_update);
+
+
     // Save all the MSCKF features used in the update
     good_features_MSCKF.clear();
     for(Feature* feat : featsup_MSCKF) {
@@ -584,16 +591,14 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // First do anchor change if we are about to lose an anchor pose
     updaterSLAM->change_anchors(state);
 
-    // Marginalize the oldest clone of the state if we are at max length
-    if((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
-        // Cleanup any features older then the marginalization time
-        trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
-        if(trackARUCO != nullptr) {
-            trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
-        }
-        // Finally marginalize that clone
-        StateHelper::marginalize_old_clone(state);
+    // Cleanup any features older then the marginalization time
+    trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
+    if(trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
     }
+
+    // Finally marginalize the oldest clone if needed
+    StateHelper::marginalize_old_clone(state);
 
     // Finally if we are optimizing our intrinsics, update our trackers
     if(state->_options.do_calib_camera_intrinsics) {
@@ -703,10 +708,91 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 }
 
 
+void VioManager::update_keyframe_historical_information(const std::vector<Feature*> &features) {
 
 
+    // Loop through all features that have been used in the last update
+    // We want to record their historical measurements and estimates for later use
+    for(const auto &feat : features) {
+
+        // Get position of feature in the global frame of reference
+        Eigen::Vector3d p_FinG = feat->p_FinG;
+
+        // If it is a slam feature, then get its best guess from the state
+        if(state->_features_SLAM.find(feat->featid)!=state->_features_SLAM.end()) {
+            p_FinG = state->_features_SLAM.at(feat->featid)->get_xyz(false);
+        }
+
+        // Push back any new measurements if we have them
+        // Ensure that if the feature is already added, then just append the new measurements
+        if(hist_feat_posinG.find(feat->featid)!=hist_feat_posinG.end()) {
+            hist_feat_posinG.at(feat->featid) = p_FinG;
+            for(const auto &cam2uv : feat->uvs) {
+                if(hist_feat_uvs.at(feat->featid).find(cam2uv.first)!=hist_feat_uvs.at(feat->featid).end()) {
+                    hist_feat_uvs.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs.at(feat->featid).at(cam2uv.first).end(), cam2uv.second.begin(), cam2uv.second.end());
+                    hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).end(), feat->uvs_norm.at(cam2uv.first).begin(), feat->uvs_norm.at(cam2uv.first).end());
+                    hist_feat_timestamps.at(feat->featid).at(cam2uv.first).insert(hist_feat_timestamps.at(feat->featid).at(cam2uv.first).end(), feat->timestamps.at(cam2uv.first).begin(), feat->timestamps.at(cam2uv.first).end());
+                } else {
+                    hist_feat_uvs.at(feat->featid).insert(cam2uv);
+                    hist_feat_uvs_norm.at(feat->featid).insert({cam2uv.first,feat->uvs_norm.at(cam2uv.first)});
+                    hist_feat_timestamps.at(feat->featid).insert({cam2uv.first,feat->timestamps.at(cam2uv.first)});
+                }
+            }
+        } else {
+            hist_feat_posinG.insert({feat->featid,p_FinG});
+            hist_feat_uvs.insert({feat->featid,feat->uvs});
+            hist_feat_uvs_norm.insert({feat->featid,feat->uvs_norm});
+            hist_feat_timestamps.insert({feat->featid,feat->timestamps});
+        }
+    }
 
 
+    // Go through all our old historical vectors and find if any features should be removed
+    // In this case we know that if we have no use for features that only have info older then the last marg time
+    std::vector<size_t> ids_to_remove;
+    for(const auto &id2feat : hist_feat_timestamps) {
+        bool all_older = true;
+        for(const auto &cam2time : id2feat.second) {
+            for(const auto &time : cam2time.second) {
+                if(time >= hist_last_marginalized_time) {
+                    all_older = false;
+                    break;
+                }
+            }
+            if(!all_older) break;
+        }
+        if(all_older) {
+            ids_to_remove.push_back(id2feat.first);
+        }
+    }
+
+    // Remove those features!
+    for(const auto &id : ids_to_remove) {
+        hist_feat_posinG.erase(id);
+        hist_feat_uvs.erase(id);
+        hist_feat_uvs_norm.erase(id);
+        hist_feat_timestamps.erase(id);
+    }
+
+    // Remove any historical states older then the marg time
+    auto it0 = hist_stateinG.begin();
+    while(it0 != hist_stateinG.end()) {
+        if(it0->first < hist_last_marginalized_time) it0 = hist_stateinG.erase(it0);
+        else it0++;
+    }
+
+    // If we have reached our max window size record the oldest clone
+    // This clone is expected to be marginalized from the state
+    if ((int) state->_clones_IMU.size() > state->_options.max_clone_size) {
+        hist_last_marginalized_time = state->margtimestep();
+        assert(hist_last_marginalized_time != INFINITY);
+        Eigen::Matrix<double,7,1> imustate_inG = Eigen::Matrix<double,7,1>::Zero();
+        imustate_inG.block(0,0,4,1) = state->_clones_IMU.at(hist_last_marginalized_time)->quat();
+        imustate_inG.block(4,0,3,1) = state->_clones_IMU.at(hist_last_marginalized_time)->pos();
+        hist_stateinG.insert({hist_last_marginalized_time, imustate_inG});
+    }
+
+}
 
 
 

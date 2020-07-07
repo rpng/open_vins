@@ -4,11 +4,11 @@
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" />
-    <arg name="bag"         default="/home/patrick/datasets/tum/dataset-room2_512_16.bag" />
+    <arg name="bag"         default="/home/patrick/datasets/tum/dataset-room1_512_16.bag" />
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="1.0" />
-    <arg name="init_imu_thresh"   default="0.75" />
+    <arg name="init_imu_thresh"   default="0.70" /> <!-- room1:0.70, room2:0.75, room3:0.70 -->
 
     <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
