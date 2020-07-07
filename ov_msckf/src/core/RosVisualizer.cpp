@@ -59,6 +59,12 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
     ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
 
+    // Keyframe publishers
+    pub_keyframe_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/keyframe_pose", 1000);
+    pub_keyframe_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/keyframe_feats", 1000);
+    pub_keyframe_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/keyframe_extrinsic", 1000);
+    pub_keyframe_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/keyframe_intrinsics", 1000);
+
     // option to enable publishing of global to IMU transformation
     nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
     nh.param<bool>("publish_calibration_tf", publish_calibration_tf, true);
@@ -132,6 +138,9 @@ void RosVisualizer::visualize() {
 
     // Publish gt if we have it
     publish_groundtruth();
+
+    // Publish keyframe information
+    publish_keyframe_information();
 
     // save total state
     if(save_total_state)
@@ -670,6 +679,123 @@ void RosVisualizer::publish_groundtruth() {
 
 
 
+void RosVisualizer::publish_keyframe_information() {
+
+
+    // Check if we have subscribers
+    if(pub_keyframe_pose.getNumSubscribers()==0 && pub_keyframe_point.getNumSubscribers()==0 &&
+       pub_keyframe_extrinsic.getNumSubscribers()==0 && pub_keyframe_intrinsics.getNumSubscribers()==0)
+        return;
+
+
+    // Skip if we don't have a marginalized frame yet
+    double hist_last_marginalized_time;
+    Eigen::Matrix<double,7,1> stateinG;
+    if(!_app->hist_last_marg_state(hist_last_marginalized_time, stateinG))
+        return;
+
+    // Default header
+    std_msgs::Header header;
+    header.stamp = ros::Time(hist_last_marginalized_time);
+
+    //======================================================
+    // PUBLISH IMU TO CAMERA0 EXTRINSIC
+    // need to flip the transform to the IMU frame
+    Eigen::Vector4d q_ItoC = _app->get_state()->_calib_IMUtoCAM.at(0)->quat();
+    Eigen::Vector3d p_CinI = -_app->get_state()->_calib_IMUtoCAM.at(0)->Rot().transpose()*_app->get_state()->_calib_IMUtoCAM.at(0)->pos();
+    nav_msgs::Odometry odometry_calib;
+    odometry_calib.header = header;
+    odometry_calib.header.frame_id = "imu";
+    odometry_calib.pose.pose.position.x = p_CinI(0);
+    odometry_calib.pose.pose.position.y = p_CinI(1);
+    odometry_calib.pose.pose.position.z = p_CinI(2);
+    odometry_calib.pose.pose.orientation.x = q_ItoC(0);
+    odometry_calib.pose.pose.orientation.y = q_ItoC(1);
+    odometry_calib.pose.pose.orientation.z = q_ItoC(2);
+    odometry_calib.pose.pose.orientation.w = q_ItoC(3);
+    pub_keyframe_extrinsic.publish(odometry_calib);
+
+
+    //======================================================
+    // PUBLISH CAMERA0 INTRINSICS
+    sensor_msgs::CameraInfo cameraparams;
+    cameraparams.header = header;
+    cameraparams.header.frame_id = "imu";
+    cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0))? "equidistant" : "plumb_bob";
+    Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
+    cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
+    cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
+    pub_keyframe_intrinsics.publish(cameraparams);
+
+
+    //======================================================
+    // PUBLISH HISTORICAL POSE ESTIMATE
+    nav_msgs::Odometry odometry_pose;
+    odometry_pose.header = header;
+    odometry_pose.header.frame_id = "global";
+    odometry_pose.pose.pose.position.x = stateinG(4);
+    odometry_pose.pose.pose.position.y = stateinG(5);
+    odometry_pose.pose.pose.position.z = stateinG(6);
+    odometry_pose.pose.pose.orientation.x = stateinG(0);
+    odometry_pose.pose.pose.orientation.y = stateinG(1);
+    odometry_pose.pose.pose.orientation.z = stateinG(2);
+    odometry_pose.pose.pose.orientation.w = stateinG(3);
+    pub_keyframe_pose.publish(odometry_pose);
+
+
+    //======================================================
+    // PUBLISH FEATURE TRACKS IN THE GLOBAL FRAME OF REFERENCE
+
+    // Get historical feature information
+    std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
+    _app->hist_get_features(hist_feat_posinG, hist_feat_uvs, hist_feat_uvs_norm, hist_feat_timestamps);
+
+    // Construct the message
+    sensor_msgs::PointCloud point_cloud;
+    point_cloud.header = header;
+    point_cloud.header.frame_id = "global";
+    for(const auto &feattimes : hist_feat_timestamps) {
+
+        // Skip if this feature has no extraction in the "zero" camera
+        if(feattimes.second.find(0)==feattimes.second.end())
+            continue;
+
+        // Skip if this feature does not have measurement at this time
+        auto iter = std::find(feattimes.second.at(0).begin(), feattimes.second.at(0).end(), hist_last_marginalized_time);
+        if(iter==feattimes.second.at(0).end())
+            continue;
+
+        // Get this feature information
+        size_t featid = feattimes.first;
+        size_t index = (size_t)std::distance(feattimes.second.at(0).begin(), iter);
+        Eigen::VectorXf uv = hist_feat_uvs.at(featid).at(0).at(index);
+        Eigen::VectorXf uv_n = hist_feat_uvs_norm.at(featid).at(0).at(index);
+        Eigen::Vector3d pFinG = hist_feat_posinG.at(featid);
+
+        // Push back 3d point
+        geometry_msgs::Point32 p;
+        p.x = pFinG(0);
+        p.y = pFinG(1);
+        p.z = pFinG(2);
+        point_cloud.points.push_back(p);
+
+        // Push back the norm, raw, and feature id
+        sensor_msgs::ChannelFloat32 p_2d;
+        p_2d.values.push_back(uv_n(0));
+        p_2d.values.push_back(uv_n(1));
+        p_2d.values.push_back(uv(0));
+        p_2d.values.push_back(uv(1));
+        p_2d.values.push_back(featid);
+        point_cloud.channels.push_back(p_2d);
+
+    }
+    pub_keyframe_point.publish(point_cloud);
+
+
+}
 
 
 void RosVisualizer::sim_save_total_state_to_file() {
