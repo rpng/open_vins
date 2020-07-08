@@ -27,11 +27,12 @@
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
-            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
             <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="6">
+          <ol class="m-col-t-6 m-col-m-none" start="7">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -98,7 +99,7 @@
             <dd>Gets the next inertial reading if we have one.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#add03be2fbfa53224369b07411b6a81b7" class="m-doc">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
-              std::vector&lt;int&gt;&amp; camids,
+              std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
               std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats) -&gt; bool</span>
             </dt>
             <dd>Gets the next inertial reading if we have one.</dd>
@@ -122,16 +123,16 @@
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
-              int camid,
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> camid,
               const std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats) -&gt; std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;</span>
             </dt>
             <dd>Projects the passed map features into the desired camera frame.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a511b2edf20545972ced008fddb0654ae" class="m-doc">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
-              int camid,
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> camid,
               std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats,
-              int numpts)</span>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numpts)</span>
             </dt>
             <dd>Will generate points in the fov of the specified camera.</dd>
           </dl>
@@ -308,7 +309,7 @@
           <section class="m-doc-details" id="add03be2fbfa53224369b07411b6a81b7"><div>
             <h3>
               <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#add03be2fbfa53224369b07411b6a81b7" class="m-doc-self">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
-              std::vector&lt;int&gt;&amp; camids,
+              std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
               std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span></span>
             </h3>
             <p>Gets the next inertial reading if we have one.</p>
@@ -359,7 +360,7 @@
             <h3>
               <span class="m-doc-wrap-bumper">std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt; ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc-self">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
-              int camid,
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> camid,
               const std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>Projects the passed map features into the desired camera frame.</p>
@@ -397,9 +398,9 @@
             <h3>
               <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a511b2edf20545972ced008fddb0654ae" class="m-doc-self">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
-              int camid,
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> camid,
               std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats,
-              int numpts) <span class="m-label m-warning">protected</span></span></span>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numpts) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>Will generate points in the fov of the specified camera.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -475,7 +476,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

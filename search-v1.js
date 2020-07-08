@@ -1,7 +1,7 @@
 /*
     This file is part of m.css.
 
-    Copyright © 2017, 2018, 2019 Vladimír Vondruš <mosra@centrum.cz>
+    Copyright © 2017, 2018, 2019, 2020 Vladimír Vondruš <mosra@centrum.cz>
 
     Permission is hereby granted, free of charge, to any person obtaining a
     copy of this software and associated documentation files (the "Software"),
@@ -330,7 +330,7 @@ var Search = {
 
             /* Populate the results with all values associated with this node */
             for(let i = 0; i != resultCount; ++i) {
-                let index = this.trie.getUint16(offset + (i + 1)*2, true);
+                let index = this.trie.getUint16(offset + 2 + i*2, true);
                 results.push(this.gatherResult(index, suffixLength, 0xffffff)); /* should be enough haha */
 
                 /* 'nuff said. */

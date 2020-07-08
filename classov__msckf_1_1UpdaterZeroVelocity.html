@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_core::InertialInitializer class | OpenVINS</title>
+  <title>ov_msckf::UpdaterZeroVelocity class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -48,16 +48,15 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>InertialInitializer <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>UpdaterZeroVelocity <span class="m-thin">class</span>
         </h1>
-        <p>Initializer for visual-inertial system.</p>
+        <p>Will try to <em>detect</em> and then update using zero velocity assumption.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
@@ -65,103 +64,117 @@
             </li>
           </ul>
         </div>
-<p>This class has a series of functions that can be used to initialize your system. Right now we have our implementation that assumes that the imu starts from standing still. In the future we plan to add support for structure-from-motion dynamic initialization.</p><p>To initialize from standstill:</p><ol><li>Collect all inertial measurements</li><li>See if within the last window there was a jump in acceleration</li><li>If the jump is past our threshold we should init (i.e. we have started moving)</li><li>Use the <em>previous</em> window, which should have been stationary to initialize orientation</li><li>Return a roll and pitch aligned with gravity and biases.</li></ol>
-        <section id="pub-types">
-          <h2><a href="#pub-types">Public types</a></h2>
-          <dl class="m-doc">
-            <dt>
-              struct <a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>
-            </dt>
-            <dd>Struct for a single imu measurement (time, wm, am)</dd>
-          </dl>
-        </section>
+<p>Consider the case that a VIO unit remains stationary for a period time. Typically this can cause issues in a monocular system without SLAM features since no features can be triangulated. Additional, if features could be triangulated (e.g. stereo) the quality can be poor and hurt performance. If we can detect the cases where we are stationary then we can leverage this to prevent the need to do feature update during this period. The main application would be using this on a <strong>wheeled vehicle</strong> which needs to stop (e.g. stop lights or parking).</p>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#af561617873737ccbee89ef1049380950" class="m-doc">InertialInitializer</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; gravity,
-              double window_length,
-              double imu_excite_threshold)</span>
+              <span class="m-doc-wrap-bumper"><a href="#a1e44bb105b4a0c083a033b498705f8f6" class="m-doc">UpdaterZeroVelocity</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a>&amp; options,
+              <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a>&amp; noises,
+              Eigen::Vector3d gravity,
+              double zupt_max_velocity,
+              double zupt_noise_multiplier)</span>
             </dt>
-            <dd>Default constructor.</dd>
+            <dd>Default constructor for our zero velocity detector and updater.</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad16871758a8c89fadc39768541c7dd0a" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Matrix&lt;double, 3, 1&gt; wm,
-              Eigen::Matrix&lt;double, 3, 1&gt; am)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a3b1d5d78e0d715b453b2eb77302b7b63" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
+              Eigen::Vector3d wm,
+              Eigen::Vector3d am)</span>
             </dt>
             <dd>Stores incoming inertial readings.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a8824e73db6276d9954eb597f539a6281" class="m-doc">initialize_with_imu</a>(</span><span class="m-doc-wrap">double&amp; time0,
-              Eigen::Matrix&lt;double, 4, 1&gt;&amp; q_GtoI0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_w0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; v_I0inG,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_a0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; p_I0inG,
-              bool wait_for_jerk = true) -&gt; bool</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a144bdac9efb57045a90c4557e6f48975" class="m-doc">try_update</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              double timestamp) -&gt; bool</span>
             </dt>
-            <dd>Try to initialize the system using just the imu.</dd>
+            <dd>Will first detect if the system is zero velocity, then will update.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a59d20bbff5849ed357e0119130ab200e">
-              Eigen::Matrix&lt;double, 3, 1&gt; <a href="#a59d20bbff5849ed357e0119130ab200e" class="m-doc-self">_gravity</a>
+            <dt id="a749638ff6ee8f1b0ba8eee2bef7e93e8">
+              <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#a749638ff6ee8f1b0ba8eee2bef7e93e8" class="m-doc-self">_options</a>
+            </dt>
+            <dd>Options used during update (chi2 multiplier)</dd>
+            <dt id="aeea824812476b8cb19a9fa44d86fe70a">
+              <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a> <a href="#aeea824812476b8cb19a9fa44d86fe70a" class="m-doc-self">_noises</a>
+            </dt>
+            <dd>Container for the imu noise values.</dd>
+            <dt id="a4a1e25b574b2f362155a09a555a140e1">
+              Eigen::Matrix&lt;double, 3, 1&gt; <a href="#a4a1e25b574b2f362155a09a555a140e1" class="m-doc-self">_gravity</a>
             </dt>
             <dd>Gravity vector.</dd>
-            <dt id="affb904841eab3635252b698b85ffe4be">
-              double <a href="#affb904841eab3635252b698b85ffe4be" class="m-doc-self">_window_length</a>
+            <dt id="a27800e861318dfd8938005dc8b7507cf">
+              double <a href="#a27800e861318dfd8938005dc8b7507cf" class="m-doc-self">_zupt_max_velocity</a>
             </dt>
-            <dd>Amount of time we will initialize over (seconds)</dd>
-            <dt id="a1af4c82912928d0a58a05e62d6103141">
-              double <a href="#a1af4c82912928d0a58a05e62d6103141" class="m-doc-self">_imu_excite_threshold</a>
+            <dd>Max velocity (m/s) that we should consider a zupt with.</dd>
+            <dt id="a4cb7aba647c32c927075fbffd7573b5e">
+              double <a href="#a4cb7aba647c32c927075fbffd7573b5e" class="m-doc-self">_zupt_noise_multiplier</a>
             </dt>
-            <dd>Variance threshold on our acceleration to be classified as moving.</dd>
-            <dt id="a07604dc112f6417994c4bb403defa375">
-              std::vector&lt;<a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>&gt; <a href="#a07604dc112f6417994c4bb403defa375" class="m-doc-self">imu_data</a>
+            <dd>Multiplier of our IMU noise matrix (default should be 1.0)</dd>
+            <dt id="a5b6c97d5985ae971821aaeaed715e717">
+              std::map&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, double&gt; <a href="#a5b6c97d5985ae971821aaeaed715e717" class="m-doc-self">chi_squared_table</a>
+            </dt>
+            <dd>Chi squared 95th percentile table (lookup would be size of residual)</dd>
+            <dt id="a8edda371962abb0a6ee21b9262be1153">
+              std::vector&lt;<a href="structov__msckf_1_1Propagator_1_1IMUDATA.html" class="m-doc">Propagator::<wbr />IMUDATA</a>&gt; <a href="#a8edda371962abb0a6ee21b9262be1153" class="m-doc-self">imu_data</a>
             </dt>
             <dd>Our history of IMU messages (time, angular, linear)</dd>
+            <dt id="ae3d40558eff57d631724a15ab431f83a">
+              double <a href="#ae3d40558eff57d631724a15ab431f83a" class="m-doc-self">last_prop_time_offset</a>
+            </dt>
+            <dd>Estimate for time offset at last propagation time.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="af561617873737ccbee89ef1049380950"><div>
+          <section class="m-doc-details" id="a1e44bb105b4a0c083a033b498705f8f6"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af561617873737ccbee89ef1049380950" class="m-doc-self">InertialInitializer</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; gravity,
-              double window_length,
-              double imu_excite_threshold)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1e44bb105b4a0c083a033b498705f8f6" class="m-doc-self">UpdaterZeroVelocity</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a>&amp; options,
+              <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a>&amp; noises,
+              Eigen::Vector3d gravity,
+              double zupt_max_velocity,
+              double zupt_noise_multiplier)</span></span>
             </h3>
-            <p>Default constructor.</p>
+            <p>Default constructor for our zero velocity detector and updater.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">gravity</td>
-                  <td>Gravity in the global frame of reference</td>
+                  <td style="width: 1%">options</td>
+                  <td>Updater options (chi2 multiplier)</td>
                 </tr>
                 <tr>
-                  <td>window_length</td>
-                  <td>Amount of time we will initialize over (seconds)</td>
+                  <td>noises</td>
+                  <td>imu noise characteristics (continuous time)</td>
                 </tr>
                 <tr>
-                  <td>imu_excite_threshold</td>
-                  <td>Variance threshold on our acceleration to be classified as moving</td>
+                  <td>gravity</td>
+                  <td>Global gravity of the system (normally [0,0,9.81])</td>
+                </tr>
+                <tr>
+                  <td>zupt_max_velocity</td>
+                  <td>Max velocity we should consider to do a update with</td>
+                </tr>
+                <tr>
+                  <td>zupt_noise_multiplier</td>
+                  <td>Multiplier of our IMU noise matrix (default should be 1.0)</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ad16871758a8c89fadc39768541c7dd0a"><div>
+          <section class="m-doc-details" id="a3b1d5d78e0d715b453b2eb77302b7b63"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad16871758a8c89fadc39768541c7dd0a" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Matrix&lt;double, 3, 1&gt; wm,
-              Eigen::Matrix&lt;double, 3, 1&gt; am)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3b1d5d78e0d715b453b2eb77302b7b63" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
+              Eigen::Vector3d wm,
+              Eigen::Vector3d am)</span></span>
             </h3>
             <p>Stores incoming inertial readings.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -184,59 +197,33 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a8824e73db6276d9954eb597f539a6281"><div>
+          <section class="m-doc-details" id="a144bdac9efb57045a90c4557e6f48975"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8824e73db6276d9954eb597f539a6281" class="m-doc-self">initialize_with_imu</a>(</span><span class="m-doc-wrap">double&amp; time0,
-              Eigen::Matrix&lt;double, 4, 1&gt;&amp; q_GtoI0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_w0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; v_I0inG,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; b_a0,
-              Eigen::Matrix&lt;double, 3, 1&gt;&amp; p_I0inG,
-              bool wait_for_jerk = true)</span></span>
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a144bdac9efb57045a90c4557e6f48975" class="m-doc-self">try_update</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              double timestamp)</span></span>
             </h3>
-            <p>Try to initialize the system using just the imu.</p>
+            <p>Will first detect if the system is zero velocity, then will update.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">time0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Timestamp that the returned state is at</td>
+                  <td style="width: 1%">state</td>
+                  <td><a href="classov__msckf_1_1State.html" class="m-doc">State</a> of the filter</td>
                 </tr>
                 <tr>
-                  <td>q_GtoI0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Orientation at initialization</td>
-                </tr>
-                <tr>
-                  <td>b_w0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Gyro bias at initialization</td>
-                </tr>
-                <tr>
-                  <td>v_I0inG&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Velocity at initialization</td>
-                </tr>
-                <tr>
-                  <td>b_a0&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Acceleration bias at initialization</td>
-                </tr>
-                <tr>
-                  <td>p_I0inG&nbsp;<span class="m-label m-flat m-warning">out</span></td>
-                  <td>Position at initialization</td>
-                </tr>
-                <tr>
-                  <td>wait_for_jerk</td>
-                  <td>If true we will wait for a &quot;jerk&quot;</td>
+                  <td>timestamp</td>
+                  <td>Next camera timestamp we want to see if we should propagate to.</td>
                 </tr>
               </tbody>
               <tfoot>
                 <tr>
                   <th>Returns</th>
-                  <td>True if we have successfully initialized our system</td>
+                  <td>True if the system is currently at zero velocity</td>
                 </tr>
               </tfoot>
             </table>
-<p>This will check if we have had a large enough jump in our acceleration. If we have then we will use the period of time before this jump to initialize the state. This assumes that our imu is sitting still and is not moving (so this would fail if we are experiencing constant acceleration).</p><p>In the case that we do not wait for a jump (i.e. <code>wait_for_jerk</code> is false), then the system will try to initialize as soon as possible. This is only recommended if you have zero velocity update enabled to handle the stationary cases. To initialize in this case, we need to have the average angular variance be below the set threshold (i.e. we need to be stationary).</p>
           </div></section>
         </section>
       </div>

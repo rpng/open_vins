@@ -27,11 +27,12 @@
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
-            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
             <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="6">
+          <ol class="m-col-t-6 m-col-m-none" start="7">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -107,6 +108,18 @@
               double <a href="#a0af9805017c4871384791e5dbb9d4e5d" class="m-doc-self">init_imu_thresh</a>
             </dt>
             <dd>Variance threshold on our acceleration to be classified as moving.</dd>
+            <dt id="a92fe206a83fc4b6c79b88a19c7ff7f3a">
+              bool <a href="#a92fe206a83fc4b6c79b88a19c7ff7f3a" class="m-doc-self">try_zupt</a>
+            </dt>
+            <dd>If we should try to use zero velocity update.</dd>
+            <dt id="ad1a08e427b280edf0bb7a64ea71d1c80">
+              double <a href="#ad1a08e427b280edf0bb7a64ea71d1c80" class="m-doc-self">zupt_max_velocity</a>
+            </dt>
+            <dd>Max velocity we will consider to try to do a zupt (i.e. if above this, don&#x27;t do zupt)</dd>
+            <dt id="a9c9396ee0ec6228d99d458e8a02f47cd">
+              double <a href="#a9c9396ee0ec6228d99d458e8a02f47cd" class="m-doc-self">zupt_noise_multiplier</a>
+            </dt>
+            <dd>Multiplier of our zupt measurement IMU noise matrix (default should be 1.0)</dd>
             <dt id="af1c76781e016ae09e49bd4d8e42006e6">
               bool <a href="#af1c76781e016ae09e49bd4d8e42006e6" class="m-doc-self">record_timing_information</a>
             </dt>
@@ -131,6 +144,10 @@
               <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#a7f72e601f8b772aeb3a59304fd615667" class="m-doc-self">aruco_options</a>
             </dt>
             <dd>Update options for ARUCO features (pixel noise and chi2 multiplier)</dd>
+            <dt id="adbcc99cae0410b2627246080e9e03e3e">
+              <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#adbcc99cae0410b2627246080e9e03e3e" class="m-doc-self">zupt_options</a>
+            </dt>
+            <dd>Update options for zero velocity (chi2 multiplier)</dd>
             <dt id="a6a413a710da13d447def5dae370f6c68">
               Eigen::Vector3d <a href="#a6a413a710da13d447def5dae370f6c68" class="m-doc-self">gravity</a>
             </dt>
@@ -152,7 +169,7 @@
             </dt>
             <dd>Map between camid and camera extrinsics (q_ItoC, p_IinC).</dd>
             <dt id="aa9610a658c51215ed6e3a1af9380e25c">
-              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#aa9610a658c51215ed6e3a1af9380e25c" class="m-doc-self">camera_wh</a>
+              std::map&lt;size_t, std::pair&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&gt; <a href="#aa9610a658c51215ed6e3a1af9380e25c" class="m-doc-self">camera_wh</a>
             </dt>
             <dd>Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.</dd>
             <dt id="af01535da59b1d2d5e3309aaa34e69c8e">
@@ -176,23 +193,23 @@
             </dt>
             <dd>Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)</dd>
             <dt id="a1bde650ec917e7a3df221a1524e33429">
-              int <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
             </dt>
             <dd>The number of points we should extract and track in <em>each</em> image frame. This highly effects the computation required for tracking.</dd>
             <dt id="a27d862f8f1811211f895b27a3b789e3a">
-              int <a href="#a27d862f8f1811211f895b27a3b789e3a" class="m-doc-self">fast_threshold</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a27d862f8f1811211f895b27a3b789e3a" class="m-doc-self">fast_threshold</a>
             </dt>
             <dd>Fast extraction threshold.</dd>
             <dt id="ab52b09d507ef33dabe72d65a223fe067">
-              int <a href="#ab52b09d507ef33dabe72d65a223fe067" class="m-doc-self">grid_x</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#ab52b09d507ef33dabe72d65a223fe067" class="m-doc-self">grid_x</a>
             </dt>
             <dd>Number of grids we should split column-wise to do feature extraction in.</dd>
             <dt id="a678920b0804fb40a14b22da61d49d631">
-              int <a href="#a678920b0804fb40a14b22da61d49d631" class="m-doc-self">grid_y</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a678920b0804fb40a14b22da61d49d631" class="m-doc-self">grid_y</a>
             </dt>
             <dd>Number of grids we should split row-wise to do feature extraction in.</dd>
             <dt id="a66d1e76bc9e8ffdd1c669d99fdce76b7">
-              int <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
             </dt>
             <dd>Will check after doing KLT track and remove any features closer than this.</dd>
             <dt id="a62800a75870b19213d1c44e69b2c32f7">
@@ -220,15 +237,15 @@
             </dt>
             <dd>Frequency (Hz) that we will simulate our inertial measurement unit.</dd>
             <dt id="a04e82ff351254354378cd7568aaef6ed">
-              int <a href="#a04e82ff351254354378cd7568aaef6ed" class="m-doc-self">sim_seed_state_init</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a04e82ff351254354378cd7568aaef6ed" class="m-doc-self">sim_seed_state_init</a>
             </dt>
             <dd>Seed for initial states (i.e. random feature 3d positions in the generated map)</dd>
             <dt id="afe2c433c61d25c18901b089a2215114c">
-              int <a href="#afe2c433c61d25c18901b089a2215114c" class="m-doc-self">sim_seed_preturb</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#afe2c433c61d25c18901b089a2215114c" class="m-doc-self">sim_seed_preturb</a>
             </dt>
             <dd>Seed for calibration perturbations. Change this to perturb by different random values if perturbations are enabled.</dd>
             <dt id="a9b3fee122a7d3b2069a424b5ef1b1155">
-              int <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
+              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
             </dt>
             <dd>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</dd>
             <dt id="a4d595d5277582b53d12ad75bc7a6ad57">
@@ -281,7 +298,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

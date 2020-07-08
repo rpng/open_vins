@@ -27,11 +27,12 @@
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
-            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
             <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="6">
+          <ol class="m-col-t-6 m-col-m-none" start="7">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -78,7 +79,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#aeaf944e67fb20f78069449b776a26880" class="m-doc">TrackSIM</a>(</span><span class="m-doc-wrap">int numaruco)</span>
+              <span class="m-doc-wrap-bumper"><a href="#aeaf944e67fb20f78069449b776a26880" class="m-doc">TrackSIM</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numaruco)</span>
             </dt>
             <dd>Public constructor with configuration variables.</dd>
           </dl>
@@ -87,7 +88,7 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ae58f5e3a8739ed989afa92db869d4957" class="m-doc">set_width_height</a>(</span><span class="m-doc-wrap">std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; _camera_wh)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#ae58f5e3a8739ed989afa92db869d4957" class="m-doc">set_width_height</a>(</span><span class="m-doc-wrap">std::map&lt;size_t, std::pair&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&gt; _camera_wh)</span>
             </dt>
             <dd>Set the width and height for the cameras.</dd>
             <dt>
@@ -106,7 +107,7 @@
             <dd></dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a00388c410c804854c4c91e1a392d44e0" class="m-doc">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
-              const std::vector&lt;int&gt;&amp; camids,
+              const std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span>
             </dt>
             <dd>Feed function for a synchronized simulated cameras.</dd>
@@ -116,7 +117,7 @@
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
             <dt id="a1bfaa65729c8dbe015938cb6540705bb">
-              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#a1bfaa65729c8dbe015938cb6540705bb" class="m-doc-self">camera_wh</a>
+              std::map&lt;size_t, std::pair&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&gt; <a href="#a1bfaa65729c8dbe015938cb6540705bb" class="m-doc-self">camera_wh</a>
             </dt>
             <dd>Width and height of our cameras.</dd>
           </dl>
@@ -125,7 +126,7 @@
           <h2>Function documentation</h2>
           <section class="m-doc-details" id="aeaf944e67fb20f78069449b776a26880"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aeaf944e67fb20f78069449b776a26880" class="m-doc-self">TrackSIM</a>(</span><span class="m-doc-wrap">int numaruco)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aeaf944e67fb20f78069449b776a26880" class="m-doc-self">TrackSIM</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numaruco)</span></span>
             </h3>
             <p>Public constructor with configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -142,7 +143,7 @@
           </div></section>
           <section class="m-doc-details" id="ae58f5e3a8739ed989afa92db869d4957"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae58f5e3a8739ed989afa92db869d4957" class="m-doc-self">set_width_height</a>(</span><span class="m-doc-wrap">std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; _camera_wh)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae58f5e3a8739ed989afa92db869d4957" class="m-doc-self">set_width_height</a>(</span><span class="m-doc-wrap">std::map&lt;size_t, std::pair&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&gt; _camera_wh)</span></span>
             </h3>
             <p>Set the width and height for the cameras.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -178,7 +179,7 @@
           <section class="m-doc-details" id="a00388c410c804854c4c91e1a392d44e0"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a00388c410c804854c4c91e1a392d44e0" class="m-doc-self">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
-              const std::vector&lt;int&gt;&amp; camids,
+              const std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span></span>
             </h3>
             <p>Feed function for a synchronized simulated cameras.</p>
@@ -247,7 +248,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

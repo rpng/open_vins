@@ -27,11 +27,12 @@
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
-            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
             <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="6">
+          <ol class="m-col-t-6 m-col-m-none" start="7">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -99,7 +100,7 @@
             <dd>Feed function for stereo camera pair.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a12eedc237bb96866b368dc87d7f53aa5" class="m-doc">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
-              const std::vector&lt;int&gt;&amp; camids,
+              const std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span>
             </dt>
             <dd>Feed function for a synchronized simulated cameras.</dd>
@@ -143,6 +144,26 @@
               <span class="m-doc-wrap-bumper">auto <a href="#ab2ba74990cefccbdcadab97aef1c83a1" class="m-doc-self">get_features_ARUCO</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
             </dt>
             <dd>Returns 3d ARUCO features in the global frame.</dd>
+            <dt id="a4889c56e5f28e7f9e86e7be9d64d4371">
+              <span class="m-doc-wrap-bumper">auto <a href="#a4889c56e5f28e7f9e86e7be9d64d4371" class="m-doc-self">did_zero_velocity_update</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            </dt>
+            <dd>Return true if we did a zero velocity update.</dd>
+            <dt id="a99654b6bdd0be6635b6563aae2a9bfb1">
+              <span class="m-doc-wrap-bumper">auto <a href="#a99654b6bdd0be6635b6563aae2a9bfb1" class="m-doc-self">get_zero_velocity_update_image</a>(</span><span class="m-doc-wrap">) -&gt; cv::Mat</span>
+            </dt>
+            <dd>Return the zero velocity update image.</dd>
+            <dt id="a96eb4e9e41e743d117b6453ab181684f">
+              <span class="m-doc-wrap-bumper">auto <a href="#a96eb4e9e41e743d117b6453ab181684f" class="m-doc-self">hist_last_marg_state</a>(</span><span class="m-doc-wrap">double&amp; timestamp,
+              Eigen::Matrix&lt;double, 7, 1&gt;&amp; stateinG) -&gt; bool</span>
+            </dt>
+            <dd>Returns the last timestamp we have marginalized (true if we have a state)</dd>
+            <dt id="a17343f7298787ef17d125de83566909e">
+              <span class="m-doc-wrap-bumper">void <a href="#a17343f7298787ef17d125de83566909e" class="m-doc-self">hist_get_features</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feat_posinG,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;size_t, std::vector&lt;Eigen::VectorXf&gt;&gt;&gt;&amp; feat_uvs,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;size_t, std::vector&lt;Eigen::VectorXf&gt;&gt;&gt;&amp; feat_uvs_norm,
+              std::unordered_map&lt;size_t, std::unordered_map&lt;size_t, std::vector&lt;double&gt;&gt;&gt;&amp; feat_timestamps)</span>
+            </dt>
+            <dd>Returns historical feature positions, and measurements times and uvs used to get its estimate.</dd>
           </dl>
         </section>
         <section id="pro-methods">
@@ -156,6 +177,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#a71372cd87f15b9ebfd12d3b86d16aa2a" class="m-doc">do_feature_propagate_update</a>(</span><span class="m-doc-wrap">double timestamp)</span>
             </dt>
             <dd>This will do the propagation and feature updates to the state.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a278cad5a1dc9963fc6983eaced71dee7" class="m-doc">update_keyframe_historical_information</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; features)</span>
+            </dt>
+            <dd>This function will update our historical tracking information. This historical information includes the best estimate of a feature in the global frame. For all features it also has the normalized and raw pixel coordinates at each timestep. The state is also recorded after it is marginalized out of the state.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
@@ -197,6 +222,10 @@
               <a href="classov__msckf_1_1UpdaterSLAM.html" class="m-doc">UpdaterSLAM</a>* <a href="#abb271827378e38581d87ec7bc387f5d7" class="m-doc-self">updaterSLAM</a>
             </dt>
             <dd>Our MSCKF feature updater.</dd>
+            <dt id="a823222a60f13f844fc1a0582b82de17b">
+              <a href="classov__msckf_1_1UpdaterZeroVelocity.html" class="m-doc">UpdaterZeroVelocity</a>* <a href="#a823222a60f13f844fc1a0582b82de17b" class="m-doc-self">updaterZUPT</a>
+            </dt>
+            <dd>Our aruoc tracker.</dd>
             <dt id="a40926fd6cbd206a7e87fc3042782f222">
               std::vector&lt;Eigen::Vector3d&gt; <a href="#a40926fd6cbd206a7e87fc3042782f222" class="m-doc-self">good_features_MSCKF</a>
             </dt>
@@ -316,7 +345,7 @@
           <section class="m-doc-details" id="a12eedc237bb96866b368dc87d7f53aa5"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a12eedc237bb96866b368dc87d7f53aa5" class="m-doc-self">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
-              const std::vector&lt;int&gt;&amp; camids,
+              const std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span></span>
             </h3>
             <p>Feed function for a synchronized simulated cameras.</p>
@@ -389,6 +418,23 @@
               </tbody>
             </table>
           </div></section>
+          <section class="m-doc-details" id="a278cad5a1dc9963fc6983eaced71dee7"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a278cad5a1dc9963fc6983eaced71dee7" class="m-doc-self">update_keyframe_historical_information</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; features) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>This function will update our historical tracking information. This historical information includes the best estimate of a feature in the global frame. For all features it also has the normalized and raw pixel coordinates at each timestep. The state is also recorded after it is marginalized out of the state.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">features</td>
+                  <td>Features using in the last update phase</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
         </section>
       </div>
     </div>
@@ -434,7 +480,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>
