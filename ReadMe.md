@@ -74,7 +74,7 @@ This is a modification of the code originally developed by the HKUST aerial robo
 Here we stress that this is a loosely coupled method, thus no information is returned to the estimator to improve the underlying OpenVINS odometry.
 This codebase has been modified in a few key areas including: exposing more loop closure parameters, subscribing to camera intrinsics, simplifying configuration such that only topics need to be supplied, and some tweaks to the loop closure detection to improve frequency.
 
-* **[ov_maplab](https://github.com/rpng/ov_maplab)** - 
+* **[ov_maplab](https://github.com/rpng/ov_maplab)** -
 This codebase contains the interface wrapper for exporting visual-inertial runs from [OpenVINS](https://github.com/rpng/open_vins) into the ViMap structure taken by [maplab](https://github.com/ethz-asl/maplab).
 The state estimates and raw images are appended to the ViMap as OpenVINS runs through a dataset.
 After completion of the dataset, features are re-extract and triangulate with maplab's feature system.

@@ -48,7 +48,7 @@ void InertialInitializer::feed_imu(double timestamp, Eigen::Matrix<double,3,1> w
 
 
 bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<double,4,1> &q_GtoI0, Eigen::Matrix<double,3,1> &b_w0,
-                                              Eigen::Matrix<double,3,1> &v_I0inG, Eigen::Matrix<double,3,1> &b_a0, Eigen::Matrix<double,3,1> &p_I0inG) {
+                                              Eigen::Matrix<double,3,1> &v_I0inG, Eigen::Matrix<double,3,1> &b_a0, Eigen::Matrix<double,3,1> &p_I0inG, bool wait_for_jerk) {
 
     // Return if we don't have any measurements
     if(imu_data.empty()) {
@@ -87,8 +87,8 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
     }
     a_var = std::sqrt(a_var/((int)window_newest.size()-1));
 
-    // If it is below the threshold just return
-    if(a_var < _imu_excite_threshold) {
+    // If it is below the threshold and we want to wait till we detect a jerk
+    if(a_var < _imu_excite_threshold && wait_for_jerk) {
         printf(YELLOW "InertialInitializer::initialize_with_imu(): no IMU excitation, below threshold %.4f < %.4f\n" RESET,a_var,_imu_excite_threshold);
         return false;
     }
@@ -111,6 +111,22 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
     Eigen::Vector3d angavg = Eigen::Vector3d::Zero();
     linavg = linsum/window_secondnew.size();
     angavg = angsum/window_secondnew.size();
+
+
+    // Calculate variance of the
+    double a_var2 = 0;
+    for(IMUDATA data : window_secondnew) {
+        a_var2 += (data.am-linavg).dot(data.am-linavg);
+    }
+    a_var2 = std::sqrt(a_var2/((int)window_secondnew.size()-1));
+
+    // If it is above the threshold and we are not waiting for a jerk
+    // Then we are not stationary (i.e. moving) so we should wait till we are
+    if((a_var > _imu_excite_threshold || a_var2 > _imu_excite_threshold) && !wait_for_jerk) {
+        printf(YELLOW "InertialInitializer::initialize_with_imu(): to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET,a_var,a_var2,_imu_excite_threshold);
+        return false;
+    }
+
 
     // Get z axis, which alines with -g (z_in_G=0,0,1)
     Eigen::Vector3d z_axis = linavg/linavg.norm();
@@ -137,7 +153,6 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
     // Set our biases equal to our noise (subtract our gravity from accelerometer bias)
     Eigen::Matrix<double,3,1> bg = angavg;
     Eigen::Matrix<double,3,1> ba = linavg - quat_2_Rot(q_GtoI)*_gravity;
-
 
     // Set our state variables
     time0 = window_secondnew.at(window_secondnew.size()-1).timestamp;

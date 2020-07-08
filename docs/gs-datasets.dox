@@ -75,18 +75,35 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
 @section gs-data-rpng RPNG OpenVINS Dataset
 
 In additional the community maintained datasets, we have also released a few datasets.
-Please cite the OpenVINS paper if you use any of these datasets in your works 
+Please cite the OpenVINS paper if you use any of these datasets in your works.
+Here are the specifics of the sensors that each dataset uses:
+
+- ArUco Datasets:
+    - Core visual-inertial sensor is the [VI-Sensor](https://furgalep.github.io/bib/nikolic_icra14.pdf)
+    - Stereo global shutter images at 20 Hz
+    - ADIS16448 IMU at 200 Hz
+    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1I0C-z3ZrTKne4bdbgBI6CtH1Rk4EQim0/view?usp=sharing)
+- Ironsides Datasets:
+    - Core visual-inertial sensor is the [ironsides](https://arxiv.org/pdf/1710.00893v1.pdf)
+    - Has two [Reach RTK](https://docs.emlid.com/reach/) one subscribed to a base station for corrections
+    - Stereo global shutter fisheye images at 20 Hz
+    - InvenSense IMU at 200 Hz
+    - GPS fixes at 5 Hz (/reach01/tcpfix has corrections from [NYSNet](https://cors.dot.ny.gov/sbc))
+    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1bhn0GrIYNEeAabQAbWoP8l_514cJ0KrZ/view?usp=sharing)
+
 Most of these datasets do not have perfect calibration parameters, and some are not time synchronised.
 Thus, please ensure that you have enabled online calibration of these parameters.
-
+Additionally, there is no groundtruth for these datasets, but some do include GPS messages if you wish to compare relative to something.
 
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1ytjo8V6pCroaVd8-QSop7R4DbsvvKyRQ/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
-| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1l_hnPUW6ufqxPtrLqRRHHI4mfGRZB1ha/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
-| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1FQBo3uHqRd0qm8GUb50Q-sj5gukcwaoU/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
-| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1oAbnV3MPOeaUSjnSc3g8t-pWV1nVjbys/view?usp=sharing) | none | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1ytjo8V6pCroaVd8-QSop7R4DbsvvKyRQ/view?usp=sharing) | none | [launch aruco](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1l_hnPUW6ufqxPtrLqRRHHI4mfGRZB1ha/view?usp=sharing) | none | [launch aruco](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1FQBo3uHqRd0qm8GUb50Q-sj5gukcwaoU/view?usp=sharing) | none | [launch aruco](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1oAbnV3MPOeaUSjnSc3g8t-pWV1nVjbys/view?usp=sharing) | none | [launch aruco](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_aruco.launch) |
+| Neighborhood 01 | 2300 | [rosbag](https://drive.google.com/file/d/1N07SDbaLEkq9pVEvi6oiHpavaRuFs3j2/view?usp=sharing) | none | [launch ironsides](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_ironsides.launch) |
+| Neighborhood 02 | 7400 | [rosbag](https://drive.google.com/file/d/1QEUi40sO8OkVXEGF5JojiiZMHMSiSqtg/view?usp=sharing) | none | [launch ironsides](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_serial_ironsides.launch) |
 @m_enddiv
 
 
@@ -126,6 +143,52 @@ Please take a look at the [run_ros_uzhfpv.sh](https://github.com/rpng/open_vins/
 | Indoor 45deg 13 | 159 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_45_13_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 | Indoor 45deg 14 | 211 | [rosbag](http://rpg.ifi.uzh.ch/datasets/uzh-fpv/indoor_45_14_snapdragon_with_gt.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/uzh_fpv) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_uzhfpv.launch) |
 @m_enddiv
+
+
+
+
+
+
+
+@section gs-data-kaist KAIST Urban Dataset
+
+The [KAIST urban dataset](https://irap.kaist.ac.kr/dataset/index.html) @cite Jeong2019IJRR is a dataset focus on autonomous driving and localization in challenging complex urban environments.
+The dataset was collected in Korea with a vehicle equipped with stereo camera pair, 2d SICK LiDARs, 3d Velodyne LiDAR, Xsens IMU, fiber optic gyro (FoG), wheel encoders, and RKT GPS.
+The camera is 10 Hz, while the Xsens IMU is 100 Hz sensing rate.
+A groundtruth "baseline" trajectory is also provided which is the resulting output from fusion of the FoG, RKT GPS, and wheel encoders.
+
+@code{.shell-session}
+git clone https://github.com/irapkaist/file_player.git
+git clone https://github.com/irapkaist/irp_sen_msgs.git
+catkin build
+rosrun file_player file_player
+@endcode
+
+To use the dataset, the dataset's file player can be used to publish the sensor information on to ROS.
+See the above commands on what packages you need to clone into your ROS workspace.
+One can record a rosbag after manually and use the serial OpenVINS processing node, or use the live node and manually playback the datasets.
+It is important to *disable* the "skip stop section" to ensure that we have continuous sensor feeds.
+Typically we process the datasets at 2x rate so we get a 20 Hz image feed and the datasets can be processed in a more efficient manor.
+
+@m_class{m-block m-warning}
+
+@par Dynamic Environments
+    A challenging open research question is being able to handle dynamic objects seen from the cameras.
+    By default we rely on our tracking 8 point RANSAC to handle these dynamics objects.
+    In the most of the KAIST datasets the majority of the scene can be taken up by other moving vehicles, thus the performance can suffer.
+    Please be aware of this fact.
+    
+
+@m_div{m-text-center}
+| Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
+|-------------:|--------|--------------|------------------|------------------|
+| Urban 28 | 11.47 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
+| Urban 38 | 11.42 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
+| Urban 39 | 11.06 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
+@m_enddiv
+
+
+
 
 
 

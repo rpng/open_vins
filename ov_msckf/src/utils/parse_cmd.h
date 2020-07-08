@@ -75,6 +75,12 @@ namespace ov_msckf {
         app1.add_option("--init_window_time", params.init_window_time, "");
         app1.add_option("--init_imu_thresh", params.init_imu_thresh, "");
 
+        // Zero velocity update
+        app1.add_option("--try_zupt", params.try_zupt, "");
+        app1.add_option("--zupt_chi2_multipler", params.zupt_options.chi2_multipler, "");
+        app1.add_option("--zupt_max_velocity", params.zupt_max_velocity, "");
+        app1.add_option("--zupt_noise_multiplier", params.zupt_noise_multiplier, "");
+
         // Recording of timing information to file
         app1.add_option("--record_timing_information", params.record_timing_information, "");
         app1.add_option("--record_timing_filepath", params.record_timing_filepath, "");

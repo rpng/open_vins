@@ -323,11 +323,15 @@ void RosVisualizer::publish_state() {
     poses_imu.push_back(posetemp);
 
     // Create our path (imu)
+    // NOTE: We downsample the number of poses as needed to prevent rviz crashes
+    // NOTE: https://github.com/ros-visualization/rviz/issues/1107
     nav_msgs::Path arrIMU;
     arrIMU.header.stamp = ros::Time::now();
     arrIMU.header.seq = poses_seq_imu;
     arrIMU.header.frame_id = "global";
-    arrIMU.poses = poses_imu;
+    for(size_t i=0; i<poses_imu.size(); i+=std::floor(poses_imu.size()/16384.0)+1) {
+        arrIMU.poses.push_back(poses_imu.at(i));
+    }
     pub_pathimu.publish(arrIMU);
 
     // Move them forward in time
@@ -385,10 +389,14 @@ void RosVisualizer::publish_images() {
 
     // Get our image of history tracks
     cv::Mat img_history;
-    trackFEATS->display_history(img_history,255,255,0,255,255,255);
-    if(trackARUCO != nullptr) {
-        trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
-        trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
+    if(_app->did_zero_velocity_update()) {
+        img_history = _app->get_zero_velocity_update_image();
+    } else {
+        trackFEATS->display_history(img_history,255,255,0,255,255,255);
+        if(trackARUCO != nullptr) {
+            trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
+            trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
+        }
     }
 
     // Create our message
@@ -601,10 +609,15 @@ void RosVisualizer::publish_groundtruth() {
     poses_gt.push_back(poseIinM);
 
     // Create our path (imu)
+    // NOTE: We downsample the number of poses as needed to prevent rviz crashes
+    // NOTE: https://github.com/ros-visualization/rviz/issues/1107
     nav_msgs::Path arrIMU;
     arrIMU.header.stamp = ros::Time::now();
     arrIMU.header.seq = poses_seq_gt;
     arrIMU.header.frame_id = "global";
+    for(size_t i=0; i<poses_gt.size(); i+=std::floor(poses_gt.size()/16384.0)+1) {
+        arrIMU.poses.push_back(poses_gt.at(i));
+    }
     arrIMU.poses = poses_gt;
     pub_pathgt.publish(arrIMU);
 

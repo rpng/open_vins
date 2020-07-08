@@ -277,6 +277,7 @@ These are essentially the Kalman filter (or linear MMSE) update equations.
 -   @subpage update-delay --- How to perform delayed initialization
 -   @subpage update-null --- MSCKF nullspace projection
 -   @subpage update-compress --- MSCKF measurement compression
+-   @subpage update-zerovelocity --- Zero velocity stationary update
 
 
 

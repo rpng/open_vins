@@ -41,6 +41,7 @@
 #include "state/StateHelper.h"
 #include "update/UpdaterMSCKF.h"
 #include "update/UpdaterSLAM.h"
+#include "update/UpdaterZeroVelocity.h"
 
 #include "VioManagerOptions.h"
 
@@ -215,6 +216,16 @@ namespace ov_msckf {
             return aruco_feats;
         }
 
+        /// Return true if we did a zero velocity update
+        bool did_zero_velocity_update(){
+            return did_zupt_update;
+        }
+
+        /// Return the zero velocity update image
+        cv::Mat get_zero_velocity_update_image() {
+            return zupt_image;
+        }
+
         /// Returns the last timestamp we have marginalized (true if we have a state)
         bool hist_last_marg_state(double &timestamp, Eigen::Matrix<double,7,1> &stateinG) {
             if(hist_last_marginalized_time != -1) {
@@ -298,6 +309,9 @@ namespace ov_msckf {
         /// Our MSCKF feature updater
         UpdaterSLAM* updaterSLAM;
 
+        /// Our aruoc tracker
+        UpdaterZeroVelocity* updaterZUPT = nullptr;
+
         /// Good features that where used in the last update
         std::vector<Eigen::Vector3d> good_features_MSCKF;
 
@@ -311,6 +325,10 @@ namespace ov_msckf {
 
         // Startup time of the filter
         double startup_time = -1;
+
+        // If we did a zero velocity update
+        bool did_zupt_update = false;
+        cv::Mat zupt_image;
 
         // Historical information of the filter (last marg time, historical states, features seen from all frames)
         double hist_last_marginalized_time = -1;

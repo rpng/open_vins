@@ -16,9 +16,9 @@ main h1 + p, h2 + p, h3 + p {
 }
 
 /* math equations by default have some extra space at the top */
-div .m-math {
-    margin-top: -1.5rem;
-}
+/*div .m-math {*/
+/*    margin-top: -1.5rem;*/
+/*}*/
 
 /* handle youtube images on the readme page */
 a .m-image {
