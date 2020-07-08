@@ -1,5 +1,14 @@
 <launch>
 
+    <!-- mono or stereo and what ros bag to play -->
+    <arg name="max_cameras" default="2" />
+    <arg name="use_stereo"  default="true" />
+
+    <!-- saving trajectory path and timing information -->
+    <arg name="dosave"      default="false" />
+    <arg name="dotime"      default="false" />
+    <arg name="path_est"    default="/tmp/traj_estimate.txt" />
+    <arg name="path_time"   default="/tmp/traj_timing.txt" />
 
     <!-- MASTER NODE! -->
     <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
@@ -19,23 +28,23 @@
         <param name="use_fej"                type="bool"   value="true" />
         <param name="use_imuavg"             type="bool"   value="true" />
         <param name="use_rk4int"             type="bool"   value="true" />
-        <param name="use_stereo"             type="bool"   value="true" />
+        <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
         <param name="calib_cam_extrinsics"   type="bool"   value="true" />
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="0.02" />
         <param name="max_clones"             type="int"    value="15" />
-        <param name="max_slam"               type="int"    value="75" />
+        <param name="max_slam"               type="int"    value="50" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 15 seems to work well -->
         <param name="max_msckf_in_update"    type="int"    value="999" />
-        <param name="max_cameras"            type="int"    value="1" />
+        <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="dt_slam_delay"          type="double" value="1" />
         <param name="init_window_time"       type="double" value="1.0" />
         <param name="init_imu_thresh"        type="double" value="0.5" />
         <rosparam param="gravity">[0.0,0.0,9.802]</rosparam>
-        <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
-        <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
-        <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
+        <param name="feat_rep_msckf"         type="string" value="ANCHORED_MSCKF_INVERSE_DEPTH" />
+        <param name="feat_rep_slam"          type="string" value="ANCHORED_MSCKF_INVERSE_DEPTH" />
+        <param name="feat_rep_aruco"         type="string" value="ANCHORED_MSCKF_INVERSE_DEPTH" />
 
         <!-- zero velocity update parameters -->
         <param name="try_zupt"               type="bool"   value="true" />
@@ -44,22 +53,22 @@
         <param name="zupt_noise_multiplier"  type="double" value="25" />
 
         <!-- timing statistics recording -->
-        <param name="record_timing_information"   type="bool"   value="false" />
-        <param name="record_timing_filepath"      type="string" value="/tmp/ov_msckf_timing.txt" />
+        <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
+        <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />
         <param name="num_pts"            type="int"    value="200" />
-        <param name="fast_threshold"     type="int"    value="15" />
+        <param name="fast_threshold"     type="int"    value="10" />
         <param name="grid_x"             type="int"    value="5" />
         <param name="grid_y"             type="int"    value="5" />
-        <param name="min_px_dist"        type="int"    value="5" />
+        <param name="min_px_dist"        type="int"    value="10" />
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
 
-        <param name="fi_max_dist"        type="double" value="50" />
+        <param name="fi_max_dist"        type="double" value="75" />
         <param name="fi_max_baseline"    type="double" value="500" />
-        <param name="fi_max_cond_number" type="double" value="1000" />
+        <param name="fi_max_cond_number" type="double" value="5000" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />
@@ -92,24 +101,33 @@
 
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">
-        [
-        0.99992127, -0.0078594, 0.0097819, -0.05845078,
-        0.00784873, 0.99996856, 0.00112822, -0.00728728,
-        -0.00979046, -0.00105136, 0.99995152, 0.0623674,
-        0.00000000, 0.00000000, 0.00000000, 1.00000000
-        ]
+            [
+            0.99992127, -0.0078594, 0.0097819, -0.05845078,
+            0.00784873, 0.99996856, 0.00112822, -0.00728728,
+            -0.00979046, -0.00105136, 0.99995152, 0.0623674,
+            0.00000000, 0.00000000, 0.00000000, 1.00000000
+            ]
         </rosparam>
         <rosparam param="T_C1toI">
-        [
-        0.99995933, 0.00327998, 0.00840069, 0.00793529,
-        -0.00328309, 0.99999455, 0.000356, -0.00716413,
-        -0.00839948, -0.00038357, 0.99996465, 0.06245421,
-        -0.00000000,0.00000000,0.00000000,1.00000000
-        ]
+            [
+            0.99995933, 0.00327998, 0.00840069, 0.00793529,
+            -0.00328309, 0.99999455, 0.000356, -0.00716413,
+            -0.00839948, -0.00038357, 0.99996465, 0.06245421,
+            -0.00000000,0.00000000,0.00000000,1.00000000
+            ]
         </rosparam>
 
 
     </node>
+
+    <!-- record the trajectory if enabled -->
+    <group if="$(arg dosave)">
+        <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen" required="true">
+            <param name="topic"      type="str" value="/ov_msckf/poseimu" />
+            <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
+            <param name="output"     type="str" value="$(arg path_est)" />
+        </node>
+    </group>
 
 
 </launch>

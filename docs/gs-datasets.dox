@@ -82,12 +82,14 @@ Here are the specifics of the sensors that each dataset uses:
     - Core visual-inertial sensor is the [VI-Sensor](https://furgalep.github.io/bib/nikolic_icra14.pdf)
     - Stereo global shutter images at 20 Hz
     - ADIS16448 IMU at 200 Hz
+    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1I0C-z3ZrTKne4bdbgBI6CtH1Rk4EQim0/view?usp=sharing)
 - Ironsides Datasets:
     - Core visual-inertial sensor is the [ironsides](https://arxiv.org/pdf/1710.00893v1.pdf)
     - Has two [Reach RTK](https://docs.emlid.com/reach/) one subscribed to a base station for corrections
     - Stereo global shutter fisheye images at 20 Hz
     - InvenSense IMU at 200 Hz
     - GPS fixes at 5 Hz (/reach01/tcpfix has corrections from [NYSNet](https://cors.dot.ny.gov/sbc))
+    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1bhn0GrIYNEeAabQAbWoP8l_514cJ0KrZ/view?usp=sharing)
 
 Most of these datasets do not have perfect calibration parameters, and some are not time synchronised.
 Thus, please ensure that you have enabled online calibration of these parameters.

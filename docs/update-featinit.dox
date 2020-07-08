@@ -24,7 +24,7 @@ Thus we have the following mapping to a feature seen from the current frame:
 
 \f{align*}{
 	{}^{C_i}\mathbf{p}_f &
-	= z_{f} {}^{C_i}\mathbf{b}_{f}
+	= {}^{C_i}z_{f} {}^{C_i}\mathbf{b}_{f}
 	= {}^{C_i}z_{f}
 	\begin{bmatrix}
 	u_n \\ v_n \\ 1
