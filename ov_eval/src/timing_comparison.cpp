@@ -44,7 +44,6 @@
 
 int main(int argc, char **argv) {
 
-
     // Ensure we have a path
     if(argc < 2) {
         printf(RED "ERROR: Please specify a timing file\n" RESET);
@@ -52,8 +51,6 @@ int main(int argc, char **argv) {
         printf(RED "ERROR: rosrun ov_eval timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
         std::exit(EXIT_FAILURE);
     }
-
-
 
     // Read in all our trajectories from file
     std::vector<std::string> names;

@@ -5,7 +5,7 @@
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="15" />
     <arg name="bag_durr"    default="999999" />
-    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv/indoor_45_2_snapdragon_with_gt.bag" />
+    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer/indoor_45_2_snapdragon_with_gt.bag" />
 
     <!-- what configuration mode we are in  -->
     <!-- 0: indoor forward facing  -->
@@ -55,6 +55,12 @@
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_INVERSE_DEPTH_SINGLE" /> <!-- ANCHORED_MSCKF_INVERSE_DEPTH, ANCHORED_INVERSE_DEPTH_SINGLE -->
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_INVERSE_DEPTH_SINGLE" /> <!-- ANCHORED_MSCKF_INVERSE_DEPTH, ANCHORED_INVERSE_DEPTH_SINGLE -->
+
+        <!-- zero velocity update parameters -->
+        <param name="try_zupt"               type="bool"   value="false" />
+        <param name="zupt_chi2_multipler"    type="int"    value="2" />
+        <param name="zupt_max_velocity"      type="double" value="0.5" />
+        <param name="zupt_noise_multiplier"  type="double" value="50" />
 
         <!-- timing statistics recording -->
         <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />

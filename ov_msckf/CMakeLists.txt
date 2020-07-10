@@ -86,6 +86,7 @@ list(APPEND library_source_files
         src/update/UpdaterHelper.cpp
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
+        src/update/UpdaterZeroVelocity.cpp
 )
 if (catkin_FOUND)
     list(APPEND library_source_files

@@ -98,6 +98,12 @@ namespace ov_msckf {
         nh.param<double>("init_window_time", params.init_window_time, params.init_window_time);
         nh.param<double>("init_imu_thresh", params.init_imu_thresh, params.init_imu_thresh);
 
+        // Zero velocity update
+        nh.param<bool>("try_zupt", params.try_zupt, params.try_zupt);
+        nh.param<int>("zupt_chi2_multipler", params.zupt_options.chi2_multipler, params.zupt_options.chi2_multipler);
+        nh.param<double>("zupt_max_velocity", params.zupt_max_velocity, params.zupt_max_velocity);
+        nh.param<double>("zupt_noise_multiplier", params.zupt_noise_multiplier, params.zupt_noise_multiplier);
+
         // Recording of timing information to file
         nh.param<bool>("record_timing_information", params.record_timing_information, params.record_timing_information);
         nh.param<std::string>("record_timing_filepath", params.record_timing_filepath, params.record_timing_filepath);

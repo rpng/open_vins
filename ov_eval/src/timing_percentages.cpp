@@ -44,7 +44,6 @@
 
 int main(int argc, char **argv) {
 
-
     // Ensure we have a path
     if(argc < 2) {
         printf(RED "ERROR: Please specify a timing and memory percent folder\n" RESET);

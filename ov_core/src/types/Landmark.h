@@ -80,7 +80,7 @@ namespace ov_type {
             // Ensure we are not near zero in the z-direction
             if (LandmarkRepresentation::is_relative_representation(_feat_representation) && _value(_value.rows()-1) < 1e-8) {
                 printf(YELLOW "WARNING DEPTH %.8f BECAME CLOSE TO ZERO IN UPDATE!!!\n" RESET, _value(_value.rows()-1));
-                //_value(2) = 1e-8;
+                should_marg = true;
             }
         }
 

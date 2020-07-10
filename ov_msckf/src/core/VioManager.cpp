@@ -127,6 +127,11 @@ VioManager::VioManager(VioManagerOptions& params_) {
     updaterMSCKF = new UpdaterMSCKF(params.msckf_options,params.featinit_options);
     updaterSLAM = new UpdaterSLAM(params.slam_options,params.aruco_options,params.featinit_options);
 
+    // If we are using zero velocity updates, then create the updater
+    if(params.try_zupt) {
+        updaterZUPT = new UpdaterZeroVelocity(params.zupt_options,params.imu_noises,params.gravity,params.zupt_max_velocity,params.zupt_noise_multiplier);
+    }
+
 }
 
 
@@ -140,6 +145,11 @@ void VioManager::feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eige
     // Push back to our initializer
     if(!is_initialized_vio) {
         initializer->feed_imu(timestamp, wm, am);
+    }
+
+    // Push back to the zero velocity updater if we have it
+    if(updaterZUPT != nullptr) {
+        updaterZUPT->feed_imu(timestamp, wm, am);
     }
 
 }
@@ -158,6 +168,20 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
         cv::Mat img0_temp;
         cv::pyrDown(img0,img0_temp,cv::Size(img0.cols/2.0,img0.rows/2.0));
         img0 = img0_temp.clone();
+    }
+
+    // Check if we should do zero-velocity, if so update the state with it
+    if(is_initialized_vio && updaterZUPT != nullptr) {
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
+        if(did_zupt_update) {
+            cv::Mat img_outtemp0;
+            cv::cvtColor(img0, img_outtemp0, CV_GRAY2RGB);
+            bool is_small = (std::min(img0.cols,img0.rows) < 400);
+            auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+            cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+            zupt_image = img_outtemp0.clone();
+            return;
+        }
     }
 
     // Feed our trackers
@@ -198,6 +222,22 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
         cv::pyrDown(img1,img1_temp,cv::Size(img1.cols/2.0,img1.rows/2.0));
         img0 = img0_temp.clone();
         img1 = img1_temp.clone();
+    }
+
+    // Check if we should do zero-velocity, if so update the state with it
+    if(is_initialized_vio && updaterZUPT != nullptr) {
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
+        if(did_zupt_update) {
+            cv::Mat img_outtemp0, img_outtemp1;
+            cv::cvtColor(img0, img_outtemp0, CV_GRAY2RGB);
+            cv::cvtColor(img1, img_outtemp1, CV_GRAY2RGB);
+            bool is_small = (std::min(img0.cols,img0.rows) < 400);
+            auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+            cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+            cv::putText(img_outtemp1, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+            cv::hconcat(img_outtemp0, img_outtemp1, zupt_image);
+            return;
+        }
     }
 
     // Feed our stereo trackers, if we are not doing binocular
@@ -246,6 +286,31 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
         printf(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
     }
 
+    // Check if we should do zero-velocity, if so update the state with it
+    if(is_initialized_vio && updaterZUPT != nullptr) {
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
+        if(did_zupt_update) {
+            int max_width = -1;
+            int max_height = -1;
+            for(auto &pair : params.camera_wh) {
+                if(max_width < pair.second.first) max_width = pair.second.first;
+                if(max_height < pair.second.second) max_height = pair.second.second;
+            }
+            for(int n=0; n<params.state_options.num_cameras; n++) {
+                cv::Mat img_outtemp0 = cv::Mat::zeros(cv::Size(max_width,max_height), CV_8UC3);
+                bool is_small = (std::min(img_outtemp0.cols,img_outtemp0.rows) < 400);
+                auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
+                cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small)? 1.0 : 2.0, cv::Scalar(0,0,255),3);
+                if(n == 0) {
+                    zupt_image = img_outtemp0.clone();
+                } else {
+                    cv::hconcat(zupt_image, img_outtemp0, zupt_image);
+                }
+            }
+            return;
+        }
+    }
+
     // Cast the tracker to our simulation tracker
     trackSIM = dynamic_cast<TrackSIM*>(trackFEATS);
     trackSIM->set_width_height(params.camera_wh);
@@ -276,7 +341,10 @@ bool VioManager::try_to_initialize() {
     Eigen::Matrix<double, 3, 1> b_w0, v_I0inG, b_a0, p_I0inG;
 
     // Try to initialize the system
-    bool success = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG);
+    // We will wait for a jerk if we do not have the zero velocity update enabled
+    // Otherwise we can initialize right away as the zero velocity will handle the stationary case
+    bool wait_for_jerk = (updaterZUPT == nullptr);
+    bool success = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG, wait_for_jerk);
 
     // Return if it failed
     if (!success) {
@@ -494,6 +562,13 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     //===================================================================================
 
 
+    // Collect all slam features into single vector
+    std::vector<Feature*> features_used_in_update = featsup_MSCKF;
+    features_used_in_update.insert(features_used_in_update.end(), feats_slam_UPDATE.begin(), feats_slam_UPDATE.end());
+    features_used_in_update.insert(features_used_in_update.end(), feats_slam_DELAYED.begin(), feats_slam_DELAYED.end());
+    update_keyframe_historical_information(features_used_in_update);
+
+
     // Save all the MSCKF features used in the update
     good_features_MSCKF.clear();
     for(Feature* feat : featsup_MSCKF) {
@@ -516,16 +591,14 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // First do anchor change if we are about to lose an anchor pose
     updaterSLAM->change_anchors(state);
 
-    // Marginalize the oldest clone of the state if we are at max length
-    if((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
-        // Cleanup any features older then the marginalization time
-        trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
-        if(trackARUCO != nullptr) {
-            trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
-        }
-        // Finally marginalize that clone
-        StateHelper::marginalize_old_clone(state);
+    // Cleanup any features older then the marginalization time
+    trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
+    if(trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
     }
+
+    // Finally marginalize the oldest clone if needed
+    StateHelper::marginalize_old_clone(state);
 
     // Finally if we are optimizing our intrinsics, update our trackers
     if(state->_options.do_calib_camera_intrinsics) {
@@ -635,10 +708,91 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 }
 
 
+void VioManager::update_keyframe_historical_information(const std::vector<Feature*> &features) {
 
 
+    // Loop through all features that have been used in the last update
+    // We want to record their historical measurements and estimates for later use
+    for(const auto &feat : features) {
+
+        // Get position of feature in the global frame of reference
+        Eigen::Vector3d p_FinG = feat->p_FinG;
+
+        // If it is a slam feature, then get its best guess from the state
+        if(state->_features_SLAM.find(feat->featid)!=state->_features_SLAM.end()) {
+            p_FinG = state->_features_SLAM.at(feat->featid)->get_xyz(false);
+        }
+
+        // Push back any new measurements if we have them
+        // Ensure that if the feature is already added, then just append the new measurements
+        if(hist_feat_posinG.find(feat->featid)!=hist_feat_posinG.end()) {
+            hist_feat_posinG.at(feat->featid) = p_FinG;
+            for(const auto &cam2uv : feat->uvs) {
+                if(hist_feat_uvs.at(feat->featid).find(cam2uv.first)!=hist_feat_uvs.at(feat->featid).end()) {
+                    hist_feat_uvs.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs.at(feat->featid).at(cam2uv.first).end(), cam2uv.second.begin(), cam2uv.second.end());
+                    hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).end(), feat->uvs_norm.at(cam2uv.first).begin(), feat->uvs_norm.at(cam2uv.first).end());
+                    hist_feat_timestamps.at(feat->featid).at(cam2uv.first).insert(hist_feat_timestamps.at(feat->featid).at(cam2uv.first).end(), feat->timestamps.at(cam2uv.first).begin(), feat->timestamps.at(cam2uv.first).end());
+                } else {
+                    hist_feat_uvs.at(feat->featid).insert(cam2uv);
+                    hist_feat_uvs_norm.at(feat->featid).insert({cam2uv.first,feat->uvs_norm.at(cam2uv.first)});
+                    hist_feat_timestamps.at(feat->featid).insert({cam2uv.first,feat->timestamps.at(cam2uv.first)});
+                }
+            }
+        } else {
+            hist_feat_posinG.insert({feat->featid,p_FinG});
+            hist_feat_uvs.insert({feat->featid,feat->uvs});
+            hist_feat_uvs_norm.insert({feat->featid,feat->uvs_norm});
+            hist_feat_timestamps.insert({feat->featid,feat->timestamps});
+        }
+    }
 
 
+    // Go through all our old historical vectors and find if any features should be removed
+    // In this case we know that if we have no use for features that only have info older then the last marg time
+    std::vector<size_t> ids_to_remove;
+    for(const auto &id2feat : hist_feat_timestamps) {
+        bool all_older = true;
+        for(const auto &cam2time : id2feat.second) {
+            for(const auto &time : cam2time.second) {
+                if(time >= hist_last_marginalized_time) {
+                    all_older = false;
+                    break;
+                }
+            }
+            if(!all_older) break;
+        }
+        if(all_older) {
+            ids_to_remove.push_back(id2feat.first);
+        }
+    }
+
+    // Remove those features!
+    for(const auto &id : ids_to_remove) {
+        hist_feat_posinG.erase(id);
+        hist_feat_uvs.erase(id);
+        hist_feat_uvs_norm.erase(id);
+        hist_feat_timestamps.erase(id);
+    }
+
+    // Remove any historical states older then the marg time
+    auto it0 = hist_stateinG.begin();
+    while(it0 != hist_stateinG.end()) {
+        if(it0->first < hist_last_marginalized_time) it0 = hist_stateinG.erase(it0);
+        else it0++;
+    }
+
+    // If we have reached our max window size record the oldest clone
+    // This clone is expected to be marginalized from the state
+    if ((int) state->_clones_IMU.size() > state->_options.max_clone_size) {
+        hist_last_marginalized_time = state->margtimestep();
+        assert(hist_last_marginalized_time != INFINITY);
+        Eigen::Matrix<double,7,1> imustate_inG = Eigen::Matrix<double,7,1>::Zero();
+        imustate_inG.block(0,0,4,1) = state->_clones_IMU.at(hist_last_marginalized_time)->quat();
+        imustate_inG.block(4,0,3,1) = state->_clones_IMU.at(hist_last_marginalized_time)->pos();
+        hist_stateinG.insert({hist_last_marginalized_time, imustate_inG});
+    }
+
+}
 
 
 
