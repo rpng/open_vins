@@ -25,6 +25,7 @@
 #include <string>
 #include <algorithm>
 #include <fstream>
+#include <memory>
 #include <Eigen/StdVector>
 #include <boost/filesystem.hpp>
 
@@ -147,22 +148,22 @@ namespace ov_msckf {
 
         /// Accessor to get the current state
         State* get_state() {
-            return state;
+            return state.get();
         }
 
         /// Accessor to get the current propagator
         Propagator* get_propagator() {
-            return propagator;
+            return propagator.get();
         }
 
         /// Get feature tracker
         TrackBase* get_track_feat() {
-            return trackFEATS;
+            return trackFEATS.get();
         }
 
         /// Get aruco feature tracker
         TrackBase* get_track_aruco() {
-            return trackARUCO;
+            return trackARUCO.get();
         }
 
         /// Returns 3d features used in the last update in global frame
@@ -286,31 +287,31 @@ namespace ov_msckf {
         VioManagerOptions params;
 
         /// Our master state object :D
-        State* state;
+		std::unique_ptr<State> state;
 
         /// Propagator of our state
-        Propagator* propagator;
+		std::unique_ptr<Propagator> propagator;
 
         /// Our sparse feature tracker (klt or descriptor)
-        TrackBase* trackFEATS = nullptr;
+        std::unique_ptr<TrackBase> trackFEATS;
 
         /// Our aruoc tracker
-        TrackBase* trackARUCO = nullptr;
+        std::unique_ptr<TrackBase> trackARUCO;
 
         /// State initializer
-        InertialInitializer* initializer;
+        std::unique_ptr<InertialInitializer> initializer;
 
         /// Boolean if we are initialized or not
         bool is_initialized_vio = false;
 
         /// Our MSCKF feature updater
-        UpdaterMSCKF* updaterMSCKF;
+        std::unique_ptr<UpdaterMSCKF> updaterMSCKF;
 
         /// Our MSCKF feature updater
-        UpdaterSLAM* updaterSLAM;
+        std::unique_ptr<UpdaterSLAM> updaterSLAM;
 
         /// Our aruoc tracker
-        UpdaterZeroVelocity* updaterZUPT = nullptr;
+        std::unique_ptr<UpdaterZeroVelocity> updaterZUPT;
 
         /// Good features that where used in the last update
         std::vector<Eigen::Vector3d> good_features_MSCKF;
