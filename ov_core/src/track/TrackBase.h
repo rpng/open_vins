@@ -87,6 +87,8 @@ namespace ov_core {
             currid = (size_t) numaruco + 1;
         }
 
+        virtual ~TrackBase() { }
+
 
         /**
          * @brief Given a the camera intrinsic values, this will set what we should normalize points with.
