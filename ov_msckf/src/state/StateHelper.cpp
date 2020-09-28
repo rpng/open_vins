@@ -274,6 +274,7 @@ void StateHelper::marginalize(State *state, Type *marg) {
 
 
     // Now set new covariance
+    //state->_Cov.resize(Cov_new.rows(),Cov_new.cols());
     state->_Cov = Cov_new;
     //state->Cov() = 0.5*(Cov_new+Cov_new.transpose());
     assert(state->_Cov.rows() == Cov_new.rows());
@@ -545,7 +546,14 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
 
 void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w) {
 
-    // Call on our marginalizer to clone, it will add it to our vector of types
+
+    // We can't insert a clone that occured at the same timestamp!
+    if (state->_clones_IMU.find(state->_timestamp) != state->_clones_IMU.end()) {
+        printf(RED "TRIED TO INSERT A CLONE AT THE SAME TIME AS AN EXISTING CLONE, EXITING!#!@#!@#\n" RESET);
+        std::exit(EXIT_FAILURE);
+    }
+
+    // Call on our cloner and add it to our vector of types
     // NOTE: this will clone the clone pose to the END of the covariance...
     Type *posetemp = StateHelper::clone(state, state->_imu->pose());
 
@@ -559,7 +567,7 @@ void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w
     }
 
     // Append the new clone to our clone vector
-    state->_clones_IMU.insert({state->_timestamp, pose});
+    state->_clones_IMU[state->_timestamp] = std::move(pose);
 
     // If we are doing time calibration, then our clones are a function of the time offset
     // Logic is based on Mingyang Li and Anastasios I. Mourikis paper:

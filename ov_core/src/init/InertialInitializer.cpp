@@ -33,7 +33,7 @@ void InertialInitializer::feed_imu(double timestamp, Eigen::Matrix<double,3,1> w
     data.am = am;
 
     // Append it to our vector
-    imu_data.emplace_back(data);
+    imu_data.push_back(data);
 
     // Delete all measurements older than three of our initialization windows
     auto it0 = imu_data.begin();

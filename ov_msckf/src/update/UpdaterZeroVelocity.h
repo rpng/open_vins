@@ -21,7 +21,6 @@
 #define OV_MSCKF_UPDATER_ZEROVELOCITY_H
 
 
-#include <Eigen/Eigen>
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "state/Propagator.h"

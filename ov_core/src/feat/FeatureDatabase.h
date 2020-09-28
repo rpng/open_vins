@@ -71,7 +71,7 @@ namespace ov_core {
         Feature *get_feature(size_t id, bool remove=false) {
             std::unique_lock<std::mutex> lck(mtx);
             if (features_idlookup.find(id) != features_idlookup.end()) {
-                Feature* temp = features_idlookup[id];
+                Feature* temp = features_idlookup.at(id);
                 if(remove) features_idlookup.erase(id);
                 return temp;
             } else {
@@ -100,11 +100,11 @@ namespace ov_core {
             std::unique_lock<std::mutex> lck(mtx);
             if (features_idlookup.find(id) != features_idlookup.end()) {
                 // Get our feature
-                Feature *feat = features_idlookup[id];
+                Feature *feat = features_idlookup.at(id);
                 // Append this new information to it!
-                feat->uvs[cam_id].emplace_back(Eigen::Vector2f(u, v));
-                feat->uvs_norm[cam_id].emplace_back(Eigen::Vector2f(u_n, v_n));
-                feat->timestamps[cam_id].emplace_back(timestamp);
+                feat->uvs[cam_id].push_back(Eigen::Vector2f(u, v));
+                feat->uvs_norm[cam_id].push_back(Eigen::Vector2f(u_n, v_n));
+                feat->timestamps[cam_id].push_back(timestamp);
                 return;
             }
 
@@ -114,9 +114,9 @@ namespace ov_core {
             // Else we have not found the feature, so lets make it be a new one!
             Feature *feat = new Feature();
             feat->featid = id;
-            feat->uvs[cam_id].emplace_back(Eigen::Vector2f(u, v));
-            feat->uvs_norm[cam_id].emplace_back(Eigen::Vector2f(u_n, v_n));
-            feat->timestamps[cam_id].emplace_back(timestamp);
+            feat->uvs[cam_id].push_back(Eigen::Vector2f(u, v));
+            feat->uvs_norm[cam_id].push_back(Eigen::Vector2f(u_n, v_n));
+            feat->timestamps[cam_id].push_back(timestamp);
 
             // Append this new feature into our database
             features_idlookup.insert({id, feat});
@@ -142,7 +142,7 @@ namespace ov_core {
                 bool has_newer_measurement = false;
                 for (auto const &pair : (*it).second->timestamps) {
                     // If we have a measurement greater-than or equal to the specified, this measurement is find
-                    if (!pair.second.empty() && pair.second.at(pair.second.size() - 1) >= timestamp) {
+                    if (!pair.second.empty() && pair.second.at(pair.second.size()-1) >= timestamp) {
                         has_newer_measurement = true;
                         break;
                     }
@@ -288,7 +288,7 @@ namespace ov_core {
                 // Count how many measurements
                 int ct_meas = 0;
                 for(const auto &pair : (*it).second->timestamps) {
-                    ct_meas += (*it).second->timestamps[pair.first].size();
+                    ct_meas += (*it).second->timestamps.at(pair.first).size();
                 }
                 // If delete flag is set, then delete it
                 if (ct_meas < 1) {

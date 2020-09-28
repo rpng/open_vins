@@ -149,10 +149,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
-                                       boost::ref(imgpyr_left), boost::ref(win_size), boost::ref(pyr_levels), false,
+                                       boost::ref(imgpyr_left), boost::cref(win_size), boost::cref(pyr_levels), false,
                                        cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     boost::thread t_rp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right),
-                                       boost::ref(imgpyr_right), boost::ref(win_size), boost::ref(pyr_levels),
+                                       boost::ref(imgpyr_right), boost::cref(win_size), boost::cref(pyr_levels),
                                        false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
     t_lp.join();
     t_rp.join();
@@ -164,8 +164,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         // Track into the new image
         perform_detection_stereo(imgpyr_left, imgpyr_right, pts_last[cam_id_left], pts_last[cam_id_right], ids_last[cam_id_left], ids_last[cam_id_right]);
         // Save the current image and pyramid
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
+        img_last[cam_id_left] = img_left;
+        img_last[cam_id_right] = img_right;
         img_pyramid_last[cam_id_left] = imgpyr_left;
         img_pyramid_last[cam_id_right] = imgpyr_right;
         return;
@@ -216,10 +216,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // If any of our masks are empty, that means we didn't have enough to do ransac, so just return
     if(mask_ll.empty() || mask_rr.empty()) {
-        img_last[cam_id_left] = img_left.clone();
-        img_last[cam_id_right] = img_right.clone();
-        img_pyramid_last[cam_id_left] = imgpyr_left;
-        img_pyramid_last[cam_id_right] = imgpyr_right;
+        img_last[cam_id_left] = std::move(img_left);
+        img_last[cam_id_right] = std::move(img_right);
+        img_pyramid_last[cam_id_left] = std::move(imgpyr_left);
+        img_pyramid_last[cam_id_right] = std::move(imgpyr_right);
         pts_last[cam_id_left].clear();
         pts_last[cam_id_right].clear();
         ids_last[cam_id_left].clear();
@@ -235,7 +235,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Loop through all left points
     for(size_t i=0; i<pts_left_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-        if(pts_left_new[i].pt.x < 0 || pts_left_new[i].pt.y < 0 || (int)pts_right_new[i].pt.x > img_left.cols || (int)pts_right_new[i].pt.y > img_left.rows)
+        if(pts_left_new.at(i).pt.x < 0 || pts_left_new.at(i).pt.y < 0
+                || (int)pts_left_new.at(i).pt.x > img_left.cols || (int)pts_left_new.at(i).pt.y > img_left.rows)
             continue;
         // See if we have the same feature in the right
         bool found_right = false;
@@ -251,7 +252,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         // Else track it as a mono feature in just the left image
         if(mask_ll[i] && found_right && mask_rr[index_right]) {
             // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-            if(pts_right_new.at(index_right).pt.x < 0 || pts_right_new.at(index_right).pt.y < 0 || (int)pts_right_new[i].pt.x > img_right.cols || (int)pts_right_new[i].pt.y > img_right.rows)
+            if(pts_right_new.at(index_right).pt.x < 0 || pts_right_new.at(index_right).pt.y < 0
+                    || (int)pts_right_new.at(index_right).pt.x > img_right.cols || (int)pts_right_new.at(index_right).pt.y > img_right.rows)
                 continue;
             good_left.push_back(pts_left_new.at(i));
             good_right.push_back(pts_right_new.at(index_right));
@@ -268,7 +270,8 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Loop through all right points
     for(size_t i=0; i<pts_right_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-        if(pts_right_new[i].pt.x < 0 || pts_right_new[i].pt.y < 0 || (int)pts_right_new[i].pt.x > img_right.cols || (int)pts_right_new[i].pt.y > img_right.rows)
+        if(pts_right_new.at(i).pt.x < 0 || pts_right_new.at(i).pt.y < 0
+                || (int)pts_right_new.at(i).pt.x > img_right.cols || (int)pts_right_new.at(i).pt.y > img_right.rows)
             continue;
         // See if we have the same feature in the right
         bool added_already = (std::find(good_ids_right.begin(),good_ids_right.end(),ids_last[cam_id_right].at(i))!=good_ids_right.end());
@@ -298,14 +301,14 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     }
 
     // Move forward in time
-    img_last[cam_id_left] = img_left.clone();
-    img_last[cam_id_right] = img_right.clone();
-    img_pyramid_last[cam_id_left] = imgpyr_left;
-    img_pyramid_last[cam_id_right] = imgpyr_right;
-    pts_last[cam_id_left] = good_left;
-    pts_last[cam_id_right] = good_right;
-    ids_last[cam_id_left] = good_ids_left;
-    ids_last[cam_id_right] = good_ids_right;
+    img_last[cam_id_left] = std::move(img_left);
+    img_last[cam_id_right] = std::move(img_right);
+    img_pyramid_last[cam_id_left] = std::move(imgpyr_left);
+    img_pyramid_last[cam_id_right] = std::move(imgpyr_right);
+    pts_last[cam_id_left] = std::move(good_left);
+    pts_last[cam_id_right] = std::move(good_right);
+    ids_last[cam_id_left] = std::move(good_ids_left);
+    ids_last[cam_id_right] =std::move(good_ids_right);
     rT6 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -524,9 +527,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
             grid_2d_1((int)(kpt.pt.y/min_px_dist),(int)(kpt.pt.x/min_px_dist)) = 1;
         }
 
-
     }
-
 
 }
 
@@ -563,7 +564,6 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
     std::vector<float> error;
     cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 15, 0.01);
     cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0, pts1, mask_klt, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
-
 
     // Normalize these points, so we can then do ransac
     // We don't want to do ransac on distorted image uvs since the mapping is nonlinear

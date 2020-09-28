@@ -23,9 +23,6 @@
 using namespace ov_core;
 
 
-
-
-
 double FeatureInitializer::compute_error(std::unordered_map<size_t,std::unordered_map<double,ClonePose>> &clonesCAM,
                                          Feature* feat, double alpha, double beta, double rho) {
 

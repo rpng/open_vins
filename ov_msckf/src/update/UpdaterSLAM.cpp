@@ -21,10 +21,8 @@
 #include "UpdaterSLAM.h"
 
 
-
 using namespace ov_core;
 using namespace ov_msckf;
-
 
 
 void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec) {
