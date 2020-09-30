@@ -59,7 +59,7 @@ std::deque<double> clonetimes;
 ros::Time time_start;
 
 // Our master function for tracking
-void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
+void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool use_stereo);
 
 
 // Main function
@@ -95,8 +95,8 @@ int main(int argc, char** argv)
     // Parameters for our extractor
     int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
-    bool do_downsizing;
-    nh.param<int>("num_pts", num_pts, 600);
+    bool do_downsizing, use_stereo;
+    nh.param<int>("num_pts", num_pts, 800);
     nh.param<int>("num_aruco", num_aruco, 1024);
     nh.param<int>("clone_states", clone_states, 11);
     nh.param<int>("fast_threshold", fast_threshold, 10);
@@ -105,6 +105,7 @@ int main(int argc, char** argv)
     nh.param<int>("min_px_dist", min_px_dist, 3);
     nh.param<double>("knn_ratio", knn_ratio, 0.85);
     nh.param<bool>("downsize_aruco", do_downsizing, false);
+    nh.param<bool>("use_stereo", use_stereo, false);
 
     // Debug print!
     printf("max features: %d\n", num_pts);
@@ -222,7 +223,7 @@ int main(int argc, char** argv)
         // If we have both left and right, then process
         if(has_left && has_right) {
             // process
-            handle_stereo(time0, time1, img0, img1);
+            handle_stereo(time0, time1, img0, img1, use_stereo);
             // reset bools
             has_left = false;
             has_right = false;
@@ -240,14 +241,15 @@ int main(int argc, char** argv)
 /**
  * This function will process the new stereo pair with the extractor!
  */
-void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
-
-                    
+void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool use_stereo) {
 
     // Process this new image
-    extractor->feed_stereo(time0, img0, img1, 0, 1);
-    //extractor->feed_monocular(time0, img0, 0);
-    //extractor->feed_monocular(time0, img1, 1);
+    if(use_stereo) {
+        extractor->feed_stereo(time0, img0, img1, 0, 1);
+    } else {
+        extractor->feed_monocular(time0, img0, 0);
+        extractor->feed_monocular(time0, img1, 1);
+    }
 
 
     // Display the resulting tracks

@@ -62,8 +62,8 @@ imuthreshold=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/algorithms"
-bag_path="/media/patrick/RPNG\ FLASH\ 2/euroc"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_test_features/algorithms"
+bag_path="/home/patrick/datasets/eth"
 
 
 #=============================================================
@@ -78,7 +78,7 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..01}; do
+for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"
@@ -102,7 +102,7 @@ then
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_eth.launch max_cameras:="$temp1" use_stereo:="$temp2" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" #&> /dev/null
+roslaunch ov_msckf pgeneva_ros_eth.launch max_cameras:="$temp1" use_stereo:="$temp2" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"
