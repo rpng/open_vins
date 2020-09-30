@@ -42,9 +42,9 @@ bagstarttimes=(
     "0"
     "40"
     "35"
+    "18"
     "15"
-    "20"
-    "20"
+    "15"
 )
 
 # threshold for variance to detect if the unit has moved yet

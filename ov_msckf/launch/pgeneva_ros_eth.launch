@@ -3,8 +3,8 @@
     <!-- mono or stereo and what ros bag to play -->
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
-    <arg name="bag_start"   default="35" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3-5: 20 -->
-    <arg name="bag"         default="/home/patrick/datasets/eth/MH_02_easy.bag" />
+    <arg name="bag_start"   default="18" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 18, mh4-5: 15 -->
+    <arg name="bag"         default="/home/patrick/datasets/eth/MH_03_medium.bag" />
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="0.75" />
