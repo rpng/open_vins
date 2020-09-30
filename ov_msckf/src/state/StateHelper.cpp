@@ -26,7 +26,8 @@ using namespace ov_msckf;
 
 
 
-void StateHelper::EKFPropagation(State *state, const std::vector<Type*> &order_NEW, const std::vector<Type*> &order_OLD,
+void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &order_NEW,
+                                 const std::vector<std::shared_ptr<Type>> &order_OLD,
                                  const Eigen::MatrixXd &Phi, const Eigen::MatrixXd &Q) {
 
     // We need at least one old and new variable
@@ -61,7 +62,7 @@ void StateHelper::EKFPropagation(State *state, const std::vector<Type*> &order_N
     // Get the location in small phi for each measuring variable
     int current_it = 0;
     std::vector<int> Phi_id;
-    for (Type *var: order_OLD) {
+    for (const auto &var: order_OLD) {
         Phi_id.push_back(current_it);
         current_it += var->size();
     }
@@ -70,7 +71,7 @@ void StateHelper::EKFPropagation(State *state, const std::vector<Type*> &order_N
     // Cov_PhiT = [ Pxx ] [ Phi' ]'
     Eigen::MatrixXd Cov_PhiT = Eigen::MatrixXd::Zero(state->_Cov.rows(), Phi.rows());
     for (size_t i=0; i<order_OLD.size(); i++) {
-        Type *var = order_OLD.at(i);
+        std::shared_ptr<Type> var = order_OLD.at(i);
         Cov_PhiT.noalias() += state->_Cov.block(0, var->id(), state->_Cov.rows(), var->size())
                               * Phi.block(0, Phi_id[i], Phi.rows(), var->size()).transpose();
 
@@ -79,7 +80,7 @@ void StateHelper::EKFPropagation(State *state, const std::vector<Type*> &order_N
     // Get Phi_NEW*Covariance*Phi_NEW^t + Q
     Eigen::MatrixXd Phi_Cov_PhiT = Q.selfadjointView<Eigen::Upper>();
     for (size_t i=0; i<order_OLD.size(); i++) {
-        Type *var = order_OLD.at(i);
+        std::shared_ptr<Type> var = order_OLD.at(i);
         Phi_Cov_PhiT.noalias() += Phi.block(0, Phi_id[i], Phi.rows(), var->size())
                                   * Cov_PhiT.block(var->id(), 0, var->size(), Phi.rows());
     }
@@ -106,8 +107,8 @@ void StateHelper::EKFPropagation(State *state, const std::vector<Type*> &order_N
 }
 
 
-void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, const Eigen::MatrixXd &H,
-                            const Eigen::VectorXd &res, const Eigen::MatrixXd &R) {
+void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &H_order,
+                            const Eigen::MatrixXd &H, const Eigen::VectorXd &res, const Eigen::MatrixXd &R) {
 
     //==========================================================
     //==========================================================
@@ -119,7 +120,7 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     // Get the location in small jacobian for each measuring variable
     int current_it = 0;
     std::vector<int> H_id;
-    for (Type *meas_var: H_order) {
+    for (const auto &meas_var: H_order) {
         H_id.push_back(current_it);
         current_it += meas_var->size();
     }
@@ -127,11 +128,11 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
     //==========================================================
     //==========================================================
     // For each active variable find its M = P*H^T
-    for (Type *var: state->_variables) {
+    for (const auto &var: state->_variables) {
         // Sum up effect of each subjacobian = K_i= \sum_m (P_im Hm^T)
         Eigen::MatrixXd M_i = Eigen::MatrixXd::Zero(var->size(), res.rows());
         for (size_t i = 0; i < H_order.size(); i++) {
-            Type *meas_var = H_order[i];
+            std::shared_ptr<Type> meas_var = H_order[i];
             M_i.noalias() += state->_Cov.block(var->id(), meas_var->id(), var->size(), meas_var->size()) *
                              H.block(0, H_id[i], H.rows(), meas_var->size()).transpose();
         }
@@ -182,7 +183,7 @@ void StateHelper::EKFUpdate(State *state, const std::vector<Type *> &H_order, co
 
 
 
-Eigen::MatrixXd StateHelper::get_marginal_covariance(State *state, const std::vector<Type *> &small_variables) {
+Eigen::MatrixXd StateHelper::get_marginal_covariance(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &small_variables) {
 
     // Calculate the marginal covariance size we need to make our matrix
     int cov_size = 0;
@@ -213,7 +214,7 @@ Eigen::MatrixXd StateHelper::get_marginal_covariance(State *state, const std::ve
 
 
 
-Eigen::MatrixXd StateHelper::get_full_covariance(State *state) {
+Eigen::MatrixXd StateHelper::get_full_covariance(std::shared_ptr<State> state) {
 
     // Size of the covariance is the active
     int cov_size = (int)state->_Cov.rows();
@@ -232,7 +233,7 @@ Eigen::MatrixXd StateHelper::get_full_covariance(State *state) {
 
 
 
-void StateHelper::marginalize(State *state, Type *marg) {
+void StateHelper::marginalize(std::shared_ptr<State> state, std::shared_ptr<Type> marg) {
 
     // Check if the current state has the element we want to marginalize
     if (std::find(state->_variables.begin(), state->_variables.end(), marg) == state->_variables.end()) {
@@ -281,7 +282,7 @@ void StateHelper::marginalize(State *state, Type *marg) {
 
     // Now we keep the remaining variables and update their ordering
     // Note: DOES NOT SUPPORT MARGINALIZING SUBVARIABLES YET!!!!!!!
-    std::vector<Type *> remaining_variables;
+    std::vector<std::shared_ptr<Type>> remaining_variables;
     for (size_t i = 0; i < state->_variables.size(); i++) {
         // Only keep non-marginal states
         if (state->_variables.at(i) != marg) {
@@ -294,7 +295,10 @@ void StateHelper::marginalize(State *state, Type *marg) {
     }
 
     // Delete the old state variable to free up its memory
-    delete marg;
+    // NOTE: we don't need to do this any more since our variable is a shared ptr
+    // NOTE: thus this is automatically managed, but this allows outside references to keep the old variable
+    //delete marg;
+    marg->set_local_id(-1);
 
     // Now set variables as the remaining ones
     state->_variables = remaining_variables;
@@ -302,7 +306,7 @@ void StateHelper::marginalize(State *state, Type *marg) {
 }
 
 
-Type* StateHelper::clone(State *state, Type *variable_to_clone) {
+std::shared_ptr<Type> StateHelper::clone(std::shared_ptr<State> state, std::shared_ptr<Type> variable_to_clone) {
 
     //Get total size of new cloned variables, and the old covariance size
     int total_size = variable_to_clone->size();
@@ -313,16 +317,20 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
     state->_Cov.conservativeResizeLike(Eigen::MatrixXd::Zero(old_size + total_size, old_size + total_size));
 
     // What is the new state, and variable we inserted
-    const std::vector<Type*> new_variables = state->_variables;
-    Type *new_clone = nullptr;
+    const std::vector<std::shared_ptr<Type>> new_variables = state->_variables;
+    std::shared_ptr<Type> new_clone = nullptr;
 
     // Loop through all variables, and find the variable that we are going to clone
     for (size_t k = 0; k < state->_variables.size(); k++) {
 
         // Skip this if it is not the same
-        Type *type_check = state->_variables.at(k)->check_if_same_variable(variable_to_clone);
-        if (type_check == nullptr)
+        // First check if the top level variable is the same, then check the sub-variables
+        std::shared_ptr<Type> type_check = state->_variables.at(k)->check_if_subvariable(variable_to_clone);
+        if(state->_variables.at(k) == variable_to_clone) {
+            type_check = state->_variables.at(k);
+        } else if(type_check != variable_to_clone) {
             continue;
+        }
 
         // So we will clone this one
         int old_loc = type_check->id();
@@ -335,9 +343,6 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
         // Create clone from the type being cloned
         new_clone = type_check->clone();
         new_clone->set_local_id(new_loc);
-
-        // Add to variable list
-        state->_variables.push_back(new_clone);
         break;
 
     }
@@ -349,6 +354,8 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
         std::exit(EXIT_FAILURE);
     }
 
+    // Add to variable list and return
+    state->_variables.push_back(new_clone);
     return new_clone;
 
 }
@@ -356,8 +363,8 @@ Type* StateHelper::clone(State *state, Type *variable_to_clone) {
 
 
 
-bool StateHelper::initialize(State *state, Type *new_variable, const std::vector<Type *> &H_order, Eigen::MatrixXd &H_R,
-                             Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult) {
+bool StateHelper::initialize(std::shared_ptr<State> state, std::shared_ptr<Type> new_variable, const std::vector<std::shared_ptr<Type>> &H_order,
+                             Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L, Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult) {
 
     // Check that this new variable is not already initialized
     if (std::find(state->_variables.begin(), state->_variables.end(), new_variable) != state->_variables.end()) {
@@ -448,8 +455,8 @@ bool StateHelper::initialize(State *state, Type *new_variable, const std::vector
 }
 
 
-void StateHelper::initialize_invertible(State *state, Type *new_variable, const std::vector<Type *> &H_order, const Eigen::MatrixXd &H_R,
-                                        const Eigen::MatrixXd &H_L, const Eigen::MatrixXd &R, const Eigen::VectorXd &res) {
+void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::shared_ptr<Type> new_variable, const std::vector<std::shared_ptr<Type>> &H_order,
+                                        const Eigen::MatrixXd &H_R, const Eigen::MatrixXd &H_L, const Eigen::MatrixXd &R, const Eigen::VectorXd &res) {
 
     // Check that this new variable is not already initialized
     if (std::find(state->_variables.begin(), state->_variables.end(), new_variable) != state->_variables.end()) {
@@ -487,7 +494,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     // Get the location in small jacobian for each measuring variable
     int current_it = 0;
     std::vector<int> H_id;
-    for (Type *meas_var: H_order) {
+    for (const auto &meas_var: H_order) {
         H_id.push_back(current_it);
         current_it += meas_var->size();
     }
@@ -495,17 +502,16 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
     //==========================================================
     //==========================================================
     // For each active variable find its M = P*H^T
-    for (Type *var: state->_variables) {
+    for (const auto &var: state->_variables) {
         // Sum up effect of each subjacobian= K_i= \sum_m (P_im Hm^T)
         Eigen::MatrixXd M_i = Eigen::MatrixXd::Zero(var->size(), res.rows());
         for (size_t i = 0; i < H_order.size(); i++) {
-            Type *meas_var = H_order[i];
+            std::shared_ptr<Type> meas_var = H_order.at(i);
             M_i += state->_Cov.block(var->id(), meas_var->id(), var->size(), meas_var->size()) *
                    H_R.block(0, H_id[i], H_R.rows(), meas_var->size()).transpose();
         }
         M_a.block(var->id(), 0, var->size(), res.rows()) = M_i;
     }
-
 
     //==========================================================
     //==========================================================
@@ -542,9 +548,7 @@ void StateHelper::initialize_invertible(State *state, Type *new_variable, const 
 }
 
 
-
-
-void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w) {
+void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w) {
 
 
     // We can't insert a clone that occured at the same timestamp!
@@ -555,19 +559,17 @@ void StateHelper::augment_clone(State *state, Eigen::Matrix<double, 3, 1> last_w
 
     // Call on our cloner and add it to our vector of types
     // NOTE: this will clone the clone pose to the END of the covariance...
-    Type *posetemp = StateHelper::clone(state, state->_imu->pose());
+    std::shared_ptr<Type> posetemp = StateHelper::clone(state, state->_imu->pose());
 
-    // Cast to a JPL pose type
-    PoseJPL *pose = dynamic_cast<PoseJPL*>(posetemp);
-
-    // Check that it was a valid cast
+    // Cast to a JPL pose type, check if valid
+    std::shared_ptr<PoseJPL> pose = dynamic_pointer_cast<PoseJPL>(posetemp);
     if (pose == nullptr) {
         printf(RED "INVALID OBJECT RETURNED FROM STATEHELPER CLONE, EXITING!#!@#!@#\n" RESET);
         std::exit(EXIT_FAILURE);
     }
 
     // Append the new clone to our clone vector
-    state->_clones_IMU[state->_timestamp] = std::move(pose);
+    state->_clones_IMU[state->_timestamp] = pose;
 
     // If we are doing time calibration, then our clones are a function of the time offset
     // Logic is based on Mingyang Li and Anastasios I. Mourikis paper:

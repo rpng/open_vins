@@ -25,7 +25,7 @@ using namespace ov_msckf;
 
 
 
-RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *sim) : _nh(nh), _app(app), _sim(sim) {
+RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _nh(nh), _app(app), _sim(sim) {
 
 
     // Setup our transform broadcaster
@@ -161,7 +161,7 @@ void RosVisualizer::visualize_odometry(double timestamp) {
         return;
 
     // Get fast propagate state at the desired timestamp
-    State* state = _app->get_state();
+    std::shared_ptr<State> state = _app->get_state();
     Eigen::Matrix<double,13,1> state_plus = Eigen::Matrix<double,13,1>::Zero();
     _app->get_propagator()->fast_state_propagate(state, timestamp, state_plus);
 
@@ -182,7 +182,7 @@ void RosVisualizer::visualize_odometry(double timestamp) {
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
     // TODO: this currently is an approximation since this should actually evolve over our propagation period
     // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
-    std::vector<Type*> statevars;
+    std::vector<std::shared_ptr<Type>> statevars;
     statevars.push_back(state->_imu->pose()->p());
     statevars.push_back(state->_imu->pose()->q());
     Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
@@ -233,7 +233,7 @@ void RosVisualizer::visualize_final() {
     // Final camera intrinsics
     if(_app->get_state()->_options.do_calib_camera_intrinsics) {
         for(int i=0; i<_app->get_state()->_options.num_cameras; i++) {
-            Vec* calib = _app->get_state()->_cam_intrinsics.at(i);
+            std::shared_ptr<Vec> calib = _app->get_state()->_cam_intrinsics.at(i);
             printf(REDPURPLE "cam%d intrinsics:\n" RESET, (int)i);
             printf(REDPURPLE "%.3f,%.3f,%.3f,%.3f\n" RESET,calib->value()(0),calib->value()(1),calib->value()(2),calib->value()(3));
             printf(REDPURPLE "%.5f,%.5f,%.5f,%.5f\n\n" RESET,calib->value()(4),calib->value()(5),calib->value()(6),calib->value()(7));
@@ -243,7 +243,7 @@ void RosVisualizer::visualize_final() {
     // Final camera extrinsics
     if(_app->get_state()->_options.do_calib_camera_pose) {
         for(int i=0; i<_app->get_state()->_options.num_cameras; i++) {
-            PoseJPL* calib = _app->get_state()->_calib_IMUtoCAM.at(i);
+            std::shared_ptr<PoseJPL> calib = _app->get_state()->_calib_IMUtoCAM.at(i);
             Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();
             T_CtoI.block(0,0,3,3) = quat_2_Rot(calib->quat()).transpose();
             T_CtoI.block(0,3,3,1) = -T_CtoI.block(0,0,3,3)*calib->pos();
@@ -280,7 +280,7 @@ void RosVisualizer::visualize_final() {
 void RosVisualizer::publish_state() {
 
     // Get the current state
-    State* state = _app->get_state();
+    std::shared_ptr<State> state = _app->get_state();
 
     // We want to publish in the IMU clock frame
     // The timestamp in the state will be the last camera time
@@ -301,7 +301,7 @@ void RosVisualizer::publish_state() {
     poseIinM.pose.pose.position.z = state->_imu->pos()(2);
 
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
-    std::vector<Type*> statevars;
+    std::vector<std::shared_ptr<Type>> statevars;
     statevars.push_back(state->_imu->pose()->p());
     statevars.push_back(state->_imu->pose()->q());
     Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
@@ -384,8 +384,8 @@ void RosVisualizer::publish_images() {
         return;
 
     // Get our trackers
-    TrackBase *trackFEATS = _app->get_track_feat();
-    TrackBase *trackARUCO = _app->get_track_aruco();
+    std::shared_ptr<TrackBase> trackFEATS = _app->get_track_feat();
+    std::shared_ptr<TrackBase> trackARUCO = _app->get_track_aruco();
 
     // Get our image of history tracks
     cv::Mat img_history;
@@ -658,7 +658,7 @@ void RosVisualizer::publish_groundtruth() {
     //==========================================================================
 
     // Get covariance of pose
-    std::vector<Type*> statevars;
+    std::vector<std::shared_ptr<Type>> statevars;
     statevars.push_back(_app->get_state()->_imu->q());
     statevars.push_back(_app->get_state()->_imu->p());
     Eigen::Matrix<double,6,6> covariance = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
@@ -761,8 +761,8 @@ void RosVisualizer::publish_keyframe_information() {
 
     // Get historical feature information
     std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> hist_feat_uvs;
+    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> hist_feat_uvs_norm;
     std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
     _app->hist_get_features(hist_feat_posinG, hist_feat_uvs, hist_feat_uvs_norm, hist_feat_timestamps);
 
@@ -784,8 +784,8 @@ void RosVisualizer::publish_keyframe_information() {
         // Get this feature information
         size_t featid = feattimes.first;
         size_t index = (size_t)std::distance(feattimes.second.at(0).begin(), iter);
-        Eigen::VectorXf uv = hist_feat_uvs.at(featid).at(0).at(index);
-        Eigen::VectorXf uv_n = hist_feat_uvs_norm.at(featid).at(0).at(index);
+        Eigen::Vector2f uv = hist_feat_uvs.at(featid).at(0).at(index);
+        Eigen::Vector2f uv_n = hist_feat_uvs_norm.at(featid).at(0).at(index);
         Eigen::Vector3d pFinG = hist_feat_posinG.at(featid);
 
         // Push back 3d point
@@ -814,7 +814,7 @@ void RosVisualizer::publish_keyframe_information() {
 void RosVisualizer::sim_save_total_state_to_file() {
 
     // Get current state
-    State* state = _app->get_state();
+    std::shared_ptr<State> state = _app->get_state();
 
     // We want to publish in the IMU clock frame
     // The timestamp in the state will be the last camera time

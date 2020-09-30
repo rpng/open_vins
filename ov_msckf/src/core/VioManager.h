@@ -147,23 +147,23 @@ namespace ov_msckf {
         }
 
         /// Accessor to get the current state
-        State* get_state() {
-            return state.get();
+        std::shared_ptr<State> get_state() {
+            return state;
         }
 
         /// Accessor to get the current propagator
-        Propagator* get_propagator() {
-            return propagator.get();
+        std::shared_ptr<Propagator> get_propagator() {
+            return propagator;
         }
 
         /// Get feature tracker
-        TrackBase* get_track_feat() {
-            return trackFEATS.get();
+        std::shared_ptr<TrackBase> get_track_feat() {
+            return trackFEATS;
         }
 
         /// Get aruco feature tracker
-        TrackBase* get_track_aruco() {
-            return trackARUCO.get();
+        std::shared_ptr<TrackBase> get_track_aruco() {
+            return trackARUCO;
         }
 
         /// Returns 3d features used in the last update in global frame
@@ -242,8 +242,8 @@ namespace ov_msckf {
 
         /// Returns historical feature positions, and measurements times and uvs used to get its estimate.
         void hist_get_features(std::unordered_map<size_t,Eigen::Vector3d> &feat_posinG,
-                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> &feat_uvs,
-                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> &feat_uvs_norm,
+                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> &feat_uvs,
+                               std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> &feat_uvs_norm,
                                std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> &feat_timestamps) {
             feat_posinG = hist_feat_posinG;
             feat_uvs = hist_feat_uvs;
@@ -280,23 +280,23 @@ namespace ov_msckf {
          * The state is also recorded after it is marginalized out of the state.
          * @param features Features using in the last update phase
          */
-        void update_keyframe_historical_information(const std::vector<Feature*> &features);
+        void update_keyframe_historical_information(const std::vector<std::shared_ptr<Feature>> &features);
 
 
         /// Manager parameters
         VioManagerOptions params;
 
         /// Our master state object :D
-		std::unique_ptr<State> state;
+		std::shared_ptr<State> state;
 
         /// Propagator of our state
-		std::unique_ptr<Propagator> propagator;
+		std::shared_ptr<Propagator> propagator;
 
         /// Our sparse feature tracker (klt or descriptor)
-        std::unique_ptr<TrackBase> trackFEATS;
+        std::shared_ptr<TrackBase> trackFEATS;
 
         /// Our aruoc tracker
-        std::unique_ptr<TrackBase> trackARUCO;
+        std::shared_ptr<TrackBase> trackARUCO;
 
         /// State initializer
         std::unique_ptr<InertialInitializer> initializer;
@@ -335,8 +335,8 @@ namespace ov_msckf {
         double hist_last_marginalized_time = -1;
         std::map<double,Eigen::Matrix<double,7,1>> hist_stateinG;
         std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
-        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
-        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> hist_feat_uvs;
+        std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> hist_feat_uvs_norm;
         std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
 
 

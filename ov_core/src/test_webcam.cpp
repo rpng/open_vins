@@ -114,7 +114,7 @@ int main(int argc, char** argv)
 
     // Open the first webcam (0=laptop cam, 1=usb device)
     cv::VideoCapture cap;
-    if(!cap.open(1)) {
+    if(!cap.open(0)) {
         printf(RED "Unable to open a webcam feed!\n" RESET);
         return EXIT_FAILURE;
     }
@@ -160,7 +160,7 @@ int main(int argc, char** argv)
 
         // Get lost tracks
         FeatureDatabase* database = extractor->get_feature_database();
-        std::vector<Feature*> feats_lost = database->features_not_containing_newer(current_time);
+        std::vector<std::shared_ptr<Feature>> feats_lost = database->features_not_containing_newer(current_time);
 
         // Mark theses feature pointers as deleted
         for(size_t i=0; i<feats_lost.size(); i++) {
@@ -181,7 +181,7 @@ int main(int argc, char** argv)
             // Remove features that have reached their max track length
             double margtime = clonetimes.at(0);
             clonetimes.pop_front();
-            std::vector<Feature*> feats_marg = database->features_containing(margtime);
+            std::vector<std::shared_ptr<Feature>> feats_marg = database->features_containing(margtime);
             // Delete theses feature pointers
             for(size_t i=0; i<feats_marg.size(); i++) {
                 feats_marg[i]->to_delete = true;

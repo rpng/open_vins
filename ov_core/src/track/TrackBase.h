@@ -179,12 +179,12 @@ namespace ov_core {
             if(correct_active) {
 
                 // Get all features in this database
-                std::unordered_map<size_t, Feature*> features_idlookup = database->get_internal_data();
+                std::unordered_map<size_t, std::shared_ptr<Feature>> features_idlookup = database->get_internal_data();
 
                 // Loop through and correct each one
                 for(const auto& pair_feat : features_idlookup) {
                     // Get our feature
-                    Feature *feat = pair_feat.second;
+                    std::shared_ptr<Feature> feat = pair_feat.second;
                     // Loop through each camera for this feature
                     for (auto const& meas_pair : feat->timestamps) {
                         size_t camid = meas_pair.first;
@@ -242,7 +242,7 @@ namespace ov_core {
          * @return FeatureDatabase pointer that one can query for features
          */
         FeatureDatabase *get_feature_database() {
-            return database;
+            return database.get();
         }
 
         /**
@@ -254,7 +254,7 @@ namespace ov_core {
 
             // If found in db then replace
             if(database->get_internal_data().find(id_old)!=database->get_internal_data().end()) {
-                Feature* feat = database->get_internal_data().at(id_old);
+                std::shared_ptr<Feature> feat = database->get_internal_data().at(id_old);
                 database->get_internal_data().erase(id_old);
                 feat->featid = id_new;
                 database->get_internal_data().insert({id_new, feat});
@@ -301,7 +301,7 @@ namespace ov_core {
          * Given a uv point, this will undistort it based on the camera matrices.
          * To equate this to Kalibr's models, this is what you would use for `pinhole-radtan`.
          */
-        cv::Point2f undistort_point_brown(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
+        static cv::Point2f undistort_point_brown(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
             // Convert to opencv format
             cv::Mat mat(1, 2, CV_32F);
             mat.at<float>(0, 0) = pt_in.x;
@@ -323,7 +323,7 @@ namespace ov_core {
          * Given a uv point, this will undistort it based on the camera matrices.
          * To equate this to Kalibr's models, this is what you would use for `pinhole-equi`.
          */
-        cv::Point2f undistort_point_fisheye(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
+        static cv::Point2f undistort_point_fisheye(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
             // Convert point to opencv format
             cv::Mat mat(1, 2, CV_32F);
             mat.at<float>(0, 0) = pt_in.x;
@@ -340,7 +340,7 @@ namespace ov_core {
         }
 
         /// Database with all our current features
-        FeatureDatabase *database;
+        std::shared_ptr<FeatureDatabase> database;
 
         /// If we are a fisheye model or not
         std::map<size_t, bool> camera_fisheye;

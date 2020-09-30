@@ -25,8 +25,8 @@ using namespace ov_core;
 using namespace ov_msckf;
 
 
-void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
-                                                        std::vector<Eigen::MatrixXd> &H_x, std::vector<Type*> &x_order) {
+void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
+                                                        std::vector<Eigen::MatrixXd> &H_x, std::vector<std::shared_ptr<Type>> &x_order) {
 
     // Global XYZ representation
     if (feature.feat_representation == LandmarkRepresentation::Representation::GLOBAL_3D) {
@@ -192,7 +192,8 @@ void UpdaterHelper::get_feature_jacobian_representation(State* state, UpdaterHel
 
 
 
-void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::Vector2d &uv_norm, bool isfisheye, Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta) {
+void UpdaterHelper::get_feature_jacobian_intrinsics(std::shared_ptr<State> state, const Eigen::Vector2d &uv_norm, bool isfisheye,
+                                                    Eigen::Matrix<double,8,1> cam_d, Eigen::Matrix<double,2,2> &dz_dzn, Eigen::Matrix<double,2,8> &dz_dzeta) {
 
     // Calculate distortion uv and jacobian
     if(isfisheye) {
@@ -305,7 +306,7 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(State* state, const Eigen::V
 
 
 
-void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<Type*> &x_order) {
+void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f, Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<std::shared_ptr<Type>> &x_order) {
 
     // Total number of measurements for this feature
     int total_meas = 0;
@@ -315,12 +316,12 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
 
     // Compute the size of the states involved with this feature
     int total_hx = 0;
-    std::unordered_map<Type*,size_t> map_hx;
+    std::unordered_map<std::shared_ptr<Type>,size_t> map_hx;
     for (auto const& pair : feature.timestamps) {
 
         // Our extrinsics and intrinsics
-        PoseJPL *calibration = state->_calib_IMUtoCAM.at(pair.first);
-        Vec *distortion = state->_cam_intrinsics.at(pair.first);
+        std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(pair.first);
+        std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(pair.first);
 
         // If doing calibration extrinsics
         if(state->_options.do_calib_camera_pose) {
@@ -340,7 +341,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
         for (size_t m = 0; m < feature.timestamps[pair.first].size(); m++) {
 
             // Add this clone if it is not added already
-            PoseJPL *clone_Ci = state->_clones_IMU.at(feature.timestamps[pair.first].at(m));
+            std::shared_ptr<PoseJPL> clone_Ci = state->_clones_IMU.at(feature.timestamps[pair.first].at(m));
             if(map_hx.find(clone_Ci) == map_hx.end()) {
                 map_hx.insert({clone_Ci,total_hx});
                 x_order.push_back(clone_Ci);
@@ -358,7 +359,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
         assert(feature.anchor_cam_id != -1);
 
         // Add this anchor if it is not added already
-        PoseJPL *clone_Ai = state->_clones_IMU.at(feature.anchor_clone_timestamp);
+        std::shared_ptr<PoseJPL> clone_Ai = state->_clones_IMU.at(feature.anchor_clone_timestamp);
         if(map_hx.find(clone_Ai) == map_hx.end()) {
             map_hx.insert({clone_Ai,total_hx});
             x_order.push_back(clone_Ai);
@@ -368,7 +369,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
         // Also add its calibration if we are doing calibration
         if(state->_options.do_calib_camera_pose) {
             // Add this anchor if it is not added already
-            PoseJPL *clone_calib = state->_calib_IMUtoCAM.at(feature.anchor_cam_id);
+            std::shared_ptr<PoseJPL> clone_calib = state->_calib_IMUtoCAM.at(feature.anchor_cam_id);
             if(map_hx.find(clone_calib) == map_hx.end()) {
                 map_hx.insert({clone_calib,total_hx});
                 x_order.push_back(clone_calib);
@@ -418,7 +419,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     // This only needs to be computed once and thus we pull it out of the loop
     Eigen::MatrixXd dpfg_dlambda;
     std::vector<Eigen::MatrixXd> dpfg_dx;
-    std::vector<Type*> dpfg_dx_order;
+    std::vector<std::shared_ptr<Type>> dpfg_dx_order;
     UpdaterHelper::get_feature_jacobian_representation(state, feature, dpfg_dlambda, dpfg_dx, dpfg_dx_order);
 
     // Assert that all the ones in our order are already in our local jacobian mapping
@@ -430,8 +431,8 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
     for (auto const& pair : feature.timestamps) {
 
         // Our calibration between the IMU and CAMi frames
-        Vec* distortion = state->_cam_intrinsics.at(pair.first);
-        PoseJPL* calibration = state->_calib_IMUtoCAM.at(pair.first);
+        std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(pair.first);
+        std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(pair.first);
         Eigen::Matrix<double,3,3> R_ItoC = calibration->Rot();
         Eigen::Matrix<double,3,1> p_IinC = calibration->pos();
         Eigen::Matrix<double,8,1> cam_d = distortion->value();
@@ -443,7 +444,7 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
             //=========================================================================
 
             // Get current IMU clone state
-            PoseJPL* clone_Ii = state->_clones_IMU.at(feature.timestamps[pair.first].at(m));
+            std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(feature.timestamps[pair.first].at(m));
             Eigen::Matrix<double,3,3> R_GtoIi = clone_Ii->Rot();
             Eigen::Matrix<double,3,1> p_IiinG = clone_Ii->pos();
 
@@ -548,10 +549,8 @@ void UpdaterHelper::get_feature_jacobian_full(State* state, UpdaterHelperFeature
                 H_x.block(2*c,map_hx[dpfg_dx_order.at(i)],2,dpfg_dx_order.at(i)->size()).noalias() += dz_dpfg*dpfg_dx.at(i);
             }
 
-
             //=========================================================================
             //=========================================================================
-
 
             // Derivative of p_FinCi in respect to camera calibration (R_ItoC, p_IinC)
             if(state->_options.do_calib_camera_pose) {
@@ -616,7 +615,6 @@ void UpdaterHelper::nullspace_project_inplace(Eigen::MatrixXd &H_f, Eigen::Matri
 
 
 void UpdaterHelper::measurement_compress_inplace(Eigen::MatrixXd &H_x, Eigen::VectorXd &res) {
-
 
     // Return if H_x is a fat matrix (there is no need to compress in this case)
     if(H_x.rows() <= H_x.cols())

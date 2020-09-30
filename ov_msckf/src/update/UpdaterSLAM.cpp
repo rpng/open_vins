@@ -25,7 +25,7 @@ using namespace ov_core;
 using namespace ov_msckf;
 
 
-void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec) {
+void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>>& feature_vec) {
 
     // Return if no features
     if(feature_vec.empty())
@@ -92,7 +92,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
     while(it1 != feature_vec.end()) {
 
         // Triangulate the feature and remove if it fails
-        bool success = initializer_feat->single_triangulation(*it1, clones_cam);
+        bool success = initializer_feat->single_triangulation(it1->get(), clones_cam);
         if(!success) {
             (*it1)->to_delete = true;
             it1 = feature_vec.erase(it1);
@@ -100,7 +100,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         }
 
         // Gauss-newton refine the feature
-        success = initializer_feat->single_gaussnewton(*it1, clones_cam);
+        success = initializer_feat->single_gaussnewton(it1->get(), clones_cam);
         if(!success) {
             (*it1)->to_delete = true;
             it1 = feature_vec.erase(it1);
@@ -145,7 +145,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
         Eigen::MatrixXd H_f;
         Eigen::MatrixXd H_x;
         Eigen::VectorXd res;
-        std::vector<Type*> Hx_order;
+        std::vector<std::shared_ptr<Type>> Hx_order;
 
         // Get the Jacobian for this feature
         UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
@@ -174,7 +174,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
 
         // Create feature pointer (we will always create it of size three since we initialize the single invese depth as a msckf anchored representation)
         int landmark_size = (feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 1 : 3;
-        Landmark* landmark = new Landmark(landmark_size);
+        auto landmark = std::shared_ptr<Landmark>(new Landmark(landmark_size));
         landmark->_featid = feat.featid;
         landmark->_feat_representation = feat_rep;
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
@@ -198,7 +198,6 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
             (*it2)->to_delete = true;
             it2++;
         } else {
-            delete landmark;
             (*it2)->to_delete = true;
             it2 = feature_vec.erase(it2);
         }
@@ -218,8 +217,7 @@ void UpdaterSLAM::delayed_init(State *state, std::vector<Feature*>& feature_vec)
 
 
 
-void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
-
+void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>>& feature_vec) {
 
     // Return if no features
     if(feature_vec.empty())
@@ -234,7 +232,6 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     for(const auto& clone_imu : state->_clones_IMU) {
         clonetimes.emplace_back(clone_imu.first);
     }
-
 
     // 1. Clean all feature measurements and make sure they all have valid clone times
     auto it0 = feature_vec.begin();
@@ -252,7 +249,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         // Get the landmark and its representation
         // For single depth representation we need at least two measurement
         // This is because we do nullspace projection
-        Landmark* landmark = state->_features_SLAM.at((*it0)->featid);
+        std::shared_ptr<Landmark> landmark = state->_features_SLAM.at((*it0)->featid);
         int required_meas = (landmark->_feat_representation==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 3 : 2;
 
         // Remove if we don't have enough
@@ -283,8 +280,8 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
     Eigen::MatrixXd Hx_big = Eigen::MatrixXd::Zero(max_meas_size, max_hx_size);
     Eigen::MatrixXd R_big = Eigen::MatrixXd::Identity(max_meas_size,max_meas_size);
-    std::unordered_map<Type*,size_t> Hx_mapping;
-    std::vector<Type*> Hx_order_big;
+    std::unordered_map<std::shared_ptr<Type>,size_t> Hx_mapping;
+    std::vector<std::shared_ptr<Type>> Hx_order_big;
     size_t ct_jacob = 0;
     size_t ct_meas = 0;
 
@@ -297,7 +294,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         assert(state->_features_SLAM.at((*it2)->featid)->_featid == (*it2)->featid);
 
         // Get our landmark from the state
-        Landmark* landmark = state->_features_SLAM.at((*it2)->featid);
+        std::shared_ptr<Landmark> landmark = state->_features_SLAM.at((*it2)->featid);
 
         // Convert the state landmark into our current format
         UpdaterHelper::UpdaterHelperFeature feat;
@@ -327,7 +324,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         Eigen::MatrixXd H_f;
         Eigen::MatrixXd H_x;
         Eigen::VectorXd res;
-        std::vector<Type*> Hx_order;
+        std::vector<std::shared_ptr<Type>> Hx_order;
 
         // Get the Jacobian for this feature
         UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
@@ -355,7 +352,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
         }
 
         // Append to our Jacobian order vector
-        std::vector<Type*> Hxf_order = Hx_order;
+        std::vector<std::shared_ptr<Type>> Hxf_order = Hx_order;
         Hxf_order.push_back(landmark);
 
         /// Chi2 distance check
@@ -449,7 +446,7 @@ void UpdaterSLAM::update(State *state, std::vector<Feature*>& feature_vec) {
 
 
 
-void UpdaterSLAM::change_anchors(State* state) {
+void UpdaterSLAM::change_anchors(std::shared_ptr<State> state) {
 
     // Return if we do not have enough clones
     if ((int)state->_clones_IMU.size() <= state->_options.max_clone_size) {
@@ -477,7 +474,7 @@ void UpdaterSLAM::change_anchors(State* state) {
 
 
 
-void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id) {
+void UpdaterSLAM::perform_anchor_change(std::shared_ptr<State> state, std::shared_ptr<Landmark> landmark, double new_anchor_timestamp, size_t new_cam_id) {
 
     // Assert that this is an anchored representation
     assert(LandmarkRepresentation::is_relative_representation(landmark->_feat_representation));
@@ -495,7 +492,7 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     // Get Jacobians of p_FinG wrt old representation
     Eigen::MatrixXd H_f_old;
     std::vector<Eigen::MatrixXd> H_x_old;
-    std::vector<Type*> x_order_old;
+    std::vector<std::shared_ptr<Type>> x_order_old;
     UpdaterHelper::get_feature_jacobian_representation(state, old_feat, H_f_old, H_x_old, x_order_old);
 
     // Create future feature representation
@@ -544,20 +541,20 @@ void UpdaterSLAM::perform_anchor_change(State* state, Landmark* landmark, double
     // Get Jacobians of p_FinG wrt new representation
     Eigen::MatrixXd H_f_new;
     std::vector<Eigen::MatrixXd> H_x_new;
-    std::vector<Type*> x_order_new;
+    std::vector<std::shared_ptr<Type>> x_order_new;
     UpdaterHelper::get_feature_jacobian_representation(state, new_feat, H_f_new, H_x_new, x_order_new);
 
     //==========================================================================
     //==========================================================================
 
     // New phi order is just the landmark
-    std::vector<Type*> phi_order_NEW;
+    std::vector<std::shared_ptr<Type>> phi_order_NEW;
     phi_order_NEW.push_back(landmark);
 
     // Loop through all our orders and append them
-    std::vector<Type*> phi_order_OLD;
+    std::vector<std::shared_ptr<Type>> phi_order_OLD;
     int current_it = 0;
-    std::map<Type*, int> Phi_id_map;
+    std::map<std::shared_ptr<Type>, int> Phi_id_map;
     for (const auto &var: x_order_old) {
         if(Phi_id_map.find(var) == Phi_id_map.end()) {
             Phi_id_map.insert({var,current_it});

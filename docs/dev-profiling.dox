@@ -2,6 +2,7 @@
 
 
 @page dev-profiling System Profiling
+@tableofcontents
 
 
 @section dev-profiling-compute Profiling Processing Time
@@ -43,12 +44,13 @@ One can leverage a profiler such as [valgrind](https://www.valgrind.org/) to per
 Ensure you have installed the `valgrind` package (see above).
 We can change the node launch file as follows:
 
-@code{.shell-session}
-launch-prefix="valgrind --tool=memcheck --leak-check=yes"
-@endcode
+- Edit `roslaunch ov_msckf pgeneva_serial_eth.launch` launch file
+- Append `launch-prefix="valgrind --tool=memcheck --leak-check=yes"` to your ROS node. This will cause the node to run with valgrind.
+- Change the bag length to be only 10 or so seconds (since profiling is slow)
 
-An example loss is shown below which was found by memcheck.
+
 This [page](https://web.stanford.edu/class/archive/cs/cs107/cs107.1206/resources/valgrind.html) has some nice support material for FAQ.
+An example loss is shown below which was found by memcheck.
 
 @code{.text}
 ==5512== 1,578,860 (24 direct, 1,578,836 indirect) bytes in 1 blocks are definitely lost in loss record 6,585 of 6,589

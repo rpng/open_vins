@@ -163,7 +163,7 @@ namespace ov_msckf {
          * @param state Pointer to state
          * @param timestamp Time to propagate to and clone at
          */
-        void propagate_and_clone(State *state, double timestamp);
+        void propagate_and_clone(std::shared_ptr<State> state, double timestamp);
 
 
         /**
@@ -177,7 +177,7 @@ namespace ov_msckf {
          * @param timestamp Time to propagate to
          * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
          */
-        void fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus);
+        void fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double,13,1> &state_plus);
 
 
         /**
@@ -239,7 +239,7 @@ namespace ov_msckf {
          * @param F State-transition matrix over the interval
          * @param Qd Discrete-time noise covariance over the interval
          */
-        void predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
+        void predict_and_compute(std::shared_ptr<State> state, const IMUDATA data_minus, const IMUDATA data_plus,
                                  Eigen::Matrix<double, 15, 15> &F, Eigen::Matrix<double, 15, 15> &Qd);
 
         /**
@@ -268,7 +268,7 @@ namespace ov_msckf {
          * @param new_v The resulting new velocity after integration
          * @param new_p The resulting new position after integration
          */
-        void predict_mean_discrete(State *state, double dt,
+        void predict_mean_discrete(std::shared_ptr<State> state, double dt,
                                    const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                                    const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                                    Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);
@@ -298,7 +298,7 @@ namespace ov_msckf {
          * @param new_v The resulting new velocity after integration
          * @param new_p The resulting new position after integration
          */
-        void predict_mean_rk4(State *state, double dt,
+        void predict_mean_rk4(std::shared_ptr<State> state, double dt,
                               const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                               const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                               Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);

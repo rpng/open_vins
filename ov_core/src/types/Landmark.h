@@ -41,7 +41,7 @@ namespace ov_type {
 
     public:
 
-        /// Default constructor (feature is a Vec of size 3 or Vec of size 1 )
+        /// Default constructor (feature is a Vec of size 3 or Vec of size 1)
         Landmark(int dim) : Vec(dim) {}
 
         /// Feature ID of this landmark (corresponds to frontend id)
@@ -73,7 +73,7 @@ namespace ov_type {
          * We want to selectively update the FEJ value if we are using an anchored representation.
          * @param dx Additive error state correction
          */
-        void update(const Eigen::VectorXd dx) override {
+        void update(const Eigen::VectorXd& dx) override {
             // Update estimate
             assert(dx.rows() == _size);
             set_value(_value+dx);
@@ -89,7 +89,7 @@ namespace ov_type {
          * @param getfej Set to true to get the landmark FEJ value
          * @return Position of feature either in global or anchor frame
          */
-        Eigen::Matrix<double,3,1> get_xyz(bool getfej);
+        Eigen::Matrix<double,3,1> get_xyz(bool getfej) const;
 
 
         /**

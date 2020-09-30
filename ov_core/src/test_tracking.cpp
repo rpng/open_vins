@@ -96,13 +96,13 @@ int main(int argc, char** argv)
     int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
     bool do_downsizing;
-    nh.param<int>("num_pts", num_pts, 100);
+    nh.param<int>("num_pts", num_pts, 600);
     nh.param<int>("num_aruco", num_aruco, 1024);
     nh.param<int>("clone_states", clone_states, 11);
-    nh.param<int>("fast_threshold", fast_threshold, 15);
-    nh.param<int>("grid_x", grid_x, 10);
-    nh.param<int>("grid_y", grid_y, 8);
-    nh.param<int>("min_px_dist", min_px_dist, 10);
+    nh.param<int>("fast_threshold", fast_threshold, 10);
+    nh.param<int>("grid_x", grid_x, 9);
+    nh.param<int>("grid_y", grid_y, 7);
+    nh.param<int>("min_px_dist", min_px_dist, 3);
     nh.param<double>("knn_ratio", knn_ratio, 0.85);
     nh.param<bool>("downsize_aruco", do_downsizing, false);
 
@@ -262,7 +262,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
 
     // Get lost tracks
     FeatureDatabase* database = extractor->get_feature_database();
-    std::vector<Feature*> feats_lost = database->features_not_containing_newer(time0);
+    std::vector<std::shared_ptr<Feature>> feats_lost = database->features_not_containing_newer(time0);
     num_lostfeats += feats_lost.size();
 
     // Mark theses feature pointers as deleted
@@ -285,7 +285,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
         // Remove features that have reached their max track length
         double margtime = clonetimes.at(0);
         clonetimes.pop_front();
-        std::vector<Feature*> feats_marg = database->features_containing(margtime);
+        std::vector<std::shared_ptr<Feature>> feats_marg = database->features_containing(margtime);
         num_margfeats += feats_marg.size();
         // Delete theses feature pointers
         for(size_t i=0; i<feats_marg.size(); i++) {

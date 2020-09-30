@@ -73,7 +73,7 @@ namespace ov_msckf {
             _options_aruco.sigma_pix_sq = std::pow(_options_aruco.sigma_pix,2);
 
             // Save our feature initializer
-            initializer_feat = new FeatureInitializer(feat_init_options);
+            initializer_feat = std::unique_ptr<FeatureInitializer>(new FeatureInitializer(feat_init_options));
 
             // Initialize the chi squared test table with confidence level 0.95
             // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
@@ -90,7 +90,7 @@ namespace ov_msckf {
          * @param state State of the filter
          * @param feature_vec Features that can be used for update
          */
-        void update(State *state, std::vector<Feature*>& feature_vec);
+        void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>>& feature_vec);
 
 
         /**
@@ -98,7 +98,7 @@ namespace ov_msckf {
          * @param state State of the filter
          * @param feature_vec Features that can be used for update
          */
-        void delayed_init(State *state, std::vector<Feature*>& feature_vec);
+        void delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>>& feature_vec);
 
 
         /**
@@ -109,7 +109,7 @@ namespace ov_msckf {
          *
          * @param state State of the filter
          */
-        void change_anchors(State *state);
+        void change_anchors(std::shared_ptr<State> state);
 
 
 
@@ -123,7 +123,7 @@ namespace ov_msckf {
          * @param new_anchor_timestamp Clone timestamp we want to move to
          * @param new_cam_id Which camera frame we want to move to
          */
-        void perform_anchor_change(State* state, Landmark* landmark, double new_anchor_timestamp, size_t new_cam_id);
+        void perform_anchor_change(std::shared_ptr<State> state, std::shared_ptr<Landmark> landmark, double new_anchor_timestamp, size_t new_cam_id);
 
 
         /// Options used during update for slam features
@@ -133,7 +133,7 @@ namespace ov_msckf {
         UpdaterOptions _options_aruco;
 
         /// Feature initializer class object
-        FeatureInitializer* initializer_feat;
+        std::unique_ptr<FeatureInitializer> initializer_feat;
 
         /// Chi squared 95th percentile table (lookup would be size of residual)
         std::map<int, double> chi_squared_table;

@@ -37,8 +37,8 @@
 using namespace ov_msckf;
 
 
-VioManager* sys;
-RosVisualizer* viz;
+std::shared_ptr<VioManager> sys;
+std::shared_ptr<RosVisualizer> viz;
 
 
 // Main function
@@ -51,8 +51,8 @@ int main(int argc, char** argv)
 
     // Create our VIO system
     VioManagerOptions params = parse_ros_nodehandler(nh);
-    sys = new VioManager(params);
-    viz = new RosVisualizer(nh, sys);
+    sys = std::shared_ptr<VioManager>(new VioManager(params));
+    viz = std::shared_ptr<RosVisualizer>(new RosVisualizer(nh, sys));
 
 
     //===================================================================================
@@ -261,11 +261,6 @@ int main(int argc, char** argv)
 
     // Final visualization
     viz->visualize_final();
-
-    // Finally delete our system
-    delete sys;
-    delete viz;
-
 
     // Done!
     return EXIT_SUCCESS;

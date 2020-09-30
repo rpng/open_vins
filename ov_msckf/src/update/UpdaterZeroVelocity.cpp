@@ -24,7 +24,7 @@ using namespace ov_msckf;
 
 
 
-bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
+bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
 
     // Return if we don't have any imu data yet
     if(imu_data.empty())
@@ -65,7 +65,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     bool model_time_varying_bias = true;
 
     // Order of our Jacobian
-    std::vector<Type*> Hx_order;
+    std::vector<std::shared_ptr<Type>> Hx_order;
     Hx_order.push_back(state->_imu->q());
     Hx_order.push_back(state->_imu->bg());
     Hx_order.push_back(state->_imu->ba());
@@ -162,7 +162,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
     if(model_time_varying_bias) {
         Eigen::MatrixXd Phi_bias = Eigen::MatrixXd::Identity(6,6);
-        std::vector<Type*> Phi_order;
+        std::vector<std::shared_ptr<Type>> Phi_order;
         Phi_order.push_back(state->_imu->bg());
         Phi_order.push_back(state->_imu->ba());
         StateHelper::EKFPropagation(state, Phi_order, Phi_order, Phi_bias, Q_bias);

@@ -132,7 +132,7 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
         // draw, loop through all keypoints
         for(size_t i=0; i<ids_last[pair.first].size(); i++) {
             // Get the feature from the database
-            Feature* feat = database->get_feature(ids_last[pair.first].at(i));
+            std::shared_ptr<Feature> feat = database->get_feature(ids_last[pair.first].at(i));
             // Skip if the feature is null
             if(feat == nullptr || feat->uvs[pair.first].empty())
                 continue;

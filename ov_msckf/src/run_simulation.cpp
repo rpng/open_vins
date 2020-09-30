@@ -40,10 +40,10 @@
 using namespace ov_msckf;
 
 
-Simulator* sim;
-VioManager* sys;
+std::shared_ptr<Simulator> sim;
+std::shared_ptr<VioManager> sys;
 #ifdef ROS_AVAILABLE
-RosVisualizer* viz;
+std::shared_ptr<RosVisualizer> viz;
 #endif
 
 
@@ -68,10 +68,10 @@ int main(int argc, char** argv)
 #endif
 
     // Create our VIO system
-    sim = new Simulator(params);
-    sys = new VioManager(params);
+    sim = std::shared_ptr<Simulator>(new Simulator(params));
+    sys = std::shared_ptr<VioManager>(new VioManager(params));
 #ifdef ROS_AVAILABLE
-    viz = new RosVisualizer(nh, sys, sim);
+    viz = std::shared_ptr<RosVisualizer>(new RosVisualizer(nh, sys, sim));
 #endif
 
     //===================================================================================
@@ -150,12 +150,7 @@ int main(int argc, char** argv)
     // Final visualization
 #ifdef ROS_AVAILABLE
     viz->visualize_final();
-    delete viz;
 #endif
-
-    // Finally delete our system
-    delete sim;
-    delete sys;
 
     // Done!
     return EXIT_SUCCESS;

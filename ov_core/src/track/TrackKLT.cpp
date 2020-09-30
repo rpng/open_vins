@@ -308,7 +308,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     pts_last[cam_id_left] = std::move(good_left);
     pts_last[cam_id_right] = std::move(good_right);
     ids_last[cam_id_left] = std::move(good_ids_left);
-    ids_last[cam_id_right] =std::move(good_ids_right);
+    ids_last[cam_id_right] = std::move(good_ids_right);
     rT6 =  boost::posix_time::microsec_clock::local_time();
 
     // Timing information
@@ -562,7 +562,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat>& img0pyr, const std::
     // Now do KLT tracking to get the valid new points
     std::vector<uchar> mask_klt;
     std::vector<float> error;
-    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 15, 0.01);
+    cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 0.01);
     cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0, pts1, mask_klt, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 
     // Normalize these points, so we can then do ransac

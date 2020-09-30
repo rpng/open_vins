@@ -41,21 +41,20 @@ namespace ov_type {
 
         PoseJPL() : Type(6) {
 
-            //Initialize subvariables
-            _q = new JPLQuat();
-            _p = new Vec(3);
+            // Initialize subvariables
+            _q = std::shared_ptr<JPLQuat>(new JPLQuat());
+            _p = std::shared_ptr<Vec>(new Vec(3));
 
+            // Set our default state value
             Eigen::Matrix<double, 7, 1> pose0;
             pose0.setZero();
             pose0(3) = 1.0;
-            set_value(pose0);
-            set_fej(pose0);
+            set_value_internal(pose0);
+            set_fej_internal(pose0);
+
         }
 
-        ~PoseJPL() {
-            delete _q;
-            delete _p;
-        }
+        ~PoseJPL() { }
 
         /**
          * @brief Sets id used to track location of variable in the filter covariance
@@ -67,7 +66,7 @@ namespace ov_type {
         void set_local_id(int new_id) override {
             _id = new_id;
             _q->set_local_id(new_id);
-            _p->set_local_id(new_id+_q->size());
+            _p->set_local_id(new_id+((new_id!=-1)? _q->size() : 0));
         }
 
         /**
@@ -75,7 +74,7 @@ namespace ov_type {
          *
          * @param dx Correction vector (orientation then position)
          */
-        void update(const Eigen::VectorXd dx) override {
+        void update(const Eigen::VectorXd& dx) override {
 
             assert(dx.rows() == _size);
 
@@ -99,63 +98,32 @@ namespace ov_type {
          * @brief Sets the value of the estimate
          * @param new_value New value we should set
          */
-        void set_value(const Eigen::MatrixXd new_value) override {
-
-            assert(new_value.rows() == 7);
-            assert(new_value.cols() == 1);
-
-            //Set orientation value
-            _q->set_value(new_value.block(0, 0, 4, 1));
-
-            //Set position value
-            _p->set_value(new_value.block(4, 0, 3, 1));
-
-            _value = new_value;
+        void set_value(const Eigen::MatrixXd& new_value) override {
+            set_value_internal(new_value);
         }
 
         /**
          * @brief Sets the value of the first estimate
          * @param new_value New value we should set
          */
-        void set_fej(const Eigen::MatrixXd new_value) override {
-
-            assert(new_value.rows() == 7);
-            assert(new_value.cols() == 1);
-
-            //Set orientation fej value
-            _q->set_fej(new_value.block(0, 0, 4, 1));
-
-            //Set position fej value
-            _p->set_fej(new_value.block(4, 0, 3, 1));
-
-            _fej = new_value;
+        void set_fej(const Eigen::MatrixXd& new_value) override {
+            set_fej_internal(new_value);
         }
 
-        Type *clone() override {
-            Type *Clone = new PoseJPL();
+        std::shared_ptr<Type> clone() override {
+            auto Clone = std::shared_ptr<PoseJPL>(new PoseJPL());
             Clone->set_value(value());
             Clone->set_fej(fej());
             return Clone;
         }
 
-        /**
-         * @brief Used to find the components inside the Pose if needed
-         *
-         * If the passed variable is a sub-variable or the current variable this will return it.
-         * Otherwise it will return a nullptr, meaning that it was unable to be found.
-         *
-         * @param check variable to find
-         */
-        Type *check_if_same_variable(const Type *check) override {
-            if (check == this) {
-                return this;
-            } else if (check == _q) {
-                return q();
+        std::shared_ptr<Type> check_if_subvariable(const std::shared_ptr<Type> check) override {
+            if (check == _q) {
+                return _q;
             } else if (check == _p) {
-                return p();
-            } else {
-                return nullptr;
+                return _p;
             }
+            return nullptr;
         }
 
         /// Rotation access
@@ -178,7 +146,6 @@ namespace ov_type {
             return _q->fej();
         }
 
-
         /// Position access
         Eigen::Matrix<double, 3, 1> pos() const {
             return _p->value();
@@ -190,22 +157,58 @@ namespace ov_type {
         }
 
         // Quaternion type access
-        JPLQuat *q() {
+        std::shared_ptr<JPLQuat> q() {
             return _q;
         }
 
         // Position type access
-        Vec *p() {
+        std::shared_ptr<Vec> p() {
             return _p;
         }
 
     protected:
 
         /// Subvariable containing orientation
-        JPLQuat *_q;
+        std::shared_ptr<JPLQuat> _q;
 
-        /// Subvariable containg position
-        Vec *_p;
+        /// Subvariable containing position
+        std::shared_ptr<Vec> _p;
+
+        /**
+         * @brief Sets the value of the estimate
+         * @param new_value New value we should set
+         */
+        void set_value_internal(const Eigen::MatrixXd& new_value) {
+
+            assert(new_value.rows() == 7);
+            assert(new_value.cols() == 1);
+
+            //Set orientation value
+            _q->set_value(new_value.block(0, 0, 4, 1));
+
+            //Set position value
+            _p->set_value(new_value.block(4, 0, 3, 1));
+
+            _value = new_value;
+        }
+
+        /**
+         * @brief Sets the value of the first estimate
+         * @param new_value New value we should set
+         */
+        void set_fej_internal(const Eigen::MatrixXd& new_value) {
+
+            assert(new_value.rows() == 7);
+            assert(new_value.cols() == 1);
+
+            //Set orientation fej value
+            _q->set_fej(new_value.block(0, 0, 4, 1));
+
+            //Set position fej value
+            _p->set_fej(new_value.block(4, 0, 3, 1));
+
+            _fej = new_value;
+        }
 
     };
 

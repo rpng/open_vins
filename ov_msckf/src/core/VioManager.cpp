@@ -47,7 +47,7 @@ VioManager::VioManager(VioManagerOptions& params_) {
     params.print_trackers();
 
     // Create the state!!
-    state = std::unique_ptr<State>(new State(params.state_options));
+    state = std::shared_ptr<State>(new State(params.state_options));
 
     // Timeoffset from camera to IMU
     Eigen::VectorXd temp_camimu_dt;
@@ -172,7 +172,7 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
 
     // Check if we should do zero-velocity, if so update the state with it
     if(is_initialized_vio && updaterZUPT != nullptr) {
-        did_zupt_update = updaterZUPT->try_update(state.get(), timestamp);
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
         if(did_zupt_update) {
             cv::Mat img_outtemp0;
             cv::cvtColor(img0, img_outtemp0, CV_GRAY2RGB);
@@ -226,7 +226,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
 
     // Check if we should do zero-velocity, if so update the state with it
     if(is_initialized_vio && updaterZUPT != nullptr) {
-        did_zupt_update = updaterZUPT->try_update(state.get(), timestamp);
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
         if(did_zupt_update) {
             cv::Mat img_outtemp0, img_outtemp1;
             cv::cvtColor(img0, img_outtemp0, CV_GRAY2RGB);
@@ -241,10 +241,10 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
     }
 
     // Feed our stereo trackers, if we are not doing binocular
+    // Calling trackFEATS.get() is safe because `this` is still in scope when we join, hence trackFEATS is alive for at least that long
     if(params.use_stereo) {
         trackFEATS->feed_stereo(timestamp, img0, img1, cam_id0, cam_id1);
     } else {
-        // Calling trackFEATS.get() is safe because `this` is still in scope when we join, hence trackFEATS is alive for at least that long
         boost::thread t_l = boost::thread(&TrackBase::feed_monocular, trackFEATS.get(), boost::ref(timestamp), boost::ref(img0), boost::ref(cam_id0));
         boost::thread t_r = boost::thread(&TrackBase::feed_monocular, trackFEATS.get(), boost::ref(timestamp), boost::ref(img1), boost::ref(cam_id1));
         t_l.join();
@@ -279,18 +279,20 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     rT1 =  boost::posix_time::microsec_clock::local_time();
 
     // Check if we actually have a simulated tracker
-    // Calling trackFEATS.get() is safe because `this` (and thus `trackFEATS`) outlives `trackSIM`
-	TrackSIM *trackSIM = dynamic_cast<TrackSIM*>(trackFEATS.get());
+    // If not, recreate and re-cast the tracker to our simulation tracker
+    std::shared_ptr<TrackSIM> trackSIM = dynamic_pointer_cast<TrackSIM>(trackFEATS);
     if(trackSIM == nullptr) {
-        //delete trackFEATS; //(fix this error in the future)
-        trackFEATS = std::unique_ptr<TrackSIM>(new TrackSIM(state->_options.max_aruco_features));
+        // Replace with the simulated tracker
+        trackSIM = std::shared_ptr<TrackSIM>(new TrackSIM(state->_options.max_aruco_features));
+        trackFEATS = trackSIM;
         trackFEATS->set_calibration(params.camera_intrinsics, params.camera_fisheye);
         printf(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
     }
+    trackSIM->set_width_height(params.camera_wh);
 
     // Check if we should do zero-velocity, if so update the state with it
     if(is_initialized_vio && updaterZUPT != nullptr) {
-        did_zupt_update = updaterZUPT->try_update(state.get(), timestamp);
+        did_zupt_update = updaterZUPT->try_update(state, timestamp);
         if(did_zupt_update) {
             int max_width = -1;
             int max_height = -1;
@@ -312,8 +314,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
             return;
         }
     }
-
-    trackSIM->set_width_height(params.camera_wh);
 
     // Feed our simulation tracker
     trackSIM->feed_measurement_simulation(timestamp, camids, feats);
@@ -399,7 +399,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
     // Propagate the state forward to the current update time
     // Also augment it with a new clone!
-    propagator->propagate_and_clone(state.get(), timestamp);
+    propagator->propagate_and_clone(state, timestamp);
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
     // If we have not reached max clones, we should just return...
@@ -423,7 +423,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 
 
     // Now, lets get all features that should be used for an update that are lost in the newest frame
-    std::vector<Feature*> feats_lost, feats_marg, feats_slam;
+    std::vector<std::shared_ptr<Feature>> feats_lost, feats_marg, feats_slam;
     feats_lost = trackFEATS->get_feature_database()->features_not_containing_newer(state->_timestamp);
 
     // Don't need to get the oldest features untill we reach our max number of clones
@@ -447,7 +447,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     }
 
     // Find tracks that have reached max length, these can be made into SLAM features
-    std::vector<Feature*> feats_maxtracks;
+    std::vector<std::shared_ptr<Feature>> feats_maxtracks;
     auto it2 = feats_marg.begin();
     while(it2 != feats_marg.end()) {
         // See if any of our camera's reached max track
@@ -492,12 +492,12 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Loop through current SLAM features, we have tracks of them, grab them for this update!
     // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
     // Note: if you do not use FEJ, these types of slam features *degrade* the estimator performance....
-    for (std::pair<const size_t, Landmark*> &landmark : state->_features_SLAM) {
+    for (std::pair<const size_t, std::shared_ptr<Landmark>> &landmark : state->_features_SLAM) {
         if(trackARUCO != nullptr) {
-            Feature* feat1 = trackARUCO->get_feature_database()->get_feature(landmark.second->_featid);
+            std::shared_ptr<Feature> feat1 = trackARUCO->get_feature_database()->get_feature(landmark.second->_featid);
             if(feat1 != nullptr) feats_slam.push_back(feat1);
         }
-        Feature* feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->_featid);
+        std::shared_ptr<Feature> feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->_featid);
         if(feat2 != nullptr) feats_slam.push_back(feat2);
         if(feat2 == nullptr) landmark.second->should_marg = true;
     }
@@ -505,10 +505,10 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Lets marginalize out all old SLAM features here
     // These are ones that where not successfully tracked into the current frame
     // We do *NOT* marginalize out our aruco tags
-    StateHelper::marginalize_slam(state.get());
+    StateHelper::marginalize_slam(state);
 
     // Separate our SLAM features into new ones, and old ones
-    std::vector<Feature*> feats_slam_DELAYED, feats_slam_UPDATE;
+    std::vector<std::shared_ptr<Feature>> feats_slam_DELAYED, feats_slam_UPDATE;
     for(size_t i=0; i<feats_slam.size(); i++) {
         if(state->_features_SLAM.find(feats_slam.at(i)->featid) != state->_features_SLAM.end()) {
             feats_slam_UPDATE.push_back(feats_slam.at(i));
@@ -520,7 +520,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     }
 
     // Concatenate our MSCKF feature arrays (i.e., ones not being used for slam updates)
-    std::vector<Feature*> featsup_MSCKF = feats_lost;
+    std::vector<std::shared_ptr<Feature>> featsup_MSCKF = feats_lost;
     featsup_MSCKF.insert(featsup_MSCKF.end(), feats_marg.begin(), feats_marg.end());
     featsup_MSCKF.insert(featsup_MSCKF.end(), feats_maxtracks.begin(), feats_maxtracks.end());
 
@@ -533,45 +533,43 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Pass them to our MSCKF updater
     // NOTE: if we have more then the max, we select the "best" ones (i.e. max tracks) for this update
     // NOTE: this should only really be used if you want to track a lot of features, or have limited computational resources
+    // TODO: we should have better selection logic here (i.e. even feature distribution in the FOV etc..)
     if((int)featsup_MSCKF.size() > state->_options.max_msckf_in_update)
         featsup_MSCKF.erase(featsup_MSCKF.begin(), featsup_MSCKF.end()-state->_options.max_msckf_in_update);
-    updaterMSCKF->update(state.get(), featsup_MSCKF);
+    updaterMSCKF->update(state, featsup_MSCKF);
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
     // Perform SLAM delay init and update
     // NOTE: that we provide the option here to do a *sequential* update
     // NOTE: this will be a lot faster but won't be as accurate.
-    std::vector<Feature*> feats_slam_UPDATE_TEMP;
+    std::vector<std::shared_ptr<Feature>> feats_slam_UPDATE_TEMP;
     while(!feats_slam_UPDATE.empty()) {
         // Get sub vector of the features we will update with
-        std::vector<Feature*> featsup_TEMP;
+        std::vector<std::shared_ptr<Feature>> featsup_TEMP;
         featsup_TEMP.insert(featsup_TEMP.begin(), feats_slam_UPDATE.begin(), feats_slam_UPDATE.begin()+std::min(state->_options.max_slam_in_update,(int)feats_slam_UPDATE.size()));
         feats_slam_UPDATE.erase(feats_slam_UPDATE.begin(), feats_slam_UPDATE.begin()+std::min(state->_options.max_slam_in_update,(int)feats_slam_UPDATE.size()));
         // Do the update
-        updaterSLAM->update(state.get(), featsup_TEMP);
+        updaterSLAM->update(state, featsup_TEMP);
         feats_slam_UPDATE_TEMP.insert(feats_slam_UPDATE_TEMP.end(), featsup_TEMP.begin(), featsup_TEMP.end());
     }
     feats_slam_UPDATE = feats_slam_UPDATE_TEMP;
     rT5 =  boost::posix_time::microsec_clock::local_time();
-    updaterSLAM->delayed_init(state.get(), feats_slam_DELAYED);
+    updaterSLAM->delayed_init(state, feats_slam_DELAYED);
     rT6 =  boost::posix_time::microsec_clock::local_time();
-
 
     //===================================================================================
     // Update our visualization feature set, and clean up the old features
     //===================================================================================
 
-
     // Collect all slam features into single vector
-    std::vector<Feature*> features_used_in_update = featsup_MSCKF;
+    std::vector<std::shared_ptr<Feature>> features_used_in_update = featsup_MSCKF;
     features_used_in_update.insert(features_used_in_update.end(), feats_slam_UPDATE.begin(), feats_slam_UPDATE.end());
     features_used_in_update.insert(features_used_in_update.end(), feats_slam_DELAYED.begin(), feats_slam_DELAYED.end());
     update_keyframe_historical_information(features_used_in_update);
 
-
     // Save all the MSCKF features used in the update
     good_features_MSCKF.clear();
-    for(Feature* feat : featsup_MSCKF) {
+    for(auto const &feat : featsup_MSCKF) {
         good_features_MSCKF.push_back(feat->p_FinG);
         feat->to_delete = true;
     }
@@ -589,7 +587,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     //===================================================================================
 
     // First do anchor change if we are about to lose an anchor pose
-    updaterSLAM->change_anchors(state.get());
+    updaterSLAM->change_anchors(state);
 
     // Cleanup any features older then the marginalization time
     trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
@@ -598,15 +596,16 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     }
 
     // Finally marginalize the oldest clone if needed
-    StateHelper::marginalize_old_clone(state.get());
+    StateHelper::marginalize_old_clone(state);
 
     // Finally if we are optimizing our intrinsics, update our trackers
+    // TODO: we shouldn't need to do this, in the future just do this before triangulation etc.
     if(state->_options.do_calib_camera_intrinsics) {
         // Get vectors arrays
         std::map<size_t, Eigen::VectorXd> cameranew_calib;
         std::map<size_t, bool> cameranew_fisheye;
         for(int i=0; i<state->_options.num_cameras; i++) {
-            Vec* calib = state->_cam_intrinsics.at(i);
+            std::shared_ptr<Vec> calib = state->_cam_intrinsics.at(i);
             bool isfish = state->_cam_intrinsics_model.at(i);
             cameranew_calib.insert({i,calib->value()});
             cameranew_fisheye.insert({i,isfish});
@@ -687,7 +686,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Debug for camera intrinsics
     if(state->_options.do_calib_camera_intrinsics) {
         for(int i=0; i<state->_options.num_cameras; i++) {
-            Vec* calib = state->_cam_intrinsics.at(i);
+            std::shared_ptr<Vec> calib = state->_cam_intrinsics.at(i);
             printf("cam%d intrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f\n",(int)i,
                      calib->value()(0),calib->value()(1),calib->value()(2),calib->value()(3),
                      calib->value()(4),calib->value()(5),calib->value()(6),calib->value()(7));
@@ -697,7 +696,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Debug for camera extrinsics
     if(state->_options.do_calib_camera_pose) {
         for(int i=0; i<state->_options.num_cameras; i++) {
-            PoseJPL* calib = state->_calib_IMUtoCAM.at(i);
+            std::shared_ptr<PoseJPL> calib = state->_calib_IMUtoCAM.at(i);
             printf("cam%d extrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f\n",(int)i,
                      calib->quat()(0),calib->quat()(1),calib->quat()(2),calib->quat()(3),
                      calib->pos()(0),calib->pos()(1),calib->pos()(2));
@@ -708,7 +707,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 }
 
 
-void VioManager::update_keyframe_historical_information(const std::vector<Feature*> &features) {
+void VioManager::update_keyframe_historical_information(const std::vector<std::shared_ptr<Feature>> &features) {
 
 
     // Loop through all features that have been used in the last update

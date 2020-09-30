@@ -2,6 +2,7 @@
 
 
 @page update-featinit 3D Feature Triangulation
+@tableofcontents
 
 
 @section featinit-linear Linear Triangulation

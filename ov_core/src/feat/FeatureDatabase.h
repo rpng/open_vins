@@ -24,6 +24,7 @@
 
 #include <vector>
 #include <mutex>
+#include <memory>
 #include <Eigen/Eigen>
 
 #include "Feature.h"
@@ -57,10 +58,7 @@ namespace ov_core {
         /**
          * @brief Default constructor
          */
-        FeatureDatabase() {
-            features_idlookup = std::unordered_map<size_t, Feature *>();
-        }
-
+        FeatureDatabase() {}
 
         /**
          * @brief Get a specified feature
@@ -68,10 +66,10 @@ namespace ov_core {
          * @param remove Set to true if you want to remove the feature from the database (you will need to handle the freeing of memory)
          * @return Either a feature object, or null if it is not in the database.
          */
-        Feature *get_feature(size_t id, bool remove=false) {
+        std::shared_ptr<Feature> get_feature(size_t id, bool remove=false) {
             std::unique_lock<std::mutex> lck(mtx);
             if (features_idlookup.find(id) != features_idlookup.end()) {
-                Feature* temp = features_idlookup.at(id);
+                std::shared_ptr<Feature> temp = features_idlookup.at(id);
                 if(remove) features_idlookup.erase(id);
                 return temp;
             } else {
@@ -100,7 +98,7 @@ namespace ov_core {
             std::unique_lock<std::mutex> lck(mtx);
             if (features_idlookup.find(id) != features_idlookup.end()) {
                 // Get our feature
-                Feature *feat = features_idlookup.at(id);
+                std::shared_ptr<Feature> feat = features_idlookup.at(id);
                 // Append this new information to it!
                 feat->uvs[cam_id].push_back(Eigen::Vector2f(u, v));
                 feat->uvs_norm[cam_id].push_back(Eigen::Vector2f(u_n, v_n));
@@ -112,14 +110,14 @@ namespace ov_core {
             //ROS_INFO("featdb - adding new feature %d",(int)id);
 
             // Else we have not found the feature, so lets make it be a new one!
-            Feature *feat = new Feature();
+            std::shared_ptr<Feature> feat = std::make_shared<Feature>();
             feat->featid = id;
             feat->uvs[cam_id].push_back(Eigen::Vector2f(u, v));
             feat->uvs_norm[cam_id].push_back(Eigen::Vector2f(u_n, v_n));
             feat->timestamps[cam_id].push_back(timestamp);
 
             // Append this new feature into our database
-            features_idlookup.insert({id, feat});
+            features_idlookup[id] = std::move(feat);
         }
 
 
@@ -130,10 +128,10 @@ namespace ov_core {
          * For example this could be used to get features that have not been successfully tracked into the newest frame.
          * All features returned will not have any measurements occurring at a time greater then the specified.
          */
-        std::vector<Feature *> features_not_containing_newer(double timestamp, bool remove=false) {
+        std::vector<std::shared_ptr<Feature>> features_not_containing_newer(double timestamp, bool remove=false) {
 
             // Our vector of features that do not have measurements after the specified time
-            std::vector<Feature *> feats_old;
+            std::vector<std::shared_ptr<Feature>> feats_old;
 
             // Now lets loop through all features, and just make sure they are not old
             std::unique_lock<std::mutex> lck(mtx);
@@ -172,10 +170,10 @@ namespace ov_core {
          * This will collect all features that have measurements occurring before the specified timestamp.
          * For example, we would want to remove all features older then the last clone/state in our sliding window.
          */
-        std::vector<Feature *> features_containing_older(double timestamp, bool remove=false) {
+        std::vector<std::shared_ptr<Feature>> features_containing_older(double timestamp, bool remove=false) {
 
             // Our vector of old features
-            std::vector<Feature *> feats_old;
+            std::vector<std::shared_ptr<Feature>> feats_old;
 
             // Now lets loop through all features, and just make sure they are not old
             std::unique_lock<std::mutex> lck(mtx);
@@ -212,10 +210,10 @@ namespace ov_core {
          * This function will return all features that have the specified time in them.
          * This would be used to get all features that occurred at a specific clone/state.
          */
-        std::vector<Feature *> features_containing(double timestamp, bool remove=false) {
+        std::vector<std::shared_ptr<Feature>> features_containing(double timestamp, bool remove=false) {
 
             // Our vector of old features
-            std::vector<Feature *> feats_has_timestamp;
+            std::vector<std::shared_ptr<Feature>> feats_has_timestamp;
 
             // Now lets loop through all features, and just make sure they are not
             std::unique_lock<std::mutex> lck(mtx);
@@ -266,8 +264,9 @@ namespace ov_core {
             std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
                 // If delete flag is set, then delete it
+                // NOTE: if we are using a shared pointer, then no need to do this!
                 if ((*it).second->to_delete) {
-                    delete (*it).second;
+                    //delete (*it).second;
                     features_idlookup.erase(it++);
                 } else {
                     it++;
@@ -291,8 +290,9 @@ namespace ov_core {
                     ct_meas += (*it).second->timestamps.at(pair.first).size();
                 }
                 // If delete flag is set, then delete it
+                // NOTE: if we are using a shared pointer, then no need to do this!
                 if (ct_meas < 1) {
-                    delete (*it).second;
+                    //delete (*it).second;
                     features_idlookup.erase(it++);
                 } else {
                     it++;
@@ -313,7 +313,7 @@ namespace ov_core {
         /**
          * @brief Returns the internal data (should not normally be used)
          */
-        std::unordered_map<size_t, Feature *> get_internal_data() {
+        std::unordered_map<size_t, std::shared_ptr<Feature>> get_internal_data() {
             std::unique_lock<std::mutex> lck(mtx);
             return features_idlookup;
         }
@@ -324,7 +324,7 @@ namespace ov_core {
         std::mutex mtx;
 
         /// Our lookup array that allow use to query based on ID
-        std::unordered_map<size_t, Feature *> features_idlookup;
+        std::unordered_map<size_t, std::shared_ptr<Feature>> features_idlookup;
 
 
     };

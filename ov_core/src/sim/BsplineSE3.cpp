@@ -41,7 +41,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
 
     // convert all our trajectory points into SE(3) matrices
     // we are given [timestamp, p_IinG, q_GtoI]
-    std::map<double,Eigen::MatrixXd> trajectory_points;
+    AlignedEigenMat4d trajectory_points;
     for(size_t i=0; i<traj_points.size()-1; i++) {
         Eigen::Matrix4d T_IinG = Eigen::Matrix4d::Identity();
         T_IinG.block(0,0,3,3) = quat_2_Rot(traj_points.at(i).block(4,0,4,1)).transpose();
@@ -52,7 +52,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
     // Get the oldest timestamp
     double timestamp_min = INFINITY;
     double timestamp_max = -INFINITY;
-    for(std::pair<const double, Eigen::MatrixXd> &pose : trajectory_points) {
+    for(const auto &pose : trajectory_points) {
         if(pose.first <= timestamp_min) {
             timestamp_min = pose.first;
         }
@@ -263,7 +263,7 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Matrix3d &R_GtoI, Eig
 }
 
 
-bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
+bool BsplineSE3::find_bounding_poses(const double timestamp, const AlignedEigenMat4d &poses,
                                      double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1) {
 
     // Set the default values
@@ -318,7 +318,7 @@ bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Ma
 
 
 
-bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
+bool BsplineSE3::find_bounding_control_points(const double timestamp, const AlignedEigenMat4d &poses,
                                               double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1,
                                               double &t2, Eigen::Matrix4d &pose2, double &t3, Eigen::Matrix4d &pose3) {
 
