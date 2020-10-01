@@ -35,14 +35,14 @@ bagnames=(
 # this can be used to skip the initial sections
 bagstarttimes=(
     "0"
-    "0"
+    "8"
     "0"
     "0"
     "0"
     "0"
     "40"
     "35"
-    "18"
+    "17.5"
     "15"
     "15"
 )
@@ -62,7 +62,7 @@ imuthreshold=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_test_features/algorithms"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/NEW_exp_test_features/algorithms"
 bag_path="/home/patrick/datasets/eth"
 
 
@@ -78,11 +78,11 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..04}; do
+for j in {00..01}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
+filename_est="$save_path1/ov_v23_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]

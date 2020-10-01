@@ -130,6 +130,8 @@ namespace ov_msckf {
         app1.add_option("--knn_ratio", params.knn_ratio, "");
 
         // Feature initializer parameters
+        app1.add_option("--fi_triangulate_1d", params.featinit_options.triangulate_1d, "");
+        app1.add_option("--fi_refine_features", params.featinit_options.refine_features, "");
         app1.add_option("--fi_max_runs", params.featinit_options.max_runs, "");
         app1.add_option("--fi_init_lamda", params.featinit_options.init_lamda, "");
         app1.add_option("--fi_max_lamda", params.featinit_options.max_lamda, "");

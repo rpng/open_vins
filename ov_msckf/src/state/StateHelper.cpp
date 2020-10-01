@@ -550,7 +550,6 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
 
 void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w) {
 
-
     // We can't insert a clone that occured at the same timestamp!
     if (state->_clones_IMU.find(state->_timestamp) != state->_clones_IMU.end()) {
         printf(RED "TRIED TO INSERT A CLONE AT THE SAME TIME AS AN EXISTING CLONE, EXITING!#!@#!@#\n" RESET);

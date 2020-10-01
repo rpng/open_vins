@@ -92,16 +92,21 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
     while(it1 != feature_vec.end()) {
 
         // Triangulate the feature and remove if it fails
-        bool success = initializer_feat->single_triangulation(it1->get(), clones_cam);
-        if(!success) {
-            (*it1)->to_delete = true;
-            it1 = feature_vec.erase(it1);
-            continue;
+        bool success_tri = true;
+        if(initializer_feat->config().triangulate_1d) {
+            success_tri = initializer_feat->single_triangulation_1d(it1->get(), clones_cam);
+        } else {
+            success_tri = initializer_feat->single_triangulation(it1->get(), clones_cam);
         }
 
         // Gauss-newton refine the feature
-        success = initializer_feat->single_gaussnewton(it1->get(), clones_cam);
-        if(!success) {
+        bool success_refine = true;
+        if(initializer_feat->config().refine_features) {
+            success_refine = initializer_feat->single_gaussnewton(it1->get(), clones_cam);
+        }
+
+        // Remove the feature if not a success
+        if(!success_tri || !success_refine) {
             (*it1)->to_delete = true;
             it1 = feature_vec.erase(it1);
             continue;

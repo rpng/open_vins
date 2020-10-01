@@ -106,7 +106,7 @@ namespace ov_core {
 
             // Initialize our mutex and camera intrinsic values if we are just starting up
             // The number of cameras should not change over time, thus we just need to check if our initial data is empty
-            if(mtx_feeds.empty() || camera_k_OPENCV.empty() || camera_k_OPENCV.empty() || this->camera_fisheye.empty()) {
+            if(mtx_feeds.empty() || camera_k_OPENCV.empty() || camera_d_OPENCV.empty() || this->camera_fisheye.empty()) {
                 // Create our mutex array based on the number of cameras we have
                 // See https://stackoverflow.com/a/24170141/7718197
                 std::vector<std::mutex> list(camera_calib.size());
@@ -143,6 +143,7 @@ namespace ov_core {
             // assert that the number of cameras can not change
             assert(camera_k_OPENCV.size()==camera_calib.size());
             assert(camera_k_OPENCV.size()==camera_fisheye.size());
+            assert(camera_k_OPENCV.size()==camera_d_OPENCV.size());
 
             // Convert values to the OpenCV format
             for (auto const &cam : camera_calib) {

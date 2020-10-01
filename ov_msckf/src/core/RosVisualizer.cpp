@@ -618,7 +618,6 @@ void RosVisualizer::publish_groundtruth() {
     for(size_t i=0; i<poses_gt.size(); i+=std::floor(poses_gt.size()/16384.0)+1) {
         arrIMU.poses.push_back(poses_gt.at(i));
     }
-    arrIMU.poses = poses_gt;
     pub_pathgt.publish(arrIMU);
 
     // Move them forward in time

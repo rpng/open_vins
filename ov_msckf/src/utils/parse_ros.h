@@ -156,6 +156,8 @@ namespace ov_msckf {
         nh.param<double>("knn_ratio", params.knn_ratio, params.knn_ratio);
 
         // Feature initializer parameters
+        nh.param<bool>("fi_triangulate_1d", params.featinit_options.triangulate_1d, params.featinit_options.triangulate_1d);
+        nh.param<bool>("fi_refine_features", params.featinit_options.refine_features, params.featinit_options.refine_features);
         nh.param<int>("fi_max_runs", params.featinit_options.max_runs, params.featinit_options.max_runs);
         nh.param<double>("fi_init_lamda", params.featinit_options.init_lamda, params.featinit_options.init_lamda);
         nh.param<double>("fi_max_lamda", params.featinit_options.max_lamda, params.featinit_options.max_lamda);
