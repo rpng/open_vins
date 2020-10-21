@@ -59,11 +59,13 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
     pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
     ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
 
-    // Keyframe publishers
-    pub_keyframe_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/keyframe_pose", 1000);
-    pub_keyframe_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/keyframe_feats", 1000);
-    pub_keyframe_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/keyframe_extrinsic", 1000);
-    pub_keyframe_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/keyframe_intrinsics", 1000);
+    // Loop closure publishers
+    pub_loop_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
+    pub_loop_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
+    pub_loop_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
+    pub_loop_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
+    pub_loop_img_depth = nh.advertise<sensor_msgs::Image>("/ov_msckf/loop_depth", 2);
+    pub_loop_img_depth_color = nh.advertise<sensor_msgs::Image>("/ov_msckf/loop_depth_colored", 2);
 
     // option to enable publishing of global to IMU transformation
     nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
@@ -140,7 +142,7 @@ void RosVisualizer::visualize() {
     publish_groundtruth();
 
     // Publish keyframe information
-    publish_keyframe_information();
+    publish_loopclosure_information();
 
     // save total state
     if(save_total_state)
@@ -691,121 +693,161 @@ void RosVisualizer::publish_groundtruth() {
 
 
 
-void RosVisualizer::publish_keyframe_information() {
+void RosVisualizer::publish_loopclosure_information() {
 
-
-    // Check if we have subscribers
-    if(pub_keyframe_pose.getNumSubscribers()==0 && pub_keyframe_point.getNumSubscribers()==0 &&
-       pub_keyframe_extrinsic.getNumSubscribers()==0 && pub_keyframe_intrinsics.getNumSubscribers()==0)
-        return;
-
-
-    // Skip if we don't have a marginalized frame yet
-    double hist_last_marginalized_time;
-    Eigen::Matrix<double,7,1> stateinG;
-    if(!_app->hist_last_marg_state(hist_last_marginalized_time, stateinG))
-        return;
+    // Get the current tracks in this frame
+    double active_tracks_time = -1;
+    std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG;
+    std::unordered_map<size_t, Eigen::Vector3d> active_tracks_uvd;
+    _app->get_active_tracks(active_tracks_time, active_tracks_posinG, active_tracks_uvd);
+    if(active_tracks_time == -1) return;
+    assert(active_tracks_posinG.size()==active_tracks_uvd.size());
+    assert(active_tracks_time==_app->get_state()->_timestamp);
 
     // Default header
     std_msgs::Header header;
-    header.stamp = ros::Time(hist_last_marginalized_time);
+    header.stamp = ros::Time(active_tracks_time);
 
     //======================================================
-    // PUBLISH IMU TO CAMERA0 EXTRINSIC
-    // need to flip the transform to the IMU frame
-    Eigen::Vector4d q_ItoC = _app->get_state()->_calib_IMUtoCAM.at(0)->quat();
-    Eigen::Vector3d p_CinI = -_app->get_state()->_calib_IMUtoCAM.at(0)->Rot().transpose()*_app->get_state()->_calib_IMUtoCAM.at(0)->pos();
-    nav_msgs::Odometry odometry_calib;
-    odometry_calib.header = header;
-    odometry_calib.header.frame_id = "imu";
-    odometry_calib.pose.pose.position.x = p_CinI(0);
-    odometry_calib.pose.pose.position.y = p_CinI(1);
-    odometry_calib.pose.pose.position.z = p_CinI(2);
-    odometry_calib.pose.pose.orientation.x = q_ItoC(0);
-    odometry_calib.pose.pose.orientation.y = q_ItoC(1);
-    odometry_calib.pose.pose.orientation.z = q_ItoC(2);
-    odometry_calib.pose.pose.orientation.w = q_ItoC(3);
-    pub_keyframe_extrinsic.publish(odometry_calib);
+    // Check if we have subscribers for the pose odometry, camera intrinsics, or extrinsics
+    if(pub_loop_pose.getNumSubscribers() != 0 ||
+        pub_loop_extrinsic.getNumSubscribers() != 0 ||
+        pub_loop_intrinsics.getNumSubscribers() != 0) {
 
+        // PUBLISH HISTORICAL POSE ESTIMATE
+        nav_msgs::Odometry odometry_pose;
+        odometry_pose.header = header;
+        odometry_pose.header.frame_id = "global";
+        odometry_pose.pose.pose.position.x = _app->get_state()->_imu->pos()(0);
+        odometry_pose.pose.pose.position.y = _app->get_state()->_imu->pos()(1);
+        odometry_pose.pose.pose.position.z = _app->get_state()->_imu->pos()(2);
+        odometry_pose.pose.pose.orientation.x = _app->get_state()->_imu->quat()(0);
+        odometry_pose.pose.pose.orientation.y = _app->get_state()->_imu->quat()(1);
+        odometry_pose.pose.pose.orientation.z = _app->get_state()->_imu->quat()(2);
+        odometry_pose.pose.pose.orientation.w = _app->get_state()->_imu->quat()(3);
+        pub_loop_pose.publish(odometry_pose);
 
-    //======================================================
-    // PUBLISH CAMERA0 INTRINSICS
-    sensor_msgs::CameraInfo cameraparams;
-    cameraparams.header = header;
-    cameraparams.header.frame_id = "imu";
-    cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0))? "equidistant" : "plumb_bob";
-    Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
-    cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
-    cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
-    pub_keyframe_intrinsics.publish(cameraparams);
+        // PUBLISH IMU TO CAMERA0 EXTRINSIC
+        // need to flip the transform to the IMU frame
+        Eigen::Vector4d q_ItoC = _app->get_state()->_calib_IMUtoCAM.at(0)->quat();
+        Eigen::Vector3d p_CinI = -_app->get_state()->_calib_IMUtoCAM.at(0)->Rot().transpose()*_app->get_state()->_calib_IMUtoCAM.at(0)->pos();
+        nav_msgs::Odometry odometry_calib;
+        odometry_calib.header = header;
+        odometry_calib.header.frame_id = "imu";
+        odometry_calib.pose.pose.position.x = p_CinI(0);
+        odometry_calib.pose.pose.position.y = p_CinI(1);
+        odometry_calib.pose.pose.position.z = p_CinI(2);
+        odometry_calib.pose.pose.orientation.x = q_ItoC(0);
+        odometry_calib.pose.pose.orientation.y = q_ItoC(1);
+        odometry_calib.pose.pose.orientation.z = q_ItoC(2);
+        odometry_calib.pose.pose.orientation.w = q_ItoC(3);
+        pub_loop_extrinsic.publish(odometry_calib);
 
+        // PUBLISH CAMERA0 INTRINSICS
+        sensor_msgs::CameraInfo cameraparams;
+        cameraparams.header = header;
+        cameraparams.header.frame_id = "imu";
+        cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0))? "equidistant" : "plumb_bob";
+        Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
+        cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
+        cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
+        pub_loop_intrinsics.publish(cameraparams);
 
-    //======================================================
-    // PUBLISH HISTORICAL POSE ESTIMATE
-    nav_msgs::Odometry odometry_pose;
-    odometry_pose.header = header;
-    odometry_pose.header.frame_id = "global";
-    odometry_pose.pose.pose.position.x = stateinG(4);
-    odometry_pose.pose.pose.position.y = stateinG(5);
-    odometry_pose.pose.pose.position.z = stateinG(6);
-    odometry_pose.pose.pose.orientation.x = stateinG(0);
-    odometry_pose.pose.pose.orientation.y = stateinG(1);
-    odometry_pose.pose.pose.orientation.z = stateinG(2);
-    odometry_pose.pose.pose.orientation.w = stateinG(3);
-    pub_keyframe_pose.publish(odometry_pose);
-
+    }
 
     //======================================================
     // PUBLISH FEATURE TRACKS IN THE GLOBAL FRAME OF REFERENCE
+    if(pub_loop_point.getNumSubscribers() != 0) {
 
-    // Get historical feature information
-    std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> hist_feat_uvs;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>>> hist_feat_uvs_norm;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
-    _app->hist_get_features(hist_feat_posinG, hist_feat_uvs, hist_feat_uvs_norm, hist_feat_timestamps);
+        // Construct the message
+        sensor_msgs::PointCloud point_cloud;
+        point_cloud.header = header;
+        point_cloud.header.frame_id = "global";
+        for(const auto &feattimes : active_tracks_posinG) {
 
-    // Construct the message
-    sensor_msgs::PointCloud point_cloud;
-    point_cloud.header = header;
-    point_cloud.header.frame_id = "global";
-    for(const auto &feattimes : hist_feat_timestamps) {
+            // Get this feature information
+            size_t featid = feattimes.first;
+            Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
+            Eigen::Vector3d pFinG = active_tracks_posinG.at(featid);
 
-        // Skip if this feature has no extraction in the "zero" camera
-        if(feattimes.second.find(0)==feattimes.second.end())
-            continue;
+            // Push back 3d point
+            geometry_msgs::Point32 p;
+            p.x = pFinG(0);
+            p.y = pFinG(1);
+            p.z = pFinG(2);
+            point_cloud.points.push_back(p);
 
-        // Skip if this feature does not have measurement at this time
-        auto iter = std::find(feattimes.second.at(0).begin(), feattimes.second.at(0).end(), hist_last_marginalized_time);
-        if(iter==feattimes.second.at(0).end())
-            continue;
+            // Push back the uv_norm, uv_raw, and feature id
+            // NOTE: we don't use the normalized coordinates to save time here
+            // NOTE: they will have to be re-normalized in the loop closure code
+            sensor_msgs::ChannelFloat32 p_2d;
+            p_2d.values.push_back(0);
+            p_2d.values.push_back(0);
+            p_2d.values.push_back(uvd(0));
+            p_2d.values.push_back(uvd(1));
+            p_2d.values.push_back(featid);
+            point_cloud.channels.push_back(p_2d);
 
-        // Get this feature information
-        size_t featid = feattimes.first;
-        size_t index = (size_t)std::distance(feattimes.second.at(0).begin(), iter);
-        Eigen::Vector2f uv = hist_feat_uvs.at(featid).at(0).at(index);
-        Eigen::Vector2f uv_n = hist_feat_uvs_norm.at(featid).at(0).at(index);
-        Eigen::Vector3d pFinG = hist_feat_posinG.at(featid);
-
-        // Push back 3d point
-        geometry_msgs::Point32 p;
-        p.x = pFinG(0);
-        p.y = pFinG(1);
-        p.z = pFinG(2);
-        point_cloud.points.push_back(p);
-
-        // Push back the norm, raw, and feature id
-        sensor_msgs::ChannelFloat32 p_2d;
-        p_2d.values.push_back(uv_n(0));
-        p_2d.values.push_back(uv_n(1));
-        p_2d.values.push_back(uv(0));
-        p_2d.values.push_back(uv(1));
-        p_2d.values.push_back(featid);
-        point_cloud.channels.push_back(p_2d);
+        }
+        pub_loop_point.publish(point_cloud);
 
     }
-    pub_keyframe_point.publish(point_cloud);
 
+    //======================================================
+    // Depth images of sparse points and its colorized version
+    if(pub_loop_img_depth.getNumSubscribers() != 0 || pub_loop_img_depth_color.getNumSubscribers() != 0) {
+
+        // Create the images we will populate with the depths
+        auto wh_pair = _app->get_params().camera_wh.at(0);
+        cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
+        cv::Mat depthmap_viz = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_8UC3);
+
+        // Loop through all points and append
+        for(const auto &feattimes : active_tracks_posinG) {
+
+            // Get this feature information
+            size_t featid = feattimes.first;
+            Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
+
+            // Skip invalid points
+            double dw = 3;
+            if(uvd(0) < dw || uvd(0) > wh_pair.first-dw || uvd(1) < dw || uvd(1) > wh_pair.second-dw) {
+                continue;
+            }
+
+            // Append the depth
+            // NOTE: scaled by 1000 to fit the 16U
+            // NOTE: access order is y,x (stupid opencv convention stuff)
+            depthmap.at<uint16_t>((int)uvd(1),(int)uvd(0)) = (uint16_t)(1000*uvd(2));
+
+            // Taken from LSD-SLAM codebase segment into 0-4 meter segments:
+            // https://github.com/tum-vision/lsd_slam/blob/d1e6f0e1a027889985d2e6b4c0fe7a90b0c75067/lsd_slam_core/src/util/globalFuncs.cpp#L87-L96
+            float id = 1.0f/(float)uvd(2);
+            float r = (0.0f - id) * 255 / 1.0f;
+            if (r < 0) r = -r;
+            float g = (1.0f - id) * 255 / 1.0f;
+            if (g < 0) g = -g;
+            float b = (2.0f - id) * 255 / 1.0f;
+            if (b < 0) b = -b;
+            uchar rc = r < 0 ? 0 : (r > 255 ? 255 : r);
+            uchar gc = g < 0 ? 0 : (g > 255 ? 255 : g);
+            uchar bc = b < 0 ? 0 : (b > 255 ? 255 : b);
+            cv::Scalar color(255-rc,255-gc,255-bc);
+
+            // Small square around the point (note the above bound check needs to take into account this width)
+            cv::Point p0(uvd(0)-dw, uvd(1)-dw);
+            cv::Point p1(uvd(0)+dw, uvd(1)+dw);
+            cv::rectangle(depthmap_viz, p0, p1, color, -1);
+
+        }
+
+        // Create our messages
+        sensor_msgs::ImagePtr exl_msg1 = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_16UC1, depthmap).toImageMsg();
+        pub_loop_img_depth.publish(exl_msg1);
+        sensor_msgs::ImagePtr exl_msg2 = cv_bridge::CvImage(header, "bgr8", depthmap_viz).toImageMsg();
+        pub_loop_img_depth_color.publish(exl_msg2);
+
+    }
 
 }
 

@@ -93,7 +93,7 @@ VioManager::VioManager(VioManagerOptions& params_) {
         if(state->_options.max_slam_features > 0) {
             of_statistics << "slam update,slam delayed,";
         }
-        of_statistics << "marginalization,total" << std::endl;
+        of_statistics << "re-tri & marg,total" << std::endl;
     }
 
 
@@ -131,6 +131,9 @@ VioManager::VioManager(VioManagerOptions& params_) {
     if(params.try_zupt) {
         updaterZUPT = std::unique_ptr<UpdaterZeroVelocity>(new UpdaterZeroVelocity(params.zupt_options,params.imu_noises,params.gravity,params.zupt_max_velocity,params.zupt_noise_multiplier));
     }
+
+    // Feature initializer for active tracks
+    active_tracks_initializer = std::unique_ptr<FeatureInitializer>(new FeatureInitializer(params.featinit_options));
 
 }
 
@@ -534,6 +537,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // NOTE: if we have more then the max, we select the "best" ones (i.e. max tracks) for this update
     // NOTE: this should only really be used if you want to track a lot of features, or have limited computational resources
     // TODO: we should have better selection logic here (i.e. even feature distribution in the FOV etc..)
+    // TODO: right now features that are "lost" are at the front of this vector, while ones at the end are long-tracks
     if((int)featsup_MSCKF.size() > state->_options.max_msckf_in_update)
         featsup_MSCKF.erase(featsup_MSCKF.begin(), featsup_MSCKF.end()-state->_options.max_msckf_in_update);
     updaterMSCKF->update(state, featsup_MSCKF);
@@ -561,45 +565,9 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Update our visualization feature set, and clean up the old features
     //===================================================================================
 
-    // Collect all slam features into single vector
-    std::vector<std::shared_ptr<Feature>> features_used_in_update = featsup_MSCKF;
-    features_used_in_update.insert(features_used_in_update.end(), feats_slam_UPDATE.begin(), feats_slam_UPDATE.end());
-    features_used_in_update.insert(features_used_in_update.end(), feats_slam_DELAYED.begin(), feats_slam_DELAYED.end());
-    update_keyframe_historical_information(features_used_in_update);
-
-    // Save all the MSCKF features used in the update
-    good_features_MSCKF.clear();
-    for(auto const &feat : featsup_MSCKF) {
-        good_features_MSCKF.push_back(feat->p_FinG);
-        feat->to_delete = true;
-    }
-
-    // Remove features that where used for the update from our extractors at the last timestep
-    // This allows for measurements to be used in the future if they failed to be used this time
-    // Note we need to do this before we feed a new image, as we want all new measurements to NOT be deleted
-    trackFEATS->get_feature_database()->cleanup();
-    if(trackARUCO != nullptr) {
-        trackARUCO->get_feature_database()->cleanup();
-    }
-
-    //===================================================================================
-    // Cleanup, marginalize out what we don't need any more...
-    //===================================================================================
-
-    // First do anchor change if we are about to lose an anchor pose
-    updaterSLAM->change_anchors(state);
-
-    // Cleanup any features older then the marginalization time
-    trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
-    if(trackARUCO != nullptr) {
-        trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
-    }
-
-    // Finally marginalize the oldest clone if needed
-    StateHelper::marginalize_old_clone(state);
-
     // Finally if we are optimizing our intrinsics, update our trackers
     // TODO: we shouldn't need to do this, in the future just do this before triangulation etc.
+    // TODO: this is the best we can do right now since triangulation & ransac need normalized coordinates
     if(state->_options.do_calib_camera_intrinsics) {
         // Get vectors arrays
         std::map<size_t, Eigen::VectorXd> cameranew_calib;
@@ -616,6 +584,42 @@ void VioManager::do_feature_propagate_update(double timestamp) {
             trackARUCO->set_calibration(cameranew_calib, cameranew_fisheye, true);
         }
     }
+
+    // Re-triangulate all current tracks in the current frame
+    retriangulate_active_tracks();
+
+    // Save all the MSCKF features used in the update
+    good_features_MSCKF.clear();
+    for(auto const &feat : featsup_MSCKF) {
+        good_features_MSCKF.push_back(feat->p_FinG);
+        feat->to_delete = true;
+    }
+
+    //===================================================================================
+    // Cleanup, marginalize out what we don't need any more...
+    //===================================================================================
+
+    // Remove features that where used for the update from our extractors at the last timestep
+    // This allows for measurements to be used in the future if they failed to be used this time
+    // Note we need to do this before we feed a new image, as we want all new measurements to NOT be deleted
+    trackFEATS->get_feature_database()->cleanup();
+    if(trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup();
+    }
+
+    // First do anchor change if we are about to lose an anchor pose
+    updaterSLAM->change_anchors(state);
+
+    // Cleanup any features older then the marginalization time
+    if ((int) state->_clones_IMU.size() > state->_options.max_clone_size) {
+        trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
+        if(trackARUCO != nullptr) {
+            trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
+        }
+    }
+
+    // Finally marginalize the oldest clone if needed
+    StateHelper::marginalize_old_clone(state);
     rT7 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -635,12 +639,12 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     // Timing information
     printf(BLUE "[TIME]: %.4f seconds for tracking\n" RESET, time_track);
     printf(BLUE "[TIME]: %.4f seconds for propagation\n" RESET, time_prop);
-    printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d features)\n" RESET, time_msckf, (int)featsup_MSCKF.size());
+    printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d feats)\n" RESET, time_msckf, (int)featsup_MSCKF.size());
     if(state->_options.max_slam_features > 0) {
         printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET, time_slam_update, (int)feats_slam_UPDATE.size());
         printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET, time_slam_delay, (int)feats_slam_DELAYED.size());
     }
-    printf(BLUE "[TIME]: %.4f seconds for marginalization (%d clones in state)\n" RESET, time_marg, (int)state->_clones_IMU.size());
+    printf(BLUE "[TIME]: %.4f seconds for re-tri & marg (%d clones in state)\n" RESET, time_marg, (int)state->_clones_IMU.size());
     printf(BLUE "[TIME]: %.4f seconds for total\n" RESET, time_total);
 
     // Finally if we are saving stats to file, lets save it to file
@@ -707,89 +711,201 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 }
 
 
-void VioManager::update_keyframe_historical_information(const std::vector<std::shared_ptr<Feature>> &features) {
+void VioManager::retriangulate_active_tracks() {
+
+    // Start timing
+    boost::posix_time::ptime retri_rT1, retri_rT2, retri_rT3, retri_rT4, retri_rT5;
+    retri_rT1 =  boost::posix_time::microsec_clock::local_time();
+
+    // Clear old active track data
+    active_tracks_time = state->_timestamp;
+    active_tracks_posinG.clear();
+    active_tracks_uvd.clear();
+
+    // Get all features which are tracked in the current frame
+    std::vector<std::shared_ptr<Feature>> active_features;
+    active_features = trackFEATS->get_feature_database()->features_containing(state->_timestamp);
+    if(trackARUCO != nullptr) {
+        std::vector<std::shared_ptr<Feature>> feats;
+        feats = trackARUCO->get_feature_database()->features_containing(state->_timestamp);
+        active_features.insert(active_features.end(), feats.begin(), feats.end());
+    }
 
 
-    // Loop through all features that have been used in the last update
-    // We want to record their historical measurements and estimates for later use
-    for(const auto &feat : features) {
+    // 0. Get all timestamps our clones are at (and thus valid measurement times)
+    std::vector<double> clonetimes;
+    for(const auto& clone_imu : state->_clones_IMU) {
+        clonetimes.emplace_back(clone_imu.first);
+    }
 
-        // Get position of feature in the global frame of reference
-        Eigen::Vector3d p_FinG = feat->p_FinG;
+    // 1. Clean all feature measurements and make sure they all have valid clone times
+    //    Also remove any that we are unable to triangulate (due to not having enough measurements)
+    auto it0 = active_features.begin();
+    while(it0 != active_features.end()) {
 
-        // If it is a slam feature, then get its best guess from the state
-        if(state->_features_SLAM.find(feat->featid)!=state->_features_SLAM.end()) {
-            p_FinG = state->_features_SLAM.at(feat->featid)->get_xyz(false);
+        // Clean the feature
+        (*it0)->clean_old_measurements(clonetimes);
+
+        // Count how many measurements
+        int ct_meas = 0;
+        for(const auto &pair : (*it0)->timestamps) {
+            ct_meas += (*it0)->timestamps[pair.first].size();
         }
 
-        // Push back any new measurements if we have them
-        // Ensure that if the feature is already added, then just append the new measurements
-        if(hist_feat_posinG.find(feat->featid)!=hist_feat_posinG.end()) {
-            hist_feat_posinG.at(feat->featid) = p_FinG;
-            for(const auto &cam2uv : feat->uvs) {
-                if(hist_feat_uvs.at(feat->featid).find(cam2uv.first)!=hist_feat_uvs.at(feat->featid).end()) {
-                    hist_feat_uvs.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs.at(feat->featid).at(cam2uv.first).end(), cam2uv.second.begin(), cam2uv.second.end());
-                    hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).insert(hist_feat_uvs_norm.at(feat->featid).at(cam2uv.first).end(), feat->uvs_norm.at(cam2uv.first).begin(), feat->uvs_norm.at(cam2uv.first).end());
-                    hist_feat_timestamps.at(feat->featid).at(cam2uv.first).insert(hist_feat_timestamps.at(feat->featid).at(cam2uv.first).end(), feat->timestamps.at(cam2uv.first).begin(), feat->timestamps.at(cam2uv.first).end());
-                } else {
-                    hist_feat_uvs.at(feat->featid).insert(cam2uv);
-                    hist_feat_uvs_norm.at(feat->featid).insert({cam2uv.first,feat->uvs_norm.at(cam2uv.first)});
-                    hist_feat_timestamps.at(feat->featid).insert({cam2uv.first,feat->timestamps.at(cam2uv.first)});
-                }
-            }
+        // Remove if we don't have enough
+        if(ct_meas < 3) {
+            it0 = active_features.erase(it0);
         } else {
-            hist_feat_posinG.insert({feat->featid,p_FinG});
-            hist_feat_uvs.insert({feat->featid,feat->uvs});
-            hist_feat_uvs_norm.insert({feat->featid,feat->uvs_norm});
-            hist_feat_timestamps.insert({feat->featid,feat->timestamps});
+            it0++;
         }
+
     }
+    retri_rT2 =  boost::posix_time::microsec_clock::local_time();
 
+    // Return if no features
+    if(active_features.empty())
+        return;
 
-    // Go through all our old historical vectors and find if any features should be removed
-    // In this case we know that if we have no use for features that only have info older then the last marg time
-    std::vector<size_t> ids_to_remove;
-    for(const auto &id2feat : hist_feat_timestamps) {
-        bool all_older = true;
-        for(const auto &cam2time : id2feat.second) {
-            for(const auto &time : cam2time.second) {
-                if(time >= hist_last_marginalized_time) {
-                    all_older = false;
-                    break;
-                }
-            }
-            if(!all_older) break;
+    // 2. Create vector of cloned *CAMERA* poses at each of our clone timesteps
+    std::unordered_map<size_t, std::unordered_map<double, FeatureInitializer::ClonePose>> clones_cam;
+    for(const auto &clone_calib : state->_calib_IMUtoCAM) {
+
+        // For this camera, create the vector of camera poses
+        std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
+        for(const auto &clone_imu : state->_clones_IMU) {
+
+            // Get current camera pose
+            Eigen::Matrix<double,3,3> R_GtoCi = clone_calib.second->Rot()*clone_imu.second->Rot();
+            Eigen::Matrix<double,3,1> p_CioinG = clone_imu.second->pos() - R_GtoCi.transpose()*clone_calib.second->pos();
+
+            // Append to our map
+            clones_cami.insert({clone_imu.first,FeatureInitializer::ClonePose(R_GtoCi,p_CioinG)});
+
         }
-        if(all_older) {
-            ids_to_remove.push_back(id2feat.first);
+
+        // Append to our map
+        clones_cam.insert({clone_calib.first,clones_cami});
+
+    }
+    retri_rT3 =  boost::posix_time::microsec_clock::local_time();
+
+    // 3. Try to triangulate all features that have measurements
+    auto it1 = active_features.begin();
+    while(it1 != active_features.end()) {
+
+        // Skip if it is a SLAM feature since it already is active
+        // NOTE: we update its current estimate with the current state estimate
+        if(state->_features_SLAM.find((*it1)->featid)!=state->_features_SLAM.end()) {
+            (*it1)->p_FinG = state->_features_SLAM.at((*it1)->featid)->get_xyz(false);
+            it1++;
+            continue;
         }
-    }
 
-    // Remove those features!
-    for(const auto &id : ids_to_remove) {
-        hist_feat_posinG.erase(id);
-        hist_feat_uvs.erase(id);
-        hist_feat_uvs_norm.erase(id);
-        hist_feat_timestamps.erase(id);
-    }
+        // Triangulate the feature and remove if it fails
+        bool success_tri = true;
+        if(active_tracks_initializer->config().triangulate_1d) {
+            success_tri = active_tracks_initializer->single_triangulation_1d(it1->get(), clones_cam);
+        } else {
+            success_tri = active_tracks_initializer->single_triangulation(it1->get(), clones_cam);
+        }
 
-    // Remove any historical states older then the marg time
-    auto it0 = hist_stateinG.begin();
-    while(it0 != hist_stateinG.end()) {
-        if(it0->first < hist_last_marginalized_time) it0 = hist_stateinG.erase(it0);
-        else it0++;
-    }
+        // Remove the feature if not a success
+        if(!success_tri) {
+            it1 = active_features.erase(it1);
+            continue;
+        }
+        it1++;
 
-    // If we have reached our max window size record the oldest clone
-    // This clone is expected to be marginalized from the state
-    if ((int) state->_clones_IMU.size() > state->_options.max_clone_size) {
-        hist_last_marginalized_time = state->margtimestep();
-        assert(hist_last_marginalized_time != INFINITY);
-        Eigen::Matrix<double,7,1> imustate_inG = Eigen::Matrix<double,7,1>::Zero();
-        imustate_inG.block(0,0,4,1) = state->_clones_IMU.at(hist_last_marginalized_time)->quat();
-        imustate_inG.block(4,0,3,1) = state->_clones_IMU.at(hist_last_marginalized_time)->pos();
-        hist_stateinG.insert({hist_last_marginalized_time, imustate_inG});
     }
+    retri_rT4 =  boost::posix_time::microsec_clock::local_time();
+
+    // Return if no features
+    if(active_features.empty())
+        return;
+
+    // Calibration of the first camera (cam0)
+    std::shared_ptr<Vec> distortion = state->_cam_intrinsics.at(0);
+    std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(0);
+    Eigen::Matrix<double,3,3> R_ItoC = calibration->Rot();
+    Eigen::Matrix<double,3,1> p_IinC = calibration->pos();
+    Eigen::Matrix<double,8,1> cam_d = distortion->value();
+
+    // Get current IMU clone state
+    std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(active_tracks_time);
+    Eigen::Matrix3d R_GtoIi = clone_Ii->Rot();
+    Eigen::Vector3d p_IiinG = clone_Ii->pos();
+
+    // 4. Next we can update our variable with the global position
+    //    We also will project the features into the current frame
+    auto it2 = active_features.begin();
+    while(it2 != active_features.end()) {
+
+        // Project the current feature into the current frame of reference
+        Eigen::Vector3d p_FinIi = R_GtoIi*((*it2)->p_FinG-p_IiinG);
+        Eigen::Vector3d p_FinCi = R_ItoC*p_FinIi+p_IinC;
+        double depth = p_FinCi(2);
+        Eigen::Vector2d uv_norm, uv_dist;
+        uv_norm << p_FinCi(0)/depth, p_FinCi(1)/depth;
+
+        // Skip if not valid (i.e. negative depth, or outside of image)
+        if(depth < 0.0) {
+            it2++;
+            continue;
+        }
+
+        // Calculate distorted uv coordinate
+        //  1. Calculate distorted coordinates for fisheye
+        //  2. Calculate distorted coordinates for radial
+        if(state->_cam_intrinsics_model.at(0)) {
+            double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+            double theta = std::atan(r);
+            double theta_d = theta+cam_d(4)*std::pow(theta,3)+cam_d(5)*std::pow(theta,5)+cam_d(6)*std::pow(theta,7)+cam_d(7)*std::pow(theta,9);
+            // Handle when r is small (meaning our xy is near the camera center)
+            double inv_r = (r > 1e-8)? 1.0/r : 1.0;
+            double cdist = (r > 1e-8)? theta_d * inv_r : 1.0;
+            // Calculate distorted coordinates for fisheye
+            double x1 = uv_norm(0)*cdist;
+            double y1 = uv_norm(1)*cdist;
+            uv_dist(0) = cam_d(0)*x1 + cam_d(2);
+            uv_dist(1) = cam_d(1)*y1 + cam_d(3);
+        } else {
+            double r = std::sqrt(uv_norm(0)*uv_norm(0)+uv_norm(1)*uv_norm(1));
+            double r_2 = r*r;
+            double r_4 = r_2*r_2;
+            double x1 = uv_norm(0)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+2*cam_d(6)*uv_norm(0)*uv_norm(1)+cam_d(7)*(r_2+2*uv_norm(0)*uv_norm(0));
+            double y1 = uv_norm(1)*(1+cam_d(4)*r_2+cam_d(5)*r_4)+cam_d(6)*(r_2+2*uv_norm(1)*uv_norm(1))+2*cam_d(7)*uv_norm(0)*uv_norm(1);
+            uv_dist(0) = cam_d(0)*x1 + cam_d(2);
+            uv_dist(1) = cam_d(1)*y1 + cam_d(3);
+        }
+
+        // Skip if not valid (i.e. negative depth, or outside of image)
+        if(uv_dist(0) < 0 || uv_dist(0) > params.camera_wh.at(0).first ||
+           uv_dist(1) < 0 || uv_dist(1) > params.camera_wh.at(0).second) {
+            //printf("feat %zu -> depth = %.2f | u_d = %.2f | v_d = %.2f\n",(*it2)->featid,depth,uv_dist(0),uv_dist(1));
+            it2++;
+            continue;
+        }
+
+        // Finally construct the uv and depth
+        Eigen::Vector3d uvd;
+        uvd << uv_dist, depth;
+        active_tracks_uvd.insert({(*it2)->featid, uvd});
+
+        // Append the global feature
+        active_tracks_posinG.insert({(*it2)->featid, (*it2)->p_FinG});
+
+        // Move forward
+        it2++;
+
+    }
+    retri_rT5 =  boost::posix_time::microsec_clock::local_time();
+
+    // Timing information
+    //printf(CYAN "[RETRI-TIME]: %.4f seconds for cleaning\n" RESET, (retri_rT2-retri_rT1).total_microseconds() * 1e-6);
+    //printf(CYAN "[RETRI-TIME]: %.4f seconds for triangulate setup\n" RESET, (retri_rT3-retri_rT2).total_microseconds() * 1e-6);
+    //printf(CYAN "[RETRI-TIME]: %.4f seconds for triangulation\n" RESET, (retri_rT4-retri_rT3).total_microseconds() * 1e-6);
+    //printf(CYAN "[RETRI-TIME]: %.4f seconds for re-projection\n" RESET, (retri_rT5-retri_rT4).total_microseconds() * 1e-6);
+    //printf(CYAN "[RETRI-TIME]: %.4f seconds total\n" RESET, (retri_rT5-retri_rT1).total_microseconds() * 1e-6);
 
 }
 

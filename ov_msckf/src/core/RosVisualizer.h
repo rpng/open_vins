@@ -104,8 +104,8 @@ namespace ov_msckf {
         /// Publish groundtruth (if we have it)
         void publish_groundtruth();
 
-        /// Publish keyframe information of the marginalized pose and tracks
-        void publish_keyframe_information();
+        /// Publish loop-closure information of current pose and active track information
+        void publish_loopclosure_information();
 
         /// Save current estimate state and groundtruth including calibration
         void sim_save_total_state_to_file();
@@ -123,7 +123,8 @@ namespace ov_msckf {
         ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
         ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
         ros::Publisher pub_tracks;
-        ros::Publisher pub_keyframe_pose, pub_keyframe_point, pub_keyframe_extrinsic, pub_keyframe_intrinsics;
+        ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
+        ros::Publisher pub_loop_img_depth, pub_loop_img_depth_color;
         tf::TransformBroadcaster *mTfBr;
 
         // For path viz
