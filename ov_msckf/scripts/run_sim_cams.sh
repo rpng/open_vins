@@ -42,7 +42,7 @@ for h in "${!datasets[@]}"; do
 for i in "${!cameras[@]}"; do
 
 # Monte Carlo runs for this dataset
-for j in {00..04}; do
+for j in {00..02}; do
 
 # start timing
 start_time="$(date -u +%s)"

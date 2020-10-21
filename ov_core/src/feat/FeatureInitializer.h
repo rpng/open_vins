@@ -58,13 +58,13 @@ namespace ov_core {
             Eigen::Matrix<double,3,1> _pos;
 
             /// Constructs pose from rotation and position
-            ClonePose(Eigen::Matrix<double,3,3> R, Eigen::Matrix<double,3,1> p) {
+            ClonePose(const Eigen::Matrix<double,3,3> &R, const Eigen::Matrix<double,3,1> &p) {
                 _Rot = R;
                 _pos = p;
             }
 
             /// Constructs pose from quaternion and position
-            ClonePose(Eigen::Matrix<double,4,1> q, Eigen::Matrix<double,3,1> p) {
+            ClonePose(const Eigen::Matrix<double,4,1> &q, const Eigen::Matrix<double,3,1> &p) {
                 _Rot = quat_2_Rot(q);
                 _pos = p;
             }
@@ -76,12 +76,12 @@ namespace ov_core {
             }
 
             /// Accessor for rotation
-            Eigen::Matrix<double,3,3> &Rot() {
+            const Eigen::Matrix<double,3,3> &Rot() {
                 return _Rot;
             }
 
             /// Accessor for position
-            Eigen::Matrix<double,3,1> &pos() {
+            const Eigen::Matrix<double,3,1> &pos() {
                 return _pos;
             }
 

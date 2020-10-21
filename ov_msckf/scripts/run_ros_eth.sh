@@ -35,7 +35,7 @@ bagnames=(
 # this can be used to skip the initial sections
 bagstarttimes=(
     "0"
-    "8"
+    "8.5"
     "0"
     "0"
     "0"
