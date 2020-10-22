@@ -25,7 +25,7 @@ using namespace ov_msckf;
 
 
 
-RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _nh(nh), _app(app), _sim(sim) {
+RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _app(app), _sim(sim) {
 
 
     // Setup our transform broadcaster
@@ -701,8 +701,8 @@ void RosVisualizer::publish_loopclosure_information() {
     std::unordered_map<size_t, Eigen::Vector3d> active_tracks_uvd;
     _app->get_active_tracks(active_tracks_time, active_tracks_posinG, active_tracks_uvd);
     if(active_tracks_time == -1) return;
+    if(active_tracks_time != _app->get_state()->_timestamp) return;
     assert(active_tracks_posinG.size()==active_tracks_uvd.size());
-    assert(active_tracks_time==_app->get_state()->_timestamp);
 
     // Default header
     std_msgs::Header header;

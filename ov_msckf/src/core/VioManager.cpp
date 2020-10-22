@@ -752,8 +752,8 @@ void VioManager::retriangulate_active_tracks() {
             ct_meas += (*it0)->timestamps[pair.first].size();
         }
 
-        // Remove if we don't have enough
-        if(ct_meas < 3) {
+        // Remove if we don't have enough and am not a SLAM feature which doesn't need triangulation
+        if(ct_meas < 3 && state->_features_SLAM.find((*it0)->featid)==state->_features_SLAM.end()) {
             it0 = active_features.erase(it0);
         } else {
             it0++;

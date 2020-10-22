@@ -177,6 +177,7 @@ namespace ov_core {
             // If we are calibrating camera intrinsics our normalize coordinates will be stale
             // This is because we appended them to the database with the current best guess *at that timestep*
             // Thus here since we have a change in calibration, re-normalize all the features we have
+            correct_active = false;
             if(correct_active) {
 
                 // Get all features in this database

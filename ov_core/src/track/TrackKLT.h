@@ -139,7 +139,12 @@ namespace ov_core {
 
         // How many pyramid levels to track on and the window size to reduce by
         int pyr_levels = 3;
-        cv::Size win_size = cv::Size(11, 11);
+        cv::Size win_size = cv::Size(15, 15);
+
+        // Alternative histagram equalization
+        double eq_clip_limit = 10.0;
+        cv::Size eq_win_size = cv::Size(8,8);
+        cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
 
         // Last set of image pyramids
         std::map<size_t, std::vector<cv::Mat>> img_pyramid_last;

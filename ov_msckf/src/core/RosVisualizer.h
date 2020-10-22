@@ -110,9 +110,6 @@ namespace ov_msckf {
         /// Save current estimate state and groundtruth including calibration
         void sim_save_total_state_to_file();
 
-        /// ROS node handle that we publish onto
-        ros::NodeHandle _nh;
-
         /// Core application of the filter system
         std::shared_ptr<VioManager> _app;
 

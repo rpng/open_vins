@@ -30,6 +30,7 @@
 #include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 
 
 namespace ov_core {
@@ -117,8 +118,8 @@ namespace ov_core {
                     // So we should append the location of that ROI in the image
                     for (size_t i = 0; i < (size_t) num_features_grid && i < pts_new.size(); i++) {
                         cv::KeyPoint pt_cor = pts_new.at(i);
-                        pt_cor.pt.x += x;
-                        pt_cor.pt.y += y;
+                        pt_cor.pt.x += (float)x;
+                        pt_cor.pt.y += (float)y;
                         collection.at(r).push_back(pt_cor);
                     }
                 }
@@ -128,6 +129,30 @@ namespace ov_core {
             for(size_t r=0; r<collection.size(); r++) {
                 pts.insert(pts.end(),collection.at(r).begin(),collection.at(r).end());
             }
+
+            // Return if no points
+            if(pts.empty())
+                return;
+
+            // Sub-pixel refinement parameters
+            cv::Size win_size = cv::Size( 5, 5 );
+            cv::Size zero_zone = cv::Size( -1, -1 );
+            cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 20, 0.001);
+
+            // Get vector of points
+            std::vector<cv::Point2f> pts_refined;
+            for(size_t i=0; i<pts.size(); i++) {
+                pts_refined.push_back(pts.at(i).pt);
+            }
+
+            // Finally get sub-pixel for all extracted features
+            cv::cornerSubPix(img, pts_refined, win_size, zero_zone, term_crit);
+
+            // Save the refined points!
+            for(size_t i=0; i<pts.size(); i++) {
+                pts.at(i).pt = pts_refined.at(i);
+            }
+
 
         }
 

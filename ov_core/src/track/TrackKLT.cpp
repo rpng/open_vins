@@ -33,7 +33,8 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
 
     // Histogram equalize
-    cv::equalizeHist(img, img);
+    //cv::equalizeHist(img, img);
+    clahe->apply(img, img);
 
     // Extract the new image pyramid
     std::vector<cv::Mat> imgpyr;
@@ -141,8 +142,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 
     // Histogram equalize
     cv::Mat img_left, img_right;
-    boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-    boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+    //boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
+    //boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+    boost::thread t_lhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_leftin), boost::ref(img_left));
+    boost::thread t_rhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_rightin), boost::ref(img_right));
     t_lhe.join();
     t_rhe.join();
 
@@ -468,7 +471,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
             // Note: but this might cause failure in cases of repeated textures (eg. checkerboard)
             std::vector<uchar> mask;
             std::vector<float> error;
-            cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 15, 0.01);
+            cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 0.01);
             cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0_new, pts1_new, mask, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 
             // Loop through and record only ones that are valid
