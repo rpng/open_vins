@@ -231,6 +231,12 @@ namespace ov_msckf {
             return zupt_image;
         }
 
+        /// Return the zero velocity update image
+        void get_active_image(double &timestamp, cv::Mat &image) {
+            timestamp = active_tracks_time;
+            image = active_image;
+        }
+
         /// Returns active tracked features in the current frame
         void get_active_tracks(double &timestamp,
                                std::unordered_map<size_t, Eigen::Vector3d> &feat_posinG,
@@ -258,8 +264,9 @@ namespace ov_msckf {
         /**
          * @brief This will do the propagation and feature updates to the state
          * @param timestamp The most recent timestamp we have tracked to
+         * @param cam0_image First camera image mat object
          */
-        void do_feature_propagate_update(double timestamp);
+        void do_feature_propagate_update(double timestamp, cv::Mat &cam0_image);
 
 
         /**
@@ -268,8 +275,10 @@ namespace ov_msckf {
          * For all features that are currently being tracked by the system, this will re-triangulate them.
          * This is useful for downstream applications which need the current pointcloud of points (e.g. loop closure).
          * This will try to triangulate *all* points, not just ones that have been used in the update.
+         *
+         * @param cam0_image First camera image mat object
          */
-        void retriangulate_active_tracks();
+        void retriangulate_active_tracks(cv::Mat &cam0_image);
 
 
         /// Manager parameters
@@ -327,6 +336,7 @@ namespace ov_msckf {
         double active_tracks_time = -1;
         std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG;
         std::unordered_map<size_t, Eigen::Vector3d> active_tracks_uvd;
+        cv::Mat active_image;
 
 
     };

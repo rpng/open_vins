@@ -696,17 +696,21 @@ void RosVisualizer::publish_groundtruth() {
 void RosVisualizer::publish_loopclosure_information() {
 
     // Get the current tracks in this frame
-    double active_tracks_time = -1;
+    double active_tracks_time1 = -1;
+    double active_tracks_time2 = -1;
     std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG;
     std::unordered_map<size_t, Eigen::Vector3d> active_tracks_uvd;
-    _app->get_active_tracks(active_tracks_time, active_tracks_posinG, active_tracks_uvd);
-    if(active_tracks_time == -1) return;
-    if(active_tracks_time != _app->get_state()->_timestamp) return;
+    cv::Mat active_cam0_image;
+    _app->get_active_tracks(active_tracks_time1, active_tracks_posinG, active_tracks_uvd);
+    _app->get_active_image(active_tracks_time2, active_cam0_image);
+    if(active_tracks_time1 == -1) return;
+    if(active_tracks_time1 != _app->get_state()->_timestamp) return;
+    if(active_tracks_time1 != active_tracks_time2) return;
     assert(active_tracks_posinG.size()==active_tracks_uvd.size());
 
     // Default header
     std_msgs::Header header;
-    header.stamp = ros::Time(active_tracks_time);
+    header.stamp = ros::Time(active_tracks_time1);
 
     //======================================================
     // Check if we have subscribers for the pose odometry, camera intrinsics, or extrinsics
@@ -798,9 +802,10 @@ void RosVisualizer::publish_loopclosure_information() {
     if(pub_loop_img_depth.getNumSubscribers() != 0 || pub_loop_img_depth_color.getNumSubscribers() != 0) {
 
         // Create the images we will populate with the depths
-        auto wh_pair = _app->get_params().camera_wh.at(0);
+        std::pair<int,int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
+        cv::Mat depthmap_viz;
+        cv::cvtColor(active_cam0_image, depthmap_viz, CV_GRAY2RGB);
         cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
-        cv::Mat depthmap_viz = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_8UC3);
 
         // Loop through all points and append
         for(const auto &feattimes : active_tracks_posinG) {

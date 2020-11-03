@@ -204,7 +204,7 @@ void VioManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, siz
     }
 
     // Call on our propagate and update function
-    do_feature_propagate_update(timestamp);
+    do_feature_propagate_update(timestamp, img0);
 
 
 }
@@ -270,7 +270,7 @@ void VioManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Ma
     }
 
     // Call on our propagate and update function
-    do_feature_propagate_update(timestamp);
+    do_feature_propagate_update(timestamp, img0);
 
 }
 
@@ -330,7 +330,9 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     }
 
     // Call on our propagate and update function
-    do_feature_propagate_update(timestamp);
+    auto &wh = params.camera_wh.at(0);
+    cv::Mat img0 = cv::Mat::zeros(cv::Size(wh.first,wh.second), CV_8UC1);
+    do_feature_propagate_update(timestamp, img0);
 
 
 }
@@ -387,7 +389,7 @@ bool VioManager::try_to_initialize() {
 
 
 
-void VioManager::do_feature_propagate_update(double timestamp) {
+void VioManager::do_feature_propagate_update(double timestamp, cv::Mat &cam0_image) {
 
 
     //===================================================================================
@@ -586,7 +588,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
     }
 
     // Re-triangulate all current tracks in the current frame
-    retriangulate_active_tracks();
+    retriangulate_active_tracks(cam0_image);
 
     // Save all the MSCKF features used in the update
     good_features_MSCKF.clear();
@@ -711,7 +713,7 @@ void VioManager::do_feature_propagate_update(double timestamp) {
 }
 
 
-void VioManager::retriangulate_active_tracks() {
+void VioManager::retriangulate_active_tracks(cv::Mat &cam0_image) {
 
     // Start timing
     boost::posix_time::ptime retri_rT1, retri_rT2, retri_rT3, retri_rT4, retri_rT5;
@@ -719,6 +721,7 @@ void VioManager::retriangulate_active_tracks() {
 
     // Clear old active track data
     active_tracks_time = state->_timestamp;
+    active_image = cam0_image;
     active_tracks_posinG.clear();
     active_tracks_uvd.clear();
 
