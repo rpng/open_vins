@@ -118,7 +118,7 @@ namespace ov_type {
         }
 
         std::shared_ptr<Type> clone() override {
-            auto Clone = std::unique_ptr<Type>(new IMU());
+            auto Clone = std::shared_ptr<Type>(new IMU());
             Clone->set_value(value());
             Clone->set_fej(fej());
             return Clone;
