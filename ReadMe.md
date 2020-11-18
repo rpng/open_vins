@@ -19,6 +19,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **November 18, 2020** - Released groundtruth generation utility package, [vicon2gt](https://github.com/rpng/vicon2gt) to enable creation of groundtruth trajectories in a motion capture room for evaulating VIO methods.
 * **July 7, 2020** - Released zero velocity update for vehicle applications and direct initialization when standing still. See [PR#79](https://github.com/rpng/open_vins/pull/79) for details. 
 * **May 18, 2020** - Released secondary pose graph example repository [ov_secondary](https://github.com/rpng/ov_secondary) based on [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion). OpenVINS now publishes marginalized feature track, feature 3d position, and first camera intrinsics and extrinsics. See [PR#66](https://github.com/rpng/open_vins/pull/66) for details and discussion.
 * **April 3, 2020** - Released [v2.0](https://github.com/rpng/open_vins/releases/tag/v2.0) update to the codebase with some key refactoring, ros-free building, improved dataset support, and single inverse depth feature representation. Please check out the [release page](https://github.com/rpng/open_vins/releases/tag/v2.0) for details.
@@ -83,6 +84,10 @@ After completion of the dataset, features are re-extract and triangulate with ma
 This can be used to merge multi-session maps, or to perform a batch optimization after first running the data through OpenVINS.
 Some example have been provided along with a helper script to export trajectories into the standard groundtruth format.
 
+* **[vicon2gt](https://github.com/rpng/vicon2gt)** -
+This utility was created to generate groundtruth trajectories using a motion capture system (e.g. Vicon or OptiTrack) for use in evaluating visual-inertial estimation systems.
+Specifically we calculate the inertial IMU state (full 15 dof) at camera frequency rate and generate a groundtruth trajectory similar to those provided by the EurocMav datasets.
+Performs fusion of inertial and motion capture information and estimates all unknown spacial-temporal calibrations between the two sensors.
 
 
 ## Demo Videos
