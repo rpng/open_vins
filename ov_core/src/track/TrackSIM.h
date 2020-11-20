@@ -42,7 +42,7 @@ namespace ov_core {
          * @brief Public constructor with configuration variables
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
          */
-        TrackSIM(int numaruco) : TrackBase(0, numaruco) {}
+        TrackSIM(int numaruco) : TrackBase(0, numaruco, false) {}
 
         /**
          * @brief Set the width and height for the cameras

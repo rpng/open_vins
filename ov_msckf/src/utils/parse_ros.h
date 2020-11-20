@@ -185,6 +185,7 @@ namespace ov_msckf {
         nh.param<bool>("use_aruco", params.use_aruco, params.use_aruco);
         nh.param<bool>("downsize_aruco", params.downsize_aruco, params.downsize_aruco);
         nh.param<bool>("downsample_cameras", params.downsample_cameras, params.downsample_cameras);
+        nh.param<bool>("multi_threading", params.use_multi_threading, params.use_multi_threading);
 
         // General parameters
         nh.param<int>("num_pts", params.num_pts, params.num_pts);

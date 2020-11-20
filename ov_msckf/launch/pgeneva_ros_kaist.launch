@@ -61,6 +61,7 @@
         <param name="min_px_dist"        type="int"    value="8" />
         <param name="knn_ratio"          type="double" value="0.70" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <param name="fi_max_dist"        type="double" value="75" />
         <param name="fi_max_baseline"    type="double" value="500" />

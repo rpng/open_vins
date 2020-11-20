@@ -107,36 +107,36 @@ VioManager::VioManager(VioManagerOptions& params_) {
     // Lets make a feature extractor
     trackDATABASE = std::make_shared<FeatureDatabase>();
     if(params.use_klt) {
-        trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(params.num_pts,state->_options.max_aruco_features,params.fast_threshold,params.grid_x,params.grid_y,params.min_px_dist));
+        trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(params.num_pts,state->_options.max_aruco_features, params.use_multi_threading,params.fast_threshold,params.grid_x,params.grid_y,params.min_px_dist));
         trackFEATS->set_calibration(params.camera_intrinsics, params.camera_fisheye);
     } else {
-        trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(params.num_pts,state->_options.max_aruco_features,params.fast_threshold,params.grid_x,params.grid_y,params.knn_ratio));
+        trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(params.num_pts,state->_options.max_aruco_features, params.use_multi_threading,params.fast_threshold,params.grid_x,params.grid_y,params.knn_ratio));
         trackFEATS->set_calibration(params.camera_intrinsics, params.camera_fisheye);
     }
 
     // Initialize our aruco tag extractor
     if(params.use_aruco) {
-        trackARUCO = std::shared_ptr<TrackBase>(new TrackAruco(state->_options.max_aruco_features, params.downsize_aruco));
+        trackARUCO = std::shared_ptr<TrackBase>(new TrackAruco(state->_options.max_aruco_features, params.use_multi_threading, params.downsize_aruco));
         trackARUCO->set_calibration(params.camera_intrinsics, params.camera_fisheye);
     }
 
     // Initialize our state propagator
-    propagator = std::shared_ptr<Propagator>(new Propagator(params.imu_noises, params.gravity));
+    propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity);
 
     // Our state initialize
-    initializer = std::shared_ptr<InertialInitializer>(new InertialInitializer(params.gravity,params.init_window_time,params.init_imu_thresh));
+    initializer = std::make_shared<InertialInitializer>(params.gravity,params.init_window_time,params.init_imu_thresh);
 
     // Make the updater!
-    updaterMSCKF = std::shared_ptr<UpdaterMSCKF>(new UpdaterMSCKF(params.msckf_options,params.featinit_options));
-    updaterSLAM = std::shared_ptr<UpdaterSLAM>(new UpdaterSLAM(params.slam_options,params.aruco_options,params.featinit_options));
+    updaterMSCKF = std::make_shared<UpdaterMSCKF>(params.msckf_options,params.featinit_options);
+    updaterSLAM = std::make_shared<UpdaterSLAM>(params.slam_options,params.aruco_options,params.featinit_options);
 
     // If we are using zero velocity updates, then create the updater
     if(params.try_zupt) {
-        updaterZUPT = std::unique_ptr<UpdaterZeroVelocity>(new UpdaterZeroVelocity(params.zupt_options,params.imu_noises,params.gravity,params.zupt_max_velocity,params.zupt_noise_multiplier));
+        updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options,params.imu_noises,params.gravity,params.zupt_max_velocity,params.zupt_noise_multiplier);
     }
 
     // Feature initializer for active tracks
-    active_tracks_initializer = std::unique_ptr<FeatureInitializer>(new FeatureInitializer(params.featinit_options));
+    active_tracks_initializer = std::make_shared<FeatureInitializer>(params.featinit_options);
 
 }
 
@@ -326,12 +326,17 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
                                     message.images.at(0), message.images.at(1),
                                     message.sensor_ids.at(0), message.sensor_ids.at(1));
         } else {
-            boost::thread t_l = boost::thread(&TrackBase::feed_monocular, trackFEATS.get(), boost::ref(message.timestamp),
-                                              boost::ref(message.images.at(0)), boost::ref(message.sensor_ids.at(0)));
-            boost::thread t_r = boost::thread(&TrackBase::feed_monocular, trackFEATS.get(), boost::ref(message.timestamp),
-                                              boost::ref(message.images.at(1)), boost::ref(message.sensor_ids.at(1)));
-            t_l.join();
-            t_r.join();
+            if(params.use_multi_threading) {
+                boost::thread t_l = boost::thread(&TrackBase::feed_monocular, trackFEATS.get(), boost::ref(message.timestamp),
+                                                  boost::ref(message.images.at(0)), boost::ref(message.sensor_ids.at(0)));
+                boost::thread t_r = boost::thread(&TrackBase::feed_monocular, trackFEATS.get(), boost::ref(message.timestamp),
+                                                  boost::ref(message.images.at(1)), boost::ref(message.sensor_ids.at(1)));
+                t_l.join();
+                t_r.join();
+            } else {
+                trackFEATS->feed_monocular(message.timestamp, message.images.at(0), message.sensor_ids.at(0));
+                trackFEATS->feed_monocular(message.timestamp, message.images.at(1), message.sensor_ids.at(1));
+            }
         }
     } else {
         printf(RED "invalid number of images passed %d, we only support mono or stereo tracking",num_images);

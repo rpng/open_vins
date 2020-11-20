@@ -124,6 +124,7 @@ namespace ov_msckf {
         app1.add_option("--use_aruco", params.use_aruco, "");
         app1.add_option("--downsize_aruco", params.downsize_aruco, "");
         app1.add_option("--downsample_cameras", params.downsample_cameras, "");
+        app1.add_option("--multi_threading", params.use_multi_threading, "");
 
         // General parameters
         app1.add_option("--num_pts", params.num_pts, "");

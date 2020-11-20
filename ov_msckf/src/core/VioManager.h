@@ -337,7 +337,7 @@ namespace ov_msckf {
         std::vector<Eigen::Vector3d> good_features_MSCKF;
 
         /// Feature initializer used to triangulate all active tracks
-        std::unique_ptr<FeatureInitializer> active_tracks_initializer;
+        std::shared_ptr<FeatureInitializer> active_tracks_initializer;
 
         // Re-triangulated features 3d positions seen from the current frame (used in visualization)
         double active_tracks_time = -1;

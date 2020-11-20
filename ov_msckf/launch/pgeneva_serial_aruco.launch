@@ -54,6 +54,7 @@
         <param name="min_px_dist"        type="int"    value="10" />
         <param name="knn_ratio"          type="double" value="0.85" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="true" />

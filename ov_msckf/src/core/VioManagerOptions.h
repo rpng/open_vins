@@ -195,6 +195,9 @@ namespace ov_msckf {
         /// Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)
         bool downsample_cameras = false;
 
+        /// If our front-end should try to use some multi-threading for stereo matching
+        bool use_multi_threading = true;
+
         /// The number of points we should extract and track in *each* image frame. This highly effects the computation required for tracking.
         int num_pts = 150;
 
@@ -230,6 +233,7 @@ namespace ov_msckf {
             printf("\n");
             printf("\t- downsize aruco: %d\n", downsize_aruco);
             printf("\t- downsize cameras: %d\n", downsample_cameras);
+            printf("\t- use multi-threading: %d\n", use_multi_threading);
             featinit_options.print();
         }
 
