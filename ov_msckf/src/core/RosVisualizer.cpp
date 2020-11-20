@@ -398,21 +398,8 @@ void RosVisualizer::publish_images() {
     if(pub_tracks.getNumSubscribers()==0)
         return;
 
-    // Get our trackers
-    std::shared_ptr<TrackBase> trackFEATS = _app->get_track_feat();
-    std::shared_ptr<TrackBase> trackARUCO = _app->get_track_aruco();
-
     // Get our image of history tracks
-    cv::Mat img_history;
-    if(_app->did_zero_velocity_update()) {
-        img_history = _app->get_zero_velocity_update_image();
-    } else {
-        trackFEATS->display_history(img_history,255,255,0,255,255,255);
-        if(trackARUCO != nullptr) {
-            trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
-            trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
-        }
-    }
+    cv::Mat img_history = _app->get_historical_viz_image();
 
     // Create our message
     std_msgs::Header header;

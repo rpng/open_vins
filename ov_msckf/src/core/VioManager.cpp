@@ -637,7 +637,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     // Explicitly remove any measurements from SLAM features from the database
     // The trackers will re-create the features the next time they are seen
     for(const auto &feat : state->_features_SLAM) {
-        trackFEATS->get_feature_database()->get_feature(feat.second->_featid, true);
+        auto feat_data = trackFEATS->get_feature_database()->get_feature(feat.second->_featid, true);
         if(trackARUCO != nullptr) {
             trackARUCO->get_feature_database()->get_feature(feat.second->_featid, true);
         }

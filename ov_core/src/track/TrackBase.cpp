@@ -86,7 +86,7 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
 }
 
 
-void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
+void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::vector<size_t> highlighted) {
 
     // Cache the images to prevent other threads from editing while we viz (which can be slow)
     std::map<size_t, cv::Mat> img_last_cache;
@@ -117,8 +117,7 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
     if(image_new) img_out = cv::Mat(max_height,(int)img_last_cache.size()*max_width,CV_8UC3,cv::Scalar(0,0,0));
 
     // Max tracks to show (otherwise it clutters up the screen)
-    //size_t maxtracks = 10;
-    size_t maxtracks = (size_t)-1;
+    size_t maxtracks = 50;
 
     // Loop through each image, and draw
     int index_cam = 0;
@@ -131,6 +130,14 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
         else img_temp = img_out(cv::Rect(max_width*index_cam,0,max_width,max_height));
         // draw, loop through all keypoints
         for(size_t i=0; i<ids_last[pair.first].size(); i++) {
+            // If a highlighted point, then put a nice box around it
+            if(std::find(highlighted.begin(),highlighted.end(),ids_last[pair.first].at(i))!=highlighted.end()) {
+                cv::Point2f pt_c = pts_last[pair.first].at(i).pt;
+                cv::Point2f pt_l_top = cv::Point2f(pt_c.x-((is_small)? 3 : 5),pt_c.y-((is_small)? 3 : 5));
+                cv::Point2f pt_l_bot = cv::Point2f(pt_c.x+((is_small)? 3 : 5),pt_c.y+((is_small)? 3 : 5));
+                cv::rectangle(img_temp,pt_l_top,pt_l_bot, cv::Scalar(0,255,0), 1);
+                cv::circle(img_temp, pt_c, (is_small)? 1 : 2, cv::Scalar(0,255,0), CV_FILLED);
+            }
             // Get the feature from the database
             std::shared_ptr<Feature> feat = database->get_feature(ids_last[pair.first].at(i));
             // Skip if the feature is null

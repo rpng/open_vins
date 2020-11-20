@@ -150,14 +150,33 @@ namespace ov_msckf {
             return propagator;
         }
 
-        /// Get feature tracker
-        std::shared_ptr<TrackBase> get_track_feat() {
-            return trackFEATS;
-        }
+        /// Get a nice visualization image of what tracks we have
+        cv::Mat get_historical_viz_image() {
 
-        /// Get aruco feature tracker
-        std::shared_ptr<TrackBase> get_track_aruco() {
-            return trackARUCO;
+            // Get our image of history tracks
+            cv::Mat img_history;
+            if(did_zupt_update) {
+                img_history = zupt_image;
+            } else {
+
+                // Build an id-list of what features we should highlight (i.e. SLAM)
+                std::vector<size_t> highlighted_ids;
+                for(const auto &feat : state->_features_SLAM) {
+                    highlighted_ids.push_back(feat.first);
+                }
+
+                // Get the current active tracks
+                trackFEATS->display_history(img_history,255,255,0,255,255,255, highlighted_ids);
+                if(trackARUCO != nullptr) {
+                    trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
+                    trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
+                }
+
+            }
+
+            // Finally return the image
+            return img_history;
+
         }
 
         /// Returns 3d features used in the last update in global frame
@@ -211,17 +230,7 @@ namespace ov_msckf {
             return aruco_feats;
         }
 
-        /// Return true if we did a zero velocity update
-        bool did_zero_velocity_update() {
-            return did_zupt_update;
-        }
-
-        /// Return the zero velocity update image
-        cv::Mat get_zero_velocity_update_image() {
-            return zupt_image;
-        }
-
-        /// Return the zero velocity update image
+        /// Return the image used when projecting the active tracks
         void get_active_image(double &timestamp, cv::Mat &image) {
             timestamp = active_tracks_time;
             image = active_image;
