@@ -31,7 +31,7 @@ namespace ov_type {
 
 
     /**
-     * @brief Type that implements a persistant SLAM feature.
+     * @brief Type that implements a persistent SLAM feature.
      *
      * We store the feature ID that should match the IDs in the trackers.
      * Additionally if this is an anchored representation we store what clone timestamp this is anchored from and what camera.

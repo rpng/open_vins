@@ -517,6 +517,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
         }
         std::shared_ptr<Feature> feat2 = trackFEATS->get_feature_database()->get_feature(landmark.second->_featid);
         if(feat2 != nullptr) feats_slam.push_back(feat2);
+        assert(landmark.second->_unique_camera_id != -1);
         bool current_unique_cam = std::find(message.sensor_ids.begin(),message.sensor_ids.end(),landmark.second->_unique_camera_id)!=message.sensor_ids.end();
         if(feat2 == nullptr && current_unique_cam) landmark.second->should_marg = true;
     }
