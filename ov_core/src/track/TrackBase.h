@@ -177,7 +177,6 @@ namespace ov_core {
             // If we are calibrating camera intrinsics our normalize coordinates will be stale
             // This is because we appended them to the database with the current best guess *at that timestep*
             // Thus here since we have a change in calibration, re-normalize all the features we have
-            correct_active = false;
             if(correct_active) {
 
                 // Get all features in this database
@@ -243,8 +242,8 @@ namespace ov_core {
          * @brief Get the feature database with all the track information
          * @return FeatureDatabase pointer that one can query for features
          */
-        FeatureDatabase *get_feature_database() {
-            return database.get();
+        std::shared_ptr<FeatureDatabase> get_feature_database() {
+            return database;
         }
 
         /**

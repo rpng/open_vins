@@ -9,6 +9,7 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/tum/dataset-room1_512_16.bag" />
@@ -91,7 +92,7 @@
         <rosparam param="T_C0toI">
             [
             -0.99952504,  0.00750192, -0.02989013,  0.04557484,
-             0.02961534, -0.03439736, -0.99896935, -0.07116180,
+            0.02961534, -0.03439736, -0.99896935, -0.07116180,
             -0.00852233, -0.99938008,  0.03415885, -0.04468125,
             0.0, 0.0, 0.0, 1.0
             ]
@@ -99,7 +100,7 @@
         <rosparam param="T_C1toI">
             [
             -0.99951105,  0.00810408, -0.03019914, -0.05545634,
-             0.03029912,  0.01251164, -0.99946257, -0.06925002,
+            0.03029912,  0.01251164, -0.99946257, -0.06925002,
             -0.00772188, -0.99988889, -0.01275107, -0.04745286,
             0.0, 0.0, 0.0, 1.0
             ]

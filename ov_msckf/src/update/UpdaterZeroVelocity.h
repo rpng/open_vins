@@ -26,6 +26,7 @@
 #include "state/Propagator.h"
 #include "utils/quat_ops.h"
 #include "utils/colors.h"
+#include "utils/sensor_data.h"
 
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
@@ -79,22 +80,15 @@ namespace ov_msckf {
         }
 
 
-        /**
-         * @brief Stores incoming inertial readings
-         * @param timestamp Timestamp of imu reading
-         * @param wm Gyro angular velocity reading
-         * @param am Accelerometer linear acceleration reading
-         */
-        void feed_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am) {
 
-            // Create our imu data object
-            Propagator::IMUDATA data;
-            data.timestamp = timestamp;
-            data.wm = wm;
-            data.am = am;
+        /**
+         * @brief Feed function for inertial data
+         * @param message Contains our timestamp and inertial information
+         */
+        void feed_imu(const ov_core::ImuData &message) {
 
             // Append it to our vector
-            imu_data.emplace_back(data);
+            imu_data.emplace_back(message);
 
             // Sort our imu data (handles any out of order measurements)
             //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j) {
@@ -106,7 +100,7 @@ namespace ov_msckf {
             // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
             auto it0 = imu_data.begin();
             while(it0 != imu_data.end()) {
-                if(timestamp-(*it0).timestamp > 60) {
+                if(message.timestamp-(*it0).timestamp > 60) {
                     it0 = imu_data.erase(it0);
                 } else {
                     it0++;
@@ -148,10 +142,10 @@ namespace ov_msckf {
         std::map<int, double> chi_squared_table;
 
         /// Our history of IMU messages (time, angular, linear)
-        std::vector<Propagator::IMUDATA> imu_data;
+        std::vector<ov_core::ImuData> imu_data;
 
         /// Estimate for time offset at last propagation time
-        double last_prop_time_offset = -INFINITY;
+        double last_prop_time_offset = 0.0;
         bool have_last_prop_time_offset = false;
 
 

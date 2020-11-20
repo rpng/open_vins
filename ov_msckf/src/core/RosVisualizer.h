@@ -140,6 +140,9 @@ namespace ov_msckf {
         bool start_time_set = false;
         boost::posix_time::ptime rT1, rT2;
 
+        // Last timestamp we visualized at
+        double last_visualization_timestamp = 0;
+
         // Our groundtruth states
         std::map<double, Eigen::Matrix<double,17,1>> gt_states;
 

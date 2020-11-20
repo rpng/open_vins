@@ -159,7 +159,7 @@ int main(int argc, char** argv)
         cv::waitKey(1);
 
         // Get lost tracks
-        FeatureDatabase* database = extractor->get_feature_database();
+        std::shared_ptr<FeatureDatabase> database = extractor->get_feature_database();
         std::vector<std::shared_ptr<Feature>> feats_lost = database->features_not_containing_newer(current_time);
 
         // Mark theses feature pointers as deleted

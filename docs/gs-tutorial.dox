@@ -33,6 +33,7 @@ One can take a look in the [launch](https://github.com/rpng/open_vins/tree/maste
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+        <rosparam param="stereo_pairs">[0,1]</rosparam>
     
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/<path>/V1_01_easy.bag" />
@@ -111,6 +112,7 @@ Please take a look at the other launch files or the ov_msckf::VioManager constru
 | Group | Description |
 |---|---|
 | bag topics | ROS topics that we will parse the IMU and camera data from. If we are only using one camera, i.e. monocular, then only the first camera topic is used. |
+| stereo pairs | Even set of camera ids, which stereo tracking will be tried to be performed on. For example a 0,1,2,3 means that you want to perform stereo tracking of the 0,1 and 2,3 camera pairs. |
 | bag params. | Location of the bag we will read along with the start time, in seconds, and duration we want to run on. |
 | world/filter params. | This has most of the core parameters that can be tuned to improve filter performance including the sliding window size, representation, gravity, and number of environmental SLAM features. One can also change the number of cameras from 1 to 2 to do stereo matching and update. |
 | tracker/extractor params. | For our visual front-end tracker we have a few key parameters that we can tune, most importantly is the number of features extracted. |

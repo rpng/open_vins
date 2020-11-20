@@ -60,7 +60,7 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
     // First lets construct an IMU vector of measurements we need
     double time0 = state->_timestamp+last_prop_time_offset;
     double time1 = timestamp+t_off_new;
-    vector<IMUDATA> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
+    std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
 
     // We are going to sum up all the state transition matrices, so we can do a single large multiplication at the end
     // Phi_summed = Phi_i*Phi_summed
@@ -130,7 +130,7 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
     // First lets construct an IMU vector of measurements we need
     double time0 = state->_timestamp+last_prop_time_offset;
     double time1 = timestamp+t_off_new;
-    vector<IMUDATA> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
+    std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
 
     // Save the original IMU state
     Eigen::VectorXd orig_val = state->_imu->value();
@@ -185,10 +185,10 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
 
 
 
-std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vector<IMUDATA>& imu_data, double time0, double time1) {
+std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1) {
 
     // Our vector imu readings
-    std::vector<Propagator::IMUDATA> prop_data;
+    std::vector<ov_core::ImuData> prop_data;
 
     // Ensure we have some measurements in the first place!
     if(imu_data.empty()) {
@@ -205,7 +205,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
         // And the current is not greater then it yet...
         // Then we should "split" our current IMU measurement
         if(imu_data.at(i+1).timestamp > time0 && imu_data.at(i).timestamp < time0) {
-            IMUDATA data = Propagator::interpolate_data(imu_data.at(i),imu_data.at(i+1), time0);
+            ov_core::ImuData data = Propagator::interpolate_data(imu_data.at(i),imu_data.at(i+1), time0);
             prop_data.push_back(data);
             //printf("propagation #%d = CASE 1 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,time0-prop_data.at(0).timestamp);
             continue;
@@ -235,7 +235,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
                 // In this case we can't propgate forward in time, so there is not that much we can do.
                 break;
             } else if(imu_data.at(i).timestamp > time1) {
-                IMUDATA data = interpolate_data(imu_data.at(i-1), imu_data.at(i), time1);
+                ov_core::ImuData data = interpolate_data(imu_data.at(i-1), imu_data.at(i), time1);
                 prop_data.push_back(data);
                 //printf("propagation #%d = CASE 3.1 = %.3f => %.3f\n", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
             } else {
@@ -245,7 +245,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
             // If the added IMU message doesn't end exactly at the camera time
             // Then we need to add another one that is right at the ending time
             if(prop_data.at(prop_data.size()-1).timestamp != time1) {
-                IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), time1);
+                ov_core::ImuData data = interpolate_data(imu_data.at(i), imu_data.at(i+1), time1);
                 prop_data.push_back(data);
                 //printf("propagation #%d = CASE 3.3 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-time0);
             }
@@ -289,7 +289,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
 }
 
 
-void Propagator::predict_and_compute(std::shared_ptr<State> state, const IMUDATA data_minus, const IMUDATA data_plus,
+void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core::ImuData &data_minus, const ov_core::ImuData &data_plus,
                                      Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd) {
 
     // Set them to zero

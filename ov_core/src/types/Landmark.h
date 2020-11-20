@@ -47,6 +47,9 @@ namespace ov_type {
         /// Feature ID of this landmark (corresponds to frontend id)
         size_t _featid;
 
+        /// What unique camera stream this slam feature was observed from
+        int _unique_camera_id = -1;
+
         /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
         int _anchor_cam_id = -1;
 

@@ -20,6 +20,8 @@
  */
 #include "UpdaterSLAM.h"
 
+#include <memory>
+
 
 using namespace ov_core;
 using namespace ov_msckf;
@@ -179,9 +181,10 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
 
         // Create feature pointer (we will always create it of size three since we initialize the single invese depth as a msckf anchored representation)
         int landmark_size = (feat_rep==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 1 : 3;
-        auto landmark = std::shared_ptr<Landmark>(new Landmark(landmark_size));
+        auto landmark = std::make_shared<Landmark>(landmark_size);
         landmark->_featid = feat.featid;
         landmark->_feat_representation = feat_rep;
+        landmark->_unique_camera_id = feat.anchor_cam_id;
         if(LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
             landmark->_anchor_cam_id = feat.anchor_cam_id;
             landmark->_anchor_clone_timestamp = feat.anchor_clone_timestamp;

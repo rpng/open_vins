@@ -30,6 +30,10 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     if(imu_data.empty())
         return false;
 
+    // Return if the state is already at the desired time
+    if(state->_timestamp==timestamp)
+        return false;
+
     // Set the last time offset value if we have just started the system up
     if(!have_last_prop_time_offset) {
         last_prop_time_offset = state->_calib_dt_CAMtoIMU->value()(0);
@@ -37,7 +41,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     }
 
     // assert that the time we are requesting is in the future
-    assert(timestamp > state->_timestamp);
+    //assert(timestamp > state->_timestamp);
 
     // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
     double t_off_new = state->_calib_dt_CAMtoIMU->value()(0);
@@ -48,7 +52,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     double time1 = timestamp+t_off_new;
 
     // Select bounding inertial measurements
-    std::vector<Propagator::IMUDATA> imu_recent = Propagator::select_imu_readings(imu_data, time0, time1);
+    std::vector<ov_core::ImuData> imu_recent = Propagator::select_imu_readings(imu_data, time0, time1);
 
     // Move forward in time
     last_prop_time_offset = t_off_new;

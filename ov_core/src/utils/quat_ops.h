@@ -69,9 +69,6 @@
 #include <Eigen/Eigen>
 
 
-using namespace std;
-
-
 namespace ov_core {
 
 

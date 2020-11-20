@@ -36,6 +36,7 @@
 #include "init/InertialInitializer.h"
 #include "types/LandmarkRepresentation.h"
 #include "types/Landmark.h"
+#include "utils/sensor_data.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"
@@ -62,40 +63,26 @@ namespace ov_msckf {
 
     public:
 
-
         /**
          * @brief Default constructor, will load all configuration variables
          * @param params_ Parameters loaded from either ROS or CMDLINE
          */
         VioManager(VioManagerOptions &params_);
 
-
         /**
          * @brief Feed function for inertial data
-         * @param timestamp Time of the inertial measurement
-         * @param wm Angular velocity
-         * @param am Linear acceleration
+         * @param message Contains our timestamp and inertial information
          */
-        void feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am);
-
+        void feed_measurement_imu(const ov_core::ImuData &message);
 
         /**
-         * @brief Feed function for a single camera
-         * @param timestamp Time that this image was collected
-         * @param img0 Grayscale image
-         * @param cam_id Unique id of what camera the image is from
+         * @brief Feed function for camera measurements
+         * @param message Contains our timestamp, images, and camera ids
          */
-        void feed_measurement_monocular(double timestamp, cv::Mat &img0, size_t cam_id);
-
-        /**
-         * @brief Feed function for stereo camera pair
-         * @param timestamp Time that this image was collected
-         * @param img0 Grayscale image
-         * @param img1 Grayscale image
-         * @param cam_id0 Unique id of what camera the image is from
-         * @param cam_id1 Unique id of what camera the image is from
-         */
-        void feed_measurement_stereo(double timestamp, cv::Mat &img0, cv::Mat &img1, size_t cam_id0, size_t cam_id1);
+        void feed_measurement_camera(const ov_core::CameraData &message) {
+            camera_queue.push_back(message);
+            std::sort(camera_queue.begin(), camera_queue.end());
+        }
 
         /**
          * @brief Feed function for a synchronized simulated cameras
@@ -146,7 +133,7 @@ namespace ov_msckf {
         }
 
         /// Accessor for current system parameters
-        const VioManagerOptions get_params() {
+        VioManagerOptions get_params() {
             return params;
         }
 
@@ -249,25 +236,32 @@ namespace ov_msckf {
 
     protected:
 
+        /**
+         * @brief Given a new set of camera images, this will track them.
+         *
+         * If we are having stereo tracking, we should call stereo tracking functions.
+         * Otherwise we will try to track on each of the images passed.
+         *
+         * @param message Contains our timestamp, images, and camera ids
+         */
+        void track_image_and_update(const ov_core::CameraData &message);
+
+        /**
+         * @brief This will do the propagation and feature updates to the state
+         * @param message Contains our timestamp, images, and camera ids
+         */
+        void do_feature_propagate_update(const ov_core::CameraData &message);
 
         /**
          * @brief This function will try to initialize the state.
          *
          * This should call on our initializer and try to init the state.
          * In the future we should call the structure-from-motion code from here.
-         * This function could also be repurposed to re-initialize the system after failure.         *
+         * This function could also be repurposed to re-initialize the system after failure.
+         *
          * @return True if we have successfully initialized
          */
         bool try_to_initialize();
-
-
-        /**
-         * @brief This will do the propagation and feature updates to the state
-         * @param timestamp The most recent timestamp we have tracked to
-         * @param cam0_image First camera image mat object
-         */
-        void do_feature_propagate_update(double timestamp, cv::Mat &cam0_image);
-
 
         /**
          * @brief This function will will re-triangulate all features in the current frame
@@ -276,9 +270,9 @@ namespace ov_msckf {
          * This is useful for downstream applications which need the current pointcloud of points (e.g. loop closure).
          * This will try to triangulate *all* points, not just ones that have been used in the update.
          *
-         * @param cam0_image First camera image mat object
+         * @param message Contains our timestamp, images, and camera ids
          */
-        void retriangulate_active_tracks(cv::Mat &cam0_image);
+        void retriangulate_active_tracks(const ov_core::CameraData &message);
 
 
         /// Manager parameters
@@ -290,6 +284,9 @@ namespace ov_msckf {
         /// Propagator of our state
         std::shared_ptr<Propagator> propagator;
 
+        /// Complete history of our feature tracks
+        std::shared_ptr<FeatureDatabase> trackDATABASE;
+
         /// Our sparse feature tracker (klt or descriptor)
         std::shared_ptr<TrackBase> trackFEATS;
 
@@ -297,19 +294,25 @@ namespace ov_msckf {
         std::shared_ptr<TrackBase> trackARUCO;
 
         /// State initializer
-        std::unique_ptr<InertialInitializer> initializer;
+        std::shared_ptr<InertialInitializer> initializer;
 
         /// Boolean if we are initialized or not
         bool is_initialized_vio = false;
 
         /// Our MSCKF feature updater
-        std::unique_ptr<UpdaterMSCKF> updaterMSCKF;
+        std::shared_ptr<UpdaterMSCKF> updaterMSCKF;
 
         /// Our MSCKF feature updater
-        std::unique_ptr<UpdaterSLAM> updaterSLAM;
+        std::shared_ptr<UpdaterSLAM> updaterSLAM;
 
         /// Our aruoc tracker
-        std::unique_ptr<UpdaterZeroVelocity> updaterZUPT;
+        std::shared_ptr<UpdaterZeroVelocity> updaterZUPT;
+
+        /// Queue up camera measurements sorted by time and trigger once we have
+        /// exactly one IMU measurement with timestamp newer than the camera measurement
+        /// This also handles out-of-order camera measurements, which is rare, but
+        /// a nice feature to have for general robustness to bad camera drivers.
+        std::deque<ov_core::CameraData> camera_queue;
 
         // Timing statistic file and variables
         std::ofstream of_statistics;
@@ -325,6 +328,7 @@ namespace ov_msckf {
         // If we did a zero velocity update
         bool did_zupt_update = false;
         cv::Mat zupt_image;
+        std::map<size_t, cv::Mat> zupt_img_last;
 
         // Good features that where used in the last update (used in visualization)
         std::vector<Eigen::Vector3d> good_features_MSCKF;

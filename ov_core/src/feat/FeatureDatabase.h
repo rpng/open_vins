@@ -117,7 +117,7 @@ namespace ov_core {
             feat->timestamps[cam_id].push_back(timestamp);
 
             // Append this new feature into our database
-            features_idlookup[id] = std::move(feat);
+            features_idlookup[id] = feat;
         }
 
 
@@ -128,7 +128,7 @@ namespace ov_core {
          * For example this could be used to get features that have not been successfully tracked into the newest frame.
          * All features returned will not have any measurements occurring at a time greater then the specified.
          */
-        std::vector<std::shared_ptr<Feature>> features_not_containing_newer(double timestamp, bool remove=false) {
+        std::vector<std::shared_ptr<Feature>> features_not_containing_newer(double timestamp, bool remove=false, bool skip_deleted=false) {
 
             // Our vector of features that do not have measurements after the specified time
             std::vector<std::shared_ptr<Feature>> feats_old;
@@ -136,6 +136,11 @@ namespace ov_core {
             // Now lets loop through all features, and just make sure they are not old
             std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
+                // Skip if already deleted
+                if(skip_deleted && (*it).second->to_delete) {
+                    it++;
+                    continue;
+                }
                 // Loop through each camera
                 bool has_newer_measurement = false;
                 for (auto const &pair : (*it).second->timestamps) {
@@ -170,7 +175,7 @@ namespace ov_core {
          * This will collect all features that have measurements occurring before the specified timestamp.
          * For example, we would want to remove all features older then the last clone/state in our sliding window.
          */
-        std::vector<std::shared_ptr<Feature>> features_containing_older(double timestamp, bool remove=false) {
+        std::vector<std::shared_ptr<Feature>> features_containing_older(double timestamp, bool remove=false, bool skip_deleted=false) {
 
             // Our vector of old features
             std::vector<std::shared_ptr<Feature>> feats_old;
@@ -178,6 +183,11 @@ namespace ov_core {
             // Now lets loop through all features, and just make sure they are not old
             std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
+                // Skip if already deleted
+                if(skip_deleted && (*it).second->to_delete) {
+                    it++;
+                    continue;
+                }
                 // Loop through each camera
                 bool found_containing_older = false;
                 for (auto const &pair : (*it).second->timestamps) {
@@ -210,7 +220,7 @@ namespace ov_core {
          * This function will return all features that have the specified time in them.
          * This would be used to get all features that occurred at a specific clone/state.
          */
-        std::vector<std::shared_ptr<Feature>> features_containing(double timestamp, bool remove=false) {
+        std::vector<std::shared_ptr<Feature>> features_containing(double timestamp, bool remove=false, bool skip_deleted=false) {
 
             // Our vector of old features
             std::vector<std::shared_ptr<Feature>> feats_has_timestamp;
@@ -218,6 +228,11 @@ namespace ov_core {
             // Now lets loop through all features, and just make sure they are not
             std::unique_lock<std::mutex> lck(mtx);
             for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
+                // Skip if already deleted
+                if(skip_deleted && (*it).second->to_delete) {
+                    it++;
+                    continue;
+                }
                 // Boolean if it has the timestamp
                 bool has_timestamp = false;
                 for (auto const &pair : (*it).second->timestamps) {
@@ -316,6 +331,57 @@ namespace ov_core {
         std::unordered_map<size_t, std::shared_ptr<Feature>> get_internal_data() {
             std::unique_lock<std::mutex> lck(mtx);
             return features_idlookup;
+        }
+
+
+        /**
+         * @brief Will update the passed database with this database's latest feature information.
+         */
+        void append_new_measurements(const std::shared_ptr<FeatureDatabase>& database) {
+            std::unique_lock<std::mutex> lck(mtx);
+
+            // Loop through the other database's internal database
+            //int sizebefore = (int)features_idlookup.size();
+            for(const auto &feat : database->get_internal_data()) {
+                if (features_idlookup.find(feat.first) != features_idlookup.end()) {
+
+                    // For this feature, now try to append the new measurement data
+                    std::shared_ptr<Feature> temp = features_idlookup.at(feat.first);
+                    for(const auto &times : feat.second->timestamps) {
+                        // Append the whole camera vector is not seen
+                        // Otherwise need to loop through each and append
+                        size_t cam_id = times.first;
+                        if(temp->timestamps.find(cam_id)==temp->timestamps.end()) {
+                            temp->timestamps[cam_id] = feat.second->timestamps.at(cam_id);
+                            temp->uvs[cam_id] = feat.second->uvs.at(cam_id);
+                            temp->uvs_norm[cam_id] = feat.second->uvs_norm.at(cam_id);
+                        } else {
+                            auto temp_times = temp->timestamps.at(cam_id);
+                            for(size_t i=0; i<feat.second->timestamps.at(cam_id).size(); i++) {
+                                double time_to_find = feat.second->timestamps.at(cam_id).at(i);
+                                if(std::find(temp_times.begin(),temp_times.end(),time_to_find)==temp_times.end()) {
+                                    temp->timestamps.at(cam_id).push_back(feat.second->timestamps.at(cam_id).at(i));
+                                    temp->uvs.at(cam_id).push_back(feat.second->uvs.at(cam_id).at(i));
+                                    temp->uvs_norm.at(cam_id).push_back(feat.second->uvs_norm.at(cam_id).at(i));
+                                }
+                            }
+                        }
+                    }
+
+                } else {
+
+                    // Else we have not found the feature, so lets make it be a new one!
+                    std::shared_ptr<Feature> temp = std::make_shared<Feature>();
+                    temp->featid = feat.second->featid;
+                    temp->timestamps = feat.second->timestamps;
+                    temp->uvs = feat.second->uvs;
+                    temp->uvs_norm = feat.second->uvs_norm;
+                    features_idlookup[feat.first] = temp;
+
+                }
+            }
+            //std::cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << std::endl;
+
         }
 
     protected:

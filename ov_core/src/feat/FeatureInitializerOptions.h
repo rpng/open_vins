@@ -37,7 +37,7 @@ namespace ov_core {
         bool refine_features = true;
 
         /// Max runs for Levenberg-Marquardt
-        int max_runs = 20;
+        int max_runs = 5;
 
         /// Init lambda for Levenberg-Marquardt optimization
         double init_lamda = 1e-3;
@@ -64,7 +64,7 @@ namespace ov_core {
         double max_baseline = 40;
 
         /// Max condition number of linear triangulation matrix accept triangulated features
-        double max_cond_number = 10000;
+        double max_cond_number = 12000;
 
         /// Nice print function of what parameters we have loaded
         void print() {

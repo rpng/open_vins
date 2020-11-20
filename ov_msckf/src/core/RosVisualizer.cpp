@@ -118,6 +118,14 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
 
 void RosVisualizer::visualize() {
 
+    // Return if we have already visualized
+    if(last_visualization_timestamp == _app->get_state()->_timestamp)
+        return;
+    last_visualization_timestamp = _app->get_state()->_timestamp;
+
+    // Start timing
+    boost::posix_time::ptime rT0_1, rT0_2;
+    rT0_1 =  boost::posix_time::microsec_clock::local_time();
 
     // publish current image
     publish_images();
@@ -147,6 +155,11 @@ void RosVisualizer::visualize() {
     // save total state
     if(save_total_state)
         sim_save_total_state_to_file();
+
+    // Print how much time it took to publish / displaying things
+    rT0_2 =  boost::posix_time::microsec_clock::local_time();
+    double time_total = (rT0_2-rT0_1).total_microseconds() * 1e-6;
+    printf(BLUE "[TIME]: %.4f seconds for visualization\n" RESET, time_total);
 
 }
 
@@ -704,9 +717,8 @@ void RosVisualizer::publish_loopclosure_information() {
     _app->get_active_tracks(active_tracks_time1, active_tracks_posinG, active_tracks_uvd);
     _app->get_active_image(active_tracks_time2, active_cam0_image);
     if(active_tracks_time1 == -1) return;
-    if(active_tracks_time1 != _app->get_state()->_timestamp) return;
+    if(_app->get_state()->_clones_IMU.find(active_tracks_time1) == _app->get_state()->_clones_IMU.end()) return;
     if(active_tracks_time1 != active_tracks_time2) return;
-    assert(active_tracks_posinG.size()==active_tracks_uvd.size());
 
     // Default header
     std_msgs::Header header;
@@ -722,13 +734,13 @@ void RosVisualizer::publish_loopclosure_information() {
         nav_msgs::Odometry odometry_pose;
         odometry_pose.header = header;
         odometry_pose.header.frame_id = "global";
-        odometry_pose.pose.pose.position.x = _app->get_state()->_imu->pos()(0);
-        odometry_pose.pose.pose.position.y = _app->get_state()->_imu->pos()(1);
-        odometry_pose.pose.pose.position.z = _app->get_state()->_imu->pos()(2);
-        odometry_pose.pose.pose.orientation.x = _app->get_state()->_imu->quat()(0);
-        odometry_pose.pose.pose.orientation.y = _app->get_state()->_imu->quat()(1);
-        odometry_pose.pose.pose.orientation.z = _app->get_state()->_imu->quat()(2);
-        odometry_pose.pose.pose.orientation.w = _app->get_state()->_imu->quat()(3);
+        odometry_pose.pose.pose.position.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(0);
+        odometry_pose.pose.pose.position.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(1);
+        odometry_pose.pose.pose.position.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(2);
+        odometry_pose.pose.pose.orientation.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(0);
+        odometry_pose.pose.pose.orientation.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(1);
+        odometry_pose.pose.pose.orientation.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(2);
+        odometry_pose.pose.pose.orientation.w = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(3);
         pub_loop_pose.publish(odometry_pose);
 
         // PUBLISH IMU TO CAMERA0 EXTRINSIC
@@ -771,7 +783,10 @@ void RosVisualizer::publish_loopclosure_information() {
 
             // Get this feature information
             size_t featid = feattimes.first;
-            Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
+            Eigen::Vector3d uvd = Eigen::Vector3d::Zero();
+            if(active_tracks_uvd.find(featid)!=active_tracks_uvd.end()) {
+                uvd = active_tracks_uvd.at(featid);
+            }
             Eigen::Vector3d pFinG = active_tracks_posinG.at(featid);
 
             // Push back 3d point
@@ -808,7 +823,7 @@ void RosVisualizer::publish_loopclosure_information() {
         cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
 
         // Loop through all points and append
-        for(const auto &feattimes : active_tracks_posinG) {
+        for(const auto &feattimes : active_tracks_uvd) {
 
             // Get this feature information
             size_t featid = feattimes.first;

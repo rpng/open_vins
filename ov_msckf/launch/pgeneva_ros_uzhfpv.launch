@@ -33,6 +33,7 @@
         <param name="topic_imu"      type="string" value="/snappy_imu" />
         <param name="topic_camera0"  type="string" value="/snappy_cam/stereo_l" />
         <param name="topic_camera1"  type="string" value="/snappy_cam/stereo_r" />
+        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="true" />

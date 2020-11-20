@@ -180,6 +180,9 @@ namespace ov_msckf {
         /// If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.
         bool use_stereo = true;
 
+        /// Defined set of stereo camera id pairs which we will process together and try to generate stereo constraints between.
+        std::vector<std::pair<int,int>> stereo_pairs;
+
         /// If we should use KLT tracking, or descriptor matcher
         bool use_klt = true;
 
@@ -220,6 +223,11 @@ namespace ov_msckf {
             printf("FEATURE TRACKING PARAMETERS:\n");
             printf("\t- num_pts: %d\n", num_pts);
             printf("\t- use_stereo: %d\n", use_stereo);
+            printf("\t- stereo pairs: ");
+            for(const auto &pair : stereo_pairs) {
+                printf("[%d, %d] ",pair.first,pair.second);
+            }
+            printf("\n");
             printf("\t- downsize aruco: %d\n", downsize_aruco);
             printf("\t- downsize cameras: %d\n", downsample_cameras);
             featinit_options.print();

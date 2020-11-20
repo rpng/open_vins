@@ -185,7 +185,7 @@ int main(int argc, char** argv)
 
         // Handle LEFT camera
         sensor_msgs::Image::ConstPtr s0 = m.instantiate<sensor_msgs::Image>();
-        if (s0 != NULL && m.getTopic() == topic_camera0) {
+        if (s0 != nullptr && m.getTopic() == topic_camera0) {
             // Get the image
             cv_bridge::CvImageConstPtr cv_ptr;
             try {
@@ -203,7 +203,7 @@ int main(int argc, char** argv)
 
         //  Handle RIGHT camera
         sensor_msgs::Image::ConstPtr s1 = m.instantiate<sensor_msgs::Image>();
-        if (s1 != NULL && m.getTopic() == topic_camera1) {
+        if (s1 != nullptr && m.getTopic() == topic_camera1) {
             // Get the image
             cv_bridge::CvImageConstPtr cv_ptr;
             try {
@@ -263,7 +263,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool 
     cv::waitKey(1);
 
     // Get lost tracks
-    FeatureDatabase* database = extractor->get_feature_database();
+    std::shared_ptr<FeatureDatabase> database = extractor->get_feature_database();
     std::vector<std::shared_ptr<Feature>> feats_lost = database->features_not_containing_newer(time0);
     num_lostfeats += feats_lost.size();
 
