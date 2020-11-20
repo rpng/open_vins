@@ -105,6 +105,9 @@ namespace ov_msckf {
             startup_time = imustate(0, 0);
             is_initialized_vio = true;
 
+            // Fix the global yaw and position gauge freedoms
+            StateHelper::fix_4dof_gauge_freedoms(state, imustate.block(1, 0, 4, 1));
+
             // Cleanup any features older then the initialization time
             trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
             if (trackARUCO != nullptr) {

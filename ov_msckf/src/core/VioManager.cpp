@@ -780,6 +780,9 @@ bool VioManager::try_to_initialize() {
     state->_timestamp = time0;
     startup_time = time0;
 
+    // Fix the global yaw and position gauge freedoms
+    StateHelper::fix_4dof_gauge_freedoms(state, q_GtoI0);
+
     // Cleanup any features older then the initialization time
     trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
     if(trackARUCO != nullptr) {

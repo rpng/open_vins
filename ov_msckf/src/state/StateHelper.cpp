@@ -182,6 +182,20 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
 }
 
 
+void StateHelper::fix_4dof_gauge_freedoms(std::shared_ptr<State> state, const Eigen::Vector4d &q_GtoI) {
+
+    // Fix our global yaw and position
+    state->_Cov(state->_imu->q()->id()+2, state->_imu->q()->id()+2) = 0.0;
+    state->_Cov.block(state->_imu->p()->id(), state->_imu->p()->id(), 3, 3).setZero();
+
+    // Propagate into the current local IMU frame
+    // R_GtoI = R_GtoI*R_GtoG -> H = R_GtoI
+    Eigen::Matrix3d R_GtoI = quat_2_Rot(q_GtoI);
+    state->_Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) =
+            R_GtoI*state->_Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3)*R_GtoI.transpose();
+
+}
+
 
 Eigen::MatrixXd StateHelper::get_marginal_covariance(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &small_variables) {
 

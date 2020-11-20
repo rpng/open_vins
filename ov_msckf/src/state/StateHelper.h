@@ -90,6 +90,19 @@ namespace ov_msckf {
                               const Eigen::MatrixXd &H, const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
         /**
+         * @brief This will fix the initial covariance matrix gauge freedoms (4dof, yaw and position).
+         *
+         * A VIO system has 4dof unobservabile directions which can be arbitarily picked.
+         * This means that on startup, we can fix the yaw and position to be 100 percent known.
+         * Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
+         * into the new IMU pose. In this case the position is directly equivilent, but the orientation needs to be propagated.
+         *
+         * @param state Pointer to state
+         * @param q_GtoI Initial rotation from global frame to the first ever IMU orientation.
+         */
+        static void fix_4dof_gauge_freedoms(std::shared_ptr<State> state, const Eigen::Vector4d &q_GtoI);
+
+        /**
         * @brief For a given set of variables, this will this will calculate a smaller covariance.
         *
         * That only includes the ones specified with all crossterms.
