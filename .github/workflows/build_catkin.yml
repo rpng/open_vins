@@ -25,8 +25,8 @@ jobs:
            curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add - &&
            sudo apt update && sudo apt -y install build-essential ros-melodic-desktop python-catkin-pkg python-catkin-tools libeigen3-dev git
     - name: Install OpenCV
-      run: git clone --branch 3.4.6 https://github.com/opencv/opencv/ &&
-           git clone --branch 3.4.6 https://github.com/opencv/opencv_contrib/ &&
+      run: git clone --branch 3.4 https://github.com/opencv/opencv/ &&
+           git clone --branch 3.4 https://github.com/opencv/opencv_contrib/ &&
            mkdir opencv/build/ && cd opencv/build/ && cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules .. && make -j2 && sudo make install
     - name: Create Catkin Workspace and compile
       run: export REPO=open_vins_private && cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
