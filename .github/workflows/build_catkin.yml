@@ -2,7 +2,7 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, develop_v2.3 ]
+    branches: [ master, develop_v2.3, opencv_fixing ]
   pull_request:
     branches: [ master ]
     
@@ -24,12 +24,6 @@ jobs:
            sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
            curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add - &&
            sudo apt update && sudo apt -y install build-essential ros-melodic-desktop python-catkin-pkg python-catkin-tools libeigen3-dev git
-    - name: Install OpenCV
-      run: git clone --branch 3.4 https://github.com/opencv/opencv/ &&
-           git clone --branch 3.4 https://github.com/opencv/opencv_contrib/ &&
-           mkdir opencv/build/ && cd opencv/build/ && 
-           cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D BUILD_opencv_java=OFF -D BUILD_opencv_python=OFF .. &&
-           make -j2 && sudo make install
     - name: Create Catkin Workspace and compile
       run: export REPO=$(basename $GITHUB_REPOSITORY) &&
            cd $GITHUB_WORKSPACE/.. && mkdir src/ && 
