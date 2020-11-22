@@ -27,7 +27,9 @@ jobs:
     - name: Install OpenCV
       run: git clone --branch 3.4 https://github.com/opencv/opencv/ &&
            git clone --branch 3.4 https://github.com/opencv/opencv_contrib/ &&
-           mkdir opencv/build/ && cd opencv/build/ && cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules .. && make -j2 && sudo make install
+           mkdir opencv/build/ && cd opencv/build/ && 
+           cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules -D BUILD_opencv_java=OFF -D BUILD_opencv_python=OFF .. &&
+           make -j2 && sudo make install
     - name: Create Catkin Workspace and compile
       run: export REPO=open_vins_private && cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
            mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
