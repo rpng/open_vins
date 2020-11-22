@@ -24,8 +24,9 @@
 
 #include <vector>
 #include <iostream>
-#include <Eigen/Eigen>
+#include <functional>
 
+#include <Eigen/Eigen>
 
 #include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
@@ -34,6 +35,19 @@
 
 
 namespace ov_core {
+
+    class LambdaBody : public cv::ParallelLoopBody {    
+    public:
+        LambdaBody(const std::function<void(const cv::Range &)> &body) {
+            _body = body;
+        }
+
+        void operator() (const cv::Range & range) const {
+            _body(range);
+        }    
+    private:
+        std::function<void(const cv::Range &)> _body;
+    };
 
     /**
      * @brief Extracts FAST features in a grid pattern.
@@ -91,15 +105,13 @@ namespace ov_core {
 
             // Either we will parellize with opencv parallel for loop
             // Or we will run through a standard double for loop
-            if(multithread) {
-
+            if (multithread) {
                 // Parallelize our 2d grid extraction!!
                 int ct_cols = std::floor(img.cols/size_x);
                 int ct_rows = std::floor(img.rows/size_y);
                 std::vector<std::vector<cv::KeyPoint>> collection(ct_cols*ct_rows);
-                parallel_for_(cv::Range(0, ct_cols*ct_rows), [&](const cv::Range& range) {
+                parallel_for_(cv::Range(0, ct_cols*ct_rows), LambdaBody([&](const cv::Range& range) {
                     for (int r = range.start; r < range.end; r++) {
-
                         // Calculate what cell xy value we are in
                         int x = r%ct_cols*size_x;
                         int y = r/ct_cols*size_y;
@@ -128,14 +140,14 @@ namespace ov_core {
                             collection.at(r).push_back(pt_cor);
                         }
                     }
-                });
+                }));
+
                 // Combine all the collections into our single vector
                 for(size_t r=0; r<collection.size(); r++) {
                     pts.insert(pts.end(),collection.at(r).begin(),collection.at(r).end());
                 }
 
             } else {
-
                 // Lets loop through each grid and extract features
                 for (int x = 0; x < img.cols; x += size_x) {
                     for (int y = 0; y < img.rows; y += size_y) {
