@@ -2,9 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, develop_v2.3, opencv_fixing ]
+    branches: [ master, develop_v2.3 ]
   pull_request:
-    branches: [ master ]
+    branches: [ master, develop_v2.3 ]
     
 jobs:
   build:
