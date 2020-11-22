@@ -28,4 +28,4 @@ jobs:
       run: export REPO=$(basename $GITHUB_REPOSITORY) &&
            cd $GITHUB_WORKSPACE/.. && mkdir src/ && 
            mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
-           source /opt/ros/melodic/setup.bash && catkin build -j2 --no-status # TODO REPO=open_vins
+           source /opt/ros/melodic/setup.bash && catkin build -j2 --no-status
