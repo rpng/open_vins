@@ -28,31 +28,10 @@ echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
 source ~/.bashrc
 @endcode
 
-
-
-@section gs-install-opencv OpenCV Dependency
-
-We leverage [OpenCV 3.4](https://opencv.org/) for this project and recommend you compile it from source.
-You can try linking to the one included with ROS but we have always had success with building from source to ensure we have all contributed OpenCV libraries.
-One should make sure you can see some of the "contrib" (e.g. xfeature2d) to ensure you have linked to the contrib modules.
-
-@code{.shell-session}
-git clone --branch 3.4 https://github.com/opencv/opencv/
-git clone --branch 3.4 https://github.com/opencv/opencv_contrib/
-mkdir opencv/build/
-cd opencv/build/
-cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules ..
-make -j8
-sudo make install
-@endcode
-
-
-
-
 @section gs-install-openvins Cloning the OpenVINS Project
 
 
-Now that we have ROS and OpenCV install we can setup a catkin workspace and build the project!
+Now that we have ROS installed we can setup a catkin workspace and build the project!
 If you did not install the catkin_tools build system, you should be able to build using the standard `catkin_make` command that is included with ROS.
 If you run into any problems please google search the issue first and if you are unable to find a solution please open an issue on our github page.
 After the build is successful please following the @ref gs-tutorial guide on getting a dataset and running the system.
