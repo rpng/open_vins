@@ -123,6 +123,10 @@ namespace ov_msckf {
             return params;
         }
 
+        BsplineSE3* get_spline() {
+            return &spline;
+        }
+
 
     protected:
 

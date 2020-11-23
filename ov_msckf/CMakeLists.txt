@@ -56,6 +56,7 @@ include_directories(
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
+        ${ov_core_SOURCE_DIR}/src
 )
 
 # Set link libraries used by all binaries
@@ -74,6 +75,7 @@ if (NOT catkin_FOUND)
     list(APPEND thirdparty_libraries ov_core_lib)
 endif()
 
+
 ##################################################
 # Make the core library
 ##################################################
@@ -83,6 +85,7 @@ list(APPEND library_source_files
         src/state/StateHelper.cpp
         src/state/Propagator.cpp
         src/core/VioManager.cpp
+        src/core/VioManagerCalib.cpp
         src/update/UpdaterHelper.cpp
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
@@ -102,7 +105,7 @@ target_include_directories(ov_msckf_lib PUBLIC src)
 # Make binary files!
 ##################################################
 
-
+#[[
 if (catkin_FOUND)
 
     add_executable(run_serial_msckf src/ros_serial_msckf.cpp)
@@ -127,5 +130,7 @@ target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
+]]
 
-
+add_executable(run_calib src/run_calib.cpp)
+target_link_libraries(run_calib ov_msckf_lib ${thirdparty_libraries})

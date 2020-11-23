@@ -75,6 +75,7 @@ add_library(ov_core_lib SHARED
         src/track/TrackDescriptor.cpp
         src/track/TrackKLT.cpp
         src/track/TrackSIM.cpp
+        src/track/TrackArr.cpp
         src/types/Landmark.cpp
         src/feat/Feature.cpp
         src/feat/FeatureInitializer.cpp

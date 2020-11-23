@@ -4,7 +4,7 @@
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3-5: 20 -->
-    <arg name="bag"         default="/home/patrick/datasets/eth/V1_01_easy.bag" />
+    <arg name="bag"         default="/home/jlee/Downloads/V1_01_easy.bag" />
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="0.75" />
