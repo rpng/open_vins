@@ -21,6 +21,7 @@
 #define OV_CORE_SENSOR_DATA_H
 
 
+#include <vector>
 #include <Eigen/Eigen>
 #include <opencv2/opencv.hpp>
 

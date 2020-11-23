@@ -22,6 +22,7 @@
 #define OV_MSCKF_STATE_H
 
 
+#include <map>
 #include <vector>
 #include <unordered_map>
 

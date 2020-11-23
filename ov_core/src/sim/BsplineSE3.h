@@ -21,7 +21,8 @@
 #ifndef OV_CORE_BSPLINESE3_H
 #define OV_CORE_BSPLINESE3_H
 
-
+#include <map>
+#include <vector>
 #include <Eigen/Eigen>
 
 #include "utils/quat_ops.h"

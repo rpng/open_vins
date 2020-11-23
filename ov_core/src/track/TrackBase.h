@@ -27,10 +27,8 @@
 #include <mutex>
 #include <atomic>
 #include <unordered_map>
-#include <Eigen/StdVector>
 
 #include <boost/thread.hpp>
-#include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 

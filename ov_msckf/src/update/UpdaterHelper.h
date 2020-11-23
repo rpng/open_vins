@@ -59,10 +59,10 @@ namespace ov_msckf {
             size_t featid;
 
             /// UV coordinates that this feature has been seen from (mapped by camera ID)
-            std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>> uvs;
+            std::unordered_map<size_t, std::vector<Eigen::VectorXf>> uvs;
 
             // UV normalized coordinates that this feature has been seen from (mapped by camera ID)
-            std::unordered_map<size_t, std::vector<Eigen::Vector2f,Eigen::aligned_allocator<Eigen::Vector2f>>> uvs_norm;
+            std::unordered_map<size_t, std::vector<Eigen::VectorXf>> uvs_norm;
 
             /// Timestamps of each UV measurement (mapped by camera ID)
             std::unordered_map<size_t, std::vector<double>> timestamps;

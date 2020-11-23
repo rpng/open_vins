@@ -27,13 +27,8 @@
 #include <random>
 #include <string>
 #include <unordered_map>
-
 #include <Eigen/Eigen>
-#include <Eigen/StdVector>
-
-#include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
-
 
 #include "core/VioManagerOptions.h"
 #include "sim/BsplineSE3.h"
