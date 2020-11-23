@@ -806,7 +806,7 @@ void RosVisualizer::publish_loopclosure_information() {
         // Create the images we will populate with the depths
         std::pair<int,int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
         cv::Mat depthmap_viz;
-        cv::cvtColor(active_cam0_image, depthmap_viz, CV_GRAY2RGB);
+        cv::cvtColor(active_cam0_image, depthmap_viz, cv::COLOR_GRAY2RGB);
         cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
 
         // Loop through all points and append

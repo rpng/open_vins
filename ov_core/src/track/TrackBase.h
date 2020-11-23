@@ -29,6 +29,7 @@
 #include <unordered_map>
 
 #include <boost/thread.hpp>
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 

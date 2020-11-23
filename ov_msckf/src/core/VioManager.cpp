@@ -302,7 +302,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
             for(auto const& pair : zupt_img_last) {
                 // Select the subset of the image
                 cv::Mat img_temp;
-                cv::cvtColor(zupt_img_last[pair.first], img_temp, CV_GRAY2RGB);
+                cv::cvtColor(zupt_img_last[pair.first], img_temp, cv::COLOR_GRAY2RGB);
                 // Display text telling user that we are doing a zupt
                 bool is_small = (std::min(img_temp.cols,img_temp.rows) < 400);
                 auto txtpt = (is_small)? cv::Point(10,30) : cv::Point(30,60);
