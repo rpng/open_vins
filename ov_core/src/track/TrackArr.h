@@ -39,8 +39,8 @@
 #include <opencv2/core/eigen.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include "Grider_FAST.h"
-#include "Grider_DOG.h"
+#include "track/Grider_FAST.h"
+#include "track/Grider_DOG.h"
 #include "feat/FeatureDatabase.h"
 #include "utils/colors.h"
 

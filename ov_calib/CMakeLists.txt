@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 
 # Project name
-project(ov_msckf)
+project(ov_calib)
 
 # Include our cmake files
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
@@ -25,7 +25,7 @@ if (catkin_FOUND)
     catkin_package(
             CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core
             INCLUDE_DIRS src
-            LIBRARIES ov_msckf_lib
+            LIBRARIES ov_calib_lib
     )
 else()
     message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
@@ -50,6 +50,9 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-sign
 # Enable debug flags (use if you want to debug in gdb)
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninitialized")
 
+set(ov_core_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../ov_core)
+set(ov_msckf_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../ov_msckf)
+
 # Include our header files
 include_directories(
         src
@@ -57,6 +60,7 @@ include_directories(
         ${Boost_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
         ${ov_core_SOURCE_DIR}/src
+        ${ov_msckf_SOURCE_DIR}/src
 )
 
 # Set link libraries used by all binaries
@@ -80,51 +84,29 @@ endif()
 # Make the core library
 ##################################################
 list(APPEND library_source_files
-        src/sim/Simulator.cpp
-        src/state/State.cpp
-        src/state/StateHelper.cpp
-        src/state/Propagator.cpp
-        src/core/VioManager.cpp
-        src/update/UpdaterHelper.cpp
-        src/update/UpdaterMSCKF.cpp
-        src/update/UpdaterSLAM.cpp
-        src/update/UpdaterZeroVelocity.cpp
+        ${ov_msckf_SOURCE_DIR}/src/core/CalibManager.cpp
+        ${ov_msckf_SOURCE_DIR}/src/sim/Simulator.cpp
+        ${ov_msckf_SOURCE_DIR}/src/state/State.cpp
+        ${ov_msckf_SOURCE_DIR}/src/state/StateHelper.cpp
+        ${ov_msckf_SOURCE_DIR}/src/state/Propagator.cpp
+        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterHelper.cpp
+        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterMSCKF.cpp
+        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterSLAM.cpp
+        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterZeroVelocity.cpp
 )
 if (catkin_FOUND)
     list(APPEND library_source_files
-        src/core/RosVisualizer.cpp
+        ${ov_msckf_SOURCE_DIR}/src/core/RosVisualizer.cpp
     )
 endif()
-add_library(ov_msckf_lib SHARED ${library_source_files})
-target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
-target_include_directories(ov_msckf_lib PUBLIC src)
+add_library(ov_calib_lib SHARED ${library_source_files})
+target_link_libraries(ov_calib_lib ${thirdparty_libraries})
+target_include_directories(ov_calib_lib PUBLIC src)
 
 
 ##################################################
 # Make binary files!
 ##################################################
 
-if (catkin_FOUND)
-
-    add_executable(run_serial_msckf src/ros_serial_msckf.cpp)
-    target_link_libraries(run_serial_msckf ov_msckf_lib ${thirdparty_libraries})
-
-    add_executable(run_subscribe_msckf src/ros_subscribe_msckf.cpp)
-    target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
-
-    add_executable(run_simulation src/run_simulation.cpp)
-    target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
-
-else()
-
-    add_executable(run_simulation src/run_simulation.cpp)
-    target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
-
-endif()
-
-
-add_executable(test_sim_meas src/test_sim_meas.cpp)
-target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
-
-add_executable(test_sim_repeat src/test_sim_repeat.cpp)
-target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
+add_executable(run_simulation src/run_simulation.cpp)
+target_link_libraries(run_simulation ov_calib_lib ${thirdparty_libraries})

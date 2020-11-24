@@ -23,8 +23,9 @@
 
 #include <csignal>
 
+#include "core/CalibManager.h"
+
 #include "sim/Simulator.h"
-#include "core/VioManagerCalib.h"
 #include "utils/dataset_reader.h"
 #include "utils/parse_cmd.h"
 #include "utils/colors.h"
@@ -39,7 +40,7 @@ using namespace ov_msckf;
 
 
 Simulator* sim;
-VioManagerCalib* sys;
+CalibManager* sys;
 RosVisualizer* viz;
 
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
@@ -58,7 +59,7 @@ int main(int argc, char** argv)
 
     // Create our VIO system
     sim = new Simulator(params);
-    sys = new VioManagerCalib(params);
+    sys = new CalibManager(params);
     // viz = new RosVisualizer(nh, sys, sim);
 
     //===================================================================================

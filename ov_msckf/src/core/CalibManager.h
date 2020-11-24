@@ -18,8 +18,8 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
-#ifndef OV_MSCKF_VIOMANAGER_CALIB_H
-#define OV_MSCKF_VIOMANAGER_CALIB_H
+#ifndef OV_CALIB_VIOMANAGER_H
+#define OV_CALIB_VIOMANAGER_H
 
 
 #include <string>
@@ -44,11 +44,10 @@
 #include "update/UpdaterSLAM.h"
 #include "update/UpdaterZeroVelocity.h"
 
-#include "VioManagerOptions.h"
+#include "core/VioManagerOptions.h"
 
 
 namespace ov_msckf {
-
 
     /**
      * @brief Core class that manages the entire system
@@ -57,7 +56,7 @@ namespace ov_msckf {
      * We feed in measurements into this class and send them to their respective algorithms.
      * If we have measurements to propagate or update with, this class will call on our state to do that.
      */
-    class VioManagerCalib {
+    class CalibManager {
 
 
     public:
@@ -67,7 +66,7 @@ namespace ov_msckf {
          * @brief Default constructor, will load all configuration variables
          * @param params_ Parameters loaded from either ROS or CMDLINE
          */
-        VioManagerCalib(VioManagerOptions& params_);
+        CalibManager(VioManagerOptions& params_);
 
 
         /**

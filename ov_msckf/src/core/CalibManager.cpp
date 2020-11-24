@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "VioManagerCalib.h"
+#include "CalibManager.h"
 #include "types/Landmark.h"
 
 
@@ -28,7 +28,7 @@ using namespace ov_type;
 using namespace ov_msckf;
 
 
-void VioManagerCalib::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
+void CalibManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
@@ -101,7 +101,7 @@ void VioManagerCalib::feed_measurement_simulation(double timestamp, const std::v
 }
 
 
-void VioManagerCalib::get_estimation_camera(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matrix3d& R_PrevtoCurr) {
+void CalibManager::get_estimation_camera(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matrix3d& R_PrevtoCurr) {
     w = angvel;
     wd = angacc;
     R_PrevtoCurr = R;
@@ -109,7 +109,7 @@ void VioManagerCalib::get_estimation_camera(Eigen::Vector3d& w, Eigen::Vector3d&
 
 
 
-VioManagerCalib::VioManagerCalib(VioManagerOptions& params_) {
+CalibManager::CalibManager(VioManagerOptions& params_) {
 
 
     // Nice startup message
@@ -213,7 +213,7 @@ VioManagerCalib::VioManagerCalib(VioManagerOptions& params_) {
 }
 
 
-void VioManagerCalib::feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am) {
+void CalibManager::feed_measurement_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am) {
 
     // Push back to our propagator
     propagator->feed_imu(timestamp,wm,am);
@@ -234,7 +234,7 @@ void VioManagerCalib::feed_measurement_imu(double timestamp, Eigen::Vector3d wm,
 
 
 
-void VioManagerCalib::feed_measurement_monocular(double timestamp, cv::Mat& img0, size_t cam_id) {
+void CalibManager::feed_measurement_monocular(double timestamp, cv::Mat& img0, size_t cam_id) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
@@ -283,7 +283,7 @@ void VioManagerCalib::feed_measurement_monocular(double timestamp, cv::Mat& img0
 }
 
 
-void VioManagerCalib::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
+void CalibManager::feed_measurement_stereo(double timestamp, cv::Mat& img0, cv::Mat& img1, size_t cam_id0, size_t cam_id1) {
 
     // Start timing
     rT1 =  boost::posix_time::microsec_clock::local_time();
@@ -347,7 +347,7 @@ void VioManagerCalib::feed_measurement_stereo(double timestamp, cv::Mat& img0, c
 }
 
 
-bool VioManagerCalib::try_to_initialize() {
+bool CalibManager::try_to_initialize() {
 
     // Returns from our initializer
     double time0;
@@ -398,7 +398,7 @@ bool VioManagerCalib::try_to_initialize() {
 
 
 
-void VioManagerCalib::do_feature_propagate_update(double timestamp) {
+void CalibManager::do_feature_propagate_update(double timestamp) {
 
 
     //===================================================================================
@@ -722,7 +722,7 @@ void VioManagerCalib::do_feature_propagate_update(double timestamp) {
 }
 
 
-void VioManagerCalib::update_keyframe_historical_information(const std::vector<Feature*> &features) {
+void CalibManager::update_keyframe_historical_information(const std::vector<Feature*> &features) {
 
 
     // Loop through all features that have been used in the last update
