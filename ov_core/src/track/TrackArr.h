@@ -49,7 +49,7 @@ namespace ov_core {
     class TrackArr {
 
     public:
-        void feed_camera_matrix(cv::Mat cameraMatrix);
+        TrackArr(cv::Mat camera_matrix);
         void push_back(double timestamp, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats);
         void show();
         void calc_motion(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matrix3d& R);
@@ -59,9 +59,7 @@ namespace ov_core {
         void get_keypoint_pairs_curr(std::vector<cv::Point2d>& pts1, std::vector<cv::Point2d>& pts2);
 
         // camera matrix
-        cv::Mat cameraMatrix;
-        // count until three elements of each array are filled
-        size_t count = 0;
+        cv::Mat camera_matrix_;
         // sets of id-point pairs
         std::map<size_t, cv::Point2d> pts_old;
         std::map<size_t, cv::Point2d> pts_prev;

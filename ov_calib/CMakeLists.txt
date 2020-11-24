@@ -84,21 +84,8 @@ endif()
 # Make the core library
 ##################################################
 list(APPEND library_source_files
-        ${ov_msckf_SOURCE_DIR}/src/core/CalibManager.cpp
         ${ov_msckf_SOURCE_DIR}/src/sim/Simulator.cpp
-        ${ov_msckf_SOURCE_DIR}/src/state/State.cpp
-        ${ov_msckf_SOURCE_DIR}/src/state/StateHelper.cpp
-        ${ov_msckf_SOURCE_DIR}/src/state/Propagator.cpp
-        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterHelper.cpp
-        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterMSCKF.cpp
-        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterSLAM.cpp
-        ${ov_msckf_SOURCE_DIR}/src/update/UpdaterZeroVelocity.cpp
 )
-if (catkin_FOUND)
-    list(APPEND library_source_files
-        ${ov_msckf_SOURCE_DIR}/src/core/RosVisualizer.cpp
-    )
-endif()
 add_library(ov_calib_lib SHARED ${library_source_files})
 target_link_libraries(ov_calib_lib ${thirdparty_libraries})
 target_include_directories(ov_calib_lib PUBLIC src)

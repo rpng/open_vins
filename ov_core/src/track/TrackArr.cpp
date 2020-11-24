@@ -24,9 +24,8 @@
 
 using namespace ov_core;
 
-void TrackArr::feed_camera_matrix(cv::Mat cameraMatrix) {
-    this->cameraMatrix = cameraMatrix;
-    return ;
+TrackArr::TrackArr(cv::Mat camera_matrix) {
+    camera_matrix_ = camera_matrix;
 }
 
 void TrackArr::push_back(double timestamp, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats) {
@@ -44,7 +43,6 @@ void TrackArr::push_back(double timestamp, const std::vector<std::vector<std::pa
     for(const auto &feat : feats.at(0)) {
         // Get our id value
         size_t id = feat.first;
-
         // Create the keypoint
         cv::Point2d pt;
         pt.x = feat.second(0);
@@ -52,8 +50,6 @@ void TrackArr::push_back(double timestamp, const std::vector<std::vector<std::pa
         
         pts_curr.insert(std::pair<size_t, cv::Point2d>(id, pt));
     }
-
-    count ++;
 
 }
 
@@ -66,28 +62,25 @@ void TrackArr::calc_motion(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matri
     // TODO: calculate relative motion between two consecutive camera frames
     // ASSUMPTION: all features are identified by each corresponding label
 
-    // do not calculate the motion before initializing the filter
-    // if (this->count < 5) return;
-
     std::vector<cv::Point2d> pts1, pts2, pts3, pts4;
-    cv::Mat E_0to1, R_0to1, t_0to1, E_1to2, R_1to2, t_1to2;
+    cv::Mat E_0to1, R_0to1, t_0to1, E_1to2, R_1to2, t_1to2, mask;
 
     // get correponding pairs between (k-2, k-1) and (k-1, k)
     get_keypoint_pairs_prev(pts1, pts2);
     get_keypoint_pairs_curr(pts3, pts4);
 
     // do not start estimating essential matrix when less than five points are given
-    if ((pts1.size() < 5) || (pts3.size() < 5)) {
+    if ((pts1.size() < 8) || (pts3.size() < 8)) {
         printf(RED "[SIM]: Motion estimation failed. Requires points more than four. \n" RESET);
         R.setIdentity(3, 3);
         return;
     }
     
     // estimate R_0to1 (rotation between k-2 and k-1) and R_1to2 (rotation between k-1 and k)
-    E_0to1 = cv::findEssentialMat(pts1, pts2, cameraMatrix, cv::RANSAC);
-    cv::recoverPose(E_0to1, pts1, pts2, cameraMatrix, R_0to1, t_0to1);
-    E_1to2 = cv::findEssentialMat(pts3, pts4, cameraMatrix, cv::RANSAC);
-    cv::recoverPose(E_1to2, pts3, pts4, cameraMatrix, R_1to2, t_1to2);
+    E_0to1 = cv::findEssentialMat(pts1, pts2, camera_matrix_, cv::FM_RANSAC, 0.99, 1., mask);
+    cv::recoverPose(E_0to1, pts1, pts2, camera_matrix_, R_0to1, t_0to1, mask);
+    E_1to2 = cv::findEssentialMat(pts3, pts4, camera_matrix_, cv::FM_RANSAC, 0.99, 1., mask);
+    cv::recoverPose(E_1to2, pts3, pts4, camera_matrix_, R_1to2, t_1to2, mask);
 
     // estimate w_prev (angular velocity at k-1) and w_curr (angular velocity at k)
     double dt_prev = (timestamps.at(1) - timestamps.at(0));
@@ -105,7 +98,7 @@ void TrackArr::calc_motion(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matri
     w  = Eigen::Map<Eigen::Vector3d>(w_curr.data(), w_curr.cols() * w_curr.rows());
     wd = Eigen::Map<Eigen::Vector3d>(a_curr.data(), a_curr.cols() * a_curr.rows());
     R = R_1to2_e;
-
+    
     return ;
 }
 
