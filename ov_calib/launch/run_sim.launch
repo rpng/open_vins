@@ -14,7 +14,7 @@
     <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
-    <arg name="freq_imu"    default="10" />
+    <arg name="freq_imu"    default="200" />
 
     <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood -->
 
@@ -23,7 +23,7 @@
     <arg name="sim_do_calibration"  default="true" />
 
     <!-- saving trajectory paths -->
-    <arg name="dosave_pose"     default="false" />
+    <arg name="dosave_pose"     default="true" />
     <arg name="path_est"        default="$(find ov_eval)/data/sim/traj_estimate.txt" />
     <arg name="path_gt"         default="$(find ov_eval)/data/sim/traj_groundtruth.txt" />
     <arg name="dosave_state"    default="false" />

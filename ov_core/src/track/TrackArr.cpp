@@ -40,21 +40,42 @@ void TrackArr::push_back(double timestamp, const std::vector<std::vector<std::pa
     // Update our feature database, with theses new observations
     // NOTE: we add the "currid" since we need to offset the simulator
     // NOTE: ids by the number of aruoc tags we have specified as tracking
-    for(const auto &feat : feats.at(0)) {
-        // Get our id value
-        size_t id = feat.first;
-        // Create the keypoint
-        cv::Point2d pt;
-        pt.x = feat.second(0);
-        pt.y = feat.second(1);
-        
-        pts_curr.insert(std::pair<size_t, cv::Point2d>(id, pt));
+
+    // traverse for each camera
+    for (size_t i = 0; i < feats.size(); i ++) {
+        // traverse for each feature point
+        for (const auto &feat : feats.at(i)) {
+            // Get our id value
+            size_t id = feat.first;
+            // Create the keypoint
+            cv::Point2d pt;
+            pt.x = feat.second(0);
+            pt.y = feat.second(1);
+            
+            pts_curr.insert(std::pair<size_t, cv::Point2d>(id, pt));
+        }
     }
 
 }
 
 void TrackArr::show(){
     // TODO: left for real-world simulation
+
+    std::cout << "pts_old  [size : " << pts_old.size() <<  "]" << std::endl;
+    for (auto it = pts_old.cbegin(); it != pts_old.cend(); ++it) {
+        std::cout << "id " << it->first << ": (" << it->second.x << ", " << it->second.y << ")\n";
+    }
+
+    std::cout << "pts_prev [size : " << pts_prev.size() <<  "]" << std::endl;
+    for (auto it = pts_prev.cbegin(); it != pts_prev.cend(); ++it) {
+        std::cout << "id " << it->first << ": (" << it->second.x << ", " << it->second.y << ")\n";
+    }
+
+    std::cout << "pts_curr [size : " << pts_curr.size() <<  "]" << std::endl;
+    for (auto it = pts_curr.cbegin(); it != pts_curr.cend(); ++it) {
+        std::cout << "id " << it->first << ": (" << it->second.x << ", " << it->second.y << ")\n";
+    }
+
     return;
 }
 
@@ -109,8 +130,11 @@ void TrackArr::get_keypoint_pairs_prev(std::vector<cv::Point2d>& pts1, std::vect
         if (pts_prev.find(iter->first) != pts_prev.end()) {
             pts1.emplace_back(iter->second);
             pts2.emplace_back((pts_prev.find(iter->first))->second);
+            // std::cout << "pts_old : (" << iter->second.x << ", " << iter->second.y << ")  [ID: " << iter->first;
+            // std::cout << "] matches pts_prev: (" << pts_prev.find(iter->first)->second.x << ", " << pts_prev.find(iter->first)->second.y << ")" << std::endl;
         }
     }
+    // std::cout << "-- Match completed. pts_old.size() : " << pts1.size() << ", pts_prev.size(): " << pts2.size() << std::endl;
 }
 
 void TrackArr::get_keypoint_pairs_curr(std::vector<cv::Point2d>& pts1, std::vector<cv::Point2d>& pts2) {
@@ -120,6 +144,9 @@ void TrackArr::get_keypoint_pairs_curr(std::vector<cv::Point2d>& pts1, std::vect
         if (pts_curr.find(iter->first) != pts_curr.end()) {
             pts1.emplace_back(iter->second);
             pts2.emplace_back((pts_curr.find(iter->first))->second);
+            // std::cout << "pts_prev: (" << iter->second.x << ", " << iter->second.y << ")  [ID: " << iter->first;
+            // std::cout << "] matches pts_curr: (" << pts_curr.find(iter->first)->second.x << ", " << pts_curr.find(iter->first)->second.y << ")" << std::endl;
         }
     }
+    // std::cout << "-- Match completed. pts_prev.size(): " << pts1.size() << ", pts_curr.size(): " << pts2.size() << std::endl;
 }
