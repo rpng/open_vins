@@ -143,7 +143,7 @@ int main(int argc, char** argv)
             R_GtoCh = R_dC * R_GtoCh; // FIXME: Which one is correct: either R_dC or R_dC.transpose()?
 
             Eigen::Quaterniond q_GtoI(R_GtoI);   // Ground-truth IMU rotation (GT)
-            Eigen::Quaterniond q_GtoIodom(R_GtoIo);   // Ground-truth IMU rotation (odometry)
+            Eigen::Quaterniond q_GtoIo(R_GtoIo);   // Ground-truth IMU rotation (odometry)
             Eigen::Quaterniond q_GtoC(R_CtoI.transpose() * R_GtoI);     // Ground-truth camera rotation
             Eigen::Quaterniond q_GtoIh(R_GtoIh);     // estimated IMU rotation
             Eigen::Quaterniond q_GtoCh(R_GtoCh);     // estimated camera rotation
@@ -151,11 +151,11 @@ int main(int argc, char** argv)
             Eigen::Quaterniond q_dI(R_dI);           // rotational increment of IMU
             Eigen::Quaterniond q_dC(R_dC);           // rotational increment of camera
             Eigen::Quaterniond q_ref; q_ref.x() = 0; q_ref.y() = 0; q_ref.z() = 0; q_ref.w() = 1; 
-            double error_qIo = q_GtoIodom.angularDistance(q_GtoI);
-            double error_qI = q_GtoIh.angularDistance(q_GtoI);
-            double error_qC = q_GtoCh.angularDistance(q_GtoC);
-            double error_dqI = q_dI.angularDistance(q_dA);
-            double error_dqC = q_dC.angularDistance(q_dA);
+            double error_Io = q_GtoIo.angularDistance(q_GtoI);
+            double error_I = q_GtoIh.angularDistance(q_GtoI);
+            double error_C = q_GtoCh.angularDistance(q_GtoC);
+            double diff_qI = q_dI.angularDistance(q_dA);
+            double diff_qC = q_dC.angularDistance(q_dA);
             
             Eigen::Vector3d dx = p_IinG - p_IprevinG; dist_t += dx.norm();
             dist_r += q_dA.angularDistance(Eigen::Quaterniond::Identity());
@@ -165,30 +165,28 @@ int main(int argc, char** argv)
 
             printf(" -- q_GtoI (GT) : %.3f %.3f %.3f %.3f,  q_GtoI (Odometry) : %.3f %.3f %.3f %.3f (dist = %.2f [rad])\n",
             q_GtoI.coeffs().transpose()(0), q_GtoI.coeffs().transpose()(1), q_GtoI.coeffs().transpose()(2), q_GtoI.coeffs().transpose()(3), 
-            q_GtoIodom.coeffs().transpose()(0), q_GtoIodom.coeffs().transpose()(1), q_GtoIodom.coeffs().transpose()(2), q_GtoIodom.coeffs().transpose()(3), error_qIo);
+            q_GtoIo.coeffs().transpose()(0), q_GtoIo.coeffs().transpose()(1), q_GtoIo.coeffs().transpose()(2), q_GtoIo.coeffs().transpose()(3), error_Io);
 
             printf(" -- q_GtoI : %.3f %.3f %.3f %.3f,  q_GtoIh : %.3f %.3f %.3f %.3f (dist = %.2f [rad])\n",
             q_GtoI.coeffs().transpose()(0), q_GtoI.coeffs().transpose()(1), q_GtoI.coeffs().transpose()(2), q_GtoI.coeffs().transpose()(3), 
-            q_GtoIh.coeffs().transpose()(0), q_GtoIh.coeffs().transpose()(1), q_GtoIh.coeffs().transpose()(2), q_GtoIh.coeffs().transpose()(3), error_qI);
+            q_GtoIh.coeffs().transpose()(0), q_GtoIh.coeffs().transpose()(1), q_GtoIh.coeffs().transpose()(2), q_GtoIh.coeffs().transpose()(3), error_I);
             printf(" -- q_GtoC : %.3f %.3f %.3f %.3f,  q_GtoCh : %.3f %.3f %.3f %.3f (dist = %.2f [rad])\n",
             q_GtoC.coeffs().transpose()(0), q_GtoC.coeffs().transpose()(1), q_GtoC.coeffs().transpose()(2), q_GtoC.coeffs().transpose()(3), 
-            q_GtoCh.coeffs().transpose()(0), q_GtoCh.coeffs().transpose()(1), q_GtoCh.coeffs().transpose()(2), q_GtoCh.coeffs().transpose()(3), error_qC);
+            q_GtoCh.coeffs().transpose()(0), q_GtoCh.coeffs().transpose()(1), q_GtoCh.coeffs().transpose()(2), q_GtoCh.coeffs().transpose()(3), error_C);
             
             printf(" -- q_dI (GT) : %.3f %.3f %.3f %.3f,  q_dI : %.3f %.3f %.3f %.3f (diff = %.2f [rad])\n",
             q_dA.coeffs().transpose()(0), q_dA.coeffs().transpose()(1), q_dA.coeffs().transpose()(2), q_dA.coeffs().transpose()(3), 
-            q_dI.coeffs().transpose()(0), q_dI.coeffs().transpose()(1), q_dI.coeffs().transpose()(2), q_dI.coeffs().transpose()(3), error_dqI);
+            q_dI.coeffs().transpose()(0), q_dI.coeffs().transpose()(1), q_dI.coeffs().transpose()(2), q_dI.coeffs().transpose()(3), diff_qI);
             printf(" -- q_dI (GT) : %.3f %.3f %.3f %.3f,  q_dC : %.3f %.3f %.3f %.3f (diff = %.2f [rad])\n",
             q_dA.coeffs().transpose()(0), q_dA.coeffs().transpose()(1), q_dA.coeffs().transpose()(2), q_dA.coeffs().transpose()(3), 
-            q_dC.coeffs().transpose()(0), q_dC.coeffs().transpose()(1), q_dC.coeffs().transpose()(2), q_dC.coeffs().transpose()(3), error_dqC);
+            q_dC.coeffs().transpose()(0), q_dC.coeffs().transpose()(1), q_dC.coeffs().transpose()(2), q_dC.coeffs().transpose()(3), diff_qC);
             
-            double q_dA_val = q_dA.angularDistance(q_ref);
-            q_dI_sum += error_dqI / q_dA_val;
-            q_dC_sum += error_dqC / q_dA_val;
+            double diff_qGT = q_dA.angularDistance(q_ref);
 
-            printf(" -- q_dI_avg : %.3f,  q_dC_avg : %.3f\n", q_dI_sum / (count - 2), q_dC_sum / (count - 2));
-
-            // step, time, travel distance (trans), travel distance (rot), error_qI, error_qC, error_dqI, error_dqC
-            f << count - 3 << ", " << time_imu-t0 << ", " << dist_t << ", " << dist_r << ", " << error_qI << ", " << error_qC << ", " << error_dqI << ", " << error_dqC << std::endl;
+            // step, time, travel distance (trans), travel distance (rot)
+            // |q_GtoIh - q_GtoI|, |q_GtoCh - q_GtoC|, |q_I - q_I0|, |q_C - q_C0|, |q - q0|
+            f << count - 3 << ", " << time_imu-t0 << ", " << dist_t << ", " << dist_r << ", ";
+            f << error_I << ", " << error_C << ", " << diff_qI << ", " << diff_qC << ", " << diff_qGT << std::endl;
         }
     }
     f.close();
