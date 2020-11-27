@@ -52,6 +52,7 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninit
 
 set(ov_core_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../ov_core)
 set(ov_msckf_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../ov_msckf)
+set(ov_eval_SOURCE_DIR ${CMAKE_SOURCE_DIR}/../ov_eval)
 
 # Include our header files
 include_directories(
@@ -61,6 +62,7 @@ include_directories(
         ${catkin_INCLUDE_DIRS}
         ${ov_core_SOURCE_DIR}/src
         ${ov_msckf_SOURCE_DIR}/src
+        ${ov_eval_SOURCE_DIR}/src
 )
 
 # Set link libraries used by all binaries

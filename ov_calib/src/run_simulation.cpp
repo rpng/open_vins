@@ -12,6 +12,9 @@
 #include "utils/colors.h"
 #include "utils/parse_ros.h"
 
+// ov_eval
+#include "utils/Math.h"
+
 // ov_msckf
 #include "core/RosVisualizer.h"
 #include "sim/Simulator.h"
@@ -54,10 +57,10 @@ int main(int argc, char** argv)
 
     // Initialize internal variables
     // Rotations
-    Eigen::Matrix3d R_GtoI, R_GtoIh, R_GtoCh;
+    Eigen::Matrix3d R_GtoIprev, R_GtoI;
+    Eigen::Matrix3d R_GtoIo, R_GtoIh, R_GtoCh;
     Eigen::Matrix3d R_dA, R_dI, R_dC;     // rotation frame-to-frame
-    Eigen::Matrix3d R_GtoIprev, R_GtoIcurr;
-    Eigen::Vector3d p_IinG, p_IprevinG, p_IcurrinG, w_IinI, v_IinG;
+    Eigen::Vector3d p_IprevinG, w_IprevinIprev, v_IprevinG, v_IinG, p_IinG, w_IinI;
     std::vector<Eigen::Vector3d> wm_vec;
     Eigen::Quaterniond q_GtoIh;
     // Time variables
@@ -93,60 +96,76 @@ int main(int argc, char** argv)
             feature_tracker->push_back(time_cam, feats);
             count ++;
             
-            if (count < 3) continue;   // break until feature_tracker's three member variables are filled
+            if (count < 2) continue;   // jump to next loop until feature_tracker's three member variables are filled
 
             // get ground truth rotation matrix
-            bool success_vel_prev = sim->get_spline()->get_velocity(time_imu - dt_cam, R_GtoIprev, p_IprevinG, w_IinI, v_IinG);
-            bool success_vel_curr = sim->get_spline()->get_velocity(time_imu, R_GtoIcurr, p_IcurrinG, w_IinI, v_IinG);
-            R_dA = R_GtoIprev.transpose() * R_GtoIcurr;    // GT increment
+            bool success_vel_prev = sim->get_spline()->get_velocity(time_imu - dt_cam, R_GtoIprev, p_IprevinG, w_IprevinIprev, v_IprevinG);
+            bool success_vel_curr = sim->get_spline()->get_velocity(time_imu, R_GtoI, p_IinG, w_IinI, v_IinG);
+            R_dA = R_GtoI * R_GtoIprev.transpose();    // GT increment
 
-            if (count == 3) {  // initialize variables
+            if (count == 2) {  // initialize variables
                 t0 = time_imu;
-                R_GtoI = R_GtoIprev;
-                R_GtoIh = R_GtoIprev; 
-                q_GtoIh = R_GtoIh;
-                R_GtoCh = R_GtoIprev * R_CtoI.transpose();
+                R_GtoIo = R_GtoI;
+                R_GtoIh = R_GtoI; 
+                q_GtoIh = R_GtoI;
+                R_GtoCh = R_CtoI.transpose() * R_GtoI;
+                wm_vec.clear();
+                continue;
             }
             
             // Do GT odometry
-            R_GtoI = R_GtoI * R_dA;
+            R_GtoIo = R_dA * R_GtoIo;
             
             // Do IMU odometry
-            R_dI.setIdentity();
-            for (auto& w : wm_vec) {
-                Eigen::AngleAxisd rollAngle((w * dt_imu)(0), Eigen::Vector3d::UnitX());
-                Eigen::AngleAxisd pitchAngle((w * dt_imu)(1), Eigen::Vector3d::UnitY());
-                Eigen::AngleAxisd yawAngle((w * dt_imu)(2), Eigen::Vector3d::UnitZ());
-                Eigen::Quaterniond q = yawAngle * pitchAngle * rollAngle;
-                R_dI = R_dI * q.matrix();
+            Eigen::Matrix3d R_GtoIh0 = R_GtoIh;
+            for (const auto& w : wm_vec) {
+                double w_norm = w.norm();
+                Eigen::Matrix<double,4,4> I_4x4 = Eigen::Matrix<double,4,4>::Identity();
+                Eigen::Matrix<double,4,4> bigO;
+                // Construct a state mean propagation matrix \Omega
+                if(w_norm > 1e-20) {
+                    bigO = cos(0.5*w_norm*dt_imu)*I_4x4 + 1/w_norm*sin(0.5*w_norm*dt_imu)*ov_eval::Math::Omega(w);
+                } else {
+                    bigO = I_4x4 + 0.5*dt_imu*ov_eval::Math::Omega(w);
+                }
+                // Propagate previous q_GtoIh to current q_GtoIh
+                Eigen::Vector4d q_GtoIVec0 = q_GtoIh.coeffs();
+                Eigen::Vector4d q_GtoIVec1 = ov_eval::Math::quatnorm(bigO * q_GtoIVec0);
+                // Convert to Eigen::Quaterniond and Eigen::Matrix3d datatype respectively
+                q_GtoIh.x() = q_GtoIVec1(0); q_GtoIh.y() = q_GtoIVec1(1); q_GtoIh.z() = q_GtoIVec1(2); q_GtoIh.w() = q_GtoIVec1(3);
+                R_GtoIh = q_GtoIh.matrix();
             }
-            R_GtoIh = R_GtoIh * R_dI;
+            R_dI = R_GtoIh * R_GtoIh0.transpose();
             wm_vec.clear();
-            
+
             // Do camera odometry
             feature_tracker->calc_motion(wc, ac, R_dC);
-            R_GtoCh = R_GtoCh * R_dC; // FIXME: Which one is correct: either R_dC or R_dC.transpose()?
-            
-            Eigen::Quaterniond q_GtoI(R_GtoI);   // Ground-truth IMU rotation
-            Eigen::Quaterniond q_GtoIcurr(R_GtoIcurr);   // Ground-truth IMU rotation (direct)
-            Eigen::Quaterniond q_GtoC(R_GtoI * R_CtoI.transpose());     // Ground-truth camera rotation
+            R_GtoCh = R_dC * R_GtoCh; // FIXME: Which one is correct: either R_dC or R_dC.transpose()?
+
+            Eigen::Quaterniond q_GtoI(R_GtoI);   // Ground-truth IMU rotation (GT)
+            Eigen::Quaterniond q_GtoIodom(R_GtoIo);   // Ground-truth IMU rotation (odometry)
+            Eigen::Quaterniond q_GtoC(R_CtoI.transpose() * R_GtoI);     // Ground-truth camera rotation
             Eigen::Quaterniond q_GtoIh(R_GtoIh);     // estimated IMU rotation
             Eigen::Quaterniond q_GtoCh(R_GtoCh);     // estimated camera rotation
             Eigen::Quaterniond q_dA(R_dA);           // rotational increment of IMU (GT)
             Eigen::Quaterniond q_dI(R_dI);           // rotational increment of IMU
             Eigen::Quaterniond q_dC(R_dC);           // rotational increment of camera
             Eigen::Quaterniond q_ref; q_ref.x() = 0; q_ref.y() = 0; q_ref.z() = 0; q_ref.w() = 1; 
-            double error_qIodom = q_GtoI.angularDistance(q_GtoIcurr);
+            double error_qIo = q_GtoIodom.angularDistance(q_GtoI);
             double error_qI = q_GtoIh.angularDistance(q_GtoI);
             double error_qC = q_GtoCh.angularDistance(q_GtoC);
             double error_dqI = q_dI.angularDistance(q_dA);
             double error_dqC = q_dC.angularDistance(q_dA);
             
             Eigen::Vector3d dx = p_IinG - p_IprevinG; dist_t += dx.norm();
-            dist_r += q_dI.angularDistance(Eigen::Quaterniond::Identity());
+            dist_r += q_dA.angularDistance(Eigen::Quaterniond::Identity());
             
             printf("[Step %d] time_imu: %.1f, time_cam: %.1f (dist = %.2f [m], %.2f [rad])\n", 
             count - 3, time_imu - t0, time_cam - t0, dist_t, dist_r);
+
+            printf(" -- q_GtoI (GT) : %.3f %.3f %.3f %.3f,  q_GtoI (Odometry) : %.3f %.3f %.3f %.3f (dist = %.2f [rad])\n",
+            q_GtoI.coeffs().transpose()(0), q_GtoI.coeffs().transpose()(1), q_GtoI.coeffs().transpose()(2), q_GtoI.coeffs().transpose()(3), 
+            q_GtoIodom.coeffs().transpose()(0), q_GtoIodom.coeffs().transpose()(1), q_GtoIodom.coeffs().transpose()(2), q_GtoIodom.coeffs().transpose()(3), error_qIo);
 
             printf(" -- q_GtoI : %.3f %.3f %.3f %.3f,  q_GtoIh : %.3f %.3f %.3f %.3f (dist = %.2f [rad])\n",
             q_GtoI.coeffs().transpose()(0), q_GtoI.coeffs().transpose()(1), q_GtoI.coeffs().transpose()(2), q_GtoI.coeffs().transpose()(3), 
@@ -168,8 +187,8 @@ int main(int argc, char** argv)
 
             printf(" -- q_dI_avg : %.3f,  q_dC_avg : %.3f\n", q_dI_sum / (count - 2), q_dC_sum / (count - 2));
 
-            // step, time, travel distance, error_qI, error_qC, error_dqI, error_dqC
-            f << count - 3 << ", " << time_imu-t0 << ", " << dist_t << ", " << error_qI << ", " << error_qC << ", " << error_dqI << ", " << error_dqC << std::endl;
+            // step, time, travel distance (trans), travel distance (rot), error_qI, error_qC, error_dqI, error_dqC
+            f << count - 3 << ", " << time_imu-t0 << ", " << dist_t << ", " << dist_r << ", " << error_qI << ", " << error_qC << ", " << error_dqI << ", " << error_dqC << std::endl;
         }
     }
     f.close();
