@@ -110,6 +110,8 @@ void TrackArr::calc_motion(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matri
     cv::cv2eigen(R_0to1, R_0to1_e);
     cv::cv2eigen(R_1to2, R_1to2_e);
     
+    /* 
+    // VERSION 1 (Refer to 'Here is the derivation:'): https://www.researchgate.net/post/Validity_of_Rotation_matrix_calculations_from_angular_velocity_reading
     Eigen::Matrix3d w_prev_skewed = (Eigen::Matrix3d::Identity(3, 3) - R_0to1_e.transpose()) / dt_prev;
     Eigen::Matrix3d w_curr_skewed = (Eigen::Matrix3d::Identity(3, 3) - R_1to2_e.transpose()) / dt_curr;
     Eigen::Matrix<double, 3, 1> w_prev; w_prev << -w_prev_skewed(1, 2), w_prev_skewed(0, 2), -w_prev_skewed(0, 1);
@@ -118,6 +120,19 @@ void TrackArr::calc_motion(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matri
 
     w  = Eigen::Map<Eigen::Vector3d>(w_curr.data(), w_curr.cols() * w_curr.rows());
     wd = Eigen::Map<Eigen::Vector3d>(a_curr.data(), a_curr.cols() * a_curr.rows());
+    */
+
+    // VERSION 2: Refer to https://ocw.mit.edu/courses/aeronautics-and-astronautics/16-07-dynamics-fall-2009/lecture-notes/MIT16_07F09_Lec29.pdf
+    Eigen::Vector3d ea_1to2 = R_1to2_e.eulerAngles(2, 1, 0);
+    double phi = ea_1to2(2);
+    double theta = ea_1to2(1);
+    double psi = ea_1to2(0);
+    // Assume that all angles used to be zero
+    w(0) = phi / dt_curr + psi / dt_curr * sin(theta);
+    w(1) = theta / dt_curr * cos(phi) - psi / dt_curr * cos(theta) * sin(phi);
+    w(2) = theta / dt_curr * sin(phi) + psi / dt_curr * cos(phi) * cos(theta);
+
+    // TODO: Add wd here    
     R = R_1to2_e;
     
     return ;
