@@ -148,13 +148,13 @@ and \f$k|k\f$ corresponds to the posterior (or updated) estimate indicated befor
 @section implementation Implementation
 
 Using Eigen 3 library, we perform QR decomposition to get the nullspace.
-Here we know that the size of \f$\mathbf{Q}_1\f$ is a 3x3, which corresponds to the size of the 3D point feature state.
+Here we know that the size of \f$\mathbf{Q}_1\f$ is \f$2n\times3\f$, which corresponds to the number of observations and size of the 3D point feature state.
 
 @code{.cpp}
 Eigen::ColPivHouseholderQR<Eigen::MatrixXd> qr(H_f.rows(), H_f.cols());
 qr.compute(H_f);
 Eigen::MatrixXd Q = qr.householderQ();
-Eigen::MatrixXd Q1 = Q.block(0,0,3,3);
+Eigen::MatrixXd Q1 = Q.block(0,0,Q.rows(),3);
 Eigen::MatrixXd Q2 = Q.block(0,3,Q.rows(),Q.cols()-3);
 @endcode
 
