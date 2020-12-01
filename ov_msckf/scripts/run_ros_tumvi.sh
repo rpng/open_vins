@@ -50,7 +50,7 @@ imuthreshold=(
 
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3/exp_tum/algorithms"
-bag_path="/media/patrick/RPNG FLASH 2/tum"
+bag_path="/media/patrick/RPNG\ FLASH\ 2/tum"
 
 
 #=============================================================

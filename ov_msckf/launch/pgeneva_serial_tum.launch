@@ -13,8 +13,8 @@
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/tum/dataset-room1_512_16.bag" />
-<!--        <param name="path_gt"     type="string" value="$(find ov_data)/tum_vi/dataset-room1_512_16.csv" />-->
-        <param name="bag_start"   type="int"    value="1" />
+        <param name="path_gt"     type="string" value="$(find ov_data)/tum_vi/dataset-room1_512_16.csv" />
+        <param name="bag_start"   type="int"    value="4" />
         <param name="bag_durr"    type="int"    value="-1" />
 
         <!-- world/filter parameters -->
@@ -29,7 +29,7 @@
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="50" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
-        <param name="max_msckf_in_update"    type="int"    value="20" />
+        <param name="max_msckf_in_update"    type="int"    value="40" />
         <param name="max_cameras"            type="int"    value="2" />
         <param name="dt_slam_delay"          type="double" value="3" />
         <param name="init_window_time"       type="double" value="1.0" />

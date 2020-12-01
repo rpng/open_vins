@@ -18,33 +18,33 @@ modes=(
 
 # dataset locations
 bagnames=(
-    "V1_01_easy"
-    "V1_02_medium"
-    "V1_03_difficult"
-    "V2_01_easy"
-    "V2_02_medium"
-    "V2_03_difficult"
-    "MH_01_easy"
-    "MH_02_easy"
-    "MH_03_medium"
-    "MH_04_difficult"
-    "MH_05_difficult"
+     "V1_01_easy"
+     "V1_02_medium"
+     "V1_03_difficult"
+     "V2_01_easy"
+     "V2_02_medium"
+     "V2_03_difficult"
+#   "MH_01_easy"
+#   "MH_02_easy"
+#   "MH_03_medium"
+#   "MH_04_difficult"
+#   "MH_05_difficult"
 )
 
 # how far we should start into the dataset
 # this can be used to skip the initial sections
 bagstarttimes=(
-    "0"
-    "8.5"
-    "0"
-    "0"
-    "0"
-    "0"
+     "0"
+     "0"
+     "0"
+     "0"
+     "0"
+     "0"
     "40"
     "35"
-    "17.5"
     "15"
-    "15"
+    "20"
+    "20"
 )
 
 # threshold for variance to detect if the unit has moved yet
@@ -63,7 +63,7 @@ imuthreshold=(
 
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3/exp_euroc/algorithms"
-bag_path="/media/patrick/RPNG FLASH 2/euroc"
+bag_path="/media/patrick/RPNG\ FLASH\ 2/euroc"
 
 
 #=============================================================
@@ -78,7 +78,7 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..14}; do
+for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"

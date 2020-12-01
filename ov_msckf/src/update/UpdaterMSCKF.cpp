@@ -59,7 +59,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
         }
 
         // Remove if we don't have enough
-        if(ct_meas < 3) {
+        if(ct_meas < 2) {
             (*it0)->to_delete = true;
             it0 = feature_vec.erase(it0);
         } else {

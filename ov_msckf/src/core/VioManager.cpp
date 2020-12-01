@@ -549,12 +549,21 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     // Now that we have a list of features, lets do the EKF update for MSCKF and SLAM!
     //===================================================================================
 
+    // Sort based on track length
+    // TODO: we should have better selection logic here (i.e. even feature distribution in the FOV etc..)
+    // TODO: right now features that are "lost" are at the front of this vector, while ones at the end are long-tracks
+    std::sort(featsup_MSCKF.begin(), featsup_MSCKF.end(), [](const std::shared_ptr<Feature>& a, const std::shared_ptr<Feature>& b) -> bool {
+            size_t asize = 0;
+            size_t bsize = 0;
+            for(const auto& pair : a->timestamps) asize += pair.second.size();
+            for(const auto& pair : b->timestamps) bsize += pair.second.size();
+            return asize < bsize;
+        }
+    );
 
     // Pass them to our MSCKF updater
     // NOTE: if we have more then the max, we select the "best" ones (i.e. max tracks) for this update
     // NOTE: this should only really be used if you want to track a lot of features, or have limited computational resources
-    // TODO: we should have better selection logic here (i.e. even feature distribution in the FOV etc..)
-    // TODO: right now features that are "lost" are at the front of this vector, while ones at the end are long-tracks
     if((int)featsup_MSCKF.size() > state->_options.max_msckf_in_update)
         featsup_MSCKF.erase(featsup_MSCKF.begin(), featsup_MSCKF.end()-state->_options.max_msckf_in_update);
     updaterMSCKF->update(state, featsup_MSCKF);
@@ -680,7 +689,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     printf(BLUE "[TIME]: %.4f seconds for propagation\n" RESET, time_prop);
     printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d feats)\n" RESET, time_msckf, (int)featsup_MSCKF.size());
     if(state->_options.max_slam_features > 0) {
-        printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET, time_slam_update, (int)feats_slam_UPDATE.size());
+        printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET, time_slam_update, (int)state->_features_SLAM.size());
         printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET, time_slam_delay, (int)feats_slam_DELAYED.size());
     }
     printf(BLUE "[TIME]: %.4f seconds for re-tri & marg (%d clones in state)\n" RESET, time_marg, (int)state->_clones_IMU.size());

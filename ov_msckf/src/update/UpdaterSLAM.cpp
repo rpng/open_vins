@@ -57,7 +57,7 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
         }
 
         // Remove if we don't have enough
-        if(ct_meas < 3) {
+        if(ct_meas < 2) {
             (*it0)->to_delete = true;
             it0 = feature_vec.erase(it0);
         } else {
@@ -258,7 +258,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
         // For single depth representation we need at least two measurement
         // This is because we do nullspace projection
         std::shared_ptr<Landmark> landmark = state->_features_SLAM.at((*it0)->featid);
-        int required_meas = (landmark->_feat_representation==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 3 : 2;
+        int required_meas = (landmark->_feat_representation==LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)? 2 : 1;
 
         // Remove if we don't have enough
         if(ct_meas < 1) {

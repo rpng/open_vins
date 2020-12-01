@@ -64,7 +64,7 @@ namespace ov_core {
         double max_baseline = 40;
 
         /// Max condition number of linear triangulation matrix accept triangulated features
-        double max_cond_number = 12000;
+        double max_cond_number = 10000;
 
         /// Nice print function of what parameters we have loaded
         void print() {

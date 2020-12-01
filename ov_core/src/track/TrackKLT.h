@@ -145,7 +145,6 @@ namespace ov_core {
         // Alternative histagram equalization
         double eq_clip_limit = 10.0;
         cv::Size eq_win_size = cv::Size(8,8);
-        cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
 
         // Last set of image pyramids
         std::map<size_t, std::vector<cv::Mat>> img_pyramid_last;

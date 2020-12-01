@@ -33,8 +33,9 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
 
     // Histogram equalize
-    //cv::equalizeHist(img, img);
-    clahe->apply(img, img);
+    cv::equalizeHist(img, img);
+    //cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
+    //clahe->apply(img, img);
 
     // Extract the new image pyramid
     std::vector<cv::Mat> imgpyr;
@@ -144,11 +145,12 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
     cv::Mat img_left, img_right;
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
+    //cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
     if(use_multi_threading) {
-        //boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-        //boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
-        boost::thread t_lhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_leftin), boost::ref(img_left));
-        boost::thread t_rhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_rightin), boost::ref(img_right));
+        boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
+        boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
+        //boost::thread t_lhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_leftin), boost::ref(img_left));
+        //boost::thread t_rhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_rightin), boost::ref(img_right));
         t_lhe.join();
         t_rhe.join();
         boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
@@ -160,8 +162,10 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
         t_lp.join();
         t_rp.join();
     } else {
-        clahe->apply(img_leftin, img_left);
-        clahe->apply(img_rightin, img_right);
+        cv::equalizeHist(img_leftin, img_left);
+        cv::equalizeHist(img_rightin, img_right);
+        //clahe->apply(img_leftin, img_left);
+        //clahe->apply(img_rightin, img_right);
         cv::buildOpticalFlowPyramid(img_left, imgpyr_left, win_size, pyr_levels);
         cv::buildOpticalFlowPyramid(img_right, imgpyr_right, win_size, pyr_levels);
     }
