@@ -1,5 +1,5 @@
 # OpenVINS
-![C/C++ CI](https://github.com/rpng/open_vins_private/workflows/C/C++%20CI/badge.svg)
+![C/C++ CI](https://github.com/rpng/open_vins/workflows/C/C++%20CI/badge.svg)
 
 
 Welcome to the OpenVINS project!
