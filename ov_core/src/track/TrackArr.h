@@ -45,27 +45,39 @@
 #include "utils/colors.h"
 
 
+using std::vector;
+using std::array;
+using std::map;
+using std::pair;
+using std::cout;
+using std::endl;
+using Eigen::Matrix3d; 
+using Eigen::Vector3d;
+using Eigen::VectorXf;
+using cv::Mat;
+using cv::Point2d;
+
 namespace ov_core {
     class TrackArr {
 
     public:
-        TrackArr(cv::Mat camera_matrix);
-        void push_back(double timestamp, const std::vector<std::vector<std::pair<size_t,Eigen::VectorXf>>> &feats);
+        TrackArr(Mat camera_matrix);
+        void push_back(const double timestamp, const vector<vector<pair<size_t,VectorXf>>> &feats);
         void show();
-        void calc_motion(Eigen::Vector3d& w, Eigen::Vector3d& wd, Eigen::Matrix3d& R);
+        void calc_motion(Vector3d& w, Vector3d& wd, Matrix3d& R);
         
     protected:
-        void get_keypoint_pairs_prev(std::vector<cv::Point2d>& pts1, std::vector<cv::Point2d>& pts2);
-        void get_keypoint_pairs_curr(std::vector<cv::Point2d>& pts1, std::vector<cv::Point2d>& pts2);
+        void get_keypoint_pairs_prev(vector<Point2d>& pts1, vector<Point2d>& pts2);
+        void get_keypoint_pairs_curr(vector<Point2d>& pts1, vector<Point2d>& pts2);
 
         // camera matrix
-        cv::Mat camera_matrix_;
+        Mat camera_matrix_;
         // sets of id-point pairs
-        std::map<size_t, cv::Point2d> pts_old;
-        std::map<size_t, cv::Point2d> pts_prev;
-        std::map<size_t, cv::Point2d> pts_curr;
+        map<size_t, Point2d> pts_old;
+        map<size_t, Point2d> pts_prev;
+        map<size_t, Point2d> pts_curr;
         /// Last three timestamps
-        std::array<double, 3> timestamps;
+        array<double, 3> timestamps;
     };
 
 }
