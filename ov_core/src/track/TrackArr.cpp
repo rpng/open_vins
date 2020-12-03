@@ -111,14 +111,14 @@ void TrackArr::calc_motion(Vector3d& w, Vector3d& wd, Matrix3d& R) {
     cv::recoverPose(E_0to1, pts1, pts2, camera_matrix_, R_0to1, t_0to1, mask);
     E_1to2 = findEssentialMat(pts3, pts4, camera_matrix_, cv::FM_RANSAC, 0.99, 1., mask);
     cv::recoverPose(E_1to2, pts3, pts4, camera_matrix_, R_1to2, t_1to2, mask);
-
-    // estimate w_prev (angular velocity at k-1) and w_curr (angular velocity at k)
+    
     double dt_prev = (timestamps.at(1) - timestamps.at(0));
     double dt_curr = (timestamps.at(2) - timestamps.at(1));
     Matrix3d R_0to1_e, R_1to2_e;
     cv::cv2eigen(R_0to1, R_0to1_e);
     cv::cv2eigen(R_1to2, R_1to2_e);
     
+    // estimate w (angular velocity at k)
     Matrix3d v_skewed = R_1to2_e - R_1to2_e.transpose();
     Vector3d v; 
     v << -v_skewed(1, 2), v_skewed(0, 2), -v_skewed(0, 1);
