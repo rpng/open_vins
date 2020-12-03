@@ -119,13 +119,12 @@ void TrackArr::calc_motion(Vector3d& w, Vector3d& wd, Matrix3d& R) {
     cv::cv2eigen(R_0to1, R_0to1_e);
     cv::cv2eigen(R_1to2, R_1to2_e);
     
-    Matrix3d W_curr_skewed = R_1to2_e - R_1to2_e.transpose();
-    Vector3d w_curr; 
-    w_curr << -W_curr_skewed(1, 2), W_curr_skewed(0, 2), -W_curr_skewed(0, 1);  // caution: scaled w_curr
-    double w_norm = asin(w_curr.norm() / 2) / dt_curr;
-    w_curr = w_curr.normalized() * w_norm;
-    
-    w = w_curr;
+    Matrix3d v_skewed = R_1to2_e - R_1to2_e.transpose();
+    Vector3d v; 
+    v << -v_skewed(1, 2), v_skewed(0, 2), -v_skewed(0, 1);
+    double w_norm = asin(v.norm() / 2) / dt_curr;
+    w = R_1to2_e * v.normalized() * w_norm;
+
     // TODO: Add wd here
     R = R_1to2_e;
     
