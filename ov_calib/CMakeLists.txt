@@ -99,3 +99,6 @@ target_include_directories(ov_calib_lib PUBLIC src)
 
 add_executable(run_simulation src/run_simulation.cpp)
 target_link_libraries(run_simulation ov_calib_lib ${thirdparty_libraries})
+
+add_executable(run_cam_motion src/run_cam_motion.cpp)
+target_link_libraries(run_cam_motion ov_calib_lib ${thirdparty_libraries})
