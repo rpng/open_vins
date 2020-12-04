@@ -101,20 +101,20 @@ int main(int argc, char** argv)
             // get ground truth rotation matrix
             bool success_vel_prev = sim->get_spline()->get_velocity(time_imu - dt_cam, R_GtoIprev, p_IprevinG, w_IprevinIprev, v_IprevinG);
             bool success_vel_curr = sim->get_spline()->get_velocity(time_imu, R_GtoI, p_IinG, w_IinI, v_IinG);
-            R_dA = R_GtoIprev.transpose() * R_GtoI;    // GT increment
+            R_dA = R_GtoI * R_GtoIprev.transpose();    // GT increment
 
             if (count == 2) {  // initialize variables
                 t0 = time_imu;
                 R_GtoIo = R_GtoI;
                 R_GtoIh = R_GtoI; 
                 q_GtoIh = R_GtoI;
-                R_GtoCh = R_GtoI * R_CtoI.transpose();
+                R_GtoCh = R_CtoI.transpose() * R_GtoI;
                 wm_vec.clear();
                 continue;
             }
             
             // Do GT odometry
-            R_GtoIo = R_GtoIo * R_dA;
+            R_GtoIo = R_dA * R_GtoIo;
             
             // Do IMU odometry
             Eigen::Matrix3d R_GtoIh0 = R_GtoIh;
@@ -135,16 +135,16 @@ int main(int argc, char** argv)
                 q_GtoIh.x() = q_GtoIVec1(0); q_GtoIh.y() = q_GtoIVec1(1); q_GtoIh.z() = q_GtoIVec1(2); q_GtoIh.w() = q_GtoIVec1(3);
                 R_GtoIh = q_GtoIh.matrix();     // Iteratively update R_GtoIh
             }
-            R_dI = R_GtoIh0.transpose() * R_GtoIh;      // Compute R_dI passed by wm_vec.size() number of IMU measurements
+            R_dI = R_GtoIh * R_GtoIh0.transpose();      // Compute R_dI passed by wm_vec.size() number of IMU measurements
             wm_vec.clear();
 
             // Do camera odometry
             feature_tracker->calc_motion(wc, ac, R_dC);
-            R_GtoCh = R_GtoCh * R_dC; // FIXME: Which one is correct: either R_dC or R_dC.transpose()?
+            R_GtoCh = R_dC * R_GtoCh;
 
             Eigen::Quaterniond q_GtoI(R_GtoI);   // Ground-truth IMU rotation (GT)
             Eigen::Quaterniond q_GtoIo(R_GtoIo);   // Ground-truth IMU rotation (odometry)
-            Eigen::Quaterniond q_GtoC(R_GtoI * R_CtoI.transpose());     // Ground-truth camera rotation
+            Eigen::Quaterniond q_GtoC(R_CtoI.transpose() * R_GtoI);     // Ground-truth camera rotation
             Eigen::Quaterniond q_GtoIh(R_GtoIh);     // estimated IMU rotation
             Eigen::Quaterniond q_GtoCh(R_GtoCh);     // estimated camera rotation
             Eigen::Quaterniond q_dA(R_dA);           // rotational increment of IMU (GT)
