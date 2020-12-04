@@ -242,13 +242,16 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
         std::exit(EXIT_FAILURE);
     }
 
+
     // Call on our propagate and update function
     // Simulation is either all sync, or single camera...
-    auto &wh = params.camera_wh.at(0);
     ov_core::CameraData message;
     message.timestamp = timestamp;
-    message.images.push_back(cv::Mat::zeros(cv::Size(wh.first,wh.second), CV_8UC1));
-    message.sensor_ids.push_back(0);
+    for(auto const &camid : camids) {
+        auto &wh = params.camera_wh.at(camid);
+        message.images.push_back(cv::Mat::zeros(cv::Size(wh.first,wh.second), CV_8UC1));
+        message.sensor_ids.push_back(camid);
+    }
     do_feature_propagate_update(message);
 
 }

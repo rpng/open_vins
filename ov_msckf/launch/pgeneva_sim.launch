@@ -11,7 +11,7 @@
     <arg name="num_clones"  default="11" />
     <arg name="num_slam"    default="25" />
     <arg name="num_pts"     default="500" />
-    <arg name="max_cameras" default="2" />
+    <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
@@ -65,7 +65,7 @@
         <param name="use_fej"                type="bool"   value="$(arg fej)" />
         <param name="use_imuavg"             type="bool"   value="true" />
         <param name="use_rk4int"             type="bool"   value="true" />
-        <param name="use_stereo"             type="bool"   value="false" />
+        <param name="use_stereo"             type="bool"   value="true" />
         <param name="calib_cam_extrinsics"   type="bool"   value="$(arg sim_do_calibration)" />
         <param name="calib_cam_intrinsics"   type="bool"   value="$(arg sim_do_calibration)" />
         <param name="calib_cam_timeoffset"   type="bool"   value="$(arg sim_do_calibration)" />
