@@ -13,10 +13,10 @@
     <arg name="num_pts"     default="100" />
     <arg name="max_cameras" default="1" />
 
-    <arg name="freq_cam"    default="10" />
-    <arg name="freq_imu"    default="10" />
+    <arg name="freq_cam"    default="500" />
+    <arg name="freq_imu"    default="500" />
 
-    <arg name="dataset"    default="udel_neighborhood.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood -->
+    <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood -->
 
     <!-- if we should perturb the initial state values (i.e. calibration) -->
     <arg name="sim_do_perturbation" default="false" />
@@ -37,7 +37,7 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="run_simulation" pkg="ov_calib" type="run_simulation" output="screen" clear_params="true" required="true">
+    <node name="quat_propagation" pkg="ov_calib" type="quat_propagation" output="screen" clear_params="true" required="true">
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->

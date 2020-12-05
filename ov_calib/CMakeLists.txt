@@ -102,3 +102,9 @@ target_link_libraries(run_simulation ov_calib_lib ${thirdparty_libraries})
 
 add_executable(run_cam_motion src/run_cam_motion.cpp)
 target_link_libraries(run_cam_motion ov_calib_lib ${thirdparty_libraries})
+
+add_executable(angvel_from_dR src/angvel_from_dR.cpp)
+target_link_libraries(angvel_from_dR ov_calib_lib ${thirdparty_libraries})
+
+add_executable(quat_propagation src/quat_propagation.cpp)
+target_link_libraries(quat_propagation ov_calib_lib ${thirdparty_libraries})
