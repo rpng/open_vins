@@ -13,8 +13,8 @@
     <arg name="num_pts"     default="100" />
     <arg name="max_cameras" default="1" />
 
-    <arg name="freq_cam"    default="500" />
-    <arg name="freq_imu"    default="500" />
+    <arg name="freq_cam"    default="20" />
+    <arg name="freq_imu"    default="20" />
 
     <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood -->
 
@@ -37,7 +37,7 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="quat_propagation" pkg="ov_calib" type="quat_propagation" output="screen" clear_params="true" required="true">
+    <node name="angvel_from_dR" pkg="ov_calib" type="angvel_from_dR" output="screen" clear_params="true" required="true">
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->

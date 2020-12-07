@@ -44,7 +44,7 @@ int main(int argc, char** argv)
 
     // Read in our parameters
     VioManagerOptions params;
-    ros::init(argc, argv, "run_calib");
+    ros::init(argc, argv, "odometry_comparison");
     ros::NodeHandle nh("~");
     params = parse_ros_nodehandler(nh);
     

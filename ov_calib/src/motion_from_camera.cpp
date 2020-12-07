@@ -42,7 +42,7 @@ int main(int argc, char** argv)
 
     // Read in our parameters
     VioManagerOptions params;
-    ros::init(argc, argv, "cam_motion");
+    ros::init(argc, argv, "motion_from_camera");
     ros::NodeHandle nh("~");
     params = parse_ros_nodehandler(nh);
     

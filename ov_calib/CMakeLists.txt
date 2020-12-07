@@ -97,14 +97,14 @@ target_include_directories(ov_calib_lib PUBLIC src)
 # Make binary files!
 ##################################################
 
-add_executable(run_simulation src/run_simulation.cpp)
-target_link_libraries(run_simulation ov_calib_lib ${thirdparty_libraries})
-
-add_executable(run_cam_motion src/run_cam_motion.cpp)
-target_link_libraries(run_cam_motion ov_calib_lib ${thirdparty_libraries})
-
-add_executable(angvel_from_dR src/angvel_from_dR.cpp)
-target_link_libraries(angvel_from_dR ov_calib_lib ${thirdparty_libraries})
+add_executable(odometry_comparison src/odometry_comparison.cpp)
+target_link_libraries(odometry_comparison ov_calib_lib ${thirdparty_libraries})
 
 add_executable(quat_propagation src/quat_propagation.cpp)
 target_link_libraries(quat_propagation ov_calib_lib ${thirdparty_libraries})
+
+add_executable(motion_from_camera src/motion_from_camera.cpp)
+target_link_libraries(motion_from_camera ov_calib_lib ${thirdparty_libraries})
+
+add_executable(motion_from_pose src/motion_from_pose.cpp)
+target_link_libraries(motion_from_pose ov_calib_lib ${thirdparty_libraries})
