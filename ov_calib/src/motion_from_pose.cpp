@@ -1,23 +1,20 @@
 #include <iomanip>   // for setiosflags
 #include <csignal>
-#include <cmath>
 #include <ros/ros.h>
 #include <eigen3/Eigen/Dense>
 #include <fstream>
 
 // ov_core
-#include "track/TrackArr.h"
 #include "utils/dataset_reader.h"
 #include "utils/parse_cmd.h"
 #include "utils/colors.h"
 #include "utils/parse_ros.h"
 
-// ov_eval
-#include "utils/Math.h"
-
 // ov_msckf
-#include "core/RosVisualizer.h"
 #include "sim/Simulator.h"
+
+// ov_calib
+#include "utils.h"
 
 
 using namespace ov_msckf;
@@ -27,16 +24,6 @@ Simulator* sim;
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
 void signal_callback_handler(int signum) {
     std::exit(signum);
-}
-
-void dR_to_w(const Eigen::Matrix3d& dR, const double dt, Vector3d& w) {
-    Eigen::Matrix3d v_skewed = dR.transpose() - dR;
-    Eigen::Vector3d v; 
-    v << -v_skewed(1, 2), v_skewed(0, 2), -v_skewed(0, 1);
-    double w_norm = asin(v.norm() / 2) / dt;
-    w = dR * v.normalized() * w_norm;
-    
-    return ;
 }
 
 // Main function
@@ -97,26 +84,24 @@ int main(int argc, char** argv)
 
             // Estimate angular motion from relative pose between frames
             Eigen::Vector3d what_IinI_prev, what_IinI_next, what_IinI, alphahat_IinI;
-            dR_to_w(dR_prev, dt_imu, what_IinI_prev);
-            dR_to_w(dR_next, dt_imu, what_IinI_next);
+            ov_calib::dR_to_w(dR_prev, dt_imu, what_IinI_prev);
+            ov_calib::dR_to_w(dR_next, dt_imu, what_IinI_next);
             what_IinI = (what_IinI_prev + what_IinI_next) / 2;
             alphahat_IinI = (what_IinI_next - dR_prev * what_IinI_prev) / dt_imu;
 
             // Show estimated angular velocity
-            double euc_distance = (what_IinI - w_IinI).norm();
-            double norm_ratio = what_IinI.norm() / w_IinI.norm();
-            double cos_similarity = what_IinI.dot(w_IinI) / (what_IinI.norm() * w_IinI.norm());
+            double euc_dist = ov_calib::euclidian_distance(what_IinI, w_IinI);
+            double norm_ratio = ov_calib::norm_ratio(what_IinI, w_IinI);
+            double cos_sim = ov_calib::cosine_similarity(what_IinI, w_IinI);
 
-            std::cout << "time: " << t - t0 << ",  [euc] : "<< euc_distance << ",  [rat] : "<< norm_ratio << ", [cos] : "<< cos_similarity << " (|w_gt| : " << w_IinI.norm() << ")" <<  std::endl;
-            f << t-t0 << ", " << euc_distance << ", " << norm_ratio << ", " << cos_similarity << ", " << w_IinI.norm();
+            printf("[time:  %.3f] euc: %.3f, rat: %.3f, cos: %.3f  (|w_gt|: %.3f)\n", t - t0, euc_dist, norm_ratio, cos_sim, w_IinI.norm());
 
             // Show estimated angular acceleration
-            euc_distance = (alphahat_IinI - alpha_IinI).norm();
-            norm_ratio = alphahat_IinI.norm() / alpha_IinI.norm();
-            cos_similarity = alphahat_IinI.dot(alpha_IinI) / (alphahat_IinI.norm() * alpha_IinI.norm());
+            euc_dist = ov_calib::euclidian_distance(alphahat_IinI, alpha_IinI);
+            norm_ratio = ov_calib::norm_ratio(alphahat_IinI, alpha_IinI);
+            cos_sim = ov_calib::cosine_similarity(alphahat_IinI, alpha_IinI);
 
-            std::cout << "time: " << t - t0 << ",  [euc] : "<< euc_distance << ",  [rat] : "<< norm_ratio << ", [cos] : "<< cos_similarity << " (|a_gt| : " << alpha_IinI.norm() << ")" <<  std::endl;
-            f << ", " << euc_distance << ", " << norm_ratio << ", " << cos_similarity << ", " << alpha_IinI.norm() << std::endl;
+            printf("[time:  %.3f] euc: %.3f, rat: %.3f, cos: %.3f  (|a_gt|: %.3f)\n", t - t0, euc_dist, norm_ratio, cos_sim, alpha_IinI.norm());
 
         }
         

@@ -37,7 +37,7 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="angvel_from_dR" pkg="ov_calib" type="angvel_from_dR" output="screen" clear_params="true" required="true">
+    <node name="quat_propagation" pkg="ov_calib" type="quat_propagation" output="screen" clear_params="true" required="true">
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->

@@ -33,7 +33,7 @@ using Eigen::VectorXf;
 using cv::Mat;
 using cv::Point2d;
 
-TrackArr::TrackArr(Mat camera_matrix) {
+TrackArr::TrackArr(const Mat camera_matrix) {
     camera_matrix_ = camera_matrix;
 }
 

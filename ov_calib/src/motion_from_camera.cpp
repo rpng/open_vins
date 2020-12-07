@@ -1,8 +1,7 @@
 #include <iomanip>   // for setiosflags
 #include <csignal>
-#include <cmath>
 #include <ros/ros.h>
-
+#include <eigen3/Eigen/Dense>
 #include <fstream>
 
 // ov_core
@@ -13,9 +12,10 @@
 #include "utils/parse_ros.h"
 
 // ov_msckf
-#include "core/RosVisualizer.h"
 #include "sim/Simulator.h"
-#include <eigen3/Eigen/Dense>
+
+// ov_calib
+#include "utils.h"
 
 
 using namespace ov_msckf;
@@ -58,10 +58,6 @@ int main(int argc, char** argv)
     double dt_cam = 1 / params.sim_freq_cam;
     double dt_imu = 1 / params.sim_freq_imu;
 
-    // File IO
-    std::ofstream f;
-    f.open("/home/jlee/data_new.csv");
-
     int count = -1;
     while(sim->ok() && ros::ok()) {
         // State variables
@@ -82,10 +78,10 @@ int main(int argc, char** argv)
             if (count < 2) continue;   // jump to next loop until feature_tracker's three member variables are filled
 
             // get ground truth rotation matrix
-            Eigen::Vector3d p_IprevinG, wGTPrev, v_IprevinG, v_IinG, p_IinG, wGT;
-            Eigen::Matrix3d R_GtoIprev, R_GtoI;
-            bool success_vel_prev = sim->get_spline()->get_velocity(time_imu - dt_cam, R_GtoIprev, p_IprevinG, wGTPrev, v_IprevinG);
-            bool success_vel_curr = sim->get_spline()->get_velocity(time_imu, R_GtoI, p_IinG, wGT, v_IinG);
+            Eigen::Vector3d p_IinG_prev, w_IinI_prev, v_IinG_prev, v_IinG, p_IinG, w_IinI;
+            Eigen::Matrix3d R_GtoI_prev, R_GtoI;
+            bool success_vel_prev = sim->get_spline()->get_velocity(time_imu - dt_cam, R_GtoI_prev, p_IinG_prev, w_IinI_prev, v_IinG_prev);
+            bool success_vel_curr = sim->get_spline()->get_velocity(time_imu, R_GtoI, p_IinG, w_IinI, v_IinG);
 
             if (count == 2) {  // initialize variables
                 t0 = time_imu;
@@ -94,32 +90,13 @@ int main(int argc, char** argv)
             
             Eigen::Matrix3d R_dC;     // rotation frame-to-frame
             feature_tracker->calc_motion(wc, ac, R_dC);
-
-            printf("[Step %d] time_imu: %.1f, time_cam: %.1f\n", count - 3, time_imu - t0, time_cam - t0);
-            
-            Eigen::Vector3d wIinI = wm;
             Eigen::Vector3d wCinI = R_CtoI * wc;    // wc in G; thus, transform it in frame I
 
-            // Similarity measurement
-            // cosine similarity: consistency in directions (u dot v / |u||v|)
-            // euclidian distance: how they are near from each other (sqrt(|u-v|^2))
-            // ratio: how their norms are similar (|u|/|v|)
-
-            double cos_similarity = wIinI.dot(wGT) / (wIinI.norm() * wGT.norm());
-            double euc_distance = (wIinI - wGT).norm();
-            double ratio = wIinI.norm() / wGT.norm();
-
-            printf(" -- [wIinI] cos_sim: %.3f, euc_dist: %.3f, ratio: %.3f\n", cos_similarity, euc_distance, ratio);
-            f << count - 3 << ", " << time_imu-t0 << ", ";
-            f << cos_similarity << ", " << euc_distance << ", " << ratio << ", ";
-
-            cos_similarity = wCinI.dot(wGT) / (wCinI.norm() * wGT.norm());
-            euc_distance = (wCinI - wGT).norm();
-            ratio = wCinI.norm() / wGT.norm();
-
-            printf(" -- [wCinI] cos_sim: %.3f, euc_dist: %.3f, ratio: %.3f\n", cos_similarity, euc_distance, ratio);
-            f << cos_similarity << ", " << euc_distance << ", " << ratio << std::endl;
-            
+            double cos_sim = ov_calib::cosine_similarity(wc, w_IinI);
+            double euc_dist = ov_calib::euclidian_distance(wc, w_IinI);
+            double norm_ratio = ov_calib::norm_ratio(wc, w_IinI);
+            printf("[Step %d] time_cam: %.3f, euc: %.3f, rat: %.3f, cos: %.3f  (|w_gt|: %.3f)\n", 
+            count - 3, time_cam - t0, cos_sim, euc_dist, norm_ratio, w_IinI.norm());
         }
     }
 
