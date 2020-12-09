@@ -87,6 +87,7 @@ endif()
 ##################################################
 list(APPEND library_source_files
         ${ov_msckf_SOURCE_DIR}/src/sim/Simulator.cpp
+        ${ov_msckf_SOURCE_DIR}/src/core/RosTinyVisualizer.cpp
 )
 add_library(ov_calib_lib SHARED ${library_source_files})
 target_link_libraries(ov_calib_lib ${thirdparty_libraries})
@@ -108,3 +109,6 @@ target_link_libraries(motion_from_camera ov_calib_lib ${thirdparty_libraries})
 
 add_executable(motion_from_pose src/motion_from_pose.cpp)
 target_link_libraries(motion_from_pose ov_calib_lib ${thirdparty_libraries})
+
+add_executable(run_multi_imu src/run_multi_imu.cpp)
+target_link_libraries(run_multi_imu ov_calib_lib ${thirdparty_libraries})

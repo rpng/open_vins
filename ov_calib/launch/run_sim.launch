@@ -37,7 +37,7 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="motion_from_pose" pkg="ov_calib" type="motion_from_pose" output="screen" clear_params="true" required="true">
+    <node name="run_multi_imu" pkg="ov_calib" type="run_multi_imu" output="screen" clear_params="true" required="true">
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->

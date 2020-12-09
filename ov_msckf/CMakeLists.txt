@@ -93,6 +93,7 @@ list(APPEND library_source_files
 if (catkin_FOUND)
     list(APPEND library_source_files
         src/core/RosVisualizer.cpp
+        src/core/RosTinyVisualizer.cpp
     )
 endif()
 add_library(ov_msckf_lib SHARED ${library_source_files})
