@@ -86,6 +86,36 @@ void dR_to_w(const Eigen::Matrix3d& dR, const double dt, Eigen::Vector3d& w) {
     return ;
 }
 
+Eigen::Matrix3d add_noise(const Eigen::Matrix3d& R_raw, double noise_angle) {
+    Eigen::Quaterniond q_raw(R_raw);
+    Eigen::Quaterniond q_noise;
+    
+    double eps = 0.001;
+    // Calculate direction vector of q_raw
+    Eigen::Vector3d direction;
+    if (fabs(q_raw.x()) <= 0.001 && fabs(q_raw.x()) <= 0.001 && fabs(q_raw.x()) <= 0.001) {
+        direction.setOnes();
+    } else {
+        direction(0) = q_raw.x();
+        direction(1) = q_raw.y();
+        direction(2) = q_raw.z();
+    }
+    direction.normalize();
+    
+    // Create q_noise
+    q_noise.w() = cos(noise_angle/2);
+    q_noise.x() = direction(0) * sin(noise_angle/2);
+    q_noise.y() = direction(1) * sin(noise_angle/2);
+    q_noise.z() = direction(2) * sin(noise_angle/2);
+    
+    // Calculate noised q_raw
+    Eigen::Matrix3d R;
+    Eigen::Matrix3d R_noise(q_noise);
+    R = R_noise * R_raw;
+
+    return R;
+}
+
 double euclidian_distance(const Eigen::Vector3d& vec1, const Eigen::Vector3d& vec2) {
     return (vec1 - vec2).norm();
 }
@@ -99,6 +129,8 @@ double cosine_similarity(const Eigen::Vector3d& vec1, const Eigen::Vector3d& vec
 }
 
 }
+
+
 
 
 #endif /* OV_CALIB_UTILS */

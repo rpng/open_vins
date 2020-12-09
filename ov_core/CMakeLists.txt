@@ -70,6 +70,7 @@ add_library(ov_core_lib SHARED
         src/dummy.cpp
         src/init/InertialInitializer.cpp
         src/sim/BsplineSE3.cpp
+        src/sim/BsplineSE3FourPts.cpp
         src/track/TrackBase.cpp
         src/track/TrackAruco.cpp
         src/track/TrackDescriptor.cpp

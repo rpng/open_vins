@@ -9,6 +9,7 @@
 #include "utils/parse_cmd.h"
 #include "utils/colors.h"
 #include "utils/parse_ros.h"
+#include "sim/BsplineSE3FourPts.h"
 
 // ov_msckf
 #include "sim/Simulator.h"
@@ -71,14 +72,23 @@ int main(int argc, char** argv)
 
         if (hascam) {
             if (t0 == 0) t0 = t;
-            Eigen::Vector3d p_IinG_prev, v_IinG_prev, w_IinI_prev, p_IinG, v_IinG, w_IinI, p_IinG_next, v_IinG_next, w_IinI_next;
-            Eigen::Vector3d alpha_IinI_prev, a_IinG_prev, alpha_IinI, a_IinG, alpha_IinI_next, a_IinG_next;
-            Eigen::Matrix3d dR_prev, dR_next, R_GtoI_prev, R_GtoI, R_GtoI_next;
+            Eigen::Vector3d p_IinG_prev, v_IinG_prev, w_IinI_prev, p_IinG, v_IinG, w_IinI, p_IinG_next, v_IinG_next, w_IinI_next, p_IinG_aftr, v_IinG_aftr, w_IinI_aftr;
+            Eigen::Vector3d alpha_IinI_prev, a_IinG_prev, alpha_IinI, a_IinG, alpha_IinI_next, a_IinG_next, alpha_IinI_aftr, a_IinG_aftr;
+            Eigen::Matrix3d dR_prev, dR_next, R_GtoI_prev, R_GtoI, R_GtoI_next, R_GtoI_aftr;
             
             // Calculate relative poses between successive frames
             bool success_vel_prev = sim->get_spline()->get_acceleration(t - dt_imu, R_GtoI_prev, p_IinG_prev, w_IinI_prev, v_IinG_prev, alpha_IinI_prev, a_IinG_prev);
             bool success_vel_curr = sim->get_spline()->get_acceleration(t, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
             bool success_vel_next = sim->get_spline()->get_acceleration(t + dt_imu, R_GtoI_next, p_IinG_next, w_IinI_next, v_IinG_next, alpha_IinI_next, a_IinG_next);
+            bool success_vel_aftr = sim->get_spline()->get_acceleration(t + 2*dt_imu, R_GtoI_aftr, p_IinG_aftr, w_IinI_aftr, v_IinG_aftr, alpha_IinI_aftr, a_IinG_aftr);
+
+            // Add noise
+            R_GtoI_prev = ov_calib::add_noise(R_GtoI_prev, M_PI/9);    // 10 deg
+            R_GtoI      = ov_calib::add_noise(R_GtoI, M_PI/9);    // 10 deg
+            R_GtoI_next = ov_calib::add_noise(R_GtoI_next, M_PI/9);    // 10 deg
+            R_GtoI_aftr = ov_calib::add_noise(R_GtoI_aftr, M_PI/9);    // 10 deg
+
+            // Method 1: by numerical method
             dR_prev = R_GtoI * R_GtoI_prev.transpose();
             dR_next = R_GtoI_next * R_GtoI.transpose();
 
@@ -93,16 +103,39 @@ int main(int argc, char** argv)
             double euc_dist = ov_calib::euclidian_distance(what_IinI, w_IinI);
             double norm_ratio = ov_calib::norm_ratio(what_IinI, w_IinI);
             double cos_sim = ov_calib::cosine_similarity(what_IinI, w_IinI);
-
-            printf("[time:  %.3f] euc: %.3f, rat: %.3f, cos: %.3f  (|w_gt|: %.3f)\n", t - t0, euc_dist, norm_ratio, cos_sim, w_IinI.norm());
-
+            printf("[numerical - time : %.3f]\n", t-t0);
+            printf(" -- euc: %.3f, rat: %.3f, cos: %.3f  (|w_gt|: %.3f)\n", euc_dist, norm_ratio, cos_sim, w_IinI.norm());
+            f << t-t0 << ", " << euc_dist << ", " << norm_ratio << ", " << cos_sim << ", " << w_IinI.norm() << ", ";
             // Show estimated angular acceleration
             euc_dist = ov_calib::euclidian_distance(alphahat_IinI, alpha_IinI);
             norm_ratio = ov_calib::norm_ratio(alphahat_IinI, alpha_IinI);
             cos_sim = ov_calib::cosine_similarity(alphahat_IinI, alpha_IinI);
 
-            printf("[time:  %.3f] euc: %.3f, rat: %.3f, cos: %.3f  (|a_gt|: %.3f)\n", t - t0, euc_dist, norm_ratio, cos_sim, alpha_IinI.norm());
+            printf(" -- euc: %.3f, rat: %.3f, cos: %.3f  (|a_gt|: %.3f)\n", euc_dist, norm_ratio, cos_sim, alpha_IinI.norm());
+            f << euc_dist << ", " << norm_ratio << ", " << cos_sim << ", " << alpha_IinI.norm()  << ", ";
 
+            // Method 2: by B-spline differentiation
+            ov_core::BsplineSE3FourPts bspline_4pts;
+            bspline_4pts.feed_rotations(R_GtoI_prev, R_GtoI, R_GtoI_next, R_GtoI_aftr);
+            bspline_4pts.feed_timestamps(t - dt_imu, t, t + dt_imu, t + 2*dt_imu);
+
+            Eigen::Matrix3d Rhat_GtoI;
+            bspline_4pts.get_acceleration(t, Rhat_GtoI, what_IinI, alphahat_IinI);
+
+            // Show estimated angular velocity
+            euc_dist = ov_calib::euclidian_distance(what_IinI, w_IinI);
+            norm_ratio = ov_calib::norm_ratio(what_IinI, w_IinI);
+            cos_sim = ov_calib::cosine_similarity(what_IinI, w_IinI);
+            printf("[spline - time : %.3f]\n", t-t0);
+            printf(" -- euc: %.3f, rat: %.3f, cos: %.3f  (|w_gt|: %.3f)\n", euc_dist, norm_ratio, cos_sim, w_IinI.norm());
+            f << t-t0 << ", " << euc_dist << ", " << norm_ratio << ", " << cos_sim << ", " << w_IinI.norm() << ", ";
+            // Show estimated angular acceleration
+            euc_dist = ov_calib::euclidian_distance(alphahat_IinI, alpha_IinI);
+            norm_ratio = ov_calib::norm_ratio(alphahat_IinI, alpha_IinI);
+            cos_sim = ov_calib::cosine_similarity(alphahat_IinI, alpha_IinI);
+            printf(" -- euc: %.3f, rat: %.3f, cos: %.3f  (|a_gt|: %.3f)\n", euc_dist, norm_ratio, cos_sim, alpha_IinI.norm());
+            f << euc_dist << ", " << norm_ratio << ", " << cos_sim << ", " << alpha_IinI.norm() << std::endl;
+            
         }
         
     }
