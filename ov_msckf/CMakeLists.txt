@@ -81,6 +81,7 @@ endif()
 ##################################################
 list(APPEND library_source_files
         src/sim/Simulator.cpp
+        src/sim/SimulatorMultiIMU.cpp
         src/state/State.cpp
         src/state/StateHelper.cpp
         src/state/Propagator.cpp

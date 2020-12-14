@@ -89,7 +89,7 @@ int main(int argc, char** argv)
 
     // Since the state time is in the camera frame of reference
     // Subtract out the imu to camera time offset
-    imustate(0,0) -= sim->get_true_paramters().calib_camimu_dt;
+    imustate(0,0) -= sim->get_true_parameters().calib_camimu_dt;
 
     // Initialize our filter with the groundtruth
     sys->initialize_with_gt(imustate);

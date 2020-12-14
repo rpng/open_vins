@@ -12,7 +12,7 @@
 #include "sim/BsplineSE3FourPts.h"
 
 // ov_msckf
-#include "sim/Simulator.h"
+#include "sim/SimulatorMultiIMU.h"
 
 // ov_calib
 #include "utils.h"
@@ -25,7 +25,7 @@
 
 using namespace ov_msckf;
 
-Simulator* sim;
+SimulatorMultiIMU* sim;
 #ifdef ROS_AVAILABLE
 RosTinyVisualizer* viz;
 #endif
@@ -44,8 +44,8 @@ int main(int argc, char** argv)
               1, 0, 0,
               0, 0, 1;
     cv::Mat camera_matrix = (cv::Mat_<double>(3, 3) << 458.654, 0.0, 367.215,
-                                                             0.0, 457.296, 248.375,
-                                                             0.0, 0.0, 1.0);
+                                                        0.0, 457.296, 248.375,
+                                                        0.0, 0.0, 1.0);
 
     // Read in our parameters
     VioManagerOptions params;
@@ -57,7 +57,7 @@ int main(int argc, char** argv)
     signal(SIGINT, signal_callback_handler);
 
     // Create our system
-    sim = new Simulator(params);
+    sim = new SimulatorMultiIMU(params);
     #ifdef ROS_AVAILABLE
     viz = new RosTinyVisualizer(nh, sim);
     #endif
@@ -74,14 +74,14 @@ int main(int argc, char** argv)
     while(sim->ok() && ros::ok()) {
         // State variables
         double t;
-        Eigen::Vector3d wm, am;
-        std::vector<int> camids;
+        std::vector<Eigen::Vector3d> wm, am;
+        std::vector<int> camids, imuids;
         std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> feats;
 
-        bool hasimu = sim->get_next_imu(t, wm, am);
+        bool hasimu = sim->get_next_imu(t, imuids, wm, am);
         bool hascam = sim->get_next_cam(t, camids, feats);
 
-        if (hascam) {                                                                                                                                                           
+        if (hascam) {
             if (t0 == 0) t0 = t;
             Eigen::Vector3d p_IinG, v_IinG, w_IinI;
             Eigen::Vector3d alpha_IinI, a_IinG;
@@ -90,6 +90,11 @@ int main(int argc, char** argv)
             bool success_vel_curr = sim->get_spline()->get_acceleration(t, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
             viz->visualize(t);
             
+            for (int i=0; i<params.num_imus; i++) {
+                printf("[time: %.2f - IMU %d] w: (%.2f, %.2f, %.2f),  a: (%.2f, %.2f, %.2f)\n", t-t0, i, 
+                wm.at(i)(0), wm.at(i)(1), wm.at(i)(2), am.at(i)(0), am.at(i)(1), am.at(i)(2));
+            }
+
             sleep(0.01);
         }
         

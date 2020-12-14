@@ -32,7 +32,7 @@ namespace ov_msckf {
 
 
     /**
-     * @brief This function will load paramters from the ros node handler / paramter server
+     * @brief This function will load paramters from the ros node handler / parameter server
      * This is the recommended way of loading parameters as compared to the command line version.
      * @param nh ROS node handler
      * @return A fully loaded VioManagerOptions object
@@ -244,6 +244,31 @@ namespace ov_msckf {
 
         }
 
+        // newly added
+        nh.param<int>("max_imus", params.num_imus, params.num_imus);
+
+        // Loop through and load each imu extrinsic
+        for(int i=0; i<params.num_imus; i++) {
+            // Our imu extrinsics transform
+            Eigen::Matrix4d T_UtoI;
+            std::vector<double> matrix_TUtoI;
+            std::vector<double> matrix_TtoI_default = {1,0,0,0,0,1,0,0,0,0,1,0,0,0,0,1};
+
+            // Read in from ROS, and save into our eigen mat
+            nh.param<std::vector<double>>("T_U"+std::to_string(i)+"toI", matrix_TUtoI, matrix_TtoI_default);
+            T_UtoI << matrix_TUtoI.at(0),matrix_TUtoI.at(1),matrix_TUtoI.at(2),matrix_TUtoI.at(3),
+                    matrix_TUtoI.at(4),matrix_TUtoI.at(5),matrix_TUtoI.at(6),matrix_TUtoI.at(7),
+                    matrix_TUtoI.at(8),matrix_TUtoI.at(9),matrix_TUtoI.at(10),matrix_TUtoI.at(11),
+                    matrix_TUtoI.at(12),matrix_TUtoI.at(13),matrix_TUtoI.at(14),matrix_TUtoI.at(15);
+            
+            // Load these into our state
+            Eigen::Matrix<double,7,1> imu_eigen;
+            imu_eigen.block(0,0,4,1) = rot_2_quat(T_UtoI.block(0,0,3,3).transpose());
+            imu_eigen.block(4,0,3,1) = -T_UtoI.block(0,0,3,3).transpose()*T_UtoI.block(0,3,3,1);
+
+            // Insert
+            params.imu_extrinsics.insert({i, imu_eigen});
+        }
 
 
         // Success, lets returned the parsed options

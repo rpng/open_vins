@@ -87,6 +87,7 @@ endif()
 ##################################################
 list(APPEND library_source_files
         ${ov_msckf_SOURCE_DIR}/src/sim/Simulator.cpp
+        ${ov_msckf_SOURCE_DIR}/src/sim/SimulatorMultiIMU.cpp
         ${ov_msckf_SOURCE_DIR}/src/core/RosTinyVisualizer.cpp
 )
 add_library(ov_calib_lib SHARED ${library_source_files})

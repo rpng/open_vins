@@ -11,7 +11,7 @@
     <arg name="num_clones"  default="11" />
     <arg name="num_slam"    default="50" />
     <arg name="num_pts"     default="100" />
-    <arg name="max_cameras" default="1" />
+    <arg name="max_cameras" default="2" />
 
     <arg name="freq_cam"    default="20" />
     <arg name="freq_imu"    default="20" />
@@ -144,6 +144,28 @@
             [
              0,-1, 0,  0.05,
              1, 0, 0,  0.00,
+             0, 0, 1,  0.00,
+             0, 0, 0,  1.00
+            ]
+        </rosparam>
+
+
+        <param name="max_imus"    type="int"    value="3" /> <!-- newly added -->
+
+        <!-- newly added    -->
+        <!-- imu extrinsics -->
+        <rosparam param="T_U1toI">
+            [
+             1, 0, 0,  0.50,
+             0, 1, 0,  0.00,
+             0, 0, 1,  0.00,
+             0, 0, 0,  1.00
+            ]
+        </rosparam>
+        <rosparam param="T_U2toI">
+            [
+             1, 0, 0,  0.00,
+             0, 1, 0,  0.50,
              0, 0, 1,  0.00,
              0, 0, 0,  1.00
             ]

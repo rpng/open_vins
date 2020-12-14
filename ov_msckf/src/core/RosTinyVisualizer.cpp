@@ -20,7 +20,6 @@
  */
 #include "RosTinyVisualizer.h"
 
-
 using namespace ov_msckf;
 
 
@@ -31,13 +30,27 @@ RosTinyVisualizer::RosTinyVisualizer(ros::NodeHandle &nh, Simulator *sim) : _nh(
     // 3D points publishing
     pub_points_sim = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
     ROS_INFO("Publishing: %s", pub_points_sim.getTopic().c_str());
+    
+    // allocate size of std::vector variable
+    poses_gt.resize(_sim->get_true_parameters().num_imus);
 
     // Groundtruth publishers
-    pub_posegt = nh.advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
-    ROS_INFO("Publishing: %s", pub_posegt.getTopic().c_str());
-    pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
-    ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
-
+    // zero index for the base IMU (default), others for additionals
+    for (int imuid=0; imuid<_sim->get_true_parameters().num_imus; imuid++) {
+        std::string pub_posegt_name = "/ov_msckf/posegt";
+        std::string pub_pathgt_name = "/ov_msckf/pathgt";
+        if (imuid != 0) {
+            pub_posegt_name.append("_U");
+            pub_pathgt_name.append("_U");
+            pub_posegt_name.append(std::to_string(imuid));
+            pub_pathgt_name.append(std::to_string(imuid));
+        }
+        pub_posegt.push_back(nh.advertise<geometry_msgs::PoseStamped>(pub_posegt_name, 2));
+        ROS_INFO("Publishing: %s", pub_posegt.at(imuid).getTopic().c_str());
+        pub_pathgt.push_back(nh.advertise<nav_msgs::Path>(pub_pathgt_name, 2));
+        ROS_INFO("Publishing: %s", pub_pathgt.at(imuid).getTopic().c_str());
+    }
+    
     // option to enable publishing of global to IMU transformation
     nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
     nh.param<bool>("publish_calibration_tf", publish_calibration_tf, true);
@@ -71,52 +84,69 @@ void RosTinyVisualizer::publish_groundtruth(double timestamp_inI) {
     if(!_sim->get_state(timestamp_inI, state_gt))
         return;
     
-    // Create pose of IMU
-    geometry_msgs::PoseStamped poseIinM;
-    poseIinM.header.stamp = ros::Time(timestamp_inI);
-    poseIinM.header.seq = poses_seq_gt;
-    poseIinM.header.frame_id = "global";
-    poseIinM.pose.orientation.x = state_gt(1,0);
-    poseIinM.pose.orientation.y = state_gt(2,0);
-    poseIinM.pose.orientation.z = state_gt(3,0);
-    poseIinM.pose.orientation.w = state_gt(4,0);
-    poseIinM.pose.position.x = state_gt(5,0);
-    poseIinM.pose.position.y = state_gt(6,0);
-    poseIinM.pose.position.z = state_gt(7,0);
-    pub_posegt.publish(poseIinM);
+    // base imu pose
+    Eigen::Vector4d q_GtoI = state_gt.block(1,0,4,1);
+    Eigen::Vector3d p_IinG = state_gt.block(5,0,3,1);
+    Eigen::Matrix<double,3,3> R_GtoI = quat_2_Rot(q_GtoI);
 
-    // Append to our pose vector
-    poses_gt.push_back(poseIinM);
+    for (int imuid = 0; imuid < _sim->get_true_parameters().num_imus; imuid ++) {
+        Eigen::Matrix<double,3,3> R_ItoU = quat_2_Rot(_sim->get_true_parameters().imu_extrinsics.at(imuid).block(0,0,4,1));
+        Eigen::Matrix<double,3,1> p_IinU = _sim->get_true_parameters().imu_extrinsics.at(imuid).block(4,0,3,1);
+        
+        Eigen::Matrix<double,3,1> p_UinI = - R_ItoU.transpose() * p_IinU;
 
-    // Create our path (imu)
-    // NOTE: We downsample the number of poses as needed to prevent rviz crashes
-    // NOTE: https://github.com/ros-visualization/rviz/issues/1107
-    nav_msgs::Path arrIMU;
-    arrIMU.header.stamp = ros::Time::now();
-    arrIMU.header.seq = poses_seq_gt;
-    arrIMU.header.frame_id = "global";
-    for(size_t i=0; i<poses_gt.size(); i+=std::floor(poses_gt.size()/16384.0)+1) {
-        arrIMU.poses.push_back(poses_gt.at(i));
+        // calculate each imu pose
+        Eigen::Matrix3d R_GtoU = R_ItoU * R_GtoI;
+        Eigen::Vector4d q_GtoU = rot_2_quat(R_GtoU);
+        Eigen::Vector3d p_UinG = p_IinG + R_GtoI.transpose() * p_UinI;
+
+        // Create pose of IMUs
+        geometry_msgs::PoseStamped poseIinM;
+        poseIinM.header.stamp = ros::Time(timestamp_inI);
+        poseIinM.header.seq = poses_seq_gt;
+        poseIinM.header.frame_id = "global";
+        poseIinM.pose.orientation.x = q_GtoU(0);
+        poseIinM.pose.orientation.y = q_GtoU(1);
+        poseIinM.pose.orientation.z = q_GtoU(2);
+        poseIinM.pose.orientation.w = q_GtoU(3);
+        poseIinM.pose.position.x = p_UinG(0);
+        poseIinM.pose.position.y = p_UinG(1);
+        poseIinM.pose.position.z = p_UinG(2);
+        pub_posegt.at(imuid).publish(poseIinM);
+
+        // Append to our pose vector
+        poses_gt.at(imuid).push_back(poseIinM);
+
+        // Create our path (imu)
+        // NOTE: We downsample the number of poses as needed to prevent rviz crashes
+        // NOTE: https://github.com/ros-visualization/rviz/issues/1107
+        nav_msgs::Path arrIMU;
+        arrIMU.header.stamp = ros::Time::now();
+        arrIMU.header.seq = poses_seq_gt;
+        arrIMU.header.frame_id = "global";
+        for(size_t i=0; i<poses_gt.at(imuid).size(); i+=std::floor(poses_gt.at(imuid).size()/16384.0)+1) {
+            arrIMU.poses.push_back(poses_gt.at(imuid).at(i));
+        }
+        arrIMU.poses = poses_gt.at(imuid);
+        pub_pathgt.at(imuid).publish(arrIMU);
+
+        // Publish our transform on TF
+        tf::StampedTransform trans;
+        trans.stamp_ = ros::Time::now();
+        trans.frame_id_ = "global";
+        trans.child_frame_id_ = "truth";
+        if (imuid != 0) trans.child_frame_id_ = trans.child_frame_id_ + "_U" + std::to_string(imuid);
+        tf::Quaternion quat(q_GtoU(0), q_GtoU(1), q_GtoU(2), q_GtoU(3));
+        trans.setRotation(quat);
+        tf::Vector3 orig(p_UinG(0), p_UinG(1), p_UinG(2));
+        trans.setOrigin(orig);
+        if(publish_global2imu_tf) {
+            mTfBr->sendTransform(trans);
+        }
     }
-    arrIMU.poses = poses_gt;
-    pub_pathgt.publish(arrIMU);
 
     // Move them forward in time
     poses_seq_gt++;
-
-    // Publish our transform on TF
-    tf::StampedTransform trans;
-    trans.stamp_ = ros::Time::now();
-    trans.frame_id_ = "global";
-    trans.child_frame_id_ = "truth";
-    tf::Quaternion quat(state_gt(1,0),state_gt(2,0),state_gt(3,0),state_gt(4,0));
-    trans.setRotation(quat);
-    tf::Vector3 orig(state_gt(5,0),state_gt(6,0),state_gt(7,0));
-    trans.setOrigin(orig);
-    if(publish_global2imu_tf) {
-        mTfBr->sendTransform(trans);
-    }
-
 }
 
 void RosTinyVisualizer::publish_features() {

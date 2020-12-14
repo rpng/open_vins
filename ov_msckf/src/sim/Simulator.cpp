@@ -44,6 +44,7 @@ Simulator::Simulator(VioManagerOptions& params_) {
     params.print_state();
     params.print_trackers();
     params.print_simulation();
+    params.print_imus();
 
     // Check that the max cameras matches the size of our cam matrices
     if(params.state_options.num_cameras != (int)params.camera_fisheye.size()) {

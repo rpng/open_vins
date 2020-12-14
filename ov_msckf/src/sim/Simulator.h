@@ -102,6 +102,8 @@ namespace ov_msckf {
          */
         bool get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vector3d &am);
 
+        // newly added for function overriding
+        bool get_next_imu(double &time_imu, std::vector<int> &imuids, std::vector<Eigen::Vector3d> &wm, std::vector<Eigen::Vector3d> &am){return true; };
 
         /**
          * @brief Gets the next inertial reading if we have one.
@@ -119,7 +121,7 @@ namespace ov_msckf {
         }
 
         /// Access function to get the true parameters (i.e. calibration and settings)
-        VioManagerOptions get_true_paramters() {
+        VioManagerOptions get_true_parameters() {
             return params;
         }
 

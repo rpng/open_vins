@@ -41,7 +41,7 @@
 #include <cv_bridge/cv_bridge.h>
 #include <boost/filesystem.hpp>
 
-#include "sim/Simulator.h"
+#include "sim/SimulatorMultiIMU.h"
 #include "utils/dataset_reader.h"
 
 
@@ -68,7 +68,8 @@ class RosTinyVisualizer {
         Simulator* _sim;
 
         // Our publishers
-        ros::Publisher pub_pathgt, pub_posegt, pub_points_sim;
+        std::vector<ros::Publisher> pub_pathgt, pub_posegt;
+        ros::Publisher pub_points_sim;
         tf::TransformBroadcaster *mTfBr;
 
         // Start and end timestamps
@@ -80,7 +81,7 @@ class RosTinyVisualizer {
 
         // For path viz
         unsigned int poses_seq_gt = 0;
-        vector<geometry_msgs::PoseStamped> poses_gt;
+        std::vector<vector<geometry_msgs::PoseStamped>> poses_gt;
         bool publish_global2imu_tf = true;
         bool publish_calibration_tf = true;
 

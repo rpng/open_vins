@@ -266,7 +266,24 @@ namespace ov_msckf {
             printf("\t- imu feq: %.2f\n", sim_freq_imu);
         }
 
+        /// newly added
+        int num_imus = 1;
+        
+        /// Map between imuid and imu extrinsics (q_ItoU, p_IinU).
+        std::map<size_t,Eigen::VectorXd> imu_extrinsics;
 
+        void print_imus() {
+            printf("IMU PARAMETERS:\n");
+            assert(imu_extrinsics.size() == num_imus);
+            for(int n=0; n<num_imus; n++) {
+                std::cout << "imu_" << n << "_extrinsic(0:3):" << endl << imu_extrinsics.at(n).block(0,0,4,1).transpose() << std::endl;
+                std::cout << "imu_" << n << "_extrinsic(4:6):" << endl << imu_extrinsics.at(n).block(4,0,3,1).transpose() << std::endl;
+                Eigen::Matrix4d T_UtoI = Eigen::Matrix4d::Identity();
+                T_UtoI.block(0,0,3,3) = quat_2_Rot(imu_extrinsics.at(n).block(0,0,4,1)).transpose();
+                T_UtoI.block(0,3,3,1) = -T_UtoI.block(0,0,3,3)*imu_extrinsics.at(n).block(4,0,3,1);
+                std::cout << "T_U" << n << "toI:" << endl << T_UtoI << std::endl << std::endl;
+            }
+        }
 
     };
 
