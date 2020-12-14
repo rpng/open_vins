@@ -3,10 +3,7 @@ Panels:
     Help Height: 0
     Name: Displays
     Property Tree Widget:
-      Expanded:
-        - /Path Base1
-        - /Path U11
-        - /Path U21
+      Expanded: ~
       Splitter Ratio: 0.600000024
     Tree Height: 471
   - Class: rviz/Selection
@@ -27,7 +24,7 @@ Panels:
     Experimental: false
     Name: Time
     SyncMode: 0
-    SyncSource: SIM Points
+    SyncSource: ""
 Toolbars:
   toolButtonStyle: 2
 Visualization Manager:
@@ -64,6 +61,8 @@ Visualization Manager:
           Value: true
         truth_U2:
           Value: true
+        truth_U3:
+          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: false
@@ -76,6 +75,8 @@ Visualization Manager:
           truth_U1:
             {}
           truth_U2:
+            {}
+          truth_U3:
             {}
       Update Interval: 0
       Value: true
@@ -215,7 +216,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 12.4664001
+      Distance: 34.2306137
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -230,10 +231,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.244796038
+      Pitch: 0.219795957
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.61539483
+      Yaw: 2.43359065
     Saved: ~
 Window Geometry:
   Displays:

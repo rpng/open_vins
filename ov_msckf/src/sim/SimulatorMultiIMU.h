@@ -50,26 +50,25 @@ namespace ov_msckf {
     class SimulatorMultiIMU : public Simulator {
 
     public:
+        SimulatorMultiIMU(VioManagerOptions& params_) : Simulator(params_) {
+            true_bias_accel.assign(params_.num_imus, Eigen::Vector3d::Zero());
+            true_bias_gyro.assign(params_.num_imus, Eigen::Vector3d::Zero());
+            hist_true_bias_time.resize(params_.num_imus);
+            hist_true_bias_accel.resize(params_.num_imus);
+            hist_true_bias_gyro.resize(params_.num_imus);
+        };
 
-        SimulatorMultiIMU(VioManagerOptions& params_) : Simulator(params_) {};
         bool get_next_imu(double &time_imu, std::vector<int> &imuids, std::vector<Eigen::Vector3d> &wm, std::vector<Eigen::Vector3d> &am);
 
-    /*
-    // TODO: edit bias and noise for each imu
     protected:
         /// Our running acceleration bias
-        Eigen::Vector3d true_bias_accel = Eigen::Vector3d::Zero();
-
+        std::vector<Eigen::Vector3d> true_bias_accel;
         /// Our running gyroscope bias
-        Eigen::Vector3d true_bias_gyro = Eigen::Vector3d::Zero();
-
+        std::vector<Eigen::Vector3d> true_bias_gyro;
         // Our history of true biases
-        std::vector<double> hist_true_bias_time;
-        std::vector<Eigen::Vector3d> hist_true_bias_accel;
-        std::vector<Eigen::Vector3d> hist_true_bias_gyro;
-    */
-    
-
+        std::vector<std::vector<double>> hist_true_bias_time;
+        std::vector<std::vector<Eigen::Vector3d>> hist_true_bias_accel;
+        std::vector<std::vector<Eigen::Vector3d>> hist_true_bias_gyro;
     };
 
 

@@ -91,7 +91,7 @@ int main(int argc, char** argv)
             viz->visualize(t);
             
             for (int i=0; i<params.num_imus; i++) {
-                printf("[time: %.2f - IMU %d] w: (%.2f, %.2f, %.2f),  a: (%.2f, %.2f, %.2f)\n", t-t0, i, 
+                printf("[time: %.2f - IMU %d] w: (%.4f, %.4f, %.4f),  a: (%.4f, %.4f, %.4f)\n", t-t0, i, 
                 wm.at(i)(0), wm.at(i)(1), wm.at(i)(2), am.at(i)(0), am.at(i)(1), am.at(i)(2));
             }
 

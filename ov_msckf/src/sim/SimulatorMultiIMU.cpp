@@ -68,30 +68,30 @@ bool SimulatorMultiIMU::get_next_imu(double &time_imu, std::vector<int> &imuids,
         
         Eigen::Vector3d wm_curr, am_curr;
 
-        wm_curr(0) = omega_inU(0) + true_bias_gyro(0) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
-        wm_curr(1) = omega_inU(1) + true_bias_gyro(1) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
-        wm_curr(2) = omega_inU(2) + true_bias_gyro(2) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
-        am_curr(0) = accel_inU(0) + true_bias_accel(0) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
-        am_curr(1) = accel_inU(1) + true_bias_accel(1) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
-        am_curr(2) = accel_inU(2) + true_bias_accel(2) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+        wm_curr(0) = omega_inU(0) + true_bias_gyro[imuid](0) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+        wm_curr(1) = omega_inU(1) + true_bias_gyro[imuid](1) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+        wm_curr(2) = omega_inU(2) + true_bias_gyro[imuid](2) + params.imu_noises.sigma_w/std::sqrt(dt)*w(gen_meas_imu);
+        am_curr(0) = accel_inU(0) + true_bias_accel[imuid](0) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+        am_curr(1) = accel_inU(1) + true_bias_accel[imuid](1) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
+        am_curr(2) = accel_inU(2) + true_bias_accel[imuid](2) + params.imu_noises.sigma_a/std::sqrt(dt)*w(gen_meas_imu);
 
         wm.push_back(wm_curr);
         am.push_back(am_curr);
         imuids.push_back(imuid);
+
+        // Move the biases forward in time
+        true_bias_gyro[imuid](0) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+        true_bias_gyro[imuid](1) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+        true_bias_gyro[imuid](2) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
+        true_bias_accel[imuid](0) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+        true_bias_accel[imuid](1) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+        true_bias_accel[imuid](2) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
+
+        // Append the current true bias to our history
+        hist_true_bias_time[imuid].push_back(timestamp_last_imu);
+        hist_true_bias_gyro[imuid].push_back(true_bias_gyro[imuid]);
+        hist_true_bias_accel[imuid].push_back(true_bias_accel[imuid]);
     }
-
-    // Move the biases forward in time
-    true_bias_gyro(0) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_gyro(1) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_gyro(2) += params.imu_noises.sigma_wb*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_accel(0) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_accel(1) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
-    true_bias_accel(2) += params.imu_noises.sigma_ab*std::sqrt(dt)*w(gen_meas_imu);
-
-    // Append the current true bias to our history
-    hist_true_bias_time.push_back(timestamp_last_imu);
-    hist_true_bias_gyro.push_back(true_bias_gyro);
-    hist_true_bias_accel.push_back(true_bias_accel);
 
     // Return success
     return true;
