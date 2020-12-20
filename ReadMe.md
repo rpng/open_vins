@@ -18,7 +18,8 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
-* **July 7, 2020** - Released zero velocity update for vehicle applications and direct initialization when standing still. See [PR#79](https://github.com/rpng/open_vins/pull/79) for details. 
+* **December 1, 2020** - Released improved memory management, active feature pointcloud publishing, limiting number of features in update to bound compute, and other small fixes. See v2.3 [PR#117](https://github.com/rpng/open_vins/pull/117) for details.
+* **July 7, 2020** - Released zero velocity update for vehicle applications and direct initialization when standing still. See v2.2 [PR#79](https://github.com/rpng/open_vins/pull/79) for details. 
 * **May 18, 2020** - Released secondary pose graph example repository [ov_secondary](https://github.com/rpng/ov_secondary) based on [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion). OpenVINS now publishes marginalized feature track, feature 3d position, and first camera intrinsics and extrinsics. See [PR#66](https://github.com/rpng/open_vins/pull/66) for details and discussion.
 * **April 3, 2020** - Released [v2.0](https://github.com/rpng/open_vins/releases/tag/v2.0) update to the codebase with some key refactoring, ros-free building, improved dataset support, and single inverse depth feature representation. Please check out the [release page](https://github.com/rpng/open_vins/releases/tag/v2.0) for details.
 * **January 21, 2020** - Our paper has been accepted for presentation in [ICRA 2020](https://www.icra2020.org/). We look forward to seeing everybody there! We have also added links to a few videos of the system running on different datasets.

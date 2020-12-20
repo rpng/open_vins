@@ -32,12 +32,12 @@
         <param name="max_clones"             type="int"    value="15" />
         <param name="max_slam"               type="int"    value="50" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
-        <param name="max_msckf_in_update"    type="int"    value="20" />
+        <param name="max_msckf_in_update"    type="int"    value="40" />
         <param name="max_cameras"            type="int"    value="2" />
         <param name="dt_slam_delay"          type="double" value="3" />
         <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
         <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
-        <rosparam param="gravity">[0.0,0.0,9.80]</rosparam>
+        <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
         <param name="feat_rep_msckf"         type="string" value="ANCHORED_MSCKF_INVERSE_DEPTH" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_MSCKF_INVERSE_DEPTH" />
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_MSCKF_INVERSE_DEPTH" />
