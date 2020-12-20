@@ -21,9 +21,7 @@
 #ifndef OV_CORE_QUAT_OPS_H
 #define OV_CORE_QUAT_OPS_H
 
-/**
- * @brief JPL quaternion math utilities
- *
+/*
  * @section Summary
  * This file contains the common utility functions for operating on JPL quaternions.
  * We need to take special care to handle edge cases when converting to and from other rotation formats.
