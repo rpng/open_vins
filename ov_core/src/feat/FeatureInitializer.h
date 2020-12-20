@@ -58,13 +58,13 @@ namespace ov_core {
             Eigen::Matrix<double,3,1> _pos;
 
             /// Constructs pose from rotation and position
-            ClonePose(Eigen::Matrix<double,3,3> R, Eigen::Matrix<double,3,1> p) {
+            ClonePose(const Eigen::Matrix<double,3,3> &R, const Eigen::Matrix<double,3,1> &p) {
                 _Rot = R;
                 _pos = p;
             }
 
             /// Constructs pose from quaternion and position
-            ClonePose(Eigen::Matrix<double,4,1> q, Eigen::Matrix<double,3,1> p) {
+            ClonePose(const Eigen::Matrix<double,4,1> &q, const Eigen::Matrix<double,3,1> &p) {
                 _Rot = quat_2_Rot(q);
                 _pos = p;
             }
@@ -76,12 +76,12 @@ namespace ov_core {
             }
 
             /// Accessor for rotation
-            Eigen::Matrix<double,3,3> &Rot() {
+            const Eigen::Matrix<double,3,3> &Rot() {
                 return _Rot;
             }
 
             /// Accessor for position
-            Eigen::Matrix<double,3,1> &pos() {
+            const Eigen::Matrix<double,3,1> &pos() {
                 return _pos;
             }
 
@@ -96,11 +96,26 @@ namespace ov_core {
 
         /**
          * @brief Uses a linear triangulation to get initial estimate for the feature
+         *
+         * The derivations for this method can be found in the @ref featinit-linear documentation page.
+         *
          * @param feat Pointer to feature
          * @param clonesCAM Map between camera ID to map of timestamp to camera pose estimate (rotation from global to camera, position of camera in global frame)
          * @return Returns false if it fails to triangulate (based on the thresholds)
          */
         bool single_triangulation(Feature* feat, std::unordered_map<size_t,std::unordered_map<double,ClonePose>> &clonesCAM);
+
+        /**
+         * @brief Uses a linear triangulation to get initial estimate for the feature, treating the anchor observation as a true bearing.
+         *
+         * The derivations for this method can be found in the @ref featinit-linear-1d documentation page.
+         * This function should be used if you want speed, or know your anchor bearing is reasonably accurate.
+         *
+         * @param feat Pointer to feature
+         * @param clonesCAM Map between camera ID to map of timestamp to camera pose estimate (rotation from global to camera, position of camera in global frame)
+         * @return Returns false if it fails to triangulate (based on the thresholds)
+         */
+        bool single_triangulation_1d(Feature* feat, std::unordered_map<size_t,std::unordered_map<double,ClonePose>> &clonesCAM);
 
         /**
          * @brief Uses a nonlinear triangulation to refine initial linear estimate of the feature
@@ -109,6 +124,14 @@ namespace ov_core {
          * @return Returns false if it fails to be optimize (based on the thresholds)
          */
         bool single_gaussnewton(Feature* feat, std::unordered_map<size_t,std::unordered_map<double,ClonePose>> &clonesCAM);
+
+        /**
+         * @brief Gets the current configuration of the feature initializer
+         * @return Const feature initializer config
+         */
+        const FeatureInitializerOptions config() {
+            return _options;
+        }
 
 
     protected:

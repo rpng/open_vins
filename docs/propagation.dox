@@ -279,12 +279,34 @@ In order to propagate the covariance matrix, we should derive the error-state pr
 i.e., computing the system Jacobian  \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and noise Jacobian \f$\mathbf{G}_{k}\f$.
 In particular, when the covariance matrix of the continuous-time measurement noises is given by 
 \f$\mathbf{Q}_c\f$, then the discrete-time noise covariance \f$\mathbf{Q}_d\f$ can be computed as
-(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] @cite Trawny2005TR):
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] @cite Trawny2005TR Eq. (129) and (130)):
 
 \f{align*}{
-\mathbf{Q}_d = \frac{1}{\Delta t} \mathbf{Q}_c
+\sigma_{g} &= \frac{1}{\sqrt{\Delta t}}~ \sigma_{g_c} \\
+\sigma_{bg} &= \sqrt{\Delta t}~ \sigma_{bg_c} \\[1em]
+\mathbf{Q}_{meas} &= 
+\begin{bmatrix}
+\frac{1}{\Delta t}~ \sigma_{g_c}^2~ \mathbf{I}_3 & \mathbf{0}_3 \\
+\mathbf{0}_3 & \frac{1}{\Delta t}~ \sigma_{a_c}^2~ \mathbf{I}_3
+\end{bmatrix} \\
+\mathbf{Q}_{bias} &= 
+\begin{bmatrix}
+\Delta t~ \sigma_{bg_c}^2~ \mathbf{I}_3 & \mathbf{0}_3 \\
+\mathbf{0}_3 & \Delta t~ \sigma_{ba_c}^2~ \mathbf{I}_3
+\end{bmatrix}
 \f}
 
+where \f$\mathbf{n} = [ \mathbf{n}_g ~ \mathbf{n}_a ~ \mathbf{n}_{bg} ~ \mathbf{n}_{ba} ]^\top\f$ are the discrete
+IMU sensor noises which have been converted from their continuous representations.
+We define the stacked discrete measurement noise as follows:
+
+\f{align*}{
+\mathbf{Q}_{d} &= 
+\begin{bmatrix}
+\mathbf{Q}_{meas} & \mathbf{0}_3 \\
+\mathbf{0}_3 & \mathbf{Q}_{bias}
+\end{bmatrix}
+\f}
 
 The method of computing Jacobians is to "perturb" each variable in the system and see how the old error "perturbation" relates to the new error state.
 That is, 
@@ -292,14 +314,8 @@ That is,
 \f{align*}{
 \tilde{\mathbf{x}}_I(t_{k+1}) = \boldsymbol{\Phi}(t_{k+1},t_k) \tilde{\mathbf{x}}_I(t_{k}) + \mathbf{G}_{k} \mathbf{n}
 \f}
-
-
-where \f$\mathbf{n} = [ \mathbf{n}_g ~ \mathbf{n}_a ~ \mathbf{n}_{bg} ~ \mathbf{n}_{ba} ]^\top\f$ are the IMU sensor noises.
-
-
 For the orientation error propagation, we start with the \f$\mathbf{SO}(3)\f$ perturbation using 
-\f${}^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$
-:
+\f${}^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$:
 
 \f{align*}{
 {}^{I_{k+1}}_G \mathbf{R} &= \text{}^{I_{k+1}}_{I_{k}} \mathbf{R}  \text{}^{I_{k}}_G \mathbf{R} \\
@@ -382,26 +398,22 @@ By neglecting the second order error terms, we obtain the following position and
     (\tilde{\mathbf{b}}_{\mathbf{a},k} + \mathbf{n}_{\mathbf{a},k})
 \f}
 
-The propagation of two biases can be derived in the same way:
+The propagation of the two random-walk biases are as follows:
 
 \f{align*}{
-    \mathbf{b}_{\mathbf{g},k+1} &= \mathbf{b}_{\mathbf{g},k} + \int_{t_{k}}^{t_{k+1}}
-    {\mathbf{n}}_{wg}(\tau) d\tau \\
+    \mathbf{b}_{\mathbf{g},k+1} &= \mathbf{b}_{\mathbf{g},k} + \mathbf{n}_{wg} \\
     \hat{\mathbf{b}}_{\mathbf{g},k+1} + \tilde{\mathbf{b}}_{\mathbf{g},k+1} &=
     \hat{\mathbf{b}}_{\mathbf{g},k}  + \tilde{\mathbf{b}}_{\mathbf{g},k}
-     + \int_{t_{k}}^{t_{k+1}}
-    \hat{\mathbf{n}}_{wg}(\tau) d\tau \\
+     + \mathbf{n}_{wg} \\
     \tilde{\mathbf{b}}_{\mathbf{g},k+1} &=
-    \tilde{\mathbf{b}}_{\mathbf{g},k} + \mathbf{n}_{wg}\Delta t \\[1em]
+    \tilde{\mathbf{b}}_{\mathbf{g},k} + \mathbf{n}_{wg} \\[1em]
 
-\mathbf{b}_{\mathbf{a},k+1} &= \mathbf{b}_{\mathbf{a},k} + \int_{t_{k}}^{t_{k+1}}
-    {\mathbf{n}}_{wa}(\tau) d\tau \\
+\mathbf{b}_{\mathbf{a},k+1} &= \mathbf{b}_{\mathbf{a},k} + \mathbf{n}_{wa} \\
     \hat{\mathbf{b}}_{\mathbf{a},k+1} + \tilde{\mathbf{b}}_{\mathbf{a},k+1} &=
     \hat{\mathbf{b}}_{\mathbf{a},k}  + \tilde{\mathbf{b}}_{\mathbf{a},k}
-     + \int_{t_{k}}^{t_{k+1}}
-    \hat{\mathbf{n}}_{wa}(\tau) d\tau \\
+     + \mathbf{n}_{wa} \\
     \tilde{\mathbf{b}}_{\mathbf{a},k+1} &=
-    \tilde{\mathbf{b}}_{\mathbf{a},k} + \mathbf{n}_{wa}\Delta t
+    \tilde{\mathbf{b}}_{\mathbf{a},k} + \mathbf{n}_{wa}
 \f}
 
 By collecting all the perturbation results, we can build \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices as:
@@ -441,10 +453,10 @@ By collecting all the perturbation results, we can build \f$\boldsymbol{\Phi}(t_
 & \mathbf{0}_3 & \mathbf{0}_3 \\
 
 \mathbf{0}_3 & \mathbf{0}_3
-& \Delta t\mathbf{I}_3 & \mathbf{0}_3 \\
+& \mathbf{I}_3 & \mathbf{0}_3 \\
 
 \mathbf{0}_3 & \mathbf{0}_3
-& \mathbf{0}_3 & \Delta t\mathbf{I}_3
+& \mathbf{0}_3 & \mathbf{I}_3
 \end{bmatrix}
 \f}
 

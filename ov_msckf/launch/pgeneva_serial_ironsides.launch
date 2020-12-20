@@ -18,6 +18,7 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/ironsides/neighborhood_01.bag" /> <!-- neighborhood_01, neighborhood_02 -->
@@ -34,9 +35,9 @@
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="0.02" />
         <param name="max_clones"             type="int"    value="15" />
-        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam"               type="int"    value="25" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 15 seems to work well -->
-        <param name="max_msckf_in_update"    type="int"    value="999" />
+        <param name="max_msckf_in_update"    type="int"    value="40" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="dt_slam_delay"          type="double" value="1" />
         <param name="init_window_time"       type="double" value="1.0" />
@@ -58,17 +59,18 @@
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />
-        <param name="num_pts"            type="int"    value="200" />
-        <param name="fast_threshold"     type="int"    value="10" />
+        <param name="num_pts"            type="int"    value="250" />
+        <param name="fast_threshold"     type="int"    value="15" />
         <param name="grid_x"             type="int"    value="5" />
         <param name="grid_y"             type="int"    value="5" />
         <param name="min_px_dist"        type="int"    value="10" />
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
-        <param name="fi_max_dist"        type="double" value="75" />
-        <param name="fi_max_baseline"    type="double" value="500" />
-        <param name="fi_max_cond_number" type="double" value="5000" />
+        <param name="fi_max_dist"        type="double" value="100" />
+        <param name="fi_max_baseline"    type="double" value="999" />
+        <param name="fi_max_cond_number" type="double" value="18000" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />

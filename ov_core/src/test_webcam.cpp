@@ -26,7 +26,6 @@
 #include <sstream>
 #include <unistd.h>
 
-#include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -102,9 +101,9 @@ int main(int argc, char** argv)
     camera_calibration.insert({1,cam0_calib});
 
     // Lets make a feature extractor
-    extractor = new TrackKLT(num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
-    //extractor = new TrackDescriptor(num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
-    //extractor = new TrackAruco(num_aruco,do_downsizing);
+    extractor = new TrackKLT(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,min_px_dist);
+    //extractor = new TrackDescriptor(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,knn_ratio);
+    //extractor = new TrackAruco(num_aruco,true,do_downsizing);
     extractor->set_calibration(camera_calibration, camera_fisheye);
 
 
@@ -114,7 +113,7 @@ int main(int argc, char** argv)
 
     // Open the first webcam (0=laptop cam, 1=usb device)
     cv::VideoCapture cap;
-    if(!cap.open(1)) {
+    if(!cap.open(0)) {
         printf(RED "Unable to open a webcam feed!\n" RESET);
         return EXIT_FAILURE;
     }
@@ -143,7 +142,7 @@ int main(int argc, char** argv)
 
         // Convert to grayscale if not
         if(frame.channels() != 1)
-            cv::cvtColor(frame, frame, CV_BGR2GRAY);
+            cv::cvtColor(frame, frame, cv::COLOR_GRAY2RGB);
 
         // Else lets track this image
         extractor->feed_monocular(current_time, frame, 0);
@@ -159,8 +158,8 @@ int main(int argc, char** argv)
         cv::waitKey(1);
 
         // Get lost tracks
-        FeatureDatabase* database = extractor->get_feature_database();
-        std::vector<Feature*> feats_lost = database->features_not_containing_newer(current_time);
+        std::shared_ptr<FeatureDatabase> database = extractor->get_feature_database();
+        std::vector<std::shared_ptr<Feature>> feats_lost = database->features_not_containing_newer(current_time);
 
         // Mark theses feature pointers as deleted
         for(size_t i=0; i<feats_lost.size(); i++) {
@@ -181,7 +180,7 @@ int main(int argc, char** argv)
             // Remove features that have reached their max track length
             double margtime = clonetimes.at(0);
             clonetimes.pop_front();
-            std::vector<Feature*> feats_marg = database->features_containing(margtime);
+            std::vector<std::shared_ptr<Feature>> feats_marg = database->features_containing(margtime);
             // Delete theses feature pointers
             for(size_t i=0; i<feats_marg.size(); i++) {
                 feats_marg[i]->to_delete = true;

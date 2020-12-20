@@ -24,6 +24,7 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="true" />
@@ -37,7 +38,7 @@
         <param name="max_clones"             type="int"    value="11" />
         <param name="max_slam"               type="int"    value="50" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
-        <param name="max_msckf_in_update"    type="int"    value="999" />
+        <param name="max_msckf_in_update"    type="int"    value="40" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="dt_slam_delay"          type="double" value="5" />
         <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
@@ -59,13 +60,14 @@
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />
-        <param name="num_pts"            type="int"    value="200" />
+        <param name="num_pts"            type="int"    value="300" />
         <param name="fast_threshold"     type="int"    value="15" />
         <param name="grid_x"             type="int"    value="5" />
         <param name="grid_y"             type="int"    value="5" />
         <param name="min_px_dist"        type="int"    value="5" />
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />

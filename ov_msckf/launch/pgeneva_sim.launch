@@ -9,8 +9,8 @@
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
-    <arg name="num_slam"    default="50" />
-    <arg name="num_pts"     default="100" />
+    <arg name="num_slam"    default="25" />
+    <arg name="num_pts"     default="500" />
     <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
@@ -72,6 +72,8 @@
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="$(arg num_clones)" />
         <param name="max_slam"               type="int"    value="$(arg num_slam)" />
+        <param name="max_slam_in_update"     type="int"    value="25" />
+        <param name="max_msckf_in_update"    type="int"    value="10" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="dt_slam_delay"          type="double" value="4" />
         <param name="init_window_time"       type="double" value="0.75" />
@@ -96,6 +98,7 @@
         <param name="min_px_dist"        type="int"    value="8" />
         <param name="knn_ratio"          type="double" value="0.70" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />

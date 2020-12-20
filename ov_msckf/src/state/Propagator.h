@@ -24,6 +24,7 @@
 
 #include "state/StateHelper.h"
 #include "utils/quat_ops.h"
+#include "utils/sensor_data.h"
 
 
 using namespace ov_core;
@@ -42,23 +43,6 @@ namespace ov_msckf {
     class Propagator {
 
     public:
-
-        /**
-         * @brief Struct for a single imu measurement (time, wm, am)
-         */
-        struct IMUDATA {
-
-            /// Timestamp of the reading
-            double timestamp;
-
-            /// Gyroscope reading, angular velocity (rad/s)
-            Eigen::Matrix<double, 3, 1> wm;
-
-            /// Accelerometer reading, linear acceleration (m/s^2)
-            Eigen::Matrix<double, 3, 1> am;
-
-        };
-
 
         /**
          * @brief Struct of our imu noise parameters
@@ -116,32 +100,19 @@ namespace ov_msckf {
 
         /**
          * @brief Stores incoming inertial readings
-         * @param timestamp Timestamp of imu reading
-         * @param wm Gyro angular velocity reading
-         * @param am Accelerometer linear acceleration reading
+         * @param message Contains our timestamp and inertial information
          */
-        void feed_imu(double timestamp, Eigen::Vector3d wm, Eigen::Vector3d am) {
-
-            // Create our imu data object
-            IMUDATA data;
-            data.timestamp = timestamp;
-            data.wm = wm;
-            data.am = am;
+        void feed_imu(const ov_core::ImuData &message) {
 
             // Append it to our vector
-            imu_data.emplace_back(data);
-
-            // Sort our imu data (handles any out of order measurements)
-            //std::sort(imu_data.begin(), imu_data.end(), [](const IMUDATA i, const IMUDATA j) {
-            //    return i.timestamp < j.timestamp;
-            //});
+            imu_data.emplace_back(message);
 
             // Loop through and delete imu messages that are older then 20 seconds
             // TODO: we should probably have more elegant logic then this
             // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
             auto it0 = imu_data.begin();
             while(it0 != imu_data.end()) {
-                if(timestamp-(*it0).timestamp > 20) {
+                if(message.timestamp-(*it0).timestamp > 20) {
                     it0 = imu_data.erase(it0);
                 } else {
                     it0++;
@@ -163,7 +134,7 @@ namespace ov_msckf {
          * @param state Pointer to state
          * @param timestamp Time to propagate to and clone at
          */
-        void propagate_and_clone(State *state, double timestamp);
+        void propagate_and_clone(std::shared_ptr<State> state, double timestamp);
 
 
         /**
@@ -177,7 +148,7 @@ namespace ov_msckf {
          * @param timestamp Time to propagate to
          * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
          */
-        void fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus);
+        void fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double,13,1> &state_plus);
 
 
         /**
@@ -192,7 +163,7 @@ namespace ov_msckf {
          * @param time1 End timestamp
          * @return Vector of measurements (if we could compute them)
          */
-        static std::vector<IMUDATA> select_imu_readings(const std::vector<IMUDATA>& imu_data, double time0, double time1);
+        static std::vector<ov_core::ImuData> select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1);
 
         /**
          * @brief Nice helper function that will linearly interpolate between two imu messages.
@@ -204,12 +175,12 @@ namespace ov_msckf {
          * @param imu_2 imu at end of interpolation interval
          * @param timestamp Timestamp being interpolated to
          */
-        static IMUDATA interpolate_data(const IMUDATA imu_1, const IMUDATA imu_2, double timestamp) {
+        static ov_core::ImuData interpolate_data(const ov_core::ImuData &imu_1, const ov_core::ImuData &imu_2, double timestamp) {
             // time-distance lambda
             double lambda = (timestamp - imu_1.timestamp) / (imu_2.timestamp - imu_1.timestamp);
             //cout << "lambda - " << lambda << endl;
             // interpolate between the two times
-            IMUDATA data;
+            ov_core::ImuData data;
             data.timestamp = timestamp;
             data.am = (1 - lambda) * imu_1.am + lambda * imu_2.am;
             data.wm = (1 - lambda) * imu_1.wm + lambda * imu_2.wm;
@@ -221,7 +192,7 @@ namespace ov_msckf {
 
 
         /// Estimate for time offset at last propagation time
-        double last_prop_time_offset = -INFINITY;
+        double last_prop_time_offset = 0.0;
         bool have_last_prop_time_offset = false;
 
         /**
@@ -239,7 +210,7 @@ namespace ov_msckf {
          * @param F State-transition matrix over the interval
          * @param Qd Discrete-time noise covariance over the interval
          */
-        void predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
+        void predict_and_compute(std::shared_ptr<State> state, const ov_core::ImuData &data_minus, const ov_core::ImuData &data_plus,
                                  Eigen::Matrix<double, 15, 15> &F, Eigen::Matrix<double, 15, 15> &Qd);
 
         /**
@@ -268,7 +239,7 @@ namespace ov_msckf {
          * @param new_v The resulting new velocity after integration
          * @param new_p The resulting new position after integration
          */
-        void predict_mean_discrete(State *state, double dt,
+        void predict_mean_discrete(std::shared_ptr<State> state, double dt,
                                    const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                                    const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                                    Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);
@@ -298,7 +269,7 @@ namespace ov_msckf {
          * @param new_v The resulting new velocity after integration
          * @param new_p The resulting new position after integration
          */
-        void predict_mean_rk4(State *state, double dt,
+        void predict_mean_rk4(std::shared_ptr<State> state, double dt,
                               const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                               const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                               Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);
@@ -308,7 +279,7 @@ namespace ov_msckf {
         NoiseManager _noises;
 
         /// Our history of IMU messages (time, angular, linear)
-        std::vector<IMUDATA> imu_data;
+        std::vector<ov_core::ImuData> imu_data;
 
         /// Gravity vector
         Eigen::Matrix<double, 3, 1> _gravity;

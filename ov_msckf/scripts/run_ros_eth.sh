@@ -18,28 +18,28 @@ modes=(
 
 # dataset locations
 bagnames=(
-    "V1_01_easy"
-    "V1_02_medium"
-    "V1_03_difficult"
-    "V2_01_easy"
-    "V2_02_medium"
-    "V2_03_difficult"
-    "MH_01_easy"
-    "MH_02_easy"
-    "MH_03_medium"
-    "MH_04_difficult"
-    "MH_05_difficult"
+     "V1_01_easy"
+     "V1_02_medium"
+     "V1_03_difficult"
+     "V2_01_easy"
+     "V2_02_medium"
+     "V2_03_difficult"
+#   "MH_01_easy"
+#   "MH_02_easy"
+#   "MH_03_medium"
+#   "MH_04_difficult"
+#   "MH_05_difficult"
 )
 
 # how far we should start into the dataset
 # this can be used to skip the initial sections
 bagstarttimes=(
-    "0"
-    "0"
-    "0"
-    "0"
-    "0"
-    "0"
+     "0"
+     "0"
+     "0"
+     "0"
+     "0"
+     "0"
     "40"
     "35"
     "15"
@@ -62,7 +62,7 @@ imuthreshold=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins/exp_testing/algorithms"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3/exp_euroc/algorithms"
 bag_path="/media/patrick/RPNG\ FLASH\ 2/euroc"
 
 
@@ -78,11 +78,11 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..01}; do
+for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
+filename_est="$save_path1/ov_2.3_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
@@ -102,7 +102,7 @@ then
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_eth.launch max_cameras:="$temp1" use_stereo:="$temp2" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" #&> /dev/null
+roslaunch ov_msckf pgeneva_ros_eth.launch max_cameras:="$temp1" use_stereo:="$temp2" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"

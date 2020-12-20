@@ -24,20 +24,14 @@
 using namespace ov_core;
 
 
-void InertialInitializer::feed_imu(double timestamp, Eigen::Matrix<double,3,1> wm, Eigen::Matrix<double,3,1> am) {
-
-    // Create our imu data object
-    IMUDATA data;
-    data.timestamp = timestamp;
-    data.wm = wm;
-    data.am = am;
+void InertialInitializer::feed_imu(const ImuData &message) {
 
     // Append it to our vector
-    imu_data.emplace_back(data);
+    imu_data.push_back(message);
 
     // Delete all measurements older than three of our initialization windows
     auto it0 = imu_data.begin();
-    while(it0 != imu_data.end() && it0->timestamp < timestamp-3*_window_length) {
+    while(it0 != imu_data.end() && it0->timestamp < message.timestamp-3*_window_length) {
         it0 = imu_data.erase(it0);
     }
 
@@ -59,8 +53,8 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
     double newesttime = imu_data.at(imu_data.size()-1).timestamp;
 
     // First lets collect a window of IMU readings from the newest measurement to the oldest
-    std::vector<IMUDATA> window_newest, window_secondnew;
-    for(IMUDATA data : imu_data) {
+    std::vector<ImuData> window_newest, window_secondnew;
+    for(const ImuData& data : imu_data) {
         if(data.timestamp > newesttime-1*_window_length && data.timestamp <= newesttime-0*_window_length) {
             window_newest.push_back(data);
         }
@@ -77,12 +71,12 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
 
     // Calculate the sample variance for the newest one
     Eigen::Matrix<double,3,1> a_avg = Eigen::Matrix<double,3,1>::Zero();
-    for(IMUDATA data : window_newest) {
+    for(const ImuData& data : window_newest) {
         a_avg += data.am;
     }
     a_avg /= (int)window_newest.size();
     double a_var = 0;
-    for(IMUDATA data : window_newest) {
+    for(const ImuData& data : window_newest) {
         a_var += (data.am-a_avg).dot(data.am-a_avg);
     }
     a_var = std::sqrt(a_var/((int)window_newest.size()-1));
@@ -112,10 +106,9 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
     linavg = linsum/window_secondnew.size();
     angavg = angsum/window_secondnew.size();
 
-
     // Calculate variance of the
     double a_var2 = 0;
-    for(IMUDATA data : window_secondnew) {
+    for(const ImuData& data : window_secondnew) {
         a_var2 += (data.am-linavg).dot(data.am-linavg);
     }
     a_var2 = std::sqrt(a_var2/((int)window_secondnew.size()-1));
@@ -126,7 +119,6 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
         printf(YELLOW "InertialInitializer::initialize_with_imu(): to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET,a_var,a_var2,_imu_excite_threshold);
         return false;
     }
-
 
     // Get z axis, which alines with -g (z_in_G=0,0,1)
     Eigen::Vector3d z_axis = linavg/linavg.norm();
@@ -164,7 +156,6 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
 
     // Done!!!
     return true;
-
 
 }
 

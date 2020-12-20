@@ -1,13 +1,13 @@
 /**
 
 
-@page update-featinit 3D Feature Triangulation
+@page update-featinit Feature Triangulation
+@tableofcontents
 
 
-@section featinit-linear Linear Triangulation
+@section featinit-linear 3D Cartesian Triangulation
 
-
-We wish to create a solvable linear system that can give us an initial guess for the 3D position of our feature.
+We wish to create a solvable linear system that can give us an initial guess for the 3D cartesian position of our feature.
 To do this, we take all the poses that the feature is seen from to be of known quantity.
 This feature will be triangulated in some anchor camera frame \f$\{A\}\f$ which we can arbitrary pick.
 If the feature \f$\mathbf{p}_f\f$ is observed by pose \f$1\ldots m\f$, given the anchor pose \f$A\f$,
@@ -18,8 +18,7 @@ we can have the following transformation from any camera pose \f$C_i, i=1\ldots 
 	 {}^A\mathbf{p}_f & = {}^{C_i}_A\mathbf{R}^\top {}^{C_i}\mathbf{p}_{f} + {}^A\mathbf{p}_{C_i}
 \f}
 
-
-In the absents of noise, the measurement in the current frame is the unknown bearing \f${}^{C_i}\mathbf{b}\f$ and its depth \f${}^{C_i}z\f$.
+In the absents of noise, the measurement in the current frame is the bearing \f${}^{C_i}\mathbf{b}\f$ and its depth \f${}^{C_i}z\f$.
 Thus we have the following mapping to a feature seen from the current frame:
 
 \f{align*}{
@@ -36,78 +35,74 @@ This bearing can be warped into the the anchor frame by substituting into the ab
 
 \f{align*}{
 	 {}^A\mathbf{p}_f
-	 & = {}^{C_i}_A\mathbf{R}^\top z_{f} {}^{C_i}\mathbf{b}_{f} + {}^A\mathbf{p}_{C_i} \\
-	 & = z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} + {}^A\mathbf{p}_{C_i}
+	 & = {}^{C_i}_A\mathbf{R}^\top {}^{C_i}z_{f} {}^{C_i}\mathbf{b}_{f} + {}^A\mathbf{p}_{C_i} \\
+	 & = {}^{C_i}z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} + {}^A\mathbf{p}_{C_i}
 \f}
             
-To remove the need to estimate the extra degree of freedom of depth \f$z_{f}\f$, we define the following two vectors:
+To remove the need to estimate the extra degree of freedom of depth \f${}^{C_i}z_{f}\f$, we define the following vectors
+which are orthoganal to the bearing \f${}^{A}\mathbf{b}_{C_i \rightarrow f}\f$:
 
 \f{align*}{
-    {}^{A}\mathbf{n}_{1} &= \begin{bmatrix} -{}^{A}{b}_{C_i \rightarrow f}(3) & 0 & {}^{A}{b}_{C_i \rightarrow f}(1) \end{bmatrix}^{\top} \\
-    {}^{A}\mathbf{n}_{2} &= \begin{bmatrix} 0 & {}^{A}{b}_{C_i \rightarrow f}(3) & -{}^{A}{b}_{C_i \rightarrow f}(2) \end{bmatrix}^{\top}
+    {}^{A}\mathbf{N}_i &= 
+    \lfloor {}^{A}\mathbf{b}_{C_i \rightarrow f} \times\rfloor 
+    =
+    \begin{bmatrix}
+    0 & -{}^{A}{b}_{C_i \rightarrow f}(3) & {}^{A}{b}_{C_i \rightarrow f}(2) \\
+    {}^{A}{b}_{C_i \rightarrow f}(3) & 0 & -{}^{A}{b}_{C_i \rightarrow f}(1) \\
+    -{}^{A}{b}_{C_i \rightarrow f}(2) & {}^{A}{b}_{C_i \rightarrow f}(1) & 0 \\
+    \end{bmatrix}
 \f}
 
-These are perpendicular with the vector \f${}^{A}\mathbf{b}_{C_i \rightarrow f}\f$ and thus \f${}^{A}\mathbf{n}_{1}^{\top}{}^{A}\mathbf{b}_{C_i \rightarrow f}=0\f$ and \f${}^{A}\mathbf{n}_{2}^{\top}{}^{A}\mathbf{b}_{C_i \rightarrow f}=0\f$ holds true.
+All three rows are perpendicular to the vector \f${}^{A}\mathbf{b}_{C_i \rightarrow f}\f$ and thus \f${}^{A}\mathbf{N}_i{}^{A}\mathbf{b}_{C_i \rightarrow f}=\mathbf{0}_3\f$.
 We can then multiple the transform equation/constraint to form two equation which only relates to the unknown 3 d.o.f \f${}^A\mathbf{p}_f\f$:
 
 \f{align*}{
-	\begin{bmatrix}
-	{}^{A}\mathbf{n}_{1}^{\top} \\
-	{}^{A}\mathbf{n}_{2}^{\top} 
-	\end{bmatrix}
+	{}^{A}\mathbf{N}_i
 	{}^A\mathbf{p}_f & = 
-	\begin{bmatrix}
-	{}^{A}\mathbf{n}_{1}^{\top} \\
-	{}^{A}\mathbf{n}_{2}^{\top} 
-	\end{bmatrix}
-	z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} +
-	\begin{bmatrix}
-	{}^{A}\mathbf{n}_{1}^{\top} \\
-	{}^{A}\mathbf{n}_{2}^{\top} 
-	\end{bmatrix}
-	{}^A\mathbf{p}_{C_i} \\
-	\begin{bmatrix}
-    {}^{A}\mathbf{n}_{1}^{\top} \\
-    {}^{A}\mathbf{n}_{2}^{\top} 
-    \end{bmatrix}
-    {}^A\mathbf{p}_f & =
-    \begin{bmatrix}
-    {}^{A}\mathbf{n}_{1}^{\top} \\
-    {}^{A}\mathbf{n}_{2}^{\top} 
-    \end{bmatrix}
-    {}^A\mathbf{p}_{C_i}
+	{}^{A}\mathbf{N}_i {}^{C_i}z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} +
+	{}^{A}\mathbf{N}_i {}^A\mathbf{p}_{C_i} \\
+    & = {}^{A}\mathbf{N}_i {}^A\mathbf{p}_{C_i}
 \f}
 
 By stacking all the measurements, we can have:
 
 \f{align*}{
+\underbrace{
 	\begin{bmatrix}
 	\vdots 
 	\\
-	\begin{bmatrix}
-	{}^{A}\mathbf{n}_{1}^{\top} \\
-	{}^{A}\mathbf{n}_{2}^{\top} 
-	\end{bmatrix}
+	{}^{A}\mathbf{N}_i
 	\\
 	\vdots
 	\end{bmatrix}
-	{}^A\mathbf{p}_f & =  
+}_{\mathbf{A}}
+	{}^A\mathbf{p}_f & =
+\underbrace{
 	\begin{bmatrix}
 	\vdots 
 	\\
-	\begin{bmatrix}
-	{}^{A}\mathbf{n}_{1}^{\top} \\
-	{}^{A}\mathbf{n}_{2}^{\top} 
-	\end{bmatrix}
+	{}^{A}\mathbf{N}_i
 	{}^A\mathbf{p}_{C_i}
 	\\
 	\vdots
 	\end{bmatrix}
+}_{\mathbf{b}}
 \f}
 
 
-Since each pixel measurement provides two constraints, as long as \f$m>1\f$, we will have enough constraints to triangulate the feature. 
+Since each pixel measurement provides two constraints, as long as \f$m>1\f$, we will have enough constraints to triangulate the feature.
 In practice, the more views of the feature the better the triangulation and thus normally want to have a feature seen from at least five views.
+We could select two rows of the each \f${}^{A}\mathbf{N}_i\f$ to reduce the number of rows, but by having a square system we can perform the following "trick".
+\f{align*}{
+\mathbf{A}^\top\mathbf{A}~
+{}^A\mathbf{p}_f &=
+\mathbf{A}^\top\mathbf{b} \\
+\Big( \sum_i  {}^{A}\mathbf{N}_i^\top {}^{A}\mathbf{N}_i \Big)
+{}^A\mathbf{p}_f &=
+\Big( \sum_i  {}^{A}\mathbf{N}_i^\top {}^{A}\mathbf{N}_i {}^A\mathbf{p}_{C_i} \Big)
+\f}
+
+This is a 3x3 system which can be quickly solved for as compared to the originl 3mx3m or 2mx2m system.
 We additionally check that the triangulated feature is "valid" and in front of the camera and not too far away.
 The [condition number](https://en.wikipedia.org/wiki/Condition_number) of the above linear system and reject systems that are "sensitive" to errors and have a large value.
 
@@ -115,7 +110,77 @@ The [condition number](https://en.wikipedia.org/wiki/Condition_number) of the ab
 
 
 
-@section featinit-nonlinear Non-linear Feature Optimization
+
+@section featinit-linear-1d 1D Depth Triangulation
+
+We wish to create a solvable linear system that can give us an initial guess for the 1D depth position of our feature.
+To do this, we take all the poses that the feature is seen from to be of known quantity along with the bearing in the anchor frame.
+This feature will be triangulated in some anchor camera frame \f$\{A\}\f$ which we can arbitrary pick.
+We define it as its normalized image coordiantes \f$[u_n ~ v_n ~ 1]^\top\f$ in tha anchor frame.
+If the feature \f$\mathbf{p}_f\f$ is observed by pose \f$1\ldots m\f$, given the anchor pose \f$A\f$,
+we can have the following transformation from any camera pose \f$C_i, i=1\ldots m\f$:
+
+\f{align*}{
+	{}^{C_i}\mathbf{p}_{f} & = {}^{C_i}_A\mathbf{R} \left( {}^A\mathbf{p}_f - {}^A\mathbf{p}_{C_i}\right) \\
+	 {}^A\mathbf{p}_f & = {}^{C_i}_A\mathbf{R}^\top {}^{C_i}\mathbf{p}_{f} + {}^A\mathbf{p}_{C_i} \\
+	 {}^{A}z_{f} {}^A\mathbf{b}_f & = {}^{C_i}_A\mathbf{R}^\top {}^{C_i}\mathbf{p}_{f} + {}^A\mathbf{p}_{C_i} \\
+\f}
+
+In the absents of noise, the measurement in the current frame is the bearing \f${}^{C_i}\mathbf{b}\f$ and its depth \f${}^{C_i}z\f$.
+
+\f{align*}{
+	{}^{C_i}\mathbf{p}_f &
+	= {}^{C_i}z_{f} {}^{C_i}\mathbf{b}_{f}
+	= {}^{C_i}z_{f}
+	\begin{bmatrix}
+	u_n \\ v_n \\ 1
+	\end{bmatrix}
+\f}
+
+We note that \f$u_n\f$ and \f$v_n\f$ represent the undistorted normalized image coordinates.
+This bearing can be warped into the the anchor frame by substituting into the above equation:
+
+\f{align*}{
+	 {}^{A}z_{f} {}^A\mathbf{b}_f
+	 & = {}^{C_i}_A\mathbf{R}^\top {}^{C_i}z_{f} {}^{C_i}\mathbf{b}_{f} + {}^A\mathbf{p}_{C_i} \\
+	 & = {}^{C_i}z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} + {}^A\mathbf{p}_{C_i}
+\f}
+            
+To remove the need to estimate the extra degree of freedom of depth \f${}^{C_i}z_{f}\f$, we define the following vectors
+which are orthoganal to the bearing \f${}^{A}\mathbf{b}_{C_i \rightarrow f}\f$:
+
+\f{align*}{
+    {}^{A}\mathbf{N}_i &= 
+    \lfloor {}^{A}\mathbf{b}_{C_i \rightarrow f} \times\rfloor 
+\f}
+
+All three rows are perpendicular to the vector \f${}^{A}\mathbf{b}_{C_i \rightarrow f}\f$ and thus \f${}^{A}\mathbf{N}_i{}^{A}\mathbf{b}_{C_i \rightarrow f}=\mathbf{0}_3\f$.
+We can then multiple the transform equation/constraint to form two equation which only relates to the unknown \f${}^{A}z_{f}\f$:
+
+\f{align*}{
+	({}^{A}\mathbf{N}_i	{}^A\mathbf{b}_f)
+	{}^{A}z_{f} & = 
+	{}^{A}\mathbf{N}_i {}^{C_i}z_{f} {}^{A}\mathbf{b}_{C_i \rightarrow f} +
+	{}^{A}\mathbf{N}_i {}^A\mathbf{p}_{C_i} \\
+    & = {}^{A}\mathbf{N}_i {}^A\mathbf{p}_{C_i}
+\f}
+
+We can then formulate the following system:
+
+\f{align*}{
+\Big( \sum_i  ({}^{A}\mathbf{N}_i{}^A\mathbf{b}_f)^\top ({}^{A}\mathbf{N}_i{}^A\mathbf{b}_f) \Big)
+{}^{A}z_{f} &=
+\Big( \sum_i  ({}^{A}\mathbf{N}_i{}^A\mathbf{b}_f)^\top {}^{A}\mathbf{N}_i{}^A \mathbf{b}_i \Big)
+\f}
+
+This is a 1x1 system which can be quickly solved for with a single scalar division.
+We additionally check that the triangulated feature is "valid" and in front of the camera and not too far away.
+The full feature can be reconstructed by \f$ {}^A\mathbf{p}_f = {}^{A}z_{f} {}^A\mathbf{b}_f\f$.
+
+
+
+
+@section featinit-nonlinear 3D Inverse Non-linear Optimization
 
 After we get the triangulated feature 3D position, a nonlinear least-squares will be performed to refine this estimate. 
 In order to achieve good numerical stability, we use the inverse depth representation for point feature which helps with convergence.

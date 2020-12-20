@@ -1,0 +1,64 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ master, develop_v2.3 ]
+  pull_request:
+    branches: [ master, develop_v2.3 ]
+    
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'skip ci')"
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-16.04, ubuntu-18.04, ubuntu-20.04]
+        compiler: ["/usr/bin/g++"]
+    steps:
+    - uses: actions/checkout@v2
+    - name: Checkout submodules
+      uses: textbook/git-checkout-submodule-action@master
+
+    - name: Install apt dependencies (ubuntu-16.04)
+      if: matrix.os == 'ubuntu-16.04'
+      run: |
+        sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+        sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
+        curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add - &&
+        sudo apt update && sudo apt -y install build-essential ros-kinetic-desktop python-catkin-pkg python-catkin-tools libeigen3-dev git &&
+        touch ~/.bashrc && echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+
+    - name: Install apt dependencies (ubuntu-18.04)
+      if: matrix.os == 'ubuntu-18.04'
+      run: |
+        sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+        sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
+        curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add - &&
+        sudo apt update && sudo apt -y install build-essential ros-melodic-desktop python-catkin-pkg python-catkin-tools libeigen3-dev git &&
+        touch ~/.bashrc && echo "source /opt/ros/melodic/setup.bash" >> ~/.bashrc
+
+    - name: Install apt dependencies (ubuntu-20.04)
+      if: matrix.os == 'ubuntu-20.04'
+      run: |
+        sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list' &&
+        sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654 &&
+        curl -sSL 'http://keyserver.ubuntu.com/pks/lookup?op=get&search=0xC1CF6E31E6BADE8868B172B4F42ED6FBAB17C654' | sudo apt-key add - &&
+        sudo apt update && sudo apt -y install build-essential ros-noetic-desktop python3-catkin-pkg python3-catkin-tools python3-osrf-pycommon libeigen3-dev git &&
+        touch ~/.bashrc && echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+
+    - name: Create catkin workspace and compile
+      run: |
+        export REPO=$(basename $GITHUB_REPOSITORY) &&
+        cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
+        mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
+        source /opt/ros/$(ls -1 /opt/ros/ | head -n1)/setup.bash && echo "ros version: $ROS_DISTRO" &&
+        catkin build -j2 --no-status
+
+    - name: Run simulation dataset
+      run: |
+        source $GITHUB_WORKSPACE/devel/setup.bash &&
+        roscore &
+        export REPO=$(basename $GITHUB_REPOSITORY) &&
+        source $GITHUB_WORKSPACE/devel/setup.bash &&
+        rosrun ov_msckf run_simulation _sim_traj_path:=$GITHUB_WORKSPACE/src/$REPO/ov_data/sim/udel_gore.txt

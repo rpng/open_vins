@@ -22,6 +22,7 @@
 #define OV_MSCKF_STATE_H
 
 
+#include <map>
 #include <vector>
 #include <unordered_map>
 
@@ -67,7 +68,7 @@ namespace ov_msckf {
          */
         double margtimestep() {
             double time = INFINITY;
-            for (std::pair<const double, PoseJPL*> &clone_imu : _clones_IMU) {
+            for (const auto &clone_imu : _clones_IMU) {
                 if (clone_imu.first < time) {
                     time = clone_imu.first;
                 }
@@ -91,22 +92,22 @@ namespace ov_msckf {
         StateOptions _options;
 
         /// Pointer to the "active" IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)
-        IMU *_imu;
+        std::shared_ptr<IMU> _imu;
 
         /// Map between imaging times and clone poses (q_GtoIi, p_IiinG)
-        std::map<double, PoseJPL*> _clones_IMU;
+        std::map<double, std::shared_ptr<PoseJPL>> _clones_IMU;
 
         /// Our current set of SLAM features (3d positions)
-        std::unordered_map<size_t, Landmark*> _features_SLAM;
+        std::unordered_map<size_t, std::shared_ptr<Landmark>> _features_SLAM;
 
         /// Time offset base IMU to camera (t_imu = t_cam + t_off)
-        Vec *_calib_dt_CAMtoIMU;
+        std::shared_ptr<Vec> _calib_dt_CAMtoIMU;
 
         /// Calibration poses for each camera (R_ItoC, p_IinC)
-        std::unordered_map<size_t, PoseJPL*> _calib_IMUtoCAM;
+        std::unordered_map<size_t, std::shared_ptr<PoseJPL>> _calib_IMUtoCAM;
 
         /// Camera intrinsics
-        std::unordered_map<size_t, Vec*> _cam_intrinsics;
+        std::unordered_map<size_t, std::shared_ptr<Vec>> _cam_intrinsics;
 
         /// What distortion model we are using (false=radtan, true=fisheye)
         std::unordered_map<size_t, bool> _cam_intrinsics_model;
@@ -123,7 +124,7 @@ namespace ov_msckf {
         Eigen::MatrixXd _Cov;
 
         /// Vector of variables
-        std::vector<Type*> _variables;
+        std::vector<std::shared_ptr<Type>> _variables;
 
 
     };

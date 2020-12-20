@@ -9,6 +9,7 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- bag parameters -->
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/vi_sensor/aruco_room/aruco_hallway_01.bag" />-->
@@ -53,6 +54,7 @@
         <param name="min_px_dist"        type="int"    value="10" />
         <param name="knn_ratio"          type="double" value="0.85" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="true" />

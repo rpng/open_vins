@@ -6,39 +6,48 @@
 
 @section gs-install-ros ROS Dependency
 
-Our codebase is built on top of the [Robot Operating System (ROS)](https://www.ros.org/) and has been tested building on Ubuntu 16.04 systems with ROS Kinetic Kame.
+Our codebase is built on top of the [Robot Operating System (ROS)](https://www.ros.org/) and has been tested building on Ubuntu 16.04, 18.04, 20.04 systems with ROS Kinetic, Melodic, and Noetic.
 We also recommend installing the [catkin_tools](https://github.com/catkin/catkin_tools) build for easy ROS building.
-Please see the official instructions [here](http://wiki.ros.org/kinetic/Installation/Ubuntu), which have also been copied below.
+All ROS installs include [OpenCV](https://github.com/opencv/opencv), but if you need to build OpenCV from source ensure you build the contributed modules as we use Aruco feature extraction.
+See the [opencv_contrib](https://github.com/opencv/opencv_contrib) readme on how to configure your cmake command when you build the core OpenCV library.
+We have tested building with OpenCV 3.2, 3.3, 3.4, 4.2, and 4.5.
+Please see the official instructions to install ROS:
+
+* [Ubuntu 16.04 ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) (uses OpenCV 3.3)
+* [Ubuntu 18.04 ROS Melodic](http://wiki.ros.org/melodic/Installation/Ubuntu) (uses OpenCV 3.2)
+* [Ubuntu 20.04 ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu) (uses OpenCV 4.2)
+
 
 @m_class{m-block m-warning}
 
 @par ROS Usage in OpenVINS
     We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
+    You will need to ensure you have installed OpenCV and Eigen3 which are the only dependencies.
     If ROS is not found on the system, one can use command line options to run the simulation without any visualization.
     If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
-
 
 @code{.shell-session}
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 sudo apt-get update
-sudo apt-get install ros-kinetic-desktop-full
-sudo apt-get install python-catkin-tools
-echo "source /opt/ros/kinetic/setup.bash" >> ~/.bashrc
+export ROS_DISTRO=melodic # kinetic=16.04, melodic=18.04, noetic=20.04
+sudo apt-get install ros-$ROS_DISTRO-desktop-full
+echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 source ~/.bashrc
+sudo apt-get install libeigen3-dev python-catkin-tools # ubuntu 16.04 or 18.04
+sudo apt-get install libeigen3-dev python3-catkin-tools python3-osrf-pycommon # ubuntu 20.04
 @endcode
 
 
+@section gs-install-opencv OpenCV Dependency (from source)
 
-@section gs-install-opencv OpenCV Dependency
-
-We leverage [OpenCV 3.4.6](https://opencv.org/) for this project and recommend you compile it from source.
-You can try linking to the one included with ROS but we have always had success with building from source to ensure we have all contributed OpenCV libraries.
-One should make sure you can see some of the "contrib" (e.g. xfeature2d) to ensure you have linked to the contrib modules.
+We leverage [OpenCV](https://opencv.org/) for this project which you can typically use the install from ROS.
+If these do not work (or are using non-ROS building), then you can try building OpenCV from source ensuring you include the contrib modules.
+One should make sure you can see some of the "contrib" (e.g. aruco) when you cmake to ensure you have linked to the contrib modules.
 
 @code{.shell-session}
-git clone --branch 3.4.6 https://github.com/opencv/opencv/
-git clone --branch 3.4.6 https://github.com/opencv/opencv_contrib/
+git clone https://github.com/opencv/opencv/
+git clone https://github.com/opencv/opencv_contrib/
 mkdir opencv/build/
 cd opencv/build/
 cmake -DOPENCV_EXTRA_MODULES_PATH=../../opencv_contrib/modules ..
@@ -48,16 +57,15 @@ sudo make install
 
 
 
-
 @section gs-install-openvins Cloning the OpenVINS Project
 
-
-Now that we have ROS and OpenCV install we can setup a catkin workspace and build the project!
+Now that we have ROS installed we can setup a catkin workspace and build the project!
 If you did not install the catkin_tools build system, you should be able to build using the standard `catkin_make` command that is included with ROS.
 If you run into any problems please google search the issue first and if you are unable to find a solution please open an issue on our github page.
 After the build is successful please following the @ref gs-tutorial guide on getting a dataset and running the system.
 
 @code{.shell-session}
+sudo apt-get install python-catkin-tools
 mkdir -p ~/workspace/catkin_ws_ov/src/
 cd ~/workspace/catkin_ws_ov/src/
 git clone https://github.com/rpng/open_vins/

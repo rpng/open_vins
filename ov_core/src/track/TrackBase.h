@@ -27,10 +27,9 @@
 #include <mutex>
 #include <atomic>
 #include <unordered_map>
-#include <Eigen/StdVector>
 
 #include <boost/thread.hpp>
-#include <opencv/cv.hpp>
+#include <opencv2/opencv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -75,17 +74,21 @@ namespace ov_core {
         /**
          * @brief Public default constructor
          */
-        TrackBase() : database(new FeatureDatabase()), num_features(200), currid(0) { }
+        TrackBase() : database(new FeatureDatabase()), num_features(200), use_multi_threading(false), currid(0) { }
 
         /**
          * @brief Public constructor with configuration variables
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
+         * @param multithread if we should try to process with multiple threads or single threaded
          */
-        TrackBase(int numfeats, int numaruco) : database(new FeatureDatabase()), num_features(numfeats) {
+        TrackBase(int numfeats, int numaruco, bool multithread) :
+            database(new FeatureDatabase()), num_features(numfeats), use_multi_threading(multithread) {
             // Our current feature ID should be larger then the number of aruco tags we have
             currid = (size_t) numaruco + 1;
         }
+
+        virtual ~TrackBase() { }
 
 
         /**
@@ -104,7 +107,7 @@ namespace ov_core {
 
             // Initialize our mutex and camera intrinsic values if we are just starting up
             // The number of cameras should not change over time, thus we just need to check if our initial data is empty
-            if(mtx_feeds.empty() || camera_k_OPENCV.empty() || camera_k_OPENCV.empty() || this->camera_fisheye.empty()) {
+            if(mtx_feeds.empty() || camera_k_OPENCV.empty() || camera_d_OPENCV.empty() || this->camera_fisheye.empty()) {
                 // Create our mutex array based on the number of cameras we have
                 // See https://stackoverflow.com/a/24170141/7718197
                 std::vector<std::mutex> list(camera_calib.size());
@@ -141,6 +144,7 @@ namespace ov_core {
             // assert that the number of cameras can not change
             assert(camera_k_OPENCV.size()==camera_calib.size());
             assert(camera_k_OPENCV.size()==camera_fisheye.size());
+            assert(camera_k_OPENCV.size()==camera_d_OPENCV.size());
 
             // Convert values to the OpenCV format
             for (auto const &cam : camera_calib) {
@@ -177,12 +181,12 @@ namespace ov_core {
             if(correct_active) {
 
                 // Get all features in this database
-                std::unordered_map<size_t, Feature*> features_idlookup = database->get_internal_data();
+                std::unordered_map<size_t, std::shared_ptr<Feature>> features_idlookup = database->get_internal_data();
 
                 // Loop through and correct each one
                 for(const auto& pair_feat : features_idlookup) {
                     // Get our feature
-                    Feature *feat = pair_feat.second;
+                    std::shared_ptr<Feature> feat = pair_feat.second;
                     // Loop through each camera for this feature
                     for (auto const& meas_pair : feat->timestamps) {
                         size_t camid = meas_pair.first;
@@ -232,14 +236,15 @@ namespace ov_core {
          * @param img_out image to which we will overlayed features on
          * @param r1,g1,b1 first color to draw in
          * @param r2,g2,b2 second color to draw in
+         * @param highlighted unique ids which we wish to highlight
          */
-        virtual void display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2);
+        virtual void display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::vector<size_t> highlighted={});
 
         /**
          * @brief Get the feature database with all the track information
          * @return FeatureDatabase pointer that one can query for features
          */
-        FeatureDatabase *get_feature_database() {
+        std::shared_ptr<FeatureDatabase> get_feature_database() {
             return database;
         }
 
@@ -252,7 +257,7 @@ namespace ov_core {
 
             // If found in db then replace
             if(database->get_internal_data().find(id_old)!=database->get_internal_data().end()) {
-                Feature* feat = database->get_internal_data().at(id_old);
+                std::shared_ptr<Feature> feat = database->get_internal_data().at(id_old);
                 database->get_internal_data().erase(id_old);
                 feat->featid = id_new;
                 database->get_internal_data().insert({id_new, feat});
@@ -299,7 +304,7 @@ namespace ov_core {
          * Given a uv point, this will undistort it based on the camera matrices.
          * To equate this to Kalibr's models, this is what you would use for `pinhole-radtan`.
          */
-        cv::Point2f undistort_point_brown(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
+        static cv::Point2f undistort_point_brown(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
             // Convert to opencv format
             cv::Mat mat(1, 2, CV_32F);
             mat.at<float>(0, 0) = pt_in.x;
@@ -321,7 +326,7 @@ namespace ov_core {
          * Given a uv point, this will undistort it based on the camera matrices.
          * To equate this to Kalibr's models, this is what you would use for `pinhole-equi`.
          */
-        cv::Point2f undistort_point_fisheye(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
+        static cv::Point2f undistort_point_fisheye(cv::Point2f pt_in, cv::Matx33d &camK, cv::Vec4d &camD) {
             // Convert point to opencv format
             cv::Mat mat(1, 2, CV_32F);
             mat.at<float>(0, 0) = pt_in.x;
@@ -338,7 +343,7 @@ namespace ov_core {
         }
 
         /// Database with all our current features
-        FeatureDatabase *database;
+        std::shared_ptr<FeatureDatabase> database;
 
         /// If we are a fisheye model or not
         std::map<size_t, bool> camera_fisheye;
@@ -351,6 +356,9 @@ namespace ov_core {
 
         /// Number of features we should try to track frame to frame
         int num_features;
+
+        /// Boolean for if we should try to multi-thread our frontends
+        bool use_multi_threading = false;
 
         /// Mutexs for our last set of image storage (img_last, pts_last, and ids_last)
         std::vector<std::mutex> mtx_feeds;

@@ -25,7 +25,7 @@ using namespace ov_msckf;
 
 
 
-RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *sim) : _nh(nh), _app(app), _sim(sim) {
+RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _app(app), _sim(sim) {
 
 
     // Setup our transform broadcaster
@@ -59,11 +59,13 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
     pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
     ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
 
-    // Keyframe publishers
-    pub_keyframe_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/keyframe_pose", 1000);
-    pub_keyframe_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/keyframe_feats", 1000);
-    pub_keyframe_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/keyframe_extrinsic", 1000);
-    pub_keyframe_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/keyframe_intrinsics", 1000);
+    // Loop closure publishers
+    pub_loop_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
+    pub_loop_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
+    pub_loop_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
+    pub_loop_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
+    pub_loop_img_depth = nh.advertise<sensor_msgs::Image>("/ov_msckf/loop_depth", 2);
+    pub_loop_img_depth_color = nh.advertise<sensor_msgs::Image>("/ov_msckf/loop_depth_colored", 2);
 
     // option to enable publishing of global to IMU transformation
     nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
@@ -116,6 +118,14 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, VioManager* app, Simulator *si
 
 void RosVisualizer::visualize() {
 
+    // Return if we have already visualized
+    if(last_visualization_timestamp == _app->get_state()->_timestamp)
+        return;
+    last_visualization_timestamp = _app->get_state()->_timestamp;
+
+    // Start timing
+    boost::posix_time::ptime rT0_1, rT0_2;
+    rT0_1 =  boost::posix_time::microsec_clock::local_time();
 
     // publish current image
     publish_images();
@@ -140,11 +150,16 @@ void RosVisualizer::visualize() {
     publish_groundtruth();
 
     // Publish keyframe information
-    publish_keyframe_information();
+    publish_loopclosure_information();
 
     // save total state
     if(save_total_state)
         sim_save_total_state_to_file();
+
+    // Print how much time it took to publish / displaying things
+    rT0_2 =  boost::posix_time::microsec_clock::local_time();
+    double time_total = (rT0_2-rT0_1).total_microseconds() * 1e-6;
+    printf(BLUE "[TIME]: %.4f seconds for visualization\n" RESET, time_total);
 
 }
 
@@ -161,7 +176,7 @@ void RosVisualizer::visualize_odometry(double timestamp) {
         return;
 
     // Get fast propagate state at the desired timestamp
-    State* state = _app->get_state();
+    std::shared_ptr<State> state = _app->get_state();
     Eigen::Matrix<double,13,1> state_plus = Eigen::Matrix<double,13,1>::Zero();
     _app->get_propagator()->fast_state_propagate(state, timestamp, state_plus);
 
@@ -182,7 +197,7 @@ void RosVisualizer::visualize_odometry(double timestamp) {
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
     // TODO: this currently is an approximation since this should actually evolve over our propagation period
     // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
-    std::vector<Type*> statevars;
+    std::vector<std::shared_ptr<Type>> statevars;
     statevars.push_back(state->_imu->pose()->p());
     statevars.push_back(state->_imu->pose()->q());
     Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
@@ -233,7 +248,7 @@ void RosVisualizer::visualize_final() {
     // Final camera intrinsics
     if(_app->get_state()->_options.do_calib_camera_intrinsics) {
         for(int i=0; i<_app->get_state()->_options.num_cameras; i++) {
-            Vec* calib = _app->get_state()->_cam_intrinsics.at(i);
+            std::shared_ptr<Vec> calib = _app->get_state()->_cam_intrinsics.at(i);
             printf(REDPURPLE "cam%d intrinsics:\n" RESET, (int)i);
             printf(REDPURPLE "%.3f,%.3f,%.3f,%.3f\n" RESET,calib->value()(0),calib->value()(1),calib->value()(2),calib->value()(3));
             printf(REDPURPLE "%.5f,%.5f,%.5f,%.5f\n\n" RESET,calib->value()(4),calib->value()(5),calib->value()(6),calib->value()(7));
@@ -243,7 +258,7 @@ void RosVisualizer::visualize_final() {
     // Final camera extrinsics
     if(_app->get_state()->_options.do_calib_camera_pose) {
         for(int i=0; i<_app->get_state()->_options.num_cameras; i++) {
-            PoseJPL* calib = _app->get_state()->_calib_IMUtoCAM.at(i);
+            std::shared_ptr<PoseJPL> calib = _app->get_state()->_calib_IMUtoCAM.at(i);
             Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();
             T_CtoI.block(0,0,3,3) = quat_2_Rot(calib->quat()).transpose();
             T_CtoI.block(0,3,3,1) = -T_CtoI.block(0,0,3,3)*calib->pos();
@@ -280,7 +295,7 @@ void RosVisualizer::visualize_final() {
 void RosVisualizer::publish_state() {
 
     // Get the current state
-    State* state = _app->get_state();
+    std::shared_ptr<State> state = _app->get_state();
 
     // We want to publish in the IMU clock frame
     // The timestamp in the state will be the last camera time
@@ -301,7 +316,7 @@ void RosVisualizer::publish_state() {
     poseIinM.pose.pose.position.z = state->_imu->pos()(2);
 
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
-    std::vector<Type*> statevars;
+    std::vector<std::shared_ptr<Type>> statevars;
     statevars.push_back(state->_imu->pose()->p());
     statevars.push_back(state->_imu->pose()->q());
     Eigen::Matrix<double,6,6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
@@ -383,21 +398,8 @@ void RosVisualizer::publish_images() {
     if(pub_tracks.getNumSubscribers()==0)
         return;
 
-    // Get our trackers
-    TrackBase *trackFEATS = _app->get_track_feat();
-    TrackBase *trackARUCO = _app->get_track_aruco();
-
     // Get our image of history tracks
-    cv::Mat img_history;
-    if(_app->did_zero_velocity_update()) {
-        img_history = _app->get_zero_velocity_update_image();
-    } else {
-        trackFEATS->display_history(img_history,255,255,0,255,255,255);
-        if(trackARUCO != nullptr) {
-            trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
-            trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
-        }
-    }
+    cv::Mat img_history = _app->get_historical_viz_image();
 
     // Create our message
     std_msgs::Header header;
@@ -618,7 +620,6 @@ void RosVisualizer::publish_groundtruth() {
     for(size_t i=0; i<poses_gt.size(); i+=std::floor(poses_gt.size()/16384.0)+1) {
         arrIMU.poses.push_back(poses_gt.at(i));
     }
-    arrIMU.poses = poses_gt;
     pub_pathgt.publish(arrIMU);
 
     // Move them forward in time
@@ -658,7 +659,7 @@ void RosVisualizer::publish_groundtruth() {
     //==========================================================================
 
     // Get covariance of pose
-    std::vector<Type*> statevars;
+    std::vector<std::shared_ptr<Type>> statevars;
     statevars.push_back(_app->get_state()->_imu->q());
     statevars.push_back(_app->get_state()->_imu->p());
     Eigen::Matrix<double,6,6> covariance = StateHelper::get_marginal_covariance(_app->get_state(),statevars);
@@ -692,121 +693,168 @@ void RosVisualizer::publish_groundtruth() {
 
 
 
-void RosVisualizer::publish_keyframe_information() {
+void RosVisualizer::publish_loopclosure_information() {
 
-
-    // Check if we have subscribers
-    if(pub_keyframe_pose.getNumSubscribers()==0 && pub_keyframe_point.getNumSubscribers()==0 &&
-       pub_keyframe_extrinsic.getNumSubscribers()==0 && pub_keyframe_intrinsics.getNumSubscribers()==0)
-        return;
-
-
-    // Skip if we don't have a marginalized frame yet
-    double hist_last_marginalized_time;
-    Eigen::Matrix<double,7,1> stateinG;
-    if(!_app->hist_last_marg_state(hist_last_marginalized_time, stateinG))
-        return;
+    // Get the current tracks in this frame
+    double active_tracks_time1 = -1;
+    double active_tracks_time2 = -1;
+    std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG;
+    std::unordered_map<size_t, Eigen::Vector3d> active_tracks_uvd;
+    cv::Mat active_cam0_image;
+    _app->get_active_tracks(active_tracks_time1, active_tracks_posinG, active_tracks_uvd);
+    _app->get_active_image(active_tracks_time2, active_cam0_image);
+    if(active_tracks_time1 == -1) return;
+    if(_app->get_state()->_clones_IMU.find(active_tracks_time1) == _app->get_state()->_clones_IMU.end()) return;
+    if(active_tracks_time1 != active_tracks_time2) return;
 
     // Default header
     std_msgs::Header header;
-    header.stamp = ros::Time(hist_last_marginalized_time);
+    header.stamp = ros::Time(active_tracks_time1);
 
     //======================================================
-    // PUBLISH IMU TO CAMERA0 EXTRINSIC
-    // need to flip the transform to the IMU frame
-    Eigen::Vector4d q_ItoC = _app->get_state()->_calib_IMUtoCAM.at(0)->quat();
-    Eigen::Vector3d p_CinI = -_app->get_state()->_calib_IMUtoCAM.at(0)->Rot().transpose()*_app->get_state()->_calib_IMUtoCAM.at(0)->pos();
-    nav_msgs::Odometry odometry_calib;
-    odometry_calib.header = header;
-    odometry_calib.header.frame_id = "imu";
-    odometry_calib.pose.pose.position.x = p_CinI(0);
-    odometry_calib.pose.pose.position.y = p_CinI(1);
-    odometry_calib.pose.pose.position.z = p_CinI(2);
-    odometry_calib.pose.pose.orientation.x = q_ItoC(0);
-    odometry_calib.pose.pose.orientation.y = q_ItoC(1);
-    odometry_calib.pose.pose.orientation.z = q_ItoC(2);
-    odometry_calib.pose.pose.orientation.w = q_ItoC(3);
-    pub_keyframe_extrinsic.publish(odometry_calib);
+    // Check if we have subscribers for the pose odometry, camera intrinsics, or extrinsics
+    if(pub_loop_pose.getNumSubscribers() != 0 ||
+        pub_loop_extrinsic.getNumSubscribers() != 0 ||
+        pub_loop_intrinsics.getNumSubscribers() != 0) {
 
+        // PUBLISH HISTORICAL POSE ESTIMATE
+        nav_msgs::Odometry odometry_pose;
+        odometry_pose.header = header;
+        odometry_pose.header.frame_id = "global";
+        odometry_pose.pose.pose.position.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(0);
+        odometry_pose.pose.pose.position.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(1);
+        odometry_pose.pose.pose.position.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(2);
+        odometry_pose.pose.pose.orientation.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(0);
+        odometry_pose.pose.pose.orientation.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(1);
+        odometry_pose.pose.pose.orientation.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(2);
+        odometry_pose.pose.pose.orientation.w = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(3);
+        pub_loop_pose.publish(odometry_pose);
 
-    //======================================================
-    // PUBLISH CAMERA0 INTRINSICS
-    sensor_msgs::CameraInfo cameraparams;
-    cameraparams.header = header;
-    cameraparams.header.frame_id = "imu";
-    cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0))? "equidistant" : "plumb_bob";
-    Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
-    cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
-    cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
-    pub_keyframe_intrinsics.publish(cameraparams);
+        // PUBLISH IMU TO CAMERA0 EXTRINSIC
+        // need to flip the transform to the IMU frame
+        Eigen::Vector4d q_ItoC = _app->get_state()->_calib_IMUtoCAM.at(0)->quat();
+        Eigen::Vector3d p_CinI = -_app->get_state()->_calib_IMUtoCAM.at(0)->Rot().transpose()*_app->get_state()->_calib_IMUtoCAM.at(0)->pos();
+        nav_msgs::Odometry odometry_calib;
+        odometry_calib.header = header;
+        odometry_calib.header.frame_id = "imu";
+        odometry_calib.pose.pose.position.x = p_CinI(0);
+        odometry_calib.pose.pose.position.y = p_CinI(1);
+        odometry_calib.pose.pose.position.z = p_CinI(2);
+        odometry_calib.pose.pose.orientation.x = q_ItoC(0);
+        odometry_calib.pose.pose.orientation.y = q_ItoC(1);
+        odometry_calib.pose.pose.orientation.z = q_ItoC(2);
+        odometry_calib.pose.pose.orientation.w = q_ItoC(3);
+        pub_loop_extrinsic.publish(odometry_calib);
 
+        // PUBLISH CAMERA0 INTRINSICS
+        sensor_msgs::CameraInfo cameraparams;
+        cameraparams.header = header;
+        cameraparams.header.frame_id = "imu";
+        cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0))? "equidistant" : "plumb_bob";
+        Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
+        cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
+        cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
+        pub_loop_intrinsics.publish(cameraparams);
 
-    //======================================================
-    // PUBLISH HISTORICAL POSE ESTIMATE
-    nav_msgs::Odometry odometry_pose;
-    odometry_pose.header = header;
-    odometry_pose.header.frame_id = "global";
-    odometry_pose.pose.pose.position.x = stateinG(4);
-    odometry_pose.pose.pose.position.y = stateinG(5);
-    odometry_pose.pose.pose.position.z = stateinG(6);
-    odometry_pose.pose.pose.orientation.x = stateinG(0);
-    odometry_pose.pose.pose.orientation.y = stateinG(1);
-    odometry_pose.pose.pose.orientation.z = stateinG(2);
-    odometry_pose.pose.pose.orientation.w = stateinG(3);
-    pub_keyframe_pose.publish(odometry_pose);
-
+    }
 
     //======================================================
     // PUBLISH FEATURE TRACKS IN THE GLOBAL FRAME OF REFERENCE
+    if(pub_loop_point.getNumSubscribers() != 0) {
 
-    // Get historical feature information
-    std::unordered_map<size_t, Eigen::Vector3d> hist_feat_posinG;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<Eigen::VectorXf>>> hist_feat_uvs_norm;
-    std::unordered_map<size_t, std::unordered_map<size_t, std::vector<double>>> hist_feat_timestamps;
-    _app->hist_get_features(hist_feat_posinG, hist_feat_uvs, hist_feat_uvs_norm, hist_feat_timestamps);
+        // Construct the message
+        sensor_msgs::PointCloud point_cloud;
+        point_cloud.header = header;
+        point_cloud.header.frame_id = "global";
+        for(const auto &feattimes : active_tracks_posinG) {
 
-    // Construct the message
-    sensor_msgs::PointCloud point_cloud;
-    point_cloud.header = header;
-    point_cloud.header.frame_id = "global";
-    for(const auto &feattimes : hist_feat_timestamps) {
+            // Get this feature information
+            size_t featid = feattimes.first;
+            Eigen::Vector3d uvd = Eigen::Vector3d::Zero();
+            if(active_tracks_uvd.find(featid)!=active_tracks_uvd.end()) {
+                uvd = active_tracks_uvd.at(featid);
+            }
+            Eigen::Vector3d pFinG = active_tracks_posinG.at(featid);
 
-        // Skip if this feature has no extraction in the "zero" camera
-        if(feattimes.second.find(0)==feattimes.second.end())
-            continue;
+            // Push back 3d point
+            geometry_msgs::Point32 p;
+            p.x = pFinG(0);
+            p.y = pFinG(1);
+            p.z = pFinG(2);
+            point_cloud.points.push_back(p);
 
-        // Skip if this feature does not have measurement at this time
-        auto iter = std::find(feattimes.second.at(0).begin(), feattimes.second.at(0).end(), hist_last_marginalized_time);
-        if(iter==feattimes.second.at(0).end())
-            continue;
+            // Push back the uv_norm, uv_raw, and feature id
+            // NOTE: we don't use the normalized coordinates to save time here
+            // NOTE: they will have to be re-normalized in the loop closure code
+            sensor_msgs::ChannelFloat32 p_2d;
+            p_2d.values.push_back(0);
+            p_2d.values.push_back(0);
+            p_2d.values.push_back(uvd(0));
+            p_2d.values.push_back(uvd(1));
+            p_2d.values.push_back(featid);
+            point_cloud.channels.push_back(p_2d);
 
-        // Get this feature information
-        size_t featid = feattimes.first;
-        size_t index = (size_t)std::distance(feattimes.second.at(0).begin(), iter);
-        Eigen::VectorXf uv = hist_feat_uvs.at(featid).at(0).at(index);
-        Eigen::VectorXf uv_n = hist_feat_uvs_norm.at(featid).at(0).at(index);
-        Eigen::Vector3d pFinG = hist_feat_posinG.at(featid);
-
-        // Push back 3d point
-        geometry_msgs::Point32 p;
-        p.x = pFinG(0);
-        p.y = pFinG(1);
-        p.z = pFinG(2);
-        point_cloud.points.push_back(p);
-
-        // Push back the norm, raw, and feature id
-        sensor_msgs::ChannelFloat32 p_2d;
-        p_2d.values.push_back(uv_n(0));
-        p_2d.values.push_back(uv_n(1));
-        p_2d.values.push_back(uv(0));
-        p_2d.values.push_back(uv(1));
-        p_2d.values.push_back(featid);
-        point_cloud.channels.push_back(p_2d);
+        }
+        pub_loop_point.publish(point_cloud);
 
     }
-    pub_keyframe_point.publish(point_cloud);
 
+    //======================================================
+    // Depth images of sparse points and its colorized version
+    if(pub_loop_img_depth.getNumSubscribers() != 0 || pub_loop_img_depth_color.getNumSubscribers() != 0) {
+
+        // Create the images we will populate with the depths
+        std::pair<int,int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
+        cv::Mat depthmap_viz;
+        cv::cvtColor(active_cam0_image, depthmap_viz, cv::COLOR_GRAY2RGB);
+        cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
+
+        // Loop through all points and append
+        for(const auto &feattimes : active_tracks_uvd) {
+
+            // Get this feature information
+            size_t featid = feattimes.first;
+            Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
+
+            // Skip invalid points
+            double dw = 3;
+            if(uvd(0) < dw || uvd(0) > wh_pair.first-dw || uvd(1) < dw || uvd(1) > wh_pair.second-dw) {
+                continue;
+            }
+
+            // Append the depth
+            // NOTE: scaled by 1000 to fit the 16U
+            // NOTE: access order is y,x (stupid opencv convention stuff)
+            depthmap.at<uint16_t>((int)uvd(1),(int)uvd(0)) = (uint16_t)(1000*uvd(2));
+
+            // Taken from LSD-SLAM codebase segment into 0-4 meter segments:
+            // https://github.com/tum-vision/lsd_slam/blob/d1e6f0e1a027889985d2e6b4c0fe7a90b0c75067/lsd_slam_core/src/util/globalFuncs.cpp#L87-L96
+            float id = 1.0f/(float)uvd(2);
+            float r = (0.0f - id) * 255 / 1.0f;
+            if (r < 0) r = -r;
+            float g = (1.0f - id) * 255 / 1.0f;
+            if (g < 0) g = -g;
+            float b = (2.0f - id) * 255 / 1.0f;
+            if (b < 0) b = -b;
+            uchar rc = r < 0 ? 0 : (r > 255 ? 255 : r);
+            uchar gc = g < 0 ? 0 : (g > 255 ? 255 : g);
+            uchar bc = b < 0 ? 0 : (b > 255 ? 255 : b);
+            cv::Scalar color(255-rc,255-gc,255-bc);
+
+            // Small square around the point (note the above bound check needs to take into account this width)
+            cv::Point p0(uvd(0)-dw, uvd(1)-dw);
+            cv::Point p1(uvd(0)+dw, uvd(1)+dw);
+            cv::rectangle(depthmap_viz, p0, p1, color, -1);
+
+        }
+
+        // Create our messages
+        sensor_msgs::ImagePtr exl_msg1 = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_16UC1, depthmap).toImageMsg();
+        pub_loop_img_depth.publish(exl_msg1);
+        sensor_msgs::ImagePtr exl_msg2 = cv_bridge::CvImage(header, "bgr8", depthmap_viz).toImageMsg();
+        pub_loop_img_depth_color.publish(exl_msg2);
+
+    }
 
 }
 
@@ -814,7 +862,7 @@ void RosVisualizer::publish_keyframe_information() {
 void RosVisualizer::sim_save_total_state_to_file() {
 
     // Get current state
-    State* state = _app->get_state();
+    std::shared_ptr<State> state = _app->get_state();
 
     // We want to publish in the IMU clock frame
     // The timestamp in the state will be the last camera time

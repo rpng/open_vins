@@ -1,6 +1,5 @@
-
-
 # OpenVINS
+![C/C++ CI](https://github.com/rpng/open_vins/workflows/C/C++%20CI/badge.svg)
 
 
 Welcome to the OpenVINS project!
@@ -19,6 +18,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **December 1, 2020** - Released improved memory management, active feature pointcloud publishing, limiting number of features in update to bound compute, and other small fixes. See v2.3 [PR#117](https://github.com/rpng/open_vins/pull/117) for details.
 * **November 18, 2020** - Released groundtruth generation utility package, [vicon2gt](https://github.com/rpng/vicon2gt) to enable creation of groundtruth trajectories in a motion capture room for evaulating VIO methods.
 * **July 7, 2020** - Released zero velocity update for vehicle applications and direct initialization when standing still. See [PR#79](https://github.com/rpng/open_vins/pull/79) for details. 
 * **May 18, 2020** - Released secondary pose graph example repository [ov_secondary](https://github.com/rpng/ov_secondary) based on [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion). OpenVINS now publishes marginalized feature track, feature 3d position, and first camera intrinsics and extrinsics. See [PR#66](https://github.com/rpng/open_vins/pull/66) for details and discussion.

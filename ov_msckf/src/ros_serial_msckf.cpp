@@ -25,21 +25,23 @@
 #include <rosbag/view.h>
 #include <sensor_msgs/Image.h>
 #include <sensor_msgs/Imu.h>
-#include <std_msgs/Float64.h>
 #include <cv_bridge/cv_bridge.h>
+
+#include <memory>
 
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
 #include "core/RosVisualizer.h"
 #include "utils/dataset_reader.h"
 #include "utils/parse_ros.h"
+#include "utils/sensor_data.h"
 
 
 using namespace ov_msckf;
 
 
-VioManager* sys;
-RosVisualizer* viz;
+std::shared_ptr<VioManager> sys;
+std::shared_ptr<RosVisualizer> viz;
 
 
 // Main function
@@ -52,24 +54,46 @@ int main(int argc, char** argv)
 
     // Create our VIO system
     VioManagerOptions params = parse_ros_nodehandler(nh);
-    sys = new VioManager(params);
-    viz = new RosVisualizer(nh, sys);
+    sys = std::make_shared<VioManager>(params);
+    viz = std::make_shared<RosVisualizer>(nh, sys);
 
 
     //===================================================================================
     //===================================================================================
     //===================================================================================
 
-    // Our camera topics (left and right stereo)
+    // Our imu topic
     std::string topic_imu;
-    std::string topic_camera0, topic_camera1;
     nh.param<std::string>("topic_imu", topic_imu, "/imu0");
-    nh.param<std::string>("topic_camera0", topic_camera0, "/cam0/image_raw");
-    nh.param<std::string>("topic_camera1", topic_camera1, "/cam1/image_raw");
+
+    // Our camera topics (stereo pairs and non-stereo mono)
+    std::vector<std::pair<size_t,std::string>> topic_cameras;
+    std::vector<int> stereo_cam_ids;
+    for(const auto &pair : params.stereo_pairs) {
+        // Read in the topics
+        std::string cam_topic0, cam_topic1;
+        nh.param<std::string>("topic_camera"+std::to_string(pair.first), cam_topic0, "/cam"+std::to_string(pair.first)+"/image_raw");
+        nh.param<std::string>("topic_camera"+std::to_string(pair.second), cam_topic1, "/cam"+std::to_string(pair.second)+"/image_raw");
+        topic_cameras.emplace_back(pair.first,cam_topic0);
+        topic_cameras.emplace_back(pair.second,cam_topic1);
+        stereo_cam_ids.push_back(pair.first);
+        stereo_cam_ids.push_back(pair.second);
+        ROS_INFO("serial cam (stereo): %s", cam_topic0.c_str());
+        ROS_INFO("serial cam (stereo): %s", cam_topic1.c_str());
+    }
+    for(int i=0; i<params.state_options.num_cameras; i++) {
+        // Skip if already have been added
+        if(std::find(stereo_cam_ids.begin(), stereo_cam_ids.end(), i) != stereo_cam_ids.end())
+            continue;
+        // read in the topic
+        std::string cam_topic;
+        nh.param<std::string>("topic_camera"+std::to_string(i), cam_topic, "/cam"+std::to_string(i)+"/image_raw");
+        topic_cameras.emplace_back(i,cam_topic);
+        ROS_INFO("serial cam (mono): %s", cam_topic.c_str());
+    }
 
     // Location of the ROS bag we want to read in
     std::string path_to_bag;
-    //nhPrivate.param<std::string>("path_bag", path_to_bag, "/home/keck/catkin_ws/V1_01_easy.bag");
     nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
     ROS_INFO("ros bag path is: %s", path_to_bag.c_str());
 
@@ -104,7 +128,6 @@ int main(int argc, char** argv)
     rosbag::Bag bag;
     bag.open(path_to_bag, rosbag::bagmode::Read);
 
-
     // We should load the bag as a view
     // Here we go from beginning of the bag to the end of the bag
     rosbag::View view_full;
@@ -128,19 +151,13 @@ int main(int argc, char** argv)
     }
 
 
-    // Buffer variables for our system (so we always have imu to use)
-    bool has_left = false;
-    bool has_right = false;
-    cv::Mat img0, img1;
-    cv::Mat img0_buffer, img1_buffer;
-    double time = time_init.toSec();
-    double time_buffer = time_init.toSec();
-
-
     //===================================================================================
     //===================================================================================
     //===================================================================================
 
+
+    // Latest collection of image information
+    std::map<size_t, std::pair<double,cv::Mat>> image_buffer;
 
     // Step through the rosbag
     for (const rosbag::MessageInstance& m : view) {
@@ -153,120 +170,85 @@ int main(int argc, char** argv)
         sensor_msgs::Imu::ConstPtr s2 = m.instantiate<sensor_msgs::Imu>();
         if (s2 != nullptr && m.getTopic() == topic_imu) {
             // convert into correct format
-            double timem = (*s2).header.stamp.toSec();
-            Eigen::Matrix<double, 3, 1> wm, am;
-            wm << (*s2).angular_velocity.x, (*s2).angular_velocity.y, (*s2).angular_velocity.z;
-            am << (*s2).linear_acceleration.x, (*s2).linear_acceleration.y, (*s2).linear_acceleration.z;
+            ov_core::ImuData message;
+            message.timestamp = (*s2).header.stamp.toSec();
+            message.wm << (*s2).angular_velocity.x, (*s2).angular_velocity.y, (*s2).angular_velocity.z;
+            message.am << (*s2).linear_acceleration.x, (*s2).linear_acceleration.y, (*s2).linear_acceleration.z;
             // send it to our VIO system
-            sys->feed_measurement_imu(timem, wm, am);
-            viz->visualize_odometry(timem);
+            sys->feed_measurement_imu(message);
+            viz->visualize();
+            viz->visualize_odometry(message.timestamp);
         }
 
-        // Handle LEFT camera
-        sensor_msgs::Image::ConstPtr s0 = m.instantiate<sensor_msgs::Image>();
-        if (s0 != nullptr && m.getTopic() == topic_camera0) {
-            // Get the image
-            cv_bridge::CvImageConstPtr cv_ptr;
-            try {
-                cv_ptr = cv_bridge::toCvShare(s0, sensor_msgs::image_encodings::MONO8);
-            } catch (cv_bridge::Exception &e) {
-                ROS_ERROR("cv_bridge exception: %s", e.what());
+        // Handle CAMERA measurement
+        for(const auto &pair : topic_cameras) {
+            sensor_msgs::Image::ConstPtr s0 = m.instantiate<sensor_msgs::Image>();
+            if (s0 != nullptr && m.getTopic() == pair.second) {
+                // Get the image
+                cv_bridge::CvImageConstPtr cv_ptr;
+                try {
+                    cv_ptr = cv_bridge::toCvShare(s0, sensor_msgs::image_encodings::MONO8);
+                } catch (cv_bridge::Exception &e) {
+                    ROS_ERROR("cv_bridge exception: %s", e.what());
+                    continue;
+                }
+                // Save to our temp variable
+                image_buffer[pair.first] = {cv_ptr->header.stamp.toSec(), cv_ptr->image.clone()};
+            }
+        }
+
+        // MONO: Now loop through our buffer and see if we have have any we can send to the VIO
+        auto it0 = image_buffer.begin();
+        while(it0 != image_buffer.end()) {
+            // skip if a stereo image
+            if(std::find(stereo_cam_ids.begin(), stereo_cam_ids.end(), it0->first) != stereo_cam_ids.end()) {
+                it0++;
                 continue;
             }
-            // Save to our temp variable
-            has_left = true;
-            img0 = cv_ptr->image.clone();
-            time = cv_ptr->header.stamp.toSec();
-        }
-
-        // Handle RIGHT camera
-        sensor_msgs::Image::ConstPtr s1 = m.instantiate<sensor_msgs::Image>();
-        if (s1 != nullptr && m.getTopic() == topic_camera1) {
-            // Get the image
-            cv_bridge::CvImageConstPtr cv_ptr;
-            try {
-                cv_ptr = cv_bridge::toCvShare(s1, sensor_msgs::image_encodings::MONO8);
-            } catch (cv_bridge::Exception &e) {
-                ROS_ERROR("cv_bridge exception: %s", e.what());
-                continue;
-            }
-            // Save to our temp variable (use a right image that is near in time)
-            // TODO: fix this logic as the left will still advance instead of waiting
-            // TODO: should implement something like here:
-            // TODO: https://github.com/rpng/MARS-VINS/blob/master/example_ros/ros_driver.cpp
-            //if(std::abs(cv_ptr->header.stamp.toSec()-time) < 0.02) {
-            has_right = true;
-            img1 = cv_ptr->image.clone();
-            //}
-        }
-
-
-        // Fill our buffer if we have not
-        if(has_left && img0_buffer.rows == 0) {
-            has_left = false;
-            time_buffer = time;
-            img0_buffer = img0.clone();
-        }
-
-        // Fill our buffer if we have not
-        if(has_right && img1_buffer.rows == 0) {
-            has_right = false;
-            img1_buffer = img1.clone();
-        }
-
-
-        // If we are in monocular mode, then we should process the left if we have it
-        if(max_cameras==1 && has_left) {
             // process once we have initialized with the GT
             Eigen::Matrix<double, 17, 1> imustate;
-            if(!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(time_buffer, imustate, gt_states)) {
+            if(!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(it0->second.first, imustate, gt_states)) {
                 //biases are pretty bad normally, so zero them
                 //imustate.block(11,0,6,1).setZero();
                 sys->initialize_with_gt(imustate);
             } else if(gt_states.empty() || sys->initialized()) {
-                sys->feed_measurement_monocular(time_buffer, img0_buffer, 0);
+                ov_core::CameraData message;
+                message.timestamp = it0->second.first;
+                message.sensor_ids.push_back(it0->first);
+                message.images.push_back(it0->second.second);
+                sys->feed_measurement_camera(message);
             }
-            // visualize
-            viz->visualize();
-            // reset bools
-            has_left = false;
-            // move buffer forward
-            time_buffer = time;
-            img0_buffer = img0.clone();
+            it0 = image_buffer.erase(it0);
         }
 
-
-        // If we are in stereo mode and have both left and right, then process
-        if(max_cameras==2 && has_left && has_right) {
+        // STEREO: Now loop through our buffer and see if we have have any we can send to the VIO
+        for(const auto &stereo : params.stereo_pairs) {
+            // skip if we don't have both images
+            if(image_buffer.find(stereo.first) == image_buffer.end() || image_buffer.find(stereo.second) == image_buffer.end())
+                continue;
             // process once we have initialized with the GT
             Eigen::Matrix<double, 17, 1> imustate;
-            if(!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(time_buffer, imustate, gt_states)) {
+            if(!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(image_buffer.at(stereo.first).first, imustate, gt_states)) {
                 //biases are pretty bad normally, so zero them
                 //imustate.block(11,0,6,1).setZero();
                 sys->initialize_with_gt(imustate);
             } else if(gt_states.empty() || sys->initialized()) {
-                sys->feed_measurement_stereo(time_buffer, img0_buffer, img1_buffer, 0, 1);
+                ov_core::CameraData message;
+                message.timestamp = image_buffer.at(stereo.first).first;
+                message.sensor_ids.push_back(stereo.first);
+                message.sensor_ids.push_back(stereo.second);
+                message.images.push_back(image_buffer.at(stereo.first).second);
+                message.images.push_back(image_buffer.at(stereo.second).second);
+                sys->feed_measurement_camera(message);
             }
-            // visualize
-            viz->visualize();
-            // reset bools
-            has_left = false;
-            has_right = false;
-            // move buffer forward
-            time_buffer = time;
-            img0_buffer = img0.clone();
-            img1_buffer = img1.clone();
+            image_buffer.erase(stereo.first);
+            image_buffer.erase(stereo.second);
         }
 
     }
 
     // Final visualization
     viz->visualize_final();
-
-    // Finally delete our system
-    delete sys;
-    delete viz;
-
 
     // Done!
     return EXIT_SUCCESS;

@@ -3,19 +3,22 @@
 
     <!-- MASTER NODE! -->
     <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
-<!--        <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+<!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+<!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="valgrind &#45;&#45;tool=callgrind &#45;&#45;callgrind-out-file=/tmp/callgrind.txt">-->
+<!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="valgrind &#45;&#45;tool=memcheck &#45;&#45;leak-check=yes &#45;&#45;show-leak-kinds=definite">-->
 
         <!-- bag topics -->
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
+        <rosparam param="stereo_pairs">[0,1]</rosparam>
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
-<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />-->
+        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
 <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V2_03_difficult.bag" />-->
 <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V2_03_difficult.csv" />-->
-        <param name="bag_start"   type="double" value="0.0" />
+        <param name="bag_start"   type="double" value="7.0" />
         <param name="bag_durr"    type="int"    value="-1" />
 
 
@@ -29,11 +32,11 @@
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="0.0" />
         <param name="max_clones"             type="int"    value="11" />
-        <param name="max_slam"               type="int"    value="50" />
+        <param name="max_slam"               type="int"    value="75" />
         <param name="max_slam_in_update"     type="int"    value="25" /> <!-- 25 seems to work well -->
-        <param name="max_msckf_in_update"    type="int"    value="999" />
+        <param name="max_msckf_in_update"    type="int"    value="40" />
         <param name="max_cameras"            type="int"    value="2" />
-        <param name="dt_slam_delay"          type="double" value="5" />
+        <param name="dt_slam_delay"          type="double" value="3" />
         <param name="init_window_time"       type="double" value="0.75" />
         <param name="init_imu_thresh"        type="double" value="1.5" />
         <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
@@ -53,13 +56,14 @@
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />
-        <param name="num_pts"            type="int"    value="150" />
+        <param name="num_pts"            type="int"    value="250" />
         <param name="fast_threshold"     type="int"    value="15" />
         <param name="grid_x"             type="int"    value="5" />
         <param name="grid_y"             type="int"    value="3" />
-        <param name="min_px_dist"        type="int"    value="10" />
+        <param name="min_px_dist"        type="int"    value="5" />
         <param name="knn_ratio"          type="double" value="0.70" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />
@@ -78,7 +82,6 @@
         <param name="accelerometer_noise_density"  type="double"   value="2.0000e-3" />
         <param name="accelerometer_random_walk"    type="double"   value="3.0000e-3" />
 
-
         <!-- camera intrinsics -->
         <rosparam param="cam0_wh">[752, 480]</rosparam>
         <rosparam param="cam1_wh">[752, 480]</rosparam>
@@ -88,7 +91,6 @@
         <rosparam param="cam0_d">[-0.28340811,0.07395907,0.00019359,1.76187114e-05]</rosparam>
         <rosparam param="cam1_k">[457.587,456.134,379.999,255.238]</rosparam>
         <rosparam param="cam1_d">[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05]</rosparam>
-
 
         <!-- camera extrinsics -->
         <rosparam param="T_C0toI">

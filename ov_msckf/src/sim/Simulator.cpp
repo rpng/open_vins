@@ -394,7 +394,6 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids, std::ve
 
     }
 
-
     // Return success
     return true;
 

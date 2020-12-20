@@ -20,6 +20,8 @@
  */
 #include "State.h"
 
+#include <memory>
+
 
 using namespace ov_core;
 using namespace ov_msckf;
@@ -33,13 +35,13 @@ State::State(StateOptions &options) {
 
     // Append the imu to the state and covariance
     int current_id = 0;
-    _imu = new IMU();
+    _imu = std::make_shared<IMU>();
     _imu->set_local_id(current_id);
     _variables.push_back(_imu);
     current_id += _imu->size();
 
     // Camera to IMU time offset
-    _calib_dt_CAMtoIMU = new Vec(1);
+    _calib_dt_CAMtoIMU = std::make_shared<Vec>(1);
     if (_options.do_calib_camera_timeoffset) {
         _calib_dt_CAMtoIMU->set_local_id(current_id);
         _variables.push_back(_calib_dt_CAMtoIMU);
@@ -50,10 +52,10 @@ State::State(StateOptions &options) {
     for (int i = 0; i < _options.num_cameras; i++) {
 
         // Allocate extrinsic transform
-        PoseJPL *pose = new PoseJPL();
+        auto pose = std::make_shared<PoseJPL>();
 
         // Allocate intrinsics for this camera
-        Vec *intrin = new Vec(8);
+        auto intrin = std::make_shared<Vec>(8);
 
         // Add these to the corresponding maps
         _calib_IMUtoCAM.insert({i, pose});

@@ -32,7 +32,6 @@
 #include <sensor_msgs/Image.h>
 #include <cv_bridge/cv_bridge.h>
 
-#include <opencv/cv.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
@@ -59,7 +58,7 @@ std::deque<double> clonetimes;
 ros::Time time_start;
 
 // Our master function for tracking
-void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
+void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool use_stereo);
 
 
 // Main function
@@ -95,16 +94,17 @@ int main(int argc, char** argv)
     // Parameters for our extractor
     int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
     double knn_ratio;
-    bool do_downsizing;
-    nh.param<int>("num_pts", num_pts, 100);
+    bool do_downsizing, use_stereo;
+    nh.param<int>("num_pts", num_pts, 800);
     nh.param<int>("num_aruco", num_aruco, 1024);
     nh.param<int>("clone_states", clone_states, 11);
-    nh.param<int>("fast_threshold", fast_threshold, 15);
-    nh.param<int>("grid_x", grid_x, 10);
-    nh.param<int>("grid_y", grid_y, 8);
-    nh.param<int>("min_px_dist", min_px_dist, 10);
+    nh.param<int>("fast_threshold", fast_threshold, 10);
+    nh.param<int>("grid_x", grid_x, 9);
+    nh.param<int>("grid_y", grid_y, 7);
+    nh.param<int>("min_px_dist", min_px_dist, 3);
     nh.param<double>("knn_ratio", knn_ratio, 0.85);
     nh.param<bool>("downsize_aruco", do_downsizing, false);
+    nh.param<bool>("use_stereo", use_stereo, false);
 
     // Debug print!
     printf("max features: %d\n", num_pts);
@@ -128,9 +128,9 @@ int main(int argc, char** argv)
     camera_calibration.insert({1,cam0_calib});
 
     // Lets make a feature extractor
-    extractor = new TrackKLT(num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
-    //extractor = new TrackDescriptor(num_pts,num_aruco,fast_threshold,grid_x,grid_y,knn_ratio);
-    //extractor = new TrackAruco(num_aruco,do_downsizing);
+    extractor = new TrackKLT(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,min_px_dist);
+    //extractor = new TrackDescriptor(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,knn_ratio);
+    //extractor = new TrackAruco(num_aruco,true,do_downsizing);
     extractor->set_calibration(camera_calibration, camera_fisheye);
 
 
@@ -184,7 +184,7 @@ int main(int argc, char** argv)
 
         // Handle LEFT camera
         sensor_msgs::Image::ConstPtr s0 = m.instantiate<sensor_msgs::Image>();
-        if (s0 != NULL && m.getTopic() == topic_camera0) {
+        if (s0 != nullptr && m.getTopic() == topic_camera0) {
             // Get the image
             cv_bridge::CvImageConstPtr cv_ptr;
             try {
@@ -202,7 +202,7 @@ int main(int argc, char** argv)
 
         //  Handle RIGHT camera
         sensor_msgs::Image::ConstPtr s1 = m.instantiate<sensor_msgs::Image>();
-        if (s1 != NULL && m.getTopic() == topic_camera1) {
+        if (s1 != nullptr && m.getTopic() == topic_camera1) {
             // Get the image
             cv_bridge::CvImageConstPtr cv_ptr;
             try {
@@ -222,7 +222,7 @@ int main(int argc, char** argv)
         // If we have both left and right, then process
         if(has_left && has_right) {
             // process
-            handle_stereo(time0, time1, img0, img1);
+            handle_stereo(time0, time1, img0, img1, use_stereo);
             // reset bools
             has_left = false;
             has_right = false;
@@ -240,14 +240,15 @@ int main(int argc, char** argv)
 /**
  * This function will process the new stereo pair with the extractor!
  */
-void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
-
-                    
+void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool use_stereo) {
 
     // Process this new image
-    extractor->feed_stereo(time0, img0, img1, 0, 1);
-    //extractor->feed_monocular(time0, img0, 0);
-    //extractor->feed_monocular(time0, img1, 1);
+    if(use_stereo) {
+        extractor->feed_stereo(time0, img0, img1, 0, 1);
+    } else {
+        extractor->feed_monocular(time0, img0, 0);
+        extractor->feed_monocular(time0, img1, 1);
+    }
 
 
     // Display the resulting tracks
@@ -261,8 +262,8 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
     cv::waitKey(1);
 
     // Get lost tracks
-    FeatureDatabase* database = extractor->get_feature_database();
-    std::vector<Feature*> feats_lost = database->features_not_containing_newer(time0);
+    std::shared_ptr<FeatureDatabase> database = extractor->get_feature_database();
+    std::vector<std::shared_ptr<Feature>> feats_lost = database->features_not_containing_newer(time0);
     num_lostfeats += feats_lost.size();
 
     // Mark theses feature pointers as deleted
@@ -285,7 +286,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
         // Remove features that have reached their max track length
         double margtime = clonetimes.at(0);
         clonetimes.pop_front();
-        std::vector<Feature*> feats_marg = database->features_containing(margtime);
+        std::vector<std::shared_ptr<Feature>> feats_marg = database->features_containing(margtime);
         num_margfeats += feats_marg.size();
         // Delete theses feature pointers
         for(size_t i=0; i<feats_marg.size(); i++) {

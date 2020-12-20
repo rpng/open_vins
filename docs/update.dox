@@ -2,6 +2,7 @@
 
 
 @page update Update Derivations
+@tableofcontents
 
 @section basics Minimum Mean Square Error (MMSE) Estimation
 

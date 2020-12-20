@@ -21,8 +21,7 @@
 #ifndef OV_CORE_TRACK_DESC_H
 #define OV_CORE_TRACK_DESC_H
 
-
-#include <opencv2/xfeatures2d.hpp>
+#include <opencv2/features2d.hpp>
 
 #include "TrackBase.h"
 
@@ -50,13 +49,14 @@ namespace ov_core {
          * @brief Public constructor with configuration variables
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
+         * @param multithread if we should try to process with multiple threads or single threaded
          * @param fast_threshold FAST detection threshold
          * @param gridx size of grid in the x-direction / u-direction
          * @param gridy size of grid in the y-direction / v-direction
          * @param knnratio matching ratio needed (smaller value forces top two descriptors during match to be more different)
          */
-        explicit TrackDescriptor(int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, double knnratio) :
-                                 TrackBase(numfeats, numaruco), threshold(fast_threshold), grid_x(gridx), grid_y(gridy), knn_ratio(knnratio) {}
+        explicit TrackDescriptor(int numfeats, int numaruco, bool multithread, int fast_threshold, int gridx, int gridy, double knnratio) :
+                                 TrackBase(numfeats, numaruco, multithread), threshold(fast_threshold), grid_x(gridx), grid_y(gridy), knn_ratio(knnratio) {}
 
         /**
          * @brief Process a new monocular image

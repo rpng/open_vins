@@ -22,7 +22,8 @@
 #define OV_TYPE_TYPE_BASE_H
 
 
-#include <Eigen/Dense>
+#include <memory>
+#include <Eigen/Eigen>
 
 
 namespace ov_type {
@@ -40,10 +41,10 @@ namespace ov_type {
     public:
 
         /**
-        * @brief Default constructor for our Type
+         * @brief Default constructor for our Type
          *
-        * @param size_ degrees of freedom of variable (i.e., the size of the error state)
-        */
+         * @param size_ degrees of freedom of variable (i.e., the size of the error state)
+         */
         Type(int size_) {
             _size = size_;
         }
@@ -51,24 +52,27 @@ namespace ov_type {
         virtual ~Type() {};
 
         /**
-        * @brief Sets id used to track location of variable in the filter covariance
+         * @brief Sets id used to track location of variable in the filter covariance
          *
-        * @param new_id entry in filter covariance corresponding to this variable
-        */
+         * Note that the minimum ID is -1 which says that the state is not in our covariance.
+         * If the ID is larger than -1 then this is the index location in the covariance matrix.
+         *
+         * @param new_id entry in filter covariance corresponding to this variable
+         */
         virtual void set_local_id(int new_id) {
             _id = new_id;
         }
 
         /**
-        * @brief Access to variable id (i.e. its location in the covariance)
-        */
+         * @brief Access to variable id (i.e. its location in the covariance)
+         */
         int id() {
             return _id;
         }
 
         /**
-        * @brief Access to variable size (i.e. its error state size)
-        */
+         * @brief Access to variable size (i.e. its error state size)
+         */
         int size() {
             return _size;
         }
@@ -78,19 +82,19 @@ namespace ov_type {
          *
          * @param dx Perturbation used to update the variable through a defined "boxplus" operation
          */
-        virtual void update(const Eigen::VectorXd dx) = 0;
+        virtual void update(const Eigen::VectorXd& dx) = 0;
 
         /**
          * @brief Access variable's estimate
          */
-        virtual Eigen::MatrixXd value() const {
+        virtual const Eigen::MatrixXd& value() const {
             return _value;
         }
 
         /**
          * @brief Access variable's first-estimate
          */
-        virtual Eigen::MatrixXd fej() const {
+        virtual const Eigen::MatrixXd& fej() const {
             return _fej;
         }
 
@@ -98,7 +102,7 @@ namespace ov_type {
          * @brief Overwrite value of state's estimate
          * @param new_value New value that will overwrite state's value
          */
-        virtual void set_value(const Eigen::MatrixXd new_value) {
+        virtual void set_value(const Eigen::MatrixXd& new_value) {
             assert(_value.rows()==new_value.rows());
             assert(_value.cols()==new_value.cols());
             _value = new_value;
@@ -108,7 +112,7 @@ namespace ov_type {
          * @brief Overwrite value of first-estimate
          * @param new_value New value that will overwrite state's fej
          */
-        virtual void set_fej(const Eigen::MatrixXd new_value) {
+        virtual void set_fej(const Eigen::MatrixXd& new_value) {
             assert(_fej.rows()==new_value.rows());
             assert(_fej.cols()==new_value.cols());
             _fej = new_value;
@@ -117,22 +121,20 @@ namespace ov_type {
         /**
         * @brief Create a clone of this variable
         */
-        virtual Type *clone() = 0;
+        virtual std::shared_ptr<Type> clone() = 0;
 
         /**
-         * @brief Determine if "check" is the same variable
+         * @brief Determine if pass variable is a sub-variable
+         *
          * If the passed variable is a sub-variable or the current variable this will return it.
          * Otherwise it will return a nullptr, meaning that it was unable to be found.
          *
-         * @param check Type pointer to compare to
+         * @param check Type pointer to compare our subvariables to
          */
-        virtual Type *check_if_same_variable(const Type *check) {
-            if (check == this) {
-                return this;
-            } else {
-                return nullptr;
-            }
+        virtual std::shared_ptr<Type> check_if_subvariable(const std::shared_ptr<Type> check) {
+            return nullptr;
         }
+
 
     protected:
 

@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
         for(size_t i=0; i<path_groundtruths.size(); i++) {
             temp.push_back({ov_eval::Statistics(),ov_eval::Statistics()});
         }
-        algo_ate.insert({p.stem().string(),temp});
+        algo_ate.insert({p.filename().string(),temp});
     }
 
     // Relative pose error segment lengths
@@ -110,7 +110,7 @@ int main(int argc, char **argv) {
         for(const auto& len : segments) {
             temp.insert({len,{ov_eval::Statistics(),ov_eval::Statistics()}});
         }
-        algo_rpe.insert({p.stem().string(),temp});
+        algo_rpe.insert({p.filename().string(),temp});
     }
 
 
@@ -125,13 +125,13 @@ int main(int argc, char **argv) {
 
         // Debug print
         printf("======================================\n");
-        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
+        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).filename().c_str());
 
         // Get the list of datasets this algorithm records
         std::map<std::string,boost::filesystem::path> path_algo_datasets;
         for(auto& entry : boost::filesystem::directory_iterator(path_algorithms.at(i))) {
             if(boost::filesystem::is_directory(entry)) {
-                path_algo_datasets.insert({entry.path().stem().string(),entry.path()});
+                path_algo_datasets.insert({entry.path().filename().string(),entry.path()});
             }
         }
 
@@ -140,12 +140,12 @@ int main(int argc, char **argv) {
 
             // Check if we have runs for this dataset
             if(path_algo_datasets.find(path_groundtruths.at(j).stem().string())==path_algo_datasets.end()) {
-                printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET,path_algorithms.at(i).stem().c_str(),path_groundtruths.at(j).stem().c_str());
+                printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET,path_algorithms.at(i).filename().c_str(),path_groundtruths.at(j).stem().c_str());
                 continue;
             }
 
             // Debug print
-            printf("[COMP]: processing %s algorithm => %s dataset\n", path_algorithms.at(i).stem().c_str(),path_groundtruths.at(j).stem().c_str());
+            printf("[COMP]: processing %s algorithm => %s dataset\n", path_algorithms.at(i).filename().c_str(),path_groundtruths.at(j).stem().c_str());
 
             // Errors for this specific dataset (i.e. our averages over the total runs)
             ov_eval::Statistics ate_dataset_ori;
@@ -207,7 +207,7 @@ int main(int argc, char **argv) {
             }
 
             // Update the global ATE error stats
-            std::string algo = path_algorithms.at(i).stem().string();
+            std::string algo = path_algorithms.at(i).filename().string();
             algo_ate.at(algo).at(j).first = ate_dataset_ori;
             algo_ate.at(algo).at(j).second = ate_dataset_pos;
 

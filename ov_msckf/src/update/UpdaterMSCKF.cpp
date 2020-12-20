@@ -29,7 +29,7 @@ using namespace ov_msckf;
 
 
 
-void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
+void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>>& feature_vec) {
 
     // Return if no features
     if(feature_vec.empty())
@@ -45,7 +45,6 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         clonetimes.emplace_back(clone_imu.first);
     }
 
-
     // 1. Clean all feature measurements and make sure they all have valid clone times
     auto it0 = feature_vec.begin();
     while(it0 != feature_vec.end()) {
@@ -60,7 +59,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         }
 
         // Remove if we don't have enough
-        if(ct_meas < 3) {
+        if(ct_meas < 2) {
             (*it0)->to_delete = true;
             it0 = feature_vec.erase(it0);
         } else {
@@ -97,16 +96,21 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     while(it1 != feature_vec.end()) {
 
         // Triangulate the feature and remove if it fails
-        bool success = initializer_feat->single_triangulation(*it1, clones_cam);
-        if(!success) {
-            (*it1)->to_delete = true;
-            it1 = feature_vec.erase(it1);
-            continue;
+        bool success_tri = true;
+        if(initializer_feat->config().triangulate_1d) {
+            success_tri = initializer_feat->single_triangulation_1d(it1->get(), clones_cam);
+        } else {
+            success_tri = initializer_feat->single_triangulation(it1->get(), clones_cam);
         }
 
         // Gauss-newton refine the feature
-        success = initializer_feat->single_gaussnewton(*it1, clones_cam);
-        if(!success) {
+        bool success_refine = true;
+        if(initializer_feat->config().refine_features) {
+            success_refine = initializer_feat->single_gaussnewton(it1->get(), clones_cam);
+        }
+
+        // Remove the feature if not a success
+        if(!success_tri || !success_refine) {
             (*it1)->to_delete = true;
             it1 = feature_vec.erase(it1);
             continue;
@@ -115,7 +119,6 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
 
     }
     rT2 =  boost::posix_time::microsec_clock::local_time();
-
 
     // Calculate the max possible measurement size
     size_t max_meas_size = 0;
@@ -135,11 +138,10 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     // Large Jacobian and residual of *all* features for this update
     Eigen::VectorXd res_big = Eigen::VectorXd::Zero(max_meas_size);
     Eigen::MatrixXd Hx_big = Eigen::MatrixXd::Zero(max_meas_size, max_hx_size);
-    std::unordered_map<Type*,size_t> Hx_mapping;
-    std::vector<Type*> Hx_order_big;
+    std::unordered_map<std::shared_ptr<Type>,size_t> Hx_mapping;
+    std::vector<std::shared_ptr<Type>> Hx_order_big;
     size_t ct_jacob = 0;
     size_t ct_meas = 0;
-
 
     // 4. Compute linear system for each feature, nullspace project, and reject
     auto it2 = feature_vec.begin();
@@ -173,7 +175,7 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
         Eigen::MatrixXd H_f;
         Eigen::MatrixXd H_x;
         Eigen::VectorXd res;
-        std::vector<Type*> Hx_order;
+        std::vector<std::shared_ptr<Type>> Hx_order;
 
         // Get the Jacobian for this feature
         UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
@@ -247,14 +249,12 @@ void UpdaterMSCKF::update(State *state, std::vector<Feature*>& feature_vec) {
     res_big.conservativeResize(ct_meas,1);
     Hx_big.conservativeResize(ct_meas,ct_jacob);
 
-
     // 5. Perform measurement compression
     UpdaterHelper::measurement_compress_inplace(Hx_big, res_big);
     if(Hx_big.rows() < 1) {
         return;
     }
     rT4 =  boost::posix_time::microsec_clock::local_time();
-
 
     // Our noise is isotropic, so make it here after our compression
     Eigen::MatrixXd R_big = _options.sigma_pix_sq*Eigen::MatrixXd::Identity(res_big.rows(),res_big.rows());

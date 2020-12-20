@@ -172,14 +172,16 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
         // Get end of subtrajectories for each possible starting point
         // NOTE: is there a better way to select which end pos is a valid segments that are of the correct lenght?
         // NOTE: right now this allows for longer segments to have bigger error in their start-end distance vs the desired segment length
-        //std::vector<size_t> comparisons = compute_comparison_indices_length(accum_distances, distance, 0.1*distance);
-        std::vector<size_t> comparisons = compute_comparison_indices_length(accum_distances, distance, max_dist_diff);
+        //std::vector<int> comparisons = compute_comparison_indices_length(accum_distances, distance, 0.1*distance);
+        std::vector<int> comparisons = compute_comparison_indices_length(accum_distances, distance, max_dist_diff);
+        assert(comparisons.size()==gt_poses.size());
 
         // Loop through each relative comparison
         for (size_t id_start = 0; id_start < comparisons.size(); id_start++) {
 
-            // Get the end id
-            size_t id_end = comparisons[id_start];
+            // Get the end id (skip if we couldn't find an end)
+            int id_end = comparisons[id_start];
+            if(id_end == -1) continue;
 
             //===============================================================================
             // Get T I1 to world EST at beginning of subtrajectory (at state idx)

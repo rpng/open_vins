@@ -67,7 +67,6 @@ int main(int argc, char **argv) {
     for(const auto& entry : boost::filesystem::directory_iterator(path_algos)) {
         if(boost::filesystem::is_directory(entry)) {
             path_algorithms.push_back(entry.path());
-
         }
     }
     std::sort(path_algorithms.begin(), path_algorithms.end());
@@ -93,19 +92,19 @@ int main(int argc, char **argv) {
 
         // Debug print
         printf("======================================\n");
-        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
+        printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).filename().c_str());
 
         // Get the list of datasets this algorithm records
         std::map<std::string,boost::filesystem::path> path_algo_datasets;
         for(auto& entry : boost::filesystem::directory_iterator(path_algorithms.at(i))) {
             if(boost::filesystem::is_directory(entry)) {
-                path_algo_datasets.insert({entry.path().stem().string(),entry.path()});
+                path_algo_datasets.insert({entry.path().filename().string(),entry.path()});
             }
         }
 
         // Check if we have runs for our dataset
         if(path_algo_datasets.find(path_gt.stem().string())==path_algo_datasets.end()) {
-            printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET,path_algorithms.at(i).stem().c_str(),path_gt.stem().c_str());
+            printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET,path_algorithms.at(i).filename().c_str(),path_gt.stem().c_str());
             continue;
         }
 
@@ -131,7 +130,7 @@ int main(int argc, char **argv) {
 
         // Check if we have runs
         if(file_paths.empty()) {
-            printf(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).stem().c_str());
+            printf(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).filename().c_str());
             continue;
         }
 
@@ -270,7 +269,7 @@ int main(int argc, char **argv) {
 
         // Update the title and axis labels
         matplotlibcpp::subplot(2,1,1);
-        matplotlibcpp::title("Root Mean Squared Error - "+path_algorithms.at(i).stem().string());
+        matplotlibcpp::title("Root Mean Squared Error - "+path_algorithms.at(i).filename().string());
         matplotlibcpp::ylabel("Error Orientation (deg)");
         matplotlibcpp::plot(rmse_ori.timestamps, rmse_ori.values);
         matplotlibcpp::xlim(0.0,endtime1-starttime1);
@@ -300,7 +299,7 @@ int main(int argc, char **argv) {
 
             // Update the title and axis labels
             matplotlibcpp::subplot(2,1,1);
-            matplotlibcpp::title("Normalized Estimation Error Squared - "+path_algorithms.at(i).stem().string());
+            matplotlibcpp::title("Normalized Estimation Error Squared - "+path_algorithms.at(i).filename().string());
             matplotlibcpp::ylabel("NEES Orientation");
             matplotlibcpp::plot(nees_ori.timestamps, nees_ori.values);
             matplotlibcpp::xlim(0.0,endtime2-starttime2);

@@ -21,7 +21,7 @@
 #ifndef OV_EVAL_ALIGNTRAJECTORY_H
 #define OV_EVAL_ALIGNTRAJECTORY_H
 
-
+#include <vector>
 #include <string>
 #include <sstream>
 #include <iostream>

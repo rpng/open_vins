@@ -1,9 +1,9 @@
 <launch>
 
     <!-- mono or stereo and what ros bag to play -->
-    <arg name="max_cameras" default="2" />
-    <arg name="use_stereo"  default="true" />
-    <arg name="bag_start"   default="15" />
+    <arg name="max_cameras" default="1" />
+    <arg name="use_stereo"  default="false" />
+    <arg name="bag_start"   default="0" />
     <arg name="bag_durr"    default="999999" />
     <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer/indoor_45_2_snapdragon_with_gt.bag" />
 
@@ -16,7 +16,7 @@
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="1.0" />
-    <arg name="init_imu_thresh"   default="5.0" />
+    <arg name="init_imu_thresh"   default="0.5" />
 
     <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
@@ -33,6 +33,7 @@
         <param name="topic_imu"      type="string" value="/snappy_imu" />
         <param name="topic_camera0"  type="string" value="/snappy_cam/stereo_l" />
         <param name="topic_camera1"  type="string" value="/snappy_cam/stereo_r" />
+        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="true" />
@@ -43,15 +44,15 @@
         <param name="calib_cam_intrinsics"   type="bool"   value="true" />
         <param name="calib_cam_timeoffset"   type="bool"   value="true" />
         <param name="calib_camimu_dt"        type="double" value="-0.015" />
-        <param name="max_clones"             type="int"    value="8" />
-        <param name="max_slam"               type="int"    value="150" />
-        <param name="max_slam_in_update"     type="int"    value="40" />
+        <param name="max_clones"             type="int"    value="15" />
+        <param name="max_slam"               type="int"    value="75" />
+        <param name="max_slam_in_update"     type="int"    value="25" />
         <param name="max_msckf_in_update"    type="int"    value="40" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
-        <param name="dt_slam_delay"          type="double" value="2" />
+        <param name="dt_slam_delay"          type="double" value="1" />
         <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
         <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
-        <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
+        <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_INVERSE_DEPTH_SINGLE" /> <!-- ANCHORED_MSCKF_INVERSE_DEPTH, ANCHORED_INVERSE_DEPTH_SINGLE -->
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_INVERSE_DEPTH_SINGLE" /> <!-- ANCHORED_MSCKF_INVERSE_DEPTH, ANCHORED_INVERSE_DEPTH_SINGLE -->
@@ -68,13 +69,14 @@
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />
-        <param name="num_pts"            type="int"    value="300" />
+        <param name="num_pts"            type="int"    value="400" />
         <param name="fast_threshold"     type="int"    value="10" />
-        <param name="grid_x"             type="int"    value="10" />
-        <param name="grid_y"             type="int"    value="8" />
+        <param name="grid_x"             type="int"    value="8" />
+        <param name="grid_y"             type="int"    value="5" />
         <param name="min_px_dist"        type="int"    value="5" />
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
+        <param name="multi_threading"    type="bool"   value="true" />
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />
@@ -102,7 +104,6 @@
         <rosparam param="cam1_wh">[640, 480]</rosparam>
         <param name="cam0_is_fisheye" type="bool" value="true" />
         <param name="cam1_is_fisheye" type="bool" value="true" />
-
 
         <!-- indoor forward facing -->
         <rosparam param="cam0_k" if="$(eval arg('sensor_config') == 0)">[278.66723066149086, 278.48991409740296, 319.75221200593535, 241.96858910358173]</rosparam>

@@ -41,7 +41,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
 
     // convert all our trajectory points into SE(3) matrices
     // we are given [timestamp, p_IinG, q_GtoI]
-    std::map<double,Eigen::MatrixXd> trajectory_points;
+    AlignedEigenMat4d trajectory_points;
     for(size_t i=0; i<traj_points.size()-1; i++) {
         Eigen::Matrix4d T_IinG = Eigen::Matrix4d::Identity();
         T_IinG.block(0,0,3,3) = quat_2_Rot(traj_points.at(i).block(4,0,4,1)).transpose();
@@ -52,7 +52,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
     // Get the oldest timestamp
     double timestamp_min = INFINITY;
     double timestamp_max = -INFINITY;
-    for(std::pair<const double, Eigen::MatrixXd> &pose : trajectory_points) {
+    for(const auto &pose : trajectory_points) {
         if(pose.first <= timestamp_min) {
             timestamp_min = pose.first;
         }
@@ -192,8 +192,8 @@ bool BsplineSE3::get_velocity(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::
 
 
 bool BsplineSE3::get_acceleration(double timestamp, Eigen::Matrix3d &R_GtoI, Eigen::Vector3d &p_IinG,
-                                    Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG,
-                                    Eigen::Vector3d &alpha_IinI, Eigen::Vector3d &a_IinG) {
+                                  Eigen::Vector3d &w_IinI, Eigen::Vector3d &v_IinG,
+                                  Eigen::Vector3d &alpha_IinI, Eigen::Vector3d &a_IinG) {
 
     // Get the bounding poses for the desired timestamp
     double t0, t1, t2, t3;
@@ -224,17 +224,20 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Matrix3d &R_GtoI, Eig
     Eigen::Matrix<double,6,1> omega_10 = log_se3(Inv_se3(pose0)*pose1);
     Eigen::Matrix<double,6,1> omega_21 = log_se3(Inv_se3(pose1)*pose2);
     Eigen::Matrix<double,6,1> omega_32 = log_se3(Inv_se3(pose2)*pose3);
+    Eigen::Matrix4d omega_10_hat = hat_se3(omega_10);
+    Eigen::Matrix4d omega_21_hat = hat_se3(omega_21);
+    Eigen::Matrix4d omega_32_hat = hat_se3(omega_32);
 
     // Calculate interpolated poses
     Eigen::Matrix4d A0 = exp_se3(b0*omega_10);
     Eigen::Matrix4d A1 = exp_se3(b1*omega_21);
     Eigen::Matrix4d A2 = exp_se3(b2*omega_32);
-    Eigen::Matrix4d A0dot = b0dot*hat_se3(omega_10)*A0;
-    Eigen::Matrix4d A1dot = b1dot*hat_se3(omega_21)*A1;
-    Eigen::Matrix4d A2dot = b2dot*hat_se3(omega_32)*A2;
-    Eigen::Matrix4d A0dotdot = b0dot*hat_se3(omega_10)*A0dot+b0dotdot*hat_se3(omega_10)*A0;
-    Eigen::Matrix4d A1dotdot = b1dot*hat_se3(omega_21)*A1dot+b1dotdot*hat_se3(omega_21)*A1;
-    Eigen::Matrix4d A2dotdot = b2dot*hat_se3(omega_32)*A2dot+b2dotdot*hat_se3(omega_32)*A2;
+    Eigen::Matrix4d A0dot = b0dot*omega_10_hat*A0;
+    Eigen::Matrix4d A1dot = b1dot*omega_21_hat*A1;
+    Eigen::Matrix4d A2dot = b2dot*omega_32_hat*A2;
+    Eigen::Matrix4d A0dotdot = b0dot*omega_10_hat*A0dot+b0dotdot*omega_10_hat*A0;
+    Eigen::Matrix4d A1dotdot = b1dot*omega_21_hat*A1dot+b1dotdot*omega_21_hat*A1;
+    Eigen::Matrix4d A2dotdot = b2dot*omega_32_hat*A2dot+b2dotdot*omega_32_hat*A2;
 
     // Get the interpolated pose
     Eigen::Matrix4d pose_interp = pose0*A0*A1*A2;
@@ -260,7 +263,7 @@ bool BsplineSE3::get_acceleration(double timestamp, Eigen::Matrix3d &R_GtoI, Eig
 }
 
 
-bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
+bool BsplineSE3::find_bounding_poses(const double timestamp, const AlignedEigenMat4d &poses,
                                      double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1) {
 
     // Set the default values
@@ -315,7 +318,7 @@ bool BsplineSE3::find_bounding_poses(double timestamp, std::map<double,Eigen::Ma
 
 
 
-bool BsplineSE3::find_bounding_control_points(double timestamp, std::map<double,Eigen::MatrixXd> &poses,
+bool BsplineSE3::find_bounding_control_points(const double timestamp, const AlignedEigenMat4d &poses,
                                               double &t0, Eigen::Matrix4d &pose0, double &t1, Eigen::Matrix4d &pose1,
                                               double &t2, Eigen::Matrix4d &pose2, double &t3, Eigen::Matrix4d &pose3) {
 

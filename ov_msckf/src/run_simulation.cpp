@@ -22,12 +22,14 @@
 
 
 #include <csignal>
+#include <memory>
 
 #include "sim/Simulator.h"
 #include "core/VioManager.h"
 #include "utils/dataset_reader.h"
 #include "utils/parse_cmd.h"
 #include "utils/colors.h"
+#include "utils/sensor_data.h"
 
 
 #ifdef ROS_AVAILABLE
@@ -40,10 +42,10 @@
 using namespace ov_msckf;
 
 
-Simulator* sim;
-VioManager* sys;
+std::shared_ptr<Simulator> sim;
+std::shared_ptr<VioManager> sys;
 #ifdef ROS_AVAILABLE
-RosVisualizer* viz;
+std::shared_ptr<RosVisualizer> viz;
 #endif
 
 
@@ -68,10 +70,10 @@ int main(int argc, char** argv)
 #endif
 
     // Create our VIO system
-    sim = new Simulator(params);
-    sys = new VioManager(params);
+    sim = std::make_shared<Simulator>(params);
+    sys = std::make_shared<VioManager>(params);
 #ifdef ROS_AVAILABLE
-    viz = new RosVisualizer(nh, sys, sim);
+    viz = std::make_shared<RosVisualizer>(nh, sys, sim);
 #endif
 
     //===================================================================================
@@ -112,13 +114,12 @@ int main(int argc, char** argv)
 #endif
 
         // IMU: get the next simulated IMU measurement if we have it
-        double time_imu;
-        Eigen::Vector3d wm, am;
-        bool hasimu = sim->get_next_imu(time_imu, wm, am);
+        ov_core::ImuData message_imu;
+        bool hasimu = sim->get_next_imu(message_imu.timestamp, message_imu.wm, message_imu.am);
         if(hasimu) {
-            sys->feed_measurement_imu(time_imu, wm, am);
+            sys->feed_measurement_imu(message_imu);
 #ifdef ROS_AVAILABLE
-            viz->visualize_odometry(time_imu);
+            viz->visualize_odometry(message_imu.timestamp);
 #endif
         }
 
@@ -150,12 +151,7 @@ int main(int argc, char** argv)
     // Final visualization
 #ifdef ROS_AVAILABLE
     viz->visualize_final();
-    delete viz;
 #endif
-
-    // Finally delete our system
-    delete sim;
-    delete sys;
 
     // Done!
     return EXIT_SUCCESS;

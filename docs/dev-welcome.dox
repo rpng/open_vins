@@ -7,6 +7,7 @@
 -   @subpage dev-docs --- Developer guide on how documentation can be built
 -   @subpage dev-index --- Description of the covariance index system
 -   @subpage dev-roadmap --- Where we plan to go in the future
+-   @subpage dev-profiling --- Some notes on performing profiling
 
 
 

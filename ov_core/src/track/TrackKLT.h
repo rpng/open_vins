@@ -50,13 +50,14 @@ namespace ov_core {
          * @brief Public constructor with configuration variables
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
+         * @param multithread if we should try to process with multiple threads or single threaded
          * @param fast_threshold FAST detection threshold
          * @param gridx size of grid in the x-direction / u-direction
          * @param gridy size of grid in the y-direction / v-direction
          * @param minpxdist features need to be at least this number pixels away from each other
          */
-        explicit TrackKLT(int numfeats, int numaruco, int fast_threshold, int gridx, int gridy, int minpxdist) :
-                 TrackBase(numfeats, numaruco), threshold(fast_threshold), grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
+        explicit TrackKLT(int numfeats, int numaruco, bool multithread, int fast_threshold, int gridx, int gridy, int minpxdist) :
+                 TrackBase(numfeats, numaruco, multithread), threshold(fast_threshold), grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
 
 
         /**
@@ -140,6 +141,10 @@ namespace ov_core {
         // How many pyramid levels to track on and the window size to reduce by
         int pyr_levels = 3;
         cv::Size win_size = cv::Size(15, 15);
+
+        // Alternative histagram equalization
+        double eq_clip_limit = 10.0;
+        cv::Size eq_win_size = cv::Size(8,8);
 
         // Last set of image pyramids
         std::map<size_t, std::vector<cv::Mat>> img_pyramid_last;

@@ -21,9 +21,9 @@
 #ifndef OV_CORE_INERTIALINITIALIZER_H
 #define OV_CORE_INERTIALINITIALIZER_H
 
-#include <Eigen/Eigen>
 #include "utils/quat_ops.h"
 #include "utils/colors.h"
+#include "utils/sensor_data.h"
 
 namespace ov_core {
 
@@ -49,23 +49,6 @@ namespace ov_core {
     public:
 
         /**
-         * @brief Struct for a single imu measurement (time, wm, am)
-         */
-        struct IMUDATA {
-
-            /// Timestamp of the reading
-            double timestamp;
-
-            /// Gyroscope reading, angular velocity (rad/s)
-            Eigen::Matrix<double, 3, 1> wm;
-
-            /// Accelerometer reading, linear acceleration (m/s^2)
-            Eigen::Matrix<double, 3, 1> am;
-
-        };
-
-
-        /**
          * @brief Default constructor
          * @param gravity Gravity in the global frame of reference
          * @param window_length Amount of time we will initialize over (seconds)
@@ -74,15 +57,11 @@ namespace ov_core {
         InertialInitializer(Eigen::Matrix<double,3,1> gravity, double window_length, double imu_excite_threshold) :
                             _gravity(gravity), _window_length(window_length), _imu_excite_threshold(imu_excite_threshold) {}
 
-
         /**
-         * @brief Stores incoming inertial readings
-         *
-         * @param timestamp Timestamp of imu reading
-         * @param wm Gyro angular velocity reading
-         * @param am Accelerometer linear acceleration reading
+         * @brief Feed function for inertial data
+         * @param message Contains our timestamp and inertial information
          */
-        void feed_imu(double timestamp, Eigen::Matrix<double,3,1> wm, Eigen::Matrix<double,3,1> am);
+        void feed_imu(const ImuData &message);
 
 
         /**
@@ -121,7 +100,7 @@ namespace ov_core {
         double _imu_excite_threshold;
 
         /// Our history of IMU messages (time, angular, linear)
-        std::vector<IMUDATA> imu_data;
+        std::vector<ImuData> imu_data;
 
 
     };

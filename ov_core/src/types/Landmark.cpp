@@ -24,7 +24,7 @@
 using namespace ov_type;
 
 
-Eigen::Matrix<double,3,1> Landmark::get_xyz(bool getfej) {
+Eigen::Matrix<double,3,1> Landmark::get_xyz(bool getfej) const {
 
     /// CASE: Global 3d feature representation
     /// CASE: Anchored 3D feature representation

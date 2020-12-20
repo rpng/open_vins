@@ -49,7 +49,7 @@ namespace ov_type {
          * @brief Implements the update operation through standard vector addition
          * @param dx Additive error state correction
          */
-        void update(const Eigen::VectorXd dx) override {
+        void update(const Eigen::VectorXd& dx) override {
             assert(dx.rows() == _size);
             set_value(_value + dx);
         }
@@ -57,8 +57,8 @@ namespace ov_type {
         /**
          * @brief Performs all the cloning
          */
-        Type *clone() override {
-            Type *Clone = new Vec(_size);
+        std::shared_ptr<Type> clone() override {
+            auto Clone = std::shared_ptr<Type>(new Vec(_size));
             Clone->set_value(value());
             Clone->set_fej(fej());
             return Clone;

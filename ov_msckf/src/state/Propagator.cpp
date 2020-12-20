@@ -28,7 +28,7 @@ using namespace ov_msckf;
 
 
 
-void Propagator::propagate_and_clone(State* state, double timestamp) {
+void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timestamp) {
 
     // If the difference between the current update time and state is zero
     // We should crash, as this means we would have two clones at the same time!!!!
@@ -60,7 +60,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     // First lets construct an IMU vector of measurements we need
     double time0 = state->_timestamp+last_prop_time_offset;
     double time1 = timestamp+t_off_new;
-    vector<IMUDATA> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
+    std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
 
     // We are going to sum up all the state transition matrices, so we can do a single large multiplication at the end
     // Phi_summed = Phi_i*Phi_summed
@@ -100,7 +100,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
     else if(!prop_data.empty()) last_w = prop_data.at(prop_data.size()-1).wm - state->_imu->bias_g();
 
     // Do the update to the covariance with our "summed" state transition and IMU noise addition...
-    std::vector<Type*> Phi_order;
+    std::vector<std::shared_ptr<Type>> Phi_order;
     Phi_order.push_back(state->_imu);
     StateHelper::EKFPropagation(state, Phi_order, Phi_order, Phi_summed, Qd_summed);
 
@@ -116,7 +116,7 @@ void Propagator::propagate_and_clone(State* state, double timestamp) {
 
 
 
-void Propagator::fast_state_propagate(State *state, double timestamp, Eigen::Matrix<double,13,1> &state_plus) {
+void Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double,13,1> &state_plus) {
 
     // Set the last time offset value if we have just started the system up
     if(!have_last_prop_time_offset) {
@@ -130,7 +130,7 @@ void Propagator::fast_state_propagate(State *state, double timestamp, Eigen::Mat
     // First lets construct an IMU vector of measurements we need
     double time0 = state->_timestamp+last_prop_time_offset;
     double time1 = timestamp+t_off_new;
-    vector<IMUDATA> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
+    std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
 
     // Save the original IMU state
     Eigen::VectorXd orig_val = state->_imu->value();
@@ -185,10 +185,10 @@ void Propagator::fast_state_propagate(State *state, double timestamp, Eigen::Mat
 
 
 
-std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vector<IMUDATA>& imu_data, double time0, double time1) {
+std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1) {
 
     // Our vector imu readings
-    std::vector<Propagator::IMUDATA> prop_data;
+    std::vector<ov_core::ImuData> prop_data;
 
     // Ensure we have some measurements in the first place!
     if(imu_data.empty()) {
@@ -205,7 +205,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
         // And the current is not greater then it yet...
         // Then we should "split" our current IMU measurement
         if(imu_data.at(i+1).timestamp > time0 && imu_data.at(i).timestamp < time0) {
-            IMUDATA data = Propagator::interpolate_data(imu_data.at(i),imu_data.at(i+1), time0);
+            ov_core::ImuData data = Propagator::interpolate_data(imu_data.at(i),imu_data.at(i+1), time0);
             prop_data.push_back(data);
             //printf("propagation #%d = CASE 1 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,time0-prop_data.at(0).timestamp);
             continue;
@@ -229,8 +229,13 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
             // If we have a very low frequency IMU then, we could have only recorded the first integration (i.e. case 1) and nothing else
             // In this case, both the current IMU measurement and the next is greater than the desired intepolation, thus we should just cut the current at the desired time
             // Else, we have hit CASE2 and this IMU measurement is not past the desired propagation time, thus add the whole IMU reading
-            if(imu_data.at(i).timestamp > time1) {
-                IMUDATA data = interpolate_data(imu_data.at(i-1), imu_data.at(i), time1);
+            if(imu_data.at(i).timestamp > time1 && i == 0) {
+                // This case can happen if we don't have any imu data that has occured before the startup time
+                // This means that either we have dropped IMU data, or we have not gotten enough.
+                // In this case we can't propgate forward in time, so there is not that much we can do.
+                break;
+            } else if(imu_data.at(i).timestamp > time1) {
+                ov_core::ImuData data = interpolate_data(imu_data.at(i-1), imu_data.at(i), time1);
                 prop_data.push_back(data);
                 //printf("propagation #%d = CASE 3.1 = %.3f => %.3f\n", (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
             } else {
@@ -240,7 +245,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
             // If the added IMU message doesn't end exactly at the camera time
             // Then we need to add another one that is right at the ending time
             if(prop_data.at(prop_data.size()-1).timestamp != time1) {
-                IMUDATA data = interpolate_data(imu_data.at(i), imu_data.at(i+1), time1);
+                ov_core::ImuData data = interpolate_data(imu_data.at(i), imu_data.at(i+1), time1);
                 prop_data.push_back(data);
                 //printf("propagation #%d = CASE 3.3 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-time0);
             }
@@ -284,7 +289,7 @@ std::vector<Propagator::IMUDATA> Propagator::select_imu_readings(const std::vect
 }
 
 
-void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, const IMUDATA data_plus,
+void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core::ImuData &data_minus, const ov_core::ImuData &data_plus,
                                      Eigen::Matrix<double,15,15> &F, Eigen::Matrix<double,15,15> &Qd) {
 
     // Set them to zero
@@ -347,8 +352,8 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         //G.block(th_id, 0, 3, 3) = -dR * Jr_so3(-log_so3(dR)) * dt;
         G.block(v_id, 3, 3, 3) = -Rfej.transpose() * dt;
         G.block(p_id, 3, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
-        G.block(bg_id, 6, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
-        G.block(ba_id, 9, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
+        G.block(bg_id, 6, 3, 3) = Eigen::Matrix<double,3,3>::Identity();
+        G.block(ba_id, 9, 3, 3) = Eigen::Matrix<double,3,3>::Identity();
 
     } else {
 
@@ -369,8 +374,8 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
         G.block(th_id, 0, 3, 3) = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
         G.block(v_id, 3, 3, 3) = -R_Gtoi.transpose() * dt;
         G.block(p_id, 3, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
-        G.block(bg_id, 6, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
-        G.block(ba_id, 9, 3, 3) = dt*Eigen::Matrix<double,3,3>::Identity();
+        G.block(bg_id, 6, 3, 3) = Eigen::Matrix<double,3,3>::Identity();
+        G.block(ba_id, 9, 3, 3) = Eigen::Matrix<double,3,3>::Identity();
     }
 
     // Construct our discrete noise covariance matrix
@@ -379,8 +384,8 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
     Eigen::Matrix<double,12,12> Qc = Eigen::Matrix<double,12,12>::Zero();
     Qc.block(0,0,3,3) = _noises.sigma_w_2/dt*Eigen::Matrix<double,3,3>::Identity();
     Qc.block(3,3,3,3) = _noises.sigma_a_2/dt*Eigen::Matrix<double,3,3>::Identity();
-    Qc.block(6,6,3,3) = _noises.sigma_wb_2/dt*Eigen::Matrix<double,3,3>::Identity();
-    Qc.block(9,9,3,3) = _noises.sigma_ab_2/dt*Eigen::Matrix<double,3,3>::Identity();
+    Qc.block(6,6,3,3) = _noises.sigma_wb_2*dt*Eigen::Matrix<double,3,3>::Identity();
+    Qc.block(9,9,3,3) = _noises.sigma_ab_2*dt*Eigen::Matrix<double,3,3>::Identity();
 
     // Compute the noise injected into the state over the interval
     Qd = G*Qc*G.transpose();
@@ -397,7 +402,7 @@ void Propagator::predict_and_compute(State *state, const IMUDATA data_minus, con
 }
 
 
-void Propagator::predict_mean_discrete(State *state, double dt,
+void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt,
                                         const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                                         const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                                         Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p) {
@@ -435,7 +440,7 @@ void Propagator::predict_mean_discrete(State *state, double dt,
 
 
 
-void Propagator::predict_mean_rk4(State *state, double dt,
+void Propagator::predict_mean_rk4(std::shared_ptr<State> state, double dt,
                                   const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                                   const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                                   Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p) {

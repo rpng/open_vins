@@ -24,10 +24,14 @@ using namespace ov_msckf;
 
 
 
-bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
+bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
 
     // Return if we don't have any imu data yet
     if(imu_data.empty())
+        return false;
+
+    // Return if the state is already at the desired time
+    if(state->_timestamp==timestamp)
         return false;
 
     // Set the last time offset value if we have just started the system up
@@ -37,7 +41,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     }
 
     // assert that the time we are requesting is in the future
-    assert(timestamp > state->_timestamp);
+    //assert(timestamp > state->_timestamp);
 
     // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
     double t_off_new = state->_calib_dt_CAMtoIMU->value()(0);
@@ -48,7 +52,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     double time1 = timestamp+t_off_new;
 
     // Select bounding inertial measurements
-    std::vector<Propagator::IMUDATA> imu_recent = Propagator::select_imu_readings(imu_data, time0, time1);
+    std::vector<ov_core::ImuData> imu_recent = Propagator::select_imu_readings(imu_data, time0, time1);
 
     // Move forward in time
     last_prop_time_offset = t_off_new;
@@ -65,7 +69,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     bool model_time_varying_bias = true;
 
     // Order of our Jacobian
-    std::vector<Type*> Hx_order;
+    std::vector<std::shared_ptr<Type>> Hx_order;
     Hx_order.push_back(state->_imu->q());
     Hx_order.push_back(state->_imu->bg());
     Hx_order.push_back(state->_imu->ba());
@@ -162,7 +166,7 @@ bool UpdaterZeroVelocity::try_update(State *state, double timestamp) {
     // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
     if(model_time_varying_bias) {
         Eigen::MatrixXd Phi_bias = Eigen::MatrixXd::Identity(6,6);
-        std::vector<Type*> Phi_order;
+        std::vector<std::shared_ptr<Type>> Phi_order;
         Phi_order.push_back(state->_imu->bg());
         Phi_order.push_back(state->_imu->ba());
         StateHelper::EKFPropagation(state, Phi_order, Phi_order, Phi_bias, Q_bias);

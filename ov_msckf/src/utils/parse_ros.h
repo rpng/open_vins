@@ -66,6 +66,45 @@ namespace ov_msckf {
             std::exit(EXIT_FAILURE);
         }
 
+        // Read in stereo pair information
+        std::vector<int> stereo_pairs;
+        nh.param<std::vector<int>>("stereo_pairs", stereo_pairs, stereo_pairs);
+        if(stereo_pairs.size() % 2 != 0) {
+            printf(RED "VioManager(): Specified number of stereo pair IDs needs to be even\n" RESET);
+            printf(RED "VioManager(): Example: (0,1,2,3) -> stereo tracking between 01 and 23\n" RESET);
+            std::exit(EXIT_FAILURE);
+        }
+        for(size_t i=0; i<stereo_pairs.size(); i++) {
+            if(std::count(stereo_pairs.begin(),stereo_pairs.end(),stereo_pairs.at(i)) != 1) {
+                printf(RED "VioManager(): You can do stereo tracking between unique ids\n" RESET);
+                printf(RED "VioManager(): %d showed up multiple times\n" RESET,stereo_pairs.at(i));
+                std::exit(EXIT_FAILURE);
+            }
+            //if(stereo_pairs.at(i) >= params.state_options.num_cameras) {
+            //    printf(RED "VioManager(): Stereo pair has an id larger then the max camera\n" RESET);
+            //    printf(RED "VioManager(): %d is >= than %d\n" RESET,stereo_pairs.at(i),params.state_options.num_cameras);
+            //    std::exit(EXIT_FAILURE);
+            //}
+        }
+        std::vector<int> valid_stereo_pairs;
+        for(size_t i=0; i<stereo_pairs.size(); i+=2) {
+            if(stereo_pairs.at(i) >= params.state_options.num_cameras || stereo_pairs.at(i+1) >= params.state_options.num_cameras) {
+                printf(RED "ignoring invalid stereo pair: %d, %d\n" RESET, stereo_pairs.at(i), stereo_pairs.at(i+1));
+                continue;
+            }
+            params.stereo_pairs.emplace_back(stereo_pairs.at(i),stereo_pairs.at(i+1));
+            valid_stereo_pairs.push_back(stereo_pairs.at(i));
+            valid_stereo_pairs.push_back(stereo_pairs.at(i+1));
+        }
+
+        // Calculate number of unique image camera image streams
+        params.state_options.num_unique_cameras = (int)params.stereo_pairs.size();
+        for(int i=0; i<params.state_options.num_cameras; i++) {
+            if(std::find(valid_stereo_pairs.begin(),valid_stereo_pairs.end(),i)!=valid_stereo_pairs.end())
+                continue;
+            params.state_options.num_unique_cameras++;
+        }
+
         // Read in what representation our feature is
         std::string feat_rep_msckf_str = "GLOBAL_3D";
         std::string feat_rep_slam_str = "GLOBAL_3D";
@@ -146,6 +185,7 @@ namespace ov_msckf {
         nh.param<bool>("use_aruco", params.use_aruco, params.use_aruco);
         nh.param<bool>("downsize_aruco", params.downsize_aruco, params.downsize_aruco);
         nh.param<bool>("downsample_cameras", params.downsample_cameras, params.downsample_cameras);
+        nh.param<bool>("multi_threading", params.use_multi_threading, params.use_multi_threading);
 
         // General parameters
         nh.param<int>("num_pts", params.num_pts, params.num_pts);
@@ -156,6 +196,8 @@ namespace ov_msckf {
         nh.param<double>("knn_ratio", params.knn_ratio, params.knn_ratio);
 
         // Feature initializer parameters
+        nh.param<bool>("fi_triangulate_1d", params.featinit_options.triangulate_1d, params.featinit_options.triangulate_1d);
+        nh.param<bool>("fi_refine_features", params.featinit_options.refine_features, params.featinit_options.refine_features);
         nh.param<int>("fi_max_runs", params.featinit_options.max_runs, params.featinit_options.max_runs);
         nh.param<double>("fi_init_lamda", params.featinit_options.init_lamda, params.featinit_options.init_lamda);
         nh.param<double>("fi_max_lamda", params.featinit_options.max_lamda, params.featinit_options.max_lamda);

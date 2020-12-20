@@ -21,6 +21,7 @@
 #ifndef OV_EVAL_TRAJECTORY_H
 #define OV_EVAL_TRAJECTORY_H
 
+#include <map>
 #include <fstream>
 #include <sstream>
 #include <random>
@@ -172,10 +173,10 @@ namespace ov_eval {
          * @param max_dist_diff Maximum error between current trajectory length and the desired
          * @return End indices for each subtrajectory
          */
-        std::vector<size_t> compute_comparison_indices_length(std::vector<double> &distances, double distance, double max_dist_diff) {
+        std::vector<int> compute_comparison_indices_length(std::vector<double> &distances, double distance, double max_dist_diff) {
 
             // Vector of end ids for our pose indexes
-            std::vector<size_t> comparisons;
+            std::vector<int> comparisons;
 
             // Loop through each pose in our trajectory (i.e. our distance vector generated from the trajectory).
             for (size_t idx = 0; idx < distances.size(); idx++) {
@@ -196,9 +197,7 @@ namespace ov_eval {
                 // Else this isn't a valid segment, thus we shouldn't add it (we will try again at the next pose)
                 // NOTE: just because we searched through all poses and didn't find a close one doesn't mean we have ended
                 // NOTE: this could happen if there is a gap in the groundtruth poses and we just couldn't find a pose with low error
-                if (best_idx != -1) {
-                    comparisons.push_back(best_idx);
-                }
+                comparisons.push_back(best_idx);
 
             }
 

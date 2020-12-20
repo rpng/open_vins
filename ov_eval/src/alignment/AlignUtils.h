@@ -22,6 +22,7 @@
 #define OV_EVAL_ALIGNUTILS_H
 
 
+#include <vector>
 #include <string>
 #include <sstream>
 #include <iostream>
