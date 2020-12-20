@@ -82,7 +82,8 @@
             </dt>
             <dd>Public default constructor.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a0cf000cb9c4ee8228de67246776d22aa" class="m-doc">TrackAruco</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numaruco,
+              <span class="m-doc-wrap-bumper"><a href="#a5bcd4010478b0cb5dcdb944245c7af1e" class="m-doc">TrackAruco</a>(</span><span class="m-doc-wrap">int numaruco,
+              bool multithread,
               bool do_downsizing) <span class="m-label m-flat m-info">explicit</span> </span>
             </dt>
             <dd>Public constructor with configuration variables.</dd>
@@ -107,21 +108,22 @@
             <dd>Process new stereo pair of images.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a9c294e61151b8b928a766d0e5417bf4f" class="m-doc">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b2) <span class="m-label m-flat m-warning">override</span></span>
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>We override the display equation so we can show the tags we extract.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a0cf000cb9c4ee8228de67246776d22aa"><div>
+          <section class="m-doc-details" id="a5bcd4010478b0cb5dcdb944245c7af1e"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0cf000cb9c4ee8228de67246776d22aa" class="m-doc-self">TrackAruco</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numaruco,
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5bcd4010478b0cb5dcdb944245c7af1e" class="m-doc-self">TrackAruco</a>(</span><span class="m-doc-wrap">int numaruco,
+              bool multithread,
               bool do_downsizing) <span class="m-label m-info">explicit</span> </span></span>
             </h3>
             <p>Public constructor with configuration variables.</p>
@@ -133,6 +135,10 @@
                 <tr>
                   <td style="width: 1%">numaruco</td>
                   <td>the max id of the arucotags, we don&#x27;t use any tags greater than this value even if we extract them</td>
+                </tr>
+                <tr>
+                  <td>multithread</td>
+                  <td>if we should try to process with multiple threads or single threaded</td>
                 </tr>
                 <tr>
                   <td>do_downsizing</td>
@@ -208,12 +214,12 @@
           <section class="m-doc-details" id="a9c294e61151b8b928a766d0e5417bf4f"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9c294e61151b8b928a766d0e5417bf4f" class="m-doc-self">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b2) <span class="m-label m-warning">override</span></span></span>
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>We override the display equation so we can show the tags we extract.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -297,7 +303,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

@@ -59,6 +59,7 @@
               <ul>
                 <li><a href="#base-classes">Base classes</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
               </ul>
             </li>
@@ -78,29 +79,29 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a9d4e915d474e8e13591a11a54ac7c969" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> new_id) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a9d4e915d474e8e13591a11a54ac7c969" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets id used to track location of variable in the filter covariance.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a8660abf1bc359acbd0297938ac317157" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#ac40233687ffc481f5d4d1ebaaf882577" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd&amp; dx) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Performs update operation using <a href="classov__type_1_1JPLQuat.html" class="m-doc">JPLQuat</a> update for orientation, then vector updates for position, velocity, gyro bias, and accel bias (in that order).</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a0009ae59454cf4064618d5972ce6636d" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a53586b4f92ba0110c2b2241fa26862a1" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets the value of the estimate.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad95e86dbbe6aa7f83aa80273943f9dff" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#aadf4a83a2371984898ca8c6a339617ce" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Sets the value of the first estimate.</dd>
-            <dt id="a1514c1835c6e98cda6b3a087d530c01f">
-              <span class="m-doc-wrap-bumper">auto <a href="#a1514c1835c6e98cda6b3a087d530c01f" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
+            <dt id="ab4a7e5d0a12a0f20b2a3a27f61201581">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab4a7e5d0a12a0f20b2a3a27f61201581" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Create a clone of this variable.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a8529d6f16750fee0689aae746841fbb3" class="m-doc">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* check) -&gt; <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3fb9631390473158abcdf97c71ea6e16" class="m-doc">check_if_subvariable</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; check) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd>Used to find the components inside the <a href="classov__type_1_1IMU.html" class="m-doc">IMU</a> if needed. If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</dd>
+            <dd>Determine if pass variable is a sub-variable.</dd>
             <dt id="a5bd26c35eb91ab19909579ad51d001a7">
               <span class="m-doc-wrap-bumper">auto <a href="#a5bd26c35eb91ab19909579ad51d001a7" class="m-doc-self">Rot</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
@@ -141,49 +142,62 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a672ba68b2506a3d225bb6da4e5b4d93f" class="m-doc-self">bias_a</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
             </dt>
             <dd>Accel bias access.</dd>
-            <dt id="a87eefdf39df8e2fb81addb2047d61229">
-              <span class="m-doc-wrap-bumper">auto <a href="#a87eefdf39df8e2fb81addb2047d61229" class="m-doc-self">pose</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*</span>
+            <dt id="aa083ef7c5392ee0da48ba77c5093bee2">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa083ef7c5392ee0da48ba77c5093bee2" class="m-doc-self">pose</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>&gt;</span>
             </dt>
             <dd>Pose type access.</dd>
-            <dt id="ac336d6772537a72f72c741043bd743a2">
-              <span class="m-doc-wrap-bumper">auto <a href="#ac336d6772537a72f72c741043bd743a2" class="m-doc-self">q</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1JPLQuat.html" class="m-doc">JPLQuat</a>*</span>
+            <dt id="ac1f6387823cd403da8abbb84ce4368fb">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac1f6387823cd403da8abbb84ce4368fb" class="m-doc-self">q</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1JPLQuat.html" class="m-doc">JPLQuat</a>&gt;</span>
             </dt>
             <dd>Quaternion type access.</dd>
-            <dt id="ace1ae8b960ced5fa3084452aea31465b">
-              <span class="m-doc-wrap-bumper">auto <a href="#ace1ae8b960ced5fa3084452aea31465b" class="m-doc-self">p</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>*</span>
+            <dt id="a6f70d8ea8f21a8e47be71cd77443d153">
+              <span class="m-doc-wrap-bumper">auto <a href="#a6f70d8ea8f21a8e47be71cd77443d153" class="m-doc-self">p</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt;</span>
             </dt>
             <dd>Position type access.</dd>
-            <dt id="a04c3898c2272b996366076fa76468efe">
-              <span class="m-doc-wrap-bumper">auto <a href="#a04c3898c2272b996366076fa76468efe" class="m-doc-self">v</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>*</span>
+            <dt id="aacf93e0120b0b65e32d6163a7b0003ae">
+              <span class="m-doc-wrap-bumper">auto <a href="#aacf93e0120b0b65e32d6163a7b0003ae" class="m-doc-self">v</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt;</span>
             </dt>
             <dd>Velocity type access.</dd>
-            <dt id="a40b3fdda02ed359c7dc9bc62745001ee">
-              <span class="m-doc-wrap-bumper">auto <a href="#a40b3fdda02ed359c7dc9bc62745001ee" class="m-doc-self">bg</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>*</span>
+            <dt id="a197df0137b205d1de56e89633ffdb03e">
+              <span class="m-doc-wrap-bumper">auto <a href="#a197df0137b205d1de56e89633ffdb03e" class="m-doc-self">bg</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt;</span>
             </dt>
             <dd>Gyroscope bias access.</dd>
-            <dt id="abd8094ed54edaa700f98011f1cd37a05">
-              <span class="m-doc-wrap-bumper">auto <a href="#abd8094ed54edaa700f98011f1cd37a05" class="m-doc-self">ba</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>*</span>
+            <dt id="abed8b317325773478f1326ee82152eb9">
+              <span class="m-doc-wrap-bumper">auto <a href="#abed8b317325773478f1326ee82152eb9" class="m-doc-self">ba</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt;</span>
             </dt>
             <dd>Acceleration bias access.</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a044e09e82a734c3e0fe5f54748c40db6" class="m-doc">set_value_internal</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value)</span>
+            </dt>
+            <dd>Sets the value of the estimate.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a5227146c3f4edef484cb2c9beb349a3f" class="m-doc">set_fej_internal</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value)</span>
+            </dt>
+            <dd>Sets the value of the first estimate.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a45019dc184cbdb4c8b2ba49b08a471e9">
-              <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>* <a href="#a45019dc184cbdb4c8b2ba49b08a471e9" class="m-doc-self">_pose</a>
+            <dt id="ad90f5e8c1905d099de0ab908a072b112">
+              std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>&gt; <a href="#ad90f5e8c1905d099de0ab908a072b112" class="m-doc-self">_pose</a>
             </dt>
             <dd>Pose subvariable.</dd>
-            <dt id="a8fa5d6acd73172e606d73d373baa1c9c">
-              <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>* <a href="#a8fa5d6acd73172e606d73d373baa1c9c" class="m-doc-self">_v</a>
+            <dt id="ac1149c2a1b5576e56700ed2f7da3e87d">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt; <a href="#ac1149c2a1b5576e56700ed2f7da3e87d" class="m-doc-self">_v</a>
             </dt>
             <dd>Velocity subvariable.</dd>
-            <dt id="a510b2139e1ddf635f742bb5dbf387329">
-              <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>* <a href="#a510b2139e1ddf635f742bb5dbf387329" class="m-doc-self">_bg</a>
+            <dt id="ac3dac355b5fbcc80bc59ea05808dc2f8">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt; <a href="#ac3dac355b5fbcc80bc59ea05808dc2f8" class="m-doc-self">_bg</a>
             </dt>
             <dd>Gyroscope bias subvariable.</dd>
-            <dt id="a9fbd7f336e81cda0783f497564cf5a8e">
-              <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>* <a href="#a9fbd7f336e81cda0783f497564cf5a8e" class="m-doc-self">_ba</a>
+            <dt id="a5b2bc57054d02e37355f52799cc9df15">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt; <a href="#a5b2bc57054d02e37355f52799cc9df15" class="m-doc-self">_ba</a>
             </dt>
             <dd>Acceleration bias subvariable.</dd>
           </dl>
@@ -192,7 +206,7 @@
           <h2>Function documentation</h2>
           <section class="m-doc-details" id="a9d4e915d474e8e13591a11a54ac7c969"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9d4e915d474e8e13591a11a54ac7c969" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> new_id) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9d4e915d474e8e13591a11a54ac7c969" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets id used to track location of variable in the filter covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -208,9 +222,9 @@
             </table>
 <p>Note that we update the sub-variables also.</p>
           </div></section>
-          <section class="m-doc-details" id="a8660abf1bc359acbd0297938ac317157"><div>
+          <section class="m-doc-details" id="ac40233687ffc481f5d4d1ebaaf882577"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8660abf1bc359acbd0297938ac317157" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac40233687ffc481f5d4d1ebaaf882577" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd&amp; dx) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Performs update operation using <a href="classov__type_1_1JPLQuat.html" class="m-doc">JPLQuat</a> update for orientation, then vector updates for position, velocity, gyro bias, and accel bias (in that order).</p>
             <table class="m-table m-fullwidth m-flat">
@@ -225,9 +239,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a0009ae59454cf4064618d5972ce6636d"><div>
+          <section class="m-doc-details" id="a53586b4f92ba0110c2b2241fa26862a1"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0009ae59454cf4064618d5972ce6636d" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a53586b4f92ba0110c2b2241fa26862a1" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets the value of the estimate.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -242,9 +256,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ad95e86dbbe6aa7f83aa80273943f9dff"><div>
+          <section class="m-doc-details" id="aadf4a83a2371984898ca8c6a339617ce"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad95e86dbbe6aa7f83aa80273943f9dff" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aadf4a83a2371984898ca8c6a339617ce" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Sets the value of the first estimate.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -259,11 +273,11 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a8529d6f16750fee0689aae746841fbb3"><div>
+          <section class="m-doc-details" id="a3fb9631390473158abcdf97c71ea6e16"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"><a href="classov__type_1_1Type.html" class="m-doc">Type</a>* ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8529d6f16750fee0689aae746841fbb3" class="m-doc-self">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* check) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3fb9631390473158abcdf97c71ea6e16" class="m-doc-self">check_if_subvariable</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; check) <span class="m-label m-warning">override</span></span></span>
             </h3>
-            <p>Used to find the components inside the <a href="classov__type_1_1IMU.html" class="m-doc">IMU</a> if needed. If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</p>
+            <p>Determine if pass variable is a sub-variable.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -271,7 +285,42 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">check</td>
-                  <td>variable to find</td>
+                  <td><a href="classov__type_1_1Type.html" class="m-doc">Type</a> pointer to compare our subvariables to</td>
+                </tr>
+              </tbody>
+            </table>
+<p>If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</p>
+          </div></section>
+          <section class="m-doc-details" id="a044e09e82a734c3e0fe5f54748c40db6"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a044e09e82a734c3e0fe5f54748c40db6" class="m-doc-self">set_value_internal</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Sets the value of the estimate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">new_value</td>
+                  <td>New value we should set</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a5227146c3f4edef484cb2c9beb349a3f"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />IMU::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5227146c3f4edef484cb2c9beb349a3f" class="m-doc-self">set_fej_internal</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Sets the value of the first estimate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">new_value</td>
+                  <td>New value we should set</td>
                 </tr>
               </tbody>
             </table>
@@ -321,7 +370,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

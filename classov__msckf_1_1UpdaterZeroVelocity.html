@@ -82,13 +82,11 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a3b1d5d78e0d715b453b2eb77302b7b63" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Vector3d wm,
-              Eigen::Vector3d am)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#ad411162db09d79cdde712c3160798589" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
             </dt>
-            <dd>Stores incoming inertial readings.</dd>
+            <dd>Feed function for inertial data.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a144bdac9efb57045a90c4557e6f48975" class="m-doc">try_update</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              <span class="m-doc-wrap-bumper">auto <a href="#a703a198829da68f905280ce8af8aa9e6" class="m-doc">try_update</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               double timestamp) -&gt; bool</span>
             </dt>
             <dd>Will first detect if the system is zero velocity, then will update.</dd>
@@ -118,11 +116,11 @@
             </dt>
             <dd>Multiplier of our IMU noise matrix (default should be 1.0)</dd>
             <dt id="a5b6c97d5985ae971821aaeaed715e717">
-              std::map&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, double&gt; <a href="#a5b6c97d5985ae971821aaeaed715e717" class="m-doc-self">chi_squared_table</a>
+              std::map&lt;int, double&gt; <a href="#a5b6c97d5985ae971821aaeaed715e717" class="m-doc-self">chi_squared_table</a>
             </dt>
             <dd>Chi squared 95th percentile table (lookup would be size of residual)</dd>
-            <dt id="a8edda371962abb0a6ee21b9262be1153">
-              std::vector&lt;<a href="structov__msckf_1_1Propagator_1_1IMUDATA.html" class="m-doc">Propagator::<wbr />IMUDATA</a>&gt; <a href="#a8edda371962abb0a6ee21b9262be1153" class="m-doc-self">imu_data</a>
+            <dt id="a38119874bfd080afe2f21444e7f26692">
+              std::vector&lt;<a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&gt; <a href="#a38119874bfd080afe2f21444e7f26692" class="m-doc-self">imu_data</a>
             </dt>
             <dd>Our history of IMU messages (time, angular, linear)</dd>
             <dt id="ae3d40558eff57d631724a15ab431f83a">
@@ -170,36 +168,26 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a3b1d5d78e0d715b453b2eb77302b7b63"><div>
+          <section class="m-doc-details" id="ad411162db09d79cdde712c3160798589"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3b1d5d78e0d715b453b2eb77302b7b63" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Vector3d wm,
-              Eigen::Vector3d am)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad411162db09d79cdde712c3160798589" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
             </h3>
-            <p>Stores incoming inertial readings.</p>
+            <p>Feed function for inertial data.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>Timestamp of imu reading</td>
-                </tr>
-                <tr>
-                  <td>wm</td>
-                  <td>Gyro angular velocity reading</td>
-                </tr>
-                <tr>
-                  <td>am</td>
-                  <td>Accelerometer linear acceleration reading</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp and inertial information</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a144bdac9efb57045a90c4557e6f48975"><div>
+          <section class="m-doc-details" id="a703a198829da68f905280ce8af8aa9e6"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a144bdac9efb57045a90c4557e6f48975" class="m-doc-self">try_update</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a703a198829da68f905280ce8af8aa9e6" class="m-doc-self">try_update</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               double timestamp)</span></span>
             </h3>
             <p>Will first detect if the system is zero velocity, then will update.</p>
@@ -270,7 +258,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

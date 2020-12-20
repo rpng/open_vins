@@ -79,28 +79,16 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a24e1167e460bc67f495b2e560a7772e0" class="m-doc">feed_measurement_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Vector3d wm,
-              Eigen::Vector3d am)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a5e7dde1c28eb800c663fb2e238cc60ea" class="m-doc">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
             </dt>
             <dd>Feed function for inertial data.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a47ed542a095517a9bf99d04afbed8e67" class="m-doc">feed_measurement_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img0,
-              size_t cam_id)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a96cd1d24579772a7e1f6c6ff068dc489" class="m-doc">feed_measurement_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message)</span>
             </dt>
-            <dd>Feed function for a single camera.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad579c87f0501f0d1bf610471a67f885f" class="m-doc">feed_measurement_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img0,
-              cv::Mat&amp; img1,
-              size_t cam_id0,
-              size_t cam_id1)</span>
-            </dt>
-            <dd>Feed function for stereo camera pair.</dd>
+            <dd>Feed function for camera measurements.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a12eedc237bb96866b368dc87d7f53aa5" class="m-doc">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
-              const std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
+              const std::vector&lt;int&gt;&amp; camids,
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span>
             </dt>
             <dd>Feed function for a synchronized simulated cameras.</dd>
@@ -116,22 +104,22 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a12069947bc27ee0595978f2d188551bc" class="m-doc-self">initialized_time</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
             </dt>
             <dd>Timestamp that the system was initialized at.</dd>
-            <dt id="aec22fef6ea015b3c5bd011ffab57baaa">
-              <span class="m-doc-wrap-bumper">auto <a href="#aec22fef6ea015b3c5bd011ffab57baaa" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1State.html" class="m-doc">State</a>*</span>
+            <dt id="addbe77f2b0c6554b9f1baa5071b8c6d2">
+              <span class="m-doc-wrap-bumper">auto <a href="#addbe77f2b0c6554b9f1baa5071b8c6d2" class="m-doc-self">get_params</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a></span>
+            </dt>
+            <dd>Accessor for current system parameters.</dd>
+            <dt id="abcdebe3b9debe73fb6a11b1c3b899eb1">
+              <span class="m-doc-wrap-bumper">auto <a href="#abcdebe3b9debe73fb6a11b1c3b899eb1" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt;</span>
             </dt>
             <dd>Accessor to get the current state.</dd>
-            <dt id="acc031017030234eb6b1e95332f1ea028">
-              <span class="m-doc-wrap-bumper">auto <a href="#acc031017030234eb6b1e95332f1ea028" class="m-doc-self">get_propagator</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>*</span>
+            <dt id="a8b1118aec3492d8d4c4291e00c084e84">
+              <span class="m-doc-wrap-bumper">auto <a href="#a8b1118aec3492d8d4c4291e00c084e84" class="m-doc-self">get_propagator</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>&gt;</span>
             </dt>
             <dd>Accessor to get the current propagator.</dd>
-            <dt id="a878afc0e50ebdb91ba8bb46622f722d1">
-              <span class="m-doc-wrap-bumper">auto <a href="#a878afc0e50ebdb91ba8bb46622f722d1" class="m-doc-self">get_track_feat</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>*</span>
+            <dt id="add1abee39ecec8939cd514fc24a4db6b">
+              <span class="m-doc-wrap-bumper">auto <a href="#add1abee39ecec8939cd514fc24a4db6b" class="m-doc-self">get_historical_viz_image</a>(</span><span class="m-doc-wrap">) -&gt; cv::Mat</span>
             </dt>
-            <dd>Get feature tracker.</dd>
-            <dt id="a21383a3d0f1e73e33fdba8ff0eca8188">
-              <span class="m-doc-wrap-bumper">auto <a href="#a21383a3d0f1e73e33fdba8ff0eca8188" class="m-doc-self">get_track_aruco</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>*</span>
-            </dt>
-            <dd>Get aruco feature tracker.</dd>
+            <dd>Get a nice visualization image of what tracks we have.</dd>
             <dt id="a6f44315b0084e276598d4ce508574e4b">
               <span class="m-doc-wrap-bumper">auto <a href="#a6f44315b0084e276598d4ce508574e4b" class="m-doc-self">get_good_features_MSCKF</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
             </dt>
@@ -144,43 +132,38 @@
               <span class="m-doc-wrap-bumper">auto <a href="#ab2ba74990cefccbdcadab97aef1c83a1" class="m-doc-self">get_features_ARUCO</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
             </dt>
             <dd>Returns 3d ARUCO features in the global frame.</dd>
-            <dt id="a4889c56e5f28e7f9e86e7be9d64d4371">
-              <span class="m-doc-wrap-bumper">auto <a href="#a4889c56e5f28e7f9e86e7be9d64d4371" class="m-doc-self">did_zero_velocity_update</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+            <dt id="a6f73eaacca9a468e02d6322e0987c480">
+              <span class="m-doc-wrap-bumper">void <a href="#a6f73eaacca9a468e02d6322e0987c480" class="m-doc-self">get_active_image</a>(</span><span class="m-doc-wrap">double&amp; timestamp,
+              cv::Mat&amp; image)</span>
             </dt>
-            <dd>Return true if we did a zero velocity update.</dd>
-            <dt id="a99654b6bdd0be6635b6563aae2a9bfb1">
-              <span class="m-doc-wrap-bumper">auto <a href="#a99654b6bdd0be6635b6563aae2a9bfb1" class="m-doc-self">get_zero_velocity_update_image</a>(</span><span class="m-doc-wrap">) -&gt; cv::Mat</span>
+            <dd>Return the image used when projecting the active tracks.</dd>
+            <dt id="a2645f06f1516cec870e6d69f2baa66ba">
+              <span class="m-doc-wrap-bumper">void <a href="#a2645f06f1516cec870e6d69f2baa66ba" class="m-doc-self">get_active_tracks</a>(</span><span class="m-doc-wrap">double&amp; timestamp,
+              std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feat_posinG,
+              std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feat_tracks_uvd)</span>
             </dt>
-            <dd>Return the zero velocity update image.</dd>
-            <dt id="a96eb4e9e41e743d117b6453ab181684f">
-              <span class="m-doc-wrap-bumper">auto <a href="#a96eb4e9e41e743d117b6453ab181684f" class="m-doc-self">hist_last_marg_state</a>(</span><span class="m-doc-wrap">double&amp; timestamp,
-              Eigen::Matrix&lt;double, 7, 1&gt;&amp; stateinG) -&gt; bool</span>
-            </dt>
-            <dd>Returns the last timestamp we have marginalized (true if we have a state)</dd>
-            <dt id="a17343f7298787ef17d125de83566909e">
-              <span class="m-doc-wrap-bumper">void <a href="#a17343f7298787ef17d125de83566909e" class="m-doc-self">hist_get_features</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feat_posinG,
-              std::unordered_map&lt;size_t, std::unordered_map&lt;size_t, std::vector&lt;Eigen::VectorXf&gt;&gt;&gt;&amp; feat_uvs,
-              std::unordered_map&lt;size_t, std::unordered_map&lt;size_t, std::vector&lt;Eigen::VectorXf&gt;&gt;&gt;&amp; feat_uvs_norm,
-              std::unordered_map&lt;size_t, std::unordered_map&lt;size_t, std::vector&lt;double&gt;&gt;&gt;&amp; feat_timestamps)</span>
-            </dt>
-            <dd>Returns historical feature positions, and measurements times and uvs used to get its estimate.</dd>
+            <dd>Returns active tracked features in the current frame.</dd>
           </dl>
         </section>
         <section id="pro-methods">
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
             <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a626bd0d043f80c4d5e993bcfbbee0244" class="m-doc">track_image_and_update</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message)</span>
+            </dt>
+            <dd>Given a new set of camera images, this will track them.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a31d3fade828a229a1b5a99abd9aaa243" class="m-doc">do_feature_propagate_update</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message)</span>
+            </dt>
+            <dd>This will do the propagation and feature updates to the state.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a479d6dffdfd052ac56f71efc7b70ad62" class="m-doc">try_to_initialize</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd>This function will try to initialize the state.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a71372cd87f15b9ebfd12d3b86d16aa2a" class="m-doc">do_feature_propagate_update</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#ac3259add6e59f191388dfe989d668759" class="m-doc">retriangulate_active_tracks</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message)</span>
             </dt>
-            <dd>This will do the propagation and feature updates to the state.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a278cad5a1dc9963fc6983eaced71dee7" class="m-doc">update_keyframe_historical_information</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; features)</span>
-            </dt>
-            <dd>This function will update our historical tracking information. This historical information includes the best estimate of a feature in the global frame. For all features it also has the normalized and raw pixel coordinates at each timestep. The state is also recorded after it is marginalized out of the state.</dd>
+            <dd>This function will will re-triangulate all features in the current frame.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
@@ -190,46 +173,54 @@
               <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a> <a href="#a69eebf475686d6e17af5f7a5c7f0a8ac" class="m-doc-self">params</a>
             </dt>
             <dd>Manager parameters.</dd>
-            <dt id="ad9b928a55e84837fe4d71d586c075c4c">
-              <a href="classov__msckf_1_1State.html" class="m-doc">State</a>* <a href="#ad9b928a55e84837fe4d71d586c075c4c" class="m-doc-self">state</a>
+            <dt id="ab5d6a1e35e3630d2b5dde39c3f40d272">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; <a href="#ab5d6a1e35e3630d2b5dde39c3f40d272" class="m-doc-self">state</a>
             </dt>
             <dd>Our master state object :D.</dd>
-            <dt id="a282146143a4da3cc0733e3c35dbd7f53">
-              <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>* <a href="#a282146143a4da3cc0733e3c35dbd7f53" class="m-doc-self">propagator</a>
+            <dt id="ab3c7664f03ecef91da5de542d6ac5e47">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>&gt; <a href="#ab3c7664f03ecef91da5de542d6ac5e47" class="m-doc-self">propagator</a>
             </dt>
             <dd><a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> of our state.</dd>
-            <dt id="a2fbb98ac93fd7f242b0f84c9c6dbfc1c">
-              <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>* <a href="#a2fbb98ac93fd7f242b0f84c9c6dbfc1c" class="m-doc-self">trackFEATS</a>
+            <dt id="ab3e02de474249ebc12398bc6af60e965">
+              std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt; <a href="#ab3e02de474249ebc12398bc6af60e965" class="m-doc-self">trackDATABASE</a>
+            </dt>
+            <dd>Complete history of our feature tracks.</dd>
+            <dt id="a546a4595ea9c0e6e658f4ad5c62d0478">
+              std::shared_ptr&lt;<a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>&gt; <a href="#a546a4595ea9c0e6e658f4ad5c62d0478" class="m-doc-self">trackFEATS</a>
             </dt>
             <dd>Our sparse feature tracker (klt or descriptor)</dd>
-            <dt id="a87cbf121edf5854ab57d252523b36207">
-              <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>* <a href="#a87cbf121edf5854ab57d252523b36207" class="m-doc-self">trackARUCO</a>
+            <dt id="a8ff3ed52d1f6714b5c6abd3e2e04ce6a">
+              std::shared_ptr&lt;<a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a>&gt; <a href="#a8ff3ed52d1f6714b5c6abd3e2e04ce6a" class="m-doc-self">trackARUCO</a>
             </dt>
             <dd>Our aruoc tracker.</dd>
-            <dt id="af5f472f05a246c3ed47fc78b092087f4">
-              <a href="classov__core_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a>* <a href="#af5f472f05a246c3ed47fc78b092087f4" class="m-doc-self">initializer</a>
+            <dt id="a2bb8461cc64f650bb25d302a1fe03da8">
+              std::shared_ptr&lt;<a href="classov__core_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a>&gt; <a href="#a2bb8461cc64f650bb25d302a1fe03da8" class="m-doc-self">initializer</a>
             </dt>
             <dd><a href="classov__msckf_1_1State.html" class="m-doc">State</a> initializer.</dd>
             <dt id="af39939911eb700d326389255b75738c9">
               bool <a href="#af39939911eb700d326389255b75738c9" class="m-doc-self">is_initialized_vio</a>
             </dt>
             <dd>Boolean if we are initialized or not.</dd>
-            <dt id="a27cf22a4dccd1baca97882f3ea875c91">
-              <a href="classov__msckf_1_1UpdaterMSCKF.html" class="m-doc">UpdaterMSCKF</a>* <a href="#a27cf22a4dccd1baca97882f3ea875c91" class="m-doc-self">updaterMSCKF</a>
+            <dt id="a9a12150c9f5297c07e82ae1a19539767">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1UpdaterMSCKF.html" class="m-doc">UpdaterMSCKF</a>&gt; <a href="#a9a12150c9f5297c07e82ae1a19539767" class="m-doc-self">updaterMSCKF</a>
             </dt>
             <dd>Our MSCKF feature updater.</dd>
-            <dt id="abb271827378e38581d87ec7bc387f5d7">
-              <a href="classov__msckf_1_1UpdaterSLAM.html" class="m-doc">UpdaterSLAM</a>* <a href="#abb271827378e38581d87ec7bc387f5d7" class="m-doc-self">updaterSLAM</a>
+            <dt id="aeb2ad853d87a8f2b387db3cff18cdb0e">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1UpdaterSLAM.html" class="m-doc">UpdaterSLAM</a>&gt; <a href="#aeb2ad853d87a8f2b387db3cff18cdb0e" class="m-doc-self">updaterSLAM</a>
             </dt>
             <dd>Our MSCKF feature updater.</dd>
-            <dt id="a823222a60f13f844fc1a0582b82de17b">
-              <a href="classov__msckf_1_1UpdaterZeroVelocity.html" class="m-doc">UpdaterZeroVelocity</a>* <a href="#a823222a60f13f844fc1a0582b82de17b" class="m-doc-self">updaterZUPT</a>
+            <dt id="a94e1136ce9798ad776a19baceee5580c">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1UpdaterZeroVelocity.html" class="m-doc">UpdaterZeroVelocity</a>&gt; <a href="#a94e1136ce9798ad776a19baceee5580c" class="m-doc-self">updaterZUPT</a>
             </dt>
             <dd>Our aruoc tracker.</dd>
-            <dt id="a40926fd6cbd206a7e87fc3042782f222">
-              std::vector&lt;Eigen::Vector3d&gt; <a href="#a40926fd6cbd206a7e87fc3042782f222" class="m-doc-self">good_features_MSCKF</a>
+            <dt>
+              std::deque&lt;<a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&gt; <a href="#a2528640f861ba622a29f326093ae39cf" class="m-doc">camera_queue</a>
             </dt>
-            <dd>Good features that where used in the last update.</dd>
+            <dd></dd>
+            <dt id="af54055d01f95e80b8b5327f2ae8cc278">
+              std::shared_ptr&lt;<a href="classov__core_1_1FeatureInitializer.html" class="m-doc">FeatureInitializer</a>&gt; <a href="#af54055d01f95e80b8b5327f2ae8cc278" class="m-doc-self">active_tracks_initializer</a>
+            </dt>
+            <dd>Feature initializer used to triangulate all active tracks.</dd>
           </dl>
         </section>
         <section>
@@ -251,11 +242,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a24e1167e460bc67f495b2e560a7772e0"><div>
+          <section class="m-doc-details" id="a5e7dde1c28eb800c663fb2e238cc60ea"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a24e1167e460bc67f495b2e560a7772e0" class="m-doc-self">feed_measurement_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Vector3d wm,
-              Eigen::Vector3d am)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5e7dde1c28eb800c663fb2e238cc60ea" class="m-doc-self">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
             </h3>
             <p>Feed function for inertial data.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -264,80 +253,25 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>Time of the inertial measurement</td>
-                </tr>
-                <tr>
-                  <td>wm</td>
-                  <td>Angular velocity</td>
-                </tr>
-                <tr>
-                  <td>am</td>
-                  <td>Linear acceleration</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp and inertial information</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a47ed542a095517a9bf99d04afbed8e67"><div>
+          <section class="m-doc-details" id="a96cd1d24579772a7e1f6c6ff068dc489"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a47ed542a095517a9bf99d04afbed8e67" class="m-doc-self">feed_measurement_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img0,
-              size_t cam_id)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a96cd1d24579772a7e1f6c6ff068dc489" class="m-doc-self">feed_measurement_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message)</span></span>
             </h3>
-            <p>Feed function for a single camera.</p>
+            <p>Feed function for camera measurements.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>Time that this image was collected</td>
-                </tr>
-                <tr>
-                  <td>img0</td>
-                  <td>Grayscale image</td>
-                </tr>
-                <tr>
-                  <td>cam_id</td>
-                  <td>Unique id of what camera the image is from</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="ad579c87f0501f0d1bf610471a67f885f"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad579c87f0501f0d1bf610471a67f885f" class="m-doc-self">feed_measurement_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img0,
-              cv::Mat&amp; img1,
-              size_t cam_id0,
-              size_t cam_id1)</span></span>
-            </h3>
-            <p>Feed function for stereo camera pair.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>Time that this image was collected</td>
-                </tr>
-                <tr>
-                  <td>img0</td>
-                  <td>Grayscale image</td>
-                </tr>
-                <tr>
-                  <td>img1</td>
-                  <td>Grayscale image</td>
-                </tr>
-                <tr>
-                  <td>cam_id0</td>
-                  <td>Unique id of what camera the image is from</td>
-                </tr>
-                <tr>
-                  <td>cam_id1</td>
-                  <td>Unique id of what camera the image is from</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
                 </tr>
               </tbody>
             </table>
@@ -345,7 +279,7 @@
           <section class="m-doc-details" id="a12eedc237bb96866b368dc87d7f53aa5"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a12eedc237bb96866b368dc87d7f53aa5" class="m-doc-self">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
-              const std::vector&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&amp; camids,
+              const std::vector&lt;int&gt;&amp; camids,
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span></span>
             </h3>
             <p>Feed function for a synchronized simulated cameras.</p>
@@ -386,6 +320,41 @@
               </tbody>
             </table>
           </div></section>
+          <section class="m-doc-details" id="a626bd0d043f80c4d5e993bcfbbee0244"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a626bd0d043f80c4d5e993bcfbbee0244" class="m-doc-self">track_image_and_update</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>Given a new set of camera images, this will track them.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
+                </tr>
+              </tbody>
+            </table>
+<p>If we are having stereo tracking, we should call stereo tracking functions. Otherwise we will try to track on each of the images passed.</p>
+          </div></section>
+          <section class="m-doc-details" id="a31d3fade828a229a1b5a99abd9aaa243"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a31d3fade828a229a1b5a99abd9aaa243" class="m-doc-self">do_feature_propagate_update</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message) <span class="m-label m-warning">protected</span></span></span>
+            </h3>
+            <p>This will do the propagation and feature updates to the state.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="a479d6dffdfd052ac56f71efc7b70ad62"><div>
             <h3>
               <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a479d6dffdfd052ac56f71efc7b70ad62" class="m-doc-self">try_to_initialize</a>(</span><span class="m-doc-wrap">) <span class="m-label m-warning">protected</span></span></span>
@@ -399,41 +368,34 @@
                 </tr>
               </tfoot>
             </table>
-<p>This should call on our initializer and try to init the state. In the future we should call the structure-from-motion code from here. This function could also be repurposed to re-initialize the system after failure. *</p>
+<p>This should call on our initializer and try to init the state. In the future we should call the structure-from-motion code from here. This function could also be repurposed to re-initialize the system after failure.</p>
           </div></section>
-          <section class="m-doc-details" id="a71372cd87f15b9ebfd12d3b86d16aa2a"><div>
+          <section class="m-doc-details" id="ac3259add6e59f191388dfe989d668759"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a71372cd87f15b9ebfd12d3b86d16aa2a" class="m-doc-self">do_feature_propagate_update</a>(</span><span class="m-doc-wrap">double timestamp) <span class="m-label m-warning">protected</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac3259add6e59f191388dfe989d668759" class="m-doc-self">retriangulate_active_tracks</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message) <span class="m-label m-warning">protected</span></span></span>
             </h3>
-            <p>This will do the propagation and feature updates to the state.</p>
+            <p>This function will will re-triangulate all features in the current frame.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>The most recent timestamp we have tracked to</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
                 </tr>
               </tbody>
             </table>
+<p>For all features that are currently being tracked by the system, this will re-triangulate them. This is useful for downstream applications which need the current pointcloud of points (e.g. loop closure). This will try to triangulate <em>all</em> points, not just ones that have been used in the update.</p>
           </div></section>
-          <section class="m-doc-details" id="a278cad5a1dc9963fc6983eaced71dee7"><div>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a2528640f861ba622a29f326093ae39cf"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a278cad5a1dc9963fc6983eaced71dee7" class="m-doc-self">update_keyframe_historical_information</a>(</span><span class="m-doc-wrap">const std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; features) <span class="m-label m-warning">protected</span></span></span>
+              std::deque&lt;<a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&gt; ov_msckf::<wbr />VioManager::<wbr /><a href="#a2528640f861ba622a29f326093ae39cf" class="m-doc-self">camera_queue</a> <span class="m-label m-warning">protected</span>
             </h3>
-            <p>This function will update our historical tracking information. This historical information includes the best estimate of a feature in the global frame. For all features it also has the normalized and raw pixel coordinates at each timestep. The state is also recorded after it is marginalized out of the state.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">features</td>
-                  <td>Features using in the last update phase</td>
-                </tr>
-              </tbody>
-            </table>
+<p>Queue up camera measurements sorted by time and trigger once we have exactly one IMU measurement with timestamp newer than the camera measurement This also handles out-of-order camera measurements, which is rare, but a nice feature to have for general robustness to bad camera drivers.</p>
           </div></section>
         </section>
       </div>
@@ -480,7 +442,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

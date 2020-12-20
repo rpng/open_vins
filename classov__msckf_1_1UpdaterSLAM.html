@@ -81,17 +81,17 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad8f5eb052601e6939bcc494344717aa4" class="m-doc">update</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; feature_vec)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a411aafe323b80c70422aa2a52086d352" class="m-doc">update</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;&amp; feature_vec)</span>
             </dt>
             <dd>Given tracked SLAM features, this will try to use them to update the state.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad2af6edf0d9616bfa69308f3356a0946" class="m-doc">delayed_init</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; feature_vec)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#aaa0e1084ceb268955921a78032e8d35c" class="m-doc">delayed_init</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;&amp; feature_vec)</span>
             </dt>
             <dd>Given max track features, this will try to use them to initialize them in the state.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a2741523ef88dabe83f1dd025bac4e347" class="m-doc">change_anchors</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#ae85d162f1a93f1dbed1a60b2fdd26870" class="m-doc">change_anchors</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state)</span>
             </dt>
             <dd>Will change SLAM feature anchors if it will be marginalized.</dd>
           </dl>
@@ -100,8 +100,8 @@
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a611a78e01cade73329f9a2a74e0b61e0" class="m-doc">perform_anchor_change</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>* landmark,
+              <span class="m-doc-wrap-bumper">void <a href="#aedc9df388256deffc4fba9da256e38f9" class="m-doc">perform_anchor_change</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>&gt; landmark,
               double new_anchor_timestamp,
               size_t new_cam_id)</span>
             </dt>
@@ -119,12 +119,12 @@
               <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#abf282c84f49d9ec4514c530b3a97f683" class="m-doc-self">_options_aruco</a>
             </dt>
             <dd>Options used during update for aruco features.</dd>
-            <dt id="a4c1d4b471d825cf25edc6ff52aae66d3">
-              <a href="classov__core_1_1FeatureInitializer.html" class="m-doc">FeatureInitializer</a>* <a href="#a4c1d4b471d825cf25edc6ff52aae66d3" class="m-doc-self">initializer_feat</a>
+            <dt id="ae67ac626a43983d8d69942c890f1bd34">
+              std::unique_ptr&lt;<a href="classov__core_1_1FeatureInitializer.html" class="m-doc">FeatureInitializer</a>&gt; <a href="#ae67ac626a43983d8d69942c890f1bd34" class="m-doc-self">initializer_feat</a>
             </dt>
             <dd>Feature initializer class object.</dd>
             <dt id="a550ec76668fcbb2a8cb8245c6c08fddd">
-              std::map&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, double&gt; <a href="#a550ec76668fcbb2a8cb8245c6c08fddd" class="m-doc-self">chi_squared_table</a>
+              std::map&lt;int, double&gt; <a href="#a550ec76668fcbb2a8cb8245c6c08fddd" class="m-doc-self">chi_squared_table</a>
             </dt>
             <dd>Chi squared 95th percentile table (lookup would be size of residual)</dd>
           </dl>
@@ -159,10 +159,10 @@
             </table>
 <p>Our updater has a feature initializer which we use to initialize features as needed. Also the options allow for one to tune the different parameters for update.</p>
           </div></section>
-          <section class="m-doc-details" id="ad8f5eb052601e6939bcc494344717aa4"><div>
+          <section class="m-doc-details" id="a411aafe323b80c70422aa2a52086d352"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad8f5eb052601e6939bcc494344717aa4" class="m-doc-self">update</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; feature_vec)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a411aafe323b80c70422aa2a52086d352" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;&amp; feature_vec)</span></span>
             </h3>
             <p>Given tracked SLAM features, this will try to use them to update the state.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -182,10 +182,10 @@
             </table>
 <p>Chi2 distance check</p>
           </div></section>
-          <section class="m-doc-details" id="ad2af6edf0d9616bfa69308f3356a0946"><div>
+          <section class="m-doc-details" id="aaa0e1084ceb268955921a78032e8d35c"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad2af6edf0d9616bfa69308f3356a0946" class="m-doc-self">delayed_init</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              std::vector&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>*&gt;&amp; feature_vec)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aaa0e1084ceb268955921a78032e8d35c" class="m-doc-self">delayed_init</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;&amp; feature_vec)</span></span>
             </h3>
             <p>Given max track features, this will try to use them to initialize them in the state.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -204,9 +204,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a2741523ef88dabe83f1dd025bac4e347"><div>
+          <section class="m-doc-details" id="ae85d162f1a93f1dbed1a60b2fdd26870"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2741523ef88dabe83f1dd025bac4e347" class="m-doc-self">change_anchors</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae85d162f1a93f1dbed1a60b2fdd26870" class="m-doc-self">change_anchors</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state)</span></span>
             </h3>
             <p>Will change SLAM feature anchors if it will be marginalized.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -222,10 +222,10 @@
             </table>
 <p>Makes sure that if any clone is about to be marginalized, it changes anchor representation. By default, this will shift the anchor into the newest IMU clone and keep the camera calibration anchor the same.</p>
           </div></section>
-          <section class="m-doc-details" id="a611a78e01cade73329f9a2a74e0b61e0"><div>
+          <section class="m-doc-details" id="aedc9df388256deffc4fba9da256e38f9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a611a78e01cade73329f9a2a74e0b61e0" class="m-doc-self">perform_anchor_change</a>(</span><span class="m-doc-wrap"><a href="classov__msckf_1_1State.html" class="m-doc">State</a>* state,
-              <a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>* landmark,
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterSLAM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aedc9df388256deffc4fba9da256e38f9" class="m-doc-self">perform_anchor_change</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>&gt; landmark,
               double new_anchor_timestamp,
               size_t new_cam_id) <span class="m-label m-warning">protected</span></span></span>
             </h3>
@@ -299,7 +299,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

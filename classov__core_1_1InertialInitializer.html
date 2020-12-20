@@ -57,7 +57,6 @@
             <li>
               Reference
               <ul>
-                <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
@@ -66,15 +65,6 @@
           </ul>
         </div>
 <p>This class has a series of functions that can be used to initialize your system. Right now we have our implementation that assumes that the imu starts from standing still. In the future we plan to add support for structure-from-motion dynamic initialization.</p><p>To initialize from standstill:</p><ol><li>Collect all inertial measurements</li><li>See if within the last window there was a jump in acceleration</li><li>If the jump is past our threshold we should init (i.e. we have started moving)</li><li>Use the <em>previous</em> window, which should have been stationary to initialize orientation</li><li>Return a roll and pitch aligned with gravity and biases.</li></ol>
-        <section id="pub-types">
-          <h2><a href="#pub-types">Public types</a></h2>
-          <dl class="m-doc">
-            <dt>
-              struct <a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>
-            </dt>
-            <dd>Struct for a single imu measurement (time, wm, am)</dd>
-          </dl>
-        </section>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
@@ -90,11 +80,9 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad16871758a8c89fadc39768541c7dd0a" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Matrix&lt;double, 3, 1&gt; wm,
-              Eigen::Matrix&lt;double, 3, 1&gt; am)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a6c883bb62d2a71023b6220f00d55bb86" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ImuData</a>&amp; message)</span>
             </dt>
-            <dd>Stores incoming inertial readings.</dd>
+            <dd>Feed function for inertial data.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a8824e73db6276d9954eb597f539a6281" class="m-doc">initialize_with_imu</a>(</span><span class="m-doc-wrap">double&amp; time0,
               Eigen::Matrix&lt;double, 4, 1&gt;&amp; q_GtoI0,
@@ -122,8 +110,8 @@
               double <a href="#a1af4c82912928d0a58a05e62d6103141" class="m-doc-self">_imu_excite_threshold</a>
             </dt>
             <dd>Variance threshold on our acceleration to be classified as moving.</dd>
-            <dt id="a07604dc112f6417994c4bb403defa375">
-              std::vector&lt;<a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a>&gt; <a href="#a07604dc112f6417994c4bb403defa375" class="m-doc-self">imu_data</a>
+            <dt id="ae20989e4fc3d1d7b4720359149c4df2a">
+              std::vector&lt;<a href="structov__core_1_1ImuData.html" class="m-doc">ImuData</a>&gt; <a href="#ae20989e4fc3d1d7b4720359149c4df2a" class="m-doc-self">imu_data</a>
             </dt>
             <dd>Our history of IMU messages (time, angular, linear)</dd>
           </dl>
@@ -157,29 +145,19 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ad16871758a8c89fadc39768541c7dd0a"><div>
+          <section class="m-doc-details" id="a6c883bb62d2a71023b6220f00d55bb86"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad16871758a8c89fadc39768541c7dd0a" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">double timestamp,
-              Eigen::Matrix&lt;double, 3, 1&gt; wm,
-              Eigen::Matrix&lt;double, 3, 1&gt; am)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />InertialInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6c883bb62d2a71023b6220f00d55bb86" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ImuData</a>&amp; message)</span></span>
             </h3>
-            <p>Stores incoming inertial readings.</p>
+            <p>Feed function for inertial data.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>Timestamp of imu reading</td>
-                </tr>
-                <tr>
-                  <td>wm</td>
-                  <td>Gyro angular velocity reading</td>
-                </tr>
-                <tr>
-                  <td>am</td>
-                  <td>Accelerometer linear acceleration reading</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp and inertial information</td>
                 </tr>
               </tbody>
             </table>
@@ -283,7 +261,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

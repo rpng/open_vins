@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_msckf::UpdaterHelper::UpdaterHelperFeature struct | OpenVINS</title>
+  <title>ov_core::ImuData struct | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -48,63 +48,45 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span><span class="m-breadcrumb"><a href="classov__msckf_1_1UpdaterHelper.html">UpdaterHelper</a>::<wbr/></span>UpdaterHelperFeature <span class="m-thin">struct</span>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>ImuData <span class="m-thin">struct</span>
         </h1>
-        <p>Feature object that our <a href="classov__msckf_1_1UpdaterHelper.html" class="m-doc">UpdaterHelper</a> leverages, has all measurements and means.</p>
+        <p>Struct for a single imu measurement (time, wm, am)</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt id="ac7c9b5b27b5a1fc4461571d3d4733b83">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac7c9b5b27b5a1fc4461571d3d4733b83" class="m-doc-self">operator&lt;</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ImuData</a>&amp; other) const -&gt; bool</span>
+            </dt>
+            <dd>Sort function to allow for using of STL containers.</dd>
+          </dl>
+        </section>
         <section id="pub-attribs">
           <h2><a href="#pub-attribs">Public variables</a></h2>
           <dl class="m-doc">
-            <dt id="a36ac27ddf140e21720d08dbce50b25ec">
-              size_t <a href="#a36ac27ddf140e21720d08dbce50b25ec" class="m-doc-self">featid</a>
+            <dt id="a530e14b091b762a7690a2acf5c826929">
+              double <a href="#a530e14b091b762a7690a2acf5c826929" class="m-doc-self">timestamp</a>
             </dt>
-            <dd>Unique ID of this feature.</dd>
-            <dt id="ac8371fba9fe2bc7238d90176032892da">
-              std::unordered_map&lt;size_t, std::vector&lt;Eigen::VectorXf&gt;&gt; <a href="#ac8371fba9fe2bc7238d90176032892da" class="m-doc-self">uvs</a>
+            <dd>Timestamp of the reading.</dd>
+            <dt id="aee11312b7789dd0465dded1174eb6cf3">
+              Eigen::Matrix&lt;double, 3, 1&gt; <a href="#aee11312b7789dd0465dded1174eb6cf3" class="m-doc-self">wm</a>
             </dt>
-            <dd>UV coordinates that this feature has been seen from (mapped by camera ID)</dd>
-            <dt id="a7f9c2dcc7f4855e7034a0f3dcc964d9d">
-              std::unordered_map&lt;size_t, std::vector&lt;double&gt;&gt; <a href="#a7f9c2dcc7f4855e7034a0f3dcc964d9d" class="m-doc-self">timestamps</a>
+            <dd>Gyroscope reading, angular velocity (rad/s)</dd>
+            <dt id="a6053ffa1918f271ac0342647df25c5f4">
+              Eigen::Matrix&lt;double, 3, 1&gt; <a href="#a6053ffa1918f271ac0342647df25c5f4" class="m-doc-self">am</a>
             </dt>
-            <dd>Timestamps of each UV measurement (mapped by camera ID)</dd>
-            <dt id="a13ca1a8b8d65d930e56f1020defac868">
-              <a href="classov__type_1_1LandmarkRepresentation.html#a7f5783df6932ace7f098ae243b6d298e" class="m-doc">LandmarkRepresentation::<wbr />Representation</a> <a href="#a13ca1a8b8d65d930e56f1020defac868" class="m-doc-self">feat_representation</a>
-            </dt>
-            <dd>What representation our feature is in.</dd>
-            <dt id="a474d6bd5344818e899ba1b03c261fc9c">
-              int <a href="#a474d6bd5344818e899ba1b03c261fc9c" class="m-doc-self">anchor_cam_id</a>
-            </dt>
-            <dd>What camera ID our pose is anchored in!! By default the first measurement is the anchor.</dd>
-            <dt id="a41aaaf3a4c85bb1669b0d56e78c5f851">
-              double <a href="#a41aaaf3a4c85bb1669b0d56e78c5f851" class="m-doc-self">anchor_clone_timestamp</a>
-            </dt>
-            <dd>Timestamp of anchor clone.</dd>
-            <dt id="a2e0ab4cc6215ee1bff8ccbe0cefcc349">
-              Eigen::Vector3d <a href="#a2e0ab4cc6215ee1bff8ccbe0cefcc349" class="m-doc-self">p_FinA</a>
-            </dt>
-            <dd>Triangulated position of this feature, in the anchor frame.</dd>
-            <dt id="a0558ee91d9c7e0929a10b5b4f4946f02">
-              Eigen::Vector3d <a href="#a0558ee91d9c7e0929a10b5b4f4946f02" class="m-doc-self">p_FinA_fej</a>
-            </dt>
-            <dd>Triangulated position of this feature, in the anchor frame first estimate.</dd>
-            <dt id="a3969fdadac10a9873ce77468ed4b68b4">
-              Eigen::Vector3d <a href="#a3969fdadac10a9873ce77468ed4b68b4" class="m-doc-self">p_FinG</a>
-            </dt>
-            <dd>Triangulated position of this feature, in the global frame.</dd>
-            <dt id="a683f5e77e259db6e9fe564c8f68b7733">
-              Eigen::Vector3d <a href="#a683f5e77e259db6e9fe564c8f68b7733" class="m-doc-self">p_FinG_fej</a>
-            </dt>
-            <dd>Triangulated position of this feature, in the global frame first estimate.</dd>
+            <dd>Accelerometer reading, linear acceleration (m/s^2)</dd>
           </dl>
         </section>
       </div>

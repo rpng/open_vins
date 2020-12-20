@@ -51,6 +51,20 @@
           <span class="m-breadcrumb"><a href="evaluation.html">System Evaluation</a> &raquo;</span>
           Filter Timing Analysis
         </h1>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#eval-ov-timing-collection">Collection</a></li>
+            <li>
+              <a href="#eval-ov-timing-plot">Processing &amp; Plotting</a>
+              <ul>
+                <li><a href="#eval-ov-timing-flame">Script &quot;timing_flamegraph&quot;</a></li>
+                <li><a href="#eval-ov-timing-compare">Script &quot;timing_comparison&quot;</a></li>
+                <li><a href="#eval-ov-timing-percentages">Script &quot;timing_percentages&quot;</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
 <aside class="m-note m-warning"><h3>Installation Warning</h3><p>If you plan to use the included plotting from the cpp code, you will need to make sure that you have matplotlib and python 2.7 installed. We use the to <a href="https://github.com/lava/matplotlib-cpp">matplotlib-cpp</a> to call this external library and generate the desired figures. Please see <a href="gs-installing.html#gs-install-oveval" class="m-doc">Additional Evaluation Requirements</a> for more details on the exact install.</p></aside><section id="eval-ov-timing-collection"><h2><a href="#eval-ov-timing-collection">Collection</a></h2><p>To profile the different parts of the system we record the timing information from directly inside the <a href="classov__msckf_1_1VioManager.html" class="m-doc">ov_msckf::<wbr />VioManager</a>. The file should be comma separated format, with the first column being the timing, and the last column being the total time (units are all in seconds). The middle columns should describe how much each component takes (whose names are extracted from the header of the csv file). You can use the bellow tools as long as you follow this format, and add or remove components as you see fit to the middle columns.</p><p>To evaluate the computational load (<em>not computation time</em>), we have a python script that leverages the <a href="https://github.com/giampaolo/psutil">psutil</a> python package to record percent CPU and memory consumption. This can be included as an additional node in the launch file which only needs the node which you want the reported information of. This will poll the node for its percent memory, percent cpu, and total number of threads that it uses. This can be useful if you wish to compare different methods on the same platform, but doesn&#x27;t make sense to use this to compare the running of the same algorithm or different algorithms <em>across</em> different hardware devices.</p><pre class="m-code"><span class="nt">&lt;node</span> <span class="na">name=</span><span class="s">&quot;recorder_timing&quot;</span> <span class="na">pkg=</span><span class="s">&quot;ov_eval&quot;</span> <span class="na">type=</span><span class="s">&quot;pid_ros.py&quot;</span> <span class="na">output=</span><span class="s">&quot;screen&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;nodes&quot;</span>   <span class="na">type=</span><span class="s">&quot;str&quot;</span> <span class="na">value=</span><span class="s">&quot;/run_subscribe_msckf&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;output&quot;</span>  <span class="na">type=</span><span class="s">&quot;str&quot;</span> <span class="na">value=</span><span class="s">&quot;/tmp/psutil_log.txt&quot;</span> <span class="nt">/&gt;</span>
@@ -89,13 +103,13 @@
 <span class="go">mean_time = 0.0263 | std = 0.0063 | 99th = 0.0410  | max = 0.0979 (total)</span>
 <span class="go">======================================</span></pre><img class="m-image" src="timing_compare.png" alt="Image" style="width: 90%;" /></section><section id="eval-ov-timing-percentages"><h3><a href="#eval-ov-timing-percentages">Script &quot;timing_percentages&quot;</a></h3><p>This utility allows for comparing the resources used by the algorithm on a specific platform. An example usage would be how the memory and cpu requirements increase as the state size grows or as more cameras are added. You will need to record the format using the <code>pid_ros.py</code> node (see <a href="eval-timing.html#eval-ov-timing-collection" class="m-doc">Collection</a> for details on how to use it). Remember that 100% cpu usage means that it takes one cpu thread to support the system, while 200% means it takes two cpu threads to support the system (see <a href="https://superuser.com/a/457634/707974">this link</a> for an explanation). The folder structure needed is as follows:</p><pre class="m-code">psutil_logs/
     ov_mono/
-        run1<span class="p">.</span>txt
-        run2<span class="p">.</span>txt
-        run3<span class="p">.</span>txt
+        run1.txt
+        run2.txt
+        run3.txt
     ov_stereo/
-        run1<span class="p">.</span>txt
-        run2<span class="p">.</span>txt
-        run3<span class="p">.</span>txt</pre><pre class="m-console"><span class="go">rosrun ov_eval timing_percentages &lt;timings_folder&gt;</span>
+        run1.txt
+        run2.txt
+        run3.txt</pre><pre class="m-console"><span class="go">rosrun ov_eval timing_percentages &lt;timings_folder&gt;</span>
 <span class="go">rosrun ov_eval timing_percentages psutil_logs/</span></pre><p>Example output:</p><pre class="m-console"><span class="go">======================================</span>
 <span class="go">[COMP]: processing ov_mono algorithm</span>
 <span class="go">    loaded 149 timestamps from file!!</span>
@@ -154,7 +168,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

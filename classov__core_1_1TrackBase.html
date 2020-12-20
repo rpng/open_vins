@@ -60,13 +60,13 @@
                 <li><a href="#derived-classes">Derived classes</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
-                <li><a href="#pro-methods">Protected functions</a></li>
+                <li><a href="#pro-static-methods">Protected static functions</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-<p>This is the base class for all our visual trackers. The goal here is to provide a common interface so all underlying trackers can simply hide away all the complexities. We have something called the &quot;feature database&quot; which has all the tracking information inside of it. The user can ask this database for features which can then be used in an MSCKF or batch-based setting. The feature tracks store both the raw (distorted) and undistorted/normalized values. Right now we just support two camera models, see: <a href="classov__core_1_1TrackBase.html#a9ccde97a49519204713b86b7d8669649" class="m-doc">undistort_<wbr />point_<wbr />brown()</a> and <a href="classov__core_1_1TrackBase.html#a3cbb0736d74105309b487d5bf0a00552" class="m-doc">undistort_<wbr />point_<wbr />fisheye()</a>.</p><aside class="m-note m-warning"><h3>A Note on Multi-Threading Support</h3><p>There is some support for asynchronous multi-threaded feature tracking of independent cameras. The key assumption during implementation is that the user will not try to track on the same camera in parallel, and instead call on different cameras. For example, if I have two cameras, I can either sequentially call the feed function, or I spin each of these into separate threads and wait for their return. The <a href="classov__core_1_1TrackBase.html#af59db0441bf16f0e7c62d8f3bd09e5f0" class="m-doc">currid</a> is atomic to allow for multiple threads to access it without issue and ensure that all features have unique id values. We also have mutex for access for the calibration and previous images and tracks (used during visualization). It should be noted that if a thread calls visualization, it might hang or the feed thread might, due to acquiring the mutex for that specific camera id / feed.</p></aside><p>This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override this and do their own logic if they want (i.e. the <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a> has its own logic for visualization). This visualization needs access to the prior images and their tracks, thus must synchronise in the case of multi-threading. This shouldn&#x27;t impact performance, but high frequency visualization calls can negatively effect the performance.</p>
+<p>This is the base class for all our visual trackers. The goal here is to provide a common interface so all underlying trackers can simply hide away all the complexities. We have something called the &quot;feature database&quot; which has all the tracking information inside of it. The user can ask this database for features which can then be used in an MSCKF or batch-based setting. The feature tracks store both the raw (distorted) and undistorted/normalized values. Right now we just support two camera models, see: <a href="classov__core_1_1TrackBase.html#a3c5a9433c515c4e9a53cb83f724dc30d" class="m-doc">undistort_<wbr />point_<wbr />brown()</a> and <a href="classov__core_1_1TrackBase.html#a40b69c2d8c517d57acbf4ce0f6acc9d9" class="m-doc">undistort_<wbr />point_<wbr />fisheye()</a>.</p><aside class="m-note m-warning"><h3>A Note on Multi-Threading Support</h3><p>There is some support for asynchronous multi-threaded feature tracking of independent cameras. The key assumption during implementation is that the user will not try to track on the same camera in parallel, and instead call on different cameras. For example, if I have two cameras, I can either sequentially call the feed function, or I spin each of these into separate threads and wait for their return. The <a href="classov__core_1_1TrackBase.html#af59db0441bf16f0e7c62d8f3bd09e5f0" class="m-doc">currid</a> is atomic to allow for multiple threads to access it without issue and ensure that all features have unique id values. We also have mutex for access for the calibration and previous images and tracks (used during visualization). It should be noted that if a thread calls visualization, it might hang or the feed thread might, due to acquiring the mutex for that specific camera id / feed.</p></aside><p>This base class also handles most of the heavy lifting with the visualization, but the sub-classes can override this and do their own logic if they want (i.e. the <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a> has its own logic for visualization). This visualization needs access to the prior images and their tracks, thus must synchronise in the case of multi-threading. This shouldn&#x27;t impact performance, but high frequency visualization calls can negatively effect the performance.</p>
         <section id="derived-classes">
           <h2><a href="#derived-classes">Derived classes</a></h2>
           <dl class="m-doc">
@@ -96,8 +96,9 @@
             </dt>
             <dd>Public default constructor.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#acee27a2960643366891d02b3ddccfcf7" class="m-doc">TrackBase</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numfeats,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numaruco)</span>
+              <span class="m-doc-wrap-bumper"><a href="#a5d422794cc01d9e2480a6ac48bd20b35" class="m-doc">TrackBase</a>(</span><span class="m-doc-wrap">int numfeats,
+              int numaruco,
+              bool multithread)</span>
             </dt>
             <dd>Public constructor with configuration variables.</dd>
           </dl>
@@ -127,26 +128,27 @@
             <dd>Process new stereo pair of images.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a384a0736f1d62da3261a84be7b5430b3" class="m-doc">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b2) <span class="m-label m-flat m-warning">virtual</span></span>
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Shows features extracted in the last image.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ac6089c0151db430e34d3386355d406b8" class="m-doc">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b2) <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a994ec3f3271cea43ff3d40d42e39fb5b" class="m-doc">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2,
+              std::vector&lt;size_t&gt; highlighted = {}) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Shows a &quot;trail&quot; for each feature (i.e. its history)</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a2502acec48c294534be3100e137614ff" class="m-doc">get_feature_database</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>*</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#aebcef580e2c1639d45bcb74e2bc516aa" class="m-doc">get_feature_database</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt;</span>
             </dt>
             <dd>Get the feature database with all the track information.</dd>
             <dt>
@@ -161,17 +163,17 @@
             <dd>Main function that will undistort/normalize a point.</dd>
           </dl>
         </section>
-        <section id="pro-methods">
-          <h2><a href="#pro-methods">Protected functions</a></h2>
+        <section id="pro-static-methods">
+          <h2><a href="#pro-static-methods">Protected static functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a9ccde97a49519204713b86b7d8669649" class="m-doc">undistort_point_brown</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
+              <span class="m-doc-wrap-bumper">static auto <a href="#a3c5a9433c515c4e9a53cb83f724dc30d" class="m-doc">undistort_point_brown</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
               cv::Matx33d&amp; camK,
               cv::Vec4d&amp; camD) -&gt; cv::Point2f</span>
             </dt>
             <dd>Undistort function RADTAN/BROWN.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a3cbb0736d74105309b487d5bf0a00552" class="m-doc">undistort_point_fisheye</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
+              <span class="m-doc-wrap-bumper">static auto <a href="#a40b69c2d8c517d57acbf4ce0f6acc9d9" class="m-doc">undistort_point_fisheye</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
               cv::Matx33d&amp; camK,
               cv::Vec4d&amp; camD) -&gt; cv::Point2f</span>
             </dt>
@@ -181,8 +183,8 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a0e86777b367def6c2a84da2f92ee6410">
-              <a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>* <a href="#a0e86777b367def6c2a84da2f92ee6410" class="m-doc-self">database</a>
+            <dt id="a832d13076b7d5ef3d6481deb5ce3000d">
+              std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt; <a href="#a832d13076b7d5ef3d6481deb5ce3000d" class="m-doc-self">database</a>
             </dt>
             <dd>Database with all our current features.</dd>
             <dt id="a10325315c2e52ab8367097d57b7020c6">
@@ -198,9 +200,13 @@
             </dt>
             <dd>Camera distortion in OpenCV format.</dd>
             <dt id="a22e5b8a82308be5190933e5991891e9a">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a22e5b8a82308be5190933e5991891e9a" class="m-doc-self">num_features</a>
+              int <a href="#a22e5b8a82308be5190933e5991891e9a" class="m-doc-self">num_features</a>
             </dt>
             <dd>Number of features we should try to track frame to frame.</dd>
+            <dt id="a6394a698a689071e1c34fd05a9affd32">
+              bool <a href="#a6394a698a689071e1c34fd05a9affd32" class="m-doc-self">use_multi_threading</a>
+            </dt>
+            <dd>Boolean for if we should try to multi-thread our frontends.</dd>
             <dt id="a8d9a970b148abdee71e1ace835c38c7c">
               std::vector&lt;std::mutex&gt; <a href="#a8d9a970b148abdee71e1ace835c38c7c" class="m-doc-self">mtx_feeds</a>
             </dt>
@@ -225,10 +231,11 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="acee27a2960643366891d02b3ddccfcf7"><div>
+          <section class="m-doc-details" id="a5d422794cc01d9e2480a6ac48bd20b35"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acee27a2960643366891d02b3ddccfcf7" class="m-doc-self">TrackBase</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numfeats,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> numaruco)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5d422794cc01d9e2480a6ac48bd20b35" class="m-doc-self">TrackBase</a>(</span><span class="m-doc-wrap">int numfeats,
+              int numaruco,
+              bool multithread)</span></span>
             </h3>
             <p>Public constructor with configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -243,6 +250,10 @@
                 <tr>
                   <td>numaruco</td>
                   <td>the max id of the arucotags, so we ensure that we start our non-auroc features above this value</td>
+                </tr>
+                <tr>
+                  <td>multithread</td>
+                  <td>if we should try to process with multiple threads or single threaded</td>
                 </tr>
               </tbody>
             </table>
@@ -341,12 +352,12 @@
           <section class="m-doc-details" id="a384a0736f1d62da3261a84be7b5430b3"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a384a0736f1d62da3261a84be7b5430b3" class="m-doc-self">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b2) <span class="m-label m-warning">virtual</span></span></span>
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Shows features extracted in the last image.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -385,15 +396,16 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ac6089c0151db430e34d3386355d406b8"><div>
+          <section class="m-doc-details" id="a994ec3f3271cea43ff3d40d42e39fb5b"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac6089c0151db430e34d3386355d406b8" class="m-doc-self">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b1,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> r2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> g2,
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> b2) <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a994ec3f3271cea43ff3d40d42e39fb5b" class="m-doc-self">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2,
+              std::vector&lt;size_t&gt; highlighted = {}) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Shows a &quot;trail&quot; for each feature (i.e. its history)</p>
             <table class="m-table m-fullwidth m-flat">
@@ -429,12 +441,16 @@
                   <td>b2</td>
                   <td>second color to draw in</td>
                 </tr>
+                <tr>
+                  <td>highlighted</td>
+                  <td>unique ids which we wish to highlight</td>
+                </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a2502acec48c294534be3100e137614ff"><div>
+          <section class="m-doc-details" id="aebcef580e2c1639d45bcb74e2bc516aa"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"><a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>* ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2502acec48c294534be3100e137614ff" class="m-doc-self">get_feature_database</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt; ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aebcef580e2c1639d45bcb74e2bc516aa" class="m-doc-self">get_feature_database</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Get the feature database with all the track information.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -497,18 +513,18 @@
             </table>
 <p>Given a uv point, this will undistort it based on the camera matrices. This will call on the model needed, depending on what type of camera it is! So if we have fisheye for camera_1 is true, we will undistort with the fisheye model. In Kalibr&#x27;s terms, the non-fisheye is <code>pinhole-radtan</code> while the fisheye is the <code>pinhole-equi</code> model.</p>
           </div></section>
-          <section class="m-doc-details" id="a9ccde97a49519204713b86b7d8669649"><div>
+          <section class="m-doc-details" id="a3c5a9433c515c4e9a53cb83f724dc30d"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">cv::Point2f ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9ccde97a49519204713b86b7d8669649" class="m-doc-self">undistort_point_brown</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
+              <span class="m-doc-wrap-bumper">static cv::Point2f ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3c5a9433c515c4e9a53cb83f724dc30d" class="m-doc-self">undistort_point_brown</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
               cv::Matx33d&amp; camK,
               cv::Vec4d&amp; camD) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>Undistort function RADTAN/BROWN.</p>
 <p>Given a uv point, this will undistort it based on the camera matrices. To equate this to Kalibr&#x27;s models, this is what you would use for <code>pinhole-radtan</code>.</p>
           </div></section>
-          <section class="m-doc-details" id="a3cbb0736d74105309b487d5bf0a00552"><div>
+          <section class="m-doc-details" id="a40b69c2d8c517d57acbf4ce0f6acc9d9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">cv::Point2f ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3cbb0736d74105309b487d5bf0a00552" class="m-doc-self">undistort_point_fisheye</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
+              <span class="m-doc-wrap-bumper">static cv::Point2f ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a40b69c2d8c517d57acbf4ce0f6acc9d9" class="m-doc-self">undistort_point_fisheye</a>(</span><span class="m-doc-wrap">cv::Point2f pt_in,
               cv::Matx33d&amp; camK,
               cv::Vec4d&amp; camD) <span class="m-label m-warning">protected</span></span></span>
             </h3>
@@ -560,7 +576,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

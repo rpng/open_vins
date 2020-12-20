@@ -91,7 +91,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a512525c192c9bd721e13eef0cb707496" class="m-doc">Type</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> size_)</span>
+              <span class="m-doc-wrap-bumper"><a href="#a512525c192c9bd721e13eef0cb707496" class="m-doc">Type</a>(</span><span class="m-doc-wrap">int size_)</span>
             </dt>
             <dd>Default constructor for our <a href="classov__type_1_1Type.html" class="m-doc">Type</a>.</dd>
           </dl>
@@ -100,45 +100,45 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a52cb2fe6e25dbe8875da3fd618cf0b61" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> new_id) <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a52cb2fe6e25dbe8875da3fd618cf0b61" class="m-doc">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Sets id used to track location of variable in the filter covariance.</dd>
             <dt id="a3a23de9d85dd9a503fd72c54b948f89c">
-              <span class="m-doc-wrap-bumper">auto <a href="#a3a23de9d85dd9a503fd72c54b948f89c" class="m-doc-self">id</a>(</span><span class="m-doc-wrap">) -&gt; <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a23de9d85dd9a503fd72c54b948f89c" class="m-doc-self">id</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd>Access to variable id (i.e. its location in the covariance)</dd>
             <dt id="a21e2cf87dcb51a7456d9d94d4e178fae">
-              <span class="m-doc-wrap-bumper">auto <a href="#a21e2cf87dcb51a7456d9d94d4e178fae" class="m-doc-self">size</a>(</span><span class="m-doc-wrap">) -&gt; <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a21e2cf87dcb51a7456d9d94d4e178fae" class="m-doc-self">size</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd>Access to variable size (i.e. its error state size)</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a58d8090ed2599db8babf190830a70631" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">pure virtual</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a4e133d50af35f07bd97f73590fe31000" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd&amp; dx) <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
             <dd>Update variable due to perturbation of error state.</dd>
-            <dt id="ad22bd87cb7d76e9750b464435d6d9e69">
-              <span class="m-doc-wrap-bumper">auto <a href="#ad22bd87cb7d76e9750b464435d6d9e69" class="m-doc-self">value</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::MatrixXd <span class="m-label m-flat m-warning">virtual</span></span>
+            <dt id="a578c16c3fe70fd4a0b33c4c39c777b33">
+              <span class="m-doc-wrap-bumper">auto <a href="#a578c16c3fe70fd4a0b33c4c39c777b33" class="m-doc-self">value</a>(</span><span class="m-doc-wrap">) const -&gt; const Eigen::MatrixXd&amp; <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Access variable&#x27;s estimate.</dd>
-            <dt id="a7cb7cd4f2ff02328370295962209c8a5">
-              <span class="m-doc-wrap-bumper">auto <a href="#a7cb7cd4f2ff02328370295962209c8a5" class="m-doc-self">fej</a>(</span><span class="m-doc-wrap">) const -&gt; Eigen::MatrixXd <span class="m-label m-flat m-warning">virtual</span></span>
+            <dt id="a85a032ffd5c9a04bf7f582f31cdb4bb2">
+              <span class="m-doc-wrap-bumper">auto <a href="#a85a032ffd5c9a04bf7f582f31cdb4bb2" class="m-doc-self">fej</a>(</span><span class="m-doc-wrap">) const -&gt; const Eigen::MatrixXd&amp; <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Access variable&#x27;s first-estimate.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a3ec1ad883aedfddbb094453ef122fd21" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a81c73f0b6c10f2550a487019a59796a9" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Overwrite value of state&#x27;s estimate.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a4ae22f3543ea9434eb2eaa2919c47180" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#ab8345946b27cb43e0cfc36454a06686d" class="m-doc">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Overwrite value of first-estimate.</dd>
-            <dt id="a368f5c7a5884cc84fd4b72564af3c6c9">
-              <span class="m-doc-wrap-bumper">auto <a href="#a368f5c7a5884cc84fd4b72564af3c6c9" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">pure virtual</span></span>
+            <dt id="ab4a020332074ebad50d59427a80fefd6">
+              <span class="m-doc-wrap-bumper">auto <a href="#ab4a020332074ebad50d59427a80fefd6" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; <span class="m-label m-flat m-warning">pure virtual</span></span>
             </dt>
             <dd>Create a clone of this variable.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a85e1e996ba41a5f2671a358813d7b070" class="m-doc">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* check) -&gt; <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a95fcdbc584256baffc78935de5ab5da3" class="m-doc">check_if_subvariable</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; check) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
-            <dd>Determine if &quot;check&quot; is the same variable If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</dd>
+            <dd>Determine if pass variable is a sub-variable.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
@@ -153,11 +153,11 @@
             </dt>
             <dd>Current best estimate.</dd>
             <dt id="adb644d3f30691886f153527a9782a1e0">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#adb644d3f30691886f153527a9782a1e0" class="m-doc-self">_id</a>
+              int <a href="#adb644d3f30691886f153527a9782a1e0" class="m-doc-self">_id</a>
             </dt>
             <dd>Location of error state in covariance.</dd>
             <dt id="ae7450adb49403a591013e1719ab1e46e">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#ae7450adb49403a591013e1719ab1e46e" class="m-doc-self">_size</a>
+              int <a href="#ae7450adb49403a591013e1719ab1e46e" class="m-doc-self">_size</a>
             </dt>
             <dd>Dimension of error state.</dd>
           </dl>
@@ -166,7 +166,7 @@
           <h2>Function documentation</h2>
           <section class="m-doc-details" id="a512525c192c9bd721e13eef0cb707496"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a512525c192c9bd721e13eef0cb707496" class="m-doc-self">Type</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> size_)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a512525c192c9bd721e13eef0cb707496" class="m-doc-self">Type</a>(</span><span class="m-doc-wrap">int size_)</span></span>
             </h3>
             <p>Default constructor for our <a href="classov__type_1_1Type.html" class="m-doc">Type</a>.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -183,7 +183,7 @@
           </div></section>
           <section class="m-doc-details" id="a52cb2fe6e25dbe8875da3fd618cf0b61"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a52cb2fe6e25dbe8875da3fd618cf0b61" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> new_id) <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a52cb2fe6e25dbe8875da3fd618cf0b61" class="m-doc-self">set_local_id</a>(</span><span class="m-doc-wrap">int new_id) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Sets id used to track location of variable in the filter covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -197,10 +197,11 @@
                 </tr>
               </tbody>
             </table>
+<p>Note that the minimum ID is -1 which says that the state is not in our covariance. If the ID is larger than -1 then this is the index location in the covariance matrix.</p>
           </div></section>
-          <section class="m-doc-details" id="a58d8090ed2599db8babf190830a70631"><div>
+          <section class="m-doc-details" id="a4e133d50af35f07bd97f73590fe31000"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a58d8090ed2599db8babf190830a70631" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">pure virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4e133d50af35f07bd97f73590fe31000" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd&amp; dx) <span class="m-label m-warning">pure virtual</span></span></span>
             </h3>
             <p>Update variable due to perturbation of error state.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -215,9 +216,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a3ec1ad883aedfddbb094453ef122fd21"><div>
+          <section class="m-doc-details" id="a81c73f0b6c10f2550a487019a59796a9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3ec1ad883aedfddbb094453ef122fd21" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a81c73f0b6c10f2550a487019a59796a9" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Overwrite value of state&#x27;s estimate.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -232,9 +233,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a4ae22f3543ea9434eb2eaa2919c47180"><div>
+          <section class="m-doc-details" id="ab8345946b27cb43e0cfc36454a06686d"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4ae22f3543ea9434eb2eaa2919c47180" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd new_value) <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab8345946b27cb43e0cfc36454a06686d" class="m-doc-self">set_fej</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; new_value) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Overwrite value of first-estimate.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -249,11 +250,11 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a85e1e996ba41a5f2671a358813d7b070"><div>
+          <section class="m-doc-details" id="a95fcdbc584256baffc78935de5ab5da3"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"><a href="classov__type_1_1Type.html" class="m-doc">Type</a>* ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a85e1e996ba41a5f2671a358813d7b070" class="m-doc-self">check_if_same_variable</a>(</span><span class="m-doc-wrap">const <a href="classov__type_1_1Type.html" class="m-doc">Type</a>* check) <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; ov_type::<wbr />Type::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a95fcdbc584256baffc78935de5ab5da3" class="m-doc-self">check_if_subvariable</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; check) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
-            <p>Determine if &quot;check&quot; is the same variable If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</p>
+            <p>Determine if pass variable is a sub-variable.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -261,10 +262,11 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">check</td>
-                  <td><a href="classov__type_1_1Type.html" class="m-doc">Type</a> pointer to compare to</td>
+                  <td><a href="classov__type_1_1Type.html" class="m-doc">Type</a> pointer to compare our subvariables to</td>
                 </tr>
               </tbody>
             </table>
+<p>If the passed variable is a sub-variable or the current variable this will return it. Otherwise it will return a nullptr, meaning that it was unable to be found.</p>
           </div></section>
         </section>
       </div>
@@ -311,7 +313,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

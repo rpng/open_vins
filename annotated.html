@@ -53,6 +53,7 @@
             <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespaceov__core.html" class="m-doc">ov_core</a> <span class="m-doc">Core algorithms for Open VINS.</span>
             <ul class="m-doc">
               <li>class <a href="classov__core_1_1BsplineSE3.html" class="m-doc">BsplineSE3</a> <span class="m-doc">B-Spline which performs interpolation over SE(3) manifold.</span></li>
+              <li>struct <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a> <span class="m-doc">Struct for a collection of camera measurements.</span></li>
               <li>class <a href="classov__core_1_1CpiBase.html" class="m-doc">CpiBase</a> <span class="m-doc">Base class for continuous preintegration integrators.</span></li>
               <li>class <a href="classov__core_1_1CpiV1.html" class="m-doc">CpiV1</a> <span class="m-doc">Model 1 of continuous preintegration.</span></li>
               <li>class <a href="classov__core_1_1CpiV2.html" class="m-doc">CpiV2</a> <span class="m-doc">Model 2 of continuous preintegration.</span></li>
@@ -68,12 +69,9 @@
               <li>struct <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a> <span class="m-doc">Struct which stores all our feature initializer options.</span></li>
               <li>class <a href="classov__core_1_1Grider__DOG.html" class="m-doc">Grider_DOG</a> <span class="m-doc">Does Difference of Gaussian (DoG) in a grid pattern.</span></li>
               <li>class <a href="classov__core_1_1Grider__FAST.html" class="m-doc">Grider_FAST</a> <span class="m-doc">Extracts FAST features in a grid pattern.</span></li>
-              <li class="m-doc-collapsible collapsed">
-                <a href="#" onclick="return toggle(this)">class</a> <a href="classov__core_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a> <span class="m-doc">Initializer for visual-inertial system.</span>
-                <ul class="m-doc">
-                  <li>struct <a href="structov__core_1_1InertialInitializer_1_1IMUDATA.html" class="m-doc">IMUDATA</a> <span class="m-doc">Struct for a single imu measurement (time, wm, am)</span></li>
-                </ul>
-              </li>
+              <li>struct <a href="structov__core_1_1ImuData.html" class="m-doc">ImuData</a> <span class="m-doc">Struct for a single imu measurement (time, wm, am)</span></li>
+              <li>class <a href="classov__core_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a> <span class="m-doc">Initializer for visual-inertial system.</span></li>
+              <li>class <a href="classov__core_1_1LambdaBody.html" class="m-doc">LambdaBody</a> <span class="m-doc"></span></li>
               <li>class <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a> <span class="m-doc">Tracking of OpenCV Aruoc tags.</span></li>
               <li>class <a href="classov__core_1_1TrackBase.html" class="m-doc">TrackBase</a> <span class="m-doc">Visual feature tracking base class.</span></li>
               <li>class <a href="classov__core_1_1TrackDescriptor.html" class="m-doc">TrackDescriptor</a> <span class="m-doc">Descriptor-based visual tracking.</span></li>
@@ -100,7 +98,6 @@
               <li class="m-doc-collapsible collapsed">
                 <a href="#" onclick="return toggle(this)">class</a> <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> <span class="m-doc">Performs the state covariance and mean propagation using imu measurements.</span>
                 <ul class="m-doc">
-                  <li>struct <a href="structov__msckf_1_1Propagator_1_1IMUDATA.html" class="m-doc">IMUDATA</a> <span class="m-doc">Struct for a single imu measurement (time, wm, am)</span></li>
                   <li>struct <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">NoiseManager</a> <span class="m-doc">Struct of our imu noise parameters.</span></li>
                 </ul>
               </li>
@@ -128,7 +125,7 @@
             <ul class="m-doc">
               <li>class <a href="classov__type_1_1IMU.html" class="m-doc">IMU</a> <span class="m-doc">Derived <a href="classov__type_1_1Type.html" class="m-doc">Type</a> class that implements an <a href="classov__type_1_1IMU.html" class="m-doc">IMU</a> state.</span></li>
               <li>class <a href="classov__type_1_1JPLQuat.html" class="m-doc">JPLQuat</a> <span class="m-doc">Derived <a href="classov__type_1_1Type.html" class="m-doc">Type</a> class that implements JPL quaternion.</span></li>
-              <li>class <a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a> <span class="m-doc"><a href="classov__type_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</span></li>
+              <li>class <a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a> <span class="m-doc"><a href="classov__type_1_1Type.html" class="m-doc">Type</a> that implements a persistent SLAM feature.</span></li>
               <li>class <a href="classov__type_1_1LandmarkRepresentation.html" class="m-doc">LandmarkRepresentation</a> <span class="m-doc">Class has useful feature representation types.</span></li>
               <li>class <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a> <span class="m-doc">Derived <a href="classov__type_1_1Type.html" class="m-doc">Type</a> class that implements a 6 d.o.f pose.</span></li>
               <li>class <a href="classov__type_1_1Type.html" class="m-doc">Type</a> <span class="m-doc">Base class for estimated variables.</span></li>
@@ -196,7 +193,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

@@ -169,13 +169,17 @@
             </dt>
             <dd>Map between camid and camera extrinsics (q_ItoC, p_IinC).</dd>
             <dt id="aa9610a658c51215ed6e3a1af9380e25c">
-              std::map&lt;size_t, std::pair&lt;<a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>, <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a>&gt;&gt; <a href="#aa9610a658c51215ed6e3a1af9380e25c" class="m-doc-self">camera_wh</a>
+              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#aa9610a658c51215ed6e3a1af9380e25c" class="m-doc-self">camera_wh</a>
             </dt>
             <dd>Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.</dd>
             <dt id="af01535da59b1d2d5e3309aaa34e69c8e">
               bool <a href="#af01535da59b1d2d5e3309aaa34e69c8e" class="m-doc-self">use_stereo</a>
             </dt>
             <dd>If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.</dd>
+            <dt id="a66600dd0efd8df258a6efe59e0652661">
+              std::vector&lt;std::pair&lt;int, int&gt;&gt; <a href="#a66600dd0efd8df258a6efe59e0652661" class="m-doc-self">stereo_pairs</a>
+            </dt>
+            <dd>Defined set of stereo camera id pairs which we will process together and try to generate stereo constraints between.</dd>
             <dt id="a1885c647c47cb5216fc4b868553ec0fa">
               bool <a href="#a1885c647c47cb5216fc4b868553ec0fa" class="m-doc-self">use_klt</a>
             </dt>
@@ -192,24 +196,28 @@
               bool <a href="#af08feea8c9e944e727483f6ff3899e8e" class="m-doc-self">downsample_cameras</a>
             </dt>
             <dd>Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)</dd>
+            <dt id="af76c6a235ac9c9a5cf30ffced7bff15d">
+              bool <a href="#af76c6a235ac9c9a5cf30ffced7bff15d" class="m-doc-self">use_multi_threading</a>
+            </dt>
+            <dd>If our front-end should try to use some multi-threading for stereo matching.</dd>
             <dt id="a1bde650ec917e7a3df221a1524e33429">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
+              int <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
             </dt>
             <dd>The number of points we should extract and track in <em>each</em> image frame. This highly effects the computation required for tracking.</dd>
             <dt id="a27d862f8f1811211f895b27a3b789e3a">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a27d862f8f1811211f895b27a3b789e3a" class="m-doc-self">fast_threshold</a>
+              int <a href="#a27d862f8f1811211f895b27a3b789e3a" class="m-doc-self">fast_threshold</a>
             </dt>
             <dd>Fast extraction threshold.</dd>
             <dt id="ab52b09d507ef33dabe72d65a223fe067">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#ab52b09d507ef33dabe72d65a223fe067" class="m-doc-self">grid_x</a>
+              int <a href="#ab52b09d507ef33dabe72d65a223fe067" class="m-doc-self">grid_x</a>
             </dt>
             <dd>Number of grids we should split column-wise to do feature extraction in.</dd>
             <dt id="a678920b0804fb40a14b22da61d49d631">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a678920b0804fb40a14b22da61d49d631" class="m-doc-self">grid_y</a>
+              int <a href="#a678920b0804fb40a14b22da61d49d631" class="m-doc-self">grid_y</a>
             </dt>
             <dd>Number of grids we should split row-wise to do feature extraction in.</dd>
             <dt id="a66d1e76bc9e8ffdd1c669d99fdce76b7">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
+              int <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
             </dt>
             <dd>Will check after doing KLT track and remove any features closer than this.</dd>
             <dt id="a62800a75870b19213d1c44e69b2c32f7">
@@ -237,15 +245,15 @@
             </dt>
             <dd>Frequency (Hz) that we will simulate our inertial measurement unit.</dd>
             <dt id="a04e82ff351254354378cd7568aaef6ed">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a04e82ff351254354378cd7568aaef6ed" class="m-doc-self">sim_seed_state_init</a>
+              int <a href="#a04e82ff351254354378cd7568aaef6ed" class="m-doc-self">sim_seed_state_init</a>
             </dt>
             <dd>Seed for initial states (i.e. random feature 3d positions in the generated map)</dd>
             <dt id="afe2c433c61d25c18901b089a2215114c">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#afe2c433c61d25c18901b089a2215114c" class="m-doc-self">sim_seed_preturb</a>
+              int <a href="#afe2c433c61d25c18901b089a2215114c" class="m-doc-self">sim_seed_preturb</a>
             </dt>
             <dd>Seed for calibration perturbations. Change this to perturb by different random values if perturbations are enabled.</dd>
             <dt id="a9b3fee122a7d3b2069a424b5ef1b1155">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
+              int <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
             </dt>
             <dd>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</dd>
             <dt id="a4d595d5277582b53d12ad75bc7a6ad57">
@@ -298,7 +306,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

@@ -82,7 +82,7 @@
             </dt>
             <dd>Will return the timestep that we will marginalize next. As of right now, since we are using a sliding window, this is the oldest clone. But if you wanted to do a keyframe system, you could selectively marginalize clones.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc">max_covariance_size</a>(</span><span class="m-doc-wrap">) -&gt; <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a></span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc">max_covariance_size</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd>Calculates the current max size of the covariance.</dd>
           </dl>
@@ -98,28 +98,28 @@
               <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a2af409a71537d305b45c62a91b6dda75" class="m-doc-self">_options</a>
             </dt>
             <dd>Struct containing filter options.</dd>
-            <dt id="a7e5401c6f6241a32615b071147a40b54">
-              <a href="classov__type_1_1IMU.html" class="m-doc">IMU</a>* <a href="#a7e5401c6f6241a32615b071147a40b54" class="m-doc-self">_imu</a>
+            <dt id="a0e5aab70a0e05265c1a31a75235fc1e1">
+              std::shared_ptr&lt;<a href="classov__type_1_1IMU.html" class="m-doc">IMU</a>&gt; <a href="#a0e5aab70a0e05265c1a31a75235fc1e1" class="m-doc-self">_imu</a>
             </dt>
             <dd>Pointer to the &quot;active&quot; IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)</dd>
-            <dt id="a2f6328c77dd8e4c99dfbbe8ee9126959">
-              std::map&lt;double, <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a2f6328c77dd8e4c99dfbbe8ee9126959" class="m-doc-self">_clones_IMU</a>
+            <dt id="a012c41adb640d5d5b9e7f6ae18939c88">
+              std::map&lt;double, std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>&gt;&gt; <a href="#a012c41adb640d5d5b9e7f6ae18939c88" class="m-doc-self">_clones_IMU</a>
             </dt>
             <dd>Map between imaging times and clone poses (q_GtoIi, p_IiinG)</dd>
-            <dt id="a890a6cb1245465a0acae30149de3dc18">
-              std::unordered_map&lt;size_t, <a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>*&gt; <a href="#a890a6cb1245465a0acae30149de3dc18" class="m-doc-self">_features_SLAM</a>
+            <dt id="ae303f8999efeefe48dfa4218ae6a1cc4">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>&gt;&gt; <a href="#ae303f8999efeefe48dfa4218ae6a1cc4" class="m-doc-self">_features_SLAM</a>
             </dt>
             <dd>Our current set of SLAM features (3d positions)</dd>
-            <dt id="ab74adf6c3e2bed34c5ae2bd00b640541">
-              <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>* <a href="#ab74adf6c3e2bed34c5ae2bd00b640541" class="m-doc-self">_calib_dt_CAMtoIMU</a>
+            <dt id="a25a973823a81892c7df755439bf9e36f">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt; <a href="#a25a973823a81892c7df755439bf9e36f" class="m-doc-self">_calib_dt_CAMtoIMU</a>
             </dt>
             <dd>Time offset base IMU to camera (t_imu = t_cam + t_off)</dd>
-            <dt id="a78eebc01de3742b79ff0cac34ca2e500">
-              std::unordered_map&lt;size_t, <a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>*&gt; <a href="#a78eebc01de3742b79ff0cac34ca2e500" class="m-doc-self">_calib_IMUtoCAM</a>
+            <dt id="ac650652c6bd9d980ff59b5b43f8ee902">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>&gt;&gt; <a href="#ac650652c6bd9d980ff59b5b43f8ee902" class="m-doc-self">_calib_IMUtoCAM</a>
             </dt>
             <dd>Calibration poses for each camera (R_ItoC, p_IinC)</dd>
-            <dt id="a24985916b003b6c024c7795ca1de0b29">
-              std::unordered_map&lt;size_t, <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>*&gt; <a href="#a24985916b003b6c024c7795ca1de0b29" class="m-doc-self">_cam_intrinsics</a>
+            <dt id="a62a97fb4781503711f6d7e82d09bdfa8">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt;&gt; <a href="#a62a97fb4781503711f6d7e82d09bdfa8" class="m-doc-self">_cam_intrinsics</a>
             </dt>
             <dd>Camera intrinsics.</dd>
             <dt id="a284f1502a059cfeac644485f8ca587fb">
@@ -163,7 +163,7 @@
           </div></section>
           <section class="m-doc-details" id="a37c45cc1d3d1a3dcc46d3799a997355f"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc-self">max_covariance_size</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">int ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc-self">max_covariance_size</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Calculates the current max size of the covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -220,7 +220,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

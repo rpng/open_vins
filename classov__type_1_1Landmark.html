@@ -50,7 +50,7 @@
         <h1>
           <span class="m-breadcrumb"><a href="namespaceov__type.html">ov_type</a>::<wbr/></span>Landmark <span class="m-thin">class</span>
         </h1>
-        <p><a href="classov__type_1_1Type.html" class="m-doc">Type</a> that implements a persistant SLAM feature.</p>
+        <p><a href="classov__type_1_1Type.html" class="m-doc">Type</a> that implements a persistent SLAM feature.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
@@ -79,20 +79,20 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt id="afdfcac1cff90284cc815bd1c17c2659d">
-              <span class="m-doc-wrap-bumper"><a href="#afdfcac1cff90284cc815bd1c17c2659d" class="m-doc-self">Landmark</a>(</span><span class="m-doc-wrap"><a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> dim)</span>
+              <span class="m-doc-wrap-bumper"><a href="#afdfcac1cff90284cc815bd1c17c2659d" class="m-doc-self">Landmark</a>(</span><span class="m-doc-wrap">int dim)</span>
             </dt>
-            <dd>Default constructor (feature is a <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a> of size 3 or <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a> of size 1 )</dd>
+            <dd>Default constructor (feature is a <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a> of size 3 or <a href="classov__type_1_1Vec.html" class="m-doc">Vec</a> of size 1)</dd>
           </dl>
         </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a3d8900f302b2227b10d321ad8008cbcd" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#aae8c688f5bb601edcb38fde41ff04297" class="m-doc">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd&amp; dx) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Overrides the default vector update rule We want to selectively update the FEJ value if we are using an anchored representation.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ac4f8e2cecf6c4fc00b7680ebe95c2fa9" class="m-doc">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej) -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#aa4f66d5e3954beea3f05b8b757561132" class="m-doc">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej) const -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
             </dt>
             <dd>Will return the position of the feature in the global frame of reference.</dd>
             <dt>
@@ -109,8 +109,12 @@
               size_t <a href="#ad8e61393e2cf88ad04055081d93c1281" class="m-doc-self">_featid</a>
             </dt>
             <dd>Feature ID of this landmark (corresponds to frontend id)</dd>
+            <dt id="a97b5c9a2110e0fad40eefcecb3f5fb14">
+              int <a href="#a97b5c9a2110e0fad40eefcecb3f5fb14" class="m-doc-self">_unique_camera_id</a>
+            </dt>
+            <dd>What unique camera stream this slam feature was observed from.</dd>
             <dt id="acbc8b8af7f85c0dc123365046f1af432">
-              <a href="CMakeCache_8txt.html#a79a3d8790b2588b09777910863574e09" class="m-doc">int</a> <a href="#acbc8b8af7f85c0dc123365046f1af432" class="m-doc-self">_anchor_cam_id</a>
+              int <a href="#acbc8b8af7f85c0dc123365046f1af432" class="m-doc-self">_anchor_cam_id</a>
             </dt>
             <dd>What camera ID our pose is anchored in!! By default the first measurement is the anchor.</dd>
             <dt id="a734c934cc4bf108ad228bd0f0596ef2a">
@@ -141,9 +145,9 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a3d8900f302b2227b10d321ad8008cbcd"><div>
+          <section class="m-doc-details" id="aae8c688f5bb601edcb38fde41ff04297"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3d8900f302b2227b10d321ad8008cbcd" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd dx) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aae8c688f5bb601edcb38fde41ff04297" class="m-doc-self">update</a>(</span><span class="m-doc-wrap">const Eigen::VectorXd&amp; dx) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Overrides the default vector update rule We want to selectively update the FEJ value if we are using an anchored representation.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -158,9 +162,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ac4f8e2cecf6c4fc00b7680ebe95c2fa9"><div>
+          <section class="m-doc-details" id="aa4f66d5e3954beea3f05b8b757561132"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 1&gt; ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac4f8e2cecf6c4fc00b7680ebe95c2fa9" class="m-doc-self">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej)</span></span>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 1&gt; ov_type::<wbr />Landmark::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa4f66d5e3954beea3f05b8b757561132" class="m-doc-self">get_xyz</a>(</span><span class="m-doc-wrap">bool getfej) const</span></span>
             </h3>
             <p>Will return the position of the feature in the global frame of reference.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -250,7 +254,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

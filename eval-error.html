@@ -51,42 +51,58 @@
           <span class="m-breadcrumb"><a href="evaluation.html">System Evaluation</a> &raquo;</span>
           Filter Error Evaluation Methods
         </h1>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#eval-ov-collection">Collection</a></li>
+            <li><a href="#eval-ov-transform">Transformation</a></li>
+            <li>
+              <a href="#eval-ov-plot">Processing &amp; Plotting</a>
+              <ul>
+                <li><a href="#eval-ov-plot-plot">Script &quot;plot_trajectories&quot;</a></li>
+                <li><a href="#eval-ov-plot-singlerun">Script &quot;error_singlerun&quot;</a></li>
+                <li><a href="#eval-ov-plot-dataset">Script &quot;error_dataset&quot;</a></li>
+                <li><a href="#eval-ov-plot-comparison">Script &quot;error_comparison&quot;</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
 <aside class="m-note m-warning"><h3>Installation Warning</h3><p>If you plan to use the included plotting from the cpp code, you will need to make sure that you have matplotlib and python 2.7 installed. We use the to <a href="https://github.com/lava/matplotlib-cpp">matplotlib-cpp</a> to call this external library and generate the desired figures. Please see <a href="gs-installing.html#gs-install-oveval" class="m-doc">Additional Evaluation Requirements</a> for more details on the exact install.</p></aside><section id="eval-ov-collection"><h2><a href="#eval-ov-collection">Collection</a></h2><p>The first step in any evaluation is to first collect the estimated trajectory of the proposed systems. Since we are interested in robotic application of our estimators we want to record the estimate at the current timestep (as compared to a &quot;smoothed&quot; output or one that includes loop-closures from future timesteps). Within the ROS framework, this means that we just need to publish the current estimate at the current timestep. We recommend using the following <a href="classov__eval_1_1Recorder.html" class="m-doc">ov_eval::<wbr />Recorder</a> utility for recording the estimator output directly into a text file. Works with topics of type <code>PoseWithCovarianceStamped</code>, <code>PoseStamped</code>, <code>TransformStamped</code>, and <code>Odometry</code>.</p><pre class="m-code"><span class="nt">&lt;node</span> <span class="na">name=</span><span class="s">&quot;recorder_estimate&quot;</span> <span class="na">pkg=</span><span class="s">&quot;ov_eval&quot;</span> <span class="na">type=</span><span class="s">&quot;pose_to_file&quot;</span> <span class="na">output=</span><span class="s">&quot;screen&quot;</span><span class="nt">&gt;</span>
     <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;topic&quot;</span>      <span class="na">type=</span><span class="s">&quot;str&quot;</span> <span class="na">value=</span><span class="s">&quot;/ov_msckf/poseimu&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;topic_type&quot;</span> <span class="na">type=</span><span class="s">&quot;str&quot;</span> <span class="na">value=</span><span class="s">&quot;PoseWithCovarianceStamped&quot;</span> <span class="nt">/&gt;</span>
     <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;output&quot;</span>     <span class="na">type=</span><span class="s">&quot;str&quot;</span> <span class="na">value=</span><span class="s">&quot;/home/user/data/traj_log.txt&quot;</span> <span class="nt">/&gt;</span>
 <span class="nt">&lt;/node&gt;</span></pre></section><section id="eval-ov-transform"><h2><a href="#eval-ov-transform">Transformation</a></h2><p>We now need to ensure both our estimated trajectory and groundtruth are in the correct formats for us to read in. We need things to be in the RPE text file format (i.e. time(s), px, py, pz, qx, qy, qz, qw). We have a nice helper script that will transform ASL / EuRoC groundtruth files to the correct format. By default the EuRoC groundtruth has the timestamp in nanoseconds and the quaternion is in an incorrect order (i.e. time(ns), px, py, pz, qw, qx, qy, qz). A user can either process all CSV files in a given folder, or just a specific one.</p><pre class="m-console"><span class="go">rosrun ov_eval format_convert folder/path/</span>
 <span class="go">rosrun ov_eval format_convert file.csv</span></pre><p>In addition we have a specific folder structure that is assumed. We store trajectories by first their algorithm name and then a folder for each dataset this algorithm was run on. The folder names of the datasets need to match the groundtruth trajectory files which should be in their own separate folder. Please see the example recorded datasets for how to structure your folders.</p><pre class="m-code">truth/
-    dateset_name_1<span class="p">.</span>txt
-    dateset_name_2<span class="p">.</span>txt
+    dateset_name_1.txt
+    dateset_name_2.txt
 algorithms/
     open_vins/
         dataset_name_1/
-            run1<span class="p">.</span>txt
-            run2<span class="p">.</span>txt
-            run3<span class="p">.</span>txt
+            run1.txt
+            run2.txt
+            run3.txt
         dataset_name_2/
-            run1<span class="p">.</span>txt
-            run2<span class="p">.</span>txt
-            run3<span class="p">.</span>txt
+            run1.txt
+            run2.txt
+            run3.txt
     okvis_stereo/
         dataset_name_1/
-            run1<span class="p">.</span>txt
-            run2<span class="p">.</span>txt
-            run3<span class="p">.</span>txt
+            run1.txt
+            run2.txt
+            run3.txt
         dataset_name_2/
-            run1<span class="p">.</span>txt
-            run2<span class="p">.</span>txt
-            run3<span class="p">.</span>txt
+            run1.txt
+            run2.txt
+            run3.txt
     vins_mono/
         dataset_name_1/
-            run1<span class="p">.</span>txt
-            run2<span class="p">.</span>txt
-            run3<span class="p">.</span>txt
+            run1.txt
+            run2.txt
+            run3.txt
         dataset_name_2/
-            run1<span class="p">.</span>txt
-            run2<span class="p">.</span>txt
-            run3<span class="p">.</span>txt</pre></section><section id="eval-ov-plot"><h2><a href="#eval-ov-plot">Processing &amp; Plotting</a></h2><p>Now that we have our data recorded and in the correct format we can now work on processing and plotting it. In the next few sections we detail how to do this for absolute trajectory error, relative pose error, normalized estimation error squared, and bounded root mean squared error plots. We will first process the data into a set of output text files which a user can then use to plot the results in their program or language of choice. The align mode of all the following commands can be of type <code>posyaw</code>, <code>posyawsingle</code>, <code>se3</code>, <code>se3single</code>, <code>sim3</code>, and <code>none</code>.</p><section id="eval-ov-plot-plot"><h3><a href="#eval-ov-plot-plot">Script &quot;plot_trajectories&quot;</a></h3><p>To plot the data we can us the following command which will plot a 2d xy and z-time position plots. It will use the filename as the name in the legend, so you can change that to change the legend or edit the code.</p><pre class="m-console"><span class="go">rosrun ov_eval plot_trajectories &lt;align_mode&gt; &lt;file_gt.txt&gt; ... &lt;file_est9.txt&gt;</span>
+            run1.txt
+            run2.txt
+            run3.txt</pre></section><section id="eval-ov-plot"><h2><a href="#eval-ov-plot">Processing &amp; Plotting</a></h2><p>Now that we have our data recorded and in the correct format we can now work on processing and plotting it. In the next few sections we detail how to do this for absolute trajectory error, relative pose error, normalized estimation error squared, and bounded root mean squared error plots. We will first process the data into a set of output text files which a user can then use to plot the results in their program or language of choice. The align mode of all the following commands can be of type <code>posyaw</code>, <code>posyawsingle</code>, <code>se3</code>, <code>se3single</code>, <code>sim3</code>, and <code>none</code>.</p><section id="eval-ov-plot-plot"><h3><a href="#eval-ov-plot-plot">Script &quot;plot_trajectories&quot;</a></h3><p>To plot the data we can us the following command which will plot a 2d xy and z-time position plots. It will use the filename as the name in the legend, so you can change that to change the legend or edit the code.</p><pre class="m-console"><span class="go">rosrun ov_eval plot_trajectories &lt;align_mode&gt; &lt;file_gt.txt&gt; ... &lt;file_est9.txt&gt;</span>
 <span class="go">rosrun ov_eval plot_trajectories posyaw 1565371553_estimate.txt truths/V1_01_easy.txt</span></pre><img class="m-image" src="plot_xy.png" alt="Image" style="width: 70%;" /><img class="m-image" src="plot_z.png" alt="Image" style="width: 70%;" /></section><section id="eval-ov-plot-singlerun"><h3><a href="#eval-ov-plot-singlerun">Script &quot;error_singlerun&quot;</a></h3><p>The single run script will plot statistics and also 3 <svg class="m-math" style="width: 0.738em; height: 0.536em; vertical-align: -0.000em;" viewBox="0 -5.14737 7.08241 5.14737">
 <title>
 $\sigma$
@@ -226,7 +242,7 @@ $\sigma$
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

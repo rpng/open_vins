@@ -70,9 +70,9 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#aa40cf3af0e9f5571b386bac7780fe5b7" class="m-doc">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
-              <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* app,
-              <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>* sim = nullptr)</span>
+              <span class="m-doc-wrap-bumper"><a href="#a93649edb41467fc71b40d9a5ba83636a" class="m-doc">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; app,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; sim = nullptr)</span>
             </dt>
             <dd>Default constructor.</dd>
           </dl>
@@ -113,10 +113,10 @@
               <span class="m-doc-wrap-bumper">void <a href="#a97757b4dd59f20fb28487c1a4d0dc233" class="m-doc-self">publish_groundtruth</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish groundtruth (if we have it)</dd>
-            <dt id="ad3814d8af814776ff497a238ba997fbc">
-              <span class="m-doc-wrap-bumper">void <a href="#ad3814d8af814776ff497a238ba997fbc" class="m-doc-self">publish_keyframe_information</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a2e5bbd88247063ff3d7814613333db79">
+              <span class="m-doc-wrap-bumper">void <a href="#a2e5bbd88247063ff3d7814613333db79" class="m-doc-self">publish_loopclosure_information</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
-            <dd>Publish keyframe information of the marginalized pose and tracks.</dd>
+            <dd>Publish loop-closure information of current pose and active track information.</dd>
             <dt id="a0f031981480cafe4833d6ab4d6da46a4">
               <span class="m-doc-wrap-bumper">void <a href="#a0f031981480cafe4833d6ab4d6da46a4" class="m-doc-self">sim_save_total_state_to_file</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
@@ -126,27 +126,23 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a9abb516f8c8ef4ae1239911d68ab1d77">
-              ros::NodeHandle <a href="#a9abb516f8c8ef4ae1239911d68ab1d77" class="m-doc-self">_nh</a>
-            </dt>
-            <dd>ROS node handle that we publish onto.</dd>
-            <dt id="a8d8b61c5c6606f97b6b716ec4a93d3bb">
-              <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* <a href="#a8d8b61c5c6606f97b6b716ec4a93d3bb" class="m-doc-self">_app</a>
+            <dt id="a02405596da83fb166b7c2d999388d60c">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; <a href="#a02405596da83fb166b7c2d999388d60c" class="m-doc-self">_app</a>
             </dt>
             <dd>Core application of the filter system.</dd>
-            <dt id="a730d5ac5c353b535dc374a1f9d3d4911">
-              <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>* <a href="#a730d5ac5c353b535dc374a1f9d3d4911" class="m-doc-self">_sim</a>
+            <dt id="a36ca786335db6f2f60328cf349b66819">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; <a href="#a36ca786335db6f2f60328cf349b66819" class="m-doc-self">_sim</a>
             </dt>
             <dd><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> (is nullptr if we are not sim&#x27;ing)</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="aa40cf3af0e9f5571b386bac7780fe5b7"><div>
+          <section class="m-doc-details" id="a93649edb41467fc71b40d9a5ba83636a"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />RosVisualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa40cf3af0e9f5571b386bac7780fe5b7" class="m-doc-self">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
-              <a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>* app,
-              <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>* sim = nullptr)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />RosVisualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a93649edb41467fc71b40d9a5ba83636a" class="m-doc-self">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; app,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; sim = nullptr)</span></span>
             </h3>
             <p>Default constructor.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -214,7 +210,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>

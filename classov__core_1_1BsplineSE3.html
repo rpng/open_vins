@@ -59,7 +59,8 @@
               <ul>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
-                <li><a href="#pro-methods">Protected functions</a></li>
+                <li><a href="#pro-types">Protected types</a></li>
+                <li><a href="#pro-static-methods">Protected static functions</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
               </ul>
             </li>
@@ -751,12 +752,21 @@ $u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)$
             <dd>Returns the simulation start time that we should start simulating from.</dd>
           </dl>
         </section>
-        <section id="pro-methods">
-          <h2><a href="#pro-methods">Protected functions</a></h2>
+        <section id="pro-types">
+          <h2><a href="#pro-types">Protected types</a></h2>
+          <dl class="m-doc">
+            <dt id="a2e0b3cb7cef84db7b84598f2ea01e00d">
+              using <a href="#a2e0b3cb7cef84db7b84598f2ea01e00d" class="m-doc-self">AlignedEigenMat4d</a> = std::map&lt;double, Eigen::Matrix4d, std::less&lt;double&gt;, Eigen::aligned_allocator&lt;std::pair&lt;const double, Eigen::Matrix4d&gt;&gt;&gt;
+            </dt>
+            <dd>Type defintion of our aligned eigen4d matrix: <a href="https://eigen.tuxfamily.org/dox/group__TopicStlContainers.html">https://eigen.tuxfamily.org/dox/group_<wbr />_<wbr />TopicStlContainers.html</a>.</dd>
+          </dl>
+        </section>
+        <section id="pro-static-methods">
+          <h2><a href="#pro-static-methods">Protected static functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a584286b8e0c406536b4da081434f7539" class="m-doc">find_bounding_poses</a>(</span><span class="m-doc-wrap">double timestamp,
-              std::map&lt;double, Eigen::MatrixXd&gt;&amp; poses,
+              <span class="m-doc-wrap-bumper">static auto <a href="#a321442ce3c2aee341c64403e047f3f36" class="m-doc">find_bounding_poses</a>(</span><span class="m-doc-wrap">const double timestamp,
+              const <a href="classov__core_1_1BsplineSE3.html#a2e0b3cb7cef84db7b84598f2ea01e00d" class="m-doc">AlignedEigenMat4d</a>&amp; poses,
               double&amp; t0,
               Eigen::Matrix4d&amp; pose0,
               double&amp; t1,
@@ -764,8 +774,8 @@ $u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)$
             </dt>
             <dd>Will find the two bounding poses for a given timestamp.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a44b25e9c7eb9b47aa649c951d809f35f" class="m-doc">find_bounding_control_points</a>(</span><span class="m-doc-wrap">double timestamp,
-              std::map&lt;double, Eigen::MatrixXd&gt;&amp; poses,
+              <span class="m-doc-wrap-bumper">static auto <a href="#af03bc0e8df3f77134afa0a24a425be80" class="m-doc">find_bounding_control_points</a>(</span><span class="m-doc-wrap">const double timestamp,
+              const <a href="classov__core_1_1BsplineSE3.html#a2e0b3cb7cef84db7b84598f2ea01e00d" class="m-doc">AlignedEigenMat4d</a>&amp; poses,
               double&amp; t0,
               Eigen::Matrix4d&amp; pose0,
               double&amp; t1,
@@ -789,8 +799,8 @@ $u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)$
               double <a href="#a3918570c18a61486c049a910c501d85a" class="m-doc-self">timestamp_start</a>
             </dt>
             <dd>Start time of the system.</dd>
-            <dt id="a45a040e7648245a3043747ed3e3e4d8d">
-              std::map&lt;double, Eigen::MatrixXd&gt; <a href="#a45a040e7648245a3043747ed3e3e4d8d" class="m-doc-self">control_points</a>
+            <dt id="a339afd2119785871db41799c3c5e2ec0">
+              <a href="classov__core_1_1BsplineSE3.html#a2e0b3cb7cef84db7b84598f2ea01e00d" class="m-doc">AlignedEigenMat4d</a> <a href="#a339afd2119785871db41799c3c5e2ec0" class="m-doc-self">control_points</a>
             </dt>
             <dd>Our control SE3 control poses (R_ItoG, p_IinG)</dd>
           </dl>
@@ -944,10 +954,10 @@ $u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)$
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a584286b8e0c406536b4da081434f7539"><div>
+          <section class="m-doc-details" id="a321442ce3c2aee341c64403e047f3f36"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />BsplineSE3::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a584286b8e0c406536b4da081434f7539" class="m-doc-self">find_bounding_poses</a>(</span><span class="m-doc-wrap">double timestamp,
-              std::map&lt;double, Eigen::MatrixXd&gt;&amp; poses,
+              <span class="m-doc-wrap-bumper">static bool ov_core::<wbr />BsplineSE3::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a321442ce3c2aee341c64403e047f3f36" class="m-doc-self">find_bounding_poses</a>(</span><span class="m-doc-wrap">const double timestamp,
+              const <a href="classov__core_1_1BsplineSE3.html#a2e0b3cb7cef84db7b84598f2ea01e00d" class="m-doc">AlignedEigenMat4d</a>&amp; poses,
               double&amp; t0,
               Eigen::Matrix4d&amp; pose0,
               double&amp; t1,
@@ -993,10 +1003,10 @@ $u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)$
             </table>
 <p>This will loop through the passed map of poses and find two bounding poses. If there are no bounding poses then this will return false.</p>
           </div></section>
-          <section class="m-doc-details" id="a44b25e9c7eb9b47aa649c951d809f35f"><div>
+          <section class="m-doc-details" id="af03bc0e8df3f77134afa0a24a425be80"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />BsplineSE3::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a44b25e9c7eb9b47aa649c951d809f35f" class="m-doc-self">find_bounding_control_points</a>(</span><span class="m-doc-wrap">double timestamp,
-              std::map&lt;double, Eigen::MatrixXd&gt;&amp; poses,
+              <span class="m-doc-wrap-bumper">static bool ov_core::<wbr />BsplineSE3::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af03bc0e8df3f77134afa0a24a425be80" class="m-doc-self">find_bounding_control_points</a>(</span><span class="m-doc-wrap">const double timestamp,
+              const <a href="classov__core_1_1BsplineSE3.html#a2e0b3cb7cef84db7b84598f2ea01e00d" class="m-doc">AlignedEigenMat4d</a>&amp; poses,
               double&amp; t0,
               Eigen::Matrix4d&amp; pose0,
               double&amp; t1,
@@ -1106,7 +1116,7 @@ $u(t_s)=(t_s-t_i)/\Delta t=(t_s-t_i)/(t_{i+1}-t_i)$
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>
