@@ -78,16 +78,11 @@ void RosTinyVisualizer::visualize(double timestamp) {
 
 }
 
-void RosTinyVisualizer::publish_groundtruth(double timestamp_inI) {
-    // Our groundtruth state
-    Eigen::Matrix<double,17,1> state_gt;
-    if(!_sim->get_state(timestamp_inI, state_gt))
-        return;
-    
+void RosTinyVisualizer::publish_groundtruth(double timestamp_inI) {    
     // base imu pose
-    Eigen::Vector4d q_GtoI = state_gt.block(1,0,4,1);
-    Eigen::Vector3d p_IinG = state_gt.block(5,0,3,1);
-    Eigen::Matrix<double,3,3> R_GtoI = quat_2_Rot(q_GtoI);
+    Eigen::Matrix3d R_GtoI;
+    Eigen::Vector3d p_IinG;
+    bool success = _sim->get_spline()->get_pose(timestamp_inI, R_GtoI, p_IinG);
 
     for (int imuid = 0; imuid < _sim->get_true_parameters().num_imus; imuid ++) {
         Eigen::Matrix<double,3,3> R_ItoU = quat_2_Rot(_sim->get_true_parameters().imu_extrinsics.at(imuid).block(0,0,4,1));
