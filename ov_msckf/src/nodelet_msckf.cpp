@@ -51,7 +51,7 @@
 #include <message_filters/sync_policies/exact_time.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include <image_geometry/stereo_camera_model.h>
+//#include <image_geometry/stereo_camera_model.h>
 #include <opencv2/calib3d/calib3d.hpp>
 #include <cv_bridge/cv_bridge.h>
 
