@@ -7,7 +7,7 @@ project(ov_msckf)
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 # Find catkin (the ROS build system)
-find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core)
+find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core nodelet image_transport)
 
 # Include libraries (if we don't have opencv 4, then fallback to opencv 3)
 find_package(Eigen3 REQUIRED)
@@ -26,9 +26,9 @@ message(WARNING "BOOST VERSION: " ${Boost_VERSION})
 if (catkin_FOUND)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
-            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core
+            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core nodelet image_transport
             INCLUDE_DIRS src
-            LIBRARIES ov_msckf_lib
+            LIBRARIES ov_msckf_lib ov_msckf_nodelet
     )
 else()
     message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
@@ -107,6 +107,19 @@ target_include_directories(ov_msckf_lib PUBLIC src)
 
 
 if (catkin_FOUND)
+    # Nodelet
+    add_library(ov_msckf_nodelet src/nodelet_msckf.cpp)
+    target_link_libraries(ov_msckf_nodelet ov_msckf_lib ${thirdparty_libraries})
+    
+    install(TARGETS ov_msckf_nodelet
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
+
+    install(FILES nodelet_plugins.xml
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+
 
     add_executable(run_serial_msckf src/ros_serial_msckf.cpp)
     target_link_libraries(run_serial_msckf ov_msckf_lib ${thirdparty_libraries})

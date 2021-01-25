@@ -1,0 +1,8 @@
+<library path="lib/libov_msckf_nodelet">
+
+  <class name="ov_msckf/msckf" type="ov_msckf::MSCKFNodelet" base_class_type="nodelet::Nodelet">
+    <description>Performs msckf for one or two images.</description>
+  </class>
+
+</library>
+

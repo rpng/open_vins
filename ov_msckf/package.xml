@@ -30,6 +30,8 @@
     <build_depend>visualization_msgs</build_depend>
     <build_depend>cv_bridge</build_depend>
     <build_depend>ov_core</build_depend>
+    <build_depend>nodelet</build_depend>
+    <build_depend>image_transport</build_depend>
 
     <!-- Dependencies needed after this package is compiled. -->
     <run_depend>roscpp</run_depend>
@@ -44,6 +46,11 @@
     <run_depend>ov_core</run_depend>
     <run_depend>ov_eval</run_depend>
     <run_depend>ov_data</run_depend>
+    <run_depend>nodelet</run_depend>
+    <run_depend>image_transport</run_depend>
 
+    <export>
+        <nodelet plugin="${prefix}/nodelet_plugins.xml"/>
+    </export>
 
 </package>
