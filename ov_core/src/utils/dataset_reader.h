@@ -89,7 +89,7 @@ namespace ov_core {
                 int i = 0;
                 std::istringstream s(line);
                 std::string field;
-                Eigen::Matrix<double, 17, 1> temp;
+                Eigen::Matrix<double, 17, 1> temp = Eigen::Matrix<double, 17, 1>::Zero();
                 // Loop through this line
                 while (getline(s, field, ',')) {
                     // Ensure we are in the range

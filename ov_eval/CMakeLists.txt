@@ -11,7 +11,7 @@ find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
 # display message to user
-message(STATUS "EIGEN VERSION: " ${EIGEN3_VERSION})
+#message(STATUS "EIGEN VERSION: " ${EIGEN3_VERSION})
 message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 
 # check if we have our python libs files

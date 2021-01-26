@@ -15,7 +15,7 @@ endif()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
 # display message to user
-message(WARNING "EIGEN VERSION: " ${EIGEN3_VERSION})
+#message(WARNING "EIGEN VERSION: " ${EIGEN3_VERSION})
 message(WARNING "OPENCV VERSION: " ${OpenCV_VERSION})
 message(WARNING "BOOST VERSION: " ${Boost_VERSION})
 
