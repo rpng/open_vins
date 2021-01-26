@@ -314,10 +314,10 @@ namespace ov_msckf {
         /// Our MSCKF feature updater
         std::shared_ptr<UpdaterMSCKF> updaterMSCKF;
 
-        /// Our MSCKF feature updater
+        /// Our SLAM/ARUCO feature updater
         std::shared_ptr<UpdaterSLAM> updaterSLAM;
 
-        /// Our aruoc tracker
+        /// Our zero velocity tracker
         std::shared_ptr<UpdaterZeroVelocity> updaterZUPT;
 
         /// Queue up camera measurements sorted by time and trigger once we have
