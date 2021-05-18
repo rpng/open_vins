@@ -74,16 +74,15 @@ namespace ov_core {
         /**
          * @brief Public default constructor
          */
-        TrackBase() : database(new FeatureDatabase()), num_features(200), use_multi_threading(false), currid(0) { }
+        TrackBase() : database(new FeatureDatabase()), num_features(200), currid(0) { }
 
         /**
          * @brief Public constructor with configuration variables
          * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
          * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
-         * @param multithread if we should try to process with multiple threads or single threaded
          */
-        TrackBase(int numfeats, int numaruco, bool multithread) :
-            database(new FeatureDatabase()), num_features(numfeats), use_multi_threading(multithread) {
+        TrackBase(int numfeats, int numaruco) :
+            database(new FeatureDatabase()), num_features(numfeats) {
             // Our current feature ID should be larger then the number of aruco tags we have
             currid = (size_t) numaruco + 1;
         }
@@ -356,9 +355,6 @@ namespace ov_core {
 
         /// Number of features we should try to track frame to frame
         int num_features;
-
-        /// Boolean for if we should try to multi-thread our frontends
-        bool use_multi_threading = false;
 
         /// Mutexs for our last set of image storage (img_last, pts_last, and ids_last)
         std::vector<std::mutex> mtx_feeds;

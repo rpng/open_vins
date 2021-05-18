@@ -121,16 +121,15 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
     // There is not such thing as stereo tracking for aruco
     // Thus here we should just call the monocular version two times
-    if(use_multi_threading) {
-        boost::thread t_l = boost::thread(&TrackBase::feed_monocular, this, boost::ref(timestamp), boost::ref(img_leftin), boost::ref(cam_id_left));
-        boost::thread t_r = boost::thread(&TrackBase::feed_monocular, this, boost::ref(timestamp), boost::ref(img_rightin), boost::ref(cam_id_right));
-        t_l.join();
-        t_r.join();
-    } else {
-        feed_monocular(timestamp, img_leftin, cam_id_left);
-        feed_monocular(timestamp, img_rightin, cam_id_right);
-    }
-
+    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+        for (int i = range.start; i < range.end; i++) {
+            feed_monocular(
+                timestamp,
+                i == 0 ? img_leftin : img_rightin,
+                i == 0 ? cam_id_left : cam_id_right
+            );
+        }
+    });
 }
 
 

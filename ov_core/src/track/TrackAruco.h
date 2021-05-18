@@ -51,11 +51,10 @@ namespace ov_core {
         /**
          * @brief Public constructor with configuration variables
          * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
-         * @param multithread if we should try to process with multiple threads or single threaded
          * @param do_downsizing we can scale the image by 1/2 to increase Aruco tag extraction speed
          */
-        explicit TrackAruco(int numaruco, bool multithread, bool do_downsizing) :
-            TrackBase(0, numaruco, multithread), max_tag_id(numaruco), do_downsizing(do_downsizing) {
+        explicit TrackAruco(int numaruco, bool do_downsizing) :
+            TrackBase(0, numaruco), max_tag_id(numaruco), do_downsizing(do_downsizing) {
             aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
             aruco_params = cv::aruco::DetectorParameters::create();
             //aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX; // people with newer opencv might fail here

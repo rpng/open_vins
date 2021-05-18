@@ -146,29 +146,30 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_left, img_right;
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     //cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
-    if(use_multi_threading) {
-        boost::thread t_lhe = boost::thread(cv::equalizeHist, boost::cref(img_leftin), boost::ref(img_left));
-        boost::thread t_rhe = boost::thread(cv::equalizeHist, boost::cref(img_rightin), boost::ref(img_right));
-        //boost::thread t_lhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_leftin), boost::ref(img_left));
-        //boost::thread t_rhe = boost::thread(&cv::CLAHE::apply, clahe.get(), boost::cref(img_rightin), boost::ref(img_right));
-        t_lhe.join();
-        t_rhe.join();
-        boost::thread t_lp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_left),
-                                           boost::ref(imgpyr_left), boost::cref(win_size), boost::cref(pyr_levels), false,
-                                           cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-        boost::thread t_rp = boost::thread(cv::buildOpticalFlowPyramid, boost::cref(img_right),
-                                           boost::ref(imgpyr_right), boost::cref(win_size), boost::cref(pyr_levels),
-                                           false, cv::BORDER_REFLECT_101, cv::BORDER_CONSTANT, true);
-        t_lp.join();
-        t_rp.join();
-    } else {
-        cv::equalizeHist(img_leftin, img_left);
-        cv::equalizeHist(img_rightin, img_right);
-        //clahe->apply(img_leftin, img_left);
-        //clahe->apply(img_rightin, img_right);
-        cv::buildOpticalFlowPyramid(img_left, imgpyr_left, win_size, pyr_levels);
-        cv::buildOpticalFlowPyramid(img_right, imgpyr_right, win_size, pyr_levels);
-    }
+    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+        for (int i = range.start; i < range.end; i++) {
+
+            // Histogram equalize
+            cv::equalizeHist(
+                cv::_InputArray (i == 0 ? img_leftin : img_rightin),
+                i == 0 ? img_left : img_right
+            );
+
+            //clahe->apply((i == 0 ? img_leftin : img_rightin), (i == 0 ? img_left : img_right));
+    
+            // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
+            cv::buildOpticalFlowPyramid(
+                i == 0 ? img_left : img_right,
+                cv::_OutputArray(i == 0 ? imgpyr_left : imgpyr_right),
+                win_size,
+                pyr_levels,
+                false,
+                cv::BORDER_REFLECT_101,
+                cv::BORDER_CONSTANT,
+                true
+            );
+        }
+    });
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // If we didn't have any successful tracks last time, just extract this time
@@ -201,17 +202,19 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::vector<cv::KeyPoint> pts_right_new = pts_last[cam_id_right];
 
     // Lets track temporally
-    if(use_multi_threading) {
-        boost::thread t_ll = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_pyramid_last[cam_id_left]), boost::cref(imgpyr_left),
-                                           boost::ref(pts_last[cam_id_left]), boost::ref(pts_left_new), cam_id_left, cam_id_left, boost::ref(mask_ll));
-        boost::thread t_rr = boost::thread(&TrackKLT::perform_matching, this, boost::cref(img_pyramid_last[cam_id_right]), boost::cref(imgpyr_right),
-                                           boost::ref(pts_last[cam_id_right]), boost::ref(pts_right_new), cam_id_right, cam_id_right, boost::ref(mask_rr));
-        t_ll.join();
-        t_rr.join();
-    } else {
-        perform_matching(img_pyramid_last[cam_id_left], imgpyr_left, pts_last[cam_id_left], pts_left_new, cam_id_left, cam_id_left, mask_ll);
-        perform_matching(img_pyramid_last[cam_id_right], imgpyr_right, pts_last[cam_id_right], pts_right_new, cam_id_right, cam_id_right, mask_rr);
-    }
+    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+        for (int i = range.start; i < range.end; i++) {
+            perform_matching(
+                img_pyramid_last[i == 0 ? cam_id_left : cam_id_right],
+                i == 0 ? imgpyr_left : imgpyr_right,
+                pts_last[i == 0 ? cam_id_left : cam_id_right],
+                i == 0 ? pts_left_new : pts_right_new,
+                i == 0 ? cam_id_left : cam_id_right,
+                i == 0 ? cam_id_left : cam_id_right,
+                i == 0 ? mask_ll : mask_rr
+            );
+        }
+    });
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -371,7 +374,7 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
 
     // Extract our features (use fast with griding)
     std::vector<cv::KeyPoint> pts0_ext;
-    Grider_FAST::perform_griding(img0pyr.at(0), pts0_ext, use_multi_threading, num_featsneeded, grid_x, grid_y, threshold, true);
+    Grider_FAST::perform_griding(img0pyr.at(0), pts0_ext, num_featsneeded, grid_x, grid_y, threshold, true);
 
     // Now, reject features that are close a current feature
     std::vector<cv::KeyPoint> kpts0_new;
@@ -454,7 +457,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
 
         // Extract our features (use fast with griding)
         std::vector<cv::KeyPoint> pts0_ext;
-        Grider_FAST::perform_griding(img0pyr.at(0), pts0_ext, use_multi_threading, num_featsneeded_0, grid_x, grid_y, threshold, true);
+        Grider_FAST::perform_griding(img0pyr.at(0), pts0_ext, num_featsneeded_0, grid_x, grid_y, threshold, true);
 
         // Now, reject features that are close a current feature
         std::vector<cv::KeyPoint> kpts0_new;
@@ -529,7 +532,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
 
         // Extract our features (use fast with griding)
         std::vector<cv::KeyPoint> pts1_ext;
-        Grider_FAST::perform_griding(img1pyr.at(0), pts1_ext, num_features, num_featsneeded_1, grid_x, grid_y, threshold, true);
+        Grider_FAST::perform_griding(img1pyr.at(0), pts1_ext, num_featsneeded_1, grid_x, grid_y, threshold, true);
 
         // Now, reject features that are close a current feature
         for(auto& kpt : pts1_ext) {

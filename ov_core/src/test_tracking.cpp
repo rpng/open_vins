@@ -128,7 +128,7 @@ int main(int argc, char** argv)
     camera_calibration.insert({1,cam0_calib});
 
     // Lets make a feature extractor
-    extractor = new TrackKLT(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,min_px_dist);
+    extractor = new TrackKLT(num_pts,num_aruco,fast_threshold,grid_x,grid_y,min_px_dist);
     //extractor = new TrackDescriptor(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,knn_ratio);
     //extractor = new TrackAruco(num_aruco,true,do_downsizing);
     extractor->set_calibration(camera_calibration, camera_fisheye);
