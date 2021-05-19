@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "TrackDescriptor.h"
-
+#include "../utils/lambda_body.h"
 
 using namespace ov_core;
 
@@ -182,7 +182,7 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
 
     // Our matches temporally
     std::vector<cv::DMatch> matches_ll, matches_rr;
-    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
         for (int i = range.start; i < range.end; i++) {
             robust_match(
                 pts_last[i == 0 ? cam_id_left : cam_id_right],
@@ -194,7 +194,7 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
                 i == 0 ? matches_ll : matches_rr
             );
         }
-    });
+    }));
     rT3 =  boost::posix_time::microsec_clock::local_time();
 
 
@@ -344,7 +344,7 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
     // Extract our features (use FAST with griding), and thier descriptors
     std::vector<cv::KeyPoint> pts0_ext, pts1_ext;
     cv::Mat desc0_ext, desc1_ext;
-    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
         for (int i = range.start; i < range.end; i++) {
             Grider_FAST::perform_griding(
                 i == 0 ? img0 : img1,
@@ -361,7 +361,7 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
                 i == 0 ? desc0_ext : desc1_ext
             );
         }
-    });
+    }));
 
     // Do matching from the left to the right image
     std::vector<cv::DMatch> matches;

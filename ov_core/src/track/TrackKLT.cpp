@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "TrackKLT.h"
-
+#include "../utils/lambda_body.h"
 
 using namespace ov_core;
 
@@ -146,7 +146,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_left, img_right;
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     //cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
-    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
         for (int i = range.start; i < range.end; i++) {
 
             // Histogram equalize
@@ -169,7 +169,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                 true
             );
         }
-    });
+    }));
     rT2 =  boost::posix_time::microsec_clock::local_time();
 
     // If we didn't have any successful tracks last time, just extract this time
@@ -202,7 +202,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::vector<cv::KeyPoint> pts_right_new = pts_last[cam_id_right];
 
     // Lets track temporally
-    parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
         for (int i = range.start; i < range.end; i++) {
             perform_matching(
                 img_pyramid_last[i == 0 ? cam_id_left : cam_id_right],
@@ -214,7 +214,7 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
                 i == 0 ? mask_ll : mask_rr
             );
         }
-    });
+    }));
     rT4 =  boost::posix_time::microsec_clock::local_time();
 
 

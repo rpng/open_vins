@@ -22,6 +22,7 @@
 
 #include <memory>
 #include "types/Landmark.h"
+#include "../../../ov_core/src/utils/lambda_body.h"
 
 
 
@@ -331,7 +332,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
                                     message.images.at(0), message.images.at(1),
                                     message.sensor_ids.at(0), message.sensor_ids.at(1));
         } else {
-            parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
+            parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
                 for (int i = range.start; i < range.end; i++) {
                     trackFEATS->feed_monocular(
                         message.timestamp,
@@ -339,7 +340,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 						message.sensor_ids.at(i)
                     );
                 }
-            });
+            }));
         }
     } else {
         printf(RED "invalid number of images passed %d, we only support mono or stereo tracking",num_images);
