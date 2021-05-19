@@ -334,9 +334,9 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
             parallel_for_(cv::Range(0, 2), [&](const cv::Range& range){
                 for (int i = range.start; i < range.end; i++) {
                     trackFEATS->feed_monocular(
-                        timestamp,
-                        i == 0 ? img0 : img1,
-                        i == 0 ? cam_id0 : cam_id1
+                        message.timestamp,
+						message.images.at(i),
+						message.sensor_ids.at(i)
                     );
                 }
             });
