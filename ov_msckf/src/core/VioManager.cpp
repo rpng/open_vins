@@ -650,9 +650,16 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     // Explicitly remove any measurements from SLAM features from the database
     // The trackers will re-create the features the next time they are seen
     for(const auto &feat : state->_features_SLAM) {
-        auto feat_data = trackFEATS->get_feature_database()->get_feature(feat.second->_featid, true);
+
+        //1. slam feature observation cannot being removed here !
+        //2. if a slam feature being used in slam update, it will be delete in get_feature_database()->cleanup().
+        //3. when using ANCHORED_INVERSE_DEPTH_SINGLE representation, slam feature need being observed twice before
+        //   using in slam update, if slam observation being remove here, it will never to be observed twice,
+        //   which means slam feature cannot be updated after it being add to states.
+
+        // auto feat_data = trackFEATS->get_feature_database()->get_feature(feat.second->_featid, true);
         if(trackARUCO != nullptr) {
-            trackARUCO->get_feature_database()->get_feature(feat.second->_featid, true);
+            // trackARUCO->get_feature_database()->get_feature(feat.second->_featid, true);
         }
     }
 
