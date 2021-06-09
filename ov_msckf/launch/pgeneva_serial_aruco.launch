@@ -2,8 +2,8 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
 <!--        <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
 
         <!-- bag topics -->
         <param name="topic_imu"      type="string" value="/imu0" />

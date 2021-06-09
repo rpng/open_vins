@@ -88,6 +88,7 @@
         <param name="zupt_chi2_multipler"    type="int"    value="1" />
         <param name="zupt_max_velocity"      type="double" value="0.05" />
         <param name="zupt_noise_multiplier"  type="double" value="1" />
+        <param name="zupt_only_at_beginning" type="bool"   value="false" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />

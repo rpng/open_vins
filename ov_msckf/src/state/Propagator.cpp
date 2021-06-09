@@ -130,7 +130,7 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
     // First lets construct an IMU vector of measurements we need
     double time0 = state->_timestamp+last_prop_time_offset;
     double time1 = timestamp+t_off_new;
-    std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data,time0,time1);
+    std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data,time0,time1,false);
 
     // Save the original IMU state
     Eigen::VectorXd orig_val = state->_imu->value();
@@ -185,14 +185,14 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
 
 
 
-std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1) {
+std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1, bool warn) {
 
     // Our vector imu readings
     std::vector<ov_core::ImuData> prop_data;
 
     // Ensure we have some measurements in the first place!
     if(imu_data.empty()) {
-        printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements. IMU-CAMERA are likely messed up!!!\n" RESET);
+        if(warn) printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements. IMU-CAMERA are likely messed up!!!\n" RESET);
         return prop_data;
     }
 
@@ -256,7 +256,7 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
 
     // Check that we have at least one measurement to propagate with
     if(prop_data.empty()) {
-        printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements to propagate with (%d of 2). IMU-CAMERA are likely messed up!!!\n" RESET, (int)prop_data.size());
+        if(warn) printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements to propagate with (%d of 2). IMU-CAMERA are likely messed up!!!\n" RESET, (int)prop_data.size());
         return prop_data;
     }
 
@@ -271,7 +271,7 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
     // This would cause the noise covariance to be Infinity
     for (size_t i=0; i < prop_data.size()-1; i++) {
         if (std::abs(prop_data.at(i+1).timestamp-prop_data.at(i).timestamp) < 1e-12) {
-            printf(YELLOW "Propagator::select_imu_readings(): Zero DT between IMU reading %d and %d, removing it!\n" RESET, (int)i, (int)(i+1));
+            if(warn) printf(YELLOW "Propagator::select_imu_readings(): Zero DT between IMU reading %d and %d, removing it!\n" RESET, (int)i, (int)(i+1));
             prop_data.erase(prop_data.begin()+i);
             i--;
         }
@@ -279,7 +279,7 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
 
     // Check that we have at least one measurement to propagate with
     if(prop_data.size() < 2) {
-        printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements to propagate with (%d of 2). IMU-CAMERA are likely messed up!!!\n" RESET, (int)prop_data.size());
+        if(warn) printf(YELLOW "Propagator::select_imu_readings(): No IMU measurements to propagate with (%d of 2). IMU-CAMERA are likely messed up!!!\n" RESET, (int)prop_data.size());
         return prop_data;
     }
 

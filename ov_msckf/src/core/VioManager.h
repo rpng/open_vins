@@ -341,6 +341,7 @@ namespace ov_msckf {
         bool did_zupt_update = false;
         cv::Mat zupt_image;
         std::map<size_t, cv::Mat> zupt_img_last;
+        bool has_moved_since_zupt = false;
 
         // Good features that where used in the last update (used in visualization)
         std::vector<Eigen::Vector3d> good_features_MSCKF;

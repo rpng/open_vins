@@ -142,6 +142,7 @@ namespace ov_msckf {
         nh.param<int>("zupt_chi2_multipler", params.zupt_options.chi2_multipler, params.zupt_options.chi2_multipler);
         nh.param<double>("zupt_max_velocity", params.zupt_max_velocity, params.zupt_max_velocity);
         nh.param<double>("zupt_noise_multiplier", params.zupt_noise_multiplier, params.zupt_noise_multiplier);
+        nh.param<bool>("zupt_only_at_beginning", params.zupt_only_at_beginning, params.zupt_only_at_beginning);
 
         // Recording of timing information to file
         nh.param<bool>("record_timing_information", params.record_timing_information, params.record_timing_information);

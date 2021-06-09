@@ -84,6 +84,7 @@ namespace ov_msckf {
         app1.add_option("--zupt_chi2_multipler", params.zupt_options.chi2_multipler, "");
         app1.add_option("--zupt_max_velocity", params.zupt_max_velocity, "");
         app1.add_option("--zupt_noise_multiplier", params.zupt_noise_multiplier, "");
+        app1.add_option("--zupt_only_at_beginning", params.zupt_only_at_beginning, "");
 
         // Recording of timing information to file
         app1.add_option("--record_timing_information", params.record_timing_information, "");

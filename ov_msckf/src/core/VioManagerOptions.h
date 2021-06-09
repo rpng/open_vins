@@ -75,6 +75,9 @@ namespace ov_msckf {
         /// Multiplier of our zupt measurement IMU noise matrix (default should be 1.0)
         double zupt_noise_multiplier = 1.0;
 
+        /// If we should only use the zupt at the very beginning static initialization phase
+        bool zupt_only_at_beginning = false;
+
         /// If we should record the timing performance to file
         bool record_timing_information = false;
 
@@ -94,6 +97,7 @@ namespace ov_msckf {
             printf("\t- zero_velocity_update: %d\n", try_zupt);
             printf("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
             printf("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
+            printf("\t- zupt_only_at_beginning?: %d\n", zupt_only_at_beginning);
             printf("\t- record timing?: %d\n", (int)record_timing_information);
             printf("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
         }

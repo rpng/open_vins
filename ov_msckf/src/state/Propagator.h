@@ -161,9 +161,10 @@ namespace ov_msckf {
          * @param imu_data IMU data we will select measurements from
          * @param time0 Start timestamp
          * @param time1 End timestamp
+         * @param warn If we should warn if we don't have enough IMU to propagate with (e.g. fast prop will get warnings otherwise)
          * @return Vector of measurements (if we could compute them)
          */
-        static std::vector<ov_core::ImuData> select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1);
+        static std::vector<ov_core::ImuData> select_imu_readings(const std::vector<ov_core::ImuData>& imu_data, double time0, double time1, bool warn=true);
 
         /**
          * @brief Nice helper function that will linearly interpolate between two imu messages.

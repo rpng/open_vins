@@ -203,9 +203,10 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     }
     trackSIM->set_width_height(params.camera_wh);
 
-
     // Check if we should do zero-velocity, if so update the state with it
-    if(is_initialized_vio && updaterZUPT != nullptr) {
+    // Note that in the case that we only use in the beginning initialization phase
+    // If we have since moved, then we should never try to do a zero velocity update!
+    if(is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
         // If the same state time, use the previous timestep decision
         if(state->_timestamp != timestamp) {
             did_zupt_update = updaterZUPT->try_update(state, timestamp);
@@ -244,7 +245,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
         printf(RED "[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!\n" RESET);
         std::exit(EXIT_FAILURE);
     }
-
 
     // Call on our propagate and update function
     // Simulation is either all sync, or single camera...
@@ -288,7 +288,9 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     }
 
     // Check if we should do zero-velocity, if so update the state with it
-    if(is_initialized_vio && updaterZUPT != nullptr) {
+    // Note that in the case that we only use in the beginning initialization phase
+    // If we have since moved, then we should never try to do a zero velocity update!
+    if(is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
         // If the same state time, use the previous timestep decision
         if(state->_timestamp != message.timestamp) {
             did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
@@ -416,6 +418,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
         printf(RED "[PROP]: It has been %.3f since last time we propagated\n" RESET,message.timestamp-state->_timestamp);
         return;
     }
+    has_moved_since_zupt = true;
 
     //===================================================================================
     // MSCKF features and KLT tracks that are SLAM features

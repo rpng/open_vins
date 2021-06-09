@@ -2,10 +2,10 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
 <!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 <!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="valgrind &#45;&#45;tool=callgrind &#45;&#45;callgrind-out-file=/tmp/callgrind.txt">-->
 <!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="valgrind &#45;&#45;tool=memcheck &#45;&#45;leak-check=yes &#45;&#45;show-leak-kinds=definite">-->
+    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
 
         <!-- bag topics -->
         <param name="topic_imu"      type="string" value="/imu0" />
@@ -16,8 +16,8 @@
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V1_01_easy.bag" />
         <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V1_01_easy.csv" />
-<!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V2_03_difficult.bag" />-->
-<!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V2_03_difficult.csv" />-->
+        <!--        <param name="path_bag"    type="string" value="/home/patrick/datasets/eth/V2_03_difficult.bag" />-->
+        <!--        <param name="path_gt"     type="string" value="$(find ov_data)/euroc_mav/V2_03_difficult.csv" />-->
         <param name="bag_start"   type="double" value="7.0" />
         <param name="bag_durr"    type="int"    value="-1" />
 
@@ -49,6 +49,7 @@
         <param name="zupt_chi2_multipler"    type="int"    value="2" />
         <param name="zupt_max_velocity"      type="double" value="0.3" />
         <param name="zupt_noise_multiplier"  type="double" value="50" />
+        <param name="zupt_only_at_beginning" type="bool"   value="true" />
 
         <!-- timing statistics recording -->
         <param name="record_timing_information"   type="bool"   value="false" />
