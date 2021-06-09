@@ -2,10 +2,9 @@ name: C/C++ CI
 
 on:
   push:
-    branches: [ master, develop_v2.3 ]
+    branches: [ master ]
   pull_request:
-    branches: [ master, develop_v2.3 ]
-    
+
 jobs:
   build:
     runs-on: ${{ matrix.os }}
