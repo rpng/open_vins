@@ -22,15 +22,11 @@
 
 #include <memory>
 #include "types/Landmark.h"
-#include "../../../ov_core/src/utils/lambda_body.h"
-
 
 
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
-
-
 
 
 
@@ -49,7 +45,10 @@ VioManager::VioManager(VioManagerOptions& params_) {
     params.print_state();
     params.print_trackers();
 
-	cv::setNumThreads(params.use_multi_threading ? -1 : 0);
+    // This will globally set the thread count we will use
+    // -1 will reset to the system default threading (usually the num of cores)
+    cv::setNumThreads(params.use_multi_threading ? -1 : 0);
+    cv::setRNGSeed(0);
 
     // Create the state!!
     state = std::make_shared<State>(params.state_options);
@@ -330,16 +329,20 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
         trackFEATS->feed_monocular(message.timestamp, message.images.at(0), message.sensor_ids.at(0));
     } else if (num_images == 2) {
         if(params.use_stereo) {
-            trackFEATS->feed_stereo(message.timestamp,
-                                    message.images.at(0), message.images.at(1),
-                                    message.sensor_ids.at(0), message.sensor_ids.at(1));
+            trackFEATS->feed_stereo(
+                    message.timestamp,
+                    message.images.at(0),
+                    message.images.at(1),
+                    message.sensor_ids.at(0),
+                    message.sensor_ids.at(1)
+            );
         } else {
-            parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
+            parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range) {
                 for (int i = range.start; i < range.end; i++) {
                     trackFEATS->feed_monocular(
-                        message.timestamp,
-						message.images.at(i),
-						message.sensor_ids.at(i)
+                            message.timestamp,
+                            message.images.at(i),
+                            message.sensor_ids.at(i)
                     );
                 }
             }));

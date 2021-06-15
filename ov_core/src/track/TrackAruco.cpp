@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "TrackAruco.h"
-#include "../utils/lambda_body.h"
 
 using namespace ov_core;
 
@@ -121,15 +120,17 @@ void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img
 
     // There is not such thing as stereo tracking for aruco
     // Thus here we should just call the monocular version two times
-    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range) {
         for (int i = range.start; i < range.end; i++) {
+            bool is_left = (i == 0);
             feed_monocular(
-                timestamp,
-                i == 0 ? img_leftin : img_rightin,
-                i == 0 ? cam_id_left : cam_id_right
+                    timestamp,
+                    is_left ? img_leftin : img_rightin,
+                    is_left ? cam_id_left : cam_id_right
             );
         }
     }));
+
 }
 
 

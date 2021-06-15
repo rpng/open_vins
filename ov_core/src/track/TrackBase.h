@@ -37,6 +37,7 @@
 #include "Grider_DOG.h"
 #include "feat/FeatureDatabase.h"
 #include "utils/colors.h"
+#include "utils/lambda_body.h"
 
 
 namespace ov_core {
@@ -104,13 +105,16 @@ namespace ov_core {
             // Assert vectors are equal
             assert(camera_calib.size()==camera_fisheye.size());
 
-            // Initialize our mutex and camera intrinsic values if we are just starting up
-            // The number of cameras should not change over time, thus we just need to check if our initial data is empty
-            if(mtx_feeds.empty() || camera_k_OPENCV.empty() || camera_d_OPENCV.empty() || this->camera_fisheye.empty()) {
-                // Create our mutex array based on the number of cameras we have
-                // See https://stackoverflow.com/a/24170141/7718197
+            // Create our mutex array based on the number of cameras we have
+            // See https://stackoverflow.com/a/24170141/7718197
+            if(mtx_feeds.empty() || mtx_feeds.size() != camera_calib.size()) {
                 std::vector<std::mutex> list(camera_calib.size());
                 mtx_feeds.swap(list);
+            }
+
+            // Initialize our mutex and camera intrinsic values if we are just starting up
+            // The number of cameras should not change over time, thus we just need to check if our initial data is empty
+            if(camera_k_OPENCV.empty() || camera_d_OPENCV.empty() || this->camera_fisheye.empty()) {
                 // Overwrite our fisheye calibration
                 this->camera_fisheye = camera_fisheye;
                 // Convert values to the OpenCV format

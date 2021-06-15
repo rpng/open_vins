@@ -37,6 +37,7 @@
 #include "types/LandmarkRepresentation.h"
 #include "types/Landmark.h"
 #include "utils/sensor_data.h"
+#include "utils/lambda_body.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"

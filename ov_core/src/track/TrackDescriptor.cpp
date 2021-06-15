@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "TrackDescriptor.h"
-#include "../utils/lambda_body.h"
 
 using namespace ov_core;
 
@@ -179,24 +178,23 @@ void TrackDescriptor::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat
     //===================================================================================
     //===================================================================================
 
-
     // Our matches temporally
     std::vector<cv::DMatch> matches_ll, matches_rr;
     parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
         for (int i = range.start; i < range.end; i++) {
+            bool is_left = (i == 0);
             robust_match(
-                pts_last[i == 0 ? cam_id_left : cam_id_right],
-                i == 0 ? pts_left_new : pts_right_new,
-                desc_last[i == 0 ? cam_id_left : cam_id_right],
-                i == 0 ? desc_left_new : desc_right_new,
-                i == 0 ? cam_id_left : cam_id_right,
-                i == 0 ? cam_id_left : cam_id_right,
-                i == 0 ? matches_ll : matches_rr
+                    pts_last[is_left ? cam_id_left : cam_id_right],
+                    is_left ? pts_left_new : pts_right_new,
+                    desc_last[is_left ? cam_id_left : cam_id_right],
+                    is_left ? desc_left_new : desc_right_new,
+                    is_left ? cam_id_left : cam_id_right,
+                    is_left ? cam_id_left : cam_id_right,
+                    is_left ? matches_ll : matches_rr
             );
         }
     }));
     rT3 =  boost::posix_time::microsec_clock::local_time();
-
 
     //===================================================================================
     //===================================================================================
@@ -320,6 +318,10 @@ void TrackDescriptor::perform_detection_monocular(const cv::Mat& img0, std::vect
     this->orb0->compute(img0, pts0_ext, desc0_ext);
 
     // For all good matches, lets append to our returned vectors
+    // NOTE: if we multi-thread this atomic can cause some randomness due to multiple thread detecting features
+    // NOTE: this is due to the fact that we select update features based on feat id
+    // NOTE: thus the order will matter since we try to select oldest (smallest id) to update with
+    // NOTE: not sure how to remove... maybe a better way?
     for(size_t i=0; i<pts0_ext.size(); i++) {
         // Append our keypoints and descriptors
         pts0.push_back(pts0_ext.at(i));
@@ -341,24 +343,21 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
     assert(pts0.empty());
     assert(pts1.empty());
 
-    // Extract our features (use FAST with griding), and thier descriptors
+    // Extract our features (use FAST with griding), and their descriptors
     std::vector<cv::KeyPoint> pts0_ext, pts1_ext;
     cv::Mat desc0_ext, desc1_ext;
-    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range) {
         for (int i = range.start; i < range.end; i++) {
+            bool is_left = (i == 0);
             Grider_FAST::perform_griding(
-                i == 0 ? img0 : img1,
-                i == 0 ? pts0_ext : pts1_ext,
-                num_features,
-                grid_x,
-                grid_y,
-                threshold,
-                true
+                    is_left ? img0 : img1,
+                    is_left ? pts0_ext : pts1_ext,
+                    num_features, grid_x, grid_y, threshold, true
             );
-            (i == 0 ? orb0 : orb1)->compute(
-                i == 0 ? img0 : img1,
-                i == 0 ? pts0_ext : pts1_ext,
-                i == 0 ? desc0_ext : desc1_ext
+            (is_left ? orb0 : orb1)->compute(
+                    is_left ? img0 : img1,
+                    is_left ? pts0_ext : pts1_ext,
+                    is_left ? desc0_ext : desc1_ext
             );
         }
     }));

@@ -31,7 +31,7 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc/imgproc.hpp>
 
-#include "../utils/lambda_body.h"
+#include "utils/lambda_body.h"
 
 namespace ov_core {
 
@@ -128,7 +128,6 @@ namespace ov_core {
             for(size_t r=0; r<collection.size(); r++) {
                 pts.insert(pts.end(),collection.at(r).begin(),collection.at(r).end());
             }
-
    
             // Return if no points
             if(pts.empty())

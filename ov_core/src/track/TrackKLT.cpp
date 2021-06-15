@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 #include "TrackKLT.h"
-#include "../utils/lambda_body.h"
 
 using namespace ov_core;
 
@@ -92,7 +91,8 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
     // Loop through all left points
     for(size_t i=0; i<pts_left_new.size(); i++) {
         // Ensure we do not have any bad KLT tracks (i.e., points are negative)
-        if(pts_left_new[i].pt.x < 0 || pts_left_new[i].pt.y < 0)
+        if(pts_left_new.at(i).pt.x < 0 || pts_left_new.at(i).pt.y < 0
+           || (int)pts_left_new.at(i).pt.x > img.cols || (int)pts_left_new.at(i).pt.y > img.rows)
             continue;
         // If it is a good track, and also tracked from left to right
         if(mask_ll[i]) {
@@ -146,27 +146,20 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     cv::Mat img_left, img_right;
     std::vector<cv::Mat> imgpyr_left, imgpyr_right;
     //cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
-    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range) {
         for (int i = range.start; i < range.end; i++) {
-
+            bool is_left = (i == 0);
             // Histogram equalize
             cv::equalizeHist(
-                cv::_InputArray (i == 0 ? img_leftin : img_rightin),
-                i == 0 ? img_left : img_right
+                    is_left ? img_leftin : img_rightin,
+                    is_left ? img_left : img_right
             );
-
-            //clahe->apply((i == 0 ? img_leftin : img_rightin), (i == 0 ? img_left : img_right));
-    
+            //clahe->apply((is_left ? img_leftin : img_rightin), (is_left ? img_left : img_right));
             // Extract image pyramids (boost seems to require us to put all the arguments even if there are defaults....)
             cv::buildOpticalFlowPyramid(
-                i == 0 ? img_left : img_right,
-                cv::_OutputArray(i == 0 ? imgpyr_left : imgpyr_right),
-                win_size,
-                pyr_levels,
-                false,
-                cv::BORDER_REFLECT_101,
-                cv::BORDER_CONSTANT,
-                true
+                    is_left ? img_left : img_right,
+                    is_left ? imgpyr_left : imgpyr_right,
+                    win_size, pyr_levels
             );
         }
     }));
@@ -202,21 +195,21 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
     std::vector<cv::KeyPoint> pts_right_new = pts_last[cam_id_right];
 
     // Lets track temporally
-    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range){
+    parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range& range) {
         for (int i = range.start; i < range.end; i++) {
+            bool is_left = (i == 0);
             perform_matching(
-                img_pyramid_last[i == 0 ? cam_id_left : cam_id_right],
-                i == 0 ? imgpyr_left : imgpyr_right,
-                pts_last[i == 0 ? cam_id_left : cam_id_right],
-                i == 0 ? pts_left_new : pts_right_new,
-                i == 0 ? cam_id_left : cam_id_right,
-                i == 0 ? cam_id_left : cam_id_right,
-                i == 0 ? mask_ll : mask_rr
+                    img_pyramid_last[is_left ? cam_id_left : cam_id_right],
+                    is_left ? imgpyr_left : imgpyr_right,
+                    pts_last[is_left ? cam_id_left : cam_id_right],
+                    is_left ? pts_left_new : pts_right_new,
+                    is_left ? cam_id_left : cam_id_right,
+                    is_left ? cam_id_left : cam_id_right,
+                    is_left ? mask_ll : mask_rr
             );
         }
     }));
     rT4 =  boost::posix_time::microsec_clock::local_time();
-
 
     //===================================================================================
     //===================================================================================
@@ -380,6 +373,10 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     std::vector<cv::KeyPoint> kpts0_new;
     std::vector<cv::Point2f> pts0_new;
     for(auto& kpt : pts0_ext) {
+        // Check that it is in bounds
+        bool outof_bounds_0 = (kpt.pt.x < 0 || kpt.pt.y < 0 || kpt.pt.x >= img0pyr.at(0).cols || kpt.pt.y >= img0pyr.at(0).rows);
+        if(outof_bounds_0)
+            continue;
         // See if there is a point at this location
         if(grid_2d((int)(kpt.pt.y/min_px_dist),(int)(kpt.pt.x/min_px_dist)) == 1)
             continue;
@@ -390,6 +387,10 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     }
 
     // Loop through and record only ones that are valid
+    // NOTE: if we multi-thread this atomic can cause some randomness due to multiple thread detecting features
+    // NOTE: this is due to the fact that we select update features based on feat id
+    // NOTE: thus the order will matter since we try to select oldest (smallest id) to update with
+    // NOTE: not sure how to remove... maybe a better way?
     for(size_t i=0; i<pts0_new.size(); i++) {
         // update the uv coordinates
         kpts0_new.at(i).pt = pts0_new.at(i);
@@ -397,6 +398,7 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
         pts0.push_back(kpts0_new.at(i));
         // move id foward and append this new point
         size_t temp = ++currid;
+        std::cout << temp << std::endl;
         ids0.push_back(temp);
     }
 
