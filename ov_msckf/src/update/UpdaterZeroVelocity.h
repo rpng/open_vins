@@ -95,12 +95,12 @@ namespace ov_msckf {
             //    return i.timestamp < j.timestamp;
             //});
 
-            // Loop through and delete imu messages that are older then 20 seconds
+            // Loop through and delete imu messages that are older then 10 seconds
             // TODO: we should probably have more elegant logic then this
             // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
             auto it0 = imu_data.begin();
             while(it0 != imu_data.end()) {
-                if(message.timestamp-(*it0).timestamp > 60) {
+                if(message.timestamp-(*it0).timestamp > 10) {
                     it0 = imu_data.erase(it0);
                 } else {
                     it0++;
