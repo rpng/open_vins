@@ -22,6 +22,7 @@
 #define OV_MSCKF_STATE_OPTIONS_H
 
 #include "types/LandmarkRepresentation.h"
+#include <climits>
 
 using namespace ov_type;
 

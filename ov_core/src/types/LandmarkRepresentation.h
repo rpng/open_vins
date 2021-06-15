@@ -21,6 +21,8 @@
 #ifndef OV_TYPE_LANDMARKREPRESENTATION_H
 #define OV_TYPE_LANDMARKREPRESENTATION_H
 
+#include <string>
+
 namespace ov_type {
 
 /**
