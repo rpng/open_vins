@@ -1,4 +1,14 @@
-/*
+
+
+# 1. first find all source files
+# 2. remove copywrite
+find . -regex '.*\.\(cpp\|hpp\|cu\|c\|h\)' \
+  -not -path "*/cpi/*" -not -path "*/cmake-build-debug/*" \
+  -not -name "*CLI11.hpp" -not -name "*matplotlibcpp.h" \
+  -exec sed -i '1,/\*\//{ /\/\*/,/\*\//d }' {} \;
+
+# 3. Create copytext file
+COPYHEADER="/*
  * OpenVINS: An Open Platform for Visual-Inertial Research
  * Copyright (C) 2021 Patrick Geneva
  * Copyright (C) 2021 Guoquan Huang
@@ -19,29 +29,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+"
+echo "$COPYHEADER" > /tmp/out_copy
 
-#ifndef LAMBDA_BODY_H
-#define LAMBDA_BODY_H
 
-#include <functional>
-#include <opencv2/opencv.hpp>
+# 4. now append the new header to the files!
+find . -regex '.*\.\(cpp\|hpp\|cu\|c\|h\)' \
+  -not -path "*/cpi/*" -not -path "*/cmake-build-debug/*" \
+  -not -name "*CLI11.hpp" -not -name "*matplotlibcpp.h" \
+  -print0 |
+  while IFS= read -r -d '' file; do
+    echo $file;
+    cat /tmp/out_copy $file > /tmp/out && mv /tmp/out $file
+  done
 
-namespace ov_core {
 
-/**
- * This is a utility class required to build with older version of opencv
- * On newer versions this doesn't seem to be needed, but here we just use it to ensure we can work for more opencv version.
- * https://answers.opencv.org/question/65800/how-to-use-lambda-as-a-parameter-to-parallel_for_/?answer=130691#post-id-130691
- */
-class LambdaBody : public cv::ParallelLoopBody {
-public:
-  explicit LambdaBody(const std::function<void(const cv::Range &)> &body) { _body = body; }
-  void operator()(const cv::Range &range) const override { _body(range); }
 
-private:
-  std::function<void(const cv::Range &)> _body;
-};
-
-} /* namespace ov_core */
-
-#endif /* LAMBDA_BODY_H */
