@@ -349,6 +349,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
       // Else we have the full feature in our state, so just append it
       H_xf.conservativeResize(H_x.rows(), H_x.cols() + H_f.cols());
       H_xf.block(0, H_x.cols(), H_x.rows(), H_f.cols()) = H_f;
+
     }
 
     // Append to our Jacobian order vector

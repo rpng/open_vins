@@ -642,15 +642,6 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     trackARUCO->get_feature_database()->cleanup();
   }
 
-  // Explicitly remove any measurements from SLAM features from the database
-  // The trackers will re-create the features the next time they are seen
-  for (const auto &feat : state->_features_SLAM) {
-    auto feat_data = trackFEATS->get_feature_database()->get_feature(feat.second->_featid, true);
-    if (trackARUCO != nullptr) {
-      trackARUCO->get_feature_database()->get_feature(feat.second->_featid, true);
-    }
-  }
-
   // First do anchor change if we are about to lose an anchor pose
   updaterSLAM->change_anchors(state);
 

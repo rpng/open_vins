@@ -375,7 +375,6 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     pts0.push_back(kpts0_new.at(i));
     // move id foward and append this new point
     size_t temp = ++currid;
-    std::cout << temp << std::endl;
     ids0.push_back(temp);
   }
 }
