@@ -21,69 +21,66 @@
 #ifndef OV_CORE_INITIALIZEROPTIONS_H
 #define OV_CORE_INITIALIZEROPTIONS_H
 
-
 namespace ov_core {
 
+/**
+ * @brief Struct which stores all our feature initializer options
+ */
+struct FeatureInitializerOptions {
 
-    /**
-     * @brief Struct which stores all our feature initializer options
-     */
-    struct FeatureInitializerOptions {
+  /// If we should perform 1d triangulation instead of 3d
+  bool triangulate_1d = false;
 
-        /// If we should perform 1d triangulation instead of 3d
-        bool triangulate_1d = false;
+  /// If we should perform Levenberg-Marquardt refinment
+  bool refine_features = true;
 
-        /// If we should perform Levenberg-Marquardt refinment
-        bool refine_features = true;
+  /// Max runs for Levenberg-Marquardt
+  int max_runs = 5;
 
-        /// Max runs for Levenberg-Marquardt
-        int max_runs = 5;
+  /// Init lambda for Levenberg-Marquardt optimization
+  double init_lamda = 1e-3;
 
-        /// Init lambda for Levenberg-Marquardt optimization
-        double init_lamda = 1e-3;
+  /// Max lambda for Levenberg-Marquardt optimization
+  double max_lamda = 1e10;
 
-        /// Max lambda for Levenberg-Marquardt optimization
-        double max_lamda = 1e10;
+  /// Cutoff for dx increment to consider as converged
+  double min_dx = 1e-6;
 
-        /// Cutoff for dx increment to consider as converged
-        double min_dx = 1e-6;
+  /// Cutoff for cost decrement to consider as converged
+  double min_dcost = 1e-6;
 
-        /// Cutoff for cost decrement to consider as converged
-        double min_dcost = 1e-6;
+  /// Multiplier to increase/decrease lambda
+  double lam_mult = 10;
 
-        /// Multiplier to increase/decrease lambda
-        double lam_mult = 10;
+  /// Minimum distance to accept triangulated features
+  double min_dist = 0.10;
 
-        /// Minimum distance to accept triangulated features
-        double min_dist = 0.10;
+  /// Minimum distance to accept triangulated features
+  double max_dist = 60;
 
-        /// Minimum distance to accept triangulated features
-        double max_dist = 60;
+  /// Max baseline ratio to accept triangulated features
+  double max_baseline = 40;
 
-        /// Max baseline ratio to accept triangulated features
-        double max_baseline = 40;
+  /// Max condition number of linear triangulation matrix accept triangulated features
+  double max_cond_number = 10000;
 
-        /// Max condition number of linear triangulation matrix accept triangulated features
-        double max_cond_number = 10000;
+  /// Nice print function of what parameters we have loaded
+  void print() {
+    printf("\t- triangulate_1d: %d\n", triangulate_1d);
+    printf("\t- refine_features: %d\n", refine_features);
+    printf("\t- max_runs: %d\n", max_runs);
+    printf("\t- init_lamda: %.3f\n", init_lamda);
+    printf("\t- max_lamda: %.3f\n", max_lamda);
+    printf("\t- min_dx: %.7f\n", min_dx);
+    printf("\t- min_dcost: %.7f\n", min_dcost);
+    printf("\t- lam_mult: %.3f\n", lam_mult);
+    printf("\t- min_dist: %.3f\n", min_dist);
+    printf("\t- max_dist: %.3f\n", max_dist);
+    printf("\t- max_baseline: %.3f\n", max_baseline);
+    printf("\t- max_cond_number: %.3f\n", max_cond_number);
+  }
+};
 
-        /// Nice print function of what parameters we have loaded
-        void print() {
-            printf("\t- triangulate_1d: %d\n", triangulate_1d);
-            printf("\t- refine_features: %d\n", refine_features);
-            printf("\t- max_runs: %d\n", max_runs);
-            printf("\t- init_lamda: %.3f\n", init_lamda);
-            printf("\t- max_lamda: %.3f\n", max_lamda);
-            printf("\t- min_dx: %.7f\n", min_dx);
-            printf("\t- min_dcost: %.7f\n", min_dcost);
-            printf("\t- lam_mult: %.3f\n", lam_mult);
-            printf("\t- min_dist: %.3f\n", min_dist);
-            printf("\t- max_dist: %.3f\n", max_dist);
-            printf("\t- max_baseline: %.3f\n", max_baseline);
-            printf("\t- max_cond_number: %.3f\n", max_cond_number);
-        }
+} // namespace ov_core
 
-    };
-
-}
-
-#endif //OV_CORE_INITIALIZEROPTIONS_H
+#endif // OV_CORE_INITIALIZEROPTIONS_H

@@ -21,33 +21,29 @@
 #ifndef OV_MSCKF_UPDATER_OPTIONS_H
 #define OV_MSCKF_UPDATER_OPTIONS_H
 
-
 namespace ov_msckf {
 
+/**
+ * @brief Struct which stores general updater options
+ */
+struct UpdaterOptions {
 
-    /**
-     * @brief Struct which stores general updater options
-     */
-    struct UpdaterOptions {
+  /// What chi-squared multipler we should apply
+  int chi2_multipler = 5;
 
-        /// What chi-squared multipler we should apply
-        int chi2_multipler = 5;
+  /// Noise sigma for our raw pixel measurements
+  double sigma_pix = 1;
 
-        /// Noise sigma for our raw pixel measurements
-        double sigma_pix = 1;
+  /// Covariance for our raw pixel measurements
+  double sigma_pix_sq = 1;
 
-        /// Covariance for our raw pixel measurements
-        double sigma_pix_sq = 1;
+  /// Nice print function of what parameters we have loaded
+  void print() {
+    printf("\t- chi2_multipler: %d\n", chi2_multipler);
+    printf("\t- sigma_pix: %.2f\n", sigma_pix);
+  }
+};
 
-        /// Nice print function of what parameters we have loaded
-        void print() {
-            printf("\t- chi2_multipler: %d\n", chi2_multipler);
-            printf("\t- sigma_pix: %.2f\n", sigma_pix);
-        }
+} // namespace ov_msckf
 
-    };
-
-
-}
-
-#endif //OV_MSCKF_UPDATER_OPTIONS_H
+#endif // OV_MSCKF_UPDATER_OPTIONS_H

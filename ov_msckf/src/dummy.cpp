@@ -19,14 +19,14 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 /**
  * @namespace ov_msckf
  *
- * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) @cite Mourikis2007ICRA which leverages inertial and visual feature information.
- * We want to stress that this is **not** a "vanilla" implementation of the filter and instead has many more features and improvements over the original.
- * In additional we have a modular type system which allows us to initialize and marginalizing variables out of state with ease.
- * Please see the following documentation pages for derivation details:
+ * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) @cite
+ * Mourikis2007ICRA which leverages inertial and visual feature information. We want to stress that this is **not** a "vanilla"
+ * implementation of the filter and instead has many more features and improvements over the original. In additional we have a modular type
+ * system which allows us to initialize and marginalizing variables out of state with ease. Please see the following documentation pages for
+ * derivation details:
  *
  * - @ref propagation --- Inertial propagation derivations and details.
  * - @ref update --- General state update for the different measurements.
@@ -44,12 +44,8 @@
  * - Generic simulation of trajectories through and environment (see @ref ov_msckf::Simulator)
  *
  * We suggest those that are interested to first checkout the State and Propagator which should provide a nice introduction to the code.
- * Both the slam and msckf features leverage the same Jacobian code, and thus we also recommend looking at the UpdaterHelper class for details on that.
+ * Both the slam and msckf features leverage the same Jacobian code, and thus we also recommend looking at the UpdaterHelper class for
+ * details on that.
  *
  */
-namespace ov_msckf { }
-
-
-
-
-
+namespace ov_msckf {}

@@ -19,11 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #include "calc/ResultSimulation.h"
 #include "utils/Colors.h"
-
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -34,44 +31,38 @@
 
 #endif
 
-
 int main(int argc, char **argv) {
 
-    // Ensure we have a path
-    if(argc < 4) {
-        printf(RED "ERROR: ./error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
-        printf(RED "ERROR: rosrun ov_eval error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
-        std::exit(EXIT_FAILURE);
-    }
+  // Ensure we have a path
+  if (argc < 4) {
+    printf(RED "ERROR: ./error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
+    printf(RED "ERROR: rosrun ov_eval error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
 
-    // Create our trajectory object
-    ov_eval::ResultSimulation traj(argv[1], argv[2], argv[3]);
+  // Create our trajectory object
+  ov_eval::ResultSimulation traj(argv[1], argv[2], argv[3]);
 
-    // Plot the state errors
-    printf("Plotting state variable errors...\n");
-    traj.plot_state(true);
+  // Plot the state errors
+  printf("Plotting state variable errors...\n");
+  traj.plot_state(true);
 
-    // Plot time offset
-    printf("Plotting time offset error...\n");
-    traj.plot_timeoff(true, 10);
+  // Plot time offset
+  printf("Plotting time offset error...\n");
+  traj.plot_timeoff(true, 10);
 
-    // Plot camera intrinsics
-    printf("Plotting camera intrinsics...\n");
-    traj.plot_cam_instrinsics(true, 60);
+  // Plot camera intrinsics
+  printf("Plotting camera intrinsics...\n");
+  traj.plot_cam_instrinsics(true, 60);
 
-    // Plot camera extrinsics
-    printf("Plotting camera extrinsics...\n");
-    traj.plot_cam_extrinsics(true, 60);
-
+  // Plot camera extrinsics
+  printf("Plotting camera extrinsics...\n");
+  traj.plot_cam_extrinsics(true, 60);
 
 #ifdef HAVE_PYTHONLIBS
-    matplotlibcpp::show(true);
+  matplotlibcpp::show(true);
 #endif
 
-
-    // Done!
-    return EXIT_SUCCESS;
-
+  // Done!
+  return EXIT_SUCCESS;
 }
-
-
