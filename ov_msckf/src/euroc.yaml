@@ -1,0 +1,84 @@
+%YAML:1.0
+
+dataset_path: /media/zcc/Data/Dataset/EuRoc/V1_02_medium
+#gt_file_path: "/media/zcc/Data/Dataset/EuRoc/V1_02_medium/mav0/state_groundtruth_estimate0/data.csv"
+output_pose_file_path: V1_02.txt
+
+t_start: 0  # in seconds
+t_end: -1  # negative means to the end
+
+# key parameters
+max_cameras: 1
+calib_cam_extrinsics: 1
+calib_cam_intrinsics: 1
+calib_cam_timeoffset: 1
+calib_camimu_dt: 0.0
+
+# <!-- world/filter parameters -->
+use_fej: 1
+use_imuavg: 1
+use_rk4int: 1
+use_stereo: 0
+
+max_clones: 11
+max_slam: 75
+max_slam_in_update: 25
+max_msckf_in_update: 40
+
+dt_slam_delay: 3
+init_window_time: 0.75
+init_imu_thresh: 1.5
+gravity: "0.0,0.0,9.81"
+
+feat_rep_msckf: GLOBAL_3D
+feat_rep_slam: ANCHORED_FULL_INVERSE_DEPTH
+feat_rep_aruco: ANCHORED_FULL_INVERSE_DEPTH
+
+# <!-- zero velocity update parameters -->
+try_zupt: 0
+zupt_chi2_multipler: 2
+zupt_max_velocity: 0.5
+zupt_noise_multiplier: 50
+
+# <!-- tracker/extractor properties -->
+use_klt: 1
+num_pts: 250
+fast_threshold: 15
+grid_x: 5
+grid_y: 3
+min_px_dist: 5
+knn_ratio: 0.70
+downsample_cameras: 1
+multi_threading: 1
+
+# <!-- aruco tag/mapping properties -->
+use_aruco: 0
+num_aruco: 1024
+downsize_aruco: 1
+
+# <!-- sensor noise values / update -->
+up_msckf_sigma_px: 1
+up_msckf_chi2_multipler: 1
+up_slam_sigma_px: 1
+up_slam_chi2_multipler: 1
+up_aruco_sigma_px: 1
+up_aruco_chi2_multipler: 1
+
+gyroscope_noise_density: 1.6968e-04
+gyroscope_random_walk: 1.9393e-05
+accelerometer_noise_density: 2.0000e-3
+accelerometer_random_walk: 3.0000e-3
+
+# <!-- camera intrinsics -->
+cam0_wh: "752, 480"
+cam1_wh: "752, 480"
+cam0_is_fisheye: 0
+cam1_is_fisheye: 0
+cam0_k: "458.654,457.296,367.215,248.375"
+cam0_d: "-0.28340811,0.07395907,0.00019359,1.76187114e-05"
+cam1_k: "457.587,456.134,379.999,255.238"
+cam1_d: "-0.28368365,0.07451284,-0.00010473,-3.55590700e-05"
+
+cam0_T_CtoI: "0.0148655429818,-0.999880929698,0.00414029679422,-0.0216401454975,  0.999557249008,0.0149672133247,0.025715529948,-0.064676986768,  -0.0257744366974,0.00375618835797,0.999660727178,0.00981073058949,  0,0,0,1"
+
+cam1_T_CtoI: "0.0125552670891,-0.999755099723,0.0182237714554,-0.0198435579556,  0.999598781151,0.0130119051815,0.0251588363115,0.0453689425024,  -0.0253898008918,0.0179005838253,0.999517347078,0.00786212447038,  0,0,0,1"

@@ -122,6 +122,9 @@ else()
     add_executable(run_simulation src/run_simulation.cpp)
     target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
 
+    add_executable(run_serial_msckf_euroc src/run_serial_msckf_euroc.cpp)
+    target_link_libraries(run_serial_msckf_euroc ov_msckf_lib ${thirdparty_libraries})
+
 endif()
 
 
