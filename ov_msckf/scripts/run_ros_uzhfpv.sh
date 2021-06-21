@@ -13,7 +13,7 @@ source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
 modes=(
     "mono"
     "binocular"
-#    "stereo"
+    "stereo"
 )
 
 # dataset locations
@@ -111,10 +111,9 @@ imuthreshold=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_uzhfpv/testing/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2020_uzhfpv/testing/timings"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3.1/exp_uzhfpv/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3.1/exp_uzhfpv/timings"
 bag_path="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer"
-
 
 #=============================================================
 #=============================================================
@@ -128,32 +127,42 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..04}; do
+for j in {00..00}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
-filename_time="$save_path2/ov_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
+filename_est="$save_path1/ov_2.3.1_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
+filename_time="$save_path2/ov_2.3.1_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
 then
-    temp1="1"
-    temp2="true"
+  temp1="1"
+  temp2="true"
 fi
 if [ "${modes[h]}" == "binocular" ]
 then
-    temp1="2"
-    temp2="false"
+  temp1="2"
+  temp2="false"
 fi
 if [ "${modes[h]}" == "stereo" ]
 then
-    temp1="2"
-    temp2="true"
+  temp1="2"
+  temp2="true"
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_uzhfpv.launch max_cameras:="$temp1" use_stereo:="$temp2" bag:="$bag_path/${bagnames[i]}.bag" bag_start:="${bagstarttimes[i]}" sensor_config:="${sensorconfig[i]}" init_imu_thresh:="${imuthreshold[i]}" dosave:="true" path_est:="$filename_est" dotime:="true" path_time:="$filename_time" &> /dev/null
+roslaunch ov_msckf pgeneva_ros_uzhfpv.launch \
+  max_cameras:="$temp1" \
+  use_stereo:="$temp2" \
+  bag:="$bag_path/${bagnames[i]}.bag" \
+  bag_start:="${bagstarttimes[i]}" \
+  sensor_config:="${sensorconfig[i]}" \
+  init_imu_thresh:="${imuthreshold[i]}" \
+  dosave:="true" \
+  path_est:="$filename_est" \
+  dotime:="true" \
+  path_time:="$filename_time" &> /dev/null
 
 
 # print out the time elapsed

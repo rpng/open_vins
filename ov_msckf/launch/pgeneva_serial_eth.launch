@@ -4,9 +4,9 @@
     <!-- mono or stereo and what ros bag to play -->
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
-    <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
+    <arg name="bag_start"   default="7" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
     <arg name="bag"         default="/home/patrick/datasets/eth/V1_01_easy.bag" />
-    <arg name="bag_gt"      default="" /> <!-- $(find ov_data)/euroc_mav/V1_01_easy.csv -->
+    <arg name="bag_gt"      default="$(find ov_data)/euroc_mav/V1_01_easy.csv" /> <!-- $(find ov_data)/euroc_mav/V1_01_easy.csv -->
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="0.75" />
@@ -27,7 +27,7 @@
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="$(arg bag)" />
         <param name="path_gt"     type="string" value="$(arg bag_gt)" />
-        <param name="bag_start"   type="double" value="0.0" />
+        <param name="bag_start"   type="double" value="$(arg bag_start)" />
         <param name="bag_durr"    type="int"    value="-1" />
 
         <!-- world/filter parameters -->
@@ -62,8 +62,8 @@
         <param name="zupt_only_at_beginning" type="bool"   value="false" />
 
         <!-- timing statistics recording -->
-        <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
-        <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
+        <param name="record_timing_information"   type="bool"   value="false" />
+        <param name="record_timing_filepath"      type="string" value="/tmp/ov_timing.txt" />
 
         <!-- tracker/extractor properties -->
         <param name="use_klt"            type="bool"   value="true" />

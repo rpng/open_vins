@@ -87,18 +87,18 @@ filename_est="$save_path1/ov_2.3.1_${modes[h]}/${bagnames[i]}/${start_time}_esti
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
 then
-    temp1="1"
-    temp2="true"
+  temp1="1"
+  temp2="true"
 fi
 if [ "${modes[h]}" == "binocular" ]
 then
-    temp1="2"
-    temp2="false"
+  temp1="2"
+  temp2="false"
 fi
 if [ "${modes[h]}" == "stereo" ]
 then
-    temp1="2"
-    temp2="true"
+  temp1="2"
+  temp2="true"
 fi
 
 # run our ROS launch file (note we send console output to terminator)
@@ -109,7 +109,7 @@ roslaunch ov_msckf pgeneva_ros_eth.launch \
   bag_start:="${bagstarttimes[i]}" \
   init_imu_thresh:="${imuthreshold[i]}" \
   dosave:="true" \
-  path_est:="$filename_est" #&> /dev/null
+  path_est:="$filename_est" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"
