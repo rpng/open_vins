@@ -83,6 +83,7 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   app1.add_option("--zupt_chi2_multipler", params.zupt_options.chi2_multipler, "");
   app1.add_option("--zupt_max_velocity", params.zupt_max_velocity, "");
   app1.add_option("--zupt_noise_multiplier", params.zupt_noise_multiplier, "");
+  app1.add_option("--zupt_max_disparity", params.zupt_max_disparity, "");
   app1.add_option("--zupt_only_at_beginning", params.zupt_only_at_beginning, "");
 
   // Recording of timing information to file
@@ -111,8 +112,7 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   app1.add_option("--calib_camimu_dt", params.calib_camimu_dt, "");
 
   // Global gravity
-  std::vector<double> gravity = {params.gravity(0), params.gravity(1), params.gravity(2)};
-  app1.add_option("--gravity", gravity, "");
+  app1.add_option("--gravity_mag", params.gravity_mag, "");
 
   // TRACKERS ======================================================================
 
@@ -227,10 +227,6 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
     printf(RED "\t- ANCHORED_INVERSE_DEPTH_SINGLE\n" RESET);
     std::exit(EXIT_FAILURE);
   }
-
-  // Parse gravity
-  assert(gravity.size() == 3);
-  params.gravity << gravity.at(0), gravity.at(1), gravity.at(2);
 
   // Enforce that we have enough cameras to run
   if (params.state_options.num_cameras < 1) {

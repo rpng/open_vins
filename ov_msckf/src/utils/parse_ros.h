@@ -138,9 +138,10 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
 
   // Zero velocity update
   nh.param<bool>("try_zupt", params.try_zupt, params.try_zupt);
-  nh.param<int>("zupt_chi2_multipler", params.zupt_options.chi2_multipler, params.zupt_options.chi2_multipler);
+  nh.param<double>("zupt_chi2_multipler", params.zupt_options.chi2_multipler, params.zupt_options.chi2_multipler);
   nh.param<double>("zupt_max_velocity", params.zupt_max_velocity, params.zupt_max_velocity);
   nh.param<double>("zupt_noise_multiplier", params.zupt_noise_multiplier, params.zupt_noise_multiplier);
+  nh.param<double>("zupt_max_disparity", params.zupt_max_disparity, params.zupt_max_disparity);
   nh.param<bool>("zupt_only_at_beginning", params.zupt_only_at_beginning, params.zupt_only_at_beginning);
 
   // Recording of timing information to file
@@ -157,11 +158,11 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
 
   // Read in update parameters
   nh.param<double>("up_msckf_sigma_px", params.msckf_options.sigma_pix, params.msckf_options.sigma_pix);
-  nh.param<int>("up_msckf_chi2_multipler", params.msckf_options.chi2_multipler, params.msckf_options.chi2_multipler);
+  nh.param<double>("up_msckf_chi2_multipler", params.msckf_options.chi2_multipler, params.msckf_options.chi2_multipler);
   nh.param<double>("up_slam_sigma_px", params.slam_options.sigma_pix, params.slam_options.sigma_pix);
-  nh.param<int>("up_slam_chi2_multipler", params.slam_options.chi2_multipler, params.slam_options.chi2_multipler);
+  nh.param<double>("up_slam_chi2_multipler", params.slam_options.chi2_multipler, params.slam_options.chi2_multipler);
   nh.param<double>("up_aruco_sigma_px", params.aruco_options.sigma_pix, params.aruco_options.sigma_pix);
-  nh.param<int>("up_aruco_chi2_multipler", params.aruco_options.chi2_multipler, params.aruco_options.chi2_multipler);
+  nh.param<double>("up_aruco_chi2_multipler", params.aruco_options.chi2_multipler, params.aruco_options.chi2_multipler);
 
   // STATE ======================================================================
 
@@ -169,10 +170,7 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   nh.param<double>("calib_camimu_dt", params.calib_camimu_dt, params.calib_camimu_dt);
 
   // Global gravity
-  std::vector<double> gravity = {params.gravity(0), params.gravity(1), params.gravity(2)};
-  nh.param<std::vector<double>>("gravity", gravity, gravity);
-  assert(gravity.size() == 3);
-  params.gravity << gravity.at(0), gravity.at(1), gravity.at(2);
+  nh.param<double>("gravity_mag", params.gravity_mag, params.gravity_mag);
 
   // TRACKERS ======================================================================
 

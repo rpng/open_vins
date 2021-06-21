@@ -1,21 +1,20 @@
 <launch>
 
     <!-- mono or stereo and what ros bag to play -->
-    <arg name="max_cameras" default="2" />
+    <arg name="max_cameras" default="1" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" />
     <arg name="bag"         default="/home/patrick/datasets/tum/dataset-room1_512_16.bag" />
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="1.0" />
-    <arg name="init_imu_thresh"   default="0.70" /> <!-- room1:0.70, room2:0.75, room3:0.70 -->
+    <arg name="init_imu_thresh"   default="0.60" /> <!-- room1-5:0.60, room6:0.45 -->
 
     <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
     <arg name="dotime"      default="false" />
     <arg name="path_est"    default="/tmp/traj_estimate.txt" />
     <arg name="path_time"   default="/tmp/traj_timing.txt" />
-
 
     <!-- MASTER NODE! -->
     <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
@@ -43,17 +42,10 @@
         <param name="dt_slam_delay"          type="double" value="5" />
         <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
         <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
-        <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
+        <param name="gravity_mag"            type="double" value="9.80766" />
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
-
-        <!-- zero velocity update parameters -->
-        <param name="try_zupt"               type="bool"   value="false" />
-        <param name="zupt_chi2_multipler"    type="int"    value="2" />
-        <param name="zupt_max_velocity"      type="double" value="0.5" />
-        <param name="zupt_noise_multiplier"  type="double" value="50" />
-        <param name="zupt_only_at_beginning" type="bool"   value="true" />
 
         <!-- timing statistics recording -->
         <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />

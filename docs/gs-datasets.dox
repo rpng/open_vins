@@ -158,7 +158,7 @@ The camera is 10 Hz, while the Xsens IMU is 100 Hz sensing rate.
 A groundtruth "baseline" trajectory is also provided which is the resulting output from fusion of the FoG, RKT GPS, and wheel encoders.
 
 @code{.shell-session}
-git clone https://github.com/irapkaist/file_player.git
+git clone https://github.com/rpng/file_player.git
 git clone https://github.com/irapkaist/irp_sen_msgs.git
 catkin build
 rosrun file_player file_player

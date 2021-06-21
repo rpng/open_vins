@@ -49,12 +49,14 @@ class InertialInitializer {
 public:
   /**
    * @brief Default constructor
-   * @param gravity Gravity in the global frame of reference
+   * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    * @param window_length Amount of time we will initialize over (seconds)
    * @param imu_excite_threshold Variance threshold on our acceleration to be classified as moving
    */
-  InertialInitializer(Eigen::Matrix<double, 3, 1> gravity, double window_length, double imu_excite_threshold)
-      : _gravity(gravity), _window_length(window_length), _imu_excite_threshold(imu_excite_threshold) {}
+  InertialInitializer(double gravity_mag, double window_length, double imu_excite_threshold)
+      : _window_length(window_length), _imu_excite_threshold(imu_excite_threshold) {
+    _gravity << 0.0, 0.0, gravity_mag;
+  }
 
   /**
    * @brief Feed function for inertial data

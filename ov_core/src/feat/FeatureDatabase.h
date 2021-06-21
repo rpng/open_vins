@@ -315,6 +315,31 @@ public:
   }
 
   /**
+   * @brief This function will delete all feature measurements that are at the specified timestamp
+   */
+  void cleanup_measurements_exact(double timestamp) {
+    std::unique_lock<std::mutex> lck(mtx);
+    std::vector<double> timestamps = {timestamp};
+    for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
+      // Remove the older measurements
+      (*it).second->clean_invalid_measurements(timestamps);
+      // Count how many measurements
+      int ct_meas = 0;
+      for (const auto &pair : (*it).second->timestamps) {
+        ct_meas += (*it).second->timestamps.at(pair.first).size();
+      }
+      // If delete flag is set, then delete it
+      // NOTE: if we are using a shared pointer, then no need to do this!
+      if (ct_meas < 1) {
+        // delete (*it).second;
+        features_idlookup.erase(it++);
+      } else {
+        it++;
+      }
+    }
+  }
+
+  /**
    * @brief Returns the size of the feature database
    */
   size_t size() {

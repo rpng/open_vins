@@ -288,7 +288,9 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
 
   // Transform omega and linear acceleration into imu frame
   Eigen::Vector3d omega_inI = w_IinI;
-  Eigen::Vector3d accel_inI = R_GtoI * (a_IinG + params.gravity);
+  Eigen::Vector3d gravity;
+  gravity << 0.0, 0.0, params.gravity_mag;
+  Eigen::Vector3d accel_inI = R_GtoI * (a_IinG + gravity);
 
   // Now add noise to these measurements
   double dt = 1.0 / params.sim_freq_imu;

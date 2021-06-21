@@ -75,7 +75,16 @@ public:
    *
    * @param valid_times Vector of timestamps that our measurements must occur at
    */
-  void clean_old_measurements(std::vector<double> valid_times);
+  void clean_old_measurements(const std::vector<double> &valid_times);
+
+  /**
+   * @brief Remove measurements that occur at the invalid timestamps
+   *
+   * Given a series of invalid timestamps, this will remove all measurements that have occurred at these times.
+   *
+   * @param invalid_times Vector of timestamps that our measurements should not
+   */
+  void clean_invalid_measurements(const std::vector<double> &invalid_times);
 
   /**
    * @brief Remove measurements that are older then the specified timestamp.

@@ -70,6 +70,7 @@ void TrackKLT::feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) {
 
   // Lets track temporally
   perform_matching(img_pyramid_last[cam_id], imgpyr, pts_last[cam_id], pts_left_new, cam_id, cam_id, mask_ll);
+  assert(pts_left_new.size()==ids_last[cam_id].size());
   rT4 = boost::posix_time::microsec_clock::local_time();
 
   //===================================================================================
@@ -310,6 +311,13 @@ void TrackKLT::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_r
 void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, std::vector<cv::KeyPoint> &pts0,
                                            std::vector<size_t> &ids0) {
 
+  // First compute how many more features we need to extract from this image
+  int num_featsneeded = num_features - (int)pts0.size();
+
+  // If we don't need any features, just return
+  if (num_featsneeded < 0.2 * num_features)
+    return;
+
   // Create a 2D occupancy grid for this current image
   // Note that we scale this down, so that each grid point is equal to a set of pixels
   // This means that we will reject points that less then grid_px_size points away then existing features
@@ -334,13 +342,6 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     it0++;
     it2++;
   }
-
-  // First compute how many more features we need to extract from this image
-  int num_featsneeded = num_features - (int)pts0.size();
-
-  // If we don't need any features, just return
-  if (num_featsneeded < 0.2 * num_features)
-    return;
 
   // Extract our features (use fast with griding)
   std::vector<cv::KeyPoint> pts0_ext;
@@ -380,8 +381,8 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
 }
 
 void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, const std::vector<cv::Mat> &img1pyr,
-                                        std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1, std::vector<size_t> &ids0,
-                                        std::vector<size_t> &ids1) {
+                                        std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
+                                        std::vector<size_t> &ids0, std::vector<size_t> &ids1) {
 
   // Create a 2D occupancy grid for this current image
   // Note that we scale this down, so that each grid point is equal to a set of pixels
@@ -574,7 +575,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat> &img0pyr, const std::
   double max_focallength_img0 = std::max(camera_k_OPENCV.at(id0)(0, 0), camera_k_OPENCV.at(id0)(1, 1));
   double max_focallength_img1 = std::max(camera_k_OPENCV.at(id1)(0, 0), camera_k_OPENCV.at(id1)(1, 1));
   double max_focallength = std::max(max_focallength_img0, max_focallength_img1);
-  cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1 / max_focallength, 0.999, mask_rsc);
+  cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1.0 / max_focallength, 0.999, mask_rsc);
 
   // Loop through and record only ones that are valid
   for (size_t i = 0; i < mask_klt.size(); i++) {

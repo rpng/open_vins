@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "UpdaterZeroVelocity.h"
 
 using namespace ov_msckf;
@@ -27,12 +26,16 @@ using namespace ov_msckf;
 bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
 
   // Return if we don't have any imu data yet
-  if (imu_data.empty())
+  if (imu_data.empty()) {
+    last_zupt_state_timestamp = 0.0;
     return false;
+  }
 
   // Return if the state is already at the desired time
-  if (state->_timestamp == timestamp)
+  if (state->_timestamp == timestamp) {
+    last_zupt_state_timestamp = 0.0;
     return false;
+  }
 
   // Set the last time offset value if we have just started the system up
   if (!have_last_prop_time_offset) {
@@ -58,8 +61,9 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   last_prop_time_offset = t_off_new;
 
   // Check that we have at least one measurement to propagate with
-  if (imu_recent.empty() || imu_recent.size() < 2) {
+  if (imu_recent.size() < 2) {
     printf(RED "[ZUPT]: There are no IMU data to check for zero velocity with!!\n" RESET);
+    last_zupt_state_timestamp = 0.0;
     return false;
   }
 
@@ -67,18 +71,21 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   // Also if we should still inflate the bias based on their random walk noises
   bool integrated_accel_constraint = false;
   bool model_time_varying_bias = true;
+  bool override_with_disparity_check = true;
+  bool explicitly_enforce_zero_motion = false;
 
   // Order of our Jacobian
   std::vector<std::shared_ptr<Type>> Hx_order;
   Hx_order.push_back(state->_imu->q());
   Hx_order.push_back(state->_imu->bg());
   Hx_order.push_back(state->_imu->ba());
-  if (integrated_accel_constraint)
+  if (integrated_accel_constraint) {
     Hx_order.push_back(state->_imu->v());
+  }
 
   // Large final matrices used for update
   int h_size = (integrated_accel_constraint) ? 12 : 9;
-  int m_size = 6 * (imu_recent.size() - 1);
+  int m_size = 6 * ((int)imu_recent.size() - 1);
   Eigen::MatrixXd H = Eigen::MatrixXd::Zero(m_size, h_size);
   Eigen::VectorXd res = Eigen::VectorXd::Zero(m_size);
   Eigen::MatrixXd R = Eigen::MatrixXd::Identity(m_size, m_size);
@@ -106,14 +113,14 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
     // Measurement Jacobian
     Eigen::Matrix3d R_GtoI_jacob = (state->_options.do_fej) ? state->_imu->Rot_fej() : state->_imu->Rot();
-    H.block(6 * i + 0, 3, 3, 3) = -Eigen::Matrix<double, 3, 3>::Identity();
+    H.block(6 * i + 0, 3, 3, 3) = -Eigen::Matrix3d::Identity();
     if (!integrated_accel_constraint) {
       H.block(6 * i + 3, 0, 3, 3) = -skew_x(R_GtoI_jacob * _gravity);
-      H.block(6 * i + 3, 6, 3, 3) = -Eigen::Matrix<double, 3, 3>::Identity();
+      H.block(6 * i + 3, 6, 3, 3) = -Eigen::Matrix3d::Identity();
     } else {
       H.block(6 * i + 3, 0, 3, 3) = -R_GtoI_jacob.transpose() * skew_x(a_hat) * dt;
       H.block(6 * i + 3, 6, 3, 3) = -R_GtoI_jacob.transpose() * dt;
-      H.block(6 * i + 3, 9, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity();
+      H.block(6 * i + 3, 9, 3, 3) = Eigen::Matrix3d::Identity();
     }
 
     // Measurement noise (convert from continuous to discrete)
@@ -155,30 +162,140 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     printf(YELLOW "[ZUPT]: chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
   }
 
+  // Check if the image disparity
+  bool disparity_passed = false;
+  if (override_with_disparity_check) {
+
+    // Get features seen from this image, and the previous image
+    double time0_cam = state->_timestamp;
+    double time1_cam = timestamp;
+    std::vector<std::shared_ptr<Feature>> feats0 = _db->features_containing(time0_cam, false, true);
+
+    // Compute the disparity
+    double average_disparity = 0.0;
+    double num_features = 0.0;
+    for (auto &feat : feats0) {
+
+      // Get the two uvs for both times
+      for (auto &campairs : feat->timestamps) {
+
+        // First find the two timestamps
+        size_t camid = campairs.first;
+        auto it0 = std::find(feat->timestamps.at(camid).begin(), feat->timestamps.at(camid).end(), time0_cam);
+        auto it1 = std::find(feat->timestamps.at(camid).begin(), feat->timestamps.at(camid).end(), time1_cam);
+        if (it0 == feat->timestamps.at(camid).end() || it1 == feat->timestamps.at(camid).end())
+          continue;
+        auto idx0 = std::distance(feat->timestamps.at(camid).begin(), it0);
+        auto idx1 = std::distance(feat->timestamps.at(camid).begin(), it1);
+
+        // Now lets calculate the disparity
+        Eigen::Vector2f uv0 = feat->uvs.at(camid).at(idx0).block(0, 0, 2, 1);
+        Eigen::Vector2f uv1 = feat->uvs.at(camid).at(idx1).block(0, 0, 2, 1);
+        average_disparity += (uv1 - uv0).norm();
+        num_features += 1;
+      }
+    }
+
+    // Now check if we have passed the threshold
+    if (num_features > 0) {
+      average_disparity /= num_features;
+    }
+    disparity_passed = (average_disparity < _zupt_max_disparity && num_features > 20);
+    if (disparity_passed) {
+      printf(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity, (int)num_features);
+    } else {
+      printf(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+             (int)num_features);
+    }
+  }
+
   // Check if we are currently zero velocity
   // We need to pass the chi2 and not be above our velocity threshold
-  if (chi2 > _options.chi2_multipler * chi2_check || state->_imu->vel().norm() > _zupt_max_velocity) {
-    printf(YELLOW "[ZUPT]: rejected zero velocity |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+  if (!disparity_passed && (chi2 > _options.chi2_multipler * chi2_check || state->_imu->vel().norm() > _zupt_max_velocity)) {
+    last_zupt_state_timestamp = 0.0;
+    printf(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
            _options.chi2_multipler * chi2_check);
     return false;
   }
+  printf(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+         _options.chi2_multipler * chi2_check);
 
-  // Next propagate the biases forward in time
-  // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
-  if (model_time_varying_bias) {
-    Eigen::MatrixXd Phi_bias = Eigen::MatrixXd::Identity(6, 6);
-    std::vector<std::shared_ptr<Type>> Phi_order;
-    Phi_order.push_back(state->_imu->bg());
-    Phi_order.push_back(state->_imu->ba());
-    StateHelper::EKFPropagation(state, Phi_order, Phi_order, Phi_bias, Q_bias);
+  // Do our update, only do this update if we have previously detected
+  // If we have succeeded, then we should remove the current timestamp feature tracks
+  // This is because we will not clone at this timestep and instead do our zero velocity update
+  // We want to keep the tracks from the previous timestep, thus only delete measurements from the current timestep
+  if (last_zupt_state_timestamp > 0.0) {
+    _db->cleanup_measurements_exact(last_zupt_state_timestamp);
   }
 
   // Else we are good, update the system
-  printf(CYAN "[ZUPT]: accepted zero velocity |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
-         _options.chi2_multipler * chi2_check);
-  StateHelper::EKFUpdate(state, Hx_order, H, res, R);
+  // 1) update with our IMU measurements directly
+  // 2) propagate and then explicitly say that our ori, pos, and vel should be zero
+  if (!explicitly_enforce_zero_motion) {
 
-  // Finally move the state time forward
-  state->_timestamp = timestamp;
+    // Next propagate the biases forward in time
+    // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
+    if (model_time_varying_bias) {
+      Eigen::MatrixXd Phi_bias = Eigen::MatrixXd::Identity(6, 6);
+      std::vector<std::shared_ptr<Type>> Phi_order;
+      Phi_order.push_back(state->_imu->bg());
+      Phi_order.push_back(state->_imu->ba());
+      StateHelper::EKFPropagation(state, Phi_order, Phi_order, Phi_bias, Q_bias);
+    }
+
+    // Finally move the state time forward
+    StateHelper::EKFUpdate(state, Hx_order, H, res, R);
+    state->_timestamp = timestamp;
+
+  } else {
+
+    // Propagate the state forward in time
+    double time0_cam = last_zupt_state_timestamp;
+    double time1_cam = timestamp;
+    _prop->propagate_and_clone(state, time1_cam);
+
+    // Create the update system!
+    H = Eigen::MatrixXd::Zero(9, 15);
+    res = Eigen::VectorXd::Zero(9);
+    R = Eigen::MatrixXd::Identity(9, 9);
+
+    // residual (order is ori, pos, vel)
+    Eigen::Matrix3d R_GtoI0 = state->_clones_IMU.at(time0_cam)->Rot();
+    Eigen::Vector3d p_I0inG = state->_clones_IMU.at(time0_cam)->pos();
+    Eigen::Matrix3d R_GtoI1 = state->_clones_IMU.at(time1_cam)->Rot();
+    Eigen::Vector3d p_I1inG = state->_clones_IMU.at(time1_cam)->pos();
+    res.block(0, 0, 3, 1) = -log_so3(R_GtoI0 * R_GtoI1.transpose());
+    res.block(3, 0, 3, 1) = p_I1inG - p_I0inG;
+    res.block(6, 0, 3, 1) = state->_imu->vel();
+    res *= -1;
+
+    // jacobian (order is q0, p0, q1, p1, v0)
+    Hx_order.clear();
+    Hx_order.push_back(state->_clones_IMU.at(time0_cam));
+    Hx_order.push_back(state->_clones_IMU.at(time1_cam));
+    Hx_order.push_back(state->_imu->v());
+    if (state->_options.do_fej) {
+      R_GtoI0 = state->_clones_IMU.at(time0_cam)->Rot_fej();
+    }
+    H.block(0, 0, 3, 3) = Eigen::Matrix3d::Identity();
+    H.block(0, 6, 3, 3) = -R_GtoI0;
+    H.block(3, 3, 3, 3) = -Eigen::Matrix3d::Identity();
+    H.block(3, 9, 3, 3) = Eigen::Matrix3d::Identity();
+    H.block(6, 12, 3, 3) = Eigen::Matrix3d::Identity();
+
+    // noise (order is ori, pos, vel)
+    R.block(0, 0, 3, 3) *= std::pow(1e-2, 2);
+    R.block(3, 3, 3, 3) *= std::pow(1e-1, 2);
+    R.block(6, 6, 3, 3) *= std::pow(1e-1, 2);
+
+    // finally update and remove the old clone
+    StateHelper::EKFUpdate(state, Hx_order, H, res, R);
+    StateHelper::marginalize(state, state->_clones_IMU.at(time1_cam));
+    state->_clones_IMU.erase(time1_cam);
+  }
+
+  // Finally return
+  last_zupt_state_timestamp = timestamp;
   return true;
+
 }

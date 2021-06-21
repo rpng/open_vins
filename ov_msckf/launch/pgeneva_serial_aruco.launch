@@ -36,7 +36,7 @@
         <param name="dt_slam_delay"          type="double" value="2" />
         <param name="init_window_time"       type="double" value="0.5" />
         <param name="init_imu_thresh"        type="double" value="1.5" />
-        <rosparam param="gravity">[0.0,0.0,9.81]</rosparam>
+        <param name="gravity_mag"            type="double" value="9.81" />
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="GLOBAL_3D" />
         <param name="feat_rep_aruco"         type="string" value="GLOBAL_3D" />

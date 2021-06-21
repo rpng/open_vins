@@ -31,7 +31,7 @@ namespace ov_msckf {
 struct UpdaterOptions {
 
   /// What chi-squared multipler we should apply
-  int chi2_multipler = 5;
+  double chi2_multipler = 5;
 
   /// Noise sigma for our raw pixel measurements
   double sigma_pix = 1;
@@ -41,7 +41,7 @@ struct UpdaterOptions {
 
   /// Nice print function of what parameters we have loaded
   void print() {
-    printf("\t- chi2_multipler: %d\n", chi2_multipler);
+    printf("\t- chi2_multipler: %.1f\n", chi2_multipler);
     printf("\t- sigma_pix: %.2f\n", sigma_pix);
   }
 };

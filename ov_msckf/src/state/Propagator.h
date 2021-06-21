@@ -82,14 +82,15 @@ public:
   /**
    * @brief Default constructor
    * @param noises imu noise characteristics (continuous time)
-   * @param gravity Global gravity of the system (normally [0,0,9.81])
+   * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    */
-  Propagator(NoiseManager noises, Eigen::Vector3d gravity) : _noises(noises), _gravity(gravity) {
+  Propagator(NoiseManager noises, double gravity_mag) : _noises(noises) {
     _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
     _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
     _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
     _noises.sigma_ab_2 = std::pow(_noises.sigma_ab, 2);
     last_prop_time_offset = 0.0;
+    _gravity << 0.0, 0.0, gravity_mag;
   }
 
   /**
@@ -269,7 +270,7 @@ protected:
   std::vector<ov_core::ImuData> imu_data;
 
   /// Gravity vector
-  Eigen::Matrix<double, 3, 1> _gravity;
+  Eigen::Vector3d _gravity;
 };
 
 } // namespace ov_msckf

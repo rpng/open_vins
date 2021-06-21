@@ -72,6 +72,9 @@ struct VioManagerOptions {
   /// Multiplier of our zupt measurement IMU noise matrix (default should be 1.0)
   double zupt_noise_multiplier = 1.0;
 
+  /// Max disparity we will consider to try to do a zupt (i.e. if above this, don't do zupt)
+  double zupt_max_disparity = 1.0;
+
   /// If we should only use the zupt at the very beginning static initialization phase
   bool zupt_only_at_beginning = false;
 
@@ -94,6 +97,7 @@ struct VioManagerOptions {
     printf("\t- zero_velocity_update: %d\n", try_zupt);
     printf("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
     printf("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
+    printf("\t- zupt_max_disparity: %.4f\n", zupt_max_disparity);
     printf("\t- zupt_only_at_beginning?: %d\n", zupt_only_at_beginning);
     printf("\t- record timing?: %d\n", (int)record_timing_information);
     printf("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
@@ -135,8 +139,8 @@ struct VioManagerOptions {
 
   // STATE DEFAULTS ==========================
 
-  /// Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)
-  Eigen::Vector3d gravity = {0.0, 0.0, 9.81};
+  /// Gravity magnitude in the global frame (i.e. should be 9.81 typically)
+  double gravity_mag = 9.81;
 
   /// Time offset between camera and IMU.
   double calib_camimu_dt = 0.0;
@@ -159,7 +163,8 @@ struct VioManagerOptions {
    */
   void print_state() {
     printf("STATE PARAMETERS:\n");
-    printf("\t- gravity: %.3f, %.3f, %.3f\n", gravity(0), gravity(1), gravity(2));
+    printf("\t- gravity_mag: %.4f\n", gravity_mag);
+    printf("\t- gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
     printf("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
     assert(state_options.num_cameras == (int)camera_fisheye.size());
     for (int n = 0; n < state_options.num_cameras; n++) {

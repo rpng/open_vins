@@ -63,17 +63,28 @@ Most works boil down to simple thresholding and the approach is to try to determ
 There have been other works, @cite Wagstaff2017IPIN and @cite Ramanandan2011TITS, which have looked at more complicated methods and try to address the issue that this threshold can be dependent on the type of different motions (such as running vs walking) and characteristics of the platform which the sensor is mounted on (we want to ignore vehicle engine vibrations and other non-essential observed vibrations).
 
 
+@subsection update-zerovelocity-detect-imu Inertial-based Detection
+
 We approach this detection problem based on tuning of a \f$\chi^2\f$, chi-squared, thresholding based on the measurement model above.
 It is important to note that we also have a velocity magnitude check which is aimed at preventing constant velocity cases which have non-zero magnitude.
 More specifically, we perform the following threshold check to see if we are current at zero velocity:
 
 \f{align*}{
-\tilde{\mathbf{z}}^\top(\mathbf{H}\mathbf{P}\mathbf{H}^\top + \mathbf{R})^{-1}\tilde{\mathbf{z}} < \chi^2
+\tilde{\mathbf{z}}^\top(\mathbf{H}\mathbf{P}\mathbf{H}^\top + \alpha\mathbf{R})^{-1}\tilde{\mathbf{z}} < \chi^2
 \f}
 
-We found that in the real world experiments, typically the inertial measurement noise \f$\mathbf{R}\f$ needs to be inflated by 50-100 times to allow for proper detection.
+We found that in the real world experiments, typically the inertial measurement noise \f$\mathbf{R}\f$ needs to be inflated by \f$\alpha\in[50,100]\f$ times to allow for proper detection.
 This can hint that we are using overconfident inertial noises, or that there are additional frequencies (such as the vibration of motors) which inject additional noises.
 
 
+@subsection update-zerovelocity-detect-disp Disparity-based Detection
+
+We additionally have a detection method which leverages the visual feature tracks. Given two sequential images, the assumption is if there is very little disparity change between feature tracks then we will be stationary. Thus we calculate the average disparity and threshold on this value.
+
+\f{align*}{
+\frac{1}{N}\sum_{i=0}^N ||\mathbf{uv}_{k,i}-\mathbf{uv}_{k-1,i}|| < \Delta d
+\f}
+
+This seems to work reasonably well, but can fail if the environment is dynamic in nature, thus it can be useful to use both the inertial and disparity-based methods together in very dynamic environments.
 
 */

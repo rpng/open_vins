@@ -34,17 +34,10 @@
         <param name="dt_slam_delay"          type="double" value="3" />
         <param name="init_window_time"       type="double" value="1.0" />
         <param name="init_imu_thresh"        type="double" value="0.70" /> <!-- room1:0.70, room2:0.75, room3:0.70 -->
-        <rosparam param="gravity">[0.0,0.0,9.80766]</rosparam>
+        <param name="gravity_mag"            type="double" value="9.80766" />
         <param name="feat_rep_msckf"         type="string" value="GLOBAL_3D" />
         <param name="feat_rep_slam"          type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
         <param name="feat_rep_aruco"         type="string" value="ANCHORED_FULL_INVERSE_DEPTH" />
-
-        <!-- zero velocity update parameters -->
-        <param name="try_zupt"               type="bool"   value="false" />
-        <param name="zupt_chi2_multipler"    type="int"    value="2" />
-        <param name="zupt_max_velocity"      type="double" value="0.5" />
-        <param name="zupt_noise_multiplier"  type="double" value="50" />
-        <param name="zupt_only_at_beginning" type="bool"   value="true" />
 
         <!-- timing statistics recording -->
         <param name="record_timing_information"   type="bool"   value="false" />

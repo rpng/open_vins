@@ -120,10 +120,10 @@ VioManager::VioManager(VioManagerOptions &params_) {
   }
 
   // Initialize our state propagator
-  propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity);
+  propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity_mag);
 
   // Our state initialize
-  initializer = std::make_shared<InertialInitializer>(params.gravity, params.init_window_time, params.init_imu_thresh);
+  initializer = std::make_shared<InertialInitializer>(params.gravity_mag, params.init_window_time, params.init_imu_thresh);
 
   // Make the updater!
   updaterMSCKF = std::make_shared<UpdaterMSCKF>(params.msckf_options, params.featinit_options);
@@ -131,8 +131,9 @@ VioManager::VioManager(VioManagerOptions &params_) {
 
   // If we are using zero velocity updates, then create the updater
   if (params.try_zupt) {
-    updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_noises, params.gravity, params.zupt_max_velocity,
-                                                        params.zupt_noise_multiplier);
+    updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_noises, trackFEATS->get_feature_database(), propagator,
+                                                        params.gravity_mag, params.zupt_max_velocity,
+                                                        params.zupt_noise_multiplier, params.zupt_max_disparity);
   }
 
   // Feature initializer for active tracks
@@ -196,6 +197,11 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
   }
   trackSIM->set_width_height(params.camera_wh);
 
+  // Feed our simulation tracker
+  trackSIM->feed_measurement_simulation(timestamp, camids, feats);
+  trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
+  rT2 = boost::posix_time::microsec_clock::local_time();
+
   // Check if we should do zero-velocity, if so update the state with it
   // Note that in the case that we only use in the beginning initialization phase
   // If we have since moved, then we should never try to do a zero velocity update!
@@ -228,11 +234,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
       return;
     }
   }
-
-  // Feed our simulation tracker
-  trackSIM->feed_measurement_simulation(timestamp, camids, feats);
-  trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
-  rT2 = boost::posix_time::microsec_clock::local_time();
 
   // If we do not have VIO initialization, then return an error
   if (!is_initialized_vio) {
@@ -280,44 +281,6 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     zupt_img_last[message.sensor_ids.at(i)] = message.images.at(i).clone();
   }
 
-  // Check if we should do zero-velocity, if so update the state with it
-  // Note that in the case that we only use in the beginning initialization phase
-  // If we have since moved, then we should never try to do a zero velocity update!
-  if (is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
-    // If the same state time, use the previous timestep decision
-    if (state->_timestamp != message.timestamp) {
-      did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
-    }
-    // If we did do an update, then nice display and return since we have no need to process
-    if (did_zupt_update) {
-      // Get the largest width and height
-      int max_width = -1;
-      int max_height = -1;
-      for (auto const &pair : zupt_img_last) {
-        if (max_width < pair.second.cols)
-          max_width = pair.second.cols;
-        if (max_height < pair.second.rows)
-          max_height = pair.second.rows;
-      }
-      zupt_image = cv::Mat(max_height, (int)zupt_img_last.size() * max_width, CV_8UC3, cv::Scalar(0, 0, 0));
-      // Loop through each image, and draw
-      int index_cam = 0;
-      for (auto const &pair : zupt_img_last) {
-        // Select the subset of the image
-        cv::Mat img_temp;
-        cv::cvtColor(zupt_img_last[pair.first], img_temp, cv::COLOR_GRAY2RGB);
-        // Display text telling user that we are doing a zupt
-        bool is_small = (std::min(img_temp.cols, img_temp.rows) < 400);
-        auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
-        cv::putText(img_temp, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.0 : 2.0, cv::Scalar(0, 0, 255), 3);
-        // Replace the output image
-        img_temp.copyTo(zupt_image(cv::Rect(max_width * index_cam, 0, zupt_img_last[pair.first].cols, zupt_img_last[pair.first].rows)));
-        index_cam++;
-      }
-      return;
-    }
-  }
-
   // Perform our feature tracking
   //  1) single cameras we are monocular
   //  2) two cameras we are stereo
@@ -356,6 +319,44 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     trackDATABASE->append_new_measurements(trackARUCO->get_feature_database());
   }
   rT2 = boost::posix_time::microsec_clock::local_time();
+
+  // Check if we should do zero-velocity, if so update the state with it
+  // Note that in the case that we only use in the beginning initialization phase
+  // If we have since moved, then we should never try to do a zero velocity update!
+  if (is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
+    // If the same state time, use the previous timestep decision
+    if (state->_timestamp != message.timestamp) {
+      did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
+    }
+    // If we did do an update, then nice display and return since we have no need to process
+    if (did_zupt_update) {
+      // Get the largest width and height
+      int max_width = -1;
+      int max_height = -1;
+      for (auto const &pair : zupt_img_last) {
+        if (max_width < pair.second.cols)
+          max_width = pair.second.cols;
+        if (max_height < pair.second.rows)
+          max_height = pair.second.rows;
+      }
+      zupt_image = cv::Mat(max_height, (int)zupt_img_last.size() * max_width, CV_8UC3, cv::Scalar(0, 0, 0));
+      // Loop through each image, and draw
+      int index_cam = 0;
+      for (auto const &pair : zupt_img_last) {
+        // Select the subset of the image
+        cv::Mat img_temp;
+        cv::cvtColor(zupt_img_last[pair.first], img_temp, cv::COLOR_GRAY2RGB);
+        // Display text telling user that we are doing a zupt
+        bool is_small = (std::min(img_temp.cols, img_temp.rows) < 400);
+        auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
+        cv::putText(img_temp, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.0 : 2.0, cv::Scalar(0, 0, 255), 3);
+        // Replace the output image
+        img_temp.copyTo(zupt_image(cv::Rect(max_width * index_cam, 0, zupt_img_last[pair.first].cols, zupt_img_last[pair.first].rows)));
+        index_cam++;
+      }
+      return;
+    }
+  }
 
   // If we do not have VIO initialization, then try to initialize
   // TODO: Or if we are trying to reset the system, then do that here!
