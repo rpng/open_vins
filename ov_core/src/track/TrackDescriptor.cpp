@@ -384,7 +384,7 @@ void TrackDescriptor::robust_match(std::vector<cv::KeyPoint> &pts0, std::vector<
   std::vector<cv::Point2f> pts0_n, pts1_n;
   for (size_t i = 0; i < pts0_rsc.size(); i++) {
     pts0_n.push_back(undistort_point(pts0_rsc.at(i), id0));
-    pts1_n.push_back(undistort_point(pts0_rsc.at(i), id1));
+    pts1_n.push_back(undistort_point(pts1_rsc.at(i), id1));
   }
 
   // Do RANSAC outlier rejection (note since we normalized the max pixel error is now in the normalized cords)
