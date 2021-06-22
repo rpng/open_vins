@@ -9,8 +9,8 @@
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
-    <arg name="num_slam"    default="25" />
-    <arg name="num_pts"     default="500" />
+    <arg name="num_slam"    default="50" />
+    <arg name="num_pts"     default="100" />
     <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />

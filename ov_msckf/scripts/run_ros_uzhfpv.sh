@@ -127,7 +127,7 @@ for i in "${!bagnames[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..00}; do
+for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"
