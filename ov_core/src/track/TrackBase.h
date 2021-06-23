@@ -35,7 +35,6 @@
 #include <opencv2/opencv.hpp>
 #include <boost/date_time/posix_time/posix_time.hpp>
 
-#include "Grider_DOG.h"
 #include "Grider_FAST.h"
 #include "cam/CamBase.h"
 #include "feat/FeatureDatabase.h"
