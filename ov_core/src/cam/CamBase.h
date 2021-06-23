@@ -84,7 +84,7 @@ public:
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  virtual Eigen::Vector2f undistort(int cam_id, Eigen::Vector2f uv_dist) = 0;
+  virtual Eigen::Vector2f undistort(size_t cam_id, Eigen::Vector2f uv_dist) = 0;
 
   /**
    * @brief Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.
@@ -92,7 +92,7 @@ public:
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  cv::Point2f undistort(int cam_id, cv::Point2f uv_dist) {
+  cv::Point2f undistort(size_t cam_id, cv::Point2f uv_dist) {
     Eigen::Vector2f ept1, ept2;
     ept1 << uv_dist.x, uv_dist.y;
     ept2 = undistort(cam_id, ept1);
@@ -108,7 +108,7 @@ public:
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  virtual Eigen::Vector2f distort(int cam_id, Eigen::Vector2f uv_norm) = 0;
+  virtual Eigen::Vector2f distort(size_t cam_id, Eigen::Vector2f uv_norm) = 0;
 
   /**
    * @brief Given a normalized uv coordinate this will distort it to the raw image plane
@@ -116,7 +116,7 @@ public:
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  cv::Point2f distort(int cam_id, cv::Point2f uv_norm) {
+  cv::Point2f distort(size_t cam_id, cv::Point2f uv_norm) {
     Eigen::Vector2f ept1, ept2;
     ept1 << uv_norm.x, uv_norm.y;
     ept2 = distort(cam_id, ept1);
@@ -133,14 +133,21 @@ public:
    * @param H_dz_dzn Derivative of measurement z in respect to normalized
    * @param H_dz_dzeta Derivative of measurement z in respect to intrinic parameters
    */
-  virtual void compute_distort_jacobian(int cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) = 0;
+  virtual void compute_distort_jacobian(size_t cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) = 0;
 
-  /**
-   * @brief Gets how many unique cameras we have
-   * @return num cameras
-   */
+  /// Gets how many unique cameras we have
   size_t get_num_cameras() {
     return camera_k_OPENCV.size();
+  }
+
+  /// Gets the camera matrix for a specific camera
+  cv::Matx33d get_K(size_t cam_id) {
+    return camera_k_OPENCV.at(cam_id);
+  }
+
+  /// Gets the camera distortion for a specific camera
+  cv::Vec4d get_D(size_t cam_id) {
+    return camera_d_OPENCV.at(cam_id);
   }
 
 protected:

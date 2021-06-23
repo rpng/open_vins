@@ -19,11 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include <cmath>
 #include <deque>
-#include <fstream>
-#include <iomanip>
 #include <sstream>
 #include <unistd.h>
 #include <vector>
@@ -37,9 +34,7 @@
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/filesystem.hpp>
-
+#include "cam/CamRadtan.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
@@ -60,7 +55,7 @@ std::deque<double> clonetimes;
 ros::Time time_start;
 
 // Our master function for tracking
-void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool use_stereo);
+void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
 
 // Main function
 int main(int argc, char **argv) {
@@ -76,7 +71,7 @@ int main(int argc, char **argv) {
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
   nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
-  // nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V2_03_difficult.bag");
+  //nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
   printf("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Get our start location and how much of the bag we want to play
@@ -90,17 +85,18 @@ int main(int argc, char **argv) {
   //===================================================================================
 
   // Parameters for our extractor
+  ov_core::TrackBase::HistogramMethod method = ov_core::TrackBase::HistogramMethod::NONE;
   int num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist;
   double knn_ratio;
   bool do_downsizing, use_stereo;
-  nh.param<int>("num_pts", num_pts, 800);
+  nh.param<int>("num_pts", num_pts, 400);
   nh.param<int>("num_aruco", num_aruco, 1024);
   nh.param<int>("clone_states", clone_states, 11);
   nh.param<int>("fast_threshold", fast_threshold, 10);
   nh.param<int>("grid_x", grid_x, 9);
   nh.param<int>("grid_y", grid_y, 7);
-  nh.param<int>("min_px_dist", min_px_dist, 3);
-  nh.param<double>("knn_ratio", knn_ratio, 0.85);
+  nh.param<int>("min_px_dist", min_px_dist, 10);
+  nh.param<double>("knn_ratio", knn_ratio, 0.70);
   nh.param<bool>("downsize_aruco", do_downsizing, false);
   nh.param<bool>("use_stereo", use_stereo, false);
 
@@ -116,20 +112,16 @@ int main(int argc, char **argv) {
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
   Eigen::Matrix<double, 8, 1> cam0_calib;
   cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
-
-  // Create our n-camera vectors
-  std::map<size_t, bool> camera_fisheye;
-  std::map<size_t, Eigen::VectorXd> camera_calibration;
-  camera_fisheye.insert({0, false});
-  camera_calibration.insert({0, cam0_calib});
-  camera_fisheye.insert({1, false});
-  camera_calibration.insert({1, cam0_calib});
+  std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>();
+  for (int i = 0; i < 2; i++) {
+    camera_calib->set_values(i, cam0_calib);
+  }
 
   // Lets make a feature extractor
-  extractor = new TrackKLT(num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist);
-  // extractor = new TrackDescriptor(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,knn_ratio);
-  // extractor = new TrackAruco(num_aruco,true,do_downsizing);
-  extractor->set_calibration(camera_calibration, camera_fisheye);
+  extractor = new TrackKLT(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
+  //extractor =
+  //    new TrackDescriptor(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist, knn_ratio);
+  // extractor = new TrackAruco(camera_calib, num_aruco, !use_stereo, method, do_downsizing);
 
   //===================================================================================
   //===================================================================================
@@ -217,7 +209,7 @@ int main(int argc, char **argv) {
     // If we have both left and right, then process
     if (has_left && has_right) {
       // process
-      handle_stereo(time0, time1, img0, img1, use_stereo);
+      handle_stereo(time0, time1, img0, img1);
       // reset bools
       has_left = false;
       has_right = false;
@@ -231,20 +223,41 @@ int main(int argc, char **argv) {
 /**
  * This function will process the new stereo pair with the extractor!
  */
-void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1, bool use_stereo) {
+void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
+
+  // Animate our dynamic mask moving
+  // Very simple ball bounding around the screen example
+  cv::Mat mask = cv::Mat::zeros(cv::Size(img0.cols, img0.rows), CV_8UC1);
+  static cv::Point2f ball_center;
+  static cv::Point2f ball_velocity;
+  if (ball_velocity.x == 0 || ball_velocity.y == 0) {
+    ball_center.x = (float)img0.cols / 2.0f;
+    ball_center.y = (float)img0.rows / 2.0f;
+    ball_velocity.x = 2.5;
+    ball_velocity.y = 2.5;
+  }
+  ball_center += ball_velocity;
+  if (ball_center.x < 0 || (int)ball_center.x > img0.cols)
+    ball_velocity.x *= -1;
+  if (ball_center.y < 0 || (int)ball_center.y > img0.rows)
+    ball_velocity.y *= -1;
+  cv::circle(mask, ball_center, 100, cv::Scalar(255), cv::FILLED);
 
   // Process this new image
-  if (use_stereo) {
-    extractor->feed_stereo(time0, img0, img1, 0, 1);
-  } else {
-    extractor->feed_monocular(time0, img0, 0);
-    extractor->feed_monocular(time0, img1, 1);
-  }
+  ov_core::CameraData message;
+  message.timestamp = time0;
+  message.sensor_ids.push_back(0);
+  message.sensor_ids.push_back(1);
+  message.images.push_back(img0);
+  message.images.push_back(img1);
+  message.masks.push_back(mask);
+  message.masks.push_back(mask);
+  extractor->feed_new_camera(message);
 
   // Display the resulting tracks
   cv::Mat img_active, img_history;
   extractor->display_active(img_active, 255, 0, 0, 0, 0, 255);
-  extractor->display_history(img_history, 0, 255, 255, 255, 255, 255);
+  extractor->display_history(img_history, 255, 255, 0, 255, 255, 255);
 
   // Show our image!
   cv::imshow("Active Tracks", img_active);

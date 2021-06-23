@@ -61,8 +61,11 @@ struct CameraData {
   /// Camera ids for each of the images collected
   std::vector<int> sensor_ids;
 
-  /// Camera ids for each of the images collected
+  /// Raw image we have collected for each camera
   std::vector<cv::Mat> images;
+
+  /// Tracking masks for each camera we have
+  std::vector<cv::Mat> masks;
 
   /// Sort function to allow for using of STL containers
   bool operator<(const CameraData &other) const {

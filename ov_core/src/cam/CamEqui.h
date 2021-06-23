@@ -106,7 +106,7 @@ public:
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  Eigen::Vector2f undistort(int cam_id, Eigen::Vector2f uv_dist) override {
+  Eigen::Vector2f undistort(size_t cam_id, Eigen::Vector2f uv_dist) override {
 
     // Determine what camera parameters we should use
     cv::Matx33d camK = camera_k_OPENCV.at(cam_id);
@@ -135,7 +135,7 @@ public:
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  Eigen::Vector2f distort(int cam_id, Eigen::Vector2f uv_norm) override {
+  Eigen::Vector2f distort(size_t cam_id, Eigen::Vector2f uv_norm) override {
 
     // Get our camera parameters
     assert(camera_values.find(cam_id)!=camera_values.end());
@@ -168,7 +168,7 @@ public:
    * @param H_dz_dzn Derivative of measurement z in respect to normalized
    * @param H_dz_dzeta Derivative of measurement z in respect to intrinic parameters
    */
-  void compute_distort_jacobian(int cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) override {
+  void compute_distort_jacobian(size_t cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) override {
 
     // Get our camera parameters
     assert(camera_values.find(cam_id)!=camera_values.end());
