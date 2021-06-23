@@ -206,6 +206,7 @@ int main(int argc, char **argv) {
         message.timestamp = it0->second.first;
         message.sensor_ids.push_back(it0->first);
         message.images.push_back(it0->second.second);
+        message.masks.push_back(cv::Mat::zeros(it0->second.second.rows, it0->second.second.cols, CV_8UC1));
         sys->feed_measurement_camera(message);
       }
       it0 = image_buffer.erase(it0);
@@ -230,6 +231,8 @@ int main(int argc, char **argv) {
         message.sensor_ids.push_back(stereo.second);
         message.images.push_back(image_buffer.at(stereo.first).second);
         message.images.push_back(image_buffer.at(stereo.second).second);
+        message.masks.push_back(cv::Mat::zeros(image_buffer.at(stereo.first).second.rows, image_buffer.at(stereo.first).second.cols, CV_8UC1));
+        message.masks.push_back(cv::Mat::zeros(image_buffer.at(stereo.second).second.rows, image_buffer.at(stereo.second).second.cols, CV_8UC1));
         sys->feed_measurement_camera(message);
       }
       image_buffer.erase(stereo.first);

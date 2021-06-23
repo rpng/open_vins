@@ -60,8 +60,14 @@ VioManager::VioManager(VioManagerOptions &params_) {
   // Loop through through, and load each of the cameras
   for (int i = 0; i < state->_options.num_cameras; i++) {
 
-    // If our distortions are fisheye or not!
-    state->_cam_intrinsics_model.at(i) = params.camera_fisheye.at(i);
+    // Create the actual camera object and set the values
+    if(params.camera_fisheye.at(i)) {
+      state->_cam_intrinsics_cameras.insert({i, std::make_shared<CamEqui>()});
+      state->_cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
+    } else {
+      state->_cam_intrinsics_cameras.insert({i, std::make_shared<CamRadtan>()});
+      state->_cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
+    }
 
     // Camera intrinsic properties
     state->_cam_intrinsics.at(i)->set_value(params.camera_intrinsics.at(i));
@@ -103,19 +109,22 @@ VioManager::VioManager(VioManagerOptions &params_) {
   // Lets make a feature extractor
   trackDATABASE = std::make_shared<FeatureDatabase>();
   if (params.use_klt) {
-    trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(params.num_pts, state->_options.max_aruco_features, params.fast_threshold,
-                                                         params.grid_x, params.grid_y, params.min_px_dist));
-    trackFEATS->set_calibration(params.camera_intrinsics, params.camera_fisheye);
+    trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras,
+                                                         params.num_pts, state->_options.max_aruco_features,
+                                                         !params.use_stereo, params.histogram_method,
+                                                         params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist));
   } else {
-    trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(params.num_pts, state->_options.max_aruco_features, params.fast_threshold,
-                                                                params.grid_x, params.grid_y, params.knn_ratio));
-    trackFEATS->set_calibration(params.camera_intrinsics, params.camera_fisheye);
+    trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(state->_cam_intrinsics_cameras,
+                                                                params.num_pts, state->_options.max_aruco_features,
+                                                                !params.use_stereo, params.histogram_method,
+                                                                params.fast_threshold, params.grid_x, params.grid_y,
+                                                                params.min_px_dist, params.knn_ratio));
   }
 
   // Initialize our aruco tag extractor
   if (params.use_aruco) {
-    trackARUCO = std::shared_ptr<TrackBase>(new TrackAruco(state->_options.max_aruco_features, params.downsize_aruco));
-    trackARUCO->set_calibration(params.camera_intrinsics, params.camera_fisheye);
+    trackARUCO = std::shared_ptr<TrackBase>(new TrackAruco(state->_cam_intrinsics_cameras, state->_options.max_aruco_features,
+                                                           !params.use_stereo, params.histogram_method, params.downsize_aruco));
   }
 
   // Initialize our state propagator
@@ -189,9 +198,8 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
   std::shared_ptr<TrackSIM> trackSIM = dynamic_pointer_cast<TrackSIM>(trackFEATS);
   if (trackSIM == nullptr) {
     // Replace with the simulated tracker
-    trackSIM = std::make_shared<TrackSIM>(state->_options.max_aruco_features);
+    trackSIM = std::make_shared<TrackSIM>(state->_cam_intrinsics_cameras, state->_options.max_aruco_features);
     trackFEATS = trackSIM;
-    trackFEATS->set_calibration(params.camera_intrinsics, params.camera_fisheye);
     printf(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
   }
   trackSIM->set_width_height(params.camera_wh);
@@ -247,8 +255,9 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
   message.timestamp = timestamp;
   for (auto const &camid : camids) {
     auto &wh = params.camera_wh.at(camid);
-    message.images.push_back(cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1));
     message.sensor_ids.push_back(camid);
+    message.images.push_back(cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1));
+    message.masks.push_back(cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1));
   }
   do_feature_propagate_update(message);
 }
@@ -259,7 +268,6 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   rT1 = boost::posix_time::microsec_clock::local_time();
 
   // Assert we have valid measurement data and ids
-  int num_images = (int)message_const.sensor_ids.size();
   assert(!message_const.sensor_ids.empty());
   assert(message_const.sensor_ids.size() == message_const.images.size());
   for (size_t i = 0; i < message_const.sensor_ids.size() - 1; i++) {
@@ -280,41 +288,15 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     zupt_img_last[message.sensor_ids.at(i)] = message.images.at(i).clone();
   }
 
-  // Perform our feature tracking
-  //  1) single cameras we are monocular
-  //  2) two cameras we are stereo
-  if (num_images == 1) {
-    trackFEATS->feed_monocular(message.timestamp, message.images.at(0), message.sensor_ids.at(0));
-  } else if (num_images == 2) {
-    if (params.use_stereo) {
-      trackFEATS->feed_stereo(message.timestamp, message.images.at(0), message.images.at(1), message.sensor_ids.at(0),
-                              message.sensor_ids.at(1));
-    } else {
-      parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range &range) {
-                      for (int i = range.start; i < range.end; i++) {
-                        trackFEATS->feed_monocular(message.timestamp, message.images.at(i), message.sensor_ids.at(i));
-                      }
-                    }));
-    }
-  } else {
-    printf(RED "invalid number of images passed %d, we only support mono or stereo tracking", num_images);
-    std::exit(EXIT_FAILURE);
-  }
+  // Perform our feature tracking!
+  trackFEATS->feed_new_camera(message);
   trackDATABASE->append_new_measurements(trackFEATS->get_feature_database());
 
   // If the aruco tracker is available, the also pass to it
   // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids
   // NOTE: thus we just call the stereo tracking if we are doing binocular!
   if (trackARUCO != nullptr) {
-    if (num_images == 1) {
-      trackARUCO->feed_monocular(message.timestamp, message.images.at(0), message.sensor_ids.at(0));
-    } else if (num_images == 2) {
-      trackARUCO->feed_stereo(message.timestamp, message.images.at(0), message.images.at(1), message.sensor_ids.at(0),
-                              message.sensor_ids.at(1));
-    } else {
-      printf(RED "invalid number of images passed %d, we only support mono or stereo tracking", num_images);
-      std::exit(EXIT_FAILURE);
-    }
+    trackARUCO->feed_new_camera(message);
     trackDATABASE->append_new_measurements(trackARUCO->get_feature_database());
   }
   rT2 = boost::posix_time::microsec_clock::local_time();
@@ -592,26 +574,6 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // Update our visualization feature set, and clean up the old features
   //===================================================================================
 
-  // Finally if we are optimizing our intrinsics, update our trackers
-  // TODO: we shouldn't need to do this, in the future just do this before triangulation etc.
-  // TODO: this is the best we can do right now since triangulation & ransac need normalized coordinates
-  if (state->_options.do_calib_camera_intrinsics) {
-    // Get vectors arrays
-    std::map<size_t, Eigen::VectorXd> cameranew_calib;
-    std::map<size_t, bool> cameranew_fisheye;
-    for (int i = 0; i < state->_options.num_cameras; i++) {
-      std::shared_ptr<Vec> calib = state->_cam_intrinsics.at(i);
-      bool isfish = state->_cam_intrinsics_model.at(i);
-      cameranew_calib.insert({i, calib->value()});
-      cameranew_fisheye.insert({i, isfish});
-    }
-    // Update the trackers and their databases
-    trackFEATS->set_calibration(cameranew_calib, cameranew_fisheye, false);
-    if (trackARUCO != nullptr) {
-      trackARUCO->set_calibration(cameranew_calib, cameranew_fisheye, false);
-    }
-  }
-
   // Re-triangulate all current tracks in the current frame
   if (message.sensor_ids.at(0) == 0) {
 
@@ -858,8 +820,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     for (const auto &clone_imu : state->_clones_IMU) {
 
       // Get current camera pose
-      Eigen::Matrix<double, 3, 3> R_GtoCi = clone_calib.second->Rot() * clone_imu.second->Rot();
-      Eigen::Matrix<double, 3, 1> p_CioinG = clone_imu.second->pos() - R_GtoCi.transpose() * clone_calib.second->pos();
+      Eigen::Matrix3d R_GtoCi = clone_calib.second->Rot() * clone_imu.second->Rot();
+      Eigen::Vector3d p_CioinG = clone_imu.second->pos() - R_GtoCi.transpose() * clone_calib.second->pos();
 
       // Append to our map
       clones_cami.insert({clone_imu.first, FeatureInitializer::ClonePose(R_GtoCi, p_CioinG)});
@@ -905,11 +867,11 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
       // Assert that we have an anchor pose for this feature
       assert(feat.second->_anchor_cam_id != -1);
       // Get calibration for our anchor camera
-      Eigen::Matrix<double, 3, 3> R_ItoC = state->_calib_IMUtoCAM.at(feat.second->_anchor_cam_id)->Rot();
-      Eigen::Matrix<double, 3, 1> p_IinC = state->_calib_IMUtoCAM.at(feat.second->_anchor_cam_id)->pos();
+      Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(feat.second->_anchor_cam_id)->Rot();
+      Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(feat.second->_anchor_cam_id)->pos();
       // Anchor pose orientation and position
-      Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp)->Rot();
-      Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp)->pos();
+      Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp)->Rot();
+      Eigen::Vector3d p_IinG = state->_clones_IMU.at(feat.second->_anchor_clone_timestamp)->pos();
       // Feature in the global frame
       p_FinG = R_GtoI.transpose() * R_ItoC.transpose() * (feat.second->get_xyz(false) - p_IinC) + p_IinG;
     }
@@ -921,7 +883,6 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(0);
   Eigen::Matrix<double, 3, 3> R_ItoC = calibration->Rot();
   Eigen::Matrix<double, 3, 1> p_IinC = calibration->pos();
-  Eigen::Matrix<double, 8, 1> cam_d = distortion->value();
 
   // Get current IMU clone state
   std::shared_ptr<PoseJPL> clone_Ii = state->_clones_IMU.at(active_tracks_time);
@@ -938,42 +899,16 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     double depth = p_FinCi(2);
     Eigen::Vector2d uv_norm, uv_dist;
     uv_norm << p_FinCi(0) / depth, p_FinCi(1) / depth;
+    uv_dist = state->_cam_intrinsics_cameras.at(0)->distort_d(uv_norm);
 
     // Skip if not valid (i.e. negative depth, or outside of image)
     if (depth < 0.1) {
       continue;
     }
 
-    // Calculate distorted uv coordinate
-    //  1. Calculate distorted coordinates for fisheye
-    //  2. Calculate distorted coordinates for radial
-    if (state->_cam_intrinsics_model.at(0)) {
-      double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-      double theta = std::atan(r);
-      double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5) + cam_d(6) * std::pow(theta, 7) +
-                       cam_d(7) * std::pow(theta, 9);
-      // Handle when r is small (meaning our xy is near the camera center)
-      double inv_r = (r > 1e-8) ? 1.0 / r : 1.0;
-      double cdist = (r > 1e-8) ? theta_d * inv_r : 1.0;
-      // Calculate distorted coordinates for fisheye
-      double x1 = uv_norm(0) * cdist;
-      double y1 = uv_norm(1) * cdist;
-      uv_dist(0) = cam_d(0) * x1 + cam_d(2);
-      uv_dist(1) = cam_d(1) * y1 + cam_d(3);
-    } else {
-      double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-      double r_2 = r * r;
-      double r_4 = r_2 * r_2;
-      double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1) +
-                  cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-      double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1)) +
-                  2 * cam_d(7) * uv_norm(0) * uv_norm(1);
-      uv_dist(0) = cam_d(0) * x1 + cam_d(2);
-      uv_dist(1) = cam_d(1) * y1 + cam_d(3);
-    }
-
     // Skip if not valid (i.e. negative depth, or outside of image)
-    if (uv_dist(0) < 0 || uv_dist(0) > params.camera_wh.at(0).first || uv_dist(1) < 0 || uv_dist(1) > params.camera_wh.at(0).second) {
+    if (uv_dist(0) < 0 || (int)uv_dist(0) >= params.camera_wh.at(0).first
+        || uv_dist(1) < 0 || (int)uv_dist(1) >= params.camera_wh.at(0).second) {
       // printf("feat %zu -> depth = %.2f | u_d = %.2f | v_d = %.2f\n",(*it2)->featid,depth,uv_dist(0),uv_dist(1));
       continue;
     }

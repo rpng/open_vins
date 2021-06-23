@@ -27,6 +27,7 @@
 #include <vector>
 
 #include "StateOptions.h"
+#include "cam/CamBase.h"
 #include "types/IMU.h"
 #include "types/Landmark.h"
 #include "types/PoseJPL.h"
@@ -103,8 +104,8 @@ public:
   /// Camera intrinsics
   std::unordered_map<size_t, std::shared_ptr<Vec>> _cam_intrinsics;
 
-  /// What distortion model we are using (false=radtan, true=fisheye)
-  std::unordered_map<size_t, bool> _cam_intrinsics_model;
+  /// Camera intrinsics camera objects
+  std::unordered_map<size_t, std::shared_ptr<CamBase>> _cam_intrinsics_cameras;
 
 private:
   // Define that the state helper is a friend class of this class

@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "feat/FeatureInitializerOptions.h"
+#include "track/TrackBase.h"
 #include "state/Propagator.h"
 #include "state/StateOptions.h"
 #include "update/UpdaterOptions.h"
@@ -218,6 +219,9 @@ struct VioManagerOptions {
   /// Will check after doing KLT track and remove any features closer than this
   int min_px_dist = 10;
 
+  /// What type of pre-processing histogram method should be applied to images
+  TrackBase::HistogramMethod histogram_method = TrackBase::HistogramMethod::HISTOGRAM;
+
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
 
@@ -229,8 +233,8 @@ struct VioManagerOptions {
    */
   void print_trackers() {
     printf("FEATURE TRACKING PARAMETERS:\n");
-    printf("\t- num_pts: %d\n", num_pts);
     printf("\t- use_stereo: %d\n", use_stereo);
+    printf("\t- use_aruco: %d\n", use_aruco);
     printf("\t- stereo pairs: ");
     for (const auto &pair : stereo_pairs) {
       printf("[%d, %d] ", pair.first, pair.second);
@@ -239,6 +243,12 @@ struct VioManagerOptions {
     printf("\t- downsize aruco: %d\n", downsize_aruco);
     printf("\t- downsize cameras: %d\n", downsample_cameras);
     printf("\t- use multi-threading: %d\n", use_multi_threading);
+    printf("\t- num_pts: %d\n", num_pts);
+    printf("\t- fast threshold: %d\n", fast_threshold);
+    printf("\t- grid X by Y: %d by %d\n", grid_x, grid_y);
+    printf("\t- min px dist: %d\n", min_px_dist);
+    printf("\t- hist method: %d\n", (int)histogram_method);
+    printf("\t- knn ratio: %.3f\n", knn_ratio);
     featinit_options.print();
   }
 

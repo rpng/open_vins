@@ -98,20 +98,6 @@ public:
                                                   std::vector<Eigen::MatrixXd> &H_x, std::vector<std::shared_ptr<Type>> &x_order);
 
   /**
-   * @brief This will compute the Jacobian in respect to the intrinsic calibration parameters and normalized coordinates
-   *
-   * @param state State of the filter system
-   * @param uv_norm Normalized image coordinates
-   * @param isfisheye If this feature is for a fisheye model
-   * @param cam_d Camera intrinsics values
-   * @param dz_dzn Derivative in respect to normalized coordinates
-   * @param dz_dzeta Derivative in respect to distortion paramters
-   */
-  static void get_feature_jacobian_intrinsics(std::shared_ptr<State> state, const Eigen::Vector2d &uv_norm, bool isfisheye,
-                                              Eigen::Matrix<double, 8, 1> cam_d, Eigen::Matrix<double, 2, 2> &dz_dzn,
-                                              Eigen::Matrix<double, 2, 8> &dz_dzeta);
-
-  /**
    * @brief Will construct the "stacked" Jacobians for a single feature from all its measurements
    *
    * @param[in] state State of the filter system

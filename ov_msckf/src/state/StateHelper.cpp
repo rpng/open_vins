@@ -173,6 +173,14 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
   for (size_t i = 0; i < state->_variables.size(); i++) {
     state->_variables.at(i)->update(dx.block(state->_variables.at(i)->id(), 0, state->_variables.at(i)->size(), 1));
   }
+
+  // If we are doing online intrinsic calibration we should update our camera objects
+  // NOTE: is this the best place to put this update logic??? probably..
+  if(state->_options.do_calib_camera_intrinsics) {
+    for(auto const &calib : state->_cam_intrinsics) {
+      state->_cam_intrinsics_cameras.at(calib.first)->set_value(calib.second->value());
+    }
+  }
 }
 
 void StateHelper::fix_4dof_gauge_freedoms(std::shared_ptr<State> state, const Eigen::Vector4d &q_GtoI) {

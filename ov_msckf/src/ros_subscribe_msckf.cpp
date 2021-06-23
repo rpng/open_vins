@@ -161,6 +161,7 @@ void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
   message.timestamp = cv_ptr->header.stamp.toSec();
   message.sensor_ids.push_back(cam_id0);
   message.images.push_back(cv_ptr->image.clone());
+  message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
 
   // send it to our VIO system
   sys->feed_measurement_camera(message);
@@ -193,6 +194,8 @@ void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::
   message.sensor_ids.push_back(cam_id1);
   message.images.push_back(cv_ptr0->image.clone());
   message.images.push_back(cv_ptr1->image.clone());
+  message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
+  message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
 
   // send it to our VIO system
   sys->feed_measurement_camera(message);

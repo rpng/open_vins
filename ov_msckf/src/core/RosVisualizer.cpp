@@ -730,7 +730,7 @@ void RosVisualizer::publish_loopclosure_information() {
     sensor_msgs::CameraInfo cameraparams;
     cameraparams.header = header;
     cameraparams.header.frame_id = "imu";
-    cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0)) ? "equidistant" : "plumb_bob";
+    cameraparams.distortion_model = (_app->get_params().camera_fisheye.at(0)) ? "equidistant" : "plumb_bob";
     Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
     cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
     cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};
