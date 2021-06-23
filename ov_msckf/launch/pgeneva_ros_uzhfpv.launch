@@ -80,6 +80,7 @@
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
         <param name="multi_threading"    type="bool"   value="true" />
+        <param name="histogram_method"   type="string" value="HISTOGRAM" /> <!-- NONE, HISTOGRAM, CLAHE -->
 
         <!-- aruco tag/mapping properties -->
         <param name="use_aruco"        type="bool"   value="false" />

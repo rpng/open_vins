@@ -131,6 +131,10 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   app1.add_option("--min_px_dist", params.min_px_dist, "");
   app1.add_option("--knn_ratio", params.knn_ratio, "");
 
+  // Preprocessing histogram method
+  std::string histogram_method_str = "HISTOGRAM";
+  app1.add_option("--histogram_method", histogram_method_str, "");
+
   // Feature initializer parameters
   app1.add_option("--fi_triangulate_1d", params.featinit_options.triangulate_1d, "");
   app1.add_option("--fi_refine_features", params.featinit_options.refine_features, "");
@@ -231,6 +235,21 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   if (params.state_options.num_cameras < 1) {
     printf(RED "VioManager(): Specified number of cameras needs to be greater than zero\n" RESET);
     printf(RED "VioManager(): num cameras = %d\n" RESET, params.state_options.num_cameras);
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Preprocessing histogram method
+  if (histogram_method_str == "NONE") {
+    params.histogram_method = TrackBase::NONE;
+  } else if (histogram_method_str == "HISTOGRAM") {
+    params.histogram_method = TrackBase::HISTOGRAM;
+  } else if (histogram_method_str == "CLAHE") {
+    params.histogram_method = TrackBase::CLAHE;
+  } else {
+    printf(RED "VioManager(): invalid feature histogram specified:\n" RESET);
+    printf(RED "\t- NONE\n" RESET);
+    printf(RED "\t- HISTOGRAM\n" RESET);
+    printf(RED "\t- CLAHE\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 

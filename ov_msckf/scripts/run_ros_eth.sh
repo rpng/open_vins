@@ -82,7 +82,7 @@ for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_2.3.1_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
+filename_est="$save_path1/ov_2.3.2_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]

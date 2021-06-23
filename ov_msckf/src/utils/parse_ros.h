@@ -189,6 +189,39 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   nh.param<int>("min_px_dist", params.min_px_dist, params.min_px_dist);
   nh.param<double>("knn_ratio", params.knn_ratio, params.knn_ratio);
 
+  // Preprocessing histogram method
+  std::string histogram_method_str = "HISTOGRAM";
+  nh.param<std::string>("histogram_method", histogram_method_str, histogram_method_str);
+  if (histogram_method_str == "NONE") {
+    params.histogram_method = TrackBase::NONE;
+  } else if (histogram_method_str == "HISTOGRAM") {
+    params.histogram_method = TrackBase::HISTOGRAM;
+  } else if (histogram_method_str == "CLAHE") {
+    params.histogram_method = TrackBase::CLAHE;
+  } else {
+    printf(RED "VioManager(): invalid feature histogram specified:\n" RESET);
+    printf(RED "\t- NONE\n" RESET);
+    printf(RED "\t- HISTOGRAM\n" RESET);
+    printf(RED "\t- CLAHE\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Feature mask
+  nh.param<bool>("use_mask", params.use_mask, params.use_mask);
+  for (int i = 0; i < params.state_options.num_cameras; i++) {
+    std::string mask_path;
+    nh.param<std::string>("mask" + std::to_string(i), mask_path, "");
+    if(params.use_mask) {
+      if (!boost::filesystem::exists(mask_path)) {
+        printf(RED "VioManager(): invalid mask path:\n" RESET);
+        printf(RED "\t- mask%d\n" RESET,i);
+        printf(RED "\t- %s\n" RESET,mask_path.c_str());
+        std::exit(EXIT_FAILURE);
+      }
+      params.masks.insert({i, cv::imread(mask_path, cv::IMREAD_GRAYSCALE)});
+    }
+  }
+
   // Feature initializer parameters
   nh.param<bool>("fi_triangulate_1d", params.featinit_options.triangulate_1d, params.featinit_options.triangulate_1d);
   nh.param<bool>("fi_refine_features", params.featinit_options.refine_features, params.featinit_options.refine_features);

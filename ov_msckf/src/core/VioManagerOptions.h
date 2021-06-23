@@ -225,6 +225,12 @@ struct VioManagerOptions {
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
 
+  /// If we should try to load a mask and use it to reject invalid features
+  bool use_mask = false;
+
+  /// Mask images for each camera
+  std::map<size_t, cv::Mat> masks;
+
   /// Parameters used by our feature initialize / triangulator
   FeatureInitializerOptions featinit_options;
 
@@ -249,6 +255,7 @@ struct VioManagerOptions {
     printf("\t- min px dist: %d\n", min_px_dist);
     printf("\t- hist method: %d\n", (int)histogram_method);
     printf("\t- knn ratio: %.3f\n", knn_ratio);
+    printf("\t- use mask?: %d\n", use_mask);
     featinit_options.print();
   }
 
