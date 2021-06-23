@@ -110,18 +110,19 @@ int main(int argc, char **argv) {
   printf("downsize aruco image: %d\n", do_downsizing);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
-  Eigen::Matrix<double, 8, 1> cam0_calib;
-  cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
-  std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>();
+  std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
   for (int i = 0; i < 2; i++) {
-    camera_calib->set_values(i, cam0_calib);
+    Eigen::Matrix<double, 8, 1> cam0_calib;
+    cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
+    std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>();
+    camera_calib->set_value(cam0_calib);
+    cameras.insert({i, camera_calib});
   }
 
   // Lets make a feature extractor
-  extractor = new TrackKLT(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
-  // extractor =
-  //    new TrackDescriptor(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist, knn_ratio);
-  // extractor = new TrackAruco(camera_calib, num_aruco, !use_stereo, method, do_downsizing);
+  extractor = new TrackKLT(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
+  // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist, knn_ratio);
+  // extractor = new TrackAruco(cameras, num_aruco, !use_stereo, method, do_downsizing);
 
   //===================================================================================
   //===================================================================================

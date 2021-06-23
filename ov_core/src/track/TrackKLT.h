@@ -41,7 +41,7 @@ class TrackKLT : public TrackBase {
 public:
   /**
    * @brief Public constructor with configuration variables
-   * @param camera camera calibration object which has all camera intrinsics in it
+   * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
    * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
@@ -51,9 +51,9 @@ public:
    * @param gridy size of grid in the y-direction / v-direction
    * @param minpxdist features need to be at least this number pixels away from each other
    */
-  explicit TrackKLT(std::shared_ptr<CamBase> camera, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod,
+  explicit TrackKLT(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod,
                     int fast_threshold, int gridx, int gridy, int minpxdist)
-      : TrackBase(camera, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
+      : TrackBase(cameras, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
         min_px_dist(minpxdist) {}
 
   /**

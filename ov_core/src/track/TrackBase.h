@@ -78,21 +78,21 @@ public:
 
   /**
    * @brief Public constructor with configuration variables
-   * @param camera camera calibration object which has all camera intrinsics in it
+   * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
    * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    */
-  TrackBase(std::shared_ptr<CamBase> camera, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod)
-      : camera_calib(camera), database(new FeatureDatabase()), num_features(numfeats), binocular_track(binocular),
+  TrackBase(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod)
+      : camera_calib(cameras), database(new FeatureDatabase()), num_features(numfeats), binocular_track(binocular),
         histogram_method(histmethod) {
     // Our current feature ID should be larger then the number of aruco tags we have (each has 4 corners)
     currid = 4 * (size_t)numaruco + 1;
     // Create our mutex array based on the number of cameras we have
     // See https://stackoverflow.com/a/24170141/7718197
-    if (mtx_feeds.empty() || mtx_feeds.size() != camera_calib->get_num_cameras()) {
-      std::vector<std::mutex> list(camera_calib->get_num_cameras());
+    if (mtx_feeds.empty() || mtx_feeds.size() != camera_calib.size()) {
+      std::vector<std::mutex> list(camera_calib.size());
       mtx_feeds.swap(list);
     }
   }
@@ -159,7 +159,7 @@ public:
 
 protected:
   /// Camera object which has all calibration in it
-  std::shared_ptr<CamBase> camera_calib;
+  std::unordered_map<size_t, std::shared_ptr<CamBase>> camera_calib;
 
   /// Database with all our current features
   std::shared_ptr<FeatureDatabase> database;

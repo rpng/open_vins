@@ -96,15 +96,14 @@ public:
 
   /**
    * @brief Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.
-   * @param cam_id Which camera id we use intrinsics from
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  Eigen::Vector2f undistort(size_t cam_id, Eigen::Vector2f uv_dist) override {
+  Eigen::Vector2f undistort_f(const Eigen::Vector2f &uv_dist) override {
 
     // Determine what camera parameters we should use
-    cv::Matx33d camK = camera_k_OPENCV.at(cam_id);
-    cv::Vec4d camD = camera_d_OPENCV.at(cam_id);
+    cv::Matx33d camK = camera_k_OPENCV;
+    cv::Vec4d camD = camera_d_OPENCV;
 
     // Convert point to opencv format
     cv::Mat mat(1, 2, CV_32F);
@@ -125,15 +124,13 @@ public:
 
   /**
    * @brief Given a normalized uv coordinate this will distort it to the raw image plane
-   * @param cam_id Which camera id we use intrinsics from
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  Eigen::Vector2f distort(size_t cam_id, Eigen::Vector2f uv_norm) override {
+  Eigen::Vector2f distort_f(const Eigen::Vector2f &uv_norm) override {
 
     // Get our camera parameters
-    assert(camera_values.find(cam_id) != camera_values.end());
-    Eigen::MatrixXd cam_d = camera_values.at(cam_id);
+    Eigen::MatrixXd cam_d = camera_values;
 
     // Calculate distorted coordinates for fisheye
     double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
@@ -156,16 +153,14 @@ public:
 
   /**
    * @brief Computes the derivative of raw distorted to normalized coordinate.
-   * @param cam_id Which camera id we use intrinsics from
    * @param uv_norm Normalized coordinates we wish to distort
    * @param H_dz_dzn Derivative of measurement z in respect to normalized
    * @param H_dz_dzeta Derivative of measurement z in respect to intrinic parameters
    */
-  void compute_distort_jacobian(size_t cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) override {
+  void compute_distort_jacobian(const Eigen::Vector2d &uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) override {
 
     // Get our camera parameters
-    assert(camera_values.find(cam_id) != camera_values.end());
-    Eigen::MatrixXd cam_d = camera_values.at(cam_id);
+    Eigen::MatrixXd cam_d = camera_values;
 
     // Calculate distorted coordinates for fisheye
     double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));

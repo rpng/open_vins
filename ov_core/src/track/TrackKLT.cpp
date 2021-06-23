@@ -28,9 +28,9 @@ void TrackKLT::feed_new_camera(const CameraData &message) {
   // Error check that we have all the data
   if (message.sensor_ids.empty() || message.sensor_ids.size() != message.images.size() || message.images.size() != message.masks.size()) {
     printf(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
-    printf(RED "[ERROR]: message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
-    printf(RED "[ERROR]: message.images.size() = %zu\n" RESET, message.images.size());
-    printf(RED "[ERROR]: message.masks.size() = %zu\n" RESET, message.masks.size());
+    printf(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
+    printf(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
+    printf(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
     std::exit(EXIT_FAILURE);
   }
 
@@ -141,7 +141,7 @@ void TrackKLT::feed_monocular(const CameraData &message, size_t msg_id) {
 
   // Update our feature database, with theses new observations
   for (size_t i = 0; i < good_left.size(); i++) {
-    cv::Point2f npt_l = camera_calib->undistort(cam_id, good_left.at(i).pt);
+    cv::Point2f npt_l = camera_calib.at(cam_id)->undistort_cv(good_left.at(i).pt);
     database->update_feature(good_ids_left.at(i), message.timestamp, cam_id, good_left.at(i).pt.x, good_left.at(i).pt.y, npt_l.x, npt_l.y);
   }
 
@@ -326,12 +326,12 @@ void TrackKLT::feed_stereo(const CameraData &message, size_t msg_id_left, size_t
 
   // Update our feature database, with theses new observations
   for (size_t i = 0; i < good_left.size(); i++) {
-    cv::Point2f npt_l = camera_calib->undistort(cam_id_left, good_left.at(i).pt);
+    cv::Point2f npt_l = camera_calib.at(cam_id_left)->undistort_cv(good_left.at(i).pt);
     database->update_feature(good_ids_left.at(i), message.timestamp, cam_id_left, good_left.at(i).pt.x, good_left.at(i).pt.y, npt_l.x,
                              npt_l.y);
   }
   for (size_t i = 0; i < good_right.size(); i++) {
-    cv::Point2f npt_r = camera_calib->undistort(cam_id_right, good_right.at(i).pt);
+    cv::Point2f npt_r = camera_calib.at(cam_id_right)->undistort_cv(good_right.at(i).pt);
     database->update_feature(good_ids_right.at(i), message.timestamp, cam_id_right, good_right.at(i).pt.x, good_right.at(i).pt.y, npt_r.x,
                              npt_r.y);
   }
@@ -676,14 +676,14 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat> &img0pyr, const std::
   // We don't want to do ransac on distorted image uvs since the mapping is nonlinear
   std::vector<cv::Point2f> pts0_n, pts1_n;
   for (size_t i = 0; i < pts0.size(); i++) {
-    pts0_n.push_back(camera_calib->undistort(id0, pts0.at(i)));
-    pts1_n.push_back(camera_calib->undistort(id1, pts1.at(i)));
+    pts0_n.push_back(camera_calib.at(id0)->undistort_cv(pts0.at(i)));
+    pts1_n.push_back(camera_calib.at(id1)->undistort_cv(pts1.at(i)));
   }
 
   // Do RANSAC outlier rejection (note since we normalized the max pixel error is now in the normalized cords)
   std::vector<uchar> mask_rsc;
-  double max_focallength_img0 = std::max(camera_calib->get_K(id0)(0, 0), camera_calib->get_K(id0)(1, 1));
-  double max_focallength_img1 = std::max(camera_calib->get_K(id1)(0, 0), camera_calib->get_K(id1)(1, 1));
+  double max_focallength_img0 = std::max(camera_calib.at(id0)->get_K()(0, 0), camera_calib.at(id0)->get_K()(1, 1));
+  double max_focallength_img1 = std::max(camera_calib.at(id1)->get_K()(0, 0), camera_calib.at(id1)->get_K()(1, 1));
   double max_focallength = std::max(max_focallength_img0, max_focallength_img1);
   cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1 / max_focallength, 0.999, mask_rsc);
 

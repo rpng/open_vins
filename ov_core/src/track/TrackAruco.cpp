@@ -25,10 +25,19 @@ using namespace ov_core;
 
 void TrackAruco::feed_new_camera(const CameraData &message) {
 
+  // Error check that we have all the data
+  if (message.sensor_ids.empty() || message.sensor_ids.size() != message.images.size() || message.images.size() != message.masks.size()) {
+    printf(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
+    printf(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
+    printf(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
+    printf(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
+    std::exit(EXIT_FAILURE);
+  }
+
   // There is not such thing as stereo tracking for aruco
   // Thus here we should just call the monocular version two times
-  int n = (int)message.sensor_ids.size();
-  parallel_for_(cv::Range(0, n), LambdaBody([&](const cv::Range &range) {
+  size_t num_images = message.images.size();
+  parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
                   for (int i = range.start; i < range.end; i++) {
                     perform_tracking(message.timestamp, message.images.at(i), message.sensor_ids.at(i), message.masks.at(i));
                   }
@@ -116,7 +125,7 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
       if (maskin.at<uint8_t>((int)corners[cam_id].at(i).at(n).y, (int)corners[cam_id].at(i).at(n).x) > 127)
         continue;
       // Try to undistort the point
-      cv::Point2f npt_l = camera_calib->undistort(cam_id, corners[cam_id].at(i).at(n));
+      cv::Point2f npt_l = camera_calib.at(cam_id)->undistort_cv(corners[cam_id].at(i).at(n));
       // Append to the ids vector and database
       ids_new.push_back((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id);
       database->update_feature((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id, timestamp, cam_id, corners[cam_id].at(i).at(n).x,

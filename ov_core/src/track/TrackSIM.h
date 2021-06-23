@@ -37,10 +37,10 @@ class TrackSIM : public TrackBase {
 public:
   /**
    * @brief Public constructor with configuration variables
-   * @param camera camera calibration object which has all camera intrinsics in it
+   * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
    */
-  TrackSIM(std::shared_ptr<CamBase> camera, int numaruco) : TrackBase(camera, 0, numaruco, false, HistogramMethod::NONE) {}
+  TrackSIM(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco) : TrackBase(cameras, 0, numaruco, false, HistogramMethod::NONE) {}
   /**
    * @brief Set the width and height for the cameras
    * @param _camera_wh Width and height for each camera
