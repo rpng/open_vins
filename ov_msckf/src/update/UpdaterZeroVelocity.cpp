@@ -297,5 +297,4 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   // Finally return
   last_zupt_state_timestamp = timestamp;
   return true;
-
 }

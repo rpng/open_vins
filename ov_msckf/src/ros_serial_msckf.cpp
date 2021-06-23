@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #include <cv_bridge/cv_bridge.h>
 #include <ros/ros.h>
 #include <rosbag/bag.h>

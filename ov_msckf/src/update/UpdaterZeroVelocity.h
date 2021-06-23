@@ -22,10 +22,10 @@
 #ifndef OV_MSCKF_UPDATER_ZEROVELOCITY_H
 #define OV_MSCKF_UPDATER_ZEROVELOCITY_H
 
+#include "feat/FeatureDatabase.h"
 #include "state/Propagator.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
-#include "feat/FeatureDatabase.h"
 #include "utils/colors.h"
 #include "utils/quat_ops.h"
 #include "utils/sensor_data.h"
@@ -60,9 +60,9 @@ public:
    * @param zupt_noise_multiplier Multiplier of our IMU noise matrix (default should be 1.0)
    * @param zupt_max_disparity Max disparity we should consider to do a update with
    */
-  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<FeatureDatabase> db, std::shared_ptr<Propagator> prop,
-                      double gravity_mag, double zupt_max_velocity,
-                      double zupt_noise_multiplier, double zupt_max_disparity)
+  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<FeatureDatabase> db,
+                      std::shared_ptr<Propagator> prop, double gravity_mag, double zupt_max_velocity, double zupt_noise_multiplier,
+                      double zupt_max_disparity)
       : _options(options), _noises(noises), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
         _zupt_noise_multiplier(zupt_noise_multiplier), _zupt_max_disparity(zupt_max_disparity) {
 
@@ -155,7 +155,6 @@ protected:
 
   // Last timestamp we did zero velocity update with
   double last_zupt_state_timestamp = 0.0;
-
 };
 
 } // namespace ov_msckf

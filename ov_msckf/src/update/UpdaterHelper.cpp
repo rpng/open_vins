@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "UpdaterHelper.h"
 
 using namespace ov_core;
@@ -192,111 +191,7 @@ void UpdaterHelper::get_feature_jacobian_intrinsics(std::shared_ptr<State> state
   // Calculate distortion uv and jacobian
   if (isfisheye) {
 
-    // Calculate distorted coordinates for fisheye
-    double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-    double theta = std::atan(r);
-    double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5) + cam_d(6) * std::pow(theta, 7) +
-                     cam_d(7) * std::pow(theta, 9);
-
-    // Handle when r is small (meaning our xy is near the camera center)
-    double inv_r = (r > 1e-8) ? 1.0 / r : 1.0;
-    double cdist = (r > 1e-8) ? theta_d * inv_r : 1.0;
-
-    // Jacobian of distorted pixel to "normalized" pixel
-    Eigen::Matrix<double, 2, 2> duv_dxy = Eigen::Matrix<double, 2, 2>::Zero();
-    duv_dxy << cam_d(0), 0, 0, cam_d(1);
-
-    // Jacobian of "normalized" pixel to normalized pixel
-    Eigen::Matrix<double, 2, 2> dxy_dxyn = Eigen::Matrix<double, 2, 2>::Zero();
-    dxy_dxyn << theta_d * inv_r, 0, 0, theta_d * inv_r;
-
-    // Jacobian of "normalized" pixel to r
-    Eigen::Matrix<double, 2, 1> dxy_dr = Eigen::Matrix<double, 2, 1>::Zero();
-    dxy_dr << -uv_norm(0) * theta_d * inv_r * inv_r, -uv_norm(1) * theta_d * inv_r * inv_r;
-
-    // Jacobian of r pixel to normalized xy
-    Eigen::Matrix<double, 1, 2> dr_dxyn = Eigen::Matrix<double, 1, 2>::Zero();
-    dr_dxyn << uv_norm(0) * inv_r, uv_norm(1) * inv_r;
-
-    // Jacobian of "normalized" pixel to theta_d
-    Eigen::Matrix<double, 2, 1> dxy_dthd = Eigen::Matrix<double, 2, 1>::Zero();
-    dxy_dthd << uv_norm(0) * inv_r, uv_norm(1) * inv_r;
-
-    // Jacobian of theta_d to theta
-    double dthd_dth = 1 + 3 * cam_d(4) * std::pow(theta, 2) + 5 * cam_d(5) * std::pow(theta, 4) + 7 * cam_d(6) * std::pow(theta, 6) +
-                      9 * cam_d(7) * std::pow(theta, 8);
-
-    // Jacobian of theta to r
-    double dth_dr = 1 / (r * r + 1);
-
-    // Total Jacobian wrt normalized pixel coordinates
-    dz_dzn = duv_dxy * (dxy_dxyn + (dxy_dr + dxy_dthd * dthd_dth * dth_dr) * dr_dxyn);
-
-    // Compute the Jacobian in respect to the intrinsics if we are calibrating
-    if (state->_options.do_calib_camera_intrinsics) {
-
-      // Calculate distorted coordinates for fisheye
-      double x1 = uv_norm(0) * cdist;
-      double y1 = uv_norm(1) * cdist;
-
-      // Jacobian
-      dz_dzeta(0, 0) = x1;
-      dz_dzeta(0, 2) = 1;
-      dz_dzeta(0, 4) = cam_d(0) * uv_norm(0) * inv_r * std::pow(theta, 3);
-      dz_dzeta(0, 5) = cam_d(0) * uv_norm(0) * inv_r * std::pow(theta, 5);
-      dz_dzeta(0, 6) = cam_d(0) * uv_norm(0) * inv_r * std::pow(theta, 7);
-      dz_dzeta(0, 7) = cam_d(0) * uv_norm(0) * inv_r * std::pow(theta, 9);
-      dz_dzeta(1, 1) = y1;
-      dz_dzeta(1, 3) = 1;
-      dz_dzeta(1, 4) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 3);
-      dz_dzeta(1, 5) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 5);
-      dz_dzeta(1, 6) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 7);
-      dz_dzeta(1, 7) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 9);
-    }
-
   } else {
-
-    // Calculate distorted coordinates for radial
-    double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-    double r_2 = r * r;
-    double r_4 = r_2 * r_2;
-
-    // Jacobian of distorted pixel to normalized pixel
-    double x = uv_norm(0);
-    double y = uv_norm(1);
-    double x_2 = uv_norm(0) * uv_norm(0);
-    double y_2 = uv_norm(1) * uv_norm(1);
-    double x_y = uv_norm(0) * uv_norm(1);
-    dz_dzn(0, 0) = cam_d(0) * ((1 + cam_d(4) * r_2 + cam_d(5) * r_4) + (2 * cam_d(4) * x_2 + 4 * cam_d(5) * x_2 * r) + 2 * cam_d(6) * y +
-                               (2 * cam_d(7) * x + 4 * cam_d(7) * x));
-    dz_dzn(0, 1) = cam_d(0) * (2 * cam_d(4) * x_y + 4 * cam_d(5) * x_y * r + 2 * cam_d(6) * x + 2 * cam_d(7) * y);
-    dz_dzn(1, 0) = cam_d(1) * (2 * cam_d(4) * x_y + 4 * cam_d(5) * x_y * r + 2 * cam_d(6) * x + 2 * cam_d(7) * y);
-    dz_dzn(1, 1) = cam_d(1) * ((1 + cam_d(4) * r_2 + cam_d(5) * r_4) + (2 * cam_d(4) * y_2 + 4 * cam_d(5) * y_2 * r) + 2 * cam_d(7) * x +
-                               (2 * cam_d(6) * y + 4 * cam_d(6) * y));
-
-    // Compute the Jacobian in respect to the intrinsics if we are calibrating
-    if (state->_options.do_calib_camera_intrinsics) {
-
-      // Calculate distorted coordinates for radtan
-      double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1) +
-                  cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-      double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1)) +
-                  2 * cam_d(7) * uv_norm(0) * uv_norm(1);
-
-      // Jacobian
-      dz_dzeta(0, 0) = x1;
-      dz_dzeta(0, 2) = 1;
-      dz_dzeta(0, 4) = cam_d(0) * uv_norm(0) * r_2;
-      dz_dzeta(0, 5) = cam_d(0) * uv_norm(0) * r_4;
-      dz_dzeta(0, 6) = 2 * cam_d(0) * uv_norm(0) * uv_norm(1);
-      dz_dzeta(0, 7) = cam_d(0) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-      dz_dzeta(1, 1) = y1;
-      dz_dzeta(1, 3) = 1;
-      dz_dzeta(1, 4) = cam_d(1) * uv_norm(1) * r_2;
-      dz_dzeta(1, 5) = cam_d(1) * uv_norm(1) * r_4;
-      dz_dzeta(1, 6) = cam_d(1) * (r_2 + 2 * uv_norm(1) * uv_norm(1));
-      dz_dzeta(1, 7) = 2 * cam_d(1) * uv_norm(0) * uv_norm(1);
-    }
   }
 }
 
@@ -454,34 +349,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       // Calculate distortion uv and jacobian
       if (state->_cam_intrinsics_model.at(pair.first)) {
 
-        // Calculate distorted coordinates for fisheye
-        double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-        double theta = std::atan(r);
-        double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5) + cam_d(6) * std::pow(theta, 7) +
-                         cam_d(7) * std::pow(theta, 9);
-
-        // Handle when r is small (meaning our xy is near the camera center)
-        double inv_r = (r > 1e-8) ? 1.0 / r : 1.0;
-        double cdist = (r > 1e-8) ? theta_d * inv_r : 1.0;
-
-        // Calculate distorted coordinates for fisheye
-        double x1 = uv_norm(0) * cdist;
-        double y1 = uv_norm(1) * cdist;
-        uv_dist(0) = cam_d(0) * x1 + cam_d(2);
-        uv_dist(1) = cam_d(1) * y1 + cam_d(3);
-
       } else {
-
-        // Calculate distorted coordinates for radial
-        double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-        double r_2 = r * r;
-        double r_4 = r_2 * r_2;
-        double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1) +
-                    cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-        double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1)) +
-                    2 * cam_d(7) * uv_norm(0) * uv_norm(1);
-        uv_dist(0) = cam_d(0) * x1 + cam_d(2);
-        uv_dist(1) = cam_d(1) * y1 + cam_d(3);
       }
 
       // Our residual
