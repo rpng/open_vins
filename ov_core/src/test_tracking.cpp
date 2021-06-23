@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
   nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
-  //nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
+  // nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
   printf("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Get our start location and how much of the bag we want to play
@@ -119,7 +119,7 @@ int main(int argc, char **argv) {
 
   // Lets make a feature extractor
   extractor = new TrackKLT(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
-  //extractor =
+  // extractor =
   //    new TrackDescriptor(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist, knn_ratio);
   // extractor = new TrackAruco(camera_calib, num_aruco, !use_stereo, method, do_downsizing);
 

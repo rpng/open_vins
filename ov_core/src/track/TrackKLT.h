@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_TRACK_KLT_H
 #define OV_CORE_TRACK_KLT_H
 
@@ -40,7 +39,6 @@ namespace ov_core {
 class TrackKLT : public TrackBase {
 
 public:
-
   /**
    * @brief Public constructor with configuration variables
    * @param camera camera calibration object which has all camera intrinsics in it
@@ -55,8 +53,8 @@ public:
    */
   explicit TrackKLT(std::shared_ptr<CamBase> camera, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod,
                     int fast_threshold, int gridx, int gridy, int minpxdist)
-      : TrackBase(camera, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold),
-        grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist) {}
+      : TrackBase(camera, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
+        min_px_dist(minpxdist) {}
 
   /**
    * @brief Process a new image
@@ -65,7 +63,6 @@ public:
   void feed_new_camera(const CameraData &message);
 
 protected:
-
   /**
    * @brief Process a new monocular image
    * @param message Contains our timestamp, images, and camera ids
@@ -92,8 +89,8 @@ protected:
    * Will try to always have the "max_features" being tracked through KLT at each timestep.
    * Passed images should already be grayscaled.
    */
-  void perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, const cv::Mat &mask0,
-                                   std::vector<cv::KeyPoint> &pts0, std::vector<size_t> &ids0);
+  void perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, const cv::Mat &mask0, std::vector<cv::KeyPoint> &pts0,
+                                   std::vector<size_t> &ids0);
 
   /**
    * @brief Detects new features in the current stereo pair
@@ -113,11 +110,9 @@ protected:
    * If we have valid tracks, then we have both the keypoint on the left and its matching point in the right image.
    * Will try to always have the "max_features" being tracked through KLT at each timestep.
    */
-  void perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, const std::vector<cv::Mat> &img1pyr,
-                                const cv::Mat &mask0, const cv::Mat &mask1,
-                                size_t cam_id_left, size_t cam_id_right,
-                                std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
-                                std::vector<size_t> &ids0, std::vector<size_t> &ids1);
+  void perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, const std::vector<cv::Mat> &img1pyr, const cv::Mat &mask0,
+                                const cv::Mat &mask1, size_t cam_id_left, size_t cam_id_right, std::vector<cv::KeyPoint> &pts0,
+                                std::vector<cv::KeyPoint> &pts1, std::vector<size_t> &ids0, std::vector<size_t> &ids1);
 
   /**
    * @brief KLT track between two images, and do RANSAC afterwards

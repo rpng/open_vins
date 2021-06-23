@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "FeatureInitializer.h"
 
 using namespace ov_core;

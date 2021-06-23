@@ -70,8 +70,8 @@ public:
    * Given a specified grid size, this will try to extract fast features from each grid.
    * It will then return the best from each grid in the return vector.
    */
-  static void perform_griding(const cv::Mat &img, const cv::Mat &mask, std::vector<cv::KeyPoint> &pts,
-                              int num_features, int grid_x, int grid_y, int threshold, bool nonmaxSuppression) {
+  static void perform_griding(const cv::Mat &img, const cv::Mat &mask, std::vector<cv::KeyPoint> &pts, int num_features, int grid_x,
+                              int grid_y, int threshold, bool nonmaxSuppression) {
 
     // Calculate the size our extraction boxes should be
     int size_x = img.cols / grid_x;
@@ -119,8 +119,7 @@ public:
                         pt_cor.pt.y += (float)y;
 
                         // Reject if out of bounds (shouldn't be possible...)
-                        if ((int)pt_cor.pt.x < 0 || (int)pt_cor.pt.x > img.cols
-                            || (int)pt_cor.pt.y < 0 || (int)pt_cor.pt.y > img.rows)
+                        if ((int)pt_cor.pt.x < 0 || (int)pt_cor.pt.x > img.cols || (int)pt_cor.pt.y < 0 || (int)pt_cor.pt.y > img.rows)
                           continue;
 
                         // Check if it is in the mask region

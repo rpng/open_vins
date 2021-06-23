@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "TrackBase.h"
 
 using namespace ov_core;
@@ -89,7 +88,7 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
                 cv::Scalar(0, 255, 0), 3);
     // Overlay the mask
     cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
-    mask.setTo(cv::Scalar(0,0,255), img_mask_last_cache[pair.first]);
+    mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);
     cv::addWeighted(mask, 0.1, img_temp, 1.0, 0.0, img_temp);
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));
@@ -193,7 +192,7 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
                 cv::Scalar(0, 255, 0), 3);
     // Overlay the mask
     cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
-    mask.setTo(cv::Scalar(0,0,255), img_mask_last_cache[pair.first]);
+    mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);
     cv::addWeighted(mask, 0.1, img_temp, 1.0, 0.0, img_temp);
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));

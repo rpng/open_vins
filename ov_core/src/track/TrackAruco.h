@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_TRACK_ARUCO_H
 #define OV_CORE_TRACK_ARUCO_H
 
@@ -39,7 +38,6 @@ namespace ov_core {
 class TrackAruco : public TrackBase {
 
 public:
-
   /**
    * @brief Public constructor with configuration variables
    * @param camera camera calibration object which has all camera intrinsics in it
@@ -53,7 +51,7 @@ public:
     aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
     aruco_params = cv::aruco::DetectorParameters::create();
     // NOTE: people with newer opencv might fail here
-    //aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
+    // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
   }
 
   /**
@@ -71,7 +69,6 @@ public:
   void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
 
 protected:
-
   /**
    * @brief Process a new monocular image
    * @param timestamp timestamp the new image occurred at

@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_TRACK_SIM_H
 #define OV_CORE_TRACK_SIM_H
 
@@ -41,8 +40,7 @@ public:
    * @param camera camera calibration object which has all camera intrinsics in it
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
    */
-  TrackSIM(std::shared_ptr<CamBase> camera, int numaruco)
-      : TrackBase(camera, 0, numaruco, false, HistogramMethod::NONE) {}
+  TrackSIM(std::shared_ptr<CamBase> camera, int numaruco) : TrackBase(camera, 0, numaruco, false, HistogramMethod::NONE) {}
   /**
    * @brief Set the width and height for the cameras
    * @param _camera_wh Width and height for each camera

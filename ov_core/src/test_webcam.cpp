@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include <cmath>
 #include <deque>
 #include <fstream>
@@ -101,7 +100,7 @@ int main(int argc, char **argv) {
 
   // Lets make a feature extractor
   extractor = new TrackKLT(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
-  //extractor =
+  // extractor =
   //    new TrackDescriptor(camera_calib, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist, knn_ratio);
   // extractor = new TrackAruco(camera_calib, num_aruco, !use_stereo, method, do_downsizing);
 

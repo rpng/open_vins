@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_TRACK_BASE_H
 #define OV_CORE_TRACK_BASE_H
 
@@ -29,11 +28,10 @@
 #include <thread>
 #include <unordered_map>
 
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
-#include <opencv2/opencv.hpp>
-#include <boost/date_time/posix_time/posix_time.hpp>
 
 #include "Grider_FAST.h"
 #include "cam/CamBase.h"
@@ -73,15 +71,10 @@ namespace ov_core {
 class TrackBase {
 
 public:
-
   /**
    * @brief Desired pre-processing image method.
    */
-  enum HistogramMethod {
-    NONE,
-    HISTOGRAM,
-    CLAHE
-  };
+  enum HistogramMethod { NONE, HISTOGRAM, CLAHE };
 
   /**
    * @brief Public constructor with configuration variables
@@ -92,8 +85,8 @@ public:
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    */
   TrackBase(std::shared_ptr<CamBase> camera, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod)
-      : camera_calib(camera), database(new FeatureDatabase()), num_features(numfeats),
-        binocular_track(binocular), histogram_method(histmethod) {
+      : camera_calib(camera), database(new FeatureDatabase()), num_features(numfeats), binocular_track(binocular),
+        histogram_method(histmethod) {
     // Our current feature ID should be larger then the number of aruco tags we have (each has 4 corners)
     currid = 4 * (size_t)numaruco + 1;
     // Create our mutex array based on the number of cameras we have
@@ -165,7 +158,6 @@ public:
   }
 
 protected:
-
   /// Camera object which has all calibration in it
   std::shared_ptr<CamBase> camera_calib;
 
@@ -204,7 +196,6 @@ protected:
 
   // Timing variables (most children use these...)
   boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
-
 };
 
 } // namespace ov_core

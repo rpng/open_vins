@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "TrackAruco.h"
 
 using namespace ov_core;
@@ -30,12 +29,10 @@ void TrackAruco::feed_new_camera(const CameraData &message) {
   // Thus here we should just call the monocular version two times
   int n = (int)message.sensor_ids.size();
   parallel_for_(cv::Range(0, n), LambdaBody([&](const cv::Range &range) {
-    for (int i = range.start; i < range.end; i++) {
-      perform_tracking(message.timestamp, message.images.at(i),
-                       message.sensor_ids.at(i), message.masks.at(i));
-    }
-  }));
-
+                  for (int i = range.start; i < range.end; i++) {
+                    perform_tracking(message.timestamp, message.images.at(i), message.sensor_ids.at(i), message.masks.at(i));
+                  }
+                }));
 }
 
 void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t cam_id, const cv::Mat &maskin) {
@@ -48,9 +45,9 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
 
   // Histogram equalize
   cv::Mat img;
-  if(histogram_method == HistogramMethod::HISTOGRAM) {
+  if (histogram_method == HistogramMethod::HISTOGRAM) {
     cv::equalizeHist(imgin, img);
-  } else if(histogram_method == HistogramMethod::CLAHE) {
+  } else if (histogram_method == HistogramMethod::CLAHE) {
     double eq_clip_limit = 10.0;
     cv::Size eq_win_size = cv::Size(8, 8);
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
@@ -76,8 +73,7 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
   //===================================================================================
 
   // Perform extraction
-  cv::aruco::detectMarkers(img0, aruco_dict, corners[cam_id],
-                           ids_aruco[cam_id], aruco_params, rejects[cam_id]);
+  cv::aruco::detectMarkers(img0, aruco_dict, corners[cam_id], ids_aruco[cam_id], aruco_params, rejects[cam_id]);
   rT2 = boost::posix_time::microsec_clock::local_time();
 
   //===================================================================================
@@ -114,17 +110,17 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
       continue;
     // Assert we have 4 points (we will only use one of them)
     assert(corners[cam_id].at(i).size() == 4);
-    for(int n=0; n<4; n++) {
+    for (int n = 0; n < 4; n++) {
       // Check if it is in the mask
       // NOTE: mask has max value of 255 (white) if it should be
-      if(maskin.at<uint8_t>((int)corners[cam_id].at(i).at(n).y,(int)corners[cam_id].at(i).at(n).x) > 127)
+      if (maskin.at<uint8_t>((int)corners[cam_id].at(i).at(n).y, (int)corners[cam_id].at(i).at(n).x) > 127)
         continue;
       // Try to undistort the point
       cv::Point2f npt_l = camera_calib->undistort(cam_id, corners[cam_id].at(i).at(n));
       // Append to the ids vector and database
-      ids_new.push_back((size_t)ids_aruco[cam_id].at(i)+n*max_tag_id);
-      database->update_feature((size_t)ids_aruco[cam_id].at(i)+n*max_tag_id, timestamp, cam_id,
-                               corners[cam_id].at(i).at(n).x, corners[cam_id].at(i).at(n).y, npt_l.x, npt_l.y);
+      ids_new.push_back((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id);
+      database->update_feature((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id, timestamp, cam_id, corners[cam_id].at(i).at(n).x,
+                               corners[cam_id].at(i).at(n).y, npt_l.x, npt_l.y);
     }
   }
 
@@ -194,7 +190,7 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
                 cv::Scalar(0, 255, 0), 3);
     // Overlay the mask
     cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
-    mask.setTo(cv::Scalar(0,0,255), img_mask_last_cache[pair.first]);
+    mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);
     cv::addWeighted(mask, 0.1, img_temp, 1.0, 0.0, img_temp);
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));

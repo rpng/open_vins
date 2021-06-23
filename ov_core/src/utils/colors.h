@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #ifndef OV_CORE_COLOR_MACROS
 #define OV_CORE_COLOR_MACROS
 

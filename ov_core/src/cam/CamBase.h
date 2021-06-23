@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_CAM_BASE_H
 #define OV_CORE_CAM_BASE_H
 
@@ -43,7 +42,6 @@ namespace ov_core {
 class CamBase {
 
 public:
-
   /**
    * @brief This will set and update the camera calibration values.
    * This should be called on startup for each camera and after update!
@@ -136,25 +134,18 @@ public:
   virtual void compute_distort_jacobian(size_t cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) = 0;
 
   /// Gets how many unique cameras we have
-  size_t get_num_cameras() {
-    return camera_k_OPENCV.size();
-  }
+  size_t get_num_cameras() { return camera_k_OPENCV.size(); }
 
   /// Gets the camera matrix for a specific camera
-  cv::Matx33d get_K(size_t cam_id) {
-    return camera_k_OPENCV.at(cam_id);
-  }
+  cv::Matx33d get_K(size_t cam_id) { return camera_k_OPENCV.at(cam_id); }
 
   /// Gets the camera distortion for a specific camera
-  cv::Vec4d get_D(size_t cam_id) {
-    return camera_d_OPENCV.at(cam_id);
-  }
+  cv::Vec4d get_D(size_t cam_id) { return camera_d_OPENCV.at(cam_id); }
 
 protected:
-
   // Cannot construct the base camera class, needs a distortion model
   CamBase() = default;
-  
+
   /// Raw set of camera intrinic values (f_x & f_y & c_x & c_y & k_1 & k_2 & k_3 & k_4)
   std::map<size_t, Eigen::MatrixXd> camera_values;
 
@@ -163,7 +154,6 @@ protected:
 
   /// Camera distortion in OpenCV format
   std::map<size_t, cv::Vec4d> camera_d_OPENCV;
-
 };
 
 } // namespace ov_core

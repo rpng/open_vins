@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_TRACK_DESC_H
 #define OV_CORE_TRACK_DESC_H
 
@@ -40,7 +39,6 @@ namespace ov_core {
 class TrackDescriptor : public TrackBase {
 
 public:
-
   /**
    * @brief Public constructor with configuration variables
    * @param camera camera calibration object which has all camera intrinsics in it
@@ -56,8 +54,8 @@ public:
    */
   explicit TrackDescriptor(std::shared_ptr<CamBase> camera, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod,
                            int fast_threshold, int gridx, int gridy, int minpxdist, double knnratio)
-      : TrackBase(camera, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold),
-        grid_x(gridx), grid_y(gridy), min_px_dist(minpxdist), knn_ratio(knnratio) {}
+      : TrackBase(camera, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
+        min_px_dist(minpxdist), knn_ratio(knnratio) {}
 
   /**
    * @brief Process a new image
@@ -66,7 +64,6 @@ public:
   void feed_new_camera(const CameraData &message);
 
 protected:
-
   /**
    * @brief Process a new monocular image
    * @param message Contains our timestamp, images, and camera ids
@@ -95,7 +92,8 @@ protected:
    * Our vector of IDs will be later overwritten when we match features temporally to the previous frame's features.
    * See robust_match() for the matching.
    */
-  void perform_detection_monocular(const cv::Mat &img0, const cv::Mat &mask0, std::vector<cv::KeyPoint> &pts0, cv::Mat &desc0, std::vector<size_t> &ids0);
+  void perform_detection_monocular(const cv::Mat &img0, const cv::Mat &mask0, std::vector<cv::KeyPoint> &pts0, cv::Mat &desc0,
+                                   std::vector<size_t> &ids0);
 
   /**
    * @brief Detects new features in the current stereo pair
@@ -117,11 +115,9 @@ protected:
    * Our vector of IDs will be later overwritten when we match features temporally to the previous frame's features.
    * See robust_match() for the matching.
    */
-  void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1,
-                                const cv::Mat &mask0, const cv::Mat &mask1,
-                                std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1,
-                                cv::Mat &desc0, cv::Mat &desc1, size_t cam_id0, size_t cam_id1, std::vector<size_t> &ids0,
-                                std::vector<size_t> &ids1);
+  void perform_detection_stereo(const cv::Mat &img0, const cv::Mat &img1, const cv::Mat &mask0, const cv::Mat &mask1,
+                                std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> &pts1, cv::Mat &desc0, cv::Mat &desc1,
+                                size_t cam_id0, size_t cam_id1, std::vector<size_t> &ids0, std::vector<size_t> &ids1);
 
   /**
    * @brief Find matches between two keypoint+descriptor sets.

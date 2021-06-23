@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "Feature.h"
 
 using namespace ov_core;
@@ -110,4 +109,3 @@ void Feature::clean_older_measurements(double timestamp) {
     }
   }
 }
-

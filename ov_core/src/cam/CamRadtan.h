@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_CAM_RADTAN_H
 #define OV_CORE_CAM_RADTAN_H
 
@@ -45,9 +44,9 @@ namespace ov_core {
  * r^2 &= x_n^2 + y_n^2
  * \f}
  *
- * where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$  are the normalized coordinates of the 3D feature and u and v are the distorted image coordinates on the image plane.
- * The following distortion and camera intrinsic (focal length and image center) parameters are involved in the above distortion model,
- * which can be estimated online:
+ * where \f$ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top\f$  are the normalized coordinates of the 3D feature and u and v are the distorted image
+ * coordinates on the image plane. The following distortion and camera intrinsic (focal length and image center) parameters are involved in
+ * the above distortion model, which can be estimated online:
  *
  * \f{align*}{
  * \boldsymbol\zeta = \begin{bmatrix} f_x & f_y & c_x & c_y & k_1 & k_2 & p_1 & p_2 \end{bmatrix}^\top
@@ -83,7 +82,6 @@ namespace ov_core {
 class CamRadtan : public CamBase {
 
 public:
-
   /**
    * Default constructor.
    */
@@ -127,24 +125,23 @@ public:
   Eigen::Vector2f distort(size_t cam_id, Eigen::Vector2f uv_norm) override {
 
     // Get our camera parameters
-    assert(camera_values.find(cam_id)!=camera_values.end());
+    assert(camera_values.find(cam_id) != camera_values.end());
     Eigen::MatrixXd cam_d = camera_values.at(cam_id);
 
     // Calculate distorted coordinates for radial
     double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
     double r_2 = r * r;
     double r_4 = r_2 * r_2;
-    double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1)
-                + cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-    double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1))
-                + 2 * cam_d(7) * uv_norm(0) * uv_norm(1);
+    double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1) +
+                cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
+    double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1)) +
+                2 * cam_d(7) * uv_norm(0) * uv_norm(1);
 
     // Return the distorted point
     Eigen::Vector2f uv_dist;
     uv_dist(0) = (float)(cam_d(0) * x1 + cam_d(2));
     uv_dist(1) = (float)(cam_d(1) * y1 + cam_d(3));
     return uv_dist;
-
   }
 
   /**
@@ -157,7 +154,7 @@ public:
   void compute_distort_jacobian(size_t cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) override {
 
     // Get our camera parameters
-    assert(camera_values.find(cam_id)!=camera_values.end());
+    assert(camera_values.find(cam_id) != camera_values.end());
     Eigen::MatrixXd cam_d = camera_values.at(cam_id);
 
     // Calculate distorted coordinates for radial
@@ -166,27 +163,27 @@ public:
     double r_4 = r_2 * r_2;
 
     // Jacobian of distorted pixel to normalized pixel
-    H_dz_dzn = Eigen::MatrixXd::Zero(2,2);
+    H_dz_dzn = Eigen::MatrixXd::Zero(2, 2);
     double x = uv_norm(0);
     double y = uv_norm(1);
     double x_2 = uv_norm(0) * uv_norm(0);
     double y_2 = uv_norm(1) * uv_norm(1);
     double x_y = uv_norm(0) * uv_norm(1);
-    H_dz_dzn(0, 0) = cam_d(0) * ((1 + cam_d(4) * r_2 + cam_d(5) * r_4) + (2 * cam_d(4) * x_2 + 4 * cam_d(5) * x_2 * r)
-                               + 2 * cam_d(6) * y + (2 * cam_d(7) * x + 4 * cam_d(7) * x));
+    H_dz_dzn(0, 0) = cam_d(0) * ((1 + cam_d(4) * r_2 + cam_d(5) * r_4) + (2 * cam_d(4) * x_2 + 4 * cam_d(5) * x_2 * r) + 2 * cam_d(6) * y +
+                                 (2 * cam_d(7) * x + 4 * cam_d(7) * x));
     H_dz_dzn(0, 1) = cam_d(0) * (2 * cam_d(4) * x_y + 4 * cam_d(5) * x_y * r + 2 * cam_d(6) * x + 2 * cam_d(7) * y);
     H_dz_dzn(1, 0) = cam_d(1) * (2 * cam_d(4) * x_y + 4 * cam_d(5) * x_y * r + 2 * cam_d(6) * x + 2 * cam_d(7) * y);
-    H_dz_dzn(1, 1) = cam_d(1) * ((1 + cam_d(4) * r_2 + cam_d(5) * r_4) + (2 * cam_d(4) * y_2 + 4 * cam_d(5) * y_2 * r)
-                               + 2 * cam_d(7) * x + (2 * cam_d(6) * y + 4 * cam_d(6) * y));
+    H_dz_dzn(1, 1) = cam_d(1) * ((1 + cam_d(4) * r_2 + cam_d(5) * r_4) + (2 * cam_d(4) * y_2 + 4 * cam_d(5) * y_2 * r) + 2 * cam_d(7) * x +
+                                 (2 * cam_d(6) * y + 4 * cam_d(6) * y));
 
     // Calculate distorted coordinates for radtan
-    double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1)
-                + cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-    double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1))
-                + 2 * cam_d(7) * uv_norm(0) * uv_norm(1);
+    double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1) +
+                cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
+    double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1)) +
+                2 * cam_d(7) * uv_norm(0) * uv_norm(1);
 
     // Compute the Jacobian in respect to the intrinsics
-    H_dz_dzeta = Eigen::MatrixXd::Zero(2,8);
+    H_dz_dzeta = Eigen::MatrixXd::Zero(2, 8);
     H_dz_dzeta(0, 0) = x1;
     H_dz_dzeta(0, 2) = 1;
     H_dz_dzeta(0, 4) = cam_d(0) * uv_norm(0) * r_2;
@@ -199,9 +196,7 @@ public:
     H_dz_dzeta(1, 5) = cam_d(1) * uv_norm(1) * r_4;
     H_dz_dzeta(1, 6) = cam_d(1) * (r_2 + 2 * uv_norm(1) * uv_norm(1));
     H_dz_dzeta(1, 7) = 2 * cam_d(1) * uv_norm(0) * uv_norm(1);
-
   }
-
 };
 
 } // namespace ov_core

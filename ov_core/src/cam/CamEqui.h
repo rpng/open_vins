@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_CAM_EQUI_H
 #define OV_CORE_CAM_EQUI_H
 
@@ -59,10 +58,9 @@ namespace ov_core {
  * \f{align*}{
  * \frac{\partial \mathbf h_d (\cdot)}{\partial \boldsymbol\zeta} =
  * \begin{bmatrix}
- * x_n & 0  & 1 & 0 & f_x*(\frac{x_n}{r}\theta^3) & f_x*(\frac{x_n}{r}\theta^5) & f_x*(\frac{x_n}{r}\theta^7) & f_x*(\frac{x_n}{r}\theta^9)  \\[5pt]
- * 0  & y_n & 0 & 1 & f_y*(\frac{y_n}{r}\theta^3) & f_y*(\frac{y_n}{r}\theta^5) & f_y*(\frac{y_n}{r}\theta^7) & f_y*(\frac{y_n}{r}\theta^9)
- * \end{bmatrix}
- * \f}
+ * x_n & 0  & 1 & 0 & f_x*(\frac{x_n}{r}\theta^3) & f_x*(\frac{x_n}{r}\theta^5) & f_x*(\frac{x_n}{r}\theta^7) & f_x*(\frac{x_n}{r}\theta^9)
+ * \\[5pt] 0  & y_n & 0 & 1 & f_y*(\frac{y_n}{r}\theta^3) & f_y*(\frac{y_n}{r}\theta^5) & f_y*(\frac{y_n}{r}\theta^7) &
+ * f_y*(\frac{y_n}{r}\theta^9) \end{bmatrix} \f}
  *
  * Similarly, with the chain rule of differentiation,
  * we can compute the following Jacobian with respect to the normalized coordinates:
@@ -72,8 +70,8 @@ namespace ov_core {
  * &=
  * \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial x_ny_n}+
  * \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial r}\frac{\partial r}{\partial x_ny_n}+
- * \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial \theta_d}\frac{\partial \theta_d}{\partial \theta}\frac{\partial \theta}{\partial r}\frac{\partial r}{\partial x_ny_n} \\[1em]
- * \empty
+ * \frac{\partial uv}{\partial xy}\frac{\partial xy}{\partial \theta_d}\frac{\partial \theta_d}{\partial \theta}\frac{\partial
+ * \theta}{\partial r}\frac{\partial r}{\partial x_ny_n} \\[1em] \empty
  * {\rm where}~~~~
  * \frac{\partial uv}{\partial xy} &= \begin{bmatrix} f_x & 0 \\ 0 & f_y \end{bmatrix} \\
  * \empty
@@ -85,20 +83,16 @@ namespace ov_core {
  * \empty
  * \frac{\partial xy}{\partial \theta_d} &= \begin{bmatrix} \frac{x_n}{r} \\ \frac{y_n}{r} \end{bmatrix} \\
  * \empty
- * \frac{\partial \theta_d}{\partial \theta} &= \begin{bmatrix} 1 + 3k_1 \theta^2 + 5k_2 \theta^4 + 7k_3 \theta^6 + 9k_4 \theta^8\end{bmatrix} \\
- * \empty
- * \frac{\partial \theta}{\partial r} &= \begin{bmatrix} \frac{1}{r^2+1} \end{bmatrix}
- * \f}
+ * \frac{\partial \theta_d}{\partial \theta} &= \begin{bmatrix} 1 + 3k_1 \theta^2 + 5k_2 \theta^4 + 7k_3 \theta^6 + 9k_4
+ * \theta^8\end{bmatrix} \\ \empty \frac{\partial \theta}{\partial r} &= \begin{bmatrix} \frac{1}{r^2+1} \end{bmatrix} \f}
  *
  * To equate this to one of Kalibr's models, this is what you would use for `pinhole-equi`.
  */
 class CamEqui : public CamBase {
 
 public:
-
   // constructor
-  CamEqui() { }
-
+  CamEqui() {}
 
   /**
    * @brief Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.
@@ -138,14 +132,14 @@ public:
   Eigen::Vector2f distort(size_t cam_id, Eigen::Vector2f uv_norm) override {
 
     // Get our camera parameters
-    assert(camera_values.find(cam_id)!=camera_values.end());
+    assert(camera_values.find(cam_id) != camera_values.end());
     Eigen::MatrixXd cam_d = camera_values.at(cam_id);
 
     // Calculate distorted coordinates for fisheye
     double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
     double theta = std::atan(r);
-    double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5)
-                     + cam_d(6) * std::pow(theta, 7) + cam_d(7) * std::pow(theta, 9);
+    double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5) + cam_d(6) * std::pow(theta, 7) +
+                     cam_d(7) * std::pow(theta, 9);
 
     // Handle when r is small (meaning our xy is near the camera center)
     double inv_r = (r > 1e-8) ? 1.0 / r : 1.0;
@@ -158,7 +152,6 @@ public:
     uv_dist(0) = (float)(cam_d(0) * x1 + cam_d(2));
     uv_dist(1) = (float)(cam_d(1) * y1 + cam_d(3));
     return uv_dist;
-
   }
 
   /**
@@ -171,14 +164,14 @@ public:
   void compute_distort_jacobian(size_t cam_id, Eigen::Vector2f uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) override {
 
     // Get our camera parameters
-    assert(camera_values.find(cam_id)!=camera_values.end());
+    assert(camera_values.find(cam_id) != camera_values.end());
     Eigen::MatrixXd cam_d = camera_values.at(cam_id);
 
     // Calculate distorted coordinates for fisheye
     double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
     double theta = std::atan(r);
-    double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5)
-                     + cam_d(6) * std::pow(theta, 7) + cam_d(7) * std::pow(theta, 9);
+    double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5) + cam_d(6) * std::pow(theta, 7) +
+                     cam_d(7) * std::pow(theta, 9);
 
     // Handle when r is small (meaning our xy is near the camera center)
     double inv_r = (r > 1e-8) ? 1.0 / r : 1.0;
@@ -205,14 +198,14 @@ public:
     dxy_dthd << uv_norm(0) * inv_r, uv_norm(1) * inv_r;
 
     // Jacobian of theta_d to theta
-    double dthd_dth = 1 + 3 * cam_d(4) * std::pow(theta, 2) + 5 * cam_d(5) * std::pow(theta, 4)
-                      + 7 * cam_d(6) * std::pow(theta, 6) + 9 * cam_d(7) * std::pow(theta, 8);
+    double dthd_dth = 1 + 3 * cam_d(4) * std::pow(theta, 2) + 5 * cam_d(5) * std::pow(theta, 4) + 7 * cam_d(6) * std::pow(theta, 6) +
+                      9 * cam_d(7) * std::pow(theta, 8);
 
     // Jacobian of theta to r
     double dth_dr = 1 / (r * r + 1);
 
     // Total Jacobian wrt normalized pixel coordinates
-    H_dz_dzn = Eigen::MatrixXd::Zero(2,2);
+    H_dz_dzn = Eigen::MatrixXd::Zero(2, 2);
     H_dz_dzn = duv_dxy * (dxy_dxyn + (dxy_dr + dxy_dthd * dthd_dth * dth_dr) * dr_dxyn);
 
     // Calculate distorted coordinates for fisheye
@@ -220,7 +213,7 @@ public:
     double y1 = uv_norm(1) * cdist;
 
     // Compute the Jacobian in respect to the intrinsics
-    H_dz_dzeta = Eigen::MatrixXd::Zero(2,8);
+    H_dz_dzeta = Eigen::MatrixXd::Zero(2, 8);
     H_dz_dzeta(0, 0) = x1;
     H_dz_dzeta(0, 2) = 1;
     H_dz_dzeta(0, 4) = cam_d(0) * uv_norm(0) * inv_r * std::pow(theta, 3);
@@ -233,9 +226,7 @@ public:
     H_dz_dzeta(1, 5) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 5);
     H_dz_dzeta(1, 6) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 7);
     H_dz_dzeta(1, 7) = cam_d(1) * uv_norm(1) * inv_r * std::pow(theta, 9);
-
   }
-
 };
 
 } // namespace ov_core
