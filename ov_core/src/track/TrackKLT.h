@@ -139,9 +139,9 @@ protected:
   // Minimum pixel distance to be "far away enough" to be a different extracted feature
   int min_px_dist;
 
-  // How many pyramid levels to track on and the window size to reduce by
+  // How many pyramid levels to track
   int pyr_levels = 3;
-  cv::Size win_size = cv::Size(15, 15);
+  cv::Size win_size = cv::Size(20, 20);
 
   // Last set of image pyramids
   std::map<size_t, std::vector<cv::Mat>> img_pyramid_last;

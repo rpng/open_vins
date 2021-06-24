@@ -81,11 +81,11 @@ public:
    * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
-   * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
+   * @param stereo if we should do stereo feature tracking or binocular
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    */
-  TrackBase(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool binocular, HistogramMethod histmethod)
-      : camera_calib(cameras), database(new FeatureDatabase()), num_features(numfeats), binocular_track(binocular),
+  TrackBase(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool stereo, HistogramMethod histmethod)
+      : camera_calib(cameras), database(new FeatureDatabase()), num_features(numfeats), use_stereo(stereo),
         histogram_method(histmethod) {
     // Our current feature ID should be larger then the number of aruco tags we have (each has 4 corners)
     currid = 4 * (size_t)numaruco + 1;
@@ -171,7 +171,7 @@ protected:
   int num_features;
 
   /// If we should use binocular tracking or stereo tracking for multi-camera
-  bool binocular_track;
+  bool use_stereo;
 
   /// What histogram equalization method we should pre-process images with?
   HistogramMethod histogram_method;

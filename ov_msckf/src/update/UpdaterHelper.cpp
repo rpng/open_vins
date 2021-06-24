@@ -311,7 +311,6 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
     std::shared_ptr<PoseJPL> calibration = state->_calib_IMUtoCAM.at(pair.first);
     Eigen::Matrix3d R_ItoC = calibration->Rot();
     Eigen::Vector3d p_IinC = calibration->pos();
-    Eigen::Matrix<double, 8, 1> cam_d = distortion->value();
 
     // Loop through all measurements for this specific camera
     for (size_t m = 0; m < feature.timestamps[pair.first].size(); m++) {

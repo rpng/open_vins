@@ -62,7 +62,7 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
     cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
     clahe->apply(imgin, img);
   } else {
-    img = imgin.clone();
+    img = imgin;
   }
 
   // Clear the old data from the last timestep

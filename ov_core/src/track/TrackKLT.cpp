@@ -39,9 +39,9 @@ void TrackKLT::feed_new_camera(const CameraData &message) {
   size_t num_images = message.images.size();
   if (num_images == 1) {
     feed_monocular(message, 0);
-  } else if (num_images == 2 && !binocular_track) {
+  } else if (num_images == 2 && use_stereo) {
     feed_stereo(message, 0, 1);
-  } else if (binocular_track) {
+  } else if (!use_stereo) {
     parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
                     for (int i = range.start; i < range.end; i++) {
                       feed_monocular(message, i);
@@ -184,8 +184,8 @@ void TrackKLT::feed_stereo(const CameraData &message, size_t msg_id_left, size_t
     clahe->apply(message.images.at(msg_id_left), img_left);
     clahe->apply(message.images.at(msg_id_right), img_right);
   } else {
-    img_left = message.images.at(msg_id_left).clone();
-    img_right = message.images.at(msg_id_right).clone();
+    img_left = message.images.at(msg_id_left);
+    img_right = message.images.at(msg_id_right);
   }
   mask_left = message.masks.at(msg_id_left);
   mask_right = message.masks.at(msg_id_right);
@@ -669,7 +669,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat> &img0pyr, const std::
   // Now do KLT tracking to get the valid new points
   std::vector<uchar> mask_klt;
   std::vector<float> error;
-  cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 0.01);
+  cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 20, 0.005);
   cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0, pts1, mask_klt, error, win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
 
   // Normalize these points, so we can then do ransac
@@ -685,7 +685,7 @@ void TrackKLT::perform_matching(const std::vector<cv::Mat> &img0pyr, const std::
   double max_focallength_img0 = std::max(camera_calib.at(id0)->get_K()(0, 0), camera_calib.at(id0)->get_K()(1, 1));
   double max_focallength_img1 = std::max(camera_calib.at(id1)->get_K()(0, 0), camera_calib.at(id1)->get_K()(1, 1));
   double max_focallength = std::max(max_focallength_img0, max_focallength_img1);
-  cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 1 / max_focallength, 0.999, mask_rsc);
+  cv::findFundamentalMat(pts0_n, pts1_n, cv::FM_RANSAC, 0.9 / max_focallength, 0.999, mask_rsc);
 
   // Loop through and record only ones that are valid
   for (size_t i = 0; i < mask_klt.size(); i++) {

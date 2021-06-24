@@ -111,12 +111,12 @@ VioManager::VioManager(VioManagerOptions &params_) {
   if (params.use_klt) {
     trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras,
                                                          params.num_pts, state->_options.max_aruco_features,
-                                                         !params.use_stereo, params.histogram_method,
+                                                         params.use_stereo, params.histogram_method,
                                                          params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist));
   } else {
     trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(state->_cam_intrinsics_cameras,
                                                                 params.num_pts, state->_options.max_aruco_features,
-                                                                !params.use_stereo, params.histogram_method,
+                                                                params.use_stereo, params.histogram_method,
                                                                 params.fast_threshold, params.grid_x, params.grid_y,
                                                                 params.min_px_dist, params.knn_ratio));
   }
@@ -124,7 +124,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   // Initialize our aruco tag extractor
   if (params.use_aruco) {
     trackARUCO = std::shared_ptr<TrackBase>(new TrackAruco(state->_cam_intrinsics_cameras, state->_options.max_aruco_features,
-                                                           !params.use_stereo, params.histogram_method, params.downsize_aruco));
+                                                           params.use_stereo, params.histogram_method, params.downsize_aruco));
   }
 
   // Initialize our state propagator

@@ -45,7 +45,6 @@ public:
   /**
    * @brief This will set and update the camera calibration values.
    * This should be called on startup for each camera and after update!
-   * @param cam_id Which camera id we use intrinsics from
    * @param calib Camera calibration information (f_x & f_y & c_x & c_y & k_1 & k_2 & k_3 & k_4)
    */
   virtual void set_value(const Eigen::MatrixXd &calib) {

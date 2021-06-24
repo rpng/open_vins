@@ -55,6 +55,7 @@ public:
    * @param options Updater options (chi2 multiplier)
    * @param noises imu noise characteristics (continuous time)
    * @param db Feature tracker database with all features in it
+   * @param prop Propagator class object which can predict the state forward in time
    * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    * @param zupt_max_velocity Max velocity we should consider to do a update with
    * @param zupt_noise_multiplier Multiplier of our IMU noise matrix (default should be 1.0)

@@ -39,9 +39,9 @@ void TrackDescriptor::feed_new_camera(const CameraData &message) {
   size_t num_images = message.images.size();
   if (num_images == 1) {
     feed_monocular(message, 0);
-  } else if (num_images == 2 && !binocular_track) {
+  } else if (num_images == 2 && use_stereo) {
     feed_stereo(message, 0, 1);
-  } else if (binocular_track) {
+  } else if (!use_stereo) {
     parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
                     for (int i = range.start; i < range.end; i++) {
                       feed_monocular(message, i);
