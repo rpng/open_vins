@@ -164,7 +164,7 @@ void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
 
   // Load the mask if we are using it, else it is empty
   // TODO: in the future we should get this from external pixel segmentation
-  if(!sys->get_params().use_mask) {
+  if(sys->get_params().use_mask) {
     message.masks.push_back(sys->get_params().masks.at(cam_id0));
   } else {
     message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
