@@ -1,8 +1,8 @@
 <launch>
 
     <!-- mono or stereo and what ros bag to play -->
-    <arg name="max_cameras" default="1" />
-    <arg name="use_stereo"  default="false" />
+    <arg name="max_cameras" default="2" />
+    <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" />
     <arg name="bag_durr"    default="999999" />
     <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer/indoor_45_2_snapdragon_with_gt.bag" />
@@ -33,7 +33,6 @@
         <param name="topic_imu"      type="string" value="/snappy_imu" />
         <param name="topic_camera0"  type="string" value="/snappy_cam/stereo_l" />
         <param name="topic_camera1"  type="string" value="/snappy_cam/stereo_r" />
-        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="true" />

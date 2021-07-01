@@ -186,9 +186,6 @@ struct VioManagerOptions {
   /// If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.
   bool use_stereo = true;
 
-  /// Defined set of stereo camera id pairs which we will process together and try to generate stereo constraints between.
-  std::vector<std::pair<int, int>> stereo_pairs;
-
   /// If we should use KLT tracking, or descriptor matcher
   bool use_klt = true;
 
@@ -239,13 +236,9 @@ struct VioManagerOptions {
    */
   void print_trackers() {
     printf("FEATURE TRACKING PARAMETERS:\n");
+    printf("\t- use_klt: %d\n", use_klt);
     printf("\t- use_stereo: %d\n", use_stereo);
     printf("\t- use_aruco: %d\n", use_aruco);
-    printf("\t- stereo pairs: ");
-    for (const auto &pair : stereo_pairs) {
-      printf("[%d, %d] ", pair.first, pair.second);
-    }
-    printf("\n");
     printf("\t- downsize aruco: %d\n", downsize_aruco);
     printf("\t- downsize cameras: %d\n", downsample_cameras);
     printf("\t- use multi-threading: %d\n", use_multi_threading);

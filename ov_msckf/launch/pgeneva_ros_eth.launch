@@ -1,7 +1,7 @@
 <launch>
 
     <!-- mono or stereo and what ros bag to play -->
-    <arg name="max_cameras" default="1" />
+    <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
     <arg name="bag"         default="/home/patrick/datasets/eth/V1_01_easy.bag" />
@@ -25,7 +25,6 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
-        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="true" />

@@ -655,11 +655,13 @@ void RosVisualizer::publish_groundtruth() {
   //==========================================================================
 
   // Update our average variables
-  summed_rmse_ori += rmse_ori;
-  summed_rmse_pos += rmse_pos;
-  summed_nees_ori += ori_nees;
-  summed_nees_pos += pos_nees;
-  summed_number++;
+  if(!std::isnan(ori_nees) && !std::isnan(pos_nees)) {
+    summed_rmse_ori += rmse_ori;
+    summed_rmse_pos += rmse_pos;
+    summed_nees_ori += ori_nees;
+    summed_nees_pos += pos_nees;
+    summed_number++;
+  }
 
   // Nice display for the user
   printf(REDPURPLE "error to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m) | called %d times\n" RESET, rmse_ori, rmse_pos,

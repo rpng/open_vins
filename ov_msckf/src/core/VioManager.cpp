@@ -61,7 +61,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   for (int i = 0; i < state->_options.num_cameras; i++) {
 
     // Create the actual camera object and set the values
-    if(params.camera_fisheye.at(i)) {
+    if (params.camera_fisheye.at(i)) {
       state->_cam_intrinsics_cameras.insert({i, std::make_shared<CamEqui>()});
       state->_cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
     } else {
@@ -109,16 +109,13 @@ VioManager::VioManager(VioManagerOptions &params_) {
   // Lets make a feature extractor
   trackDATABASE = std::make_shared<FeatureDatabase>();
   if (params.use_klt) {
-    trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras,
-                                                         params.num_pts, state->_options.max_aruco_features,
-                                                         params.use_stereo, params.histogram_method,
-                                                         params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist));
+    trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras, params.num_pts, state->_options.max_aruco_features,
+                                                         params.use_stereo, params.histogram_method, params.fast_threshold, params.grid_x,
+                                                         params.grid_y, params.min_px_dist));
   } else {
-    trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(state->_cam_intrinsics_cameras,
-                                                                params.num_pts, state->_options.max_aruco_features,
-                                                                params.use_stereo, params.histogram_method,
-                                                                params.fast_threshold, params.grid_x, params.grid_y,
-                                                                params.min_px_dist, params.knn_ratio));
+    trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(
+        state->_cam_intrinsics_cameras, params.num_pts, state->_options.max_aruco_features, params.use_stereo, params.histogram_method,
+        params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist, params.knn_ratio));
   }
 
   // Initialize our aruco tag extractor
@@ -172,10 +169,9 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
   }
 
   // If we do not have enough unique cameras then we need to wait
-  // This is since we will not be sure if the missing unique cameras will need to be propagated to first
-  // The issue here is that if we have a slow frame-rate camera this will cause lag...
-  // Another way is to try to "predict" if the missing images will come in after the current oldest frame
-  if ((int)unique_cam_ids.size() != params.state_options.num_unique_cameras)
+  // We should wait till we have one of each camera to ensure we propagate in the correct order
+  size_t num_unique_cameras = (params.state_options.num_cameras == 2) ? 1 : params.state_options.num_cameras;
+  if (unique_cam_ids.size() != num_unique_cameras)
     return;
 
   // Loop through our queue and see if we are able to process any of our camera measurements
@@ -799,7 +795,7 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     }
 
     // Remove if we don't have enough and am not a SLAM feature which doesn't need triangulation
-    if (ct_meas < (int)std::max(0.0, std::floor(state->_options.max_clone_size * 2.0 / 5.0))) {
+    if (ct_meas < (int)std::max(4.0, std::floor(state->_options.max_clone_size * 2.0 / 5.0))) {
       it0 = active_features.erase(it0);
     } else {
       it0++;
@@ -907,8 +903,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     }
 
     // Skip if not valid (i.e. negative depth, or outside of image)
-    if (uv_dist(0) < 0 || (int)uv_dist(0) >= params.camera_wh.at(0).first
-        || uv_dist(1) < 0 || (int)uv_dist(1) >= params.camera_wh.at(0).second) {
+    if (uv_dist(0) < 0 || (int)uv_dist(0) >= params.camera_wh.at(0).first || uv_dist(1) < 0 ||
+        (int)uv_dist(1) >= params.camera_wh.at(0).second) {
       // printf("feat %zu -> depth = %.2f | u_d = %.2f | v_d = %.2f\n",(*it2)->featid,depth,uv_dist(0),uv_dist(1));
       continue;
     }

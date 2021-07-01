@@ -88,6 +88,7 @@ bool FeatureInitializer::single_triangulation(Feature *feat, std::unordered_map<
   singularValues.resize(svd.singularValues().rows(), 1);
   singularValues = svd.singularValues();
   double condA = singularValues(0, 0) / singularValues(singularValues.rows() - 1, 0);
+  //std::cout << feat->featid << " - cond " << std::abs(condA) << " - z " << p_f(2, 0) << std::endl;
 
   // If we have a bad condition number, or it is too close
   // Then set the flag for bad (i.e. set z-axis to nan)
@@ -344,6 +345,7 @@ bool FeatureInitializer::single_gaussnewton(Feature *feat, std::unordered_map<si
         base_line_max = base_line;
     }
   }
+  //std::cout << feat->featid << " - max base " << (feat->p_FinA.norm() / base_line_max) << " - z " << feat->p_FinA(2) << std::endl;
 
   // Check if this feature is bad or not
   // 1. If the feature is too close

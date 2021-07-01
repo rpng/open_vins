@@ -18,7 +18,6 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
-        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/ironsides/neighborhood_01.bag" /> <!-- neighborhood_01, neighborhood_02 -->

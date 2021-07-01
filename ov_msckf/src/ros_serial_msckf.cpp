@@ -62,28 +62,23 @@ int main(int argc, char **argv) {
 
   // Our camera topics (stereo pairs and non-stereo mono)
   std::vector<std::pair<size_t, std::string>> topic_cameras;
-  std::vector<int> stereo_cam_ids;
-  for (const auto &pair : params.stereo_pairs) {
+  if (params.use_stereo && params.state_options.num_cameras == 2) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
-    nh.param<std::string>("topic_camera" + std::to_string(pair.first), cam_topic0, "/cam" + std::to_string(pair.first) + "/image_raw");
-    nh.param<std::string>("topic_camera" + std::to_string(pair.second), cam_topic1, "/cam" + std::to_string(pair.second) + "/image_raw");
-    topic_cameras.emplace_back(pair.first, cam_topic0);
-    topic_cameras.emplace_back(pair.second, cam_topic1);
-    stereo_cam_ids.push_back(pair.first);
-    stereo_cam_ids.push_back(pair.second);
+    nh.param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
+    nh.param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
+    topic_cameras.emplace_back(0, cam_topic0);
+    topic_cameras.emplace_back(1, cam_topic1);
     ROS_INFO("serial cam (stereo): %s", cam_topic0.c_str());
     ROS_INFO("serial cam (stereo): %s", cam_topic1.c_str());
-  }
-  for (int i = 0; i < params.state_options.num_cameras; i++) {
-    // Skip if already have been added
-    if (std::find(stereo_cam_ids.begin(), stereo_cam_ids.end(), i) != stereo_cam_ids.end())
-      continue;
-    // read in the topic
-    std::string cam_topic;
-    nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
-    topic_cameras.emplace_back(i, cam_topic);
-    ROS_INFO("serial cam (mono): %s", cam_topic.c_str());
+  } else {
+    for (int i = 0; i < params.state_options.num_cameras; i++) {
+      // read in the topic
+      std::string cam_topic;
+      nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      topic_cameras.emplace_back(i, cam_topic);
+      ROS_INFO("serial cam (mono): %s", cam_topic.c_str());
+    }
   }
 
   // Location of the ROS bag we want to read in
@@ -107,10 +102,6 @@ int main(int argc, char **argv) {
   nh.param<double>("bag_durr", bag_durr, -1);
   ROS_INFO("bag start: %.1f", bag_start);
   ROS_INFO("bag duration: %.1f", bag_durr);
-
-  // Read in what mode we should be processing in (1=mono, 2=stereo)
-  int max_cameras;
-  nh.param<int>("max_cameras", max_cameras, 1);
 
   //===================================================================================
   //===================================================================================
@@ -142,112 +133,228 @@ int main(int argc, char **argv) {
     return EXIT_FAILURE;
   }
 
+  // Open our iterators
+  auto view_imu = std::make_shared<rosbag::View>(bag, rosbag::TopicQuery(topic_imu), time_init, time_finish);
+  auto view_imu_iter = view_imu->begin();
+  std::vector<std::shared_ptr<rosbag::View>> view_cameras;
+  std::vector<rosbag::View::iterator> view_cameras_iterators;
+  for (const auto &topic : topic_cameras) {
+    auto view_tmp = std::make_shared<rosbag::View>(bag, rosbag::TopicQuery(topic.second), time_init, time_finish);
+    view_cameras.push_back(view_tmp);
+    view_cameras_iterators.push_back(view_tmp->begin());
+  }
+
+  // Record the current measurement timestamps
+  sensor_msgs::Imu::ConstPtr msg_imu_current;
+  sensor_msgs::Imu::ConstPtr msg_imu_next;
+  std::vector<sensor_msgs::Image::ConstPtr> msg_images_current;
+  std::vector<sensor_msgs::Image::ConstPtr> msg_images_next;
+  msg_imu_current = view_imu_iter->instantiate<sensor_msgs::Imu>();
+  view_imu_iter++;
+  msg_imu_next = view_imu_iter->instantiate<sensor_msgs::Imu>();
+  for (int i = 0; i < params.state_options.num_cameras; i++) {
+    msg_images_current.emplace_back(view_cameras_iterators.at(i)->instantiate<sensor_msgs::Image>());
+    view_cameras_iterators.at(i)++;
+    msg_images_next.emplace_back(view_cameras_iterators.at(i)->instantiate<sensor_msgs::Image>());
+  }
+
   //===================================================================================
   //===================================================================================
   //===================================================================================
 
-  // Latest collection of image information
-  std::map<size_t, std::pair<double, cv::Mat>> image_buffer;
+  while (ros::ok()) {
 
-  // Step through the rosbag
-  for (const rosbag::MessageInstance &m : view) {
-
-    // If ros is wants us to stop, break out
-    if (!ros::ok())
+    // Check if we should end since we have run out of measurements
+    bool should_stop = false;
+    if (view_imu_iter == view_imu->end()) {
+      should_stop = true;
+    }
+    for (int i = 0; i < params.state_options.num_cameras; i++) {
+      if (view_cameras_iterators.at(i) == view_cameras.at(i)->end()) {
+        should_stop = true;
+      }
+    }
+    if (should_stop) {
       break;
+    }
 
-    // Handle IMU measurement
-    sensor_msgs::Imu::ConstPtr s2 = m.instantiate<sensor_msgs::Imu>();
-    if (s2 != nullptr && m.getTopic() == topic_imu) {
+    // We should process the IMU if all the current cameras are greater then its time
+    bool should_process_imu = false;
+    for (int i = 0; i < params.state_options.num_cameras; i++) {
+      double time_imu = msg_imu_current->header.stamp.toSec();
+      double time_cam = msg_images_current.at(i)->header.stamp.toSec();
+      if (time_imu <= time_cam) {
+        should_process_imu = true;
+      }
+    }
+    if (should_process_imu) {
       // convert into correct format
       ov_core::ImuData message;
-      message.timestamp = (*s2).header.stamp.toSec();
-      message.wm << (*s2).angular_velocity.x, (*s2).angular_velocity.y, (*s2).angular_velocity.z;
-      message.am << (*s2).linear_acceleration.x, (*s2).linear_acceleration.y, (*s2).linear_acceleration.z;
+      message.timestamp = msg_imu_current->header.stamp.toSec();
+      message.wm << msg_imu_current->angular_velocity.x, msg_imu_current->angular_velocity.y, msg_imu_current->angular_velocity.z;
+      message.am << msg_imu_current->linear_acceleration.x, msg_imu_current->linear_acceleration.y, msg_imu_current->linear_acceleration.z;
       // send it to our VIO system
+      // ROS_ERROR("%.15f = imu time",msg_imu_current->header.stamp.toSec()-time_init.toSec());
       sys->feed_measurement_imu(message);
       viz->visualize();
       viz->visualize_odometry(message.timestamp);
+      // move forward in time
+      msg_imu_current = msg_imu_next;
+      view_imu_iter++;
+      msg_imu_next = view_imu_iter->instantiate<sensor_msgs::Imu>();
+      continue;
     }
 
-    // Handle CAMERA measurement
-    for (const auto &pair : topic_cameras) {
-      sensor_msgs::Image::ConstPtr s0 = m.instantiate<sensor_msgs::Image>();
-      if (s0 != nullptr && m.getTopic() == pair.second) {
-        // Get the image
-        cv_bridge::CvImageConstPtr cv_ptr;
-        try {
-          cv_ptr = cv_bridge::toCvShare(s0, sensor_msgs::image_encodings::MONO8);
-        } catch (cv_bridge::Exception &e) {
-          ROS_ERROR("cv_bridge exception: %s", e.what());
-          continue;
-        }
-        // Save to our temp variable
-        image_buffer[pair.first] = {cv_ptr->header.stamp.toSec(), cv_ptr->image.clone()};
-      }
-    }
+    // If we are stereo, then we should collect both the left and right
+    if (params.state_options.num_cameras == 2) {
 
-    // MONO: Now loop through our buffer and see if we have have any we can send to the VIO
-    auto it0 = image_buffer.begin();
-    while (it0 != image_buffer.end()) {
-      // skip if a stereo image
-      if (std::find(stereo_cam_ids.begin(), stereo_cam_ids.end(), it0->first) != stereo_cam_ids.end()) {
-        it0++;
-        continue;
-      }
-      // process once we have initialized with the GT
-      Eigen::Matrix<double, 17, 1> imustate;
-      if (!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(it0->second.first, imustate, gt_states)) {
-        // biases are pretty bad normally, so zero them
-        // imustate.block(11,0,6,1).setZero();
-        sys->initialize_with_gt(imustate);
-      } else if (gt_states.empty() || sys->initialized()) {
-        ov_core::CameraData message;
-        message.timestamp = it0->second.first;
-        message.sensor_ids.push_back(it0->first);
-        message.images.push_back(it0->second.second);
-        if(sys->get_params().use_mask) {
-          message.masks.push_back(sys->get_params().masks.at(it0->first));
+      // Now lets do some logic to find two images which are next to each other
+      // We want to ensure that our stereo pair are very close to occurring at the same time
+      bool have_found_pair = false;
+      while (!have_found_pair && view_cameras_iterators.at(0) != view_cameras.at(0)->end() &&
+             view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
+
+        // Get left and right cameras
+        auto msg_cam0 = msg_images_current.at(0);
+        auto msg_cam1 = msg_images_current.at(1);
+        auto msg_cam0_next = msg_images_next.at(0);
+        auto msg_cam1_next = msg_images_next.at(1);
+
+        // timestamps
+        double time0 = msg_cam0->header.stamp.toSec();
+        double time1 = msg_cam1->header.stamp.toSec();
+        double time0_next = msg_cam0_next->header.stamp.toSec();
+        double time1_next = msg_cam1_next->header.stamp.toSec();
+
+        // We will have a match if the current left and right images are closer then the next one
+        // Consider the case that we drop an image:
+        //    (L1) L2 (R2) R3 <- current pointers are at L1 and R2
+        //    In this case, we dropped the R1 image, thus we should skip the L1 image
+        //    We can check to see that L1 is further away compared to L2 from R2
+        //    Thus we should skip the L1 frame (advance the bag forward) and check this logic again!
+        if (std::abs(time1 - time0) < std::abs(time1_next - time0) && std::abs(time0 - time1) < std::abs(time0_next - time1)) {
+          have_found_pair = true;
+        } else if (std::abs(time1 - time0) >= std::abs(time1_next - time0)) {
+          // ROS_WARN("skipping cam1 (%.4f >= %.4f)",std::abs(time1-time0), std::abs(time1_next-time0));
+          msg_images_current.at(1) = msg_images_next.at(1);
+          view_cameras_iterators.at(1)++;
+          msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
         } else {
-          message.masks.push_back(cv::Mat::zeros(it0->second.second.rows, it0->second.second.cols, CV_8UC1));
+          // ROS_WARN("skipping cam0 (%.4f >= %.4f)",std::abs(time0-time1), std::abs(time0_next-time1));
+          msg_images_current.at(0) = msg_images_next.at(0);
+          view_cameras_iterators.at(0)++;
+          msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
         }
-        sys->feed_measurement_camera(message);
       }
-      it0 = image_buffer.erase(it0);
-    }
 
-    // STEREO: Now loop through our buffer and see if we have have any we can send to the VIO
-    for (const auto &stereo : params.stereo_pairs) {
-      // skip if we don't have both images
-      if (image_buffer.find(stereo.first) == image_buffer.end() || image_buffer.find(stereo.second) == image_buffer.end())
-        continue;
-      // process once we have initialized with the GT
+      // Break out if we have ended
+      if (view_cameras_iterators.at(0) == view_cameras.at(0)->end() || view_cameras_iterators.at(1) == view_cameras.at(1)->end()) {
+        break;
+      }
+
+      // Check if we should initialize using the groundtruth (always use left)
       Eigen::Matrix<double, 17, 1> imustate;
       if (!gt_states.empty() && !sys->initialized() &&
-          DatasetReader::get_gt_state(image_buffer.at(stereo.first).first, imustate, gt_states)) {
+          DatasetReader::get_gt_state(msg_images_current.at(0)->header.stamp.toSec(), imustate, gt_states)) {
         // biases are pretty bad normally, so zero them
         // imustate.block(11,0,6,1).setZero();
         sys->initialize_with_gt(imustate);
-      } else if (gt_states.empty() || sys->initialized()) {
-        ov_core::CameraData message;
-        message.timestamp = image_buffer.at(stereo.first).first;
-        message.sensor_ids.push_back(stereo.first);
-        message.sensor_ids.push_back(stereo.second);
-        message.images.push_back(image_buffer.at(stereo.first).second);
-        message.images.push_back(image_buffer.at(stereo.second).second);
-        if(sys->get_params().use_mask) {
-          message.masks.push_back(sys->get_params().masks.at(stereo.first));
-          message.masks.push_back(sys->get_params().masks.at(stereo.second));
-        } else {
-          message.masks.push_back(
-              cv::Mat::zeros(image_buffer.at(stereo.first).second.rows, image_buffer.at(stereo.first).second.cols, CV_8UC1));
-          message.masks.push_back(
-              cv::Mat::zeros(image_buffer.at(stereo.second).second.rows, image_buffer.at(stereo.second).second.cols, CV_8UC1));
-        }
-        sys->feed_measurement_camera(message);
       }
-      image_buffer.erase(stereo.first);
-      image_buffer.erase(stereo.second);
+
+      // Get the image
+      cv_bridge::CvImageConstPtr cv_ptr0, cv_ptr1;
+      try {
+        cv_ptr0 = cv_bridge::toCvShare(msg_images_current.at(0), sensor_msgs::image_encodings::MONO8);
+        cv_ptr1 = cv_bridge::toCvShare(msg_images_current.at(1), sensor_msgs::image_encodings::MONO8);
+      } catch (cv_bridge::Exception &e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        msg_images_current.at(0) = msg_images_next.at(0);
+        view_cameras_iterators.at(0)++;
+        msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+        msg_images_current.at(1) = msg_images_next.at(1);
+        view_cameras_iterators.at(1)++;
+        msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
+        continue;
+      }
+
+      // Create viomanager message datatype
+      ov_core::CameraData message;
+      message.timestamp = msg_images_current.at(0)->header.stamp.toSec();
+      message.sensor_ids.push_back(0);
+      message.sensor_ids.push_back(1);
+      message.images.push_back(cv_ptr0->image.clone());
+      message.images.push_back(cv_ptr1->image.clone());
+      if (sys->get_params().use_mask) {
+        message.masks.push_back(sys->get_params().masks.at(0));
+        message.masks.push_back(sys->get_params().masks.at(1));
+      } else {
+        // message.masks.push_back(cv::Mat(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1, cv::Scalar(255)));
+        message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
+        message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
+      }
+      // ROS_ERROR("%.15f = cam %d time",msg_images_current.at(0)->header.stamp.toSec()-time_init.toSec(), 0);
+      // ROS_ERROR("%.15f = cam %d time",msg_images_current.at(1)->header.stamp.toSec()-time_init.toSec(), 1);
+      // ROS_ERROR("(difference is %.15f)",msg_images_current.at(1)->header.stamp.toSec()-msg_images_current.at(0)->header.stamp.toSec());
+      sys->feed_measurement_camera(message);
+
+      // move forward in time
+      msg_images_current.at(0) = msg_images_next.at(0);
+      view_cameras_iterators.at(0)++;
+      msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+      msg_images_current.at(1) = msg_images_next.at(1);
+      view_cameras_iterators.at(1)++;
+      msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
+
+    } else {
+
+      // Find the camera which should be processed (smallest time)
+      int smallest_cam = 0;
+      for (int i = 0; i < params.state_options.num_cameras; i++) {
+        double time_cam0 = msg_images_current.at(smallest_cam)->header.stamp.toSec();
+        double time_cam1 = msg_images_current.at(i)->header.stamp.toSec();
+        if (time_cam1 < time_cam0) {
+          smallest_cam = i;
+        }
+      }
+
+      // Check if we should initialize using the groundtruth
+      auto msg_camera = msg_images_current.at(smallest_cam);
+      Eigen::Matrix<double, 17, 1> imustate;
+      if (!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(msg_camera->header.stamp.toSec(), imustate, gt_states)) {
+        // biases are pretty bad normally, so zero them
+        // imustate.block(11,0,6,1).setZero();
+        sys->initialize_with_gt(imustate);
+      }
+
+      // Get the image
+      cv_bridge::CvImageConstPtr cv_ptr;
+      try {
+        cv_ptr = cv_bridge::toCvShare(msg_camera, sensor_msgs::image_encodings::MONO8);
+      } catch (cv_bridge::Exception &e) {
+        ROS_ERROR("cv_bridge exception: %s", e.what());
+        msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
+        view_cameras_iterators.at(smallest_cam)++;
+        msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
+        continue;
+      }
+
+      // Create viomanager message datatype
+      ov_core::CameraData message;
+      message.timestamp = msg_camera->header.stamp.toSec();
+      message.sensor_ids.push_back(smallest_cam);
+      message.images.push_back(cv_ptr->image.clone());
+      if (sys->get_params().use_mask) {
+        message.masks.push_back(sys->get_params().masks.at(smallest_cam));
+      } else {
+        message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
+      }
+      // ROS_ERROR("%.15f = cam %d time",msg_camera->header.stamp.toSec()-time_init.toSec(), smallest_cam);
+      sys->feed_measurement_camera(message);
+
+      // move forward
+      msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
+      view_cameras_iterators.at(smallest_cam)++;
+      msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
     }
   }
 
