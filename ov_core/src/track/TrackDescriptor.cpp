@@ -121,18 +121,14 @@ void TrackDescriptor::feed_monocular(const CameraData &message, size_t msg_id) {
       }
     }
 
-    // If we found a good stereo track from left to left, and right to right
-    // Then lets replace the current ID with the old ID
-    // We also check that we are linked to the same past ID value
+    // Then lets replace the current ID with the old ID if found
+    // Else just append the current feature and its unique ID
+    good_left.push_back(pts_new[i]);
+    good_desc_left.push_back(desc_new.row((int)i));
     if (idll != -1) {
-      good_left.push_back(pts_new[i]);
-      good_desc_left.push_back(desc_new.row((int)i));
       good_ids_left.push_back(ids_last[cam_id][idll]);
       num_tracklast++;
     } else {
-      // Else just append the current feature and its unique ID
-      good_left.push_back(pts_new[i]);
-      good_desc_left.push_back(desc_new.row((int)i));
       good_ids_left.push_back(ids_new[i]);
     }
   }
@@ -186,8 +182,8 @@ void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left,
     clahe->apply(message.images.at(msg_id_left), img_left);
     clahe->apply(message.images.at(msg_id_right), img_right);
   } else {
-    img_left = message.images.at(msg_id_left).clone();
-    img_right = message.images.at(msg_id_right).clone();
+    img_left = message.images.at(msg_id_left);
+    img_right = message.images.at(msg_id_right);
   }
   mask_left = message.masks.at(msg_id_left);
   mask_right = message.masks.at(msg_id_right);
