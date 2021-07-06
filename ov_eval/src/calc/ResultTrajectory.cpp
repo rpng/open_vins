@@ -39,7 +39,7 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
   AlignUtils::perform_association(0, 0.02, est_times, gt_times, est_poses, gt_poses, est_covori, est_covpos, gt_covori, gt_covpos);
 
   // Return failure if we didn't have any common timestamps
-  if (est_poses.size() < 2) {
+  if (est_poses.size() < 3) {
     printf(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
     printf(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
     std::exit(EXIT_FAILURE);

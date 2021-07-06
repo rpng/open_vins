@@ -4,7 +4,9 @@
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
-    <arg name="bag"         default="/home/patrick/datasets/eth/V1_01_easy.bag" />
+    <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
+    <arg name="bag"         default="/home/patrick/datasets/eth/$(arg dataset).bag" />
+    <arg name="bag_gt"      default="$(find ov_data)/euroc_mav/$(arg dataset).csv" />
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="0.75" />
@@ -124,6 +126,12 @@
 
     <!-- play the dataset -->
     <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -s $(arg bag_start) $(arg bag)" required="true"/>
+
+    <!-- path viz of aligned gt -->
+    <node name="live_align_trajectory" pkg="ov_eval" type="live_align_trajectory" output="log" clear_params="true">
+        <param name="alignment_type" type="str" value="posyaw" />
+        <param name="path_gt"        type="str" value="$(arg bag_gt)" />
+    </node>
 
     <!-- record the trajectory if enabled -->
     <group if="$(arg dosave)">

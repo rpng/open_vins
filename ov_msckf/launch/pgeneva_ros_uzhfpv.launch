@@ -1,11 +1,13 @@
 <launch>
 
     <!-- mono or stereo and what ros bag to play -->
-    <arg name="max_cameras" default="2" />
+    <arg name="max_cameras" default="1" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" />
     <arg name="bag_durr"    default="999999" />
-    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer/indoor_45_2_snapdragon_with_gt.bag" />
+    <arg name="dataset"     default="indoor_45_4_snapdragon_with_gt" /> <!-- indoor_45_2_snapdragon_with_gt, indoor_45_4_snapdragon_with_gt -->
+    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer/$(arg dataset).bag" />
+    <arg name="bag_gt"      default="$(find ov_data)/uzh_fpv/$(arg dataset).txt" />
 
     <!-- what configuration mode we are in  -->
     <!-- 0: indoor forward facing  -->
@@ -202,6 +204,12 @@
 
     <!-- play the dataset -->
     <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -s $(arg bag_start) -u $(arg bag_durr) $(arg bag)" required="true"/>
+
+    <!-- path viz of aligned gt -->
+    <node name="live_align_trajectory" pkg="ov_eval" type="live_align_trajectory" output="log" clear_params="true">
+        <param name="alignment_type" type="str" value="posyaw" />
+        <param name="path_gt"        type="str" value="$(arg bag_gt)" />
+    </node>
 
     <!-- record the trajectory if enabled -->
     <group if="$(arg dosave)">

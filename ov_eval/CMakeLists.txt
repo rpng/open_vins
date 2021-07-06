@@ -95,6 +95,8 @@ target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 if (catkin_FOUND)
     add_executable(pose_to_file src/pose_to_file.cpp)
     target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
+    add_executable(live_align_trajectory src/live_align_trajectory.cpp)
+    target_link_libraries(live_align_trajectory ov_eval_lib ${thirdparty_libraries})
 endif()
 
 

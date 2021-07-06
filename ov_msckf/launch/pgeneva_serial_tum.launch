@@ -4,8 +4,9 @@
     <arg name="max_cameras" default="1" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="4" />
-    <arg name="bag"         default="/home/patrick/datasets/tum/dataset-room1_512_16.bag" />
-    <arg name="bag_gt"      default="$(find ov_data)/tum_vi/dataset-room1_512_16.csv" /> <!-- $(find ov_data)/tum_vi/dataset-room1_512_16.csv -->
+    <arg name="dataset"     default="dataset-room1_512_16" /> <!-- dataset-room1_512_16, dataset-room3_512_16 -->
+    <arg name="bag"         default="/home/patrick/datasets/tum/$(arg dataset).bag" />
+    <arg name="bag_gt"      default="$(find ov_data)/tum_vi/$(arg dataset).csv" />
 
     <!-- imu starting thresholds -->
     <arg name="init_window_time"  default="1.0" />

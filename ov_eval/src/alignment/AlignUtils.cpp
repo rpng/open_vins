@@ -169,7 +169,7 @@ void AlignUtils::perform_association(double offset, double max_difference, std::
     printf(RED "[ALIGN]: Was unable to associate groundtruth and estimate trajectories\n" RESET);
     printf(RED "[ALIGN]: %d total matches....\n" RESET, (int)est_times.size());
     printf(RED "[ALIGN]: Do the time of the files match??\n" RESET);
-    std::exit(EXIT_FAILURE);
+    return;
   }
   assert(est_times_temp.size() == gt_times_temp.size());
   // printf("[TRAJ]: %d est poses and %d gt poses => %d matches\n",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());

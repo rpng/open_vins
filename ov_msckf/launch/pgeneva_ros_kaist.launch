@@ -10,6 +10,8 @@
     <arg name="path_est"    default="/tmp/traj_estimate.txt" />
     <arg name="path_time"   default="/tmp/traj_timing.txt" />
 
+    <!-- groundtruth information -->
+    <arg name="bag_gt"      default="$(find ov_data)/kaist/urban39.csv" /> <!-- urban28, urban38, urban39 -->
 
     <!-- MASTER NODE! -->
 <!--    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
@@ -121,6 +123,12 @@
         </rosparam>
 
 
+    </node>
+
+    <!-- path viz of aligned gt -->
+    <node name="live_align_trajectory" pkg="ov_eval" type="live_align_trajectory" output="log" clear_params="true">
+        <param name="alignment_type" type="str" value="posyaw" />
+        <param name="path_gt"        type="str" value="$(arg bag_gt)" />
     </node>
 
     <!-- record the trajectory if enabled -->
