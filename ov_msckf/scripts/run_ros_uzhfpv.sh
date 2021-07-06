@@ -11,8 +11,8 @@ source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
 
 # estimator configurations
 modes=(
-#    "mono"
-#    "binocular"
+    "mono"
+    "binocular"
     "stereo"
 )
 
