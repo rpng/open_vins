@@ -77,7 +77,7 @@ int main(int argc, char **argv) {
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
-  if(params.state_options.num_cameras == 2) {
+  if (params.state_options.num_cameras == 2) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
     nh.param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
@@ -158,7 +158,7 @@ void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
 
   // Load the mask if we are using it, else it is empty
   // TODO: in the future we should get this from external pixel segmentation
-  if(sys->get_params().use_mask) {
+  if (sys->get_params().use_mask) {
     message.masks.push_back(sys->get_params().masks.at(cam_id0));
   } else {
     message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
@@ -198,11 +198,11 @@ void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::
 
   // Load the mask if we are using it, else it is empty
   // TODO: in the future we should get this from external pixel segmentation
-  if(sys->get_params().use_mask) {
+  if (sys->get_params().use_mask) {
     message.masks.push_back(sys->get_params().masks.at(cam_id0));
     message.masks.push_back(sys->get_params().masks.at(cam_id1));
   } else {
-    //message.masks.push_back(cv::Mat(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1, cv::Scalar(255)));
+    // message.masks.push_back(cv::Mat(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1, cv::Scalar(255)));
     message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
     message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
   }

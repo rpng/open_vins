@@ -172,11 +172,11 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   for (int i = 0; i < params.state_options.num_cameras; i++) {
     std::string mask_path;
     nh.param<std::string>("mask" + std::to_string(i), mask_path, "");
-    if(params.use_mask) {
+    if (params.use_mask) {
       if (!boost::filesystem::exists(mask_path)) {
         printf(RED "VioManager(): invalid mask path:\n" RESET);
-        printf(RED "\t- mask%d\n" RESET,i);
-        printf(RED "\t- %s\n" RESET,mask_path.c_str());
+        printf(RED "\t- mask%d\n" RESET, i);
+        printf(RED "\t- %s\n" RESET, mask_path.c_str());
         std::exit(EXIT_FAILURE);
       }
       params.masks.insert({i, cv::imread(mask_path, cv::IMREAD_GRAYSCALE)});

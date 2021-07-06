@@ -80,14 +80,14 @@ public:
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  virtual Eigen::Vector2f undistort_f(const Eigen::Vector2f& uv_dist) = 0;
+  virtual Eigen::Vector2f undistort_f(const Eigen::Vector2f &uv_dist) = 0;
 
   /**
    * @brief Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  Eigen::Vector2d undistort_d(const Eigen::Vector2d& uv_dist) {
+  Eigen::Vector2d undistort_d(const Eigen::Vector2d &uv_dist) {
     Eigen::Vector2f ept1, ept2;
     ept1 = uv_dist.cast<float>();
     ept2 = undistort_f(ept1);
@@ -99,7 +99,7 @@ public:
    * @param uv_dist Raw uv coordinate we wish to undistort
    * @return 2d vector of normalized coordinates
    */
-  cv::Point2f undistort_cv(const cv::Point2f& uv_dist) {
+  cv::Point2f undistort_cv(const cv::Point2f &uv_dist) {
     Eigen::Vector2f ept1, ept2;
     ept1 << uv_dist.x, uv_dist.y;
     ept2 = undistort_f(ept1);
@@ -114,14 +114,14 @@ public:
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  virtual Eigen::Vector2f distort_f(const Eigen::Vector2f& uv_norm) = 0;
+  virtual Eigen::Vector2f distort_f(const Eigen::Vector2f &uv_norm) = 0;
 
   /**
    * @brief Given a normalized uv coordinate this will distort it to the raw image plane
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  Eigen::Vector2d distort_d(const Eigen::Vector2d& uv_norm) {
+  Eigen::Vector2d distort_d(const Eigen::Vector2d &uv_norm) {
     Eigen::Vector2f ept1, ept2;
     ept1 = uv_norm.cast<float>();
     ept2 = distort_f(ept1);
@@ -133,7 +133,7 @@ public:
    * @param uv_norm Normalized coordinates we wish to distort
    * @return 2d vector of raw uv coordinate
    */
-  cv::Point2f distort_cv(const cv::Point2f& uv_norm) {
+  cv::Point2f distort_cv(const cv::Point2f &uv_norm) {
     Eigen::Vector2f ept1, ept2;
     ept1 << uv_norm.x, uv_norm.y;
     ept2 = distort_f(ept1);
@@ -149,7 +149,7 @@ public:
    * @param H_dz_dzn Derivative of measurement z in respect to normalized
    * @param H_dz_dzeta Derivative of measurement z in respect to intrinic parameters
    */
-  virtual void compute_distort_jacobian(const Eigen::Vector2d& uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) = 0;
+  virtual void compute_distort_jacobian(const Eigen::Vector2d &uv_norm, Eigen::MatrixXd &H_dz_dzn, Eigen::MatrixXd &H_dz_dzeta) = 0;
 
   /// Gets the complete intrinsic vector
   Eigen::MatrixXd get_value() { return camera_values; }

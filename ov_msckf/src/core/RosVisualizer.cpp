@@ -655,7 +655,7 @@ void RosVisualizer::publish_groundtruth() {
   //==========================================================================
 
   // Update our average variables
-  if(!std::isnan(ori_nees) && !std::isnan(pos_nees)) {
+  if (!std::isnan(ori_nees) && !std::isnan(pos_nees)) {
     summed_rmse_ori += rmse_ori;
     summed_rmse_pos += rmse_pos;
     summed_nees_ori += ori_nees;

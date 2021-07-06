@@ -176,8 +176,8 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
 
   // If we are doing online intrinsic calibration we should update our camera objects
   // NOTE: is this the best place to put this update logic??? probably..
-  if(state->_options.do_calib_camera_intrinsics) {
-    for(auto const &calib : state->_cam_intrinsics) {
+  if (state->_options.do_calib_camera_intrinsics) {
+    for (auto const &calib : state->_cam_intrinsics) {
       state->_cam_intrinsics_cameras.at(calib.first)->set_value(calib.second->value());
     }
   }

@@ -46,7 +46,8 @@ public:
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    * @param downsize we can scale the image by 1/2 to increase Aruco tag extraction speed
    */
-  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool binocular, HistogramMethod histmethod, bool downsize)
+  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool binocular,
+                      HistogramMethod histmethod, bool downsize)
       : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
     aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
     aruco_params = cv::aruco::DetectorParameters::create();

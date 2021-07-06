@@ -534,20 +534,22 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
       // Note: we have a pretty big window size here since our projection might be bad
       // Note: but this might cause failure in cases of repeated textures (eg. checkerboard)
       std::vector<uchar> mask;
-      //perform_matching(img0pyr, img1pyr, kpts0_new, kpts1_new, cam_id_left, cam_id_right, mask);
+      // perform_matching(img0pyr, img1pyr, kpts0_new, kpts1_new, cam_id_left, cam_id_right, mask);
       std::vector<float> error;
       cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT + cv::TermCriteria::EPS, 10, 0.01);
-      cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0_new, pts1_new, mask, error, win_size,
-                               pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
+      cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0_new, pts1_new, mask, error, win_size, pyr_levels, term_crit,
+                               cv::OPTFLOW_USE_INITIAL_FLOW);
 
       // Loop through and record only ones that are valid
       for (size_t i = 0; i < pts0_new.size(); i++) {
 
         // Check that it is in bounds
-        if ((int)pts0_new.at(i).x < 0 || (int)pts0_new.at(i).x >= img0pyr.at(0).cols || (int)pts0_new.at(i).y < 0 || (int)pts0_new.at(i).y >= img0pyr.at(0).rows) {
+        if ((int)pts0_new.at(i).x < 0 || (int)pts0_new.at(i).x >= img0pyr.at(0).cols || (int)pts0_new.at(i).y < 0 ||
+            (int)pts0_new.at(i).y >= img0pyr.at(0).rows) {
           continue;
         }
-        if ((int)pts1_new.at(i).x < 0 || (int)pts1_new.at(i).x >= img1pyr.at(0).cols || (int)pts1_new.at(i).y < 0 || (int)pts1_new.at(i).y >= img1pyr.at(0).rows) {
+        if ((int)pts1_new.at(i).x < 0 || (int)pts1_new.at(i).x >= img1pyr.at(0).cols || (int)pts1_new.at(i).y < 0 ||
+            (int)pts1_new.at(i).y >= img1pyr.at(0).rows) {
           continue;
         }
 
@@ -601,7 +603,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
       continue;
     }
     // Check if this is a stereo point
-    bool is_stereo = (std::find(ids0.begin(),ids0.end(), *it1) != ids0.end());
+    bool is_stereo = (std::find(ids0.begin(), ids0.end(), *it1) != ids0.end());
     // Check if this keypoint is near another point
     // NOTE: if it is *not* a stereo point, then we will not delete the feature
     // NOTE: this means we might have a mono and stereo feature near each other, but that is ok

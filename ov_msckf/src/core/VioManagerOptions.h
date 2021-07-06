@@ -28,9 +28,9 @@
 #include <vector>
 
 #include "feat/FeatureInitializerOptions.h"
-#include "track/TrackBase.h"
 #include "state/Propagator.h"
 #include "state/StateOptions.h"
+#include "track/TrackBase.h"
 #include "update/UpdaterOptions.h"
 #include "utils/colors.h"
 #include "utils/quat_ops.h"

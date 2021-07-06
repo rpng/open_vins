@@ -106,10 +106,8 @@ void Loader::load_data(std::string path_traj, std::vector<double> &times, std::v
   // printf("[LOAD]: loaded %d poses from %s\n",(int)poses.size(),base_filename.c_str());
 }
 
-
 void Loader::load_data_csv(std::string path_traj, std::vector<double> &times, std::vector<Eigen::Matrix<double, 7, 1>> &poses,
                            std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos) {
-
 
   // Try to open our trajectory file
   std::ifstream file(path_traj);
@@ -176,7 +174,6 @@ void Loader::load_data_csv(std::string path_traj, std::vector<double> &times, st
     printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
-
 }
 
 void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &values) {

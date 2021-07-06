@@ -360,14 +360,14 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       state->_cam_intrinsics_cameras.at(pair.first)->compute_distort_jacobian(uv_norm, dz_dzn, dz_dzeta);
 
       // Normalized coordinates in respect to projection function
-      Eigen::MatrixXd dzn_dpfc = Eigen::MatrixXd::Zero(2,3);
+      Eigen::MatrixXd dzn_dpfc = Eigen::MatrixXd::Zero(2, 3);
       dzn_dpfc << 1 / p_FinCi(2), 0, -p_FinCi(0) / (p_FinCi(2) * p_FinCi(2)), 0, 1 / p_FinCi(2), -p_FinCi(1) / (p_FinCi(2) * p_FinCi(2));
 
       // Derivative of p_FinCi in respect to p_FinIi
       Eigen::MatrixXd dpfc_dpfg = R_ItoC * R_GtoIi;
 
       // Derivative of p_FinCi in respect to camera clone state
-      Eigen::MatrixXd dpfc_dclone = Eigen::MatrixXd::Zero(3,6);
+      Eigen::MatrixXd dpfc_dclone = Eigen::MatrixXd::Zero(3, 6);
       dpfc_dclone.block(0, 0, 3, 3).noalias() = R_ItoC * skew_x(p_FinIi);
       dpfc_dclone.block(0, 3, 3, 3) = -dpfc_dpfg;
 
@@ -397,7 +397,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
       if (state->_options.do_calib_camera_pose) {
 
         // Calculate the Jacobian
-        Eigen::MatrixXd dpfc_dcalib = Eigen::MatrixXd::Zero(3,6);
+        Eigen::MatrixXd dpfc_dcalib = Eigen::MatrixXd::Zero(3, 6);
         dpfc_dcalib.block(0, 0, 3, 3) = skew_x(p_FinCi - p_IinC);
         dpfc_dcalib.block(0, 3, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity();
 
