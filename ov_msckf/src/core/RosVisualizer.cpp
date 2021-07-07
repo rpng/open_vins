@@ -72,7 +72,10 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
   if (nh.hasParam("path_gt") && _sim == nullptr) {
     std::string path_to_gt;
     nh.param<std::string>("path_gt", path_to_gt, "");
-    DatasetReader::load_gt_file(path_to_gt, gt_states);
+    if(!path_to_gt.empty()) {
+      DatasetReader::load_gt_file(path_to_gt, gt_states);
+      ROS_INFO("gt file path is: %s", path_to_gt.c_str());
+    }
   }
 
   // Load if we should save the total state to file

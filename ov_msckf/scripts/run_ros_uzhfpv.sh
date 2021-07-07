@@ -111,8 +111,8 @@ imuthreshold=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3.1/exp_uzhfpv/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3.1/exp_uzhfpv/timings"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.4/exp_uzhfpv/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.4/exp_uzhfpv/timings"
 bag_path="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer"
 
 #=============================================================
@@ -131,8 +131,8 @@ for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_2.3.3_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
-filename_time="$save_path2/ov_2.3.3_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
+filename_est="$save_path1/ov_2.4_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
+filename_time="$save_path2/ov_2.4_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
