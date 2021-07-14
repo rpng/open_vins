@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "TrackSIM.h"
 
 using namespace ov_core;
@@ -56,7 +55,7 @@ void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<i
       good_ids_left.push_back(id);
 
       // Append to the database
-      cv::Point2f npt_l = undistort_point(kpt.pt, cam_id);
+      cv::Point2f npt_l = camera_calib.at(cam_id)->undistort_cv(kpt.pt);
       database->update_feature(id, timestamp, cam_id, kpt.pt.x, kpt.pt.y, npt_l.x, npt_l.y);
     }
 
@@ -65,6 +64,7 @@ void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<i
 
     // Move forward in time
     img_last[cam_id] = cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1);
+    img_mask_last[cam_id] = cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1);
     pts_last[cam_id] = good_left;
     ids_last[cam_id] = good_ids_left;
   }

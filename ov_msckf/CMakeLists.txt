@@ -17,13 +17,22 @@ if (NOT OpenCV_FOUND)
 endif()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
-# display message to user
-#message(WARNING "EIGEN VERSION: " ${EIGEN3_VERSION})
+# Display message to user
 message(WARNING "OPENCV VERSION: " ${OpenCV_VERSION})
 message(WARNING "BOOST VERSION: " ${Boost_VERSION})
 
+# If we will compile with aruco support
+option(ENABLE_ARUCO_TAGS "Enable or disable aruco tag (disable if no contrib modules)" ON)
+if (NOT ENABLE_ARUCO_TAGS)
+    add_definitions(-DENABLE_ARUCO_TAGS=0)
+    message(WARNING "DISABLING ARUCOTAG TRACKING!")
+else()
+    add_definitions(-DENABLE_ARUCO_TAGS=1)
+endif()
+
 # Describe catkin project
-if (catkin_FOUND)
+option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" ON)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core
@@ -31,7 +40,8 @@ if (catkin_FOUND)
             LIBRARIES ov_msckf_lib
     )
 else()
-    message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
+    add_definitions(-DROS_AVAILABLE=0)
+    message(WARNING "BUILDING WITHOUT ROS!")
 endif()
 
 # Try to compile with c++11
@@ -71,7 +81,7 @@ list(APPEND thirdparty_libraries
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
 # See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
-if (NOT catkin_FOUND)
+if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
     message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
     include_directories(${ov_core_SOURCE_DIR}/src/)
     list(APPEND thirdparty_libraries ov_core_lib)
@@ -91,7 +101,7 @@ list(APPEND library_source_files
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
 )
-if (catkin_FOUND)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     list(APPEND library_source_files
         src/core/RosVisualizer.cpp
     )
@@ -106,7 +116,7 @@ target_include_directories(ov_msckf_lib PUBLIC src)
 ##################################################
 
 
-if (catkin_FOUND)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
 
     add_executable(run_serial_msckf src/ros_serial_msckf.cpp)
     target_link_libraries(run_serial_msckf ov_msckf_lib ${thirdparty_libraries})

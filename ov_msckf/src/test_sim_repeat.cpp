@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include <cmath>
 #include <csignal>
 #include <deque>
@@ -30,7 +29,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
 #include <ros/ros.h>
 #endif
 
@@ -55,7 +54,7 @@ int main(int argc, char **argv) {
 
   // Create the simulator
   VioManagerOptions params1;
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   ros::init(argc, argv, "test_sim_repeat");
   ros::NodeHandle nh1("~");
   params1 = parse_ros_nodehandler(nh1);
@@ -100,7 +99,7 @@ int main(int argc, char **argv) {
 
   // Create the simulator
   VioManagerOptions params2;
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   ros::NodeHandle nh2("~");
   params2 = parse_ros_nodehandler(nh2);
 #else

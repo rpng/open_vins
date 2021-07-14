@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #include <csignal>
 #include <memory>
 
@@ -31,7 +29,7 @@
 #include "utils/parse_cmd.h"
 #include "utils/sensor_data.h"
 
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
 #include "core/RosVisualizer.h"
 #include "utils/parse_ros.h"
 #include <ros/ros.h>
@@ -41,7 +39,7 @@ using namespace ov_msckf;
 
 std::shared_ptr<Simulator> sim;
 std::shared_ptr<VioManager> sys;
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
 std::shared_ptr<RosVisualizer> viz;
 #endif
 
@@ -53,7 +51,7 @@ int main(int argc, char **argv) {
 
   // Read in our parameters
   VioManagerOptions params;
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   ros::init(argc, argv, "test_simulation");
   ros::NodeHandle nh("~");
   params = parse_ros_nodehandler(nh);
@@ -64,7 +62,7 @@ int main(int argc, char **argv) {
   // Create our VIO system
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   viz = std::make_shared<RosVisualizer>(nh, sys, sim);
 #endif
 
@@ -99,7 +97,7 @@ int main(int argc, char **argv) {
 
   // Step through the rosbag
   signal(SIGINT, signal_callback_handler);
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   while (sim->ok() && ros::ok()) {
 #else
   while (sim->ok()) {
@@ -110,7 +108,7 @@ int main(int argc, char **argv) {
     bool hasimu = sim->get_next_imu(message_imu.timestamp, message_imu.wm, message_imu.am);
     if (hasimu) {
       sys->feed_measurement_imu(message_imu);
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
       viz->visualize_odometry(message_imu.timestamp);
 #endif
     }
@@ -123,7 +121,7 @@ int main(int argc, char **argv) {
     if (hascam) {
       if (buffer_timecam != -1) {
         sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
         viz->visualize();
 #endif
       }
@@ -138,7 +136,7 @@ int main(int argc, char **argv) {
   //===================================================================================
 
   // Final visualization
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   viz->visualize_final();
 #endif
 

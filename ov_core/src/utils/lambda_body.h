@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef LAMBDA_BODY_H
 #define LAMBDA_BODY_H
 

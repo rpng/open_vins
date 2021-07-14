@@ -19,11 +19,12 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_TRACK_ARUCO_H
 #define OV_CORE_TRACK_ARUCO_H
 
+#if ENABLE_ARUCO_TAGS
 #include <opencv2/aruco.hpp>
+#endif
 
 #include "TrackBase.h"
 
@@ -40,45 +41,34 @@ class TrackAruco : public TrackBase {
 
 public:
   /**
-   * @brief Public default constructor
-   */
-  TrackAruco() : TrackBase(), max_tag_id(1024), do_downsizing(false) {
-    aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
-    aruco_params = cv::aruco::DetectorParameters::create();
-    // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX; // people with newer opencv might fail
-    // here
-  }
-
-  /**
    * @brief Public constructor with configuration variables
+   * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
-   * @param do_downsizing we can scale the image by 1/2 to increase Aruco tag extraction speed
+   * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
+   * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
+   * @param downsize we can scale the image by 1/2 to increase Aruco tag extraction speed
    */
-  explicit TrackAruco(int numaruco, bool do_downsizing) : TrackBase(0, numaruco), max_tag_id(numaruco), do_downsizing(do_downsizing) {
+  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool binocular,
+                      HistogramMethod histmethod, bool downsize)
+      : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
+#if ENABLE_ARUCO_TAGS
     aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
     aruco_params = cv::aruco::DetectorParameters::create();
-    // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX; // people with newer opencv might fail
-    // here
+    // NOTE: people with newer opencv might fail here
+    // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
+#else
+    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+    std::exit(EXIT_FAILURE);
+#endif
   }
 
   /**
-   * @brief Process a new monocular image
-   * @param timestamp timestamp the new image occurred at
-   * @param img new cv:Mat grayscale image
-   * @param cam_id the camera id that this new image corresponds too
+   * @brief Process a new image
+   * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_monocular(double timestamp, cv::Mat &img, size_t cam_id) override;
+  void feed_new_camera(const CameraData &message);
 
-  /**
-   * @brief Process new stereo pair of images
-   * @param timestamp timestamp this pair occured at (stereo is synchronised)
-   * @param img_left first grayscaled image
-   * @param img_right second grayscaled image
-   * @param cam_id_left first image camera id
-   * @param cam_id_right second image camera id
-   */
-  void feed_stereo(double timestamp, cv::Mat &img_left, cv::Mat &img_right, size_t cam_id_left, size_t cam_id_right) override;
-
+#if ENABLE_ARUCO_TAGS
   /**
    * @brief We override the display equation so we can show the tags we extract.
    * @param img_out image to which we will overlayed features on
@@ -86,10 +76,19 @@ public:
    * @param r2,g2,b2 second color to draw in
    */
   void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
+#endif
 
 protected:
-  // Timing variables
-  boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+#if ENABLE_ARUCO_TAGS
+  /**
+   * @brief Process a new monocular image
+   * @param timestamp timestamp the new image occurred at
+   * @param imgin new cv:Mat grayscale image
+   * @param cam_id the camera id that this new image corresponds too
+   * @param maskin tracking mask for the given input image
+   */
+  void perform_tracking(double timestamp, const cv::Mat &imgin, size_t cam_id, const cv::Mat &maskin);
+#endif
 
   // Max tag ID we should extract from (i.e., number of aruco tags starting from zero)
   int max_tag_id;
@@ -97,18 +96,18 @@ protected:
   // If we should downsize the image
   bool do_downsizing;
 
+#if ENABLE_ARUCO_TAGS
   // Our dictionary that we will extract aruco tags with
   cv::Ptr<cv::aruco::Dictionary> aruco_dict;
 
   // Parameters the opencv extractor uses
   cv::Ptr<cv::aruco::DetectorParameters> aruco_params;
 
-  // Mutex for our ids_aruco, corners, rejects which we use for drawing
-  std::mutex mtx_aruco;
-
   // Our tag IDs and corner we will get from the extractor
   std::unordered_map<size_t, std::vector<int>> ids_aruco;
   std::unordered_map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
+#endif
+
 };
 
 } // namespace ov_core

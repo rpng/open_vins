@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #include <Eigen/Eigen>
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/filesystem.hpp>
@@ -116,7 +114,7 @@ int main(int argc, char **argv) {
       ov_eval::AlignUtils::perform_association(0, 0.02, times_temp, gt_times_temp, poses_temp, gt_poses_temp);
 
       // Return failure if we didn't have any common timestamps
-      if (poses_temp.size() < 2) {
+      if (poses_temp.size() < 3) {
         printf(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
         printf(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
         std::exit(EXIT_FAILURE);

@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "TrackBase.h"
 
 using namespace ov_core;
@@ -27,9 +26,12 @@ using namespace ov_core;
 void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
   // Cache the images to prevent other threads from editing while we viz (which can be slow)
-  std::map<size_t, cv::Mat> img_last_cache;
+  std::map<size_t, cv::Mat> img_last_cache, img_mask_last_cache;
   for (auto const &pair : img_last) {
     img_last_cache.insert({pair.first, pair.second.clone()});
+  }
+  for (auto const &pair : img_mask_last) {
+    img_mask_last_cache.insert({pair.first, pair.second.clone()});
   }
 
   // Get the largest width and height
@@ -84,6 +86,10 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
     auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
     cv::putText(img_temp, "CAM:" + std::to_string((int)pair.first), txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0,
                 cv::Scalar(0, 255, 0), 3);
+    // Overlay the mask
+    cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
+    mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);
+    cv::addWeighted(mask, 0.1, img_temp, 1.0, 0.0, img_temp);
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));
     index_cam++;
@@ -93,9 +99,12 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
 void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::vector<size_t> highlighted) {
 
   // Cache the images to prevent other threads from editing while we viz (which can be slow)
-  std::map<size_t, cv::Mat> img_last_cache;
+  std::map<size_t, cv::Mat> img_last_cache, img_mask_last_cache;
   for (auto const &pair : img_last) {
     img_last_cache.insert({pair.first, pair.second.clone()});
+  }
+  for (auto const &pair : img_mask_last) {
+    img_mask_last_cache.insert({pair.first, pair.second.clone()});
   }
 
   // Get the largest width and height
@@ -181,6 +190,10 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
     auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
     cv::putText(img_temp, "CAM:" + std::to_string((int)pair.first), txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0,
                 cv::Scalar(0, 255, 0), 3);
+    // Overlay the mask
+    cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
+    mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);
+    cv::addWeighted(mask, 0.1, img_temp, 1.0, 0.0, img_temp);
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));
     index_cam++;

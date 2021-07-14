@@ -157,6 +157,15 @@ The dataset was collected in Korea with a vehicle equipped with stereo camera pa
 The camera is 10 Hz, while the Xsens IMU is 100 Hz sensing rate.
 A groundtruth "baseline" trajectory is also provided which is the resulting output from fusion of the FoG, RKT GPS, and wheel encoders.
 
+@m_class{m-block m-warning}
+
+@par Dynamic Environments
+    A challenging open research question is being able to handle dynamic objects seen from the cameras.
+    By default we rely on our tracking 8 point RANSAC to handle these dynamics objects.
+    In the most of the KAIST datasets the majority of the scene can be taken up by other moving vehicles, thus the performance can suffer.
+    Please be aware of this fact.
+
+
 @code{.shell-session}
 git clone https://github.com/rpng/file_player.git
 git clone https://github.com/irapkaist/irp_sen_msgs.git
@@ -166,18 +175,8 @@ rosrun file_player file_player
 
 To use the dataset, the dataset's file player can be used to publish the sensor information on to ROS.
 See the above commands on what packages you need to clone into your ROS workspace.
-One can record a rosbag after manually and use the serial OpenVINS processing node, or use the live node and manually playback the datasets.
 It is important to *disable* the "skip stop section" to ensure that we have continuous sensor feeds.
-Typically we process the datasets at 2x rate so we get a 20 Hz image feed and the datasets can be processed in a more efficient manor.
-
-@m_class{m-block m-warning}
-
-@par Dynamic Environments
-    A challenging open research question is being able to handle dynamic objects seen from the cameras.
-    By default we rely on our tracking 8 point RANSAC to handle these dynamics objects.
-    In the most of the KAIST datasets the majority of the scene can be taken up by other moving vehicles, thus the performance can suffer.
-    Please be aware of this fact.
-    
+Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and the datasets can be processed in a more efficient manor.
 
 @m_div{m-text-center}
 | Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
@@ -186,6 +185,32 @@ Typically we process the datasets at 2x rate so we get a 20 Hz image feed and th
 | Urban 38 | 11.42 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
 | Urban 39 | 11.06 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
 @m_enddiv
+
+
+@section gs-data-kaist-vio KAIST VIO Dataset
+
+The [KAIST VIO dataset](https://github.com/zinuok/kaistviodataset) @cite Jeon2021RAL is a dataset of a MAV in an indoor 3.15 x 3.60 x 2.50 meter environment which undergoes various trajectory motions.
+The camera is intel realsense D435i 25 Hz, while the IMU is 100 Hz sensing rate from the pixelhawk 4 unit.
+A groundtruth "baseline" trajectory is also provided from a OptiTrack Mocap system at 50 Hz, the bag files have the marker body frame to IMU frame already applied.
+This topic has been provided in ov_data for convinces sake.
+
+@m_div{m-text-center}
+| Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
+|-------------:|--------|--------------|------------------|------------------|
+| circle | 29.99 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/circle/circle.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| circle_fast | 64.15 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/circle/circle_fast.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| circle_head | 35.05 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/circle/circle_head.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| infinite | 29.35 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/infinite/infinite.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| infinite_fast | 54.24 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/infinite/infinite_fast.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| infinite_head | 37.45 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/infinite/infinite_head.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| rotation | 7.82 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/rotation/rotation.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| rotation_fast | 14.55 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/rotation/rotation_fast.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| square | 41.94 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/square/square.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| square_fast | 44.07 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/square/square_fast.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+| square_head | 50.00 | [download](https://urserver.kaist.ac.kr/publicdata/KAIST_VIO_Dataset/square/square_head.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist_vio) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaistvio.launch) |
+@m_enddiv
+
+
 
 
 

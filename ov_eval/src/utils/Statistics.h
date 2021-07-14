@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_EVAL_STATISTICS_H
 #define OV_EVAL_STATISTICS_H
 

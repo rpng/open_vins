@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #include "calc/ResultSimulation.h"
 #include "utils/Colors.h"
 

@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OPEN_VINS_FEATUREINITIALIZER_H
 #define OPEN_VINS_FEATUREINITIALIZER_H
 

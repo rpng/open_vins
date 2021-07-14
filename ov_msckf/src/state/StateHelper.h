@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_MSCKF_STATE_HELPER_H
 #define OV_MSCKF_STATE_HELPER_H
 

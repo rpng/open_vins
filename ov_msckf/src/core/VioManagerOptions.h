@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_MSCKF_VIOMANAGEROPTIONS_H
 #define OV_MSCKF_VIOMANAGEROPTIONS_H
 
@@ -31,6 +30,7 @@
 #include "feat/FeatureInitializerOptions.h"
 #include "state/Propagator.h"
 #include "state/StateOptions.h"
+#include "track/TrackBase.h"
 #include "update/UpdaterOptions.h"
 #include "utils/colors.h"
 #include "utils/quat_ops.h"
@@ -186,9 +186,6 @@ struct VioManagerOptions {
   /// If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.
   bool use_stereo = true;
 
-  /// Defined set of stereo camera id pairs which we will process together and try to generate stereo constraints between.
-  std::vector<std::pair<int, int>> stereo_pairs;
-
   /// If we should use KLT tracking, or descriptor matcher
   bool use_klt = true;
 
@@ -219,8 +216,17 @@ struct VioManagerOptions {
   /// Will check after doing KLT track and remove any features closer than this
   int min_px_dist = 10;
 
+  /// What type of pre-processing histogram method should be applied to images
+  TrackBase::HistogramMethod histogram_method = TrackBase::HistogramMethod::HISTOGRAM;
+
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
+
+  /// If we should try to load a mask and use it to reject invalid features
+  bool use_mask = false;
+
+  /// Mask images for each camera
+  std::map<size_t, cv::Mat> masks;
 
   /// Parameters used by our feature initialize / triangulator
   FeatureInitializerOptions featinit_options;
@@ -230,16 +236,19 @@ struct VioManagerOptions {
    */
   void print_trackers() {
     printf("FEATURE TRACKING PARAMETERS:\n");
-    printf("\t- num_pts: %d\n", num_pts);
+    printf("\t- use_klt: %d\n", use_klt);
     printf("\t- use_stereo: %d\n", use_stereo);
-    printf("\t- stereo pairs: ");
-    for (const auto &pair : stereo_pairs) {
-      printf("[%d, %d] ", pair.first, pair.second);
-    }
-    printf("\n");
+    printf("\t- use_aruco: %d\n", use_aruco);
     printf("\t- downsize aruco: %d\n", downsize_aruco);
     printf("\t- downsize cameras: %d\n", downsample_cameras);
     printf("\t- use multi-threading: %d\n", use_multi_threading);
+    printf("\t- num_pts: %d\n", num_pts);
+    printf("\t- fast threshold: %d\n", fast_threshold);
+    printf("\t- grid X by Y: %d by %d\n", grid_x, grid_y);
+    printf("\t- min px dist: %d\n", min_px_dist);
+    printf("\t- hist method: %d\n", (int)histogram_method);
+    printf("\t- knn ratio: %.3f\n", knn_ratio);
+    printf("\t- use mask?: %d\n", use_mask);
     featinit_options.print();
   }
 

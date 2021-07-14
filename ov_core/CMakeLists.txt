@@ -14,13 +14,22 @@ if (NOT OpenCV_FOUND)
 endif()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
-# display message to user
-#message(WARNING "EIGEN VERSION: " ${EIGEN3_VERSION})
+# Display message to user
 message(WARNING "OPENCV VERSION: " ${OpenCV_VERSION})
 message(WARNING "BOOST VERSION: " ${Boost_VERSION})
 
+# If we will compile with aruco support
+option(ENABLE_ARUCO_TAGS "Enable or disable aruco tag (disable if no contrib modules)" ON)
+if (NOT ENABLE_ARUCO_TAGS)
+    add_definitions(-DENABLE_ARUCO_TAGS=0)
+    message(WARNING "DISABLING ARUCOTAG TRACKING!")
+else()
+    add_definitions(-DENABLE_ARUCO_TAGS=1)
+endif()
+
 # Describe catkin project
-if (catkin_FOUND)
+option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" ON)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge
@@ -28,7 +37,8 @@ if (catkin_FOUND)
             LIBRARIES ov_core_lib
     )
 else()
-    message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
+    add_definitions(-DROS_AVAILABLE=0)
+    message(WARNING "BUILDING WITHOUT ROS!")
 endif()
 
 
@@ -89,11 +99,10 @@ target_include_directories(ov_core_lib PUBLIC src)
 ##################################################
 # Make binary files!
 ##################################################
-if (catkin_FOUND)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_executable(test_tracking src/test_tracking.cpp)
     target_link_libraries(test_tracking ov_core_lib ${thirdparty_libraries})
 endif()
-
 
 add_executable(test_webcam src/test_webcam.cpp)
 target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})

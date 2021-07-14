@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "RosVisualizer.h"
 
 using namespace ov_msckf;
@@ -73,7 +72,10 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
   if (nh.hasParam("path_gt") && _sim == nullptr) {
     std::string path_to_gt;
     nh.param<std::string>("path_gt", path_to_gt, "");
-    DatasetReader::load_gt_file(path_to_gt, gt_states);
+    if(!path_to_gt.empty()) {
+      DatasetReader::load_gt_file(path_to_gt, gt_states);
+      ROS_INFO("gt file path is: %s", path_to_gt.c_str());
+    }
   }
 
   // Load if we should save the total state to file
@@ -656,11 +658,13 @@ void RosVisualizer::publish_groundtruth() {
   //==========================================================================
 
   // Update our average variables
-  summed_rmse_ori += rmse_ori;
-  summed_rmse_pos += rmse_pos;
-  summed_nees_ori += ori_nees;
-  summed_nees_pos += pos_nees;
-  summed_number++;
+  if (!std::isnan(ori_nees) && !std::isnan(pos_nees)) {
+    summed_rmse_ori += rmse_ori;
+    summed_rmse_pos += rmse_pos;
+    summed_nees_ori += ori_nees;
+    summed_nees_pos += pos_nees;
+    summed_number++;
+  }
 
   // Nice display for the user
   printf(REDPURPLE "error to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m) | called %d times\n" RESET, rmse_ori, rmse_pos,
@@ -731,7 +735,7 @@ void RosVisualizer::publish_loopclosure_information() {
     sensor_msgs::CameraInfo cameraparams;
     cameraparams.header = header;
     cameraparams.header.frame_id = "imu";
-    cameraparams.distortion_model = (_app->get_state()->_cam_intrinsics_model.at(0)) ? "equidistant" : "plumb_bob";
+    cameraparams.distortion_model = (_app->get_params().camera_fisheye.at(0)) ? "equidistant" : "plumb_bob";
     Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
     cameraparams.D = {cparams(4), cparams(5), cparams(6), cparams(7)};
     cameraparams.K = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};

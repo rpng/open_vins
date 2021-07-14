@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include <cmath>
 #include <deque>
 #include <fstream>
@@ -34,6 +33,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 
+#include "cam/CamRadtan.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
@@ -56,10 +56,12 @@ int main(int argc, char **argv) {
   int clone_states = 20;
   int fast_threshold = 10;
   int grid_x = 5;
-  int grid_y = 3;
-  int min_px_dist = 10;
+  int grid_y = 4;
+  int min_px_dist = 20;
   double knn_ratio = 0.85;
   bool do_downsizing = false;
+  bool use_stereo = false;
+  ov_core::TrackBase::HistogramMethod method = ov_core::TrackBase::HistogramMethod::NONE;
 
   // Parameters for our extractor
   app.add_option("--num_pts", num_pts, "Number of feature tracks");
@@ -89,22 +91,19 @@ int main(int argc, char **argv) {
   printf("downsize aruco image: %d\n", do_downsizing);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
-  Eigen::Matrix<double, 8, 1> cam0_calib;
-  cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
-
-  // Create our n-camera vectors
-  std::map<size_t, bool> camera_fisheye;
-  std::map<size_t, Eigen::VectorXd> camera_calibration;
-  camera_fisheye.insert({0, false});
-  camera_calibration.insert({0, cam0_calib});
-  camera_fisheye.insert({1, false});
-  camera_calibration.insert({1, cam0_calib});
+  std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
+  for (int i = 0; i < 2; i++) {
+    Eigen::Matrix<double, 8, 1> cam0_calib;
+    cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
+    std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>();
+    camera_calib->set_value(cam0_calib);
+    cameras.insert({i, camera_calib});
+  }
 
   // Lets make a feature extractor
-  extractor = new TrackKLT(num_pts, num_aruco, fast_threshold, grid_x, grid_y, min_px_dist);
-  // extractor = new TrackDescriptor(num_pts,num_aruco,true,fast_threshold,grid_x,grid_y,knn_ratio);
-  // extractor = new TrackAruco(num_aruco,true,do_downsizing);
-  extractor->set_calibration(camera_calibration, camera_fisheye);
+  extractor = new TrackKLT(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
+  // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist,
+  // knn_ratio); extractor = new TrackAruco(cameras, num_aruco, !use_stereo, method, do_downsizing);
 
   //===================================================================================
   //===================================================================================
@@ -141,15 +140,20 @@ int main(int argc, char **argv) {
 
     // Convert to grayscale if not
     if (frame.channels() != 1)
-      cv::cvtColor(frame, frame, cv::COLOR_GRAY2RGB);
+      cv::cvtColor(frame, frame, cv::COLOR_RGB2GRAY);
 
     // Else lets track this image
-    extractor->feed_monocular(current_time, frame, 0);
+    ov_core::CameraData message;
+    message.timestamp = current_time;
+    message.sensor_ids.push_back(0);
+    message.images.push_back(frame);
+    message.masks.push_back(cv::Mat::zeros(cv::Size(frame.cols, frame.rows), CV_8UC1));
+    extractor->feed_new_camera(message);
 
     // Display the resulting tracks
     cv::Mat img_active, img_history;
     extractor->display_active(img_active, 255, 0, 0, 0, 0, 255);
-    extractor->display_history(img_history, 0, 255, 255, 255, 255, 255);
+    extractor->display_history(img_history, 255, 255, 0, 255, 255, 255);
 
     // Show our image!
     cv::imshow("Active Tracks", img_active);

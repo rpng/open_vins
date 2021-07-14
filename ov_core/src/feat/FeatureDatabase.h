@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_CORE_FEATURE_DATABASE_H
 #define OV_CORE_FEATURE_DATABASE_H
 
@@ -139,11 +138,11 @@ public:
         continue;
       }
       // Loop through each camera
+      // If we have a measurement greater-than or equal to the specified, this measurement is find
       bool has_newer_measurement = false;
       for (auto const &pair : (*it).second->timestamps) {
-        // If we have a measurement greater-than or equal to the specified, this measurement is find
-        if (!pair.second.empty() && pair.second.at(pair.second.size() - 1) >= timestamp) {
-          has_newer_measurement = true;
+        has_newer_measurement = (!pair.second.empty() && pair.second.at(pair.second.size() - 1) >= timestamp);
+        if (has_newer_measurement) {
           break;
         }
       }
@@ -186,10 +185,11 @@ public:
         continue;
       }
       // Loop through each camera
+      // Check if we have at least one time older then the requested
       bool found_containing_older = false;
       for (auto const &pair : (*it).second->timestamps) {
-        if (!pair.second.empty() && pair.second.at(0) < timestamp) {
-          found_containing_older = true;
+        found_containing_older = (!pair.second.empty() && pair.second.at(0) < timestamp);
+        if (found_containing_older) {
           break;
         }
       }
@@ -232,16 +232,10 @@ public:
         continue;
       }
       // Boolean if it has the timestamp
+      // Break out if we found a single timestamp that is equal to the specified time
       bool has_timestamp = false;
       for (auto const &pair : (*it).second->timestamps) {
-        // Loop through all timestamps, and see if it has it
-        for (auto &timefeat : pair.second) {
-          if (timefeat == timestamp) {
-            has_timestamp = true;
-            break;
-          }
-        }
-        // Break out if we found a single timestamp that is equal to the specified time
+        has_timestamp = (std::find(pair.second.begin(), pair.second.end(), timestamp) != pair.second.end());
         if (has_timestamp) {
           break;
         }
@@ -272,21 +266,17 @@ public:
    * If a feature was unable to be used, it will still remain since it will not have a delete flag set
    */
   void cleanup() {
-    // Debug
-    // int sizebefore = (int)features_idlookup.size();
     // Loop through all features
+    // int sizebefore = (int)features_idlookup.size();
     std::unique_lock<std::mutex> lck(mtx);
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // If delete flag is set, then delete it
-      // NOTE: if we are using a shared pointer, then no need to do this!
       if ((*it).second->to_delete) {
-        // delete (*it).second;
         features_idlookup.erase(it++);
       } else {
         it++;
       }
     }
-    // Debug
     // std::cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << std::endl;
   }
 
@@ -301,12 +291,10 @@ public:
       // Count how many measurements
       int ct_meas = 0;
       for (const auto &pair : (*it).second->timestamps) {
-        ct_meas += (*it).second->timestamps.at(pair.first).size();
+        ct_meas += (int)(pair.second.size());
       }
       // If delete flag is set, then delete it
-      // NOTE: if we are using a shared pointer, then no need to do this!
       if (ct_meas < 1) {
-        // delete (*it).second;
         features_idlookup.erase(it++);
       } else {
         it++;
@@ -326,12 +314,10 @@ public:
       // Count how many measurements
       int ct_meas = 0;
       for (const auto &pair : (*it).second->timestamps) {
-        ct_meas += (*it).second->timestamps.at(pair.first).size();
+        ct_meas += (int)(pair.second.size());
       }
       // If delete flag is set, then delete it
-      // NOTE: if we are using a shared pointer, then no need to do this!
       if (ct_meas < 1) {
-        // delete (*it).second;
         features_idlookup.erase(it++);
       } else {
         it++;

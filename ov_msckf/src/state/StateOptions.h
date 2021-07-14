@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_MSCKF_STATE_OPTIONS_H
 #define OV_MSCKF_STATE_OPTIONS_H
 
@@ -71,9 +70,6 @@ struct StateOptions {
   /// Number of distinct cameras that we will observe features in
   int num_cameras = 1;
 
-  /// Number of cameras (a stereo pair is not consider unique since both images occur at the same pose timestamp)
-  int num_unique_cameras = 1;
-
   /// What representation our features are in (msckf features)
   LandmarkRepresentation::Representation feat_rep_msckf = LandmarkRepresentation::Representation::GLOBAL_3D;
 
@@ -97,7 +93,6 @@ struct StateOptions {
     printf("\t- max_msckf_in_update: %d\n", max_msckf_in_update);
     printf("\t- max_aruco: %d\n", max_aruco_features);
     printf("\t- max_cameras: %d\n", num_cameras);
-    printf("\t- num_unique_cameras: %d\n", num_unique_cameras);
     printf("\t- feat_rep_msckf: %s\n", LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
     printf("\t- feat_rep_slam: %s\n", LandmarkRepresentation::as_string(feat_rep_slam).c_str());
     printf("\t- feat_rep_aruco: %s\n", LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
