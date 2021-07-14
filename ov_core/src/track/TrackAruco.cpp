@@ -36,13 +36,20 @@ void TrackAruco::feed_new_camera(const CameraData &message) {
 
   // There is not such thing as stereo tracking for aruco
   // Thus here we should just call the monocular version two times
+#if ENABLE_ARUCO_TAGS
   size_t num_images = message.images.size();
   parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
                   for (int i = range.start; i < range.end; i++) {
                     perform_tracking(message.timestamp, message.images.at(i), message.sensor_ids.at(i), message.masks.at(i));
                   }
                 }));
+#else
+    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+    std::exit(EXIT_FAILURE);
+#endif
 }
+
+#if ENABLE_ARUCO_TAGS
 
 void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t cam_id, const cv::Mat &maskin) {
 
@@ -206,3 +213,5 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
     index_cam++;
   }
 }
+
+#endif

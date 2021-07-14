@@ -22,7 +22,9 @@
 #ifndef OV_CORE_TRACK_ARUCO_H
 #define OV_CORE_TRACK_ARUCO_H
 
+#if ENABLE_ARUCO_TAGS
 #include <opencv2/aruco.hpp>
+#endif
 
 #include "TrackBase.h"
 
@@ -49,10 +51,15 @@ public:
   explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool binocular,
                       HistogramMethod histmethod, bool downsize)
       : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
+#if ENABLE_ARUCO_TAGS
     aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
     aruco_params = cv::aruco::DetectorParameters::create();
     // NOTE: people with newer opencv might fail here
     // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
+#else
+    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+    std::exit(EXIT_FAILURE);
+#endif
   }
 
   /**
@@ -61,6 +68,7 @@ public:
    */
   void feed_new_camera(const CameraData &message);
 
+#if ENABLE_ARUCO_TAGS
   /**
    * @brief We override the display equation so we can show the tags we extract.
    * @param img_out image to which we will overlayed features on
@@ -68,8 +76,10 @@ public:
    * @param r2,g2,b2 second color to draw in
    */
   void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
+#endif
 
 protected:
+#if ENABLE_ARUCO_TAGS
   /**
    * @brief Process a new monocular image
    * @param timestamp timestamp the new image occurred at
@@ -78,6 +88,7 @@ protected:
    * @param maskin tracking mask for the given input image
    */
   void perform_tracking(double timestamp, const cv::Mat &imgin, size_t cam_id, const cv::Mat &maskin);
+#endif
 
   // Max tag ID we should extract from (i.e., number of aruco tags starting from zero)
   int max_tag_id;
@@ -85,6 +96,7 @@ protected:
   // If we should downsize the image
   bool do_downsizing;
 
+#if ENABLE_ARUCO_TAGS
   // Our dictionary that we will extract aruco tags with
   cv::Ptr<cv::aruco::Dictionary> aruco_dict;
 
@@ -94,6 +106,8 @@ protected:
   // Our tag IDs and corner we will get from the extractor
   std::unordered_map<size_t, std::vector<int>> ids_aruco;
   std::unordered_map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
+#endif
+
 };
 
 } // namespace ov_core

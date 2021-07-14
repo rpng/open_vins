@@ -13,9 +13,9 @@ See the [opencv_contrib](https://github.com/opencv/opencv_contrib) readme on how
 We have tested building with OpenCV 3.2, 3.3, 3.4, 4.2, and 4.5.
 Please see the official instructions to install ROS:
 
-* [Ubuntu 16.04 ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) (uses OpenCV 3.3)
-* [Ubuntu 18.04 ROS Melodic](http://wiki.ros.org/melodic/Installation/Ubuntu) (uses OpenCV 3.2)
-* [Ubuntu 20.04 ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu) (uses OpenCV 4.2)
+- [Ubuntu 16.04 ROS Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) (uses OpenCV 3.3)
+- [Ubuntu 18.04 ROS Melodic](http://wiki.ros.org/melodic/Installation/Ubuntu) (uses OpenCV 3.2)
+- [Ubuntu 20.04 ROS Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu) (uses OpenCV 4.2)
 
 
 @m_class{m-block m-warning}
@@ -23,14 +23,14 @@ Please see the official instructions to install ROS:
 @par ROS Usage in OpenVINS
     We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
     You will need to ensure you have installed OpenCV and Eigen3 which are the only dependencies.
-    If ROS is not found on the system, one can use command line options to run the simulation without any visualization.
+    If ROS is not found on the system, one can use command line options to run the simulation without any visualization or `cmake -DENABLE_CATKIN_ROS=OFF ..`.
     If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
 
 @code{.shell-session}
 sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
 sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
 sudo apt-get update
-export ROS_DISTRO=melodic # kinetic=16.04, melodic=18.04, noetic=20.04
+export ROS_DISTRO=noetic # kinetic=16.04, melodic=18.04, noetic=20.04
 sudo apt-get install ros-$ROS_DISTRO-desktop-full
 echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 source ~/.bashrc
@@ -55,6 +55,9 @@ make -j8
 sudo make install
 @endcode
 
+If you do not want to build the modules, you should also be able to do this (while it is not as well tested).
+The ArucoTag tracker depends on a non-free module in the contrib repository, thus this will need to be disabled.
+You can disable this with `catkin build -DENABLE_ARUCO_TAGS=OFF` or `cmake -DENABLE_ARUCO_TAGS=OFF ..` in your build folder.
 
 
 @section gs-install-openvins Cloning the OpenVINS Project

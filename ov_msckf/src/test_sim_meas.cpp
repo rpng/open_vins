@@ -30,7 +30,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
 #include "utils/parse_ros.h"
 #include <ros/ros.h>
 #endif
@@ -47,9 +47,9 @@ void signal_callback_handler(int signum) { std::exit(signum); }
 // Main function
 int main(int argc, char **argv) {
 
-  // Read in our paramters
+  // Read in our parameters
   VioManagerOptions params;
-#ifdef ROS_AVAILABLE
+#if ROS_AVAILABLE
   ros::init(argc, argv, "test_sim_meas");
   ros::NodeHandle nh("~");
   params = parse_ros_nodehandler(nh);

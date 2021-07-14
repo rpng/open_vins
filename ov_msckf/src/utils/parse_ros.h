@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#if defined(ROS_AVAILABLE) || defined(DOXYGEN)
+#if ROS_AVAILABLE || defined(DOXYGEN)
 #ifndef OV_MSCKF_PARSE_ROSHANDLER_H
 #define OV_MSCKF_PARSE_ROSHANDLER_H
 
