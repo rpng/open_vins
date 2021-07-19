@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_TYPE_TYPE_BASE_H
 #define OV_TYPE_TYPE_BASE_H
 

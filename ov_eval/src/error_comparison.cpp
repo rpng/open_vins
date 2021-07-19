@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include <Eigen/Eigen>
 #include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>

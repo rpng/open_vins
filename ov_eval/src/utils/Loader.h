@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_EVAL_LOADER_H
 #define OV_EVAL_LOADER_H
 
@@ -50,6 +49,17 @@ public:
    */
   static void load_data(std::string path_traj, std::vector<double> &times, std::vector<Eigen::Matrix<double, 7, 1>> &poses,
                         std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos);
+
+  /**
+   * @brief This will load *comma* separated trajectory into memory (ASL/ETH format)
+   * @param path_traj Path to the trajectory file that we want to read in.
+   * @param times Timesteps in seconds for each pose
+   * @param poses Pose at every timestep [pos,quat]
+   * @param cov_ori Vector of orientation covariances at each timestep (empty if we can't load)
+   * @param cov_pos Vector of position covariances at each timestep (empty if we can't load)
+   */
+  static void load_data_csv(std::string path_traj, std::vector<double> &times, std::vector<Eigen::Matrix<double, 7, 1>> &poses,
+                            std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos);
 
   /**
    * @brief Load an arbitrary sized row of *space* separated values, used for our simulation

@@ -49,7 +49,8 @@ imuthreshold=(
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.3.1/exp_tum/algorithms"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.4/exp_tum/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.4/exp_tum/timings"
 bag_path="/media/patrick/RPNG\ FLASH\ 2/tumvi"
 
 
@@ -69,7 +70,8 @@ for j in {00..04}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_2.3.1_${modes[h]}/${bagnames[i]}/${start_time}_estimate.txt"
+filename_est="$save_path1/ov_2.4_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
+filename_time="$save_path2/ov_2.4_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
@@ -96,7 +98,9 @@ roslaunch ov_msckf pgeneva_ros_tum.launch \
   bag_start:="${bagstarttimes[i]}" \
   init_imu_thresh:="${imuthreshold[i]}" \
   dosave:="true" \
-  path_est:="$filename_est" &> /dev/null
+  path_est:="$filename_est" \
+  dotime:="true" \
+  path_time:="$filename_time" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"

@@ -19,8 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-#if defined(ROS_AVAILABLE) || defined(DOXYGEN)
+#if ROS_AVAILABLE || defined(DOXYGEN)
 #ifndef OV_MSCKF_PARSE_ROSHANDLER_H
 #define OV_MSCKF_PARSE_ROSHANDLER_H
 
@@ -63,45 +62,6 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
     printf(RED "VioManager(): Specified number of cameras needs to be greater than zero\n" RESET);
     printf(RED "VioManager(): num cameras = %d\n" RESET, params.state_options.num_cameras);
     std::exit(EXIT_FAILURE);
-  }
-
-  // Read in stereo pair information
-  std::vector<int> stereo_pairs;
-  nh.param<std::vector<int>>("stereo_pairs", stereo_pairs, stereo_pairs);
-  if (stereo_pairs.size() % 2 != 0) {
-    printf(RED "VioManager(): Specified number of stereo pair IDs needs to be even\n" RESET);
-    printf(RED "VioManager(): Example: (0,1,2,3) -> stereo tracking between 01 and 23\n" RESET);
-    std::exit(EXIT_FAILURE);
-  }
-  for (size_t i = 0; i < stereo_pairs.size(); i++) {
-    if (std::count(stereo_pairs.begin(), stereo_pairs.end(), stereo_pairs.at(i)) != 1) {
-      printf(RED "VioManager(): You can do stereo tracking between unique ids\n" RESET);
-      printf(RED "VioManager(): %d showed up multiple times\n" RESET, stereo_pairs.at(i));
-      std::exit(EXIT_FAILURE);
-    }
-    // if(stereo_pairs.at(i) >= params.state_options.num_cameras) {
-    //    printf(RED "VioManager(): Stereo pair has an id larger then the max camera\n" RESET);
-    //    printf(RED "VioManager(): %d is >= than %d\n" RESET,stereo_pairs.at(i),params.state_options.num_cameras);
-    //    std::exit(EXIT_FAILURE);
-    //}
-  }
-  std::vector<int> valid_stereo_pairs;
-  for (size_t i = 0; i < stereo_pairs.size(); i += 2) {
-    if (stereo_pairs.at(i) >= params.state_options.num_cameras || stereo_pairs.at(i + 1) >= params.state_options.num_cameras) {
-      printf(RED "ignoring invalid stereo pair: %d, %d\n" RESET, stereo_pairs.at(i), stereo_pairs.at(i + 1));
-      continue;
-    }
-    params.stereo_pairs.emplace_back(stereo_pairs.at(i), stereo_pairs.at(i + 1));
-    valid_stereo_pairs.push_back(stereo_pairs.at(i));
-    valid_stereo_pairs.push_back(stereo_pairs.at(i + 1));
-  }
-
-  // Calculate number of unique image camera image streams
-  params.state_options.num_unique_cameras = (int)params.stereo_pairs.size();
-  for (int i = 0; i < params.state_options.num_cameras; i++) {
-    if (std::find(valid_stereo_pairs.begin(), valid_stereo_pairs.end(), i) != valid_stereo_pairs.end())
-      continue;
-    params.state_options.num_unique_cameras++;
   }
 
   // Read in what representation our feature is
@@ -189,6 +149,39 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   nh.param<int>("grid_y", params.grid_y, params.grid_y);
   nh.param<int>("min_px_dist", params.min_px_dist, params.min_px_dist);
   nh.param<double>("knn_ratio", params.knn_ratio, params.knn_ratio);
+
+  // Preprocessing histogram method
+  std::string histogram_method_str = "HISTOGRAM";
+  nh.param<std::string>("histogram_method", histogram_method_str, histogram_method_str);
+  if (histogram_method_str == "NONE") {
+    params.histogram_method = TrackBase::NONE;
+  } else if (histogram_method_str == "HISTOGRAM") {
+    params.histogram_method = TrackBase::HISTOGRAM;
+  } else if (histogram_method_str == "CLAHE") {
+    params.histogram_method = TrackBase::CLAHE;
+  } else {
+    printf(RED "VioManager(): invalid feature histogram specified:\n" RESET);
+    printf(RED "\t- NONE\n" RESET);
+    printf(RED "\t- HISTOGRAM\n" RESET);
+    printf(RED "\t- CLAHE\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Feature mask
+  nh.param<bool>("use_mask", params.use_mask, params.use_mask);
+  for (int i = 0; i < params.state_options.num_cameras; i++) {
+    std::string mask_path;
+    nh.param<std::string>("mask" + std::to_string(i), mask_path, "");
+    if (params.use_mask) {
+      if (!boost::filesystem::exists(mask_path)) {
+        printf(RED "VioManager(): invalid mask path:\n" RESET);
+        printf(RED "\t- mask%d\n" RESET, i);
+        printf(RED "\t- %s\n" RESET, mask_path.c_str());
+        std::exit(EXIT_FAILURE);
+      }
+      params.masks.insert({i, cv::imread(mask_path, cv::IMREAD_GRAYSCALE)});
+    }
+  }
 
   // Feature initializer parameters
   nh.param<bool>("fi_triangulate_1d", params.featinit_options.triangulate_1d, params.featinit_options.triangulate_1d);

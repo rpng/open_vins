@@ -18,7 +18,6 @@
         <param name="topic_imu"      type="string" value="/imu0" />
         <param name="topic_camera0"  type="string" value="/cam0/image_raw" />
         <param name="topic_camera1"  type="string" value="/cam1/image_raw" />
-        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="/home/patrick/datasets/ironsides/neighborhood_01.bag" /> <!-- neighborhood_01, neighborhood_02 -->
@@ -70,6 +69,12 @@
         <param name="knn_ratio"          type="double" value="0.65" />
         <param name="downsample_cameras" type="bool"   value="false" />
         <param name="multi_threading"    type="bool"   value="true" />
+        <param name="histogram_method"   type="string" value="HISTOGRAM" /> <!-- NONE, HISTOGRAM, CLAHE -->
+
+        <!-- tracking mask -->
+        <param name="use_mask"           type="bool"   value="true" />
+        <param name="mask0"              type="string" value="$(find ov_data)/masks/ironsides0.png" />
+        <param name="mask1"              type="string" value="$(find ov_data)/masks/ironsides1.png" />
 
         <param name="fi_max_dist"        type="double" value="100" />
         <param name="fi_max_baseline"    type="double" value="100" />

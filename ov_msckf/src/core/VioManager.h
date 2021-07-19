@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #ifndef OV_MSCKF_VIOMANAGER_H
 #define OV_MSCKF_VIOMANAGER_H
 
@@ -30,6 +29,9 @@
 #include <memory>
 #include <string>
 
+#include "cam/CamBase.h"
+#include "cam/CamEqui.h"
+#include "cam/CamRadtan.h"
 #include "init/InertialInitializer.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"

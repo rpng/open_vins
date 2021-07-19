@@ -19,12 +19,39 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "TrackAruco.h"
 
 using namespace ov_core;
 
-void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id) {
+void TrackAruco::feed_new_camera(const CameraData &message) {
+
+  // Error check that we have all the data
+  if (message.sensor_ids.empty() || message.sensor_ids.size() != message.images.size() || message.images.size() != message.masks.size()) {
+    printf(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
+    printf(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
+    printf(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
+    printf(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
+    std::exit(EXIT_FAILURE);
+  }
+
+  // There is not such thing as stereo tracking for aruco
+  // Thus here we should just call the monocular version two times
+#if ENABLE_ARUCO_TAGS
+  size_t num_images = message.images.size();
+  parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
+                  for (int i = range.start; i < range.end; i++) {
+                    perform_tracking(message.timestamp, message.images.at(i), message.sensor_ids.at(i), message.masks.at(i));
+                  }
+                }));
+#else
+    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+    std::exit(EXIT_FAILURE);
+#endif
+}
+
+#if ENABLE_ARUCO_TAGS
+
+void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t cam_id, const cv::Mat &maskin) {
 
   // Start timing
   rT1 = boost::posix_time::microsec_clock::local_time();
@@ -34,7 +61,16 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
 
   // Histogram equalize
   cv::Mat img;
-  cv::equalizeHist(imgin, img);
+  if (histogram_method == HistogramMethod::HISTOGRAM) {
+    cv::equalizeHist(imgin, img);
+  } else if (histogram_method == HistogramMethod::CLAHE) {
+    double eq_clip_limit = 10.0;
+    cv::Size eq_win_size = cv::Size(8, 8);
+    cv::Ptr<cv::CLAHE> clahe = cv::createCLAHE(eq_clip_limit, eq_win_size);
+    clahe->apply(imgin, img);
+  } else {
+    img = imgin;
+  }
 
   // Clear the old data from the last timestep
   ids_aruco[cam_id].clear();
@@ -90,16 +126,23 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
       continue;
     // Assert we have 4 points (we will only use one of them)
     assert(corners[cam_id].at(i).size() == 4);
-    // Try to undistort the point
-    cv::Point2f npt_l = undistort_point(corners[cam_id].at(i).at(0), cam_id);
-    // Append to the ids vector and database
-    ids_new.push_back((size_t)ids_aruco[cam_id].at(i));
-    database->update_feature((size_t)ids_aruco[cam_id].at(i), timestamp, cam_id, corners[cam_id].at(i).at(0).x,
-                             corners[cam_id].at(i).at(0).y, npt_l.x, npt_l.y);
+    for (int n = 0; n < 4; n++) {
+      // Check if it is in the mask
+      // NOTE: mask has max value of 255 (white) if it should be
+      if (maskin.at<uint8_t>((int)corners[cam_id].at(i).at(n).y, (int)corners[cam_id].at(i).at(n).x) > 127)
+        continue;
+      // Try to undistort the point
+      cv::Point2f npt_l = camera_calib.at(cam_id)->undistort_cv(corners[cam_id].at(i).at(n));
+      // Append to the ids vector and database
+      ids_new.push_back((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id);
+      database->update_feature((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id, timestamp, cam_id, corners[cam_id].at(i).at(n).x,
+                               corners[cam_id].at(i).at(n).y, npt_l.x, npt_l.y);
+    }
   }
 
   // Move forward in time
-  img_last[cam_id] = img.clone();
+  img_last[cam_id] = img;
+  img_mask_last[cam_id] = maskin;
   ids_last[cam_id] = ids_new;
   rT3 = boost::posix_time::microsec_clock::local_time();
 
@@ -109,24 +152,15 @@ void TrackAruco::feed_monocular(double timestamp, cv::Mat &imgin, size_t cam_id)
   // (int)good_left.size()); printf("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
 }
 
-void TrackAruco::feed_stereo(double timestamp, cv::Mat &img_leftin, cv::Mat &img_rightin, size_t cam_id_left, size_t cam_id_right) {
-
-  // There is not such thing as stereo tracking for aruco
-  // Thus here we should just call the monocular version two times
-  parallel_for_(cv::Range(0, 2), LambdaBody([&](const cv::Range &range) {
-                  for (int i = range.start; i < range.end; i++) {
-                    bool is_left = (i == 0);
-                    feed_monocular(timestamp, is_left ? img_leftin : img_rightin, is_left ? cam_id_left : cam_id_right);
-                  }
-                }));
-}
-
 void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
 
   // Cache the images to prevent other threads from editing while we viz (which can be slow)
-  std::map<size_t, cv::Mat> img_last_cache;
+  std::map<size_t, cv::Mat> img_last_cache, img_mask_last_cache;
   for (auto const &pair : img_last) {
     img_last_cache.insert({pair.first, pair.second.clone()});
+  }
+  for (auto const &pair : img_mask_last) {
+    img_mask_last_cache.insert({pair.first, pair.second.clone()});
   }
 
   // Get the largest width and height
@@ -170,8 +204,14 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
     auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
     cv::putText(img_temp, "CAM:" + std::to_string((int)pair.first), txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0,
                 cv::Scalar(0, 255, 0), 3);
+    // Overlay the mask
+    cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
+    mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);
+    cv::addWeighted(mask, 0.1, img_temp, 1.0, 0.0, img_temp);
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));
     index_cam++;
   }
 }
+
+#endif

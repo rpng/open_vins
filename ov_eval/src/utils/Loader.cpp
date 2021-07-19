@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "Loader.h"
 
 using namespace ov_eval;
@@ -105,6 +104,76 @@ void Loader::load_data(std::string path_traj, std::vector<double> &times, std::v
   // Debug print amount
   // std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
   // printf("[LOAD]: loaded %d poses from %s\n",(int)poses.size(),base_filename.c_str());
+}
+
+void Loader::load_data_csv(std::string path_traj, std::vector<double> &times, std::vector<Eigen::Matrix<double, 7, 1>> &poses,
+                           std::vector<Eigen::Matrix3d> &cov_ori, std::vector<Eigen::Matrix3d> &cov_pos) {
+
+  // Try to open our trajectory file
+  std::ifstream file(path_traj);
+  if (!file.is_open()) {
+    printf(RED "[LOAD]: Unable to open trajectory file...\n" RESET);
+    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Loop through each line of this file
+  std::string current_line;
+  while (std::getline(file, current_line)) {
+
+    // Skip if we start with a comment
+    if (!current_line.find("#"))
+      continue;
+
+    // Loop variables
+    int i = 0;
+    std::istringstream s(current_line);
+    std::string field;
+    Eigen::Matrix<double, 20, 1> data;
+
+    // Loop through this line (groundtruth state [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel])
+    while (std::getline(s, field, ',')) {
+      // Skip if empty
+      if (field.empty() || i >= data.rows())
+        continue;
+      // save the data to our vector
+      data(i) = std::atof(field.c_str());
+      i++;
+    }
+
+    // Only a valid line if we have all the parameters
+    // Times are in nanoseconds -> convert to seconds
+    // Our "fixed" state vector from the ETH GT format [q,p,v,bg,ba]
+    if (i >= 8) {
+      times.push_back(1e-9 * data(0));
+      Eigen::Matrix<double, 7, 1> imustate;
+      imustate(0, 0) = data(1, 0); // pos
+      imustate(1, 0) = data(2, 0);
+      imustate(2, 0) = data(3, 0);
+      imustate(3, 0) = data(5, 0); // quat (xyzw)
+      imustate(4, 0) = data(6, 0);
+      imustate(5, 0) = data(7, 0);
+      imustate(6, 0) = data(4, 0);
+      poses.push_back(imustate);
+    }
+  }
+
+  // Finally close the file
+  file.close();
+
+  // Error if we don't have any data
+  if (times.empty()) {
+    printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    std::exit(EXIT_FAILURE);
+  }
+
+  // Assert that they are all equal
+  if (times.size() != poses.size()) {
+    printf(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
+    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    std::exit(EXIT_FAILURE);
+  }
 }
 
 void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &values) {

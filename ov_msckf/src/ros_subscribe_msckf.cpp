@@ -19,8 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
-
 #include <cv_bridge/cv_bridge.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
@@ -69,10 +67,9 @@ int main(int argc, char **argv) {
   // Create imu subscriber
   std::string topic_imu;
   nh.param<std::string>("topic_imu", topic_imu, "/imu0");
-  ros::Subscriber subimu = nh.subscribe(topic_imu, 9999, callback_inertial);
+  ros::Subscriber subimu = nh.subscribe(topic_imu, 9999999, callback_inertial);
 
   // Create camera subscriber data vectors
-  std::vector<int> added_cam_ids;
   std::vector<ros::Subscriber> subs_cam;
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
   std::vector<std::unique_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
@@ -80,11 +77,11 @@ int main(int argc, char **argv) {
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
-  for (const auto &pair : params.stereo_pairs) {
+  if (params.state_options.num_cameras == 2) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
-    nh.param<std::string>("topic_camera" + std::to_string(pair.first), cam_topic0, "/cam" + std::to_string(pair.first) + "/image_raw");
-    nh.param<std::string>("topic_camera" + std::to_string(pair.second), cam_topic1, "/cam" + std::to_string(pair.second) + "/image_raw");
+    nh.param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
+    nh.param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
     // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
     auto image_sub0 = std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
         new message_filters::Subscriber<sensor_msgs::Image>(nh, cam_topic0, 5));
@@ -92,28 +89,23 @@ int main(int argc, char **argv) {
         new message_filters::Subscriber<sensor_msgs::Image>(nh, cam_topic1, 5));
     auto sync = std::unique_ptr<message_filters::Synchronizer<sync_pol>>(
         new message_filters::Synchronizer<sync_pol>(sync_pol(5), *image_sub0, *image_sub1));
-    sync->registerCallback(boost::bind(&callback_stereo, _1, _2, pair.first, pair.second));
+    sync->registerCallback(boost::bind(&callback_stereo, _1, _2, 0, 1));
     // Append to our vector of subscribers
-    added_cam_ids.push_back(pair.first);
-    added_cam_ids.push_back(pair.second);
     sync_cam.push_back(std::move(sync));
     sync_subs_cam.push_back(std::move(image_sub0));
     sync_subs_cam.push_back(std::move(image_sub1));
     ROS_INFO("subscribing to cam (stereo): %s", cam_topic0.c_str());
     ROS_INFO("subscribing to cam (stereo): %s", cam_topic1.c_str());
-  }
-
-  // Now we should add any non-stereo callbacks here
-  for (int i = 0; i < params.state_options.num_cameras; i++) {
-    // Skip if already have been added
-    if (std::find(added_cam_ids.begin(), added_cam_ids.end(), i) != added_cam_ids.end())
-      continue;
-    // read in the topic
-    std::string cam_topic;
-    nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
-    // create subscriber
-    subs_cam.push_back(nh.subscribe<sensor_msgs::Image>(cam_topic, 5, boost::bind(callback_monocular, _1, i)));
-    ROS_INFO("subscribing to cam (mono): %s", cam_topic.c_str());
+  } else {
+    // Now we should add any non-stereo callbacks here
+    for (int i = 0; i < params.state_options.num_cameras; i++) {
+      // read in the topic
+      std::string cam_topic;
+      nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      // create subscriber
+      subs_cam.push_back(nh.subscribe<sensor_msgs::Image>(cam_topic, 5, boost::bind(callback_monocular, _1, i)));
+      ROS_INFO("subscribing to cam (mono): %s", cam_topic.c_str());
+    }
   }
 
   //===================================================================================
@@ -164,6 +156,14 @@ void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
   message.sensor_ids.push_back(cam_id0);
   message.images.push_back(cv_ptr->image.clone());
 
+  // Load the mask if we are using it, else it is empty
+  // TODO: in the future we should get this from external pixel segmentation
+  if (sys->get_params().use_mask) {
+    message.masks.push_back(sys->get_params().masks.at(cam_id0));
+  } else {
+    message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
+  }
+
   // send it to our VIO system
   sys->feed_measurement_camera(message);
 }
@@ -195,6 +195,17 @@ void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::
   message.sensor_ids.push_back(cam_id1);
   message.images.push_back(cv_ptr0->image.clone());
   message.images.push_back(cv_ptr1->image.clone());
+
+  // Load the mask if we are using it, else it is empty
+  // TODO: in the future we should get this from external pixel segmentation
+  if (sys->get_params().use_mask) {
+    message.masks.push_back(sys->get_params().masks.at(cam_id0));
+    message.masks.push_back(sys->get_params().masks.at(cam_id1));
+  } else {
+    // message.masks.push_back(cv::Mat(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1, cv::Scalar(255)));
+    message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
+    message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
+  }
 
   // send it to our VIO system
   sys->feed_measurement_camera(message);

@@ -25,15 +25,17 @@ if(PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
 endif()
 
 # Describe catkin project
-if (catkin_FOUND)
+option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" ON)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs
             INCLUDE_DIRS src
-            LIBRARIES ov_eval_lib
+            LIBRARIES ov_core_lib
     )
 else()
-    message(WARNING "CATKIN NOT FOUND BUILDING WITHOUT ROS!")
+    add_definitions(-DROS_AVAILABLE=0)
+    message(WARNING "BUILDING WITHOUT ROS!")
 endif()
 
 # Try to compile with c++11
@@ -92,9 +94,14 @@ target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 ##################################################
 
 
-if (catkin_FOUND)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
+
     add_executable(pose_to_file src/pose_to_file.cpp)
     target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
+
+    add_executable(live_align_trajectory src/live_align_trajectory.cpp)
+    target_link_libraries(live_align_trajectory ov_eval_lib ${thirdparty_libraries})
+
 endif()
 
 
@@ -129,7 +136,7 @@ target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
 ##################################################
 # Python scripts!
 ##################################################
-if (catkin_FOUND)
+if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
     catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 endif()

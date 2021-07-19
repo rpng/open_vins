@@ -10,6 +10,8 @@
     <arg name="path_est"    default="/tmp/traj_estimate.txt" />
     <arg name="path_time"   default="/tmp/traj_timing.txt" />
 
+    <!-- groundtruth information -->
+    <arg name="bag_gt"      default="$(find ov_data)/kaist/urban39.csv" /> <!-- urban28, urban38, urban39 -->
 
     <!-- MASTER NODE! -->
 <!--    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
@@ -19,7 +21,6 @@
         <param name="topic_imu"      type="string" value="/imu/data_raw" />
         <param name="topic_camera0"  type="string" value="/stereo/left/image_raw" />
         <param name="topic_camera1"  type="string" value="/stereo/right/image_raw" />
-        <rosparam param="stereo_pairs">[0, 1]</rosparam>
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="true" />
@@ -66,6 +67,7 @@
         <param name="knn_ratio"          type="double" value="0.70" />
         <param name="downsample_cameras" type="bool"   value="false" />
         <param name="multi_threading"    type="bool"   value="true" />
+        <param name="histogram_method"   type="string" value="HISTOGRAM" /> <!-- NONE, HISTOGRAM, CLAHE -->
 
         <param name="fi_max_dist"        type="double" value="500" />
         <param name="fi_max_baseline"    type="double" value="120" />
@@ -121,6 +123,12 @@
         </rosparam>
 
 
+    </node>
+
+    <!-- path viz of aligned gt -->
+    <node name="live_align_trajectory" pkg="ov_eval" type="live_align_trajectory" output="log" clear_params="true">
+        <param name="alignment_type" type="str" value="posyaw" />
+        <param name="path_gt"        type="str" value="$(arg bag_gt)" />
     </node>
 
     <!-- record the trajectory if enabled -->

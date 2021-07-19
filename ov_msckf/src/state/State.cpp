@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-
 #include "State.h"
 
 #include <memory>
@@ -59,7 +58,6 @@ State::State(StateOptions &options) {
     // Add these to the corresponding maps
     _calib_IMUtoCAM.insert({i, pose});
     _cam_intrinsics.insert({i, intrin});
-    _cam_intrinsics_model.insert({i, false});
 
     // If calibrating camera-imu pose, add to variables
     if (_options.do_calib_camera_pose) {
