@@ -18,6 +18,7 @@ Please take a look at the feature list below for full details on what the system
 
 ## News / Events
 
+* **July 19, 2021** - Camera classes, masking support, alignment utility, and other small fixes. See v2.4 [PR#117](https://github.com/rpng/open_vins/pull/186) for details.
 * **December 1, 2020** - Released improved memory management, active feature pointcloud publishing, limiting number of features in update to bound compute, and other small fixes. See v2.3 [PR#117](https://github.com/rpng/open_vins/pull/117) for details.
 * **November 18, 2020** - Released groundtruth generation utility package, [vicon2gt](https://github.com/rpng/vicon2gt) to enable creation of groundtruth trajectories in a motion capture room for evaulating VIO methods.
 * **July 7, 2020** - Released zero velocity update for vehicle applications and direct initialization when standing still. See [PR#79](https://github.com/rpng/open_vins/pull/79) for details. 
@@ -62,9 +63,10 @@ Please take a look at the feature list below for full details on what the system
     * Stereo camera
     * Binocular camera
     * KLT or descriptor based
+    * Masked tracking
 * Static IMU initialization (sfm will be open sourced later)
 * Zero velocity detection and updates
-* Out of the box evaluation on EurocMav and TUM-VI datasets
+* Out of the box evaluation on EurocMav, TUM-VI, UZH-FPV, KAIST Urban and VIO datasets
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
 
