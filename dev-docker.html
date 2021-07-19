@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Developer and Internals &raquo; Developing with Docker | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="7">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="dev-welcome.html">Developer and Internals</a> &raquo;</span>
+          Developing with Docker
+        </h1>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li><a href="#dev-docker-install">Installing Docker</a></li>
+            <li><a href="#dev-docker-openvins">Running OpenVINS with Docker</a></li>
+            <li><a href="#dev-docker-clion">Using Jetbrains Clion and Docker</a></li>
+          </ul>
+        </div>
+<section id="dev-docker-install"><h2><a href="#dev-docker-install">Installing Docker</a></h2><p>This will differ on which operating system you have installed, this guide is for linux-based systems. Please take a look at the official Docker <a href="https://docs.docker.com/get-docker/">Get Docker</a> guide. There is also a guide from ROS called <a href="http://wiki.ros.org/docker/Tutorials/Docker">getting started with ROS and Docker</a>. On Ubuntu one should be able to do the following to get docker:</p><pre class="m-console"><span class="go">curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg</span>
+<span class="go">echo &quot;deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable&quot; | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null</span>
+<span class="go">sudo apt-get update</span>
+<span class="go">sudo apt-get install docker-ce docker-ce-cli containerd.io</span></pre><p>From there we can install <a href="https://github.com/NVIDIA/nvidia-docker">NVIDIA Container Toolkit</a> to allow for the docker to use our GPU and for easy GUI pass through. You might also want to check out <a href="https://roboticseabass.wordpress.com/2021/04/21/docker-and-ros/">this</a> blogpost for some more details.</p><pre class="m-console"><span class="go">distribution=$(. /etc/os-release;echo $ID$VERSION_ID) \</span>
+<span class="go">   &amp;&amp; curl -s -L https://nvidia.github.io/nvidia-docker/gpgkey | sudo apt-key add - \</span>
+<span class="go">   &amp;&amp; curl -s -L https://nvidia.github.io/nvidia-docker/$distribution/nvidia-docker.list | sudo tee /etc/apt/sources.list.d/nvidia-docker.list</span>
+<span class="go">sudo apt-get update</span>
+<span class="go">sudo apt-get install -y nvidia-docker2</span>
+<span class="go">sudo systemctl restart docker</span>
+<span class="go">sudo docker run --rm --gpus all nvidia/cuda:11.0-base nvidia-smi #to verify install</span></pre><p>From this point we should be able to &quot;test&quot; that everything is working ok. First on the host machine we need to allow for x11 windows to connect.</p><pre class="m-console"><span class="go">xhost +</span></pre><p>We can now run the following command which should open gazebo GUI on your main desktop window.</p><pre class="m-console"><span class="go">docker run -it --net=host --gpus all \</span>
+<span class="go">    --env=&quot;NVIDIA_DRIVER_CAPABILITIES=all&quot; \</span>
+<span class="go">    --env=&quot;DISPLAY&quot; \</span>
+<span class="go">    --env=&quot;QT_X11_NO_MITSHM=1&quot; \</span>
+<span class="go">    --volume=&quot;/tmp/.X11-unix:/tmp/.X11-unix:rw&quot; \</span>
+<span class="go">    osrf/ros:noetic-desktop-full \</span>
+<span class="go">    bash -it -c &quot;roslaunch gazebo_ros empty_world.launch&quot;</span></pre><p>Alternatively we can launch directly into a bash shell and run commands from in there. This basically gives you a terminal in the docker container.</p><pre class="m-console"><span class="go">docker run -it --net=host --gpus all \</span>
+<span class="go">    --env=&quot;NVIDIA_DRIVER_CAPABILITIES=all&quot; \</span>
+<span class="go">    --env=&quot;DISPLAY&quot; \</span>
+<span class="go">    --env=&quot;QT_X11_NO_MITSHM=1&quot; \</span>
+<span class="go">    --volume=&quot;/tmp/.X11-unix:/tmp/.X11-unix:rw&quot; \</span>
+<span class="go">    osrf/ros:noetic-desktop-full \</span>
+<span class="go">    bash</span>
+<span class="gp">#</span> you should be able to launch rviz once in bash
+<span class="go">rviz</span></pre></section><section id="dev-docker-openvins"><h2><a href="#dev-docker-openvins">Running OpenVINS with Docker</a></h2><p>Clone the OpenVINS repository, build the container and then launch it. The <a href="https://github.com/rpng/open_vins/blob/master/Dockerfile">Dockerfile</a> will not build the repo by default, thus you will need to build the project.</p><aside class="m-block m-warning"><h3>Use a Workspace Directory Mount</h3><p>Here it is important to note that we are going to create a dedicated ROS <em>workspace</em> which will then be loaded into the workspace. Thus if you are going to develop packages alongside OpenVINS you would make sure you have cloned your source code into the same workspace. The workspace local folder will be mounted to <code>/catkin_ws/</code> in the docker, thus all changes from the host are mirrored.</p></aside><pre class="m-console"><span class="go">mkdir -p ~/workspace/catkin_ws_ov/src</span>
+<span class="go">cd ~/workspace/catkin_ws_ov/src</span>
+<span class="go">git clone https://github.com/rpng/open_vins.git</span>
+<span class="go">cd open_vins</span>
+<span class="go">docker build -t openvins .</span>
+<span class="go">cd ~/workspace/catkin_ws_ov</span></pre><p>If the dockerfile breaks, you can remove the image and reinstall using the above</p><pre class="m-console"><span class="go">docker image list</span>
+<span class="go">docker image rm openvins --force</span></pre><p>From here it is a good idea to create a nice helper command which will launch the docker and also pass the GUI to your host machine. Here you can append it to the bottom of the ~/.bashrc so that we always have it on startup or just run the two commands on each restart</p><aside class="m-block m-warning"><h3>Directory Binding</h3><p>You will need to specify <em>absolute directory paths</em> to the workspace and dataset folders on the host you want to bind. Bind mounts are used to ensure that the host directory is directly used and all edits made on the host are sync&#x27;ed with the docker container. See the docker <a href="https://docs.docker.com/storage/bind-mounts/">bind mounts</a> documentation. You can add and remove mounts from this command as you see the need.</p></aside><pre class="m-console"><span class="go">nano ~/.bashrc</span>
+<span class="gp">#</span> add to the bashrc file
+<span class="go">xhost + &amp;&gt; /dev/null</span>
+<span class="go">export DOCKER_CATKINWS=/home/username/workspace/catkin_ws_ov</span>
+<span class="go">export DOCKER_DATASETS=/home/username/datasets</span>
+<span class="go">alias ov_docker=&quot;docker run -it --net=host --gpus all \</span>
+<span class="go">    --env=\&quot;NVIDIA_DRIVER_CAPABILITIES=all\&quot; --env=\&quot;DISPLAY\&quot; \</span>
+<span class="go">    --env=\&quot;QT_X11_NO_MITSHM=1\&quot; --volume=\&quot;/tmp/.X11-unix:/tmp/.X11-unix:rw\&quot; \</span>
+<span class="go">    --mount type=bind,source=$DOCKER_CATKINWS,target=/catkin_ws \</span>
+<span class="go">    --mount type=bind,source=$DOCKER_DATASETS,target=/datasets \</span>
+<span class="go">    openvins $1&quot;</span>
+<span class="gp">#</span> save and <span class="nb">exit</span>
+<span class="go">source ~/.bashrc</span></pre><p>Now we can launch RVIZ and also compile the OpenVINS codebase. From two different terminals on the host machine one can run the following:</p><pre class="m-console"><span class="go">ov_docker roscore</span>
+<span class="go">ov_docker rosrun rviz rviz -d /catkin_ws/src/open_vins/ov_msckf/launch/display.rviz</span>
+<span class="go">ov_docker bash</span></pre><p>Now once inside the docker with the bash shell we can build and launch an example simulation:</p><pre class="m-console"><span class="go">cd catkin_ws</span>
+<span class="go">catkin build</span>
+<span class="go">source devel/setup.bash</span>
+<span class="go">roslaunch ov_msckf pgeneva_sim.launch</span></pre><aside class="m-block m-danger"><h3>Real-time Performance</h3><p>On my machine running inside of the docker container is not real-time in nature. I am not sure why this is the case if someone knows if something is setup incorrectly please open a github issue. Thus it is recommended to only use the &quot;serial&quot; nodes which allows for the same parameters to be used as when installing directly on an OS.</p></aside></section><section id="dev-docker-clion"><h2><a href="#dev-docker-clion">Using Jetbrains Clion and Docker</a></h2><p>Jetbrains provides some instructions on their side and a youtube video. Basically, Clion needs to be configured to use an external compile service and this service needs to be exposed from the docker container. I still recommend users compile with <code>catkin build</code> directly in the docker, but this will allow for debugging and syntax insights.</p><ul><li><a href="https://blog.jetbrains.com/clion/2020/01/using-docker-with-clion/">https:/<wbr />/<wbr />blog.jetbrains.com/<wbr />clion/<wbr />2020/<wbr />01/<wbr />using-docker-with-clion/<wbr /></a></li><li><a href="https://www.youtube.com/watch?v=h69XLiMtCT8">https:/<wbr />/<wbr />www.youtube.com/<wbr />watch?v=h69XLiMtCT8</a></li></ul><p>After building the OpenVINS image (as above) we can do the following which will start a detached process in the docker. This process will allow us to connect Clion to it.</p><pre class="m-console"><span class="go">docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name clion_remote_env openvins</span></pre><p>We can now change Clion to use the docker remote:</p><ol><li>In short, you should add a new Toolchain entry in settings under Build, Execution, Deployment as a Remote Host type.</li><li>Click in the Credentials section and fill out the SSH credentials we set-up in the Dockerfile<ul><li>Host: localhost</li><li>Port: 2222</li><li>Username: user</li><li>Password: password</li></ul></li><li>Add a CMake profile that uses this toolchain and you’re done.</li><li>Change build target to be this new CMake profile (optionally just edit / delete the default)</li></ol><p>To add support for ROS you will need to manually set environmental variables in the CMake profile. These were generated by going into the ROS workspace, building a package, and then looking at <code>printenv</code> output. It should be under <code>Settings &gt; Build,Execution,Deployment &gt; CMake &gt; (your profile) &gt; Environment</code>. This might be a brittle method, but not sure what else to do... (also see <a href="https://www.allaban.me/posts/2020/08/ros2-setup-ide-docker/">this</a> blog post).</p><pre class="m-console"><span class="go">LD_PATH_LIB=/catkin_ws/devel/lib:/opt/ros/noetic/lib;PYTHON_EXECUTABLE=/usr/bin/python3;PYTHON_INCLUDE_DIR=/usr/include/python3.8;ROS_VERSION=1;CMAKE_PREFIX_PATH=/catkin_ws/devel:/opt/ros/noetic;LD_LIBRARY_PATH=/catkin_ws/devel/lib:/opt/ros/noetic/lib;PATH=/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin;PKG_CONFIG_PATH=/catkin_ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig;PYTHONPATH=/opt/ros/noetic/lib/python3/dist-packages;ROSLISP_PACKAGE_DIRECTORIES=/catkin_ws/devel/share/common-lisp;ROS_PACKAGE_PATH=/catkin_ws/src/open_vins/ov_core:/catkin_ws/src/open_vins/ov_data:/catkin_ws/src/open_vins/ov_eval:/catkin_ws/src/open_vins/ov_msckf:/opt/ros/noetic/share</span></pre><p>When you build in Clion you should see in <code>docker stats</code> that the <code>clion_remote_env</code> is building the files and maxing out the CPU during this process. Clion should send the source files to the remote server and then on build should build and run it remotely within the docker container. A user might also want to edit <code>Build,Execution,Deployment &gt; Deployment</code> settings to exclude certain folders from copying over. See this <a href="https://www.jetbrains.com/help/clion/remote-projects-support.html">jetbrains documentation page</a> for more details.</p></section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

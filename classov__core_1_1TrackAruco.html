@@ -77,14 +77,12 @@
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="aba2abbe1aca8b28e9dc4c13a957f39d9">
-              <span class="m-doc-wrap-bumper"><a href="#aba2abbe1aca8b28e9dc4c13a957f39d9" class="m-doc-self">TrackAruco</a>(</span><span class="m-doc-wrap">)</span>
-            </dt>
-            <dd>Public default constructor.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a5bcd4010478b0cb5dcdb944245c7af1e" class="m-doc">TrackAruco</a>(</span><span class="m-doc-wrap">int numaruco,
-              bool multithread,
-              bool do_downsizing) <span class="m-label m-flat m-info">explicit</span> </span>
+              <span class="m-doc-wrap-bumper"><a href="#af521ec83a39409ed220a535b3d4485de" class="m-doc">TrackAruco</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              int numaruco,
+              bool binocular,
+              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">HistogramMethod</a> histmethod,
+              bool downsize) <span class="m-label m-flat m-info">explicit</span> </span>
             </dt>
             <dd>Public constructor with configuration variables.</dd>
           </dl>
@@ -93,38 +91,20 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a48f77f778540223f35cf9a669447d9fa" class="m-doc">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img,
-              size_t cam_id) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#ad8880defb56d572a58430765bb8266b6" class="m-doc">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
-            <dd>Process a new monocular image.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#aa5be2dcb8cba5676b59f228c85de4568" class="m-doc">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img_left,
-              cv::Mat&amp; img_right,
-              size_t cam_id_left,
-              size_t cam_id_right) <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>Process new stereo pair of images.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a9c294e61151b8b928a766d0e5417bf4f" class="m-doc">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              int r1,
-              int g1,
-              int b1,
-              int r2,
-              int g2,
-              int b2) <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>We override the display equation so we can show the tags we extract.</dd>
+            <dd>Process a new image.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a5bcd4010478b0cb5dcdb944245c7af1e"><div>
+          <section class="m-doc-details" id="af521ec83a39409ed220a535b3d4485de"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5bcd4010478b0cb5dcdb944245c7af1e" class="m-doc-self">TrackAruco</a>(</span><span class="m-doc-wrap">int numaruco,
-              bool multithread,
-              bool do_downsizing) <span class="m-label m-info">explicit</span> </span></span>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af521ec83a39409ed220a535b3d4485de" class="m-doc-self">TrackAruco</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              int numaruco,
+              bool binocular,
+              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">HistogramMethod</a> histmethod,
+              bool downsize) <span class="m-label m-info">explicit</span> </span></span>
             </h3>
             <p>Public constructor with configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -133,127 +113,41 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">numaruco</td>
+                  <td style="width: 1%">cameras</td>
+                  <td>camera calibration object which has all camera intrinsics in it</td>
+                </tr>
+                <tr>
+                  <td>numaruco</td>
                   <td>the max id of the arucotags, we don&#x27;t use any tags greater than this value even if we extract them</td>
                 </tr>
                 <tr>
-                  <td>multithread</td>
-                  <td>if we should try to process with multiple threads or single threaded</td>
+                  <td>binocular</td>
+                  <td>if we should do binocular feature tracking or stereo if there are multiple cameras</td>
                 </tr>
                 <tr>
-                  <td>do_downsizing</td>
+                  <td>histmethod</td>
+                  <td>what type of histogram pre-processing should be done (histogram eq?)</td>
+                </tr>
+                <tr>
+                  <td>downsize</td>
                   <td>we can scale the image by 1/2 to increase Aruco tag extraction speed</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a48f77f778540223f35cf9a669447d9fa"><div>
+          <section class="m-doc-details" id="ad8880defb56d572a58430765bb8266b6"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a48f77f778540223f35cf9a669447d9fa" class="m-doc-self">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img,
-              size_t cam_id) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad8880defb56d572a58430765bb8266b6" class="m-doc-self">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
-            <p>Process a new monocular image.</p>
+            <p>Process a new image.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>timestamp the new image occurred at</td>
-                </tr>
-                <tr>
-                  <td>img</td>
-                  <td>new cv:Mat grayscale image</td>
-                </tr>
-                <tr>
-                  <td>cam_id</td>
-                  <td>the camera id that this new image corresponds too</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="aa5be2dcb8cba5676b59f228c85de4568"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa5be2dcb8cba5676b59f228c85de4568" class="m-doc-self">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img_left,
-              cv::Mat&amp; img_right,
-              size_t cam_id_left,
-              size_t cam_id_right) <span class="m-label m-warning">override</span></span></span>
-            </h3>
-            <p>Process new stereo pair of images.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>timestamp this pair occured at (stereo is synchronised)</td>
-                </tr>
-                <tr>
-                  <td>img_left</td>
-                  <td>first grayscaled image</td>
-                </tr>
-                <tr>
-                  <td>img_right</td>
-                  <td>second grayscaled image</td>
-                </tr>
-                <tr>
-                  <td>cam_id_left</td>
-                  <td>first image camera id</td>
-                </tr>
-                <tr>
-                  <td>cam_id_right</td>
-                  <td>second image camera id</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a9c294e61151b8b928a766d0e5417bf4f"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackAruco::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9c294e61151b8b928a766d0e5417bf4f" class="m-doc-self">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              int r1,
-              int g1,
-              int b1,
-              int r2,
-              int g2,
-              int b2) <span class="m-label m-warning">override</span></span></span>
-            </h3>
-            <p>We override the display equation so we can show the tags we extract.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">img_out</td>
-                  <td>image to which we will overlayed features on</td>
-                </tr>
-                <tr>
-                  <td>r1</td>
-                  <td>first color to draw in</td>
-                </tr>
-                <tr>
-                  <td>g1</td>
-                  <td>first color to draw in</td>
-                </tr>
-                <tr>
-                  <td>b1</td>
-                  <td>first color to draw in</td>
-                </tr>
-                <tr>
-                  <td>r2</td>
-                  <td>second color to draw in</td>
-                </tr>
-                <tr>
-                  <td>g2</td>
-                  <td>second color to draw in</td>
-                </tr>
-                <tr>
-                  <td>b2</td>
-                  <td>second color to draw in</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
                 </tr>
               </tbody>
             </table>

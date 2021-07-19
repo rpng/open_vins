@@ -120,6 +120,14 @@
               double <a href="#a9c9396ee0ec6228d99d458e8a02f47cd" class="m-doc-self">zupt_noise_multiplier</a>
             </dt>
             <dd>Multiplier of our zupt measurement IMU noise matrix (default should be 1.0)</dd>
+            <dt id="a0d6b97164305763b5f1c5e302fbeb02a">
+              double <a href="#a0d6b97164305763b5f1c5e302fbeb02a" class="m-doc-self">zupt_max_disparity</a>
+            </dt>
+            <dd>Max disparity we will consider to try to do a zupt (i.e. if above this, don&#x27;t do zupt)</dd>
+            <dt id="a0b65d82ff8ef21e22774f070d9f42938">
+              bool <a href="#a0b65d82ff8ef21e22774f070d9f42938" class="m-doc-self">zupt_only_at_beginning</a>
+            </dt>
+            <dd>If we should only use the zupt at the very beginning static initialization phase.</dd>
             <dt id="af1c76781e016ae09e49bd4d8e42006e6">
               bool <a href="#af1c76781e016ae09e49bd4d8e42006e6" class="m-doc-self">record_timing_information</a>
             </dt>
@@ -148,38 +156,34 @@
               <a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a> <a href="#adbcc99cae0410b2627246080e9e03e3e" class="m-doc-self">zupt_options</a>
             </dt>
             <dd>Update options for zero velocity (chi2 multiplier)</dd>
-            <dt id="a6a413a710da13d447def5dae370f6c68">
-              Eigen::Vector3d <a href="#a6a413a710da13d447def5dae370f6c68" class="m-doc-self">gravity</a>
+            <dt id="a0ab368f8b306660cc0fd59790851b3eb">
+              double <a href="#a0ab368f8b306660cc0fd59790851b3eb" class="m-doc-self">gravity_mag</a>
             </dt>
-            <dd>Gravity in the global frame (i.e. should be [0, 0, 9.81] typically)</dd>
+            <dd>Gravity magnitude in the global frame (i.e. should be 9.81 typically)</dd>
             <dt id="a10bb45ab36e74b8e4d25f8e68bc2ffd7">
               double <a href="#a10bb45ab36e74b8e4d25f8e68bc2ffd7" class="m-doc-self">calib_camimu_dt</a>
             </dt>
             <dd>Time offset between camera and IMU.</dd>
-            <dt id="a7f5034c6adf02ff2794087e6b2eac02d">
-              std::map&lt;size_t, bool&gt; <a href="#a7f5034c6adf02ff2794087e6b2eac02d" class="m-doc-self">camera_fisheye</a>
+            <dt id="abdbf74bd2fce0b604f1e4ff072b807e4">
+              std::map&lt;size_t, bool&gt; <a href="#abdbf74bd2fce0b604f1e4ff072b807e4" class="m-doc-self">camera_fisheye</a>
             </dt>
             <dd>Map between camid and camera model (true=fisheye, false=radtan)</dd>
-            <dt id="a2e324572662b7db66589a468050cee3b">
-              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#a2e324572662b7db66589a468050cee3b" class="m-doc-self">camera_intrinsics</a>
+            <dt id="aeb474318330f0ae53613af5b6299f000">
+              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#aeb474318330f0ae53613af5b6299f000" class="m-doc-self">camera_intrinsics</a>
             </dt>
             <dd>Map between camid and intrinsics. Values depends on the model but each should be a 4x1 vector normally.</dd>
-            <dt id="a435dece7314aa005691b9383b756ac69">
-              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#a435dece7314aa005691b9383b756ac69" class="m-doc-self">camera_extrinsics</a>
+            <dt id="ab5cecc1b5cf69b6835d9af0df4496401">
+              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#ab5cecc1b5cf69b6835d9af0df4496401" class="m-doc-self">camera_extrinsics</a>
             </dt>
             <dd>Map between camid and camera extrinsics (q_ItoC, p_IinC).</dd>
-            <dt id="aa9610a658c51215ed6e3a1af9380e25c">
-              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#aa9610a658c51215ed6e3a1af9380e25c" class="m-doc-self">camera_wh</a>
+            <dt id="abf204d54c313e8f462aabba18180b40c">
+              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#abf204d54c313e8f462aabba18180b40c" class="m-doc-self">camera_wh</a>
             </dt>
             <dd>Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.</dd>
             <dt id="af01535da59b1d2d5e3309aaa34e69c8e">
               bool <a href="#af01535da59b1d2d5e3309aaa34e69c8e" class="m-doc-self">use_stereo</a>
             </dt>
             <dd>If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.</dd>
-            <dt id="a66600dd0efd8df258a6efe59e0652661">
-              std::vector&lt;std::pair&lt;int, int&gt;&gt; <a href="#a66600dd0efd8df258a6efe59e0652661" class="m-doc-self">stereo_pairs</a>
-            </dt>
-            <dd>Defined set of stereo camera id pairs which we will process together and try to generate stereo constraints between.</dd>
             <dt id="a1885c647c47cb5216fc4b868553ec0fa">
               bool <a href="#a1885c647c47cb5216fc4b868553ec0fa" class="m-doc-self">use_klt</a>
             </dt>
@@ -220,10 +224,22 @@
               int <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
             </dt>
             <dd>Will check after doing KLT track and remove any features closer than this.</dd>
+            <dt id="a27d7283522d060c9b3290f33bcc1b274">
+              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">TrackBase::<wbr />HistogramMethod</a> <a href="#a27d7283522d060c9b3290f33bcc1b274" class="m-doc-self">histogram_method</a>
+            </dt>
+            <dd>What type of pre-processing histogram method should be applied to images.</dd>
             <dt id="a62800a75870b19213d1c44e69b2c32f7">
               double <a href="#a62800a75870b19213d1c44e69b2c32f7" class="m-doc-self">knn_ratio</a>
             </dt>
             <dd>KNN ration between top two descriptor matcher which is required to be a good match.</dd>
+            <dt id="a3b74f8ceb35bd36df62d0e2403adcd25">
+              bool <a href="#a3b74f8ceb35bd36df62d0e2403adcd25" class="m-doc-self">use_mask</a>
+            </dt>
+            <dd>If we should try to load a mask and use it to reject invalid features.</dd>
+            <dt id="ae4b385302e72d09d7c5abccb48a83442">
+              std::map&lt;size_t, cv::Mat&gt; <a href="#ae4b385302e72d09d7c5abccb48a83442" class="m-doc-self">masks</a>
+            </dt>
+            <dd>Mask images for each camera.</dd>
             <dt id="adb73a6bc125800109a3a334cf0386203">
               <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a> <a href="#adb73a6bc125800109a3a334cf0386203" class="m-doc-self">featinit_options</a>
             </dt>
@@ -232,10 +248,10 @@
               string <a href="#aa9c57558a61ebbdb3ef98cc529f3f01a" class="m-doc-self">sim_traj_path</a>
             </dt>
             <dd>Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.</dd>
-            <dt id="a3b6af0048e6bb9b903088f30f9be7221">
-              double <a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc-self">sim_distance_threshold</a>
+            <dt>
+              double <a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc">sim_distance_threshold</a>
             </dt>
-            <dd>We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in simulation.</dd>
+            <dd></dd>
             <dt id="a093cc163f266b0c013d7eda528bb1e80">
               double <a href="#a093cc163f266b0c013d7eda528bb1e80" class="m-doc-self">sim_freq_cam</a>
             </dt>
@@ -252,15 +268,30 @@
               int <a href="#afe2c433c61d25c18901b089a2215114c" class="m-doc-self">sim_seed_preturb</a>
             </dt>
             <dd>Seed for calibration perturbations. Change this to perturb by different random values if perturbations are enabled.</dd>
-            <dt id="a9b3fee122a7d3b2069a424b5ef1b1155">
-              int <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
+            <dt>
+              int <a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc">sim_seed_measurements</a>
             </dt>
-            <dd>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</dd>
+            <dd></dd>
             <dt id="a4d595d5277582b53d12ad75bc7a6ad57">
               bool <a href="#a4d595d5277582b53d12ad75bc7a6ad57" class="m-doc-self">sim_do_perturbation</a>
             </dt>
             <dd>If we should perturb the calibration that the estimator starts with.</dd>
           </dl>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a3b6af0048e6bb9b903088f30f9be7221"><div>
+            <h3>
+              double ov_msckf::<wbr />VioManagerOptions::<wbr /><a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc-self">sim_distance_threshold</a>
+            </h3>
+<p>We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in simulation.</p>
+          </div></section>
+          <section class="m-doc-details" id="a9b3fee122a7d3b2069a424b5ef1b1155"><div>
+            <h3>
+              int ov_msckf::<wbr />VioManagerOptions::<wbr /><a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
+            </h3>
+<p>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</p>
+          </div></section>
         </section>
       </div>
     </div>

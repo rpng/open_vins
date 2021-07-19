@@ -79,7 +79,8 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#aeaf944e67fb20f78069449b776a26880" class="m-doc">TrackSIM</a>(</span><span class="m-doc-wrap">int numaruco)</span>
+              <span class="m-doc-wrap-bumper"><a href="#ac1b011188c7ec1af805b66bd5eaa29c8" class="m-doc">TrackSIM</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              int numaruco)</span>
             </dt>
             <dd>Public constructor with configuration variables.</dd>
           </dl>
@@ -92,19 +93,9 @@
             </dt>
             <dd>Set the width and height for the cameras.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#aa692c5b7380e728e0428fb16de8e9a0b" class="m-doc">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img,
-              size_t cam_id) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a4c1537c48eec664a2c83dacc4b7e5778" class="m-doc">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
-            <dd></dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a2134c68a52c1c80e005a4f51ac5f2c5f" class="m-doc">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img_left,
-              cv::Mat&amp; img_right,
-              size_t cam_id_left,
-              size_t cam_id_right) <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd></dd>
+            <dd>Process a new image.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a00388c410c804854c4c91e1a392d44e0" class="m-doc">feed_measurement_simulation</a>(</span><span class="m-doc-wrap">double timestamp,
               const std::vector&lt;int&gt;&amp; camids,
@@ -116,17 +107,18 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a1bfaa65729c8dbe015938cb6540705bb">
-              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#a1bfaa65729c8dbe015938cb6540705bb" class="m-doc-self">camera_wh</a>
+            <dt id="a6d24f1b505e22b334a4585fefcb03d6a">
+              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#a6d24f1b505e22b334a4585fefcb03d6a" class="m-doc-self">camera_wh</a>
             </dt>
             <dd>Width and height of our cameras.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="aeaf944e67fb20f78069449b776a26880"><div>
+          <section class="m-doc-details" id="ac1b011188c7ec1af805b66bd5eaa29c8"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aeaf944e67fb20f78069449b776a26880" class="m-doc-self">TrackSIM</a>(</span><span class="m-doc-wrap">int numaruco)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac1b011188c7ec1af805b66bd5eaa29c8" class="m-doc-self">TrackSIM</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              int numaruco)</span></span>
             </h3>
             <p>Public constructor with configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -135,7 +127,11 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">numaruco</td>
+                  <td style="width: 1%">cameras</td>
+                  <td>camera calibration object which has all camera intrinsics in it</td>
+                </tr>
+                <tr>
+                  <td>numaruco</td>
                   <td>the max id of the arucotags, so we ensure that we start our non-auroc features above this value</td>
                 </tr>
               </tbody>
@@ -158,22 +154,22 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="aa692c5b7380e728e0428fb16de8e9a0b"><div>
+          <section class="m-doc-details" id="a4c1537c48eec664a2c83dacc4b7e5778"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa692c5b7380e728e0428fb16de8e9a0b" class="m-doc-self">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img,
-              size_t cam_id) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4c1537c48eec664a2c83dacc4b7e5778" class="m-doc-self">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-warning">override</span></span></span>
             </h3>
-<aside class="m-note m-danger"><h4>Warning</h4><p>This function should not be used!! Use <a href="classov__core_1_1TrackSIM.html#a00388c410c804854c4c91e1a392d44e0" class="m-doc">feed_<wbr />measurement_<wbr />simulation()</a> instead.</p></aside>
-          </div></section>
-          <section class="m-doc-details" id="a2134c68a52c1c80e005a4f51ac5f2c5f"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2134c68a52c1c80e005a4f51ac5f2c5f" class="m-doc-self">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img_left,
-              cv::Mat&amp; img_right,
-              size_t cam_id_left,
-              size_t cam_id_right) <span class="m-label m-warning">override</span></span></span>
-            </h3>
+            <p>Process a new image.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
+                </tr>
+              </tbody>
+            </table>
 <aside class="m-note m-danger"><h4>Warning</h4><p>This function should not be used!! Use <a href="classov__core_1_1TrackSIM.html#a00388c410c804854c4c91e1a392d44e0" class="m-doc">feed_<wbr />measurement_<wbr />simulation()</a> instead.</p></aside>
           </div></section>
           <section class="m-doc-details" id="a00388c410c804854c4c91e1a392d44e0"><div>

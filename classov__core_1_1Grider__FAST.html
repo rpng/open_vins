@@ -72,9 +72,9 @@
             </dt>
             <dd>Compare keypoints based on their response value.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#ae25747117de4c26e71c9f28d80ef40c2" class="m-doc">perform_griding</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img,
+              <span class="m-doc-wrap-bumper">static void <a href="#a36acfad18dc36878776dd4fa21165eac" class="m-doc">perform_griding</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img,
+              const cv::Mat&amp; mask,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts,
-              bool multithread,
               int num_features,
               int grid_x,
               int grid_y,
@@ -109,11 +109,11 @@
             </table>
 <p>We want to have the keypoints with the highest values! See: <a href="https://stackoverflow.com/a/10910921">https:/<wbr />/<wbr />stackoverflow.com/<wbr />a/<wbr />10910921</a></p>
           </div></section>
-          <section class="m-doc-details" id="ae25747117de4c26e71c9f28d80ef40c2"><div>
+          <section class="m-doc-details" id="a36acfad18dc36878776dd4fa21165eac"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_core::<wbr />Grider_FAST::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae25747117de4c26e71c9f28d80ef40c2" class="m-doc-self">perform_griding</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img,
+              <span class="m-doc-wrap-bumper">static void ov_core::<wbr />Grider_FAST::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a36acfad18dc36878776dd4fa21165eac" class="m-doc-self">perform_griding</a>(</span><span class="m-doc-wrap">const cv::Mat&amp; img,
+              const cv::Mat&amp; mask,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts,
-              bool multithread,
               int num_features,
               int grid_x,
               int grid_y,
@@ -131,12 +131,12 @@
                   <td>Image we will do FAST extraction on</td>
                 </tr>
                 <tr>
-                  <td>pts</td>
-                  <td>vector of extracted points we will return</td>
+                  <td>mask</td>
+                  <td>Region of the image we do not want to extract features in (255 = do not detect features)</td>
                 </tr>
                 <tr>
-                  <td>multithread</td>
-                  <td>if we should try to process with multiple threads or single threaded</td>
+                  <td>pts</td>
+                  <td>vector of extracted points we will return</td>
                 </tr>
                 <tr>
                   <td>num_features</td>

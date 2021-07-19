@@ -69,11 +69,14 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a1e44bb105b4a0c083a033b498705f8f6" class="m-doc">UpdaterZeroVelocity</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a>&amp; options,
+              <span class="m-doc-wrap-bumper"><a href="#ab789f037385c45c0298b4fcb4d9c2873" class="m-doc">UpdaterZeroVelocity</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a>&amp; options,
               <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a>&amp; noises,
-              Eigen::Vector3d gravity,
+              std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt; db,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>&gt; prop,
+              double gravity_mag,
               double zupt_max_velocity,
-              double zupt_noise_multiplier)</span>
+              double zupt_noise_multiplier,
+              double zupt_max_disparity)</span>
             </dt>
             <dd>Default constructor for our zero velocity detector and updater.</dd>
           </dl>
@@ -103,8 +106,16 @@
               <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a> <a href="#aeea824812476b8cb19a9fa44d86fe70a" class="m-doc-self">_noises</a>
             </dt>
             <dd>Container for the imu noise values.</dd>
-            <dt id="a4a1e25b574b2f362155a09a555a140e1">
-              Eigen::Matrix&lt;double, 3, 1&gt; <a href="#a4a1e25b574b2f362155a09a555a140e1" class="m-doc-self">_gravity</a>
+            <dt id="a28489affb5c445f8c19bd6c71e316d97">
+              std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt; <a href="#a28489affb5c445f8c19bd6c71e316d97" class="m-doc-self">_db</a>
+            </dt>
+            <dd>Feature tracker database with all features in it.</dd>
+            <dt id="aff9a0009bd455014af4dea494fcb2b33">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>&gt; <a href="#aff9a0009bd455014af4dea494fcb2b33" class="m-doc-self">_prop</a>
+            </dt>
+            <dd>Our propagator!</dd>
+            <dt id="aa0bd3b68624d85a6e9db27a1d1631486">
+              Eigen::Vector3d <a href="#aa0bd3b68624d85a6e9db27a1d1631486" class="m-doc-self">_gravity</a>
             </dt>
             <dd>Gravity vector.</dd>
             <dt id="a27800e861318dfd8938005dc8b7507cf">
@@ -115,6 +126,10 @@
               double <a href="#a4cb7aba647c32c927075fbffd7573b5e" class="m-doc-self">_zupt_noise_multiplier</a>
             </dt>
             <dd>Multiplier of our IMU noise matrix (default should be 1.0)</dd>
+            <dt id="a2ef8c37273e0159bd83cc34cccce1099">
+              double <a href="#a2ef8c37273e0159bd83cc34cccce1099" class="m-doc-self">_zupt_max_disparity</a>
+            </dt>
+            <dd>Max disparity (pixels) that we should consider a zupt with.</dd>
             <dt id="a5b6c97d5985ae971821aaeaed715e717">
               std::map&lt;int, double&gt; <a href="#a5b6c97d5985ae971821aaeaed715e717" class="m-doc-self">chi_squared_table</a>
             </dt>
@@ -131,13 +146,16 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a1e44bb105b4a0c083a033b498705f8f6"><div>
+          <section class="m-doc-details" id="ab789f037385c45c0298b4fcb4d9c2873"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1e44bb105b4a0c083a033b498705f8f6" class="m-doc-self">UpdaterZeroVelocity</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a>&amp; options,
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab789f037385c45c0298b4fcb4d9c2873" class="m-doc-self">UpdaterZeroVelocity</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1UpdaterOptions.html" class="m-doc">UpdaterOptions</a>&amp; options,
               <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a>&amp; noises,
-              Eigen::Vector3d gravity,
+              std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt; db,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>&gt; prop,
+              double gravity_mag,
               double zupt_max_velocity,
-              double zupt_noise_multiplier)</span></span>
+              double zupt_noise_multiplier,
+              double zupt_max_disparity)</span></span>
             </h3>
             <p>Default constructor for our zero velocity detector and updater.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -154,8 +172,16 @@
                   <td>imu noise characteristics (continuous time)</td>
                 </tr>
                 <tr>
-                  <td>gravity</td>
-                  <td>Global gravity of the system (normally [0,0,9.81])</td>
+                  <td>db</td>
+                  <td>Feature tracker database with all features in it</td>
+                </tr>
+                <tr>
+                  <td>prop</td>
+                  <td><a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> class object which can predict the state forward in time</td>
+                </tr>
+                <tr>
+                  <td>gravity_mag</td>
+                  <td>Global gravity magnitude of the system (normally 9.81)</td>
                 </tr>
                 <tr>
                   <td>zupt_max_velocity</td>
@@ -164,6 +190,10 @@
                 <tr>
                   <td>zupt_noise_multiplier</td>
                   <td>Multiplier of our IMU noise matrix (default should be 1.0)</td>
+                </tr>
+                <tr>
+                  <td>zupt_max_disparity</td>
+                  <td>Max disparity we should consider to do a update with</td>
                 </tr>
               </tbody>
             </table>

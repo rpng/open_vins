@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_core::CamBase class | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="7">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__core.html">ov_core</a>::<wbr/></span>CamBase <span class="m-thin">class</span>
+        </h1>
+        <p>Base pinhole camera model class.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-attribs">Protected variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This is the base class for all our camera models. All these models are pinhole cameras, thus just have standard reprojection logic.</p><p>See each base class for detailed examples on each model:</p><ul><li><a href="classov__core_1_1CamEqui.html" class="m-doc">ov_core::<wbr />CamEqui</a></li><li><a href="classov__core_1_1CamRadtan.html" class="m-doc">ov_core::<wbr />CamRadtan</a></li></ul>
+        <section id="derived-classes">
+          <h2><a href="#derived-classes">Derived classes</a></h2>
+          <dl class="m-doc">
+            <dt>
+              class <a href="classov__core_1_1CamEqui.html" class="m-doc">CamEqui</a>
+            </dt>
+            <dd>Fisheye / equadistant model pinhole camera model class.</dd>
+            <dt>
+              class <a href="classov__core_1_1CamRadtan.html" class="m-doc">CamRadtan</a>
+            </dt>
+            <dd>Radial-tangential / Brown–Conrady model pinhole camera model class.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a630f35e703c3893ae694fe0f14693216" class="m-doc">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; calib) <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>This will set and update the camera calibration values. This should be called on startup for each camera and after update!</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad0db03f97e5a12f5ad757f72e60f50e4" class="m-doc">undistort_f</a>(</span><span class="m-doc-wrap">const Eigen::Vector2f&amp; uv_dist) -&gt; Eigen::Vector2f <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab910cf55ee13ca74eb4b8463ab32f1c4" class="m-doc">undistort_d</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_dist) -&gt; Eigen::Vector2d</span>
+            </dt>
+            <dd>Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a42b140a7dfc1398cc7fc2f8df6c141d2" class="m-doc">undistort_cv</a>(</span><span class="m-doc-wrap">const cv::Point2f&amp; uv_dist) -&gt; cv::Point2f</span>
+            </dt>
+            <dd>Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a00902793219107474dc21f762fb14556" class="m-doc">distort_f</a>(</span><span class="m-doc-wrap">const Eigen::Vector2f&amp; uv_norm) -&gt; Eigen::Vector2f <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Given a normalized uv coordinate this will distort it to the raw image plane.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#acf981dbc008c5929bf32ddde80b04caf" class="m-doc">distort_d</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_norm) -&gt; Eigen::Vector2d</span>
+            </dt>
+            <dd>Given a normalized uv coordinate this will distort it to the raw image plane.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ae04e8fb6f5b61a7c9e9b7c22cfc1b82c" class="m-doc">distort_cv</a>(</span><span class="m-doc-wrap">const cv::Point2f&amp; uv_norm) -&gt; cv::Point2f</span>
+            </dt>
+            <dd>Given a normalized uv coordinate this will distort it to the raw image plane.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a498fa2b56be008d7b59bf9927f60d5db" class="m-doc">compute_distort_jacobian</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_norm,
+              Eigen::MatrixXd&amp; H_dz_dzn,
+              Eigen::MatrixXd&amp; H_dz_dzeta) <span class="m-label m-flat m-warning">pure virtual</span></span>
+            </dt>
+            <dd>Computes the derivative of raw distorted to normalized coordinate.</dd>
+            <dt id="aa8c2283f7db1a88b590c8058e8949150">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa8c2283f7db1a88b590c8058e8949150" class="m-doc-self">get_value</a>(</span><span class="m-doc-wrap">) -&gt; Eigen::MatrixXd</span>
+            </dt>
+            <dd>Gets the complete intrinsic vector.</dd>
+            <dt id="a01b8c0f89bf1bde983806b1dc331658c">
+              <span class="m-doc-wrap-bumper">auto <a href="#a01b8c0f89bf1bde983806b1dc331658c" class="m-doc-self">get_K</a>(</span><span class="m-doc-wrap">) -&gt; cv::Matx33d</span>
+            </dt>
+            <dd>Gets the camera matrix.</dd>
+            <dt id="a7ee1a5a19bf68bbf7bcd55dcd56748fb">
+              <span class="m-doc-wrap-bumper">auto <a href="#a7ee1a5a19bf68bbf7bcd55dcd56748fb" class="m-doc-self">get_D</a>(</span><span class="m-doc-wrap">) -&gt; cv::Vec4d</span>
+            </dt>
+            <dd>Gets the camera distortion.</dd>
+          </dl>
+        </section>
+        <section id="pro-attribs">
+          <h2><a href="#pro-attribs">Protected variables</a></h2>
+          <dl class="m-doc">
+            <dt id="a3b9b353487071aef189fc5bc313dab5d">
+              Eigen::MatrixXd <a href="#a3b9b353487071aef189fc5bc313dab5d" class="m-doc-self">camera_values</a>
+            </dt>
+            <dd>Raw set of camera intrinic values (f_x &amp; f_y &amp; c_x &amp; c_y &amp; k_1 &amp; k_2 &amp; k_3 &amp; k_4)</dd>
+            <dt id="a867f7b5a903cc2776227c9b16fdde162">
+              cv::Matx33d <a href="#a867f7b5a903cc2776227c9b16fdde162" class="m-doc-self">camera_k_OPENCV</a>
+            </dt>
+            <dd>Camera intrinsics in OpenCV format.</dd>
+            <dt id="a5783a122e28281c1cd72a23f4bee212c">
+              cv::Vec4d <a href="#a5783a122e28281c1cd72a23f4bee212c" class="m-doc-self">camera_d_OPENCV</a>
+            </dt>
+            <dd>Camera distortion in OpenCV format.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a630f35e703c3893ae694fe0f14693216"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a630f35e703c3893ae694fe0f14693216" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; calib) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+            <p>This will set and update the camera calibration values. This should be called on startup for each camera and after update!</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">calib</td>
+                  <td>Camera calibration information (f_x &amp; f_y &amp; c_x &amp; c_y &amp; k_1 &amp; k_2 &amp; k_3 &amp; k_4)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ad0db03f97e5a12f5ad757f72e60f50e4"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Vector2f ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad0db03f97e5a12f5ad757f72e60f50e4" class="m-doc-self">undistort_f</a>(</span><span class="m-doc-wrap">const Eigen::Vector2f&amp; uv_dist) <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_dist</td>
+                  <td>Raw uv coordinate we wish to undistort</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>2d vector of normalized coordinates</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ab910cf55ee13ca74eb4b8463ab32f1c4"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Vector2d ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab910cf55ee13ca74eb4b8463ab32f1c4" class="m-doc-self">undistort_d</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_dist)</span></span>
+            </h3>
+            <p>Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_dist</td>
+                  <td>Raw uv coordinate we wish to undistort</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>2d vector of normalized coordinates</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a42b140a7dfc1398cc7fc2f8df6c141d2"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">cv::Point2f ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a42b140a7dfc1398cc7fc2f8df6c141d2" class="m-doc-self">undistort_cv</a>(</span><span class="m-doc-wrap">const cv::Point2f&amp; uv_dist)</span></span>
+            </h3>
+            <p>Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_dist</td>
+                  <td>Raw uv coordinate we wish to undistort</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>2d vector of normalized coordinates</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a00902793219107474dc21f762fb14556"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Vector2f ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a00902793219107474dc21f762fb14556" class="m-doc-self">distort_f</a>(</span><span class="m-doc-wrap">const Eigen::Vector2f&amp; uv_norm) <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Given a normalized uv coordinate this will distort it to the raw image plane.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_norm</td>
+                  <td>Normalized coordinates we wish to distort</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>2d vector of raw uv coordinate</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="acf981dbc008c5929bf32ddde80b04caf"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Vector2d ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acf981dbc008c5929bf32ddde80b04caf" class="m-doc-self">distort_d</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_norm)</span></span>
+            </h3>
+            <p>Given a normalized uv coordinate this will distort it to the raw image plane.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_norm</td>
+                  <td>Normalized coordinates we wish to distort</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>2d vector of raw uv coordinate</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ae04e8fb6f5b61a7c9e9b7c22cfc1b82c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">cv::Point2f ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae04e8fb6f5b61a7c9e9b7c22cfc1b82c" class="m-doc-self">distort_cv</a>(</span><span class="m-doc-wrap">const cv::Point2f&amp; uv_norm)</span></span>
+            </h3>
+            <p>Given a normalized uv coordinate this will distort it to the raw image plane.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_norm</td>
+                  <td>Normalized coordinates we wish to distort</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>2d vector of raw uv coordinate</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a498fa2b56be008d7b59bf9927f60d5db"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a498fa2b56be008d7b59bf9927f60d5db" class="m-doc-self">compute_distort_jacobian</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_norm,
+              Eigen::MatrixXd&amp; H_dz_dzn,
+              Eigen::MatrixXd&amp; H_dz_dzeta) <span class="m-label m-warning">pure virtual</span></span></span>
+            </h3>
+            <p>Computes the derivative of raw distorted to normalized coordinate.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_norm</td>
+                  <td>Normalized coordinates we wish to distort</td>
+                </tr>
+                <tr>
+                  <td>H_dz_dzn</td>
+                  <td>Derivative of measurement z in respect to normalized</td>
+                </tr>
+                <tr>
+                  <td>H_dz_dzeta</td>
+                  <td>Derivative of measurement z in respect to intrinic parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

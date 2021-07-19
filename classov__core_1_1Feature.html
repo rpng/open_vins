@@ -68,9 +68,13 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a75095dc19a46fa6d780d5ce3900a232b" class="m-doc">clean_old_measurements</a>(</span><span class="m-doc-wrap">std::vector&lt;double&gt; valid_times)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#aee27e65f3de5581ededd30646479e315" class="m-doc">clean_old_measurements</a>(</span><span class="m-doc-wrap">const std::vector&lt;double&gt;&amp; valid_times)</span>
             </dt>
             <dd>Remove measurements that do not occur at passed timestamps.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a9daa91fb3836d23563bdc9aad6686ee1" class="m-doc">clean_invalid_measurements</a>(</span><span class="m-doc-wrap">const std::vector&lt;double&gt;&amp; invalid_times)</span>
+            </dt>
+            <dd>Remove measurements that occur at the invalid timestamps.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">void <a href="#ad5426e15b7fb0f1f315c12465c63787d" class="m-doc">clean_older_measurements</a>(</span><span class="m-doc-wrap">double timestamp)</span>
             </dt>
@@ -120,9 +124,9 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a75095dc19a46fa6d780d5ce3900a232b"><div>
+          <section class="m-doc-details" id="aee27e65f3de5581ededd30646479e315"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Feature::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a75095dc19a46fa6d780d5ce3900a232b" class="m-doc-self">clean_old_measurements</a>(</span><span class="m-doc-wrap">std::vector&lt;double&gt; valid_times)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Feature::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aee27e65f3de5581ededd30646479e315" class="m-doc-self">clean_old_measurements</a>(</span><span class="m-doc-wrap">const std::vector&lt;double&gt;&amp; valid_times)</span></span>
             </h3>
             <p>Remove measurements that do not occur at passed timestamps.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -137,6 +141,24 @@
               </tbody>
             </table>
 <p>Given a series of valid timestamps, this will remove all measurements that have not occurred at these times. This would normally be used to ensure that the measurements that we have occur at our clone times.</p>
+          </div></section>
+          <section class="m-doc-details" id="a9daa91fb3836d23563bdc9aad6686ee1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />Feature::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9daa91fb3836d23563bdc9aad6686ee1" class="m-doc-self">clean_invalid_measurements</a>(</span><span class="m-doc-wrap">const std::vector&lt;double&gt;&amp; invalid_times)</span></span>
+            </h3>
+            <p>Remove measurements that occur at the invalid timestamps.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">invalid_times</td>
+                  <td>Vector of timestamps that our measurements should not</td>
+                </tr>
+              </tbody>
+            </table>
+<p>Given a series of invalid timestamps, this will remove all measurements that have occurred at these times.</p>
           </div></section>
           <section class="m-doc-details" id="ad5426e15b7fb0f1f315c12465c63787d"><div>
             <h3>

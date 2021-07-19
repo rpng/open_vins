@@ -78,14 +78,12 @@
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
-            <dt id="a11801835895bba8d9770b9920a2b1322">
-              <span class="m-doc-wrap-bumper"><a href="#a11801835895bba8d9770b9920a2b1322" class="m-doc-self">TrackKLT</a>(</span><span class="m-doc-wrap">)</span>
-            </dt>
-            <dd>Public default constructor.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a70f9135a7cad70a959ddee936288be78" class="m-doc">TrackKLT</a>(</span><span class="m-doc-wrap">int numfeats,
+              <span class="m-doc-wrap-bumper"><a href="#ac55893ba763f76c79ec7dd6daf53b1a2" class="m-doc">TrackKLT</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              int numfeats,
               int numaruco,
-              bool multithread,
+              bool binocular,
+              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">HistogramMethod</a> histmethod,
               int fast_threshold,
               int gridx,
               int gridy,
@@ -98,33 +96,39 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#aedc03d000dbf49dca20008f615dc4b31" class="m-doc">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img,
-              size_t cam_id) <span class="m-label m-flat m-warning">override</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#a9c114c59f93c8db9178bee483be785bd" class="m-doc">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
-            <dd>Process a new monocular image.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a8f93cabd476c2b4fd3c6931e23b934df" class="m-doc">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img_left,
-              cv::Mat&amp; img_right,
-              size_t cam_id_left,
-              size_t cam_id_right) <span class="m-label m-flat m-warning">override</span></span>
-            </dt>
-            <dd>Process new stereo pair of images.</dd>
+            <dd>Process a new image.</dd>
           </dl>
         </section>
         <section id="pro-methods">
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a0a3925e0c6fa0dc63e5182eb7f9c831e" class="m-doc">perform_detection_monocular</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
+              <span class="m-doc-wrap-bumper">void <a href="#a74d790b70b686f8f4a9788ef765ab3b1" class="m-doc">feed_monocular</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message,
+              size_t msg_id)</span>
+            </dt>
+            <dd>Process a new monocular image.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a7e0f2b1990992ed7dbd916732dd9d7a9" class="m-doc">feed_stereo</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message,
+              size_t msg_id_left,
+              size_t msg_id_right)</span>
+            </dt>
+            <dd>Process new stereo pair of images.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a8443c645bf05d2ec7e5e14ae44150bcd" class="m-doc">perform_detection_monocular</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
+              const cv::Mat&amp; mask0,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
               std::vector&lt;size_t&gt;&amp; ids0)</span>
             </dt>
             <dd>Detects new features in the current image.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ab784294f06e81921f68eb06c86ed3f5e" class="m-doc">perform_detection_stereo</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
+              <span class="m-doc-wrap-bumper">void <a href="#a5c88ad139cd0a0e6633ec604fdee5a86" class="m-doc">perform_detection_stereo</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
               const std::vector&lt;cv::Mat&gt;&amp; img1pyr,
+              const cv::Mat&amp; mask0,
+              const cv::Mat&amp; mask1,
+              size_t cam_id_left,
+              size_t cam_id_right,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
               std::vector&lt;size_t&gt;&amp; ids0,
@@ -145,11 +149,13 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a70f9135a7cad70a959ddee936288be78"><div>
+          <section class="m-doc-details" id="ac55893ba763f76c79ec7dd6daf53b1a2"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a70f9135a7cad70a959ddee936288be78" class="m-doc-self">TrackKLT</a>(</span><span class="m-doc-wrap">int numfeats,
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac55893ba763f76c79ec7dd6daf53b1a2" class="m-doc-self">TrackKLT</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              int numfeats,
               int numaruco,
-              bool multithread,
+              bool binocular,
+              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">HistogramMethod</a> histmethod,
               int fast_threshold,
               int gridx,
               int gridy,
@@ -162,7 +168,11 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">numfeats</td>
+                  <td style="width: 1%">cameras</td>
+                  <td>camera calibration object which has all camera intrinsics in it</td>
+                </tr>
+                <tr>
+                  <td>numfeats</td>
                   <td>number of features we want want to track (i.e. track 200 points from frame to frame)</td>
                 </tr>
                 <tr>
@@ -170,8 +180,12 @@
                   <td>the max id of the arucotags, so we ensure that we start our non-auroc features above this value</td>
                 </tr>
                 <tr>
-                  <td>multithread</td>
-                  <td>if we should try to process with multiple threads or single threaded</td>
+                  <td>binocular</td>
+                  <td>if we should do binocular feature tracking or stereo if there are multiple cameras</td>
+                </tr>
+                <tr>
+                  <td>histmethod</td>
+                  <td>what type of histogram pre-processing should be done (histogram eq?)</td>
                 </tr>
                 <tr>
                   <td>fast_threshold</td>
@@ -192,11 +206,27 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="aedc03d000dbf49dca20008f615dc4b31"><div>
+          <section class="m-doc-details" id="a9c114c59f93c8db9178bee483be785bd"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aedc03d000dbf49dca20008f615dc4b31" class="m-doc-self">feed_monocular</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img,
-              size_t cam_id) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9c114c59f93c8db9178bee483be785bd" class="m-doc-self">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-warning">virtual</span></span></span>
+            </h3>
+            <p>Process a new image.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a74d790b70b686f8f4a9788ef765ab3b1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a74d790b70b686f8f4a9788ef765ab3b1" class="m-doc-self">feed_monocular</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message,
+              size_t msg_id) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>Process a new monocular image.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -205,27 +235,21 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>timestamp the new image occurred at</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
                 </tr>
                 <tr>
-                  <td>img</td>
-                  <td>new cv:Mat grayscale image</td>
-                </tr>
-                <tr>
-                  <td>cam_id</td>
-                  <td>the camera id that this new image corresponds too</td>
+                  <td>msg_id</td>
+                  <td>the camera index in message data vector</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a8f93cabd476c2b4fd3c6931e23b934df"><div>
+          <section class="m-doc-details" id="a7e0f2b1990992ed7dbd916732dd9d7a9"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8f93cabd476c2b4fd3c6931e23b934df" class="m-doc-self">feed_stereo</a>(</span><span class="m-doc-wrap">double timestamp,
-              cv::Mat&amp; img_left,
-              cv::Mat&amp; img_right,
-              size_t cam_id_left,
-              size_t cam_id_right) <span class="m-label m-warning">override</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7e0f2b1990992ed7dbd916732dd9d7a9" class="m-doc-self">feed_stereo</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message,
+              size_t msg_id_left,
+              size_t msg_id_right) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>Process new stereo pair of images.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -234,31 +258,24 @@
               </thead>
               <tbody>
                 <tr>
-                  <td style="width: 1%">timestamp</td>
-                  <td>timestamp this pair occured at (stereo is synchronised)</td>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
                 </tr>
                 <tr>
-                  <td>img_left</td>
-                  <td>first grayscaled image</td>
+                  <td>msg_id_left</td>
+                  <td>first image index in message data vector</td>
                 </tr>
                 <tr>
-                  <td>img_right</td>
-                  <td>second grayscaled image</td>
-                </tr>
-                <tr>
-                  <td>cam_id_left</td>
-                  <td>first image camera id</td>
-                </tr>
-                <tr>
-                  <td>cam_id_right</td>
-                  <td>second image camera id</td>
+                  <td>msg_id_right</td>
+                  <td>second image index in message data vector</td>
                 </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a0a3925e0c6fa0dc63e5182eb7f9c831e"><div>
+          <section class="m-doc-details" id="a8443c645bf05d2ec7e5e14ae44150bcd"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0a3925e0c6fa0dc63e5182eb7f9c831e" class="m-doc-self">perform_detection_monocular</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8443c645bf05d2ec7e5e14ae44150bcd" class="m-doc-self">perform_detection_monocular</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
+              const cv::Mat&amp; mask0,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
               std::vector&lt;size_t&gt;&amp; ids0) <span class="m-label m-warning">protected</span></span></span>
             </h3>
@@ -273,6 +290,10 @@
                   <td>image we will detect features on (first level of pyramid)</td>
                 </tr>
                 <tr>
+                  <td>mask0</td>
+                  <td>mask which has what ROI we do not want features in</td>
+                </tr>
+                <tr>
                   <td>pts0</td>
                   <td>vector of currently extracted keypoints in this image</td>
                 </tr>
@@ -284,10 +305,14 @@
             </table>
 <p>Given an image and its currently extracted features, this will try to add new features if needed. Will try to always have the &quot;max_features&quot; being tracked through KLT at each timestep. Passed images should already be grayscaled.</p>
           </div></section>
-          <section class="m-doc-details" id="ab784294f06e81921f68eb06c86ed3f5e"><div>
+          <section class="m-doc-details" id="a5c88ad139cd0a0e6633ec604fdee5a86"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab784294f06e81921f68eb06c86ed3f5e" class="m-doc-self">perform_detection_stereo</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackKLT::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5c88ad139cd0a0e6633ec604fdee5a86" class="m-doc-self">perform_detection_stereo</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::Mat&gt;&amp; img0pyr,
               const std::vector&lt;cv::Mat&gt;&amp; img1pyr,
+              const cv::Mat&amp; mask0,
+              const cv::Mat&amp; mask1,
+              size_t cam_id_left,
+              size_t cam_id_right,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
               std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
               std::vector&lt;size_t&gt;&amp; ids0,
@@ -308,6 +333,22 @@
                   <td>right image we will detect features on (first level of pyramid)</td>
                 </tr>
                 <tr>
+                  <td>mask0</td>
+                  <td>mask which has what ROI we do not want features in</td>
+                </tr>
+                <tr>
+                  <td>mask1</td>
+                  <td>mask which has what ROI we do not want features in</td>
+                </tr>
+                <tr>
+                  <td>cam_id_left</td>
+                  <td>first camera sensor id</td>
+                </tr>
+                <tr>
+                  <td>cam_id_right</td>
+                  <td>second camera sensor id</td>
+                </tr>
+                <tr>
                   <td>pts0</td>
                   <td>left vector of currently extracted keypoints</td>
                 </tr>
@@ -325,7 +366,7 @@
                 </tr>
               </tbody>
             </table>
-<p>This does the same logic as the <a href="classov__core_1_1TrackKLT.html#a0a3925e0c6fa0dc63e5182eb7f9c831e" class="m-doc">perform_<wbr />detection_<wbr />monocular()</a> function, but we also enforce stereo contraints. So we detect features in the left image, and then KLT track them onto the right image. If we have valid tracks, then we have both the keypoint on the left and its matching point in the right image. Will try to always have the &quot;max_features&quot; being tracked through KLT at each timestep.</p>
+<p>This does the same logic as the <a href="classov__core_1_1TrackKLT.html#a8443c645bf05d2ec7e5e14ae44150bcd" class="m-doc">perform_<wbr />detection_<wbr />monocular()</a> function, but we also enforce stereo contraints. So we detect features in the left image, and then KLT track them onto the right image. If we have valid tracks, then we have both the keypoint on the left and its matching point in the right image. Will try to always have the &quot;max_features&quot; being tracked through KLT at each timestep.</p>
           </div></section>
           <section class="m-doc-details" id="a7747a5ceca5c530350cf0c745a33bfe5"><div>
             <h3>

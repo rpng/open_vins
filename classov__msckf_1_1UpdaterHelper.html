@@ -85,15 +85,6 @@
             </dt>
             <dd>This gets the feature and state Jacobian in respect to the feature representation.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a127bca75ba71f843bedfd6f6ad19baae" class="m-doc">get_feature_jacobian_intrinsics</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const Eigen::Vector2d&amp; uv_norm,
-              bool isfisheye,
-              Eigen::Matrix&lt;double, 8, 1&gt; cam_d,
-              Eigen::Matrix&lt;double, 2, 2&gt;&amp; dz_dzn,
-              Eigen::Matrix&lt;double, 2, 8&gt;&amp; dz_dzeta)</span>
-            </dt>
-            <dd>This will compute the Jacobian in respect to the intrinsic calibration parameters and normalized coordinates.</dd>
-            <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#a2eb160b7550b5a976bbe6a31e2387096" class="m-doc">get_feature_jacobian_full</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               <a href="structov__msckf_1_1UpdaterHelper_1_1UpdaterHelperFeature.html" class="m-doc">UpdaterHelperFeature</a>&amp; feature,
               Eigen::MatrixXd&amp; H_f,
@@ -154,48 +145,6 @@
               </tbody>
             </table>
 <p>CASE: Estimate single depth of the feature using the initial bearing</p>
-          </div></section>
-          <section class="m-doc-details" id="a127bca75ba71f843bedfd6f6ad19baae"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />UpdaterHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a127bca75ba71f843bedfd6f6ad19baae" class="m-doc-self">get_feature_jacobian_intrinsics</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const Eigen::Vector2d&amp; uv_norm,
-              bool isfisheye,
-              Eigen::Matrix&lt;double, 8, 1&gt; cam_d,
-              Eigen::Matrix&lt;double, 2, 2&gt;&amp; dz_dzn,
-              Eigen::Matrix&lt;double, 2, 8&gt;&amp; dz_dzeta)</span></span>
-            </h3>
-            <p>This will compute the Jacobian in respect to the intrinsic calibration parameters and normalized coordinates.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">state</td>
-                  <td><a href="classov__msckf_1_1State.html" class="m-doc">State</a> of the filter system</td>
-                </tr>
-                <tr>
-                  <td>uv_norm</td>
-                  <td>Normalized image coordinates</td>
-                </tr>
-                <tr>
-                  <td>isfisheye</td>
-                  <td>If this feature is for a fisheye model</td>
-                </tr>
-                <tr>
-                  <td>cam_d</td>
-                  <td>Camera intrinsics values</td>
-                </tr>
-                <tr>
-                  <td>dz_dzn</td>
-                  <td>Derivative in respect to normalized coordinates</td>
-                </tr>
-                <tr>
-                  <td>dz_dzeta</td>
-                  <td>Derivative in respect to distortion paramters</td>
-                </tr>
-              </tbody>
-            </table>
           </div></section>
           <section class="m-doc-details" id="a2eb160b7550b5a976bbe6a31e2387096"><div>
             <h3>

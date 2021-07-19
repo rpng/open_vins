@@ -74,6 +74,14 @@
             </dt>
             <dd>This will load <em>space</em> separated trajectory into memory.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#abcb07f7d33c1ed0e9996775188861d87" class="m-doc">load_data_csv</a>(</span><span class="m-doc-wrap">std::string path_traj,
+              std::vector&lt;double&gt;&amp; times,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; poses,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_ori,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_pos)</span>
+            </dt>
+            <dd>This will load <em>comma</em> separated trajectory into memory (ASL/ETH format)</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">static void <a href="#a6ecab01ce0d594bc3a635925ea8a7321" class="m-doc">load_simulation</a>(</span><span class="m-doc-wrap">std::string path,
               std::vector&lt;Eigen::VectorXd&gt;&amp; values)</span>
             </dt>
@@ -109,6 +117,43 @@
               std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_pos)</span></span>
             </h3>
             <p>This will load <em>space</em> separated trajectory into memory.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">path_traj</td>
+                  <td>Path to the trajectory file that we want to read in.</td>
+                </tr>
+                <tr>
+                  <td>times</td>
+                  <td>Timesteps in seconds for each pose</td>
+                </tr>
+                <tr>
+                  <td>poses</td>
+                  <td>Pose at every timestep [pos,quat]</td>
+                </tr>
+                <tr>
+                  <td>cov_ori</td>
+                  <td>Vector of orientation covariances at each timestep (empty if we can&#x27;t load)</td>
+                </tr>
+                <tr>
+                  <td>cov_pos</td>
+                  <td>Vector of position covariances at each timestep (empty if we can&#x27;t load)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="abcb07f7d33c1ed0e9996775188861d87"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_eval::<wbr />Loader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abcb07f7d33c1ed0e9996775188861d87" class="m-doc-self">load_data_csv</a>(</span><span class="m-doc-wrap">std::string path_traj,
+              std::vector&lt;double&gt;&amp; times,
+              std::vector&lt;Eigen::Matrix&lt;double, 7, 1&gt;&gt;&amp; poses,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_ori,
+              std::vector&lt;Eigen::Matrix3d&gt;&amp; cov_pos)</span></span>
+            </h3>
+            <p>This will load <em>comma</em> separated trajectory into memory (ASL/ETH format)</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
