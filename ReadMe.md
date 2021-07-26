@@ -113,7 +113,7 @@ For researchers that have leveraged or compared to this work, please cite the fo
 
 ```txt
 @Conference{Geneva2020ICRA,
-  Title      = {OpenVINS: A Research Platform for Visual-Inertial Estimation},
+  Title      = {{OpenVINS}: A Research Platform for Visual-Inertial Estimation},
   Author     = {Patrick Geneva and Kevin Eckenhoff and Woosik Lee and Yulin Yang and Guoquan Huang},
   Booktitle  = {Proc. of the IEEE International Conference on Robotics and Automation},
   Year       = {2020},
