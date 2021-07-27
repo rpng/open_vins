@@ -125,6 +125,9 @@ else()
     add_executable(run_serial_msckf_euroc src/run_serial_msckf_euroc.cpp)
     target_link_libraries(run_serial_msckf_euroc ov_msckf_lib ${thirdparty_libraries})
 
+    add_executable(run_multi_camera_gopro src/run_multi_camera_gopro.cpp)
+    target_link_libraries(run_multi_camera_gopro ov_msckf_lib ${thirdparty_libraries})
+
 endif()
 
 

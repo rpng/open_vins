@@ -1,0 +1,102 @@
+%YAML:1.0
+
+video_folder: /media/zcc/Data3/Dataset2/Ours/MBP-1512/subview_videos
+imu_file_path: /media/zcc/Data3/Dataset2/Ours/MBP-1512/gps/imu_full.txt
+gt_file_path: "/media/zcc/Data3/Dataset2/Ours/MBP-1512/vins_noloop_camera_pose.txt.imustate"
+output_pose_file_path: /media/zcc/Data3/Dataset2/Ours/MBP-1512/pose_openvins.txt
+
+
+
+t_start: 0  # in seconds
+t_end: -1  # negative means to the end
+
+# key parameters
+max_cameras: 4
+calib_cam_extrinsics: 1
+calib_cam_intrinsics: 1
+calib_cam_timeoffset: 1
+calib_camimu_dt: 0.0
+
+# <!-- world/filter parameters -->
+use_fej: 1
+use_imuavg: 1
+use_rk4int: 1
+use_stereo: 0
+
+max_clones: 11
+max_slam: 75
+max_slam_in_update: 25
+max_msckf_in_update: 40
+
+dt_slam_delay: 3
+init_window_time: 0.75
+init_imu_thresh: 1.5
+gravity_mag: 9.79
+
+feat_rep_msckf: GLOBAL_3D
+feat_rep_slam: ANCHORED_FULL_INVERSE_DEPTH
+feat_rep_aruco: ANCHORED_FULL_INVERSE_DEPTH
+
+# <!-- zero velocity update parameters -->
+try_zupt: 0
+zupt_chi2_multipler: 2
+zupt_max_velocity: 0.5
+zupt_noise_multiplier: 50
+
+# <!-- tracker/extractor properties -->
+use_klt: 1
+num_pts: 250
+fast_threshold: 15
+grid_x: 5
+grid_y: 3
+min_px_dist: 5
+knn_ratio: 0.70
+downsample_cameras: 1
+multi_threading: 1
+
+# <!-- aruco tag/mapping properties -->
+use_aruco: 0
+num_aruco: 1024
+downsize_aruco: 1
+
+# <!-- sensor noise values / update -->
+up_msckf_sigma_px: 1
+up_msckf_chi2_multipler: 1
+up_slam_sigma_px: 1
+up_slam_chi2_multipler: 1
+up_aruco_sigma_px: 1
+up_aruco_chi2_multipler: 1
+
+gyroscope_noise_density: 1.6968e-04
+gyroscope_random_walk: 1.9393e-05
+accelerometer_noise_density: 2.0000e-3
+accelerometer_random_walk: 3.0000e-3
+
+# <!-- camera intrinsics -->
+cam0_wh: "960, 960"
+cam0_is_fisheye: 0
+cam0_k: "480,480,480,480"
+cam0_d: "0,0,0,0,0"
+cam0_T_CtoI: "-0.00209536, 0.999994, 0.00291937, -0.00656237,      0.705003, -0.000593196, 0.709204, 0.00065136,     0.709201, 0.0035442, -0.704997, -0.02428048,  0,0,0,1"
+
+
+cam1_wh: "960, 960"
+cam1_is_fisheye: 0
+cam1_k: "480,480,480,480"
+cam1_d: "0,0,0,0,0"
+cam1_T_CtoI: "-0.00306989, 0.999989, -0.00362186, -0.00656237,      -0.709924, 0.000371412, 0.704278, 0.00065136,     0.704272, 0.0047333, 0.709915, -0.02428048,  0,0,0,1"
+
+
+cam2_wh: "960, 960"
+cam2_is_fisheye: 0
+cam2_k: "480,480,480,480"
+cam2_d: "0,0,0,0,0"
+cam2_T_CtoI: "0.00109998, 0.999984, -0.00555778, -0.00656237,     -0.703877, -0.00317357, -0.710314, 0.00065136,     -0.710321, 0.00469332, 0.703863, -0.02428048,  0,0,0,1"
+
+
+cam3_wh: "960, 960"
+cam3_is_fisheye: 0
+cam3_k: "480,480,480,480"
+cam3_d: "0,0,0,0,0"
+cam3_T_CtoI: "0.00349244, 0.999994, -7.6062e-05, -0.00656237,      0.709161, -0.00253034, -0.705042, 0.00065136,     -0.705038, 0.00240838, -0.709166, -0.02428048,  0,0,0,1"
+
