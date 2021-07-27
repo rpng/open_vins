@@ -73,9 +73,7 @@ void ReadConfig(ov_msckf::VioManagerOptions& params, const std::string& config_f
     ReadParamCVFs(params.dt_slam_delay, fs, "dt_slam_delay");
     ReadParamCVFs(params.init_window_time, fs, "init_window_time");
     ReadParamCVFs(params.init_imu_thresh, fs, "init_imu_thresh");
-    ReadParamCVFs(data_str, fs, "gravity");
-    StringToVector(data_vec, data_str);
-    params.gravity << data_vec[0], data_vec[1], data_vec[2];
+    ReadParamCVFs(params.gravity_mag, fs, "gravity_mag");
 
     ReadParamCVFs(data_str, fs, "feat_rep_msckf");
     params.state_options.feat_rep_msckf = LandmarkRepresentation::from_string(data_str);

@@ -28,7 +28,7 @@ max_msckf_in_update: 40
 dt_slam_delay: 3
 init_window_time: 0.75
 init_imu_thresh: 1.5
-gravity: "0.0,0.0,9.81"
+gravity_mag: 9.81
 
 feat_rep_msckf: GLOBAL_3D
 feat_rep_slam: ANCHORED_FULL_INVERSE_DEPTH
