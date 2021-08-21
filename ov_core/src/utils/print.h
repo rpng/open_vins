@@ -26,6 +26,10 @@
 
 namespace ov_core {
 
+/**
+ * @brief Printer for open_vins that allows for various levels of printing to be done
+ *
+ */
 class Printer {
 public:
   /** The different print levels possible
