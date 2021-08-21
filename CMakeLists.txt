@@ -1,5 +1,8 @@
 cmake_minimum_required(VERSION 3.3)
 
+# Project name
+project(open_vins)
+
 add_subdirectory(ov_core)
 add_subdirectory(ov_msckf)
 
