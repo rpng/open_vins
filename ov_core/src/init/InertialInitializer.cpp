@@ -20,6 +20,7 @@
  */
 
 #include "InertialInitializer.h"
+#include "utils/print.h"
 
 using namespace ov_core;
 
@@ -50,7 +51,7 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
 
   // Return if we don't have enough for two windows
   if (newesttime - oldesttime < 2 * _window_length) {
-    // printf(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
+    // PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
     return false;
   }
 
@@ -67,7 +68,7 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
 
   // Return if both of these failed
   if (window_1to0.empty() || window_2to1.empty()) {
-    // printf(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
+    // PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
     return false;
   }
 
@@ -97,26 +98,26 @@ bool InertialInitializer::initialize_with_imu(double &time0, Eigen::Matrix<doubl
     a_var_2to1 += (data.am - a_avg_2to1).dot(data.am - a_avg_2to1);
   }
   a_var_2to1 = std::sqrt(a_var_2to1 / ((int)window_2to1.size() - 1));
-  // printf(BOLDGREEN "[INIT-IMU]: IMU excitation, %.4f,%.4f\n" RESET, a_var_1to0, a_var_2to1);
+  // PRINT_DEBUG(BOLDGREEN "[INIT-IMU]: IMU excitation, %.4f,%.4f\n" RESET, a_var_1to0, a_var_2to1);
 
   // If it is below the threshold and we want to wait till we detect a jerk
   if (a_var_1to0 < _imu_excite_threshold && wait_for_jerk) {
-    printf(YELLOW "[INIT-IMU]: no IMU excitation, below threshold %.4f < %.4f\n" RESET, a_var_1to0, _imu_excite_threshold);
+    PRINT_DEBUG(YELLOW "[INIT-IMU]: no IMU excitation, below threshold %.4f < %.4f\n" RESET, a_var_1to0, _imu_excite_threshold);
     return false;
   }
 
   // We should also check that the old state was below the threshold!
   // This is the case when we have started up moving, and thus we need to wait for a period of stationary motion
   if (a_var_2to1 > _imu_excite_threshold && wait_for_jerk) {
-    printf(YELLOW "[INIT-IMU]: to much IMU excitation, above threshold %.4f > %.4f\n" RESET, a_var_2to1, _imu_excite_threshold);
+    PRINT_DEBUG(YELLOW "[INIT-IMU]: to much IMU excitation, above threshold %.4f > %.4f\n" RESET, a_var_2to1, _imu_excite_threshold);
     return false;
   }
 
   // If it is above the threshold and we are not waiting for a jerk
   // Then we are not stationary (i.e. moving) so we should wait till we are
   if ((a_var_1to0 > _imu_excite_threshold || a_var_2to1 > _imu_excite_threshold) && !wait_for_jerk) {
-    printf(YELLOW "[INIT-IMU]: to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET, a_var_1to0, a_var_2to1,
-           _imu_excite_threshold);
+    PRINT_DEBUG(YELLOW "[INIT-IMU]: to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET, a_var_1to0, a_var_2to1,
+                _imu_excite_threshold);
     return false;
   }
 

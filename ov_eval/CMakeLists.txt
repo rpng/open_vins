@@ -4,7 +4,7 @@ cmake_minimum_required(VERSION 2.8.8)
 project(ov_eval)
 
 # Find catkin (the ROS build system)
-find_package(catkin QUIET COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs)
+find_package(catkin QUIET COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs ov_core)
 
 # Include libraries
 find_package(Eigen3 REQUIRED)
@@ -29,9 +29,9 @@ option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
-            CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs
+            CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs ov_core
             INCLUDE_DIRS src
-            LIBRARIES ov_core_lib
+            LIBRARIES ov_eval_lib
     )
 else()
     add_definitions(-DROS_AVAILABLE=0)

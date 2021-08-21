@@ -30,6 +30,7 @@
 #include "utils/Colors.h"
 #include "utils/Loader.h"
 #include "utils/Statistics.h"
+#include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -44,9 +45,9 @@ int main(int argc, char **argv) {
 
   // Ensure we have a path
   if (argc < 2) {
-    printf(RED "ERROR: Please specify a timing and memory percent folder\n" RESET);
-    printf(RED "ERROR: ./timing_percentages <timings_folder>\n" RESET);
-    printf(RED "ERROR: rosrun ov_eval timing_percentages <timings_folder>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a timing and memory percent folder\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./timing_percentages <timings_folder>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval timing_percentages <timings_folder>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -76,8 +77,8 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < path_algorithms.size(); i++) {
 
     // Debug print
-    printf("======================================\n");
-    printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
+    PRINT_DEBUG("======================================\n");
+    PRINT_DEBUG("[COMP]: processing %s algorithm\n", path_algorithms.at(i).stem().c_str());
 
     // our total summed values
     std::vector<double> total_times;
@@ -117,14 +118,14 @@ int main(int argc, char **argv) {
     }
 
     // Display for the user
-    printf("\tloaded %d timestamps from file!!\n", (int)algo_timings.at(algo).at(0).timestamps.size());
+    PRINT_DEBUG("\tloaded %d timestamps from file!!\n", (int)algo_timings.at(algo).at(0).timestamps.size());
     algo_timings.at(algo).at(0).calculate();
     algo_timings.at(algo).at(1).calculate();
     algo_timings.at(algo).at(2).calculate();
-    printf("\tPREC: mean_cpu = %.3f +- %.3f\n", algo_timings.at(algo).at(0).mean, algo_timings.at(algo).at(0).std);
-    printf("\tPREC: mean_mem = %.3f +- %.3f\n", algo_timings.at(algo).at(1).mean, algo_timings.at(algo).at(1).std);
-    printf("\tTHR: mean_threads = %.3f +- %.3f\n", algo_timings.at(algo).at(2).mean, algo_timings.at(algo).at(2).std);
-    printf("======================================\n");
+    PRINT_DEBUG("\tPREC: mean_cpu = %.3f +- %.3f\n", algo_timings.at(algo).at(0).mean, algo_timings.at(algo).at(0).std);
+    PRINT_DEBUG("\tPREC: mean_mem = %.3f +- %.3f\n", algo_timings.at(algo).at(1).mean, algo_timings.at(algo).at(1).std);
+    PRINT_DEBUG("\tTHR: mean_threads = %.3f +- %.3f\n", algo_timings.at(algo).at(2).mean, algo_timings.at(algo).at(2).std);
+    PRINT_DEBUG("======================================\n");
   }
 
   //===============================================================================

@@ -81,7 +81,4 @@ void Printer::debugPrint(PrintLevel level, const char location[], const char *fo
   va_start(args, format);
   vprintf(format, args);
   va_end(args);
-
-  // All prints get a new line!
-  printf("\r\n");
 }

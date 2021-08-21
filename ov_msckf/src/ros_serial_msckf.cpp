@@ -91,7 +91,7 @@ int main(int argc, char **argv) {
   if (nh.hasParam("path_gt")) {
     std::string path_to_gt;
     nh.param<std::string>("path_gt", path_to_gt, "");
-    if(!path_to_gt.empty()) {
+    if (!path_to_gt.empty()) {
       DatasetReader::load_gt_file(path_to_gt, gt_states);
       ROS_INFO("gt file path is: %s", path_to_gt.c_str());
     }

@@ -20,9 +20,11 @@
  */
 
 #include "VioManager.h"
-
 #include "types/Landmark.h"
+#include "utils/print.h"
+
 #include <memory>
+#include <sstream>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -31,9 +33,9 @@ using namespace ov_msckf;
 VioManager::VioManager(VioManagerOptions &params_) {
 
   // Nice startup message
-  printf("=======================================\n");
-  printf("OPENVINS ON-MANIFOLD EKF IS STARTING\n");
-  printf("=======================================\n");
+  PRINT_DEBUG("=======================================\n");
+  PRINT_DEBUG("OPENVINS ON-MANIFOLD EKF IS STARTING\n");
+  PRINT_DEBUG("=======================================\n");
 
   // Nice debug
   this->params = params_;
@@ -87,7 +89,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
     // If the file exists, then delete it
     if (boost::filesystem::exists(params.record_timing_filepath)) {
       boost::filesystem::remove(params.record_timing_filepath);
-      printf(YELLOW "[STATS]: found old file found, deleted...\n" RESET);
+      PRINT_INFO(YELLOW "[STATS]: found old file found, deleted...\n" RESET);
     }
     // Create the directory that we will open the file in
     boost::filesystem::path p(params.record_timing_filepath);
@@ -196,7 +198,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     // Replace with the simulated tracker
     trackSIM = std::make_shared<TrackSIM>(state->_cam_intrinsics_cameras, state->_options.max_aruco_features);
     trackFEATS = trackSIM;
-    printf(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
+    PRINT_WARNING(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
   }
   trackSIM->set_width_height(params.camera_wh);
 
@@ -240,8 +242,8 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
 
   // If we do not have VIO initialization, then return an error
   if (!is_initialized_vio) {
-    printf(RED "[SIM]: your vio system should already be initialized before simulating features!!!\n" RESET);
-    printf(RED "[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!\n" RESET);
+    PRINT_ERROR(RED "[SIM]: your vio system should already be initialized before simulating features!!!\n" RESET);
+    PRINT_ERROR(RED "[SIM]: initialize your system first before calling feed_measurement_simulation()!!!!\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -355,7 +357,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
 
   // Return if the camera measurement is out of order
   if (state->_timestamp > message.timestamp) {
-    printf(YELLOW "image received out of order, unable to do anything (prop dt = %3f)\n" RESET, (message.timestamp - state->_timestamp));
+    PRINT_WARNING(YELLOW "image received out of order, unable to do anything (prop dt = %3f)\n" RESET,
+                  (message.timestamp - state->_timestamp));
     return;
   }
 
@@ -372,14 +375,15 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // This isn't super ideal, but it keeps the logic after this easier...
   // We can start processing things when we have at least 5 clones since we can start triangulating things...
   if ((int)state->_clones_IMU.size() < std::min(state->_options.max_clone_size, 5)) {
-    printf("waiting for enough clone states (%d of %d)....\n", (int)state->_clones_IMU.size(), std::min(state->_options.max_clone_size, 5));
+    PRINT_INFO("waiting for enough clone states (%d of %d)....\n", (int)state->_clones_IMU.size(),
+               std::min(state->_options.max_clone_size, 5));
     return;
   }
 
   // Return if we where unable to propagate
   if (state->_timestamp != message.timestamp) {
-    printf(RED "[PROP]: Propagator unable to propagate the state forward in time!\n" RESET);
-    printf(RED "[PROP]: It has been %.3f since last time we propagated\n" RESET, message.timestamp - state->_timestamp);
+    PRINT_WARNING(RED "[PROP]: Propagator unable to propagate the state forward in time!\n" RESET);
+    PRINT_WARNING(RED "[PROP]: It has been %.3f since last time we propagated\n" RESET, message.timestamp - state->_timestamp);
     return;
   }
   has_moved_since_zupt = true;
@@ -425,7 +429,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   it1 = feats_lost.begin();
   while (it1 != feats_lost.end()) {
     if (std::find(feats_marg.begin(), feats_marg.end(), (*it1)) != feats_marg.end()) {
-      // printf(YELLOW "FOUND FEATURE THAT WAS IN BOTH feats_lost and feats_marg!!!!!!\n" RESET);
+      // PRINT_WARNING(YELLOW "FOUND FEATURE THAT WAS IN BOTH feats_lost and feats_marg!!!!!!\n" RESET);
       it1 = feats_lost.erase(it1);
     } else {
       it1++;
@@ -507,11 +511,11 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   for (size_t i = 0; i < feats_slam.size(); i++) {
     if (state->_features_SLAM.find(feats_slam.at(i)->featid) != state->_features_SLAM.end()) {
       feats_slam_UPDATE.push_back(feats_slam.at(i));
-      // printf("[UPDATE-SLAM]: found old feature %d (%d
+      // PRINT_DEBUG("[UPDATE-SLAM]: found old feature %d (%d
       // measurements)\n",(int)feats_slam.at(i)->featid,(int)feats_slam.at(i)->timestamps_left.size());
     } else {
       feats_slam_DELAYED.push_back(feats_slam.at(i));
-      // printf("[UPDATE-SLAM]: new feature ready %d (%d
+      // PRINT_DEBUG("[UPDATE-SLAM]: new feature ready %d (%d
       // measurements)\n",(int)feats_slam.at(i)->featid,(int)feats_slam.at(i)->timestamps_left.size());
     }
   }
@@ -630,19 +634,22 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   double time_total = (rT7 - rT1).total_microseconds() * 1e-6;
 
   // Timing information
-  printf(BLUE "[TIME]: %.4f seconds for tracking\n" RESET, time_track);
-  printf(BLUE "[TIME]: %.4f seconds for propagation\n" RESET, time_prop);
-  printf(BLUE "[TIME]: %.4f seconds for MSCKF update (%d feats)\n" RESET, time_msckf, (int)featsup_MSCKF.size());
+  PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for tracking\n" RESET, time_track);
+  PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for propagation\n" RESET, time_prop);
+  PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for MSCKF update (%d feats)\n" RESET, time_msckf, (int)featsup_MSCKF.size());
   if (state->_options.max_slam_features > 0) {
-    printf(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET, time_slam_update, (int)state->_features_SLAM.size());
-    printf(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET, time_slam_delay, (int)feats_slam_DELAYED.size());
+    PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for SLAM update (%d feats)\n" RESET, time_slam_update, (int)state->_features_SLAM.size());
+    PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for SLAM delayed init (%d feats)\n" RESET, time_slam_delay, (int)feats_slam_DELAYED.size());
   }
-  printf(BLUE "[TIME]: %.4f seconds for re-tri & marg (%d clones in state)\n" RESET, time_marg, (int)state->_clones_IMU.size());
-  printf(BLUE "[TIME]: %.4f seconds for total (camera" RESET, time_total);
+  PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for re-tri & marg (%d clones in state)\n" RESET, time_marg, (int)state->_clones_IMU.size());
+
+  std::stringstream ss;
+  ss << "[TIME]: " << std::setprecision(4) << time_total << " seconds for total (camera";
   for (const auto &id : message.sensor_ids) {
-    printf(BLUE " %d", id);
+    ss << " " << id;
   }
-  printf(")\n" RESET);
+  ss << ")" << std::endl;
+  PRINT_DEBUG(BLUE "%s" RESET, ss.str().c_str());
 
   // Finally if we are saving stats to file, lets save it to file
   if (params.record_timing_information && of_statistics.is_open()) {
@@ -668,22 +675,23 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   timelastupdate = message.timestamp;
 
   // Debug, print our current state
-  printf("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)\n", state->_imu->quat()(0), state->_imu->quat()(1),
-         state->_imu->quat()(2), state->_imu->quat()(3), state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2), distance);
-  printf("bg = %.4f,%.4f,%.4f | ba = %.4f,%.4f,%.4f\n", state->_imu->bias_g()(0), state->_imu->bias_g()(1), state->_imu->bias_g()(2),
-         state->_imu->bias_a()(0), state->_imu->bias_a()(1), state->_imu->bias_a()(2));
+  PRINT_INFO("q_GtoI = %.3f,%.3f,%.3f,%.3f | p_IinG = %.3f,%.3f,%.3f | dist = %.2f (meters)\n", state->_imu->quat()(0),
+             state->_imu->quat()(1), state->_imu->quat()(2), state->_imu->quat()(3), state->_imu->pos()(0), state->_imu->pos()(1),
+             state->_imu->pos()(2), distance);
+  PRINT_INFO("bg = %.4f,%.4f,%.4f | ba = %.4f,%.4f,%.4f\n", state->_imu->bias_g()(0), state->_imu->bias_g()(1), state->_imu->bias_g()(2),
+             state->_imu->bias_a()(0), state->_imu->bias_a()(1), state->_imu->bias_a()(2));
 
   // Debug for camera imu offset
   if (state->_options.do_calib_camera_timeoffset) {
-    printf("camera-imu timeoffset = %.5f\n", state->_calib_dt_CAMtoIMU->value()(0));
+    PRINT_INFO("camera-imu timeoffset = %.5f\n", state->_calib_dt_CAMtoIMU->value()(0));
   }
 
   // Debug for camera intrinsics
   if (state->_options.do_calib_camera_intrinsics) {
     for (int i = 0; i < state->_options.num_cameras; i++) {
       std::shared_ptr<Vec> calib = state->_cam_intrinsics.at(i);
-      printf("cam%d intrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f\n", (int)i, calib->value()(0), calib->value()(1),
-             calib->value()(2), calib->value()(3), calib->value()(4), calib->value()(5), calib->value()(6), calib->value()(7));
+      PRINT_INFO("cam%d intrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f\n", (int)i, calib->value()(0), calib->value()(1),
+                 calib->value()(2), calib->value()(3), calib->value()(4), calib->value()(5), calib->value()(6), calib->value()(7));
     }
   }
 
@@ -691,8 +699,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   if (state->_options.do_calib_camera_pose) {
     for (int i = 0; i < state->_options.num_cameras; i++) {
       std::shared_ptr<PoseJPL> calib = state->_calib_IMUtoCAM.at(i);
-      printf("cam%d extrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f\n", (int)i, calib->quat()(0), calib->quat()(1), calib->quat()(2),
-             calib->quat()(3), calib->pos()(0), calib->pos()(1), calib->pos()(2));
+      PRINT_INFO("cam%d extrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f\n", (int)i, calib->quat()(0), calib->quat()(1), calib->quat()(2),
+                 calib->quat()(3), calib->pos()(0), calib->pos()(1), calib->pos()(2));
     }
   }
 }
@@ -740,14 +748,14 @@ bool VioManager::try_to_initialize() {
   }
 
   // Else we are good to go, print out our stats
-  printf(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
-         state->_imu->quat()(2), state->_imu->quat()(3));
-  printf(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
-         state->_imu->bias_g()(2));
-  printf(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
-  printf(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
-         state->_imu->bias_a()(2));
-  printf(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
+  PRINT_INFO(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
+             state->_imu->quat()(2), state->_imu->quat()(3));
+  PRINT_INFO(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
+             state->_imu->bias_g()(2));
+  PRINT_INFO(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
+  PRINT_INFO(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
+             state->_imu->bias_a()(2));
+  PRINT_INFO(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
   return true;
 }
 
@@ -905,7 +913,7 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     // Skip if not valid (i.e. negative depth, or outside of image)
     if (uv_dist(0) < 0 || (int)uv_dist(0) >= params.camera_wh.at(0).first || uv_dist(1) < 0 ||
         (int)uv_dist(1) >= params.camera_wh.at(0).second) {
-      // printf("feat %zu -> depth = %.2f | u_d = %.2f | v_d = %.2f\n",(*it2)->featid,depth,uv_dist(0),uv_dist(1));
+      // PRINT_DEBUG("feat %zu -> depth = %.2f | u_d = %.2f | v_d = %.2f\n",(*it2)->featid,depth,uv_dist(0),uv_dist(1));
       continue;
     }
 
@@ -917,9 +925,9 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   retri_rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Timing information
-  // printf(CYAN "[RETRI-TIME]: %.4f seconds for cleaning\n" RESET, (retri_rT2-retri_rT1).total_microseconds() * 1e-6);
-  // printf(CYAN "[RETRI-TIME]: %.4f seconds for triangulate setup\n" RESET, (retri_rT3-retri_rT2).total_microseconds() * 1e-6);
-  // printf(CYAN "[RETRI-TIME]: %.4f seconds for triangulation\n" RESET, (retri_rT4-retri_rT3).total_microseconds() * 1e-6);
-  // printf(CYAN "[RETRI-TIME]: %.4f seconds for re-projection\n" RESET, (retri_rT5-retri_rT4).total_microseconds() * 1e-6);
-  // printf(CYAN "[RETRI-TIME]: %.4f seconds total\n" RESET, (retri_rT5-retri_rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for cleaning\n" RESET, (retri_rT2-retri_rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for triangulate setup\n" RESET, (retri_rT3-retri_rT2).total_microseconds() * 1e-6);
+  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for triangulation\n" RESET, (retri_rT4-retri_rT3).total_microseconds() * 1e-6);
+  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for re-projection\n" RESET, (retri_rT5-retri_rT4).total_microseconds() * 1e-6);
+  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds total\n" RESET, (retri_rT5-retri_rT1).total_microseconds() * 1e-6);
 }

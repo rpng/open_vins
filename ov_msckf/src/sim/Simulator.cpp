@@ -21,6 +21,8 @@
 
 #include "Simulator.h"
 
+#include <sstream>
+
 using namespace ov_msckf;
 
 Simulator::Simulator(VioManagerOptions &params_) {
@@ -29,9 +31,9 @@ Simulator::Simulator(VioManagerOptions &params_) {
   //===============================================================
 
   // Nice startup message
-  printf("=======================================\n");
-  printf("VISUAL-INERTIAL SIMULATOR STARTING\n");
-  printf("=======================================\n");
+  PRINT_DEBUG("=======================================\n");
+  PRINT_DEBUG("VISUAL-INERTIAL SIMULATOR STARTING\n");
+  PRINT_DEBUG("=======================================\n");
 
   // Store a copy of our params
   this->params = params_;
@@ -43,8 +45,9 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
   // Check that the max cameras matches the size of our cam matrices
   if (params.state_options.num_cameras != (int)params.camera_fisheye.size()) {
-    printf(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
-    printf(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(), params.state_options.num_cameras);
+    PRINT_ERROR(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
+    PRINT_ERROR(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(),
+                params.state_options.num_cameras);
     std::exit(EXIT_FAILURE);
   }
 
@@ -62,7 +65,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
   Eigen::Vector3d p_IinG_init;
   bool success_pose_init = spline.get_pose(timestamp, R_GtoI_init, p_IinG_init);
   if (!success_pose_init) {
-    printf(RED "[SIM]: unable to find the first pose in the spline...\n" RESET);
+    PRINT_ERROR(RED "[SIM]: unable to find the first pose in the spline...\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -78,7 +81,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
     // Check if it fails
     if (!success_pose) {
-      printf(RED "[SIM]: unable to find jolt in the groundtruth data to initialize at\n" RESET);
+      PRINT_ERROR(RED "[SIM]: unable to find jolt in the groundtruth data to initialize at\n" RESET);
       std::exit(EXIT_FAILURE);
     }
 
@@ -95,7 +98,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
       timestamp_last_cam += 1.0 / params.sim_freq_cam;
     }
   }
-  printf("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline.get_start_time());
+  PRINT_DEBUG("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline.get_start_time());
 
   // Append the current true bias to our history
   hist_true_bias_time.push_back(timestamp_last_imu - 1.0 / params.sim_freq_imu);
@@ -170,7 +173,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
   // double dt = 0.25/freq_cam;
   double dt = 0.25;
   size_t mapsize = featmap.size();
-  printf("[SIM]: Generating map features at %d rate\n", (int)(1.0 / dt));
+  PRINT_DEBUG("[SIM]: Generating map features at %d rate\n", (int)(1.0 / dt));
 
   // Loop through each camera
   // NOTE: we loop through cameras here so that the feature map for camera 1 will always be the same
@@ -204,8 +207,8 @@ Simulator::Simulator(VioManagerOptions &params_) {
     }
 
     // Debug print
-    printf("[SIM]: Generated %d map features in total over %d frames (camera %d)\n", (int)(featmap.size() - mapsize),
-           (int)((time_synth - spline.get_start_time()) / dt), i);
+    PRINT_DEBUG("[SIM]: Generated %d map features in total over %d frames (camera %d)\n", (int)(featmap.size() - mapsize),
+                (int)((time_synth - spline.get_start_time()) / dt), i);
     mapsize = featmap.size();
   }
 
@@ -349,8 +352,8 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
 
     // If we do not have enough, generate more
     if ((int)uvs.size() < params.num_pts) {
-      printf(YELLOW "[SIM]: cam %d was unable to generate enough features (%d < %d projections)\n" RESET, (int)i, (int)uvs.size(),
-             params.num_pts);
+      PRINT_WARNING(YELLOW "[SIM]: cam %d was unable to generate enough features (%d < %d projections)\n" RESET, (int)i, (int)uvs.size(),
+                    params.num_pts);
     }
 
     // If greater than only select the first set
@@ -386,14 +389,14 @@ void Simulator::load_data(std::string path_traj) {
   std::ifstream file;
   file.open(path_traj);
   if (!file) {
-    printf(RED "ERROR: Unable to open simulation trajectory file...\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "ERROR: Unable to open simulation trajectory file...\n" RESET);
+    PRINT_ERROR(RED "ERROR: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
   // Debug print
   std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
-  printf("[SIM]: loaded trajectory %s\n", base_filename.c_str());
+  PRINT_DEBUG("[SIM]: loaded trajectory %s\n", base_filename.c_str());
 
   // Loop through each line of this file
   std::string current_line;
@@ -422,7 +425,10 @@ void Simulator::load_data(std::string path_traj) {
     // Only a valid line if we have all the parameters
     if (i > 7) {
       traj_data.push_back(data);
-      // std::cout << std::setprecision(15) << data.transpose() << std::endl;
+
+      // std::stringstream ss;
+      // ss << std::setprecision(15) << data.transpose() << std::endl;
+      // PRINT_DEBUG(ss.str().c_str());
     }
   }
 
@@ -431,8 +437,8 @@ void Simulator::load_data(std::string path_traj) {
 
   // Error if we don't have any data
   if (traj_data.empty()) {
-    printf(RED "ERROR: Could not parse any data from the file!!\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "ERROR: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "ERROR: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 }

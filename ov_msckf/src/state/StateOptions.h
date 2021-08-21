@@ -23,6 +23,8 @@
 #define OV_MSCKF_STATE_OPTIONS_H
 
 #include "types/LandmarkRepresentation.h"
+#include "utils/print.h"
+
 #include <climits>
 
 using namespace ov_type;
@@ -81,21 +83,21 @@ struct StateOptions {
 
   /// Nice print function of what parameters we have loaded
   void print() {
-    printf("\t- use_fej: %d\n", do_fej);
-    printf("\t- use_imuavg: %d\n", imu_avg);
-    printf("\t- use_rk4int: %d\n", use_rk4_integration);
-    printf("\t- calib_cam_extrinsics: %d\n", do_calib_camera_pose);
-    printf("\t- calib_cam_intrinsics: %d\n", do_calib_camera_intrinsics);
-    printf("\t- calib_cam_timeoffset: %d\n", do_calib_camera_timeoffset);
-    printf("\t- max_clones: %d\n", max_clone_size);
-    printf("\t- max_slam: %d\n", max_slam_features);
-    printf("\t- max_slam_in_update: %d\n", max_slam_in_update);
-    printf("\t- max_msckf_in_update: %d\n", max_msckf_in_update);
-    printf("\t- max_aruco: %d\n", max_aruco_features);
-    printf("\t- max_cameras: %d\n", num_cameras);
-    printf("\t- feat_rep_msckf: %s\n", LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
-    printf("\t- feat_rep_slam: %s\n", LandmarkRepresentation::as_string(feat_rep_slam).c_str());
-    printf("\t- feat_rep_aruco: %s\n", LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
+    PRINT_INFO("\t- use_fej: %d\n", do_fej);
+    PRINT_INFO("\t- use_imuavg: %d\n", imu_avg);
+    PRINT_INFO("\t- use_rk4int: %d\n", use_rk4_integration);
+    PRINT_INFO("\t- calib_cam_extrinsics: %d\n", do_calib_camera_pose);
+    PRINT_INFO("\t- calib_cam_intrinsics: %d\n", do_calib_camera_intrinsics);
+    PRINT_INFO("\t- calib_cam_timeoffset: %d\n", do_calib_camera_timeoffset);
+    PRINT_INFO("\t- max_clones: %d\n", max_clone_size);
+    PRINT_INFO("\t- max_slam: %d\n", max_slam_features);
+    PRINT_INFO("\t- max_slam_in_update: %d\n", max_slam_in_update);
+    PRINT_INFO("\t- max_msckf_in_update: %d\n", max_msckf_in_update);
+    PRINT_INFO("\t- max_aruco: %d\n", max_aruco_features);
+    PRINT_INFO("\t- max_cameras: %d\n", num_cameras);
+    PRINT_INFO("\t- feat_rep_msckf: %s\n", LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
+    PRINT_INFO("\t- feat_rep_slam: %s\n", LandmarkRepresentation::as_string(feat_rep_slam).c_str());
+    PRINT_INFO("\t- feat_rep_aruco: %s\n", LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
   }
 };
 

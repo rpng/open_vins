@@ -30,6 +30,7 @@
 #include "utils/Colors.h"
 #include "utils/Loader.h"
 #include "utils/Statistics.h"
+#include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -44,9 +45,9 @@ int main(int argc, char **argv) {
 
   // Ensure we have a path
   if (argc < 2) {
-    printf(RED "ERROR: Please specify a timing file\n" RESET);
-    printf(RED "ERROR: ./timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
-    printf(RED "ERROR: rosrun ov_eval timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a timing file\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval timing_comparison <file_times1.txt> ... <file_timesN.txt>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -58,15 +59,15 @@ int main(int argc, char **argv) {
     // Parse the name of this timing
     boost::filesystem::path path(argv[z]);
     std::string name = path.stem().string();
-    printf("======================================\n");
-    printf("[TIME]: loading data for %s\n", name.c_str());
+    PRINT_DEBUG("======================================\n");
+    PRINT_DEBUG("[TIME]: loading data for %s\n", name.c_str());
 
     // Load it!!
     std::vector<std::string> names_temp;
     std::vector<double> times;
     std::vector<Eigen::VectorXd> timing_values;
     ov_eval::Loader::load_timing_flamegraph(argv[z], names_temp, times, timing_values);
-    printf("[TIME]: loaded %d timestamps from file (%d categories)!!\n", (int)times.size(), (int)names_temp.size());
+    PRINT_DEBUG("[TIME]: loaded %d timestamps from file (%d categories)!!\n", (int)times.size(), (int)names_temp.size());
 
     // Our categories
     std::vector<ov_eval::Statistics> stats;
@@ -84,8 +85,8 @@ int main(int argc, char **argv) {
     // Now print the statistic for this run
     for (size_t i = 0; i < names_temp.size(); i++) {
       stats.at(i).calculate();
-      printf("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std, stats.at(i).ninetynine,
-             stats.at(i).max, names_temp.at(i).c_str());
+      PRINT_DEBUG("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std,
+                  stats.at(i).ninetynine, stats.at(i).max, names_temp.at(i).c_str());
     }
 
     // Append the total stats to the big vector
@@ -93,9 +94,9 @@ int main(int argc, char **argv) {
       names.push_back(name);
       total_times.push_back(stats.at(stats.size() - 1));
     } else {
-      printf(RED "[TIME]: unable to load any data.....\n" RESET);
+      PRINT_DEBUG(RED "[TIME]: unable to load any data.....\n" RESET);
     }
-    printf("======================================\n");
+    PRINT_DEBUG("======================================\n");
   }
 
 #ifdef HAVE_PYTHONLIBS

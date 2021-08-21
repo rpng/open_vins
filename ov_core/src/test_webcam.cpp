@@ -38,6 +38,7 @@
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
 #include "utils/CLI11.hpp"
+#include "utils/print.h"
 
 using namespace ov_core;
 
@@ -82,13 +83,13 @@ int main(int argc, char **argv) {
   }
 
   // Debug print!
-  printf("max features: %d\n", num_pts);
-  printf("max aruco: %d\n", num_aruco);
-  printf("clone states: %d\n", clone_states);
-  printf("grid size: %d x %d\n", grid_x, grid_y);
-  printf("fast threshold: %d\n", fast_threshold);
-  printf("min pixel distance: %d\n", min_px_dist);
-  printf("downsize aruco image: %d\n", do_downsizing);
+  PRINT_DEBUG("max features: %d\n", num_pts);
+  PRINT_DEBUG("max aruco: %d\n", num_aruco);
+  PRINT_DEBUG("clone states: %d\n", clone_states);
+  PRINT_DEBUG("grid size: %d x %d\n", grid_x, grid_y);
+  PRINT_DEBUG("fast threshold: %d\n", fast_threshold);
+  PRINT_DEBUG("min pixel distance: %d\n", min_px_dist);
+  PRINT_DEBUG("downsize aruco image: %d\n", do_downsizing);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
   std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
@@ -112,7 +113,7 @@ int main(int argc, char **argv) {
   // Open the first webcam (0=laptop cam, 1=usb device)
   cv::VideoCapture cap;
   if (!cap.open(0)) {
-    printf(RED "Unable to open a webcam feed!\n" RESET);
+    PRINT_ERROR(RED "Unable to open a webcam feed!\n" RESET);
     return EXIT_FAILURE;
   }
 

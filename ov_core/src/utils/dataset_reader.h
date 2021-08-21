@@ -29,6 +29,7 @@
 #include <string>
 
 #include "colors.h"
+#include "print.h"
 
 using namespace std;
 
@@ -70,8 +71,8 @@ public:
 
     // Check that it was successfull
     if (!file) {
-      printf(RED "ERROR: Unable to open groundtruth file...\n" RESET);
-      printf(RED "ERROR: %s\n" RESET, path.c_str());
+      PRINT_ERROR(RED "ERROR: Unable to open groundtruth file...\n" RESET);
+      PRINT_ERROR(RED "ERROR: %s\n" RESET, path.c_str());
       std::exit(EXIT_FAILURE);
     }
 
@@ -89,8 +90,8 @@ public:
       while (getline(s, field, ',')) {
         // Ensure we are in the range
         if (i > 16) {
-          printf(RED "ERROR: Invalid groudtruth line, too long!\n" RESET);
-          printf(RED "ERROR: %s\n" RESET, line.c_str());
+          PRINT_ERROR(RED "ERROR: Invalid groudtruth line, too long!\n" RESET);
+          PRINT_ERROR(RED "ERROR: %s\n" RESET, line.c_str());
           std::exit(EXIT_FAILURE);
         }
         // Save our groundtruth state value
@@ -115,7 +116,7 @@ public:
 
     // Check that we even have groundtruth loaded
     if (gt_states.empty()) {
-      printf(RED "Groundtruth data loaded is empty, make sure you call load before asking for a state.\n" RESET);
+      PRINT_ERROR(RED "Groundtruth data loaded is empty, make sure you call load before asking for a state.\n" RESET);
       return false;
     }
 
@@ -131,14 +132,14 @@ public:
 
     // If close to this timestamp, then use it
     if (std::abs(closest_time - timestep) < 0.10) {
-      // printf("init DT = %.4f\n", std::abs(closest_time-timestep));
-      // printf("timestamp = %.15f\n", closest_time);
+      // PRINT_DEBUG("init DT = %.4f\n", std::abs(closest_time-timestep));
+      // PRINT_DEBUG("timestamp = %.15f\n", closest_time);
       timestep = closest_time;
     }
 
     // Check that we have the timestamp in our GT file
     if (gt_states.find(timestep) == gt_states.end()) {
-      printf(YELLOW "Unable to find %.6f timestamp in GT file, wrong GT file loaded???\n" RESET, timestep);
+      PRINT_INFO(YELLOW "Unable to find %.6f timestamp in GT file, wrong GT file loaded???\n" RESET, timestep);
       return false;
     }
 

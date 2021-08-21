@@ -20,6 +20,7 @@
  */
 
 #include "UpdaterSLAM.h"
+#include "utils/print.h"
 
 #include <memory>
 
@@ -211,10 +212,10 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
 
   // Debug print timing information
   // if(!feature_vec.empty()) {
-  //    printf("[SLAM-DELAY]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
-  //    printf("[SLAM-DELAY]: %.4f seconds to triangulate\n",(rT2-rT1).total_microseconds() * 1e-6);
-  //    printf("[SLAM-DELAY]: %.4f seconds initialize (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
-  //    printf("[SLAM-DELAY]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
+  //    PRINT_DEBUG("[SLAM-DELAY]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
+  //    PRINT_DEBUG("[SLAM-DELAY]: %.4f seconds to triangulate\n",(rT2-rT1).total_microseconds() * 1e-6);
+  //    PRINT_DEBUG("[SLAM-DELAY]: %.4f seconds initialize (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+  //    PRINT_DEBUG("[SLAM-DELAY]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
   //}
 }
 
@@ -369,7 +370,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     } else {
       boost::math::chi_squared chi_squared_dist(res.rows());
       chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
-      printf(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
+      PRINT_WARNING(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
     }
 
     // Check if we should delete or not
@@ -377,8 +378,8 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
         ((int)feat.featid < state->_options.max_aruco_features) ? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
     if (chi2 > chi2_multipler * chi2_check) {
       if ((int)feat.featid < state->_options.max_aruco_features)
-        printf(YELLOW "[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)\n" RESET, (int)feat.featid, chi2,
-               chi2_multipler * chi2_check);
+        PRINT_WARNING(YELLOW "[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)\n" RESET, (int)feat.featid, chi2,
+                      chi2_multipler * chi2_check);
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
       continue;
@@ -386,7 +387,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
 
     // Debug print when we are going to update the aruco tags
     if ((int)feat.featid < state->_options.max_aruco_features)
-      printf("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)\n", (int)feat.featid, chi2, chi2_multipler * chi2_check);
+      PRINT_DEBUG("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)\n", (int)feat.featid, chi2, chi2_multipler * chi2_check);
 
     // We are good!!! Append to our large H vector
     size_t ct_hx = 0;
@@ -435,10 +436,10 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
   rT3 = boost::posix_time::microsec_clock::local_time();
 
   // Debug print timing information
-  // printf("[SLAM-UP]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
-  // printf("[SLAM-UP]: %.4f seconds creating linear system\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // printf("[SLAM-UP]: %.4f seconds to update (%d feats of %d size)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size(),
-  // (int)Hx_big.rows()); printf("[SLAM-UP]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[SLAM-UP]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[SLAM-UP]: %.4f seconds creating linear system\n",(rT2-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[SLAM-UP]: %.4f seconds to update (%d feats of %d size)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size(),
+  // (int)Hx_big.rows()); PRINT_DEBUG("[SLAM-UP]: %.4f seconds total\n",(rT3-rT1).total_microseconds() * 1e-6);
 }
 
 void UpdaterSLAM::change_anchors(std::shared_ptr<State> state) {

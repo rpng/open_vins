@@ -37,6 +37,7 @@
 #include "sim/Simulator.h"
 #include "utils/parse_cmd.h"
 #include "utils/parse_ros.h"
+#include "utils/print.h"
 
 using namespace ov_msckf;
 
@@ -146,6 +147,6 @@ int main(int argc, char **argv) {
   }
 
   // Done!
-  printf("success! they all are the same!\n");
+  PRINT_INFO("success! they all are the same!\n");
   return EXIT_SUCCESS;
 }

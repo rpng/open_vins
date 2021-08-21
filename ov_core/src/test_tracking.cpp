@@ -38,6 +38,7 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
+#include "utils/print.h"
 
 using namespace ov_core;
 
@@ -72,7 +73,7 @@ int main(int argc, char **argv) {
   std::string path_to_bag;
   nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
   // nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
-  printf("ros bag path is: %s\n", path_to_bag.c_str());
+  PRINT_INFO("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Get our start location and how much of the bag we want to play
   // Make the bag duration < 0 to just process to the end of the bag
@@ -101,13 +102,13 @@ int main(int argc, char **argv) {
   nh.param<bool>("use_stereo", use_stereo, false);
 
   // Debug print!
-  printf("max features: %d\n", num_pts);
-  printf("max aruco: %d\n", num_aruco);
-  printf("clone states: %d\n", clone_states);
-  printf("grid size: %d x %d\n", grid_x, grid_y);
-  printf("fast threshold: %d\n", fast_threshold);
-  printf("min pixel distance: %d\n", min_px_dist);
-  printf("downsize aruco image: %d\n", do_downsizing);
+  PRINT_DEBUG("max features: %d\n", num_pts);
+  PRINT_DEBUG("max aruco: %d\n", num_aruco);
+  PRINT_DEBUG("clone states: %d\n", clone_states);
+  PRINT_DEBUG("grid size: %d x %d\n", grid_x, grid_y);
+  PRINT_DEBUG("fast threshold: %d\n", fast_threshold);
+  PRINT_DEBUG("min pixel distance: %d\n", min_px_dist);
+  PRINT_DEBUG("downsize aruco image: %d\n", do_downsizing);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
   std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
@@ -120,7 +121,7 @@ int main(int argc, char **argv) {
   }
 
   // Lets make a feature extractor
-  //extractor = new TrackKLT(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
+  // extractor = new TrackKLT(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
   // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist,
   // knn_ratio);
   extractor = new TrackAruco(cameras, num_aruco, !use_stereo, method, do_downsizing);
@@ -144,13 +145,13 @@ int main(int argc, char **argv) {
   ros::Time time_init = view_full.getBeginTime();
   time_init += ros::Duration(bag_start);
   ros::Time time_finish = (bag_durr < 0) ? view_full.getEndTime() : time_init + ros::Duration(bag_durr);
-  printf("time start = %.6f\n", time_init.toSec());
-  printf("time end   = %.6f\n", time_finish.toSec());
+  PRINT_DEBUG("time start = %.6f\n", time_init.toSec());
+  PRINT_DEBUG("time end   = %.6f\n", time_finish.toSec());
   view.addQuery(bag, time_init, time_finish);
 
   // Check to make sure we have data to play
   if (view.size() == 0) {
-    printf(RED "No messages to play on specified topics. Exiting.\n" RESET);
+    PRINT_ERROR(RED "No messages to play on specified topics. Exiting.\n" RESET);
     ros::shutdown();
     return EXIT_FAILURE;
   }
@@ -180,7 +181,7 @@ int main(int argc, char **argv) {
       try {
         cv_ptr = cv_bridge::toCvShare(s0, sensor_msgs::image_encodings::MONO8);
       } catch (cv_bridge::Exception &e) {
-        printf(RED "cv_bridge exception: %s\n" RESET, e.what());
+        PRINT_ERROR(RED "cv_bridge exception: %s\n" RESET, e.what());
         continue;
       }
       // Save to our temp variable
@@ -198,7 +199,7 @@ int main(int argc, char **argv) {
       try {
         cv_ptr = cv_bridge::toCvShare(s1, sensor_msgs::image_encodings::MONO8);
       } catch (cv_bridge::Exception &e) {
-        printf(RED "cv_bridge exception: %s\n" RESET, e.what());
+        PRINT_ERROR(RED "cv_bridge exception: %s\n" RESET, e.what());
         continue;
       }
       // Save to our temp variable
@@ -313,7 +314,7 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
     double fpf = (double)featslengths / num_lostfeats;
     double mpf = (double)num_margfeats / frames;
     // DEBUG PRINT OUT
-    printf("fps = %.2f | lost_feats/frame = %.2f | track_length/lost_feat = %.2f | marg_tracks/frame = %.2f\n", fps, lpf, fpf, mpf);
+    PRINT_DEBUG("fps = %.2f | lost_feats/frame = %.2f | track_length/lost_feat = %.2f | marg_tracks/frame = %.2f\n", fps, lpf, fpf, mpf);
     // Reset variables
     frames = 0;
     time_start = time_curr;

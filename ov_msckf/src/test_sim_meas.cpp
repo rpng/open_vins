@@ -69,8 +69,7 @@ int main(int argc, char **argv) {
     Eigen::Vector3d wm, am;
     bool hasimu = sim.get_next_imu(time_imu, wm, am);
     if (hasimu) {
-      cout << "new imu measurement = " << std::setprecision(15) << time_imu << std::setprecision(3) << " | w = " << wm.norm()
-           << " | a = " << am.norm() << endl;
+      PRINT_DEBUG("new imu measurement = %0.15g | w = %0.3g | a = %0.3g\n", time_imu, wm.norm(), am.norm());
     }
 
     // CAM: get the next simulated camera uv measurements if we have them
@@ -79,11 +78,10 @@ int main(int argc, char **argv) {
     std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> feats;
     bool hascam = sim.get_next_cam(time_cam, camids, feats);
     if (hascam) {
-      cout << "new cam measurement = " << std::setprecision(15) << time_cam;
-      cout << std::setprecision(3) << " | " << camids.size() << " cameras | uvs(0) = " << feats.at(0).size() << std::endl;
+      PRINT_DEBUG("new cam measurement = %0.15g | %u cameras | uvs(0) = %u \n", time_cam, camids.size(), feats.at(0).size());
     }
   }
 
   // Done!
   return EXIT_SUCCESS;
-}
+};

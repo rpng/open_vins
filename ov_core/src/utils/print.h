@@ -68,10 +68,10 @@ private:
 
 /** The different Types of print levels
  */
-#define PRINT_ALL(x...) Debug::debugPrint(Debug::PrintLevel::ALL, AT, x);
-#define PRINT_DEBUG(x...) Debug::debugPrint(Debug::PrintLevel::DEBUG, AT, x);
-#define PRINT_INFO(x...) Debug::debugPrint(Debug::PrintLevel::INFO, AT, x);
-#define PRINT_WARNING(x...) Debug::debugPrint(Debug::PrintLevel::WARNING, AT, x);
-#define PRINT_ERROR(x...) Debug::debugPrint(Debug::PrintLevel::ERROR, AT, x);
+#define PRINT_ALL(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::ALL, AT, x);
+#define PRINT_DEBUG(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::DEBUG, AT, x);
+#define PRINT_INFO(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::INFO, AT, x);
+#define PRINT_WARNING(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::WARNING, AT, x);
+#define PRINT_ERROR(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::ERROR, AT, x);
 
 #endif /* PRINT_H */

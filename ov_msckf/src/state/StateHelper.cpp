@@ -20,6 +20,7 @@
  */
 
 #include "StateHelper.h"
+#include "utils/print.h"
 
 using namespace ov_core;
 using namespace ov_msckf;
@@ -30,7 +31,7 @@ void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector
 
   // We need at least one old and new variable
   if (order_NEW.empty() || order_OLD.empty()) {
-    printf(RED "StateHelper::EKFPropagation() - Called with empty variable arrays!\n" RESET);
+    PRINT_ERROR(RED "StateHelper::EKFPropagation() - Called with empty variable arrays!\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -38,9 +39,9 @@ void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector
   int size_order_NEW = order_NEW.at(0)->size();
   for (size_t i = 0; i < order_NEW.size() - 1; i++) {
     if (order_NEW.at(i)->id() + order_NEW.at(i)->size() != order_NEW.at(i + 1)->id()) {
-      printf(RED "StateHelper::EKFPropagation() - Called with non-contiguous state elements!\n" RESET);
-      printf(RED
-             "StateHelper::EKFPropagation() - This code only support a state transition which is in the same order as the state\n" RESET);
+      PRINT_ERROR(RED "StateHelper::EKFPropagation() - Called with non-contiguous state elements!\n" RESET);
+      PRINT_ERROR(
+          RED "StateHelper::EKFPropagation() - This code only support a state transition which is in the same order as the state\n" RESET);
       std::exit(EXIT_FAILURE);
     }
     size_order_NEW += order_NEW.at(i + 1)->size();
@@ -95,7 +96,7 @@ void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector
   bool found_neg = false;
   for (int i = 0; i < diags.rows(); i++) {
     if (diags(i) < 0.0) {
-      printf(RED "StateHelper::EKFPropagation() - diagonal at %d is %.2f\n" RESET, i, diags(i));
+      PRINT_WARNING(RED "StateHelper::EKFPropagation() - diagonal at %d is %.2f\n" RESET, i, diags(i));
       found_neg = true;
     }
   }
@@ -162,7 +163,7 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
   bool found_neg = false;
   for (int i = 0; i < diags.rows(); i++) {
     if (diags(i) < 0.0) {
-      printf(RED "StateHelper::EKFUpdate() - diagonal at %d is %.2f\n" RESET, i, diags(i));
+      PRINT_WARNING(RED "StateHelper::EKFUpdate() - diagonal at %d is %.2f\n" RESET, i, diags(i));
       found_neg = true;
     }
   }
@@ -245,8 +246,8 @@ void StateHelper::marginalize(std::shared_ptr<State> state, std::shared_ptr<Type
 
   // Check if the current state has the element we want to marginalize
   if (std::find(state->_variables.begin(), state->_variables.end(), marg) == state->_variables.end()) {
-    printf(RED "StateHelper::marginalize() - Called on variable that is not in the state\n" RESET);
-    printf(RED "StateHelper::marginalize() - Marginalization, does NOT work on sub-variables yet...\n" RESET);
+    PRINT_ERROR(RED "StateHelper::marginalize() - Called on variable that is not in the state\n" RESET);
+    PRINT_ERROR(RED "StateHelper::marginalize() - Marginalization, does NOT work on sub-variables yet...\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -353,8 +354,8 @@ std::shared_ptr<Type> StateHelper::clone(std::shared_ptr<State> state, std::shar
 
   // Check if the current state has this variable
   if (new_clone == nullptr) {
-    printf(RED "StateHelper::clone() - Called on variable is not in the state\n" RESET);
-    printf(RED "StateHelper::clone() - Ensure that the variable specified is a variable, or sub-variable..\n" RESET);
+    PRINT_ERROR(RED "StateHelper::clone() - Called on variable is not in the state\n" RESET);
+    PRINT_ERROR(RED "StateHelper::clone() - Ensure that the variable specified is a variable, or sub-variable..\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -369,8 +370,8 @@ bool StateHelper::initialize(std::shared_ptr<State> state, std::shared_ptr<Type>
 
   // Check that this new variable is not already initialized
   if (std::find(state->_variables.begin(), state->_variables.end(), new_variable) != state->_variables.end()) {
-    std::cerr << "StateHelper::initialize() - Called on variable that is already in the state" << std::endl;
-    std::cerr << "StateHelper::initialize() - Found this variable at " << new_variable->id() << " in covariance" << std::endl;
+    PRINT_ERROR("StateHelper::initialize_invertible() - Called on variable that is already in the state\n");
+    PRINT_ERROR("StateHelper::initialize_invertible() - Found this variable at %d in covariance\n", new_variable->id());
     std::exit(EXIT_FAILURE);
   }
 
@@ -381,12 +382,12 @@ bool StateHelper::initialize(std::shared_ptr<State> state, std::shared_ptr<Type>
   for (int r = 0; r < R.rows(); r++) {
     for (int c = 0; c < R.cols(); c++) {
       if (r == c && R(0, 0) != R(r, c)) {
-        printf(RED "StateHelper::initialize() - Your noise is not isotropic!\n" RESET);
-        printf(RED "StateHelper::initialize() - Found a value of %.2f verses value of %.2f\n" RESET, R(r, c), R(0, 0));
+        PRINT_ERROR(RED "StateHelper::initialize() - Your noise is not isotropic!\n" RESET);
+        PRINT_ERROR(RED "StateHelper::initialize() - Found a value of %.2f verses value of %.2f\n" RESET, R(r, c), R(0, 0));
         std::exit(EXIT_FAILURE);
       } else if (r != c && R(r, c) != 0.0) {
-        printf(RED "StateHelper::initialize() - Your noise is not diagonal!\n" RESET);
-        printf(RED "StateHelper::initialize() - Found a value of %.2f at row %d and column %d\n" RESET, R(r, c), r, c);
+        PRINT_ERROR(RED "StateHelper::initialize() - Your noise is not diagonal!\n" RESET);
+        PRINT_ERROR(RED "StateHelper::initialize() - Found a value of %.2f at row %d and column %d\n" RESET, R(r, c), r, c);
         std::exit(EXIT_FAILURE);
       }
     }
@@ -460,8 +461,8 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
 
   // Check that this new variable is not already initialized
   if (std::find(state->_variables.begin(), state->_variables.end(), new_variable) != state->_variables.end()) {
-    std::cerr << "StateHelper::initialize_invertible() - Called on variable that is already in the state" << std::endl;
-    std::cerr << "StateHelper::initialize_invertible() - Found this variable at " << new_variable->id() << " in covariance" << std::endl;
+    PRINT_ERROR("StateHelper::initialize_invertible() - Called on variable that is already in the state\n");
+    PRINT_ERROR("StateHelper::initialize_invertible() - Found this variable at %d in covariance\n", new_variable->id());
     std::exit(EXIT_FAILURE);
   }
 
@@ -472,12 +473,12 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
   for (int r = 0; r < R.rows(); r++) {
     for (int c = 0; c < R.cols(); c++) {
       if (r == c && R(0, 0) != R(r, c)) {
-        printf(RED "StateHelper::initialize_invertible() - Your noise is not isotropic!\n" RESET);
-        printf(RED "StateHelper::initialize_invertible() - Found a value of %.2f verses value of %.2f\n" RESET, R(r, c), R(0, 0));
+        PRINT_ERROR(RED "StateHelper::initialize_invertible() - Your noise is not isotropic!\n" RESET);
+        PRINT_ERROR(RED "StateHelper::initialize_invertible() - Found a value of %.2f verses value of %.2f\n" RESET, R(r, c), R(0, 0));
         std::exit(EXIT_FAILURE);
       } else if (r != c && R(r, c) != 0.0) {
-        printf(RED "StateHelper::initialize_invertible() - Your noise is not diagonal!\n" RESET);
-        printf(RED "StateHelper::initialize_invertible() - Found a value of %.2f at row %d and column %d\n" RESET, R(r, c), r, c);
+        PRINT_ERROR(RED "StateHelper::initialize_invertible() - Your noise is not diagonal!\n" RESET);
+        PRINT_ERROR(RED "StateHelper::initialize_invertible() - Found a value of %.2f at row %d and column %d\n" RESET, R(r, c), r, c);
         std::exit(EXIT_FAILURE);
       }
     }
@@ -543,14 +544,17 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
   // Now collect results, and add it to the state variables
   new_variable->set_local_id(oldSize);
   state->_variables.push_back(new_variable);
-  // std::cout << new_variable->id() <<  " init dx = " << (H_Linv * res).transpose() << std::endl;
+
+  // std::stringstream ss;
+  // ss << new_variable->id() <<  " init dx = " << (H_Linv * res).transpose() << std::endl;
+  // PRINT_DEBUG(ss.str().c_str());
 }
 
 void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<double, 3, 1> last_w) {
 
   // We can't insert a clone that occured at the same timestamp!
   if (state->_clones_IMU.find(state->_timestamp) != state->_clones_IMU.end()) {
-    printf(RED "TRIED TO INSERT A CLONE AT THE SAME TIME AS AN EXISTING CLONE, EXITING!#!@#!@#\n" RESET);
+    PRINT_ERROR(RED "TRIED TO INSERT A CLONE AT THE SAME TIME AS AN EXISTING CLONE, EXITING!#!@#!@#\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -561,7 +565,7 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
   // Cast to a JPL pose type, check if valid
   std::shared_ptr<PoseJPL> pose = std::dynamic_pointer_cast<PoseJPL>(posetemp);
   if (pose == nullptr) {
-    printf(RED "INVALID OBJECT RETURNED FROM STATEHELPER CLONE, EXITING!#!@#!@#\n" RESET);
+    PRINT_ERROR(RED "INVALID OBJECT RETURNED FROM STATEHELPER CLONE, EXITING!#!@#!@#\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
