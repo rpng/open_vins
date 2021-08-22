@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
+include(GNUInstallDirs)
+
 # Project name
 project(ov_eval)
 
@@ -88,9 +90,9 @@ add_library(ov_eval_lib SHARED
 )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 install(TARGETS ov_eval_lib
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 
@@ -111,73 +113,73 @@ endif()
 add_executable(format_converter src/format_converter.cpp)
 target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
 install(TARGETS format_converter
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(error_comparison src/error_comparison.cpp)
 target_link_libraries(error_comparison ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_comparison
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(error_dataset src/error_dataset.cpp)
 target_link_libraries(error_dataset ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_dataset
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(error_singlerun src/error_singlerun.cpp)
 target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_singlerun
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(error_simulation src/error_simulation.cpp)
 target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_simulation
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(timing_flamegraph src/timing_flamegraph.cpp)
 target_link_libraries(timing_flamegraph ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_flamegraph
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(timing_comparison src/timing_comparison.cpp)
 target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_comparison
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(timing_percentages src/timing_percentages.cpp)
 target_link_libraries(timing_percentages ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_percentages
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(plot_trajectories src/plot_trajectories.cpp)
 target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
 install(TARGETS plot_trajectories
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 

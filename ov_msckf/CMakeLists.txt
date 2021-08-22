@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
+include(GNUInstallDirs)
+
 # Project name
 project(ov_msckf)
 
@@ -110,9 +112,9 @@ add_library(ov_msckf_lib SHARED ${library_source_files})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
 target_include_directories(ov_msckf_lib PUBLIC src)
 install(TARGETS ov_msckf_lib
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 
@@ -144,17 +146,17 @@ endif()
 add_executable(test_sim_meas src/test_sim_meas.cpp)
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS test_sim_meas
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS test_sim_repeat
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 

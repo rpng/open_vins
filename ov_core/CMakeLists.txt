@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
+include(GNUInstallDirs)
+
 # Project name
 project(ov_core)
 
@@ -95,9 +97,9 @@ add_library(ov_core_lib SHARED
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
 target_include_directories(ov_core_lib PUBLIC src)
 install(TARGETS ov_core_lib
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 ##################################################
@@ -111,9 +113,9 @@ endif()
 add_executable(test_webcam src/test_webcam.cpp)
 target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})
 install(TARGETS test_webcam
-        LIBRARY         DESTINATION /usr/lib
-        RUNTIME         DESTINATION /usr/bin
-        PUBLIC_HEADER   DESTINATION /usr/include
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 
