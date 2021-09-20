@@ -109,7 +109,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
     return;
 
 #ifndef HAVE_PYTHONLIBS
-  ROS_ERROR("Unable to plot the state error, just returning..");
+  printf(RED "Unable to plot the state error, just returning..\n" RESET);
   return;
 #endif
 #ifdef HAVE_PYTHONLIBS
