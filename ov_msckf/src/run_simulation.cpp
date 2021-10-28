@@ -27,6 +27,7 @@
 #include "utils/colors.h"
 #include "utils/dataset_reader.h"
 #include "utils/parse_cmd.h"
+#include "utils/print.h"
 #include "utils/sensor_data.h"
 
 #if ROS_AVAILABLE
@@ -74,8 +75,8 @@ int main(int argc, char **argv) {
   Eigen::Matrix<double, 17, 1> imustate;
   bool success = sim->get_state(sim->current_timestamp(), imustate);
   if (!success) {
-    printf(RED "[SIM]: Could not initialize the filter to the first state\n" RESET);
-    printf(RED "[SIM]: Did the simulator load properly???\n" RESET);
+    PRINT_ERROR(RED "[SIM]: Could not initialize the filter to the first state\n" RESET);
+    PRINT_ERROR(RED "[SIM]: Did the simulator load properly???\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 

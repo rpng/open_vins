@@ -20,6 +20,7 @@
  */
 
 #include "ResultTrajectory.h"
+#include "utils/print.h"
 
 using namespace ov_eval;
 
@@ -32,16 +33,16 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
   // Debug print amount
   // std::string base_filename1 = path_est.substr(path_est.find_last_of("/\\") + 1);
   // std::string base_filename2 = path_gt.substr(path_gt.find_last_of("/\\") + 1);
-  // printf("[TRAJ]: loaded %d poses from %s\n",(int)est_times.size(),base_filename1.c_str());
-  // printf("[TRAJ]: loaded %d poses from %s\n",(int)gt_times.size(),base_filename2.c_str());
+  // PRINT_DEBUG("[TRAJ]: loaded %d poses from %s\n",(int)est_times.size(),base_filename1.c_str());
+  // PRINT_DEBUG("[TRAJ]: loaded %d poses from %s\n",(int)gt_times.size(),base_filename2.c_str());
 
   // Intersect timestamps
   AlignUtils::perform_association(0, 0.02, est_times, gt_times, est_poses, gt_poses, est_covori, est_covpos, gt_covori, gt_covpos);
 
   // Return failure if we didn't have any common timestamps
   if (est_poses.size() < 3) {
-    printf(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
-    printf(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
+    PRINT_ERROR(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
+    PRINT_ERROR(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -55,9 +56,9 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
   // Debug print to the user
   Eigen::Vector4d q_ESTtoGT = Math::rot_2_quat(R_ESTtoGT);
   Eigen::Vector4d q_GTtoEST = Math::rot_2_quat(R_GTtoEST);
-  printf("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n", q_ESTtoGT(0), q_ESTtoGT(1), q_ESTtoGT(2),
-         q_ESTtoGT(3), t_ESTinGT(0), t_ESTinGT(1), t_ESTinGT(2), s_ESTtoGT);
-  // printf("[TRAJ]: q_GTtoEST = %.3f, %.3f, %.3f, %.3f | p_GTinEST = %.3f, %.3f, %.3f | s =
+  PRINT_DEBUG("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n", q_ESTtoGT(0), q_ESTtoGT(1),
+              q_ESTtoGT(2), q_ESTtoGT(3), t_ESTinGT(0), t_ESTinGT(1), t_ESTinGT(2), s_ESTtoGT);
+  // PRINT_DEBUG("[TRAJ]: q_GTtoEST = %.3f, %.3f, %.3f, %.3f | p_GTinEST = %.3f, %.3f, %.3f | s =
   // %.2f\n",q_GTtoEST(0),q_GTtoEST(1),q_GTtoEST(2),q_GTtoEST(3),t_GTinEST(0),t_GTinEST(1),t_GTinEST(2),s_GTtoEST);
 
   // Finally lets calculate the aligned trajectories
@@ -147,10 +148,11 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
   // Warn if large pos difference
   double max_dist_diff = 0.5;
   if (average_pos_difference > max_dist_diff) {
-    printf(YELLOW "[COMP]: average groundtruth position difference %.2f > %.2f is too large\n" RESET, average_pos_difference,
-           max_dist_diff);
-    printf(YELLOW "[COMP]: this will prevent the RPE from finding valid trajectory segments!!!\n" RESET);
-    printf(YELLOW "[COMP]: the recommendation is to use a higher frequency groundtruth, or relax this trajectory segment logic...\n" RESET);
+    PRINT_WARNING(YELLOW "[COMP]: average groundtruth position difference %.2f > %.2f is too large\n" RESET, average_pos_difference,
+                  max_dist_diff);
+    PRINT_WARNING(YELLOW "[COMP]: this will prevent the RPE from finding valid trajectory segments!!!\n" RESET);
+    PRINT_WARNING(YELLOW
+                  "[COMP]: the recommendation is to use a higher frequency groundtruth, or relax this trajectory segment logic...\n" RESET);
   }
 
   // Loop through each segment length
@@ -238,8 +240,8 @@ void ResultTrajectory::calculate_nees(Statistics &nees_ori, Statistics &nees_pos
   // Check that we have our covariance matrices to normalize with
   if (est_times.size() != est_covori.size() || est_times.size() != est_covpos.size() || gt_times.size() != gt_covori.size() ||
       gt_times.size() != gt_covpos.size()) {
-    printf(YELLOW "[TRAJ]: Normalized Estimation Error Squared called but trajectory does not have any covariances...\n" RESET);
-    printf(YELLOW "[TRAJ]: Did you record using a Odometry or PoseWithCovarianceStamped????\n" RESET);
+    PRINT_WARNING(YELLOW "[TRAJ]: Normalized Estimation Error Squared called but trajectory does not have any covariances...\n" RESET);
+    PRINT_WARNING(YELLOW "[TRAJ]: Did you record using a Odometry or PoseWithCovarianceStamped????\n" RESET);
     return;
   }
 
@@ -265,7 +267,7 @@ void ResultTrajectory::calculate_nees(Statistics &nees_ori, Statistics &nees_pos
 
     // Skip if nan error value
     if (std::isnan(ori_nees) || std::isnan(pos_nees)) {
-      printf(YELLOW "[TRAJ]: nees calculation had nan number (covariance is wrong?) skipping...\n" RESET);
+      PRINT_WARNING(YELLOW "[TRAJ]: nees calculation had nan number (covariance is wrong?) skipping...\n" RESET);
       continue;
     }
 

@@ -20,6 +20,9 @@
  */
 
 #include "AlignUtils.h"
+#include "utils/print.h"
+
+#include <sstream>
 
 using namespace ov_eval;
 
@@ -86,8 +89,10 @@ void AlignUtils::align_umeyama(const std::vector<Eigen::Matrix<double, 3, 1>> &d
   t.noalias() = mu_M - s * R * mu_D;
 
   // Debug printing
-  // std::cout << "R- " << std::endl << R << std::endl;
-  // std::cout << "t- " << std::endl << t << std::endl;
+  // std::stringstream ss;
+  // ss << "R- " << std::endl << R << std::endl;
+  // ss << "t- " << std::endl << t << std::endl;
+  // PRINT_DEBUG(ss.str().c_str());
 }
 
 void AlignUtils::perform_association(double offset, double max_difference, std::vector<double> &est_times, std::vector<double> &gt_times,
@@ -166,13 +171,14 @@ void AlignUtils::perform_association(double offset, double max_difference, std::
 
   // Ensure that we have enough associations
   if (est_times.size() < 3) {
-    printf(RED "[ALIGN]: Was unable to associate groundtruth and estimate trajectories\n" RESET);
-    printf(RED "[ALIGN]: %d total matches....\n" RESET, (int)est_times.size());
-    printf(RED "[ALIGN]: Do the time of the files match??\n" RESET);
+    PRINT_ERROR(RED "[ALIGN]: Was unable to associate groundtruth and estimate trajectories\n" RESET);
+    PRINT_ERROR(RED "[ALIGN]: %d total matches....\n" RESET, (int)est_times.size());
+    PRINT_ERROR(RED "[ALIGN]: Do the time of the files match??\n" RESET);
     return;
   }
   assert(est_times_temp.size() == gt_times_temp.size());
-  // printf("[TRAJ]: %d est poses and %d gt poses => %d matches\n",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
+  // PRINT_DEBUG("[TRAJ]: %d est poses and %d gt poses => %d
+  // matches\n",(int)est_times.size(),(int)gt_times.size(),(int)est_times_temp.size());
 
   // Overwrite with intersected values
   est_times = est_times_temp;

@@ -25,6 +25,7 @@
 
 #include "calc/ResultTrajectory.h"
 #include "utils/Colors.h"
+#include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -85,9 +86,9 @@ int main(int argc, char **argv) {
 
   // Ensure we have a path
   if (argc < 4) {
-    printf(RED "ERROR: Please specify a align mode, groudtruth, and algorithm run file\n" RESET);
-    printf(RED "ERROR: ./error_singlerun <align_mode> <file_gt.txt> <file_est.txt>\n" RESET);
-    printf(RED "ERROR: rosrun ov_eval error_singlerun <align_mode> <file_gt.txt> <file_est.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a align mode, groudtruth, and algorithm run file\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./error_singlerun <align_mode> <file_gt.txt> <file_est.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval error_singlerun <align_mode> <file_gt.txt> <file_est.txt>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -99,7 +100,7 @@ int main(int argc, char **argv) {
   ov_eval::Loader::load_data(argv[2], times, poses, cov_ori, cov_pos);
   // Print its length and stats
   double length = ov_eval::Loader::get_total_length(poses);
-  printf("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_gt.stem().string().c_str(), length);
+  PRINT_DEBUG("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_gt.stem().string().c_str(), length);
 
   // Create our trajectory object
   ov_eval::ResultTrajectory traj(argv[3], argv[2], argv[1]);
@@ -113,14 +114,14 @@ int main(int argc, char **argv) {
   traj.calculate_ate(error_ori, error_pos);
 
   // Print it
-  printf("======================================\n");
-  printf("Absolute Trajectory Error\n");
-  printf("======================================\n");
-  printf("rmse_ori = %.3f | rmse_pos = %.3f\n", error_ori.rmse, error_pos.rmse);
-  printf("mean_ori = %.3f | mean_pos = %.3f\n", error_ori.mean, error_pos.mean);
-  printf("min_ori  = %.3f | min_pos  = %.3f\n", error_ori.min, error_pos.min);
-  printf("max_ori  = %.3f | max_pos  = %.3f\n", error_ori.max, error_pos.max);
-  printf("std_ori  = %.3f | std_pos  = %.3f\n", error_ori.std, error_pos.std);
+  PRINT_DEBUG("======================================\n");
+  PRINT_DEBUG("Absolute Trajectory Error\n");
+  PRINT_DEBUG("======================================\n");
+  PRINT_DEBUG("rmse_ori = %.3f | rmse_pos = %.3f\n", error_ori.rmse, error_pos.rmse);
+  PRINT_DEBUG("mean_ori = %.3f | mean_pos = %.3f\n", error_ori.mean, error_pos.mean);
+  PRINT_DEBUG("min_ori  = %.3f | min_pos  = %.3f\n", error_ori.min, error_pos.min);
+  PRINT_DEBUG("max_ori  = %.3f | max_pos  = %.3f\n", error_ori.max, error_pos.max);
+  PRINT_DEBUG("std_ori  = %.3f | std_pos  = %.3f\n", error_ori.std, error_pos.std);
 
   //===========================================================
   // Relative pose error
@@ -132,13 +133,13 @@ int main(int argc, char **argv) {
   traj.calculate_rpe(segments, error_rpe);
 
   // Print it
-  printf("======================================\n");
-  printf("Relative Pose Error\n");
-  printf("======================================\n");
+  PRINT_DEBUG("======================================\n");
+  PRINT_DEBUG("Relative Pose Error\n");
+  PRINT_DEBUG("======================================\n");
   for (const auto &seg : error_rpe) {
-    printf("seg %d - median_ori = %.3f | median_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.median,
-           seg.second.second.median, (int)seg.second.second.values.size());
-    // printf("seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
+    PRINT_DEBUG("seg %d - median_ori = %.3f | median_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.median,
+                seg.second.second.median, (int)seg.second.second.values.size());
+    // PRINT_DEBUG("seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
   }
 
 #ifdef HAVE_PYTHONLIBS
@@ -198,14 +199,14 @@ int main(int argc, char **argv) {
   traj.calculate_nees(nees_ori, nees_pos);
 
   // Print it
-  printf("======================================\n");
-  printf("Normalized Estimation Error Squared\n");
-  printf("======================================\n");
-  printf("mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
-  printf("min_ori  = %.3f | min_pos  = %.3f\n", nees_ori.min, nees_pos.min);
-  printf("max_ori  = %.3f | max_pos  = %.3f\n", nees_ori.max, nees_pos.max);
-  printf("std_ori  = %.3f | std_pos  = %.3f\n", nees_ori.std, nees_pos.std);
-  printf("======================================\n");
+  PRINT_DEBUG("======================================\n");
+  PRINT_DEBUG("Normalized Estimation Error Squared\n");
+  PRINT_DEBUG("======================================\n");
+  PRINT_DEBUG("mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
+  PRINT_DEBUG("min_ori  = %.3f | min_pos  = %.3f\n", nees_ori.min, nees_pos.min);
+  PRINT_DEBUG("max_ori  = %.3f | max_pos  = %.3f\n", nees_ori.max, nees_pos.max);
+  PRINT_DEBUG("std_ori  = %.3f | std_pos  = %.3f\n", nees_ori.std, nees_pos.std);
+  PRINT_DEBUG("======================================\n");
 
 #ifdef HAVE_PYTHONLIBS
 

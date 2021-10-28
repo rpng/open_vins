@@ -28,6 +28,7 @@
 #include <vector>
 
 #include "Feature.h"
+#include "utils/print.h"
 
 namespace ov_core {
 
@@ -159,7 +160,7 @@ public:
     }
 
     // Debugging
-    // std::cout << "feature db size = " << features_idlookup.size() << std::endl;
+    // PRINT_DEBUG("feature db size = %u\n", features_idlookup.size())
 
     // Return the old features
     return feats_old;
@@ -206,7 +207,7 @@ public:
     }
 
     // Debugging
-    // std::cout << "feature db size = " << features_idlookup.size() << std::endl;
+    // PRINT_DEBUG("feature db size = %u\n", features_idlookup.size())
 
     // Return the old features
     return feats_old;
@@ -253,8 +254,8 @@ public:
     }
 
     // Debugging
-    // std::cout << "feature db size = " << features_idlookup.size() << std::endl;
-    // std::cout << "return vector = " << feats_has_timestamp.size() << std::endl;
+    // PRINT_DEBUG("feature db size = %u\n", features_idlookup.size())
+    // PRINT_DEBUG("return vector = %u\n", feats_has_timestamp.size())
 
     // Return the features
     return feats_has_timestamp;
@@ -277,7 +278,7 @@ public:
         it++;
       }
     }
-    // std::cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << std::endl;
+    // PRINT_DEBUG("feat db = %d -> %d\n", sizebefore, (int)features_idlookup.size() << std::endl;
   }
 
   /**
@@ -386,7 +387,7 @@ public:
         features_idlookup[feat.first] = temp;
       }
     }
-    // std::cout << "feat db = " << sizebefore << " -> " << (int)features_idlookup.size() << std::endl;
+    // PRINT_DEBUG("feat db = %d -> %d\n", sizebefore, (int)features_idlookup.size() << std::endl;
   }
 
 protected:

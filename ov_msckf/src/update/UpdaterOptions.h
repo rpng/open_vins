@@ -22,6 +22,8 @@
 #ifndef OV_MSCKF_UPDATER_OPTIONS_H
 #define OV_MSCKF_UPDATER_OPTIONS_H
 
+#include "utils/print.h"
+
 namespace ov_msckf {
 
 /**
@@ -40,8 +42,8 @@ struct UpdaterOptions {
 
   /// Nice print function of what parameters we have loaded
   void print() {
-    printf("\t- chi2_multipler: %.1f\n", chi2_multipler);
-    printf("\t- sigma_pix: %.2f\n", sigma_pix);
+    PRINT_INFO("\t- chi2_multipler: %.1f\n", chi2_multipler);
+    PRINT_INFO("\t- sigma_pix: %.2f\n", sigma_pix);
   }
 };
 

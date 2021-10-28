@@ -20,6 +20,7 @@
  */
 
 #include "UpdaterZeroVelocity.h"
+#include "utils/print.h"
 
 using namespace ov_msckf;
 
@@ -62,7 +63,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
   // Check that we have at least one measurement to propagate with
   if (imu_recent.size() < 2) {
-    printf(RED "[ZUPT]: There are no IMU data to check for zero velocity with!!\n" RESET);
+    PRINT_WARNING(RED "[ZUPT]: There are no IMU data to check for zero velocity with!!\n" RESET);
     last_zupt_state_timestamp = 0.0;
     return false;
   }
@@ -159,7 +160,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   } else {
     boost::math::chi_squared chi_squared_dist(res.rows());
     chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
-    printf(YELLOW "[ZUPT]: chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
+    PRINT_WARNING(YELLOW "[ZUPT]: chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
   }
 
   // Check if the image disparity
@@ -202,10 +203,11 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     }
     disparity_passed = (average_disparity < _zupt_max_disparity && num_features > 20);
     if (disparity_passed) {
-      printf(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity, (int)num_features);
+      PRINT_WARNING(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+                    (int)num_features);
     } else {
-      printf(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
-             (int)num_features);
+      PRINT_INFO(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+                 (int)num_features);
     }
   }
 
@@ -213,12 +215,12 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   // We need to pass the chi2 and not be above our velocity threshold
   if (!disparity_passed && (chi2 > _options.chi2_multipler * chi2_check || state->_imu->vel().norm() > _zupt_max_velocity)) {
     last_zupt_state_timestamp = 0.0;
-    printf(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
-           _options.chi2_multipler * chi2_check);
+    PRINT_WARNING(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+                  _options.chi2_multipler * chi2_check);
     return false;
   }
-  printf(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
-         _options.chi2_multipler * chi2_check);
+  PRINT_DEBUG(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+              _options.chi2_multipler * chi2_check);
 
   // Do our update, only do this update if we have previously detected
   // If we have succeeded, then we should remove the current timestamp feature tracks

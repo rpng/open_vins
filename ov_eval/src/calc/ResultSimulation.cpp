@@ -20,6 +20,7 @@
  */
 
 #include "ResultSimulation.h"
+#include "utils/print.h"
 
 using namespace ov_eval;
 
@@ -35,8 +36,8 @@ ResultSimulation::ResultSimulation(std::string path_est, std::string path_std, s
   assert(est_state.size() == gt_state.size());
 
   // Debug print
-  printf("[SIM]: loaded %d timestamps from file!!\n", (int)est_state.size());
-  printf("[SIM]: we have %d cameras in total!!\n", (int)est_state.at(0)(18));
+  PRINT_DEBUG("[SIM]: loaded %d timestamps from file!!\n", (int)est_state.size());
+  PRINT_DEBUG("[SIM]: we have %d cameras in total!!\n", (int)est_state.at(0)(18));
 }
 
 void ResultSimulation::plot_state(bool doplotting, double max_time) {
@@ -213,7 +214,7 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
 
     // If we are not calibrating then don't plot it!
     if (state_cov.at(i)(16) == 0.0) {
-      printf(YELLOW "Time offset was not calibrated online, so will not plot...\n" RESET);
+      PRINT_WARNING(YELLOW "Time offset was not calibrated online, so will not plot...\n" RESET);
       return;
     }
 
@@ -229,7 +230,7 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
     return;
 
 #ifndef HAVE_PYTHONLIBS
-  printf(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
+  PRINT_ERROR(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
   return;
 #endif
 #ifdef HAVE_PYTHONLIBS
@@ -279,7 +280,7 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
 
   // Check that we have cameras
   if ((int)est_state.at(0)(18) < 1) {
-    printf(YELLOW "You need at least one camera to plot intrinsics...\n" RESET);
+    PRINT_ERROR(YELLOW "You need at least one camera to plot intrinsics...\n" RESET);
     return;
   }
 
@@ -308,7 +309,7 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
 
     // If we are not calibrating then don't plot it!
     if (state_cov.at(i)(18) == 0.0) {
-      printf(YELLOW "Camera intrinsics not calibrated online, so will not plot...\n" RESET);
+      PRINT_WARNING(YELLOW "Camera intrinsics not calibrated online, so will not plot...\n" RESET);
       return;
     }
 
@@ -330,7 +331,7 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
     return;
 
 #ifndef HAVE_PYTHONLIBS
-  printf(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
+  PRINT_ERROR(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
   return;
 #endif
 #ifdef HAVE_PYTHONLIBS
@@ -392,7 +393,7 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
 
   // Check that we have cameras
   if ((int)est_state.at(0)(18) < 1) {
-    printf(YELLOW "You need at least one camera to plot intrinsics...\n" RESET);
+    PRINT_ERROR(YELLOW "You need at least one camera to plot intrinsics...\n" RESET);
     return;
   }
 
@@ -421,7 +422,7 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
 
     // If we are not calibrating then don't plot it!
     if (state_cov.at(i)(26) == 0.0) {
-      printf(YELLOW "Camera extrinsics not calibrated online, so will not plot...\n" RESET);
+      PRINT_WARNING(YELLOW "Camera extrinsics not calibrated online, so will not plot...\n" RESET);
       return;
     }
 
@@ -449,7 +450,7 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
     return;
 
 #ifndef HAVE_PYTHONLIBS
-  printf(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
+  PRINT_ERROR(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
   return;
 #endif
 #ifdef HAVE_PYTHONLIBS

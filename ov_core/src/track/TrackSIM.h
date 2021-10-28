@@ -23,6 +23,7 @@
 #define OV_CORE_TRACK_SIM_H
 
 #include "TrackBase.h"
+#include "utils/print.h"
 
 namespace ov_core {
 
@@ -54,8 +55,8 @@ public:
    * @param message Contains our timestamp, images, and camera ids
    */
   void feed_new_camera(const CameraData &message) override {
-    printf(RED "[SIM]: SIM TRACKER FEED NEW CAMERA CALLED!!!\n" RESET);
-    printf(RED "[SIM]: THIS SHOULD NEVER HAPPEN!\n" RESET);
+    PRINT_ERROR(RED "[SIM]: SIM TRACKER FEED NEW CAMERA CALLED!!!\n" RESET);
+    PRINT_ERROR(RED "[SIM]: THIS SHOULD NEVER HAPPEN!\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 

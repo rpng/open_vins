@@ -26,6 +26,7 @@
     <build_depend>geometry_msgs</build_depend>
     <build_depend>nav_msgs</build_depend>
     <build_depend>sensor_msgs</build_depend>
+    <build_depend>ov_core</build_depend>
 
     <!-- Dependencies needed after this package is compiled. -->
     <run_depend>roscpp</run_depend>
@@ -33,6 +34,7 @@
     <run_depend>geometry_msgs</run_depend>
     <run_depend>nav_msgs</run_depend>
     <run_depend>sensor_msgs</run_depend>
+    <run_depend>ov_core</run_depend>
 
 
 </package>

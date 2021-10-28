@@ -27,6 +27,7 @@
 #endif
 
 #include "TrackBase.h"
+#include "utils/print.h"
 
 namespace ov_core {
 
@@ -57,7 +58,7 @@ public:
     // NOTE: people with newer opencv might fail here
     // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
 #else
-    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+    PRINT_ERROR(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
     std::exit(EXIT_FAILURE);
 #endif
   }
@@ -107,7 +108,6 @@ protected:
   std::unordered_map<size_t, std::vector<int>> ids_aruco;
   std::unordered_map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
 #endif
-
 };
 
 } // namespace ov_core

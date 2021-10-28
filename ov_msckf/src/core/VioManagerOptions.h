@@ -24,6 +24,7 @@
 
 #include <Eigen/Eigen>
 #include <iostream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -33,6 +34,7 @@
 #include "track/TrackBase.h"
 #include "update/UpdaterOptions.h"
 #include "utils/colors.h"
+#include "utils/print.h"
 #include "utils/quat_ops.h"
 
 using namespace std;
@@ -89,18 +91,18 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_estimator() {
-    printf("ESTIMATOR PARAMETERS:\n");
+    PRINT_INFO("ESTIMATOR PARAMETERS:\n");
     state_options.print();
-    printf("\t- dt_slam_delay: %.1f\n", dt_slam_delay);
-    printf("\t- init_window_time: %.2f\n", init_window_time);
-    printf("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
-    printf("\t- zero_velocity_update: %d\n", try_zupt);
-    printf("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
-    printf("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
-    printf("\t- zupt_max_disparity: %.4f\n", zupt_max_disparity);
-    printf("\t- zupt_only_at_beginning?: %d\n", zupt_only_at_beginning);
-    printf("\t- record timing?: %d\n", (int)record_timing_information);
-    printf("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
+    PRINT_INFO("\t- dt_slam_delay: %.1f\n", dt_slam_delay);
+    PRINT_INFO("\t- init_window_time: %.2f\n", init_window_time);
+    PRINT_INFO("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
+    PRINT_INFO("\t- zero_velocity_update: %d\n", try_zupt);
+    PRINT_INFO("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
+    PRINT_INFO("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
+    PRINT_INFO("\t- zupt_max_disparity: %.4f\n", zupt_max_disparity);
+    PRINT_INFO("\t- zupt_only_at_beginning?: %d\n", zupt_only_at_beginning);
+    PRINT_INFO("\t- record timing?: %d\n", (int)record_timing_information);
+    PRINT_INFO("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
   }
 
   // NOISE / CHI2 ============================
@@ -125,15 +127,15 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_noise() {
-    printf("NOISE PARAMETERS:\n");
+    PRINT_INFO("NOISE PARAMETERS:\n");
     imu_noises.print();
-    printf("\tUpdater MSCKF Feats:\n");
+    PRINT_INFO("\tUpdater MSCKF Feats:\n");
     msckf_options.print();
-    printf("\tUpdater SLAM Feats:\n");
+    PRINT_INFO("\tUpdater SLAM Feats:\n");
     slam_options.print();
-    printf("\tUpdater ARUCO Tags:\n");
+    PRINT_INFO("\tUpdater ARUCO Tags:\n");
     aruco_options.print();
-    printf("\tUpdater ZUPT:\n");
+    PRINT_INFO("\tUpdater ZUPT:\n");
     zupt_options.print();
   }
 
@@ -162,22 +164,24 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_state() {
-    printf("STATE PARAMETERS:\n");
-    printf("\t- gravity_mag: %.4f\n", gravity_mag);
-    printf("\t- gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
-    printf("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
+    PRINT_INFO("STATE PARAMETERS:\n");
+    PRINT_INFO("\t- gravity_mag: %.4f\n", gravity_mag);
+    PRINT_INFO("\t- gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
+    PRINT_INFO("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
     assert(state_options.num_cameras == (int)camera_fisheye.size());
     for (int n = 0; n < state_options.num_cameras; n++) {
-      std::cout << "cam_" << n << "_fisheye:" << camera_fisheye.at(n) << std::endl;
-      std::cout << "cam_" << n << "_wh:" << endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;
-      std::cout << "cam_" << n << "_intrinsic(0:3):" << endl << camera_intrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
-      std::cout << "cam_" << n << "_intrinsic(4:7):" << endl << camera_intrinsics.at(n).block(4, 0, 4, 1).transpose() << std::endl;
-      std::cout << "cam_" << n << "_extrinsic(0:3):" << endl << camera_extrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
-      std::cout << "cam_" << n << "_extrinsic(4:6):" << endl << camera_extrinsics.at(n).block(4, 0, 3, 1).transpose() << std::endl;
+      std::stringstream ss;
+      ss << "cam_" << n << "_fisheye:" << camera_fisheye.at(n) << std::endl;
+      ss << "cam_" << n << "_wh:" << endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;
+      ss << "cam_" << n << "_intrinsic(0:3):" << endl << camera_intrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_intrinsic(4:7):" << endl << camera_intrinsics.at(n).block(4, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_extrinsic(0:3):" << endl << camera_extrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_extrinsic(4:6):" << endl << camera_extrinsics.at(n).block(4, 0, 3, 1).transpose() << std::endl;
       Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();
       T_CtoI.block(0, 0, 3, 3) = quat_2_Rot(camera_extrinsics.at(n).block(0, 0, 4, 1)).transpose();
       T_CtoI.block(0, 3, 3, 1) = -T_CtoI.block(0, 0, 3, 3) * camera_extrinsics.at(n).block(4, 0, 3, 1);
-      std::cout << "T_C" << n << "toI:" << endl << T_CtoI << std::endl << std::endl;
+      ss << "T_C" << n << "toI:" << endl << T_CtoI << std::endl << std::endl;
+      PRINT_INFO(ss.str().c_str());
     }
   }
 
@@ -235,20 +239,20 @@ struct VioManagerOptions {
    * @brief This function will print out all parameters releated to our visual trackers.
    */
   void print_trackers() {
-    printf("FEATURE TRACKING PARAMETERS:\n");
-    printf("\t- use_klt: %d\n", use_klt);
-    printf("\t- use_stereo: %d\n", use_stereo);
-    printf("\t- use_aruco: %d\n", use_aruco);
-    printf("\t- downsize aruco: %d\n", downsize_aruco);
-    printf("\t- downsize cameras: %d\n", downsample_cameras);
-    printf("\t- use multi-threading: %d\n", use_multi_threading);
-    printf("\t- num_pts: %d\n", num_pts);
-    printf("\t- fast threshold: %d\n", fast_threshold);
-    printf("\t- grid X by Y: %d by %d\n", grid_x, grid_y);
-    printf("\t- min px dist: %d\n", min_px_dist);
-    printf("\t- hist method: %d\n", (int)histogram_method);
-    printf("\t- knn ratio: %.3f\n", knn_ratio);
-    printf("\t- use mask?: %d\n", use_mask);
+    PRINT_INFO("FEATURE TRACKING PARAMETERS:\n");
+    PRINT_INFO("\t- use_klt: %d\n", use_klt);
+    PRINT_INFO("\t- use_stereo: %d\n", use_stereo);
+    PRINT_INFO("\t- use_aruco: %d\n", use_aruco);
+    PRINT_INFO("\t- downsize aruco: %d\n", downsize_aruco);
+    PRINT_INFO("\t- downsize cameras: %d\n", downsample_cameras);
+    PRINT_INFO("\t- use multi-threading: %d\n", use_multi_threading);
+    PRINT_INFO("\t- num_pts: %d\n", num_pts);
+    PRINT_INFO("\t- fast threshold: %d\n", fast_threshold);
+    PRINT_INFO("\t- grid X by Y: %d by %d\n", grid_x, grid_y);
+    PRINT_INFO("\t- min px dist: %d\n", min_px_dist);
+    PRINT_INFO("\t- hist method: %d\n", (int)histogram_method);
+    PRINT_INFO("\t- knn ratio: %.3f\n", knn_ratio);
+    PRINT_INFO("\t- use mask?: %d\n", use_mask);
     featinit_options.print();
   }
 
@@ -285,14 +289,14 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_simulation() {
-    printf("SIMULATION PARAMETERS:\n");
-    printf(BOLDRED "\t- state init seed: %d \n" RESET, sim_seed_state_init);
-    printf(BOLDRED "\t- perturb seed: %d \n" RESET, sim_seed_preturb);
-    printf(BOLDRED "\t- measurement seed: %d \n" RESET, sim_seed_measurements);
-    printf("\t- traj path: %s\n", sim_traj_path.c_str());
-    printf("\t- dist thresh: %.2f\n", sim_distance_threshold);
-    printf("\t- cam feq: %.2f\n", sim_freq_cam);
-    printf("\t- imu feq: %.2f\n", sim_freq_imu);
+    PRINT_INFO("SIMULATION PARAMETERS:\n");
+    PRINT_INFO(BOLDRED "\t- state init seed: %d \n" RESET, sim_seed_state_init);
+    PRINT_INFO(BOLDRED "\t- perturb seed: %d \n" RESET, sim_seed_preturb);
+    PRINT_INFO(BOLDRED "\t- measurement seed: %d \n" RESET, sim_seed_measurements);
+    PRINT_INFO("\t- traj path: %s\n", sim_traj_path.c_str());
+    PRINT_INFO("\t- dist thresh: %.2f\n", sim_distance_threshold);
+    PRINT_INFO("\t- cam feq: %.2f\n", sim_freq_cam);
+    PRINT_INFO("\t- imu feq: %.2f\n", sim_freq_imu);
   }
 };
 

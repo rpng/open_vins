@@ -20,6 +20,7 @@
  */
 
 #include "AlignTrajectory.h"
+#include "utils/print.h"
 
 using namespace ov_eval;
 
@@ -48,8 +49,8 @@ void AlignTrajectory::align_trajectory(const std::vector<Eigen::Matrix<double, 7
     R.setIdentity();
     t.setZero();
   } else {
-    printf(RED "[ALIGN]: Invalid alignment method!\n" RESET);
-    printf(RED "[ALIGN]: Possible options: posyaw, posyawsingle, se3, se3single, sim3, none\n" RESET);
+    PRINT_ERROR(RED "[ALIGN]: Invalid alignment method!\n" RESET);
+    PRINT_ERROR(RED "[ALIGN]: Possible options: posyaw, posyawsingle, se3, se3single, sim3, none\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 }

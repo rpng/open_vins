@@ -24,6 +24,7 @@
 
 #include "core/VioManagerOptions.h"
 #include "utils/CLI11.hpp"
+#include "utils/print.h"
 
 namespace ov_msckf {
 
@@ -180,20 +181,20 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   if (params.state_options.feat_rep_msckf == LandmarkRepresentation::Representation::UNKNOWN ||
       params.state_options.feat_rep_slam == LandmarkRepresentation::Representation::UNKNOWN ||
       params.state_options.feat_rep_aruco == LandmarkRepresentation::Representation::UNKNOWN) {
-    printf(RED "VioManager(): invalid feature representation specified:\n" RESET);
-    printf(RED "\t- GLOBAL_3D\n" RESET);
-    printf(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
-    printf(RED "\t- ANCHORED_3D\n" RESET);
-    printf(RED "\t- ANCHORED_FULL_INVERSE_DEPTH\n" RESET);
-    printf(RED "\t- ANCHORED_MSCKF_INVERSE_DEPTH\n" RESET);
-    printf(RED "\t- ANCHORED_INVERSE_DEPTH_SINGLE\n" RESET);
+    PRINT_ERROR(RED "VioManager(): invalid feature representation specified:\n" RESET);
+    PRINT_ERROR(RED "\t- GLOBAL_3D\n" RESET);
+    PRINT_ERROR(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_3D\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_FULL_INVERSE_DEPTH\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_MSCKF_INVERSE_DEPTH\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_INVERSE_DEPTH_SINGLE\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
   // Enforce that we have enough cameras to run
   if (params.state_options.num_cameras < 1) {
-    printf(RED "VioManager(): Specified number of cameras needs to be greater than zero\n" RESET);
-    printf(RED "VioManager(): num cameras = %d\n" RESET, params.state_options.num_cameras);
+    PRINT_ERROR(RED "VioManager(): Specified number of cameras needs to be greater than zero\n" RESET);
+    PRINT_ERROR(RED "VioManager(): num cameras = %d\n" RESET, params.state_options.num_cameras);
     std::exit(EXIT_FAILURE);
   }
 
@@ -205,10 +206,10 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   } else if (histogram_method_str == "CLAHE") {
     params.histogram_method = TrackBase::CLAHE;
   } else {
-    printf(RED "VioManager(): invalid feature histogram specified:\n" RESET);
-    printf(RED "\t- NONE\n" RESET);
-    printf(RED "\t- HISTOGRAM\n" RESET);
-    printf(RED "\t- CLAHE\n" RESET);
+    PRINT_ERROR(RED "VioManager(): invalid feature histogram specified:\n" RESET);
+    PRINT_ERROR(RED "\t- NONE\n" RESET);
+    PRINT_ERROR(RED "\t- HISTOGRAM\n" RESET);
+    PRINT_ERROR(RED "\t- CLAHE\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 

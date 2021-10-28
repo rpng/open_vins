@@ -26,6 +26,7 @@
 #include <ros/ros.h>
 
 #include "core/VioManagerOptions.h"
+#include "utils/print.h"
 
 namespace ov_msckf {
 
@@ -59,8 +60,8 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
 
   // Enforce that we have enough cameras to run
   if (params.state_options.num_cameras < 1) {
-    printf(RED "VioManager(): Specified number of cameras needs to be greater than zero\n" RESET);
-    printf(RED "VioManager(): num cameras = %d\n" RESET, params.state_options.num_cameras);
+    PRINT_ERROR(RED "VioManager(): Specified number of cameras needs to be greater than zero\n" RESET);
+    PRINT_ERROR(RED "VioManager(): num cameras = %d\n" RESET, params.state_options.num_cameras);
     std::exit(EXIT_FAILURE);
   }
 
@@ -82,13 +83,13 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   if (params.state_options.feat_rep_msckf == LandmarkRepresentation::Representation::UNKNOWN ||
       params.state_options.feat_rep_slam == LandmarkRepresentation::Representation::UNKNOWN ||
       params.state_options.feat_rep_aruco == LandmarkRepresentation::Representation::UNKNOWN) {
-    printf(RED "VioManager(): invalid feature representation specified:\n" RESET);
-    printf(RED "\t- GLOBAL_3D\n" RESET);
-    printf(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
-    printf(RED "\t- ANCHORED_3D\n" RESET);
-    printf(RED "\t- ANCHORED_FULL_INVERSE_DEPTH\n" RESET);
-    printf(RED "\t- ANCHORED_MSCKF_INVERSE_DEPTH\n" RESET);
-    printf(RED "\t- ANCHORED_INVERSE_DEPTH_SINGLE\n" RESET);
+    PRINT_ERROR(RED "VioManager(): invalid feature representation specified:\n" RESET);
+    PRINT_ERROR(RED "\t- GLOBAL_3D\n" RESET);
+    PRINT_ERROR(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_3D\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_FULL_INVERSE_DEPTH\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_MSCKF_INVERSE_DEPTH\n" RESET);
+    PRINT_ERROR(RED "\t- ANCHORED_INVERSE_DEPTH_SINGLE\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -160,10 +161,10 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   } else if (histogram_method_str == "CLAHE") {
     params.histogram_method = TrackBase::CLAHE;
   } else {
-    printf(RED "VioManager(): invalid feature histogram specified:\n" RESET);
-    printf(RED "\t- NONE\n" RESET);
-    printf(RED "\t- HISTOGRAM\n" RESET);
-    printf(RED "\t- CLAHE\n" RESET);
+    PRINT_ERROR(RED "VioManager(): invalid feature histogram specified:\n" RESET);
+    PRINT_ERROR(RED "\t- NONE\n" RESET);
+    PRINT_ERROR(RED "\t- HISTOGRAM\n" RESET);
+    PRINT_ERROR(RED "\t- CLAHE\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -174,9 +175,9 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
     nh.param<std::string>("mask" + std::to_string(i), mask_path, "");
     if (params.use_mask) {
       if (!boost::filesystem::exists(mask_path)) {
-        printf(RED "VioManager(): invalid mask path:\n" RESET);
-        printf(RED "\t- mask%d\n" RESET, i);
-        printf(RED "\t- %s\n" RESET, mask_path.c_str());
+        PRINT_ERROR(RED "VioManager(): invalid mask path:\n" RESET);
+        PRINT_ERROR(RED "\t- mask%d\n" RESET, i);
+        PRINT_ERROR(RED "\t- %s\n" RESET, mask_path.c_str());
         std::exit(EXIT_FAILURE);
       }
       params.masks.insert({i, cv::imread(mask_path, cv::IMREAD_GRAYSCALE)});
