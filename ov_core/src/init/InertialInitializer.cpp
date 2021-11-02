@@ -20,7 +20,6 @@
  */
 
 #include "InertialInitializer.h"
-#include "utils/print.h"
 
 using namespace ov_core;
 

@@ -20,9 +20,6 @@
  */
 
 #include "BsplineSE3.h"
-#include "utils/print.h"
-
-#include <sstream>
 
 using namespace ov_core;
 

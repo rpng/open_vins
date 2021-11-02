@@ -20,7 +20,7 @@
  */
 
 #include "calc/ResultSimulation.h"
-#include "utils/Colors.h"
+#include "utils/colors.h"
 #include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -33,6 +33,9 @@
 #endif
 
 int main(int argc, char **argv) {
+
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
 
   // Ensure we have a path
   if (argc < 4) {

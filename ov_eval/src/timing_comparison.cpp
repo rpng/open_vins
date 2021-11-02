@@ -27,9 +27,9 @@
 #include <iostream>
 #include <string>
 
-#include "utils/Colors.h"
 #include "utils/Loader.h"
 #include "utils/Statistics.h"
+#include "utils/colors.h"
 #include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -43,6 +43,9 @@
 
 int main(int argc, char **argv) {
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
+
   // Ensure we have a path
   if (argc < 2) {
     PRINT_ERROR(RED "ERROR: Please specify a timing file\n" RESET);
@@ -54,13 +57,13 @@ int main(int argc, char **argv) {
   // Read in all our trajectories from file
   std::vector<std::string> names;
   std::vector<ov_eval::Statistics> total_times;
+  PRINT_INFO("======================================\n");
   for (int z = 1; z < argc; z++) {
 
     // Parse the name of this timing
     boost::filesystem::path path(argv[z]);
     std::string name = path.stem().string();
-    PRINT_DEBUG("======================================\n");
-    PRINT_DEBUG("[TIME]: loading data for %s\n", name.c_str());
+    PRINT_INFO("[TIME]: loading data for %s\n", name.c_str());
 
     // Load it!!
     std::vector<std::string> names_temp;
@@ -85,8 +88,8 @@ int main(int argc, char **argv) {
     // Now print the statistic for this run
     for (size_t i = 0; i < names_temp.size(); i++) {
       stats.at(i).calculate();
-      PRINT_DEBUG("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std,
-                  stats.at(i).ninetynine, stats.at(i).max, names_temp.at(i).c_str());
+      PRINT_INFO("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std,
+                 stats.at(i).ninetynine, stats.at(i).max, names_temp.at(i).c_str());
     }
 
     // Append the total stats to the big vector
@@ -94,9 +97,9 @@ int main(int argc, char **argv) {
       names.push_back(name);
       total_times.push_back(stats.at(stats.size() - 1));
     } else {
-      PRINT_DEBUG(RED "[TIME]: unable to load any data.....\n" RESET);
+      PRINT_ERROR(RED "[TIME]: unable to load any data.....\n" RESET);
     }
-    PRINT_DEBUG("======================================\n");
+    PRINT_INFO("======================================\n");
   }
 
 #ifdef HAVE_PYTHONLIBS

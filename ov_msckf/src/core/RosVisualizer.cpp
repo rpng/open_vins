@@ -20,8 +20,9 @@
  */
 
 #include "RosVisualizer.h"
-#include "utils/print.h"
 
+using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _app(app), _sim(sim) {
@@ -31,31 +32,31 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
 
   // Setup pose and path publisher
   pub_poseimu = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
-  ROS_INFO("Publishing: %s", pub_poseimu.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_poseimu.getTopic().c_str());
   pub_odomimu = nh.advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
-  ROS_INFO("Publishing: %s", pub_odomimu.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_odomimu.getTopic().c_str());
   pub_pathimu = nh.advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
-  ROS_INFO("Publishing: %s", pub_pathimu.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_pathimu.getTopic().c_str());
 
   // 3D points publishing
   pub_points_msckf = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_msckf", 2);
-  ROS_INFO("Publishing: %s", pub_points_msckf.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_points_msckf.getTopic().c_str());
   pub_points_slam = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_slam", 2);
-  ROS_INFO("Publishing: %s", pub_points_msckf.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_points_msckf.getTopic().c_str());
   pub_points_aruco = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_aruco", 2);
-  ROS_INFO("Publishing: %s", pub_points_aruco.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_points_aruco.getTopic().c_str());
   pub_points_sim = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
-  ROS_INFO("Publishing: %s", pub_points_sim.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_points_sim.getTopic().c_str());
 
   // Our tracking image
   pub_tracks = nh.advertise<sensor_msgs::Image>("/ov_msckf/trackhist", 2);
-  ROS_INFO("Publishing: %s", pub_tracks.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_tracks.getTopic().c_str());
 
   // Groundtruth publishers
   pub_posegt = nh.advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
-  ROS_INFO("Publishing: %s", pub_posegt.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_posegt.getTopic().c_str());
   pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
-  ROS_INFO("Publishing: %s", pub_pathgt.getTopic().c_str());
+  PRINT_DEBUG("Publishing: %s", pub_pathgt.getTopic().c_str());
 
   // Loop closure publishers
   pub_loop_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
@@ -75,7 +76,7 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
     nh.param<std::string>("path_gt", path_to_gt, "");
     if (!path_to_gt.empty()) {
       DatasetReader::load_gt_file(path_to_gt, gt_states);
-      ROS_INFO("gt file path is: %s", path_to_gt.c_str());
+      PRINT_DEBUG("gt file path is: %s", path_to_gt.c_str());
     }
   }
 

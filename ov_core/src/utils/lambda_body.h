@@ -28,6 +28,8 @@
 namespace ov_core {
 
 /**
+ * @brief Helper class to do OpenCV parallelization
+ *
  * This is a utility class required to build with older version of opencv
  * On newer versions this doesn't seem to be needed, but here we just use it to ensure we can work for more opencv version.
  * https://answers.opencv.org/question/65800/how-to-use-lambda-as-a-parameter-to-parallel_for_/?answer=130691#post-id-130691

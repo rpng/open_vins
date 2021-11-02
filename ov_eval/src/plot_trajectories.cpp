@@ -29,10 +29,10 @@
 
 #include "alignment/AlignTrajectory.h"
 #include "alignment/AlignUtils.h"
-#include "utils/Colors.h"
 #include "utils/Loader.h"
-#include "utils/Math.h"
+#include "utils/colors.h"
 #include "utils/print.h"
+#include "utils/quat_ops.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -86,11 +86,14 @@ void plot_z_positions(const std::string &name, const std::string &color, const s
 
 int main(int argc, char **argv) {
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
+
   // Ensure we have a path
   if (argc < 3) {
-    PRINT_DEBUG(RED "ERROR: Please specify a align mode and trajectory file\n" RESET);
-    PRINT_DEBUG(RED "ERROR: ./plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>\n" RESET);
-    PRINT_DEBUG(RED "ERROR: rosrun ov_eval plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a align mode and trajectory file\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval plot_trajectories <align_mode> <file_gt.txt> <file_est1.txt> ...  <file_est9.txt>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -116,8 +119,8 @@ int main(int argc, char **argv) {
 
       // Return failure if we didn't have any common timestamps
       if (poses_temp.size() < 3) {
-        PRINT_DEBUG(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
-        PRINT_DEBUG(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
+        PRINT_ERROR(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
+        PRINT_ERROR(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
         std::exit(EXIT_FAILURE);
       }
 
@@ -128,7 +131,7 @@ int main(int argc, char **argv) {
       ov_eval::AlignTrajectory::align_trajectory(poses_temp, gt_poses_temp, R_ESTtoGT, t_ESTinGT, s_ESTtoGT, argv[1]);
 
       // Debug print to the user
-      Eigen::Vector4d q_ESTtoGT = ov_eval::Math::rot_2_quat(R_ESTtoGT);
+      Eigen::Vector4d q_ESTtoGT = ov_core::rot_2_quat(R_ESTtoGT);
       PRINT_DEBUG("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n", q_ESTtoGT(0), q_ESTtoGT(1),
                   q_ESTtoGT(2), q_ESTtoGT(3), t_ESTinGT(0), t_ESTinGT(1), t_ESTinGT(2), s_ESTtoGT);
 
@@ -137,7 +140,7 @@ int main(int argc, char **argv) {
       for (size_t j = 0; j < gt_times_temp.size(); j++) {
         Eigen::Matrix<double, 7, 1> pose_ESTinGT;
         pose_ESTinGT.block(0, 0, 3, 1) = s_ESTtoGT * R_ESTtoGT * poses_temp.at(j).block(0, 0, 3, 1) + t_ESTinGT;
-        pose_ESTinGT.block(3, 0, 4, 1) = ov_eval::Math::quat_multiply(poses_temp.at(j).block(3, 0, 4, 1), ov_eval::Math::Inv(q_ESTtoGT));
+        pose_ESTinGT.block(3, 0, 4, 1) = ov_core::quat_multiply(poses_temp.at(j).block(3, 0, 4, 1), ov_core::Inv(q_ESTtoGT));
         est_poses_aignedtoGT.push_back(pose_ESTinGT);
       }
 
@@ -149,7 +152,7 @@ int main(int argc, char **argv) {
     boost::filesystem::path path(argv[i]);
     std::string name = path.stem().string();
     double length = ov_eval::Loader::get_total_length(poses_temp);
-    PRINT_DEBUG("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times_temp.size(), name.c_str(), length);
+    PRINT_INFO("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times_temp.size(), name.c_str(), length);
 
     // Save this to our arrays
     names.push_back(name);

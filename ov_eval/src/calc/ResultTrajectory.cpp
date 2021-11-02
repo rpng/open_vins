@@ -20,7 +20,6 @@
  */
 
 #include "ResultTrajectory.h"
-#include "utils/print.h"
 
 using namespace ov_eval;
 
@@ -54,8 +53,8 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
   AlignTrajectory::align_trajectory(gt_poses, est_poses, R_GTtoEST, t_GTinEST, s_GTtoEST, alignment_method);
 
   // Debug print to the user
-  Eigen::Vector4d q_ESTtoGT = Math::rot_2_quat(R_ESTtoGT);
-  Eigen::Vector4d q_GTtoEST = Math::rot_2_quat(R_GTtoEST);
+  Eigen::Vector4d q_ESTtoGT = ov_core::rot_2_quat(R_ESTtoGT);
+  Eigen::Vector4d q_GTtoEST = ov_core::rot_2_quat(R_GTtoEST);
   PRINT_DEBUG("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n", q_ESTtoGT(0), q_ESTtoGT(1),
               q_ESTtoGT(2), q_ESTtoGT(3), t_ESTinGT(0), t_ESTinGT(1), t_ESTinGT(2), s_ESTtoGT);
   // PRINT_DEBUG("[TRAJ]: q_GTtoEST = %.3f, %.3f, %.3f, %.3f | p_GTinEST = %.3f, %.3f, %.3f | s =
@@ -65,9 +64,9 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
   for (size_t i = 0; i < gt_times.size(); i++) {
     Eigen::Matrix<double, 7, 1> pose_ESTinGT, pose_GTinEST;
     pose_ESTinGT.block(0, 0, 3, 1) = s_ESTtoGT * R_ESTtoGT * est_poses.at(i).block(0, 0, 3, 1) + t_ESTinGT;
-    pose_ESTinGT.block(3, 0, 4, 1) = Math::quat_multiply(est_poses.at(i).block(3, 0, 4, 1), Math::Inv(q_ESTtoGT));
+    pose_ESTinGT.block(3, 0, 4, 1) = ov_core::quat_multiply(est_poses.at(i).block(3, 0, 4, 1), ov_core::Inv(q_ESTtoGT));
     pose_GTinEST.block(0, 0, 3, 1) = s_GTtoEST * R_GTtoEST * gt_poses.at(i).block(0, 0, 3, 1) + t_GTinEST;
-    pose_GTinEST.block(3, 0, 4, 1) = Math::quat_multiply(gt_poses.at(i).block(3, 0, 4, 1), Math::Inv(q_GTtoEST));
+    pose_GTinEST.block(3, 0, 4, 1) = ov_core::quat_multiply(gt_poses.at(i).block(3, 0, 4, 1), ov_core::Inv(q_GTtoEST));
     est_poses_aignedtoGT.push_back(pose_ESTinGT);
     gt_poses_aignedtoEST.push_back(pose_GTinEST);
   }
@@ -83,9 +82,9 @@ void ResultTrajectory::calculate_ate(Statistics &error_ori, Statistics &error_po
   for (size_t i = 0; i < est_poses_aignedtoGT.size(); i++) {
 
     // Calculate orientation error
-    Eigen::Matrix3d e_R =
-        Math::quat_2_Rot(est_poses_aignedtoGT.at(i).block(3, 0, 4, 1)).transpose() * Math::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1));
-    double ori_err = 180.0 / M_PI * Math::log_so3(e_R).norm();
+    Eigen::Matrix3d e_R = ov_core::quat_2_Rot(est_poses_aignedtoGT.at(i).block(3, 0, 4, 1)).transpose() *
+                          ov_core::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1));
+    double ori_err = 180.0 / M_PI * ov_core::log_so3(e_R).norm();
 
     // Calculate position error
     double pos_err = (gt_poses.at(i).block(0, 0, 3, 1) - est_poses_aignedtoGT.at(i).block(0, 0, 3, 1)).norm();
@@ -112,9 +111,9 @@ void ResultTrajectory::calculate_ate_2d(Statistics &error_ori, Statistics &error
   for (size_t i = 0; i < est_poses_aignedtoGT.size(); i++) {
 
     // Calculate orientation error
-    Eigen::Matrix3d e_R =
-        Math::quat_2_Rot(est_poses_aignedtoGT.at(i).block(3, 0, 4, 1)).transpose() * Math::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1));
-    double ori_err = 180.0 / M_PI * Math::log_so3(e_R)(2);
+    Eigen::Matrix3d e_R = ov_core::quat_2_Rot(est_poses_aignedtoGT.at(i).block(3, 0, 4, 1)).transpose() *
+                          ov_core::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1));
+    double ori_err = 180.0 / M_PI * ov_core::log_so3(e_R)(2);
 
     // Calculate position error
     double pos_err = (gt_poses.at(i).block(0, 0, 2, 1) - est_poses_aignedtoGT.at(i).block(0, 0, 2, 1)).norm();
@@ -179,34 +178,34 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
       //===============================================================================
       // Get T I1 to world EST at beginning of subtrajectory (at state idx)
       Eigen::Matrix4d T_c1 = Eigen::Matrix4d::Identity();
-      T_c1.block(0, 0, 3, 3) = Math::quat_2_Rot(est_poses_aignedtoGT.at(id_start).block(3, 0, 4, 1)).transpose();
+      T_c1.block(0, 0, 3, 3) = ov_core::quat_2_Rot(est_poses_aignedtoGT.at(id_start).block(3, 0, 4, 1)).transpose();
       T_c1.block(0, 3, 3, 1) = est_poses_aignedtoGT.at(id_start).block(0, 0, 3, 1);
 
       // Get T I2 to world EST at end of subtrajectory starting (at state comparisons[idx])
       Eigen::Matrix4d T_c2 = Eigen::Matrix4d::Identity();
-      T_c2.block(0, 0, 3, 3) = Math::quat_2_Rot(est_poses_aignedtoGT.at(id_end).block(3, 0, 4, 1)).transpose();
+      T_c2.block(0, 0, 3, 3) = ov_core::quat_2_Rot(est_poses_aignedtoGT.at(id_end).block(3, 0, 4, 1)).transpose();
       T_c2.block(0, 3, 3, 1) = est_poses_aignedtoGT.at(id_end).block(0, 0, 3, 1);
 
       // Get T I2 to I1 EST
-      Eigen::Matrix4d T_c1_c2 = Math::Inv_se3(T_c1) * T_c2;
+      Eigen::Matrix4d T_c1_c2 = ov_core::Inv_se3(T_c1) * T_c2;
 
       //===============================================================================
       // Get T I1 to world GT at beginning of subtrajectory (at state idx)
       Eigen::Matrix4d T_m1 = Eigen::Matrix4d::Identity();
-      T_m1.block(0, 0, 3, 3) = Math::quat_2_Rot(gt_poses.at(id_start).block(3, 0, 4, 1)).transpose();
+      T_m1.block(0, 0, 3, 3) = ov_core::quat_2_Rot(gt_poses.at(id_start).block(3, 0, 4, 1)).transpose();
       T_m1.block(0, 3, 3, 1) = gt_poses.at(id_start).block(0, 0, 3, 1);
 
       // Get T I2 to world GT at end of subtrajectory starting (at state comparisons[idx])
       Eigen::Matrix4d T_m2 = Eigen::Matrix4d::Identity();
-      T_m2.block(0, 0, 3, 3) = Math::quat_2_Rot(gt_poses.at(id_end).block(3, 0, 4, 1)).transpose();
+      T_m2.block(0, 0, 3, 3) = ov_core::quat_2_Rot(gt_poses.at(id_end).block(3, 0, 4, 1)).transpose();
       T_m2.block(0, 3, 3, 1) = gt_poses.at(id_end).block(0, 0, 3, 1);
 
       // Get T I2 to I1 GT
-      Eigen::Matrix4d T_m1_m2 = Math::Inv_se3(T_m1) * T_m2;
+      Eigen::Matrix4d T_m1_m2 = ov_core::Inv_se3(T_m1) * T_m2;
 
       //===============================================================================
       // Compute error transform between EST and GT start-end transform
-      Eigen::Matrix4d T_error_in_c2 = Math::Inv_se3(T_m1_m2) * T_c1_c2;
+      Eigen::Matrix4d T_error_in_c2 = ov_core::Inv_se3(T_m1_m2) * T_c1_c2;
 
       Eigen::Matrix4d T_c2_rot = Eigen::Matrix4d::Identity();
       T_c2_rot.block(0, 0, 3, 3) = T_c2.block(0, 0, 3, 3);
@@ -223,7 +222,7 @@ void ResultTrajectory::calculate_rpe(const std::vector<double> &segment_lengths,
       error_pos.values.push_back(T_error_in_w.block(0, 3, 3, 1).norm());
 
       // Calculate orientation error
-      double ori_err = 180.0 / M_PI * Math::log_so3(T_error_in_w.block(0, 0, 3, 3)).norm();
+      double ori_err = 180.0 / M_PI * ov_core::log_so3(T_error_in_w.block(0, 0, 3, 3)).norm();
       error_ori.timestamps.push_back(est_times.at(id_start));
       error_ori.values.push_back(ori_err);
     }
@@ -255,8 +254,8 @@ void ResultTrajectory::calculate_nees(Statistics &nees_ori, Statistics &nees_pos
     // Calculate orientation error
     // NOTE: we define our error as e_R = -Log(R*Rhat^T)
     Eigen::Matrix3d e_R =
-        Math::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1)) * Math::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose();
-    Eigen::Vector3d errori = -Math::log_so3(e_R);
+        ov_core::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1)) * ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose();
+    Eigen::Vector3d errori = -ov_core::log_so3(e_R);
     // Eigen::Vector4d e_q = Math::quat_multiply(gt_poses_aignedtoEST.at(i).block(3,0,4,1),Math::Inv(est_poses.at(i).block(3,0,4,1)));
     // Eigen::Vector3d errori = 2*e_q.block(0,0,3,1);
     double ori_nees = errori.transpose() * est_covori.at(i).inverse() * errori;
@@ -301,20 +300,21 @@ void ResultTrajectory::calculate_error(Statistics &posx, Statistics &posy, Stati
   for (size_t i = 0; i < est_poses.size(); i++) {
 
     // Calculate local orientation error, then propagate its covariance into the global frame of reference
-    Eigen::Vector4d e_q = Math::quat_multiply(gt_poses_aignedtoEST.at(i).block(3, 0, 4, 1), Math::Inv(est_poses.at(i).block(3, 0, 4, 1)));
+    Eigen::Vector4d e_q =
+        ov_core::quat_multiply(gt_poses_aignedtoEST.at(i).block(3, 0, 4, 1), ov_core::Inv(est_poses.at(i).block(3, 0, 4, 1)));
     Eigen::Vector3d errori_local = 2 * e_q.block(0, 0, 3, 1);
-    Eigen::Vector3d errori_global = Math::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose() * errori_local;
+    Eigen::Vector3d errori_global = ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose() * errori_local;
     Eigen::Matrix3d cov_global;
     if (est_times.size() == est_covori.size()) {
-      cov_global = Math::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose() * est_covori.at(i) *
-                   Math::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1));
+      cov_global = ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose() * est_covori.at(i) *
+                   ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1));
     }
 
     // Convert to roll pitch yaw (also need to "wrap" the error to -pi to pi)
     // NOTE: our rot2rpy is in the form R_input = R_z(yaw)*R_y(pitch)*R_x(roll)
     // NOTE: this error is in the "global" frame since we do rot2rpy on R_ItoG rotation
-    Eigen::Vector3d ypr_est_ItoG = Math::rot2rpy(Math::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose());
-    Eigen::Vector3d ypr_gt_ItoG = Math::rot2rpy(Math::quat_2_Rot(gt_poses_aignedtoEST.at(i).block(3, 0, 4, 1)).transpose());
+    Eigen::Vector3d ypr_est_ItoG = ov_core::rot2rpy(ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose());
+    Eigen::Vector3d ypr_gt_ItoG = ov_core::rot2rpy(ov_core::quat_2_Rot(gt_poses_aignedtoEST.at(i).block(3, 0, 4, 1)).transpose());
     Eigen::Vector3d errori_rpy = ypr_gt_ItoG - ypr_est_ItoG;
     for (size_t idx = 0; idx < 3; idx++) {
       while (errori_rpy(idx) < -M_PI) {
@@ -330,8 +330,8 @@ void ResultTrajectory::calculate_error(Statistics &posx, Statistics &posy, Stati
     // NOTE: R*Exp(theta_erro) = Rz*Rz(error)*Ry*Ry(error)*Rx*Rx(error)
     // NOTE: example can be found here http://mars.cs.umn.edu/tr/reports/Trawny05c.pdf
     Eigen::Matrix<double, 3, 3> H_xyz2rpy = Eigen::Matrix<double, 3, 3>::Identity();
-    H_xyz2rpy.block(0, 1, 3, 1) = Math::rot_x(-ypr_est_ItoG(0)) * H_xyz2rpy.block(0, 1, 3, 1);
-    H_xyz2rpy.block(0, 2, 3, 1) = Math::rot_x(-ypr_est_ItoG(0)) * Math::rot_y(-ypr_est_ItoG(1)) * H_xyz2rpy.block(0, 2, 3, 1);
+    H_xyz2rpy.block(0, 1, 3, 1) = ov_core::rot_x(-ypr_est_ItoG(0)) * H_xyz2rpy.block(0, 1, 3, 1);
+    H_xyz2rpy.block(0, 2, 3, 1) = ov_core::rot_x(-ypr_est_ItoG(0)) * ov_core::rot_y(-ypr_est_ItoG(1)) * H_xyz2rpy.block(0, 2, 3, 1);
     Eigen::Matrix3d cov_rpy;
     if (est_times.size() == est_covori.size()) {
       cov_rpy = H_xyz2rpy.inverse() * est_covori.at(i) * H_xyz2rpy.inverse().transpose();

@@ -52,6 +52,7 @@ int main(int argc, char **argv) {
   CLI::App app{"test_webcam"};
 
   // Defaults
+  std::string verbosity = "INFO";
   int num_pts = 500;
   int num_aruco = 1024;
   int clone_states = 20;
@@ -65,6 +66,7 @@ int main(int argc, char **argv) {
   ov_core::TrackBase::HistogramMethod method = ov_core::TrackBase::HistogramMethod::NONE;
 
   // Parameters for our extractor
+  app.add_option("--verbosity", verbosity, "Print verbosity");
   app.add_option("--num_pts", num_pts, "Number of feature tracks");
   app.add_option("--num_aruco", num_aruco, "Number of aruco tag ids we have");
   app.add_option("--clone_states", clone_states, "Amount of clones to visualize track length with");
@@ -81,6 +83,9 @@ int main(int argc, char **argv) {
   } catch (const CLI::ParseError &e) {
     return app.exit(e);
   }
+
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Debug print!
   PRINT_DEBUG("max features: %d\n", num_pts);

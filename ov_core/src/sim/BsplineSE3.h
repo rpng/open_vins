@@ -26,6 +26,7 @@
 #include <map>
 #include <vector>
 
+#include "utils/print.h"
 #include "utils/quat_ops.h"
 
 namespace ov_core {

@@ -139,7 +139,7 @@ public:
 
     // Check that we have the timestamp in our GT file
     if (gt_states.find(timestep) == gt_states.end()) {
-      PRINT_INFO(YELLOW "Unable to find %.6f timestamp in GT file, wrong GT file loaded???\n" RESET, timestep);
+      PRINT_WARNING(YELLOW "Unable to find %.6f timestamp in GT file, wrong GT file loaded???\n" RESET, timestep);
       return false;
     }
 

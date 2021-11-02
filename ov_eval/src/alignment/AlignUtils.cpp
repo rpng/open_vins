@@ -20,9 +20,6 @@
  */
 
 #include "AlignUtils.h"
-#include "utils/print.h"
-
-#include <sstream>
 
 using namespace ov_eval;
 
@@ -72,7 +69,7 @@ void AlignUtils::align_umeyama(const std::vector<Eigen::Matrix<double, 3, 1>> &d
   if (yaw_only) {
     Eigen::Matrix<double, 3, 3> rot_C = n * C.transpose();
     double theta = AlignUtils::get_best_yaw(rot_C);
-    R = Math::rot_z(theta);
+    R = ov_core::rot_z(theta);
   } else {
     R.noalias() = U_svd * S * V_svd.transpose();
   }

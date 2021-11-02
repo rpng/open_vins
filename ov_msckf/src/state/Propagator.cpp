@@ -20,9 +20,9 @@
  */
 
 #include "Propagator.h"
-#include "utils/print.h"
 
 using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timestamp) {

@@ -24,7 +24,7 @@
 #include <string>
 
 #include "calc/ResultTrajectory.h"
-#include "utils/Colors.h"
+#include "utils/colors.h"
 #include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -84,6 +84,9 @@ void plot_3errors(ov_eval::Statistics sx, ov_eval::Statistics sy, ov_eval::Stati
 
 int main(int argc, char **argv) {
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
+
   // Ensure we have a path
   if (argc < 4) {
     PRINT_ERROR(RED "ERROR: Please specify a align mode, groudtruth, and algorithm run file\n" RESET);
@@ -114,14 +117,14 @@ int main(int argc, char **argv) {
   traj.calculate_ate(error_ori, error_pos);
 
   // Print it
-  PRINT_DEBUG("======================================\n");
-  PRINT_DEBUG("Absolute Trajectory Error\n");
-  PRINT_DEBUG("======================================\n");
-  PRINT_DEBUG("rmse_ori = %.3f | rmse_pos = %.3f\n", error_ori.rmse, error_pos.rmse);
-  PRINT_DEBUG("mean_ori = %.3f | mean_pos = %.3f\n", error_ori.mean, error_pos.mean);
-  PRINT_DEBUG("min_ori  = %.3f | min_pos  = %.3f\n", error_ori.min, error_pos.min);
-  PRINT_DEBUG("max_ori  = %.3f | max_pos  = %.3f\n", error_ori.max, error_pos.max);
-  PRINT_DEBUG("std_ori  = %.3f | std_pos  = %.3f\n", error_ori.std, error_pos.std);
+  PRINT_INFO("======================================\n");
+  PRINT_INFO("Absolute Trajectory Error\n");
+  PRINT_INFO("======================================\n");
+  PRINT_INFO("rmse_ori = %.3f | rmse_pos = %.3f\n", error_ori.rmse, error_pos.rmse);
+  PRINT_INFO("mean_ori = %.3f | mean_pos = %.3f\n", error_ori.mean, error_pos.mean);
+  PRINT_INFO("min_ori  = %.3f | min_pos  = %.3f\n", error_ori.min, error_pos.min);
+  PRINT_INFO("max_ori  = %.3f | max_pos  = %.3f\n", error_ori.max, error_pos.max);
+  PRINT_INFO("std_ori  = %.3f | std_pos  = %.3f\n", error_ori.std, error_pos.std);
 
   //===========================================================
   // Relative pose error
@@ -133,12 +136,12 @@ int main(int argc, char **argv) {
   traj.calculate_rpe(segments, error_rpe);
 
   // Print it
-  PRINT_DEBUG("======================================\n");
-  PRINT_DEBUG("Relative Pose Error\n");
-  PRINT_DEBUG("======================================\n");
+  PRINT_INFO("======================================\n");
+  PRINT_INFO("Relative Pose Error\n");
+  PRINT_INFO("======================================\n");
   for (const auto &seg : error_rpe) {
-    PRINT_DEBUG("seg %d - median_ori = %.3f | median_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.median,
-                seg.second.second.median, (int)seg.second.second.values.size());
+    PRINT_INFO("seg %d - median_ori = %.3f | median_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.median,
+               seg.second.second.median, (int)seg.second.second.values.size());
     // PRINT_DEBUG("seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
   }
 
@@ -199,14 +202,14 @@ int main(int argc, char **argv) {
   traj.calculate_nees(nees_ori, nees_pos);
 
   // Print it
-  PRINT_DEBUG("======================================\n");
-  PRINT_DEBUG("Normalized Estimation Error Squared\n");
-  PRINT_DEBUG("======================================\n");
-  PRINT_DEBUG("mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
-  PRINT_DEBUG("min_ori  = %.3f | min_pos  = %.3f\n", nees_ori.min, nees_pos.min);
-  PRINT_DEBUG("max_ori  = %.3f | max_pos  = %.3f\n", nees_ori.max, nees_pos.max);
-  PRINT_DEBUG("std_ori  = %.3f | std_pos  = %.3f\n", nees_ori.std, nees_pos.std);
-  PRINT_DEBUG("======================================\n");
+  PRINT_INFO("======================================\n");
+  PRINT_INFO("Normalized Estimation Error Squared\n");
+  PRINT_INFO("======================================\n");
+  PRINT_INFO("mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
+  PRINT_INFO("min_ori  = %.3f | min_pos  = %.3f\n", nees_ori.min, nees_pos.min);
+  PRINT_INFO("max_ori  = %.3f | max_pos  = %.3f\n", nees_ori.max, nees_pos.max);
+  PRINT_INFO("std_ori  = %.3f | std_pos  = %.3f\n", nees_ori.std, nees_pos.std);
+  PRINT_INFO("======================================\n");
 
 #ifdef HAVE_PYTHONLIBS
 

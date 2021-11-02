@@ -42,8 +42,8 @@ struct UpdaterOptions {
 
   /// Nice print function of what parameters we have loaded
   void print() {
-    PRINT_INFO("\t- chi2_multipler: %.1f\n", chi2_multipler);
-    PRINT_INFO("\t- sigma_pix: %.2f\n", sigma_pix);
+    PRINT_DEBUG("\t- chi2_multipler: %.1f\n", chi2_multipler);
+    PRINT_DEBUG("\t- sigma_pix: %.2f\n", sigma_pix);
   }
 };
 

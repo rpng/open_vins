@@ -26,8 +26,8 @@
 #include <string>
 
 #include "calc/ResultTrajectory.h"
-#include "utils/Colors.h"
 #include "utils/Loader.h"
+#include "utils/colors.h"
 #include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -40,6 +40,9 @@
 #endif
 
 int main(int argc, char **argv) {
+
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
 
   // Ensure we have a path
   if (argc < 4) {
@@ -236,56 +239,56 @@ int main(int argc, char **argv) {
   //===============================================================================
 
   // Finally print the ATE for all the runs
-  PRINT_DEBUG("============================================\n");
-  PRINT_DEBUG("ATE LATEX TABLE\n");
-  PRINT_DEBUG("============================================\n");
+  PRINT_INFO("============================================\n");
+  PRINT_INFO("ATE LATEX TABLE\n");
+  PRINT_INFO("============================================\n");
   for (size_t i = 0; i < path_groundtruths.size(); i++) {
     std::string gtname = path_groundtruths.at(i).stem().string();
     boost::replace_all(gtname, "_", "\\_");
-    PRINT_DEBUG(" & \\textbf{%s}", gtname.c_str());
+    PRINT_INFO(" & \\textbf{%s}", gtname.c_str());
   }
-  PRINT_DEBUG(" & \\textbf{Average} \\\\\\hline\n");
+  PRINT_INFO(" & \\textbf{Average} \\\\\\hline\n");
   for (auto &algo : algo_ate) {
     std::string algoname = algo.first;
     boost::replace_all(algoname, "_", "\\_");
-    PRINT_DEBUG(algoname.c_str());
+    PRINT_INFO(algoname.c_str());
     double sum_ori = 0.0;
     double sum_pos = 0.0;
     int sum_ct = 0;
     for (auto &seg : algo.second) {
       if (seg.first.values.empty() || seg.second.values.empty()) {
-        PRINT_DEBUG(" & - / -");
+        PRINT_INFO(" & - / -");
       } else {
-        PRINT_DEBUG(" & %.3f / %.3f", seg.first.rmse, seg.second.rmse);
+        PRINT_INFO(" & %.3f / %.3f", seg.first.rmse, seg.second.rmse);
         sum_ori += seg.first.rmse;
         sum_pos += seg.second.rmse;
         sum_ct++;
       }
     }
-    PRINT_DEBUG(" & %.3f / %.3f \\\\\n", sum_ori / sum_ct, sum_pos / sum_ct);
+    PRINT_INFO(" & %.3f / %.3f \\\\\n", sum_ori / sum_ct, sum_pos / sum_ct);
   }
-  PRINT_DEBUG("============================================\n");
+  PRINT_INFO("============================================\n");
 
   // Finally print the RPE for all the runs
-  PRINT_DEBUG("============================================\n");
-  PRINT_DEBUG("RPE LATEX TABLE\n");
-  PRINT_DEBUG("============================================\n");
+  PRINT_INFO("============================================\n");
+  PRINT_INFO("RPE LATEX TABLE\n");
+  PRINT_INFO("============================================\n");
   for (const auto &len : segments) {
-    PRINT_DEBUG(" & \\textbf{%dm}", (int)len);
+    PRINT_INFO(" & \\textbf{%dm}", (int)len);
   }
-  PRINT_DEBUG(" \\\\\\hline\n");
+  PRINT_INFO(" \\\\\\hline\n");
   for (auto &algo : algo_rpe) {
     std::string algoname = algo.first;
     boost::replace_all(algoname, "_", "\\_");
-    PRINT_DEBUG(algoname.c_str());
+    PRINT_INFO(algoname.c_str());
     for (auto &seg : algo.second) {
       seg.second.first.calculate();
       seg.second.second.calculate();
-      PRINT_DEBUG(" & %.3f / %.3f", seg.second.first.median, seg.second.second.median);
+      PRINT_INFO(" & %.3f / %.3f", seg.second.first.median, seg.second.second.median);
     }
-    PRINT_DEBUG(" \\\\\n");
+    PRINT_INFO(" \\\\\n");
   }
-  PRINT_DEBUG("============================================\n");
+  PRINT_INFO("============================================\n");
 
 #ifdef HAVE_PYTHONLIBS
 

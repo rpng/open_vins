@@ -47,6 +47,10 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
 
   // ESTIMATOR ======================================================================
 
+  // Verbosity
+  std::string verbosity;
+  app1.add_option("--verbosity", verbosity, "");
+
   // Main EKF parameters
   app1.add_option("--use_fej", params.state_options.do_fej, "");
   app1.add_option("--use_imuavg", params.state_options.imu_avg, "");
@@ -171,16 +175,19 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
     std::exit(app1.exit(e));
   }
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel(verbosity);
+
   // Set what representation we should be using
   std::transform(feat_rep_msckf_str.begin(), feat_rep_msckf_str.end(), feat_rep_msckf_str.begin(), ::toupper);
   std::transform(feat_rep_slam_str.begin(), feat_rep_slam_str.end(), feat_rep_slam_str.begin(), ::toupper);
   std::transform(feat_rep_aruco_str.begin(), feat_rep_aruco_str.end(), feat_rep_aruco_str.begin(), ::toupper);
-  params.state_options.feat_rep_msckf = LandmarkRepresentation::from_string(feat_rep_msckf_str);
-  params.state_options.feat_rep_slam = LandmarkRepresentation::from_string(feat_rep_slam_str);
-  params.state_options.feat_rep_aruco = LandmarkRepresentation::from_string(feat_rep_aruco_str);
-  if (params.state_options.feat_rep_msckf == LandmarkRepresentation::Representation::UNKNOWN ||
-      params.state_options.feat_rep_slam == LandmarkRepresentation::Representation::UNKNOWN ||
-      params.state_options.feat_rep_aruco == LandmarkRepresentation::Representation::UNKNOWN) {
+  params.state_options.feat_rep_msckf = ov_type::LandmarkRepresentation::from_string(feat_rep_msckf_str);
+  params.state_options.feat_rep_slam = ov_type::LandmarkRepresentation::from_string(feat_rep_slam_str);
+  params.state_options.feat_rep_aruco = ov_type::LandmarkRepresentation::from_string(feat_rep_aruco_str);
+  if (params.state_options.feat_rep_msckf == ov_type::LandmarkRepresentation::Representation::UNKNOWN ||
+      params.state_options.feat_rep_slam == ov_type::LandmarkRepresentation::Representation::UNKNOWN ||
+      params.state_options.feat_rep_aruco == ov_type::LandmarkRepresentation::Representation::UNKNOWN) {
     PRINT_ERROR(RED "VioManager(): invalid feature representation specified:\n" RESET);
     PRINT_ERROR(RED "\t- GLOBAL_3D\n" RESET);
     PRINT_ERROR(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
@@ -200,11 +207,11 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
 
   // Preprocessing histogram method
   if (histogram_method_str == "NONE") {
-    params.histogram_method = TrackBase::NONE;
+    params.histogram_method = ov_core::TrackBase::NONE;
   } else if (histogram_method_str == "HISTOGRAM") {
-    params.histogram_method = TrackBase::HISTOGRAM;
+    params.histogram_method = ov_core::TrackBase::HISTOGRAM;
   } else if (histogram_method_str == "CLAHE") {
-    params.histogram_method = TrackBase::CLAHE;
+    params.histogram_method = ov_core::TrackBase::CLAHE;
   } else {
     PRINT_ERROR(RED "VioManager(): invalid feature histogram specified:\n" RESET);
     PRINT_ERROR(RED "\t- NONE\n" RESET);

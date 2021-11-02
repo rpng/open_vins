@@ -94,8 +94,8 @@ int main(int argc, char **argv) {
     sync_cam.push_back(std::move(sync));
     sync_subs_cam.push_back(std::move(image_sub0));
     sync_subs_cam.push_back(std::move(image_sub1));
-    ROS_INFO("subscribing to cam (stereo): %s", cam_topic0.c_str());
-    ROS_INFO("subscribing to cam (stereo): %s", cam_topic1.c_str());
+    PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic0.c_str());
+    PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic1.c_str());
   } else {
     // Now we should add any non-stereo callbacks here
     for (int i = 0; i < params.state_options.num_cameras; i++) {
@@ -104,7 +104,7 @@ int main(int argc, char **argv) {
       nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
       // create subscriber
       subs_cam.push_back(nh.subscribe<sensor_msgs::Image>(cam_topic, 5, boost::bind(callback_monocular, _1, i)));
-      ROS_INFO("subscribing to cam (mono): %s", cam_topic.c_str());
+      PRINT_DEBUG("subscribing to cam (mono): %s", cam_topic.c_str());
     }
   }
 
@@ -115,7 +115,7 @@ int main(int argc, char **argv) {
   // Spin off to ROS
   // TODO: maybe should use multi-thread spinner
   // TODO: but need to support multi-threaded calls to viomanager
-  ROS_INFO("done...spinning to ros");
+  PRINT_DEBUG("done...spinning to ros");
   ros::spin();
 
   // Final visualization
@@ -146,7 +146,7 @@ void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
   try {
     cv_ptr = cv_bridge::toCvShare(msg0, sensor_msgs::image_encodings::MONO8);
   } catch (cv_bridge::Exception &e) {
-    ROS_ERROR("cv_bridge exception: %s", e.what());
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
 
@@ -175,7 +175,7 @@ void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::
   try {
     cv_ptr0 = cv_bridge::toCvShare(msg0, sensor_msgs::image_encodings::MONO8);
   } catch (cv_bridge::Exception &e) {
-    ROS_ERROR("cv_bridge exception: %s", e.what());
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
 
@@ -184,7 +184,7 @@ void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::
   try {
     cv_ptr1 = cv_bridge::toCvShare(msg1, sensor_msgs::image_encodings::MONO8);
   } catch (cv_bridge::Exception &e) {
-    ROS_ERROR("cv_bridge exception: %s", e.what());
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
     return;
   }
 

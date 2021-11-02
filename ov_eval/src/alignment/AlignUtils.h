@@ -28,8 +28,9 @@
 #include <string>
 #include <vector>
 
-#include "utils/Colors.h"
-#include "utils/Math.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
 
 namespace ov_eval {
 

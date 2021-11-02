@@ -14,7 +14,7 @@ find_package(Eigen3 REQUIRED)
 find_package(OpenCV 4 QUIET)
 if (NOT OpenCV_FOUND)
     find_package(OpenCV 3 REQUIRED)
-endif()
+endif ()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
 # Display message to user
@@ -26,9 +26,9 @@ option(ENABLE_ARUCO_TAGS "Enable or disable aruco tag (disable if no contrib mod
 if (NOT ENABLE_ARUCO_TAGS)
     add_definitions(-DENABLE_ARUCO_TAGS=0)
     message(WARNING "DISABLING ARUCOTAG TRACKING!")
-else()
+else ()
     add_definitions(-DENABLE_ARUCO_TAGS=1)
-endif()
+endif ()
 
 # Describe catkin project
 option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" ON)
@@ -39,23 +39,23 @@ if (catkin_FOUND AND ENABLE_CATKIN_ROS)
             INCLUDE_DIRS src
             LIBRARIES ov_msckf_lib
     )
-else()
+else ()
     add_definitions(-DROS_AVAILABLE=0)
     message(WARNING "BUILDING WITHOUT ROS!")
-endif()
+endif ()
 
 # Try to compile with c++11
 # http://stackoverflow.com/a/25836953
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
+elseif (COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
+else ()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+endif ()
 
 # Enable compile optimizations
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
@@ -76,7 +76,7 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${catkin_LIBRARIES}
-)
+        )
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
@@ -85,7 +85,7 @@ if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
     message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
     include_directories(${ov_core_SOURCE_DIR}/src/)
     list(APPEND thirdparty_libraries ov_core_lib)
-endif()
+endif ()
 
 ##################################################
 # Make the core library
@@ -100,12 +100,12 @@ list(APPEND library_source_files
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
-)
+        )
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     list(APPEND library_source_files
-        src/core/RosVisualizer.cpp
-    )
-endif()
+            src/core/RosVisualizer.cpp
+            )
+endif ()
 add_library(ov_msckf_lib SHARED ${library_source_files})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
 target_include_directories(ov_msckf_lib PUBLIC src)
@@ -127,12 +127,12 @@ if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_executable(run_simulation src/run_simulation.cpp)
     target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
 
-else()
+else ()
 
     add_executable(run_simulation src/run_simulation.cpp)
     target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
 
-endif()
+endif ()
 
 
 add_executable(test_sim_meas src/test_sim_meas.cpp)

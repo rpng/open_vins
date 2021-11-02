@@ -2550,7 +2550,7 @@ public:
 
   /// This allows in-place construction using an initializer list
   template <typename T, typename... Args>
-  IsMember(std::initializer_list<T> values, Args &&... args) : IsMember(std::vector<T>(values), std::forward<Args>(args)...) {}
+  IsMember(std::initializer_list<T> values, Args &&...args) : IsMember(std::vector<T>(values), std::forward<Args>(args)...) {}
 
   /// This checks to see if an item is in a set (empty function)
   template <typename T> explicit IsMember(T &&set) : IsMember(std::forward<T>(set), nullptr) {}
@@ -2603,7 +2603,7 @@ public:
 
   /// You can pass in as many filter functions as you like, they nest (string only currently)
   template <typename T, typename... Args>
-  IsMember(T &&set, filter_fn_t filter_fn_1, filter_fn_t filter_fn_2, Args &&... other)
+  IsMember(T &&set, filter_fn_t filter_fn_1, filter_fn_t filter_fn_2, Args &&...other)
       : IsMember(
             std::forward<T>(set), [filter_fn_1, filter_fn_2](std::string a) { return filter_fn_2(filter_fn_1(a)); }, other...) {}
 };
@@ -2618,7 +2618,7 @@ public:
 
   /// This allows in-place construction
   template <typename... Args>
-  Transformer(std::initializer_list<std::pair<std::string, std::string>> values, Args &&... args)
+  Transformer(std::initializer_list<std::pair<std::string, std::string>> values, Args &&...args)
       : Transformer(TransformPairs<std::string>(values), std::forward<Args>(args)...) {}
 
   /// direct map of std::string to std::string
@@ -2661,7 +2661,7 @@ public:
 
   /// You can pass in as many filter functions as you like, they nest
   template <typename T, typename... Args>
-  Transformer(T &&mapping, filter_fn_t filter_fn_1, filter_fn_t filter_fn_2, Args &&... other)
+  Transformer(T &&mapping, filter_fn_t filter_fn_1, filter_fn_t filter_fn_2, Args &&...other)
       : Transformer(
             std::forward<T>(mapping), [filter_fn_1, filter_fn_2](std::string a) { return filter_fn_2(filter_fn_1(a)); }, other...) {}
 };
@@ -2673,7 +2673,7 @@ public:
 
   /// This allows in-place construction
   template <typename... Args>
-  CheckedTransformer(std::initializer_list<std::pair<std::string, std::string>> values, Args &&... args)
+  CheckedTransformer(std::initializer_list<std::pair<std::string, std::string>> values, Args &&...args)
       : CheckedTransformer(TransformPairs<std::string>(values), std::forward<Args>(args)...) {}
 
   /// direct map of std::string to std::string
@@ -2734,7 +2734,7 @@ public:
 
   /// You can pass in as many filter functions as you like, they nest
   template <typename T, typename... Args>
-  CheckedTransformer(T &&mapping, filter_fn_t filter_fn_1, filter_fn_t filter_fn_2, Args &&... other)
+  CheckedTransformer(T &&mapping, filter_fn_t filter_fn_1, filter_fn_t filter_fn_2, Args &&...other)
       : CheckedTransformer(
             std::forward<T>(mapping), [filter_fn_1, filter_fn_2](std::string a) { return filter_fn_2(filter_fn_1(a)); }, other...) {}
 };
@@ -7349,13 +7349,13 @@ struct AppFriend {
 
   /// Wrap _parse_short, perfectly forward arguments and return
   template <typename... Args>
-  static auto parse_arg(App *app, Args &&... args) -> typename std::result_of<decltype (&App::_parse_arg)(App, Args...)>::type {
+  static auto parse_arg(App *app, Args &&...args) -> typename std::result_of<decltype (&App::_parse_arg)(App, Args...)>::type {
     return app->_parse_arg(std::forward<Args>(args)...);
   }
 
   /// Wrap _parse_subcommand, perfectly forward arguments and return
   template <typename... Args>
-  static auto parse_subcommand(App *app, Args &&... args) ->
+  static auto parse_subcommand(App *app, Args &&...args) ->
       typename std::result_of<decltype (&App::_parse_subcommand)(App, Args...)>::type {
     return app->_parse_subcommand(std::forward<Args>(args)...);
   }

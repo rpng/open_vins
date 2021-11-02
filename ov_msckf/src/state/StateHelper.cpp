@@ -20,9 +20,9 @@
  */
 
 #include "StateHelper.h"
-#include "utils/print.h"
 
 using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &order_NEW,

@@ -34,8 +34,6 @@
 #include "sim/BsplineSE3.h"
 #include "utils/colors.h"
 
-using namespace ov_core;
-
 namespace ov_msckf {
 
 /**
@@ -146,7 +144,7 @@ protected:
   std::vector<Eigen::VectorXd> traj_data;
 
   /// Our b-spline trajectory
-  BsplineSE3 spline;
+  ov_core::BsplineSE3 spline;
 
   /// Our map of 3d features
   size_t id_map = 0;

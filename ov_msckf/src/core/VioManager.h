@@ -179,7 +179,7 @@ public:
     for (auto &f : state->_features_SLAM) {
       if ((int)f.first <= state->_options.max_aruco_features)
         continue;
-      if (LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
+      if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
         // Assert that we have an anchor pose for this feature
         assert(f.second->_anchor_cam_id != -1);
         // Get calibration for our anchor camera
@@ -203,7 +203,7 @@ public:
     for (auto &f : state->_features_SLAM) {
       if ((int)f.first > state->_options.max_aruco_features)
         continue;
-      if (LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
+      if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
         // Assert that we have an anchor pose for this feature
         assert(f.second->_anchor_cam_id != -1);
         // Get calibration for our anchor camera
@@ -284,16 +284,16 @@ protected:
   std::shared_ptr<Propagator> propagator;
 
   /// Complete history of our feature tracks
-  std::shared_ptr<FeatureDatabase> trackDATABASE;
+  std::shared_ptr<ov_core::FeatureDatabase> trackDATABASE;
 
   /// Our sparse feature tracker (klt or descriptor)
-  std::shared_ptr<TrackBase> trackFEATS;
+  std::shared_ptr<ov_core::TrackBase> trackFEATS;
 
   /// Our aruoc tracker
-  std::shared_ptr<TrackBase> trackARUCO;
+  std::shared_ptr<ov_core::TrackBase> trackARUCO;
 
   /// State initializer
-  std::shared_ptr<InertialInitializer> initializer;
+  std::shared_ptr<ov_core::InertialInitializer> initializer;
 
   /// Boolean if we are initialized or not
   bool is_initialized_vio = false;
@@ -334,7 +334,7 @@ protected:
   std::vector<Eigen::Vector3d> good_features_MSCKF;
 
   /// Feature initializer used to triangulate all active tracks
-  std::shared_ptr<FeatureInitializer> active_tracks_initializer;
+  std::shared_ptr<ov_core::FeatureInitializer> active_tracks_initializer;
 
   // Re-triangulated features 3d positions seen from the current frame (used in visualization)
   double active_tracks_time = -1;

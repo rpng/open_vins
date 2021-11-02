@@ -22,6 +22,10 @@
 #ifndef OV_MSCKF_UPDATER_MSCKF_H
 #define OV_MSCKF_UPDATER_MSCKF_H
 
+#include <Eigen/Eigen>
+#include <iostream>
+#include <sstream>
+
 #include "feat/Feature.h"
 #include "feat/FeatureInitializer.h"
 #include "feat/FeatureInitializerOptions.h"
@@ -29,8 +33,8 @@
 #include "state/StateHelper.h"
 #include "types/LandmarkRepresentation.h"
 #include "utils/colors.h"
+#include "utils/print.h"
 #include "utils/quat_ops.h"
-#include <Eigen/Eigen>
 
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
@@ -59,13 +63,13 @@ public:
    * @param options Updater options (include measurement noise value)
    * @param feat_init_options Feature initializer options
    */
-  UpdaterMSCKF(UpdaterOptions &options, FeatureInitializerOptions &feat_init_options) : _options(options) {
+  UpdaterMSCKF(UpdaterOptions &options, ov_core::FeatureInitializerOptions &feat_init_options) : _options(options) {
 
     // Save our raw pixel noise squared
     _options.sigma_pix_sq = std::pow(_options.sigma_pix, 2);
 
     // Save our feature initializer
-    initializer_feat = std::unique_ptr<FeatureInitializer>(new FeatureInitializer(feat_init_options));
+    initializer_feat = std::unique_ptr<ov_core::FeatureInitializer>(new ov_core::FeatureInitializer(feat_init_options));
 
     // Initialize the chi squared test table with confidence level 0.95
     // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
@@ -81,14 +85,14 @@ public:
    * @param state State of the filter
    * @param feature_vec Features that can be used for update
    */
-  void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec);
+  void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
 
 protected:
   /// Options used during update
   UpdaterOptions _options;
 
   /// Feature initializer class object
-  std::unique_ptr<FeatureInitializer> initializer_feat;
+  std::unique_ptr<ov_core::FeatureInitializer> initializer_feat;
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;

@@ -25,10 +25,9 @@
 #include "State.h"
 #include "types/Landmark.h"
 #include "utils/colors.h"
+#include "utils/print.h"
 
 #include <boost/math/distributions/chi_squared.hpp>
-
-using namespace ov_core;
 
 namespace ov_msckf {
 
@@ -72,8 +71,8 @@ public:
    * @param Phi State transition matrix (size order_NEW by size order_OLD)
    * @param Q Additive state propagation noise matrix (size order_NEW by size order_NEW)
    */
-  static void EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &order_NEW,
-                             const std::vector<std::shared_ptr<Type>> &order_OLD, const Eigen::MatrixXd &Phi, const Eigen::MatrixXd &Q);
+  static void EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &order_NEW,
+                             const std::vector<std::shared_ptr<ov_type::Type>> &order_OLD, const Eigen::MatrixXd &Phi, const Eigen::MatrixXd &Q);
 
   /**
    * @brief Performs EKF update of the state (see @ref linear-meas page)
@@ -83,7 +82,7 @@ public:
    * @param res residual of updating measurement
    * @param R updating measurement covariance
    */
-  static void EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &H_order, const Eigen::MatrixXd &H,
+  static void EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &H_order, const Eigen::MatrixXd &H,
                         const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
   /**
@@ -110,7 +109,7 @@ public:
    * @param small_variables Vector of variables whose marginal covariance is desired
    * @return marginal covariance of the passed variables
    */
-  static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &small_variables);
+  static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &small_variables);
 
   /**
    * @brief This gets the full covariance matrix.
@@ -136,14 +135,14 @@ public:
    * @param state Pointer to state
    * @param marg Pointer to variable to marginalize
    */
-  static void marginalize(std::shared_ptr<State> state, std::shared_ptr<Type> marg);
+  static void marginalize(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> marg);
 
   /**
    * @brief Clones "variable to clone" and places it at end of covariance
    * @param state Pointer to state
    * @param variable_to_clone Pointer to variable that will be cloned
    */
-  static std::shared_ptr<Type> clone(std::shared_ptr<State> state, std::shared_ptr<Type> variable_to_clone);
+  static std::shared_ptr<ov_type::Type> clone(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> variable_to_clone);
 
   /**
    * @brief Initializes new variable into covariance.
@@ -162,8 +161,8 @@ public:
    * @param res Residual of initializing measurements
    * @param chi_2_mult Value we should multiply the chi2 threshold by (larger means it will be accepted more measurements)
    */
-  static bool initialize(std::shared_ptr<State> state, std::shared_ptr<Type> new_variable,
-                         const std::vector<std::shared_ptr<Type>> &H_order, Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L, Eigen::MatrixXd &R,
+  static bool initialize(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> new_variable,
+                         const std::vector<std::shared_ptr<ov_type::Type>> &H_order, Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L, Eigen::MatrixXd &R,
                          Eigen::VectorXd &res, double chi_2_mult);
 
   /**
@@ -180,8 +179,8 @@ public:
    * @param R Covariance of initializing measurements
    * @param res Residual of initializing measurements
    */
-  static void initialize_invertible(std::shared_ptr<State> state, std::shared_ptr<Type> new_variable,
-                                    const std::vector<std::shared_ptr<Type>> &H_order, const Eigen::MatrixXd &H_R,
+  static void initialize_invertible(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> new_variable,
+                                    const std::vector<std::shared_ptr<ov_type::Type>> &H_order, const Eigen::MatrixXd &H_R,
                                     const Eigen::MatrixXd &H_L, const Eigen::MatrixXd &R, const Eigen::VectorXd &res);
 
   /**

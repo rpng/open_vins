@@ -27,13 +27,16 @@
 #include <sstream>
 #include <string>
 
-#include "utils/Colors.h"
+#include "utils/colors.h"
 #include "utils/print.h"
 
 /**
  * Given a CSV file this will convert it to our text file format.
  */
 void process_csv(std::string infile) {
+
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
 
   // Check if file paths are good
   std::ifstream file1;

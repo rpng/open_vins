@@ -63,6 +63,11 @@ int main(int argc, char **argv) {
   ros::init(argc, argv, "test_tracking");
   ros::NodeHandle nh("~");
 
+  // Verbosity setting
+  std::string verbosity;
+  nh.param<std::string>("verbosity", verbosity, "INFO");
+  ov_core::Printer::setPrintLevel(verbosity);
+
   // Our camera topics (left and right stereo)
   std::string topic_camera0;
   std::string topic_camera1;

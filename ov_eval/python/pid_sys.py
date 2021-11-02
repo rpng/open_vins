@@ -18,10 +18,10 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
 import os
-import rospy
 import psutil
+import rospy
+import sys
 
 
 def get_process_name(process_name, doprint=False):
@@ -46,10 +46,8 @@ def get_process_name(process_name, doprint=False):
     if len(processes) > 0:
         return processes
     # else we have failed!
-    rospy.logerr("unable to find process for %s"%(process_name))
+    rospy.logerr("unable to find process for %s" % (process_name))
     return False
-
-
 
 
 if __name__ == '__main__':
@@ -92,9 +90,9 @@ if __name__ == '__main__':
             sum_threads += threads
 
         # print what the total summed value is
-        print("cpu percent = %.3f"%sum_perc_cpu)
-        print("mem percent = %.3f"%sum_perc_mem)
-        print("num threads = %d"%sum_threads)
+        print("cpu percent = %.3f" % sum_perc_cpu)
+        print("mem percent = %.3f" % sum_perc_mem)
+        print("num threads = %d" % sum_threads)
         processes = False
 
         # try to get the process again, this allows us to handle

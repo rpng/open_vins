@@ -20,8 +20,9 @@
  */
 
 #include "UpdaterZeroVelocity.h"
-#include "utils/print.h"
 
+using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
@@ -203,10 +204,10 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     }
     disparity_passed = (average_disparity < _zupt_max_disparity && num_features > 20);
     if (disparity_passed) {
-      PRINT_WARNING(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+      PRINT_INFO(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
                     (int)num_features);
     } else {
-      PRINT_INFO(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+      PRINT_DEBUG(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
                  (int)num_features);
     }
   }
@@ -215,11 +216,11 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   // We need to pass the chi2 and not be above our velocity threshold
   if (!disparity_passed && (chi2 > _options.chi2_multipler * chi2_check || state->_imu->vel().norm() > _zupt_max_velocity)) {
     last_zupt_state_timestamp = 0.0;
-    PRINT_WARNING(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+    PRINT_DEBUG(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
                   _options.chi2_multipler * chi2_check);
     return false;
   }
-  PRINT_DEBUG(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+  PRINT_INFO(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
               _options.chi2_multipler * chi2_check);
 
   // Do our update, only do this update if we have previously detected

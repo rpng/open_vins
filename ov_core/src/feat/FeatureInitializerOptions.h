@@ -69,18 +69,18 @@ struct FeatureInitializerOptions {
 
   /// Nice print function of what parameters we have loaded
   void print() {
-    PRINT_INFO("\t- triangulate_1d: %d\n", triangulate_1d);
-    PRINT_INFO("\t- refine_features: %d\n", refine_features);
-    PRINT_INFO("\t- max_runs: %d\n", max_runs);
-    PRINT_INFO("\t- init_lamda: %.3f\n", init_lamda);
-    PRINT_INFO("\t- max_lamda: %.3f\n", max_lamda);
-    PRINT_INFO("\t- min_dx: %.7f\n", min_dx);
-    PRINT_INFO("\t- min_dcost: %.7f\n", min_dcost);
-    PRINT_INFO("\t- lam_mult: %.3f\n", lam_mult);
-    PRINT_INFO("\t- min_dist: %.3f\n", min_dist);
-    PRINT_INFO("\t- max_dist: %.3f\n", max_dist);
-    PRINT_INFO("\t- max_baseline: %.3f\n", max_baseline);
-    PRINT_INFO("\t- max_cond_number: %.3f\n", max_cond_number);
+    PRINT_DEBUG("\t- triangulate_1d: %d\n", triangulate_1d);
+    PRINT_DEBUG("\t- refine_features: %d\n", refine_features);
+    PRINT_DEBUG("\t- max_runs: %d\n", max_runs);
+    PRINT_DEBUG("\t- init_lamda: %.3f\n", init_lamda);
+    PRINT_DEBUG("\t- max_lamda: %.3f\n", max_lamda);
+    PRINT_DEBUG("\t- min_dx: %.7f\n", min_dx);
+    PRINT_DEBUG("\t- min_dcost: %.7f\n", min_dcost);
+    PRINT_DEBUG("\t- lam_mult: %.3f\n", lam_mult);
+    PRINT_DEBUG("\t- min_dist: %.3f\n", min_dist);
+    PRINT_DEBUG("\t- max_dist: %.3f\n", max_dist);
+    PRINT_DEBUG("\t- max_baseline: %.3f\n", max_baseline);
+    PRINT_DEBUG("\t- max_cond_number: %.3f\n", max_cond_number);
   }
 };
 

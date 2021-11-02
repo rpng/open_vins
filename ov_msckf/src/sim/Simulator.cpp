@@ -21,8 +21,7 @@
 
 #include "Simulator.h"
 
-#include <sstream>
-
+using namespace ov_core;
 using namespace ov_msckf;
 
 Simulator::Simulator(VioManagerOptions &params_) {

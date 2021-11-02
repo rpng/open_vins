@@ -22,6 +22,7 @@
 #include "UpdaterHelper.h"
 
 using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 void UpdaterHelper::get_feature_jacobian_representation(std::shared_ptr<State> state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,

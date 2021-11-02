@@ -20,11 +20,6 @@
  */
 
 #include "VioManager.h"
-#include "types/Landmark.h"
-#include "utils/print.h"
-
-#include <memory>
-#include <sstream>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -193,7 +188,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
 
   // Check if we actually have a simulated tracker
   // If not, recreate and re-cast the tracker to our simulation tracker
-  std::shared_ptr<TrackSIM> trackSIM = dynamic_pointer_cast<TrackSIM>(trackFEATS);
+  std::shared_ptr<TrackSIM> trackSIM = std::dynamic_pointer_cast<TrackSIM>(trackFEATS);
   if (trackSIM == nullptr) {
     // Replace with the simulated tracker
     trackSIM = std::make_shared<TrackSIM>(state->_cam_intrinsics_cameras, state->_options.max_aruco_features);
@@ -378,8 +373,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // This isn't super ideal, but it keeps the logic after this easier...
   // We can start processing things when we have at least 5 clones since we can start triangulating things...
   if ((int)state->_clones_IMU.size() < std::min(state->_options.max_clone_size, 5)) {
-    PRINT_INFO("waiting for enough clone states (%d of %d)....\n", (int)state->_clones_IMU.size(),
-               std::min(state->_options.max_clone_size, 5));
+    PRINT_DEBUG("waiting for enough clone states (%d of %d)....\n", (int)state->_clones_IMU.size(),
+                std::min(state->_options.max_clone_size, 5));
     return;
   }
 
@@ -652,7 +647,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     ss << " " << id;
   }
   ss << ")" << std::endl;
-  PRINT_DEBUG(BLUE "%s" RESET, ss.str().c_str());
+  PRINT_INFO(BLUE "%s" RESET, ss.str().c_str());
 
   // Finally if we are saving stats to file, lets save it to file
   if (params.record_timing_information && of_statistics.is_open()) {

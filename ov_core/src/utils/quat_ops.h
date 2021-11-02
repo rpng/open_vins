@@ -61,12 +61,9 @@
  *
  */
 
-#include "utils/print.h"
-
 #include <Eigen/Eigen>
-#include <iostream>
-#include <sstream>
-#include <string>
+
+#include "utils/print.h"
 
 namespace ov_core {
 
@@ -519,6 +516,65 @@ inline Eigen::Matrix<double, 3, 3> Jl_so3(Eigen::Matrix<double, 3, 1> w) {
  * @return The right Jacobian of SO(3)
  */
 inline Eigen::Matrix<double, 3, 3> Jr_so3(Eigen::Matrix<double, 3, 1> w) { return Jl_so3(-w); }
+
+/**
+ * @brief Gets roll, pitch, yaw of argument rotation (in that order).
+ *
+ * To recover the matrix: R_input = R_z(yaw)*R_y(pitch)*R_x(roll)
+ * If you are interested in how to compute Jacobians checkout this report:
+ * http://mars.cs.umn.edu/tr/reports/Trawny05c.pdf
+ *
+ * @param rot Rotation matrix
+ * @return roll, pitch, yaw values (in that order)
+ */
+inline Eigen::Matrix<double, 3, 1> rot2rpy(const Eigen::Matrix<double, 3, 3> &rot) {
+  Eigen::Matrix<double, 3, 1> rpy;
+  rpy(1, 0) = atan2(-rot(2, 0), sqrt(rot(0, 0) * rot(0, 0) + rot(1, 0) * rot(1, 0)));
+  if (std::abs(cos(rpy(1, 0)) > 1.0e-12)) {
+    rpy(2, 0) = atan2(rot(1, 0) / cos(rpy(1, 0)), rot(0, 0) / cos(rpy(1, 0)));
+    rpy(0, 0) = atan2(rot(2, 1) / cos(rpy(1, 0)), rot(2, 2) / cos(rpy(1, 0)));
+  } else {
+    rpy(2, 0) = 0;
+    rpy(0, 0) = atan2(rot(0, 1), rot(1, 1));
+  }
+  return rpy;
+}
+
+/**
+ * @brief Construct rotation matrix from given roll
+ * @param t roll angle
+ */
+inline Eigen::Matrix<double, 3, 3> rot_x(double t) {
+  Eigen::Matrix<double, 3, 3> r;
+  double ct = cos(t);
+  double st = sin(t);
+  r << 1.0, 0.0, 0.0, 0.0, ct, -st, 0.0, st, ct;
+  return r;
+}
+
+/**
+ * @brief Construct rotation matrix from given pitch
+ * @param t pitch angle
+ */
+inline Eigen::Matrix<double, 3, 3> rot_y(double t) {
+  Eigen::Matrix<double, 3, 3> r;
+  double ct = cos(t);
+  double st = sin(t);
+  r << ct, 0.0, st, 0.0, 1.0, 0.0, -st, 0.0, ct;
+  return r;
+}
+
+/**
+ * @brief Construct rotation matrix from given yaw
+ * @param t yaw angle
+ */
+inline Eigen::Matrix<double, 3, 3> rot_z(double t) {
+  Eigen::Matrix<double, 3, 3> r;
+  double ct = cos(t);
+  double st = sin(t);
+  r << ct, -st, 0.0, st, ct, 0.0, 0.0, 0.0, 1.0;
+  return r;
+}
 
 } // namespace ov_core
 

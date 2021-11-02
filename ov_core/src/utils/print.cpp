@@ -20,19 +20,34 @@
  */
 
 #include "print.h"
-#include <cstdarg>
-#include <iostream>
-#include <stdio.h>
-#include <string.h>
 
 using namespace ov_core;
 
-// Need to define the variable for everything to work
+// Need to define the static variable for everything to work
 Printer::PrintLevel Printer::current_print_level = PrintLevel::ALL;
+
+void Printer::setPrintLevel(const std::string &level) {
+  if (level == "ALL")
+    setPrintLevel(PrintLevel::ALL);
+  else if (level == "DEBUG")
+    setPrintLevel(PrintLevel::DEBUG);
+  else if (level == "INFO")
+    setPrintLevel(PrintLevel::INFO);
+  else if (level == "WARNING")
+    setPrintLevel(PrintLevel::WARNING);
+  else if (level == "ERROR")
+    setPrintLevel(PrintLevel::ERROR);
+  else if (level == "SILENT")
+    setPrintLevel(PrintLevel::SILENT);
+  else {
+    std::cout << "Invalid print level requested: " << level << std::endl;
+    std::cout << "Valid levels are: ALL, DEBUG, INFO, WARNING, ERROR, SILENT" << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+}
 
 void Printer::setPrintLevel(PrintLevel level) {
   Printer::current_print_level = level;
-
   std::cout << "Setting printing level to: ";
   switch (current_print_level) {
   case PrintLevel::ALL:
@@ -54,26 +69,31 @@ void Printer::setPrintLevel(PrintLevel level) {
     std::cout << "SILENT";
     break;
   default:
-    // Can never get here
-    break;
+    std::cout << std::endl;
+    std::cout << "Invalid print level requested: " << level << std::endl;
+    std::cout << "Valid levels are: ALL, DEBUG, INFO, WARNING, ERROR, SILENT" << std::endl;
+    std::exit(EXIT_FAILURE);
   }
-
   std::cout << std::endl;
 }
 
-void Printer::debugPrint(PrintLevel level, const char location[], const char *format, ...) {
+void Printer::debugPrint(PrintLevel level, const char location[], const char line[], const char *format, ...) {
   // Only print for the current debug level
   if (static_cast<int>(level) < static_cast<int>(Printer::current_print_level)) {
     return;
   }
 
-  // Print the location info first
-  if (strlen(location) > MAX_FILE_PATH_LEGTH) {
-    // Truncate the location length to the max size for the filepath
-    printf("%s", &(location[strlen(location) - MAX_FILE_PATH_LEGTH]));
-  } else {
-    // Print the full location
-    printf("%s", location);
+  // Print the location info first for our debug output
+  // Truncate the filename to the max size for the filepath
+  if(static_cast<int>(level) < static_cast<int>(Printer::PrintLevel::DEBUG)) {
+    std::string path(location);
+    std::string base_filename = path.substr(path.find_last_of("/\\") + 1);
+    if (base_filename.size() > MAX_FILE_PATH_LEGTH) {
+      printf("%s", base_filename.substr(base_filename.size()-MAX_FILE_PATH_LEGTH,base_filename.size()).c_str());
+    } else {
+      printf("%s", base_filename.c_str());
+    }
+    printf(":%s ", line);
   }
 
   // Print the rest of the args

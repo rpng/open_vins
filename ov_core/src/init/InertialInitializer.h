@@ -23,6 +23,7 @@
 #define OV_CORE_INERTIALINITIALIZER_H
 
 #include "utils/colors.h"
+#include "utils/print.h"
 #include "utils/quat_ops.h"
 #include "utils/sensor_data.h"
 

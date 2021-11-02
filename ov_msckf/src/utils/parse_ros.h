@@ -43,6 +43,11 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
 
   // ESTIMATOR ======================================================================
 
+  // Verbosity setting
+  std::string verbosity;
+  nh.param<std::string>("verbosity", verbosity, "INFO");
+  ov_core::Printer::setPrintLevel(verbosity);
+
   // Main EKF parameters
   nh.param<bool>("use_fej", params.state_options.do_fej, params.state_options.do_fej);
   nh.param<bool>("use_imuavg", params.state_options.imu_avg, params.state_options.imu_avg);
@@ -77,12 +82,12 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   std::transform(feat_rep_msckf_str.begin(), feat_rep_msckf_str.end(), feat_rep_msckf_str.begin(), ::toupper);
   std::transform(feat_rep_slam_str.begin(), feat_rep_slam_str.end(), feat_rep_slam_str.begin(), ::toupper);
   std::transform(feat_rep_aruco_str.begin(), feat_rep_aruco_str.end(), feat_rep_aruco_str.begin(), ::toupper);
-  params.state_options.feat_rep_msckf = LandmarkRepresentation::from_string(feat_rep_msckf_str);
-  params.state_options.feat_rep_slam = LandmarkRepresentation::from_string(feat_rep_slam_str);
-  params.state_options.feat_rep_aruco = LandmarkRepresentation::from_string(feat_rep_aruco_str);
-  if (params.state_options.feat_rep_msckf == LandmarkRepresentation::Representation::UNKNOWN ||
-      params.state_options.feat_rep_slam == LandmarkRepresentation::Representation::UNKNOWN ||
-      params.state_options.feat_rep_aruco == LandmarkRepresentation::Representation::UNKNOWN) {
+  params.state_options.feat_rep_msckf = ov_type::LandmarkRepresentation::from_string(feat_rep_msckf_str);
+  params.state_options.feat_rep_slam = ov_type::LandmarkRepresentation::from_string(feat_rep_slam_str);
+  params.state_options.feat_rep_aruco = ov_type::LandmarkRepresentation::from_string(feat_rep_aruco_str);
+  if (params.state_options.feat_rep_msckf == ov_type::LandmarkRepresentation::Representation::UNKNOWN ||
+      params.state_options.feat_rep_slam == ov_type::LandmarkRepresentation::Representation::UNKNOWN ||
+      params.state_options.feat_rep_aruco == ov_type::LandmarkRepresentation::Representation::UNKNOWN) {
     PRINT_ERROR(RED "VioManager(): invalid feature representation specified:\n" RESET);
     PRINT_ERROR(RED "\t- GLOBAL_3D\n" RESET);
     PRINT_ERROR(RED "\t- GLOBAL_FULL_INVERSE_DEPTH\n" RESET);
@@ -155,11 +160,11 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   std::string histogram_method_str = "HISTOGRAM";
   nh.param<std::string>("histogram_method", histogram_method_str, histogram_method_str);
   if (histogram_method_str == "NONE") {
-    params.histogram_method = TrackBase::NONE;
+    params.histogram_method = ov_core::TrackBase::NONE;
   } else if (histogram_method_str == "HISTOGRAM") {
-    params.histogram_method = TrackBase::HISTOGRAM;
+    params.histogram_method = ov_core::TrackBase::HISTOGRAM;
   } else if (histogram_method_str == "CLAHE") {
-    params.histogram_method = TrackBase::CLAHE;
+    params.histogram_method = ov_core::TrackBase::CLAHE;
   } else {
     PRINT_ERROR(RED "VioManager(): invalid feature histogram specified:\n" RESET);
     PRINT_ERROR(RED "\t- NONE\n" RESET);
@@ -260,7 +265,7 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
 
     // Load these into our state
     Eigen::Matrix<double, 7, 1> cam_eigen;
-    cam_eigen.block(0, 0, 4, 1) = rot_2_quat(T_CtoI.block(0, 0, 3, 3).transpose());
+    cam_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_CtoI.block(0, 0, 3, 3).transpose());
     cam_eigen.block(4, 0, 3, 1) = -T_CtoI.block(0, 0, 3, 3).transpose() * T_CtoI.block(0, 3, 3, 1);
 
     // Insert

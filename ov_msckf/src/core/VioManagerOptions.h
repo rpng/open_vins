@@ -37,9 +37,6 @@
 #include "utils/print.h"
 #include "utils/quat_ops.h"
 
-using namespace std;
-using namespace ov_core;
-
 namespace ov_msckf {
 
 /**
@@ -91,18 +88,18 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_estimator() {
-    PRINT_INFO("ESTIMATOR PARAMETERS:\n");
+    PRINT_DEBUG("ESTIMATOR PARAMETERS:\n");
     state_options.print();
-    PRINT_INFO("\t- dt_slam_delay: %.1f\n", dt_slam_delay);
-    PRINT_INFO("\t- init_window_time: %.2f\n", init_window_time);
-    PRINT_INFO("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
-    PRINT_INFO("\t- zero_velocity_update: %d\n", try_zupt);
-    PRINT_INFO("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
-    PRINT_INFO("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
-    PRINT_INFO("\t- zupt_max_disparity: %.4f\n", zupt_max_disparity);
-    PRINT_INFO("\t- zupt_only_at_beginning?: %d\n", zupt_only_at_beginning);
-    PRINT_INFO("\t- record timing?: %d\n", (int)record_timing_information);
-    PRINT_INFO("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
+    PRINT_DEBUG("\t- dt_slam_delay: %.1f\n", dt_slam_delay);
+    PRINT_DEBUG("\t- init_window_time: %.2f\n", init_window_time);
+    PRINT_DEBUG("\t- init_imu_thresh: %.2f\n", init_imu_thresh);
+    PRINT_DEBUG("\t- zero_velocity_update: %d\n", try_zupt);
+    PRINT_DEBUG("\t- zupt_max_velocity: %.2f\n", zupt_max_velocity);
+    PRINT_DEBUG("\t- zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
+    PRINT_DEBUG("\t- zupt_max_disparity: %.4f\n", zupt_max_disparity);
+    PRINT_DEBUG("\t- zupt_only_at_beginning?: %d\n", zupt_only_at_beginning);
+    PRINT_DEBUG("\t- record timing?: %d\n", (int)record_timing_information);
+    PRINT_DEBUG("\t- record timing filepath: %s\n", record_timing_filepath.c_str());
   }
 
   // NOISE / CHI2 ============================
@@ -127,15 +124,15 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_noise() {
-    PRINT_INFO("NOISE PARAMETERS:\n");
+    PRINT_DEBUG("NOISE PARAMETERS:\n");
     imu_noises.print();
-    PRINT_INFO("\tUpdater MSCKF Feats:\n");
+    PRINT_DEBUG("\tUpdater MSCKF Feats:\n");
     msckf_options.print();
-    PRINT_INFO("\tUpdater SLAM Feats:\n");
+    PRINT_DEBUG("\tUpdater SLAM Feats:\n");
     slam_options.print();
-    PRINT_INFO("\tUpdater ARUCO Tags:\n");
+    PRINT_DEBUG("\tUpdater ARUCO Tags:\n");
     aruco_options.print();
-    PRINT_INFO("\tUpdater ZUPT:\n");
+    PRINT_DEBUG("\tUpdater ZUPT:\n");
     zupt_options.print();
   }
 
@@ -164,24 +161,24 @@ struct VioManagerOptions {
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_state() {
-    PRINT_INFO("STATE PARAMETERS:\n");
-    PRINT_INFO("\t- gravity_mag: %.4f\n", gravity_mag);
-    PRINT_INFO("\t- gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
-    PRINT_INFO("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
+    PRINT_DEBUG("STATE PARAMETERS:\n");
+    PRINT_DEBUG("\t- gravity_mag: %.4f\n", gravity_mag);
+    PRINT_DEBUG("\t- gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
+    PRINT_DEBUG("\t- calib_camimu_dt: %.4f\n", calib_camimu_dt);
     assert(state_options.num_cameras == (int)camera_fisheye.size());
     for (int n = 0; n < state_options.num_cameras; n++) {
       std::stringstream ss;
       ss << "cam_" << n << "_fisheye:" << camera_fisheye.at(n) << std::endl;
-      ss << "cam_" << n << "_wh:" << endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;
-      ss << "cam_" << n << "_intrinsic(0:3):" << endl << camera_intrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
-      ss << "cam_" << n << "_intrinsic(4:7):" << endl << camera_intrinsics.at(n).block(4, 0, 4, 1).transpose() << std::endl;
-      ss << "cam_" << n << "_extrinsic(0:3):" << endl << camera_extrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
-      ss << "cam_" << n << "_extrinsic(4:6):" << endl << camera_extrinsics.at(n).block(4, 0, 3, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_wh:" << std::endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;
+      ss << "cam_" << n << "_intrinsic(0:3):" << std::endl << camera_intrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_intrinsic(4:7):" << std::endl << camera_intrinsics.at(n).block(4, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_extrinsic(0:3):" << std::endl << camera_extrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_extrinsic(4:6):" << std::endl << camera_extrinsics.at(n).block(4, 0, 3, 1).transpose() << std::endl;
       Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();
-      T_CtoI.block(0, 0, 3, 3) = quat_2_Rot(camera_extrinsics.at(n).block(0, 0, 4, 1)).transpose();
+      T_CtoI.block(0, 0, 3, 3) = ov_core::quat_2_Rot(camera_extrinsics.at(n).block(0, 0, 4, 1)).transpose();
       T_CtoI.block(0, 3, 3, 1) = -T_CtoI.block(0, 0, 3, 3) * camera_extrinsics.at(n).block(4, 0, 3, 1);
-      ss << "T_C" << n << "toI:" << endl << T_CtoI << std::endl << std::endl;
-      PRINT_INFO(ss.str().c_str());
+      ss << "T_C" << n << "toI:" << std::endl << T_CtoI << std::endl << std::endl;
+      PRINT_DEBUG(ss.str().c_str());
     }
   }
 
@@ -221,7 +218,7 @@ struct VioManagerOptions {
   int min_px_dist = 10;
 
   /// What type of pre-processing histogram method should be applied to images
-  TrackBase::HistogramMethod histogram_method = TrackBase::HistogramMethod::HISTOGRAM;
+  ov_core::TrackBase::HistogramMethod histogram_method = ov_core::TrackBase::HistogramMethod::HISTOGRAM;
 
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
@@ -233,43 +230,30 @@ struct VioManagerOptions {
   std::map<size_t, cv::Mat> masks;
 
   /// Parameters used by our feature initialize / triangulator
-  FeatureInitializerOptions featinit_options;
+  ov_core::FeatureInitializerOptions featinit_options;
 
   /**
    * @brief This function will print out all parameters releated to our visual trackers.
    */
   void print_trackers() {
-    PRINT_INFO("FEATURE TRACKING PARAMETERS:\n");
-    PRINT_INFO("\t- use_klt: %d\n", use_klt);
-    PRINT_INFO("\t- use_stereo: %d\n", use_stereo);
-    PRINT_INFO("\t- use_aruco: %d\n", use_aruco);
-    PRINT_INFO("\t- downsize aruco: %d\n", downsize_aruco);
-    PRINT_INFO("\t- downsize cameras: %d\n", downsample_cameras);
-    PRINT_INFO("\t- use multi-threading: %d\n", use_multi_threading);
-    PRINT_INFO("\t- num_pts: %d\n", num_pts);
-    PRINT_INFO("\t- fast threshold: %d\n", fast_threshold);
-    PRINT_INFO("\t- grid X by Y: %d by %d\n", grid_x, grid_y);
-    PRINT_INFO("\t- min px dist: %d\n", min_px_dist);
-    PRINT_INFO("\t- hist method: %d\n", (int)histogram_method);
-    PRINT_INFO("\t- knn ratio: %.3f\n", knn_ratio);
-    PRINT_INFO("\t- use mask?: %d\n", use_mask);
+    PRINT_DEBUG("FEATURE TRACKING PARAMETERS:\n");
+    PRINT_DEBUG("\t- use_stereo: %d\n", use_stereo);
+    PRINT_DEBUG("\t- use_klt: %d\n", use_klt);
+    PRINT_DEBUG("\t- use_aruco: %d\n", use_aruco);
+    PRINT_DEBUG("\t- downsize aruco: %d\n", downsize_aruco);
+    PRINT_DEBUG("\t- downsize cameras: %d\n", downsample_cameras);
+    PRINT_DEBUG("\t- use multi-threading: %d\n", use_multi_threading);
+    PRINT_DEBUG("\t- num_pts: %d\n", num_pts);
+    PRINT_DEBUG("\t- fast threshold: %d\n", fast_threshold);
+    PRINT_DEBUG("\t- grid X by Y: %d by %d\n", grid_x, grid_y);
+    PRINT_DEBUG("\t- min px dist: %d\n", min_px_dist);
+    PRINT_DEBUG("\t- hist method: %d\n", (int)histogram_method);
+    PRINT_DEBUG("\t- knn ratio: %.3f\n", knn_ratio);
+    PRINT_DEBUG("\t- use mask?: %d\n", use_mask);
     featinit_options.print();
   }
 
   // SIMULATOR ===============================
-
-  /// Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.
-  string sim_traj_path = "../ov_data/sim/udel_gore.txt";
-
-  /// We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in
-  /// simulation.
-  double sim_distance_threshold = 1.0;
-
-  /// Frequency (Hz) that we will simulate our cameras
-  double sim_freq_cam = 10.0;
-
-  /// Frequency (Hz) that we will simulate our inertial measurement unit
-  double sim_freq_imu = 400.0;
 
   /// Seed for initial states (i.e. random feature 3d positions in the generated map)
   int sim_seed_state_init = 0;
@@ -284,19 +268,33 @@ struct VioManagerOptions {
   /// If we should perturb the calibration that the estimator starts with
   bool sim_do_perturbation = false;
 
+  /// Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.
+  std::string sim_traj_path = "../ov_data/sim/udel_gore.txt";
+
+  /// We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in
+  /// simulation.
+  double sim_distance_threshold = 1.0;
+
+  /// Frequency (Hz) that we will simulate our cameras
+  double sim_freq_cam = 10.0;
+
+  /// Frequency (Hz) that we will simulate our inertial measurement unit
+  double sim_freq_imu = 400.0;
+
   /**
    * @brief This function will print out all simulated parameters loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
    */
   void print_simulation() {
-    PRINT_INFO("SIMULATION PARAMETERS:\n");
-    PRINT_INFO(BOLDRED "\t- state init seed: %d \n" RESET, sim_seed_state_init);
-    PRINT_INFO(BOLDRED "\t- perturb seed: %d \n" RESET, sim_seed_preturb);
-    PRINT_INFO(BOLDRED "\t- measurement seed: %d \n" RESET, sim_seed_measurements);
-    PRINT_INFO("\t- traj path: %s\n", sim_traj_path.c_str());
-    PRINT_INFO("\t- dist thresh: %.2f\n", sim_distance_threshold);
-    PRINT_INFO("\t- cam feq: %.2f\n", sim_freq_cam);
-    PRINT_INFO("\t- imu feq: %.2f\n", sim_freq_imu);
+    PRINT_DEBUG("SIMULATION PARAMETERS:\n");
+    PRINT_WARNING(BOLDRED "\t- state init seed: %d \n" RESET, sim_seed_state_init);
+    PRINT_WARNING(BOLDRED "\t- perturb seed: %d \n" RESET, sim_seed_preturb);
+    PRINT_WARNING(BOLDRED "\t- measurement seed: %d \n" RESET, sim_seed_measurements);
+    PRINT_WARNING(BOLDRED "\t- do perturb?: %d\n" RESET, sim_do_perturbation);
+    PRINT_DEBUG("\t- traj path: %s\n", sim_traj_path.c_str());
+    PRINT_DEBUG("\t- dist thresh: %.2f\n", sim_distance_threshold);
+    PRINT_DEBUG("\t- cam feq: %.2f\n", sim_freq_cam);
+    PRINT_DEBUG("\t- imu feq: %.2f\n", sim_freq_imu);
   }
 };
 

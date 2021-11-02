@@ -69,22 +69,22 @@ int main(int argc, char **argv) {
     nh.param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
     topic_cameras.emplace_back(0, cam_topic0);
     topic_cameras.emplace_back(1, cam_topic1);
-    ROS_INFO("serial cam (stereo): %s", cam_topic0.c_str());
-    ROS_INFO("serial cam (stereo): %s", cam_topic1.c_str());
+    PRINT_DEBUG("serial cam (stereo): %s\n", cam_topic0.c_str());
+    PRINT_DEBUG("serial cam (stereo): %s\n", cam_topic1.c_str());
   } else {
     for (int i = 0; i < params.state_options.num_cameras; i++) {
       // read in the topic
       std::string cam_topic;
       nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
       topic_cameras.emplace_back(i, cam_topic);
-      ROS_INFO("serial cam (mono): %s", cam_topic.c_str());
+      PRINT_DEBUG("serial cam (mono): %s\n", cam_topic.c_str());
     }
   }
 
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
   nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
-  ROS_INFO("ros bag path is: %s", path_to_bag.c_str());
+  PRINT_DEBUG("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Load groundtruth if we have it
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
@@ -92,8 +92,8 @@ int main(int argc, char **argv) {
     std::string path_to_gt;
     nh.param<std::string>("path_gt", path_to_gt, "");
     if (!path_to_gt.empty()) {
-      DatasetReader::load_gt_file(path_to_gt, gt_states);
-      ROS_INFO("gt file path is: %s", path_to_gt.c_str());
+      ov_core::DatasetReader::load_gt_file(path_to_gt, gt_states);
+      PRINT_DEBUG("gt file path is: %s\n", path_to_gt.c_str());
     }
   }
 
@@ -102,8 +102,8 @@ int main(int argc, char **argv) {
   double bag_start, bag_durr;
   nh.param<double>("bag_start", bag_start, 0);
   nh.param<double>("bag_durr", bag_durr, -1);
-  ROS_INFO("bag start: %.1f", bag_start);
-  ROS_INFO("bag duration: %.1f", bag_durr);
+  PRINT_DEBUG("bag start: %.1f\n", bag_start);
+  PRINT_DEBUG("bag duration: %.1f\n", bag_durr);
 
   //===================================================================================
   //===================================================================================
@@ -124,13 +124,13 @@ int main(int argc, char **argv) {
   ros::Time time_init = view_full.getBeginTime();
   time_init += ros::Duration(bag_start);
   ros::Time time_finish = (bag_durr < 0) ? view_full.getEndTime() : time_init + ros::Duration(bag_durr);
-  ROS_INFO("time start = %.6f", time_init.toSec());
-  ROS_INFO("time end   = %.6f", time_finish.toSec());
+  PRINT_DEBUG("time start = %.6f\n", time_init.toSec());
+  PRINT_DEBUG("time end   = %.6f\n", time_finish.toSec());
   view.addQuery(bag, time_init, time_finish);
 
   // Check to make sure we have data to play
   if (view.size() == 0) {
-    ROS_ERROR("No messages to play on specified topics.  Exiting.");
+    PRINT_ERROR(RED "No messages to play on specified topics.  Exiting.\n" RESET);
     ros::shutdown();
     return EXIT_FAILURE;
   }
@@ -196,7 +196,7 @@ int main(int argc, char **argv) {
       message.wm << msg_imu_current->angular_velocity.x, msg_imu_current->angular_velocity.y, msg_imu_current->angular_velocity.z;
       message.am << msg_imu_current->linear_acceleration.x, msg_imu_current->linear_acceleration.y, msg_imu_current->linear_acceleration.z;
       // send it to our VIO system
-      // ROS_ERROR("%.15f = imu time",msg_imu_current->header.stamp.toSec()-time_init.toSec());
+      // PRINT_DEBUG("%.15f = imu time",msg_imu_current->header.stamp.toSec()-time_init.toSec());
       sys->feed_measurement_imu(message);
       viz->visualize();
       viz->visualize_odometry(message.timestamp);
@@ -237,12 +237,12 @@ int main(int argc, char **argv) {
         if (std::abs(time1 - time0) < std::abs(time1_next - time0) && std::abs(time0 - time1) < std::abs(time0_next - time1)) {
           have_found_pair = true;
         } else if (std::abs(time1 - time0) >= std::abs(time1_next - time0)) {
-          // ROS_WARN("skipping cam1 (%.4f >= %.4f)",std::abs(time1-time0), std::abs(time1_next-time0));
+          // PRINT_WARNING("skipping cam1 (%.4f >= %.4f)",std::abs(time1-time0), std::abs(time1_next-time0));
           msg_images_current.at(1) = msg_images_next.at(1);
           view_cameras_iterators.at(1)++;
           msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
         } else {
-          // ROS_WARN("skipping cam0 (%.4f >= %.4f)",std::abs(time0-time1), std::abs(time0_next-time1));
+          // PRINT_WARNING("skipping cam0 (%.4f >= %.4f)",std::abs(time0-time1), std::abs(time0_next-time1));
           msg_images_current.at(0) = msg_images_next.at(0);
           view_cameras_iterators.at(0)++;
           msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
@@ -257,7 +257,7 @@ int main(int argc, char **argv) {
       // Check if we should initialize using the groundtruth (always use left)
       Eigen::Matrix<double, 17, 1> imustate;
       if (!gt_states.empty() && !sys->initialized() &&
-          DatasetReader::get_gt_state(msg_images_current.at(0)->header.stamp.toSec(), imustate, gt_states)) {
+          ov_core::DatasetReader::get_gt_state(msg_images_current.at(0)->header.stamp.toSec(), imustate, gt_states)) {
         // biases are pretty bad normally, so zero them
         // imustate.block(11,0,6,1).setZero();
         sys->initialize_with_gt(imustate);
@@ -269,7 +269,7 @@ int main(int argc, char **argv) {
         cv_ptr0 = cv_bridge::toCvShare(msg_images_current.at(0), sensor_msgs::image_encodings::MONO8);
         cv_ptr1 = cv_bridge::toCvShare(msg_images_current.at(1), sensor_msgs::image_encodings::MONO8);
       } catch (cv_bridge::Exception &e) {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
+        PRINT_ERROR("cv_bridge exception: %s\n", e.what());
         msg_images_current.at(0) = msg_images_next.at(0);
         view_cameras_iterators.at(0)++;
         msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
@@ -294,9 +294,9 @@ int main(int argc, char **argv) {
         message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
         message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
       }
-      // ROS_ERROR("%.15f = cam %d time",msg_images_current.at(0)->header.stamp.toSec()-time_init.toSec(), 0);
-      // ROS_ERROR("%.15f = cam %d time",msg_images_current.at(1)->header.stamp.toSec()-time_init.toSec(), 1);
-      // ROS_ERROR("(difference is %.15f)",msg_images_current.at(1)->header.stamp.toSec()-msg_images_current.at(0)->header.stamp.toSec());
+      // PRINT_DEBUG("%.15f = cam %d time",msg_images_current.at(0)->header.stamp.toSec()-time_init.toSec(), 0);
+      // PRINT_DEBUG("%.15f = cam %d time",msg_images_current.at(1)->header.stamp.toSec()-time_init.toSec(), 1);
+      // PRINT_DEBUG("(difference is %.15f)",msg_images_current.at(1)->header.stamp.toSec()-msg_images_current.at(0)->header.stamp.toSec());
       sys->feed_measurement_camera(message);
 
       // move forward in time
@@ -322,7 +322,7 @@ int main(int argc, char **argv) {
       // Check if we should initialize using the groundtruth
       auto msg_camera = msg_images_current.at(smallest_cam);
       Eigen::Matrix<double, 17, 1> imustate;
-      if (!gt_states.empty() && !sys->initialized() && DatasetReader::get_gt_state(msg_camera->header.stamp.toSec(), imustate, gt_states)) {
+      if (!gt_states.empty() && !sys->initialized() && ov_core::DatasetReader::get_gt_state(msg_camera->header.stamp.toSec(), imustate, gt_states)) {
         // biases are pretty bad normally, so zero them
         // imustate.block(11,0,6,1).setZero();
         sys->initialize_with_gt(imustate);
@@ -333,7 +333,7 @@ int main(int argc, char **argv) {
       try {
         cv_ptr = cv_bridge::toCvShare(msg_camera, sensor_msgs::image_encodings::MONO8);
       } catch (cv_bridge::Exception &e) {
-        ROS_ERROR("cv_bridge exception: %s", e.what());
+        PRINT_ERROR("cv_bridge exception: %s\n", e.what());
         msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
         view_cameras_iterators.at(smallest_cam)++;
         msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
@@ -350,7 +350,7 @@ int main(int argc, char **argv) {
       } else {
         message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
       }
-      // ROS_ERROR("%.15f = cam %d time",msg_camera->header.stamp.toSec()-time_init.toSec(), smallest_cam);
+      // PRINT_DEBUG("%.15f = cam %d time",msg_camera->header.stamp.toSec()-time_init.toSec(), smallest_cam);
       sys->feed_measurement_camera(message);
 
       // move forward

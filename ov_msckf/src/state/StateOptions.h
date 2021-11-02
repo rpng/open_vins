@@ -27,8 +27,6 @@
 
 #include <climits>
 
-using namespace ov_type;
-
 namespace ov_msckf {
 
 /**
@@ -73,31 +71,31 @@ struct StateOptions {
   int num_cameras = 1;
 
   /// What representation our features are in (msckf features)
-  LandmarkRepresentation::Representation feat_rep_msckf = LandmarkRepresentation::Representation::GLOBAL_3D;
+  ov_type::LandmarkRepresentation::Representation feat_rep_msckf = ov_type::LandmarkRepresentation::Representation::GLOBAL_3D;
 
   /// What representation our features are in (slam features)
-  LandmarkRepresentation::Representation feat_rep_slam = LandmarkRepresentation::Representation::GLOBAL_3D;
+  ov_type::LandmarkRepresentation::Representation feat_rep_slam = ov_type::LandmarkRepresentation::Representation::GLOBAL_3D;
 
   /// What representation our features are in (aruco tag features)
-  LandmarkRepresentation::Representation feat_rep_aruco = LandmarkRepresentation::Representation::GLOBAL_3D;
+  ov_type::LandmarkRepresentation::Representation feat_rep_aruco = ov_type::LandmarkRepresentation::Representation::GLOBAL_3D;
 
   /// Nice print function of what parameters we have loaded
   void print() {
-    PRINT_INFO("\t- use_fej: %d\n", do_fej);
-    PRINT_INFO("\t- use_imuavg: %d\n", imu_avg);
-    PRINT_INFO("\t- use_rk4int: %d\n", use_rk4_integration);
-    PRINT_INFO("\t- calib_cam_extrinsics: %d\n", do_calib_camera_pose);
-    PRINT_INFO("\t- calib_cam_intrinsics: %d\n", do_calib_camera_intrinsics);
-    PRINT_INFO("\t- calib_cam_timeoffset: %d\n", do_calib_camera_timeoffset);
-    PRINT_INFO("\t- max_clones: %d\n", max_clone_size);
-    PRINT_INFO("\t- max_slam: %d\n", max_slam_features);
-    PRINT_INFO("\t- max_slam_in_update: %d\n", max_slam_in_update);
-    PRINT_INFO("\t- max_msckf_in_update: %d\n", max_msckf_in_update);
-    PRINT_INFO("\t- max_aruco: %d\n", max_aruco_features);
-    PRINT_INFO("\t- max_cameras: %d\n", num_cameras);
-    PRINT_INFO("\t- feat_rep_msckf: %s\n", LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
-    PRINT_INFO("\t- feat_rep_slam: %s\n", LandmarkRepresentation::as_string(feat_rep_slam).c_str());
-    PRINT_INFO("\t- feat_rep_aruco: %s\n", LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
+    PRINT_DEBUG("\t- use_fej: %d\n", do_fej);
+    PRINT_DEBUG("\t- use_imuavg: %d\n", imu_avg);
+    PRINT_DEBUG("\t- use_rk4int: %d\n", use_rk4_integration);
+    PRINT_DEBUG("\t- calib_cam_extrinsics: %d\n", do_calib_camera_pose);
+    PRINT_DEBUG("\t- calib_cam_intrinsics: %d\n", do_calib_camera_intrinsics);
+    PRINT_DEBUG("\t- calib_cam_timeoffset: %d\n", do_calib_camera_timeoffset);
+    PRINT_DEBUG("\t- max_clones: %d\n", max_clone_size);
+    PRINT_DEBUG("\t- max_slam: %d\n", max_slam_features);
+    PRINT_DEBUG("\t- max_slam_in_update: %d\n", max_slam_in_update);
+    PRINT_DEBUG("\t- max_msckf_in_update: %d\n", max_msckf_in_update);
+    PRINT_DEBUG("\t- max_aruco: %d\n", max_aruco_features);
+    PRINT_DEBUG("\t- max_cameras: %d\n", num_cameras);
+    PRINT_DEBUG("\t- feat_rep_msckf: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
+    PRINT_DEBUG("\t- feat_rep_slam: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_slam).c_str());
+    PRINT_DEBUG("\t- feat_rep_aruco: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
   }
 };
 

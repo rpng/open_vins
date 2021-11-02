@@ -27,9 +27,9 @@
 #include <iostream>
 #include <string>
 
-#include "utils/Colors.h"
 #include "utils/Loader.h"
 #include "utils/Statistics.h"
+#include "utils/colors.h"
 #include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
@@ -42,6 +42,9 @@
 #endif
 
 int main(int argc, char **argv) {
+
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("ALL");
 
   // Ensure we have a path
   if (argc < 2) {

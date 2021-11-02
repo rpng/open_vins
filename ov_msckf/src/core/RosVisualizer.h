@@ -43,6 +43,7 @@
 #include "VioManager.h"
 #include "sim/Simulator.h"
 #include "utils/dataset_reader.h"
+#include "utils/print.h"
 
 namespace ov_msckf {
 

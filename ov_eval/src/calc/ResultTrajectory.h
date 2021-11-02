@@ -33,10 +33,12 @@
 #include <Eigen/StdVector>
 
 #include "alignment/AlignTrajectory.h"
-#include "utils/Colors.h"
 #include "utils/Loader.h"
-#include "utils/Math.h"
 #include "utils/Statistics.h"
+
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
 
 namespace ov_eval {
 

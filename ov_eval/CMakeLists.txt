@@ -17,12 +17,12 @@ message(STATUS "BOOST VERSION: " ${Boost_VERSION})
 # check if we have our python libs files
 # sudo apt-get install python-matplotlib python-numpy python2.7-dev
 find_package(PythonLibs 2.7)
-if(PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
+if (PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
     add_definitions(-DHAVE_PYTHONLIBS=1)
     message(STATUS "PYTHON VERSION: " ${PYTHONLIBS_VERSION_STRING})
     message(STATUS "PYTHON INCLUDE: " ${PYTHON_INCLUDE_DIRS})
     message(STATUS "PYTHON LIBRARIES: " ${PYTHON_LIBRARIES})
-endif()
+endif ()
 
 # Describe catkin project
 option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" ON)
@@ -33,23 +33,23 @@ if (catkin_FOUND AND ENABLE_CATKIN_ROS)
             INCLUDE_DIRS src
             LIBRARIES ov_eval_lib
     )
-else()
+else ()
     add_definitions(-DROS_AVAILABLE=0)
     message(WARNING "BUILDING WITHOUT ROS!")
-endif()
+endif ()
 
 # Try to compile with c++11
 # http://stackoverflow.com/a/25836953
 include(CheckCXXCompilerFlag)
 CHECK_CXX_COMPILER_FLAG("-std=c++11" COMPILER_SUPPORTS_CXX11)
 CHECK_CXX_COMPILER_FLAG("-std=c++0x" COMPILER_SUPPORTS_CXX0X)
-if(COMPILER_SUPPORTS_CXX11)
+if (COMPILER_SUPPORTS_CXX11)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
-elseif(COMPILER_SUPPORTS_CXX0X)
+elseif (COMPILER_SUPPORTS_CXX0X)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
-else()
+else ()
     message(STATUS "The compiler ${CMAKE_CXX_COMPILER} has no C++11 support. Please use a different C++ compiler.")
-endif()
+endif ()
 
 # Enable compile optimizations
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
@@ -73,7 +73,16 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${PYTHON_LIBRARIES}
         ${catkin_LIBRARIES}
-)
+        )
+
+# If we are not building with ROS then we need to manually link to its headers
+# This isn't that elegant of a way, but this at least allows for building without ROS
+# See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
+if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
+    message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
+    include_directories(${ov_core_SOURCE_DIR}/src/)
+    list(APPEND thirdparty_libraries ov_core_lib)
+endif ()
 
 ##################################################
 # Make the core library
@@ -85,7 +94,7 @@ add_library(ov_eval_lib
         src/calc/ResultTrajectory.cpp
         src/calc/ResultSimulation.cpp
         src/utils/Loader.cpp
-)
+        )
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
 
 
@@ -102,7 +111,7 @@ if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_executable(live_align_trajectory src/live_align_trajectory.cpp)
     target_link_libraries(live_align_trajectory ov_eval_lib ${thirdparty_libraries})
 
-endif()
+endif ()
 
 
 add_executable(format_converter src/format_converter.cpp)
@@ -139,7 +148,7 @@ target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
     catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-endif()
+endif ()
 
 
 

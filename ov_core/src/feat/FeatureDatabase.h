@@ -105,7 +105,7 @@ public:
     }
 
     // Debug info
-    // ROS_INFO("featdb - adding new feature %d",(int)id);
+    // PRINT_DEBUG("featdb - adding new feature %d",(int)id);
 
     // Else we have not found the feature, so lets make it be a new one!
     std::shared_ptr<Feature> feat = std::make_shared<Feature>();

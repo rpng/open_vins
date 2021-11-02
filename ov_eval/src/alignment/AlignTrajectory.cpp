@@ -20,7 +20,6 @@
  */
 
 #include "AlignTrajectory.h"
-#include "utils/print.h"
 
 using namespace ov_eval;
 
@@ -66,8 +65,8 @@ void AlignTrajectory::align_posyaw_single(const std::vector<Eigen::Matrix<double
   Eigen::Vector3d p_gt_0 = traj_gt.at(0).block(0, 0, 3, 1);
 
   // Get rotations from IMU frame to World (note JPL!)
-  Eigen::Matrix3d g_rot = Math::quat_2_Rot(q_gt_0).transpose();
-  Eigen::Matrix3d est_rot = Math::quat_2_Rot(q_es_0).transpose();
+  Eigen::Matrix3d g_rot = ov_core::quat_2_Rot(q_gt_0).transpose();
+  Eigen::Matrix3d est_rot = ov_core::quat_2_Rot(q_es_0).transpose();
 
   // Data matrix for the Frobenius problem
   Eigen::Matrix3d C_R = est_rot * g_rot.transpose();
@@ -76,7 +75,7 @@ void AlignTrajectory::align_posyaw_single(const std::vector<Eigen::Matrix<double
   double theta = AlignUtils::get_best_yaw(C_R);
 
   // Compute rotation
-  R = Math::rot_z(theta);
+  R = ov_core::rot_z(theta);
 
   // Compute translation
   t.noalias() = p_gt_0 - R * p_es_0;
@@ -117,8 +116,8 @@ void AlignTrajectory::align_se3_single(const std::vector<Eigen::Matrix<double, 7
   Eigen::Vector3d p_gt_0 = traj_gt.at(0).block(0, 0, 3, 1);
 
   // Get rotations from IMU frame to World (note JPL!)
-  Eigen::Matrix3d g_rot = Math::quat_2_Rot(q_gt_0).transpose();
-  Eigen::Matrix3d est_rot = Math::quat_2_Rot(q_es_0).transpose();
+  Eigen::Matrix3d g_rot = ov_core::quat_2_Rot(q_gt_0).transpose();
+  Eigen::Matrix3d est_rot = ov_core::quat_2_Rot(q_es_0).transpose();
 
   R.noalias() = g_rot * est_rot.transpose();
   t.noalias() = p_gt_0 - R * p_es_0;
