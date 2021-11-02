@@ -281,6 +281,12 @@ struct VioManagerOptions {
   /// Frequency (Hz) that we will simulate our inertial measurement unit
   double sim_freq_imu = 400.0;
 
+  /// Feature distance we generate features from (minimum)
+  double sim_min_feature_gen_distance = 5;
+
+  /// Feature distance we generate features from (maximum)
+  double sim_max_feature_gen_distance = 10;
+
   /**
    * @brief This function will print out all simulated parameters loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -295,6 +301,8 @@ struct VioManagerOptions {
     PRINT_DEBUG("\t- dist thresh: %.2f\n", sim_distance_threshold);
     PRINT_DEBUG("\t- cam feq: %.2f\n", sim_freq_cam);
     PRINT_DEBUG("\t- imu feq: %.2f\n", sim_freq_imu);
+    PRINT_DEBUG("\t- min feat dist: %.2f\n", sim_min_feature_gen_distance);
+    PRINT_DEBUG("\t- max feat dist: %.2f\n", sim_max_feature_gen_distance);
   }
 };
 

@@ -219,6 +219,10 @@ VioManagerOptions parse_ros_nodehandler(ros::NodeHandle &nh) {
   nh.param<int>("sim_seed_preturb", params.sim_seed_preturb, params.sim_seed_preturb);
   nh.param<int>("sim_seed_measurements", params.sim_seed_measurements, params.sim_seed_measurements);
 
+  // Other simulation parameters
+  nh.param<double>("sim_min_feat_distance", params.sim_min_feature_gen_distance, params.sim_min_feature_gen_distance);
+  nh.param<double>("sim_max_feat_distance", params.sim_max_feature_gen_distance, params.sim_max_feature_gen_distance);
+
   //====================================================================================
   //====================================================================================
   //====================================================================================

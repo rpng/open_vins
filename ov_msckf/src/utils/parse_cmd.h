@@ -166,6 +166,10 @@ VioManagerOptions parse_command_line_arguments(int argc, char **argv) {
   app1.add_option("--sim_seed_preturb", params.sim_seed_preturb, "");
   app1.add_option("--sim_seed_measurements", params.sim_seed_measurements, "");
 
+  // Other simulation parameters
+  app1.add_option("--sim_min_feat_distance", params.sim_min_feature_gen_distance, "");
+  app1.add_option("--sim_max_feat_distance", params.sim_max_feature_gen_distance, "");
+
   // CMD PARSE ==============================================================================
 
   // Finally actually parse the command line and load it

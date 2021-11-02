@@ -54,7 +54,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   state->_calib_dt_CAMtoIMU->set_value(temp_camimu_dt);
   state->_calib_dt_CAMtoIMU->set_fej(temp_camimu_dt);
 
-  // Loop through through, and load each of the cameras
+  // Loop through and load each of the cameras
   for (int i = 0; i < state->_options.num_cameras; i++) {
 
     // Create the actual camera object and set the values
