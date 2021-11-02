@@ -152,7 +152,7 @@ Please take a look at the [run_ros_uzhfpv.sh](https://github.com/rpng/open_vins/
 
 @section gs-data-kaist KAIST Urban Dataset
 
-The [KAIST urban dataset](https://irap.kaist.ac.kr/dataset/index.html) @cite Jeong2019IJRR is a dataset focus on autonomous driving and localization in challenging complex urban environments.
+The [KAIST urban dataset](https://sites.google.com/view/complex-urban-dataset) @cite Jeong2019IJRR is a dataset focus on autonomous driving and localization in challenging complex urban environments.
 The dataset was collected in Korea with a vehicle equipped with stereo camera pair, 2d SICK LiDARs, 3d Velodyne LiDAR, Xsens IMU, fiber optic gyro (FoG), wheel encoders, and RKT GPS.
 The camera is 10 Hz, while the Xsens IMU is 100 Hz sensing rate.
 A groundtruth "baseline" trajectory is also provided which is the resulting output from fusion of the FoG, RKT GPS, and wheel encoders.
@@ -181,9 +181,9 @@ Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and
 @m_div{m-text-center}
 | Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
-| Urban 28 | 11.47 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
-| Urban 38 | 11.42 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
-| Urban 39 | 11.06 | [download](https://irap.kaist.ac.kr/dataset/download_2.html) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
+| Urban 28 | 11.47 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
+| Urban 38 | 11.42 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
+| Urban 39 | 11.06 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [launch](https://github.com/rpng/open_vins/blob/master/ov_msckf/launch/pgeneva_ros_kaist.launch) |
 @m_enddiv
 
 

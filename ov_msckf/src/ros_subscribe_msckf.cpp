@@ -35,7 +35,6 @@
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
 #include "utils/dataset_reader.h"
-#include "utils/parse_ros.h"
 #include "utils/sensor_data.h"
 
 using namespace ov_msckf;
@@ -51,14 +50,38 @@ void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::
 // Main function
 int main(int argc, char **argv) {
 
+  // Ensure we have a path, if the user passes it then we should use it
+  std::string config_path = "unset_path.txt";
+  if (argc > 1) {
+    config_path = argv[1];
+  }
+
   // Launch our ros node
   ros::init(argc, argv, "run_subscribe_msckf");
   ros::NodeHandle nh("~");
+  nh.param<std::string>("config_path", config_path, config_path);
+
+  // Load the config
+  std::cout << config_path << std::endl;
+  auto parser = std::make_shared<ov_core::YamlParser>(config_path);
+  parser->set_node_handler(nh);
+
+  // Verbosity
+  std::string verbosity = "DEBUG";
+  parser->parse_config("verbosity", verbosity);
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Create our VIO system
-  VioManagerOptions params = parse_ros_nodehandler(nh);
+  VioManagerOptions params;
+  params.print_and_load(parser);
   sys = std::make_shared<VioManager>(params);
   viz = std::make_shared<RosVisualizer>(nh, sys);
+
+  // Ensure we read in all parameters required
+  if (!parser->successful()) {
+    PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
 
   //===================================================================================
   //===================================================================================
@@ -67,6 +90,7 @@ int main(int argc, char **argv) {
   // Create imu subscriber
   std::string topic_imu;
   nh.param<std::string>("topic_imu", topic_imu, "/imu0");
+  parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
   ros::Subscriber subimu = nh.subscribe(topic_imu, 9999999, callback_inertial);
 
   // Create camera subscriber data vectors
@@ -82,6 +106,8 @@ int main(int argc, char **argv) {
     std::string cam_topic0, cam_topic1;
     nh.param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
     nh.param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
     // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
     auto image_sub0 = std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
         new message_filters::Subscriber<sensor_msgs::Image>(nh, cam_topic0, 5));
@@ -102,6 +128,7 @@ int main(int argc, char **argv) {
       // read in the topic
       std::string cam_topic;
       nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
       // create subscriber
       subs_cam.push_back(nh.subscribe<sensor_msgs::Image>(cam_topic, 5, boost::bind(callback_monocular, _1, i)));
       PRINT_DEBUG("subscribing to cam (mono): %s", cam_topic.c_str());

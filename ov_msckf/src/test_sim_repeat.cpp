@@ -35,8 +35,6 @@
 
 #include "core/VioManagerOptions.h"
 #include "sim/Simulator.h"
-#include "utils/parse_cmd.h"
-#include "utils/parse_ros.h"
 #include "utils/print.h"
 
 using namespace ov_msckf;
@@ -50,18 +48,17 @@ int main(int argc, char **argv) {
   // Register failure handler
   signal(SIGINT, signal_callback_handler);
 
+#if ROS_AVAILABLE
+  // Launch our ros node
+  ros::init(argc, argv, "test_sim_repeat");
+  ros::NodeHandle nh1("~");
+#endif
+
   //===================================================
   //===================================================
 
   // Create the simulator
   VioManagerOptions params1;
-#if ROS_AVAILABLE
-  ros::init(argc, argv, "test_sim_repeat");
-  ros::NodeHandle nh1("~");
-  params1 = parse_ros_nodehandler(nh1);
-#else
-  params1 = parse_command_line_arguments(argc, argv);
-#endif
   Simulator sim1(params1);
 
   // Vector of stored measurements
@@ -100,12 +97,6 @@ int main(int argc, char **argv) {
 
   // Create the simulator
   VioManagerOptions params2;
-#if ROS_AVAILABLE
-  ros::NodeHandle nh2("~");
-  params2 = parse_ros_nodehandler(nh2);
-#else
-  params2 = parse_command_line_arguments(argc, argv);
-#endif
   Simulator sim2(params2);
   size_t ct_imu = 0;
   size_t ct_cam = 0;

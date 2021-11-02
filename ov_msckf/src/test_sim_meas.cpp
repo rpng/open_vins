@@ -31,13 +31,11 @@
 #include <boost/filesystem.hpp>
 
 #if ROS_AVAILABLE
-#include "utils/parse_ros.h"
 #include <ros/ros.h>
 #endif
 
 #include "core/VioManagerOptions.h"
 #include "sim/Simulator.h"
-#include "utils/parse_cmd.h"
 
 using namespace ov_msckf;
 
@@ -47,17 +45,14 @@ void signal_callback_handler(int signum) { std::exit(signum); }
 // Main function
 int main(int argc, char **argv) {
 
-  // Read in our parameters
-  VioManagerOptions params;
 #if ROS_AVAILABLE
+  // Launch our ros node
   ros::init(argc, argv, "test_sim_meas");
   ros::NodeHandle nh("~");
-  params = parse_ros_nodehandler(nh);
-#else
-  params = parse_command_line_arguments(argc, argv);
 #endif
 
   // Create the simulator
+  VioManagerOptions params;
   Simulator sim(params);
 
   // Continue to simulate until we have processed all the measurements

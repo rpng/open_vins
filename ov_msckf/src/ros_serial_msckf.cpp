@@ -32,7 +32,6 @@
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
 #include "utils/dataset_reader.h"
-#include "utils/parse_ros.h"
 #include "utils/sensor_data.h"
 
 using namespace ov_msckf;
@@ -43,14 +42,37 @@ std::shared_ptr<RosVisualizer> viz;
 // Main function
 int main(int argc, char **argv) {
 
+  // Ensure we have a path, if the user passes it then we should use it
+  std::string config_path = "unset_path.txt";
+  if (argc > 1) {
+    config_path = argv[1];
+  }
+
   // Launch our ros node
   ros::init(argc, argv, "run_serial_msckf");
   ros::NodeHandle nh("~");
+  nh.param<std::string>("config_path", config_path, config_path);
+
+  // Load the config
+  auto parser = std::make_shared<ov_core::YamlParser>(config_path);
+  parser->set_node_handler(nh);
+
+  // Verbosity
+  std::string verbosity = "INFO";
+  parser->parse_config("verbosity", verbosity);
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Create our VIO system
-  VioManagerOptions params = parse_ros_nodehandler(nh);
+  VioManagerOptions params;
+  params.print_and_load(parser);
   sys = std::make_shared<VioManager>(params);
   viz = std::make_shared<RosVisualizer>(nh, sys);
+
+  // Ensure we read in all parameters required
+  if (!parser->successful()) {
+    PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
 
   //===================================================================================
   //===================================================================================
@@ -59,6 +81,7 @@ int main(int argc, char **argv) {
   // Our imu topic
   std::string topic_imu;
   nh.param<std::string>("topic_imu", topic_imu, "/imu0");
+  parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
 
   // Our camera topics (stereo pairs and non-stereo mono)
   std::vector<std::pair<size_t, std::string>> topic_cameras;
@@ -67,6 +90,8 @@ int main(int argc, char **argv) {
     std::string cam_topic0, cam_topic1;
     nh.param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
     nh.param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
     topic_cameras.emplace_back(0, cam_topic0);
     topic_cameras.emplace_back(1, cam_topic1);
     PRINT_DEBUG("serial cam (stereo): %s\n", cam_topic0.c_str());
@@ -76,6 +101,7 @@ int main(int argc, char **argv) {
       // read in the topic
       std::string cam_topic;
       nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
       topic_cameras.emplace_back(i, cam_topic);
       PRINT_DEBUG("serial cam (mono): %s\n", cam_topic.c_str());
     }
@@ -322,7 +348,8 @@ int main(int argc, char **argv) {
       // Check if we should initialize using the groundtruth
       auto msg_camera = msg_images_current.at(smallest_cam);
       Eigen::Matrix<double, 17, 1> imustate;
-      if (!gt_states.empty() && !sys->initialized() && ov_core::DatasetReader::get_gt_state(msg_camera->header.stamp.toSec(), imustate, gt_states)) {
+      if (!gt_states.empty() && !sys->initialized() &&
+          ov_core::DatasetReader::get_gt_state(msg_camera->header.stamp.toSec(), imustate, gt_states)) {
         // biases are pretty bad normally, so zero them
         // imustate.block(11,0,6,1).setZero();
         sys->initialize_with_gt(imustate);

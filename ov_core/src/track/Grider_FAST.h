@@ -31,7 +31,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "utils/lambda_body.h"
+#include "utils/opencv_lambda_body.h"
 
 namespace ov_core {
 

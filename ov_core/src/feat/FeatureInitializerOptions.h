@@ -23,6 +23,7 @@
 #define OV_CORE_INITIALIZEROPTIONS_H
 
 #include "utils/print.h"
+#include "utils/opencv_yaml_parse.h"
 
 namespace ov_core {
 
@@ -68,7 +69,21 @@ struct FeatureInitializerOptions {
   double max_cond_number = 10000;
 
   /// Nice print function of what parameters we have loaded
-  void print() {
+  void print(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
+    if (parser != nullptr) {
+      parser->parse_config("fi_triangulate_1d", triangulate_1d, false);
+      parser->parse_config("fi_refine_features", refine_features, false);
+      parser->parse_config("fi_max_runs", max_runs, false);
+      parser->parse_config("fi_init_lamda", init_lamda, false);
+      parser->parse_config("fi_max_lamda", max_lamda, false);
+      parser->parse_config("fi_min_dx", min_dx, false);
+      parser->parse_config("fi_min_dcost", min_dcost, false);
+      parser->parse_config("fi_lam_mult", lam_mult, false);
+      parser->parse_config("fi_min_dist", min_dist, false);
+      parser->parse_config("fi_max_dist", max_dist, false);
+      parser->parse_config("fi_max_baseline", max_baseline, false);
+      parser->parse_config("fi_max_cond_number", max_cond_number, false);
+    }
     PRINT_DEBUG("\t- triangulate_1d: %d\n", triangulate_1d);
     PRINT_DEBUG("\t- refine_features: %d\n", refine_features);
     PRINT_DEBUG("\t- max_runs: %d\n", max_runs);

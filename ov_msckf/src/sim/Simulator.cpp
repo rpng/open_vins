@@ -36,11 +36,11 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
   // Store a copy of our params
   this->params = params_;
-  params.print_estimator();
-  params.print_noise();
-  params.print_state();
-  params.print_trackers();
-  params.print_simulation();
+  params.print_and_load_estimator();
+  params.print_and_load_noise();
+  params.print_and_load_state();
+  params.print_and_load_trackers();
+  params.print_and_load_simulation();
 
   // Check that the max cameras matches the size of our cam matrices
   if (params.state_options.num_cameras != (int)params.camera_fisheye.size()) {

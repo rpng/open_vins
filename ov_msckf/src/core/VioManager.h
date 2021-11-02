@@ -39,7 +39,7 @@
 #include "track/TrackSIM.h"
 #include "types/Landmark.h"
 #include "types/LandmarkRepresentation.h"
-#include "utils/lambda_body.h"
+#include "utils/opencv_lambda_body.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
 

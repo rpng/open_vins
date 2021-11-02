@@ -53,7 +53,7 @@ public:
                       HistogramMethod histmethod, bool downsize)
       : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
 #if ENABLE_ARUCO_TAGS
-    aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_1000);
     aruco_params = cv::aruco::DetectorParameters::create();
     // NOTE: people with newer opencv might fail here
     // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;

@@ -37,7 +37,7 @@
 #include "cam/CamBase.h"
 #include "feat/FeatureDatabase.h"
 #include "utils/colors.h"
-#include "utils/lambda_body.h"
+#include "utils/opencv_lambda_body.h"
 #include "utils/sensor_data.h"
 
 namespace ov_core {

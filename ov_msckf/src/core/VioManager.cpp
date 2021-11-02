@@ -34,10 +34,10 @@ VioManager::VioManager(VioManagerOptions &params_) {
 
   // Nice debug
   this->params = params_;
-  params.print_estimator();
-  params.print_noise();
-  params.print_state();
-  params.print_trackers();
+  params.print_and_load_estimator();
+  params.print_and_load_noise();
+  params.print_and_load_state();
+  params.print_and_load_trackers();
 
   // This will globally set the thread count we will use
   // -1 will reset to the system default threading (usually the num of cores)

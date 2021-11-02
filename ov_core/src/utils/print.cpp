@@ -85,7 +85,7 @@ void Printer::debugPrint(PrintLevel level, const char location[], const char lin
 
   // Print the location info first for our debug output
   // Truncate the filename to the max size for the filepath
-  if(static_cast<int>(level) < static_cast<int>(Printer::PrintLevel::DEBUG)) {
+  if(static_cast<int>(Printer::current_print_level) <= static_cast<int>(Printer::PrintLevel::DEBUG)) {
     std::string path(location);
     std::string base_filename = path.substr(path.find_last_of("/\\") + 1);
     if (base_filename.size() > MAX_FILE_PATH_LEGTH) {

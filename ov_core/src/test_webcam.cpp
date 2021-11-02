@@ -37,8 +37,12 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
-#include "utils/CLI11.hpp"
 #include "utils/print.h"
+#include "utils/opencv_yaml_parse.h"
+
+#if ROS_AVAILABLE
+#include <ros/ros.h>
+#endif
 
 using namespace ov_core;
 
@@ -48,11 +52,31 @@ TrackBase *extractor;
 // Main function
 int main(int argc, char **argv) {
 
-  // Create our command line parser
-  CLI::App app{"test_webcam"};
+  // Ensure we have a path, if the user passes it then we should use it
+  std::string config_path = "unset_path.txt";
+  if (argc > 1) {
+    config_path = argv[1];
+  }
+
+#if ROS_AVAILABLE
+  // Initialize this as a ROS node
+  ros::init(argc, argv, "test_webcam");
+  ros::NodeHandle nh("~");
+  nh.param<std::string>("config_path", config_path, config_path);
+#endif
+
+  // Load parameters
+  auto parser = std::make_shared<ov_core::YamlParser>(config_path, false);
+#if ROS_AVAILABLE
+  parser->set_node_handler(nh);
+#endif
+
+  // Verbosity
+  std::string verbosity = "INFO";
+  parser->parse_config("verbosity", verbosity);
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Defaults
-  std::string verbosity = "INFO";
   int num_pts = 500;
   int num_aruco = 1024;
   int clone_states = 20;
@@ -63,29 +87,34 @@ int main(int argc, char **argv) {
   double knn_ratio = 0.85;
   bool do_downsizing = false;
   bool use_stereo = false;
-  ov_core::TrackBase::HistogramMethod method = ov_core::TrackBase::HistogramMethod::NONE;
+  parser->parse_config("num_pts", num_pts, false);
+  parser->parse_config("num_aruco", num_aruco, false);
+  parser->parse_config("clone_states", clone_states, false);
+  parser->parse_config("fast_threshold", fast_threshold, false);
+  parser->parse_config("grid_x", grid_x, false);
+  parser->parse_config("grid_y", grid_y, false);
+  parser->parse_config("min_px_dist", min_px_dist, false);
+  parser->parse_config("knn_ratio", knn_ratio, false);
+  parser->parse_config("do_downsizing", do_downsizing, false);
+  parser->parse_config("use_stereo", use_stereo, false);
 
-  // Parameters for our extractor
-  app.add_option("--verbosity", verbosity, "Print verbosity");
-  app.add_option("--num_pts", num_pts, "Number of feature tracks");
-  app.add_option("--num_aruco", num_aruco, "Number of aruco tag ids we have");
-  app.add_option("--clone_states", clone_states, "Amount of clones to visualize track length with");
-  app.add_option("--fast_threshold", fast_threshold, "Fast extraction threshold");
-  app.add_option("--grid_x", grid_x, "Grid x size");
-  app.add_option("--grid_y", grid_y, "Grid y size");
-  app.add_option("--min_px_dist", min_px_dist, "Minimum number of pixels between different tracks");
-  app.add_option("--knn_ratio", knn_ratio, "Knn descriptor ratio threshold");
-  app.add_option("--do_downsizing", do_downsizing, "If we should downsize our arucotag images");
-
-  // Finally actually parse the command line and load it
-  try {
-    app.parse(argc, argv);
-  } catch (const CLI::ParseError &e) {
-    return app.exit(e);
+  // Histogram method
+  ov_core::TrackBase::HistogramMethod method;
+  std::string histogram_method_str = "HISTOGRAM";
+  parser->parse_config("histogram_method", histogram_method_str, false);
+  if (histogram_method_str == "NONE") {
+    method = ov_core::TrackBase::NONE;
+  } else if (histogram_method_str == "HISTOGRAM") {
+    method = ov_core::TrackBase::HISTOGRAM;
+  } else if (histogram_method_str == "CLAHE") {
+    method = ov_core::TrackBase::CLAHE;
+  } else {
+    printf(RED "invalid feature histogram specified:\n" RESET);
+    printf(RED "\t- NONE\n" RESET);
+    printf(RED "\t- HISTOGRAM\n" RESET);
+    printf(RED "\t- CLAHE\n" RESET);
+    std::exit(EXIT_FAILURE);
   }
-
-  // Verbosity setting
-  ov_core::Printer::setPrintLevel(verbosity);
 
   // Debug print!
   PRINT_DEBUG("max features: %d\n", num_pts);

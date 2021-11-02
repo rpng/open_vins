@@ -70,10 +70,10 @@ public:
 
     /// Nice print function of what parameters we have loaded
     void print() {
-      PRINT_DEBUG("\t- gyroscope_noise_density: %.6f\n", sigma_w);
-      PRINT_DEBUG("\t- accelerometer_noise_density: %.5f\n", sigma_a);
-      PRINT_DEBUG("\t- gyroscope_random_walk: %.7f\n", sigma_wb);
-      PRINT_DEBUG("\t- accelerometer_random_walk: %.6f\n", sigma_ab);
+      PRINT_DEBUG("  - gyroscope_noise_density: %.6f\n", sigma_w);
+      PRINT_DEBUG("  - accelerometer_noise_density: %.5f\n", sigma_a);
+      PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
+      PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
     }
   };
 

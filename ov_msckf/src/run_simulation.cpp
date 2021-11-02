@@ -26,13 +26,11 @@
 #include "sim/Simulator.h"
 #include "utils/colors.h"
 #include "utils/dataset_reader.h"
-#include "utils/parse_cmd.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
 
 #if ROS_AVAILABLE
 #include "core/RosVisualizer.h"
-#include "utils/parse_ros.h"
 #include <ros/ros.h>
 #endif
 
@@ -50,22 +48,45 @@ void signal_callback_handler(int signum) { std::exit(signum); }
 // Main function
 int main(int argc, char **argv) {
 
-  // Read in our parameters
-  VioManagerOptions params;
+  // Ensure we have a path, if the user passes it then we should use it
+  std::string config_path = "unset_path.txt";
+  if (argc > 1) {
+    config_path = argv[1];
+  }
+
 #if ROS_AVAILABLE
-  ros::init(argc, argv, "test_simulation");
+  // Launch our ros node
+  ros::init(argc, argv, "run_simulation");
   ros::NodeHandle nh("~");
-  params = parse_ros_nodehandler(nh);
-#else
-  params = parse_command_line_arguments(argc, argv);
+  nh.param<std::string>("config_path", config_path, config_path);
 #endif
 
+  // Load the config
+  auto parser = std::make_shared<ov_core::YamlParser>(config_path);
+#if ROS_AVAILABLE
+  parser->set_node_handler(nh);
+#endif
+
+  // Verbosity
+  std::string verbosity = "INFO";
+  parser->parse_config("verbosity", verbosity);
+  ov_core::Printer::setPrintLevel(verbosity);
+
   // Create our VIO system
+  VioManagerOptions params;
+  params.print_and_load(parser);
+  params.print_and_load_simulation(parser);
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
 #if ROS_AVAILABLE
   viz = std::make_shared<RosVisualizer>(nh, sys, sim);
 #endif
+
+  // Ensure we read in all parameters required
+  if(!parser->successful()) {
+    PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
 
   //===================================================================================
   //===================================================================================
