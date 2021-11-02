@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.3)
+
+# Define our install directories based on GNU conventions
+# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+include(GNUInstallDirs)
 
 # Project name
 project(ov_eval)
@@ -10,13 +14,10 @@ find_package(catkin QUIET COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
-# display message to user
-#message(STATUS "EIGEN VERSION: " ${EIGEN3_VERSION})
-message(STATUS "BOOST VERSION: " ${Boost_VERSION})
-
 # check if we have our python libs files
 # sudo apt-get install python-matplotlib python-numpy python2.7-dev
 find_package(PythonLibs 2.7)
+option(DISABLE_MATPLOTLIB "Disable or enable matplotlib plot scripts in ov_eval" OFF)
 if (PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
     add_definitions(-DHAVE_PYTHONLIBS=1)
     message(STATUS "PYTHON VERSION: " ${PYTHONLIBS_VERSION_STRING})
@@ -73,7 +74,7 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${PYTHON_LIBRARIES}
         ${catkin_LIBRARIES}
-        )
+)
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
@@ -85,23 +86,27 @@ if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
 endif ()
 
 ##################################################
-# Make the core library
+# Make the shared library
 ##################################################
-add_library(ov_eval_lib
+
+add_library(ov_eval_lib SHARED
         src/dummy.cpp
         src/alignment/AlignTrajectory.cpp
         src/alignment/AlignUtils.cpp
         src/calc/ResultTrajectory.cpp
         src/calc/ResultSimulation.cpp
         src/utils/Loader.cpp
-        )
+)
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
-
+install(TARGETS ov_eval_lib
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 ##################################################
 # Make binary files!
 ##################################################
-
 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
 
@@ -113,41 +118,88 @@ if (catkin_FOUND AND ENABLE_CATKIN_ROS)
 
 endif ()
 
-
 add_executable(format_converter src/format_converter.cpp)
 target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
+install(TARGETS format_converter
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(error_comparison src/error_comparison.cpp)
 target_link_libraries(error_comparison ov_eval_lib ${thirdparty_libraries})
+install(TARGETS error_comparison
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(error_dataset src/error_dataset.cpp)
 target_link_libraries(error_dataset ov_eval_lib ${thirdparty_libraries})
+install(TARGETS error_dataset
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(error_singlerun src/error_singlerun.cpp)
 target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
+install(TARGETS error_singlerun
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(error_simulation src/error_simulation.cpp)
 target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
+install(TARGETS error_simulation
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(timing_flamegraph src/timing_flamegraph.cpp)
 target_link_libraries(timing_flamegraph ov_eval_lib ${thirdparty_libraries})
+install(TARGETS timing_flamegraph
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(timing_comparison src/timing_comparison.cpp)
 target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
+install(TARGETS timing_comparison
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(timing_percentages src/timing_percentages.cpp)
 target_link_libraries(timing_percentages ov_eval_lib ${thirdparty_libraries})
+install(TARGETS timing_percentages
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(plot_trajectories src/plot_trajectories.cpp)
 target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
+install(TARGETS plot_trajectories
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 
 ##################################################
 # Python scripts!
 ##################################################
+
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
+
     catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
     catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
 endif ()
 
 

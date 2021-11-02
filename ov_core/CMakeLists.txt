@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.3)
+
+# Define our install directories based on GNU conventions
+# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+include(GNUInstallDirs)
 
 # Project name
 project(ov_core)
@@ -13,10 +17,7 @@ if (NOT OpenCV_FOUND)
     find_package(OpenCV 3 REQUIRED)
 endif ()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
-
-# Display message to user
-message(WARNING "OPENCV VERSION: " ${OpenCV_VERSION})
-message(WARNING "BOOST VERSION: " ${Boost_VERSION})
+message(STATUS "OPENCV: " ${OpenCV_VERSION} " | BOOST: " ${Boost_VERSION})
 
 # If we will compile with aruco support
 option(ENABLE_ARUCO_TAGS "Enable or disable aruco tag (disable if no contrib modules)" ON)
@@ -74,11 +75,12 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${catkin_LIBRARIES}
-        )
+)
 
 ##################################################
 # Make the core library
 ##################################################
+
 add_library(ov_core_lib SHARED
         src/dummy.cpp
         src/init/InertialInitializer.cpp
@@ -92,20 +94,32 @@ add_library(ov_core_lib SHARED
         src/feat/Feature.cpp
         src/feat/FeatureInitializer.cpp
         src/utils/print.cpp
-        )
+)
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
 target_include_directories(ov_core_lib PUBLIC src)
-
+install(TARGETS ov_core_lib
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 ##################################################
 # Make binary files!
 ##################################################
+
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
+
     add_executable(test_tracking src/test_tracking.cpp)
     target_link_libraries(test_tracking ov_core_lib ${thirdparty_libraries})
+
 endif ()
 
 add_executable(test_webcam src/test_webcam.cpp)
 target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})
+install(TARGETS test_webcam
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 

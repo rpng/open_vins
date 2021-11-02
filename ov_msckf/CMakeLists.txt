@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.3)
+
+# Define our install directories based on GNU conventions
+# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
+include(GNUInstallDirs)
 
 # Project name
 project(ov_msckf)
@@ -16,10 +20,7 @@ if (NOT OpenCV_FOUND)
     find_package(OpenCV 3 REQUIRED)
 endif ()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
-
-# Display message to user
-message(WARNING "OPENCV VERSION: " ${OpenCV_VERSION})
-message(WARNING "BOOST VERSION: " ${Boost_VERSION})
+message(STATUS "OPENCV: " ${OpenCV_VERSION} " | BOOST: " ${Boost_VERSION})
 
 # If we will compile with aruco support
 option(ENABLE_ARUCO_TAGS "Enable or disable aruco tag (disable if no contrib modules)" ON)
@@ -76,7 +77,7 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${catkin_LIBRARIES}
-        )
+)
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
@@ -88,8 +89,9 @@ if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
 endif ()
 
 ##################################################
-# Make the core library
+# Make the shared library
 ##################################################
+
 list(APPEND library_source_files
         src/sim/Simulator.cpp
         src/state/State.cpp
@@ -100,21 +102,26 @@ list(APPEND library_source_files
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
-        )
+)
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     list(APPEND library_source_files
             src/core/RosVisualizer.cpp
-            )
+    )
 endif ()
 add_library(ov_msckf_lib SHARED ${library_source_files})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
 target_include_directories(ov_msckf_lib PUBLIC src)
+install(TARGETS ov_msckf_lib
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
+
 
 
 ##################################################
 # Make binary files!
 ##################################################
-
 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
 
@@ -134,11 +141,20 @@ else ()
 
 endif ()
 
-
 add_executable(test_sim_meas src/test_sim_meas.cpp)
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
+install(TARGETS test_sim_meas
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
+install(TARGETS test_sim_repeat
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 

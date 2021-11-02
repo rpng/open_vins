@@ -35,13 +35,13 @@ def get_process_ros(node_name, doprint=False):
     # get the node object from ros
     node_api = rosnode.get_api_uri(rospy.get_master(), node_name, skip_cache=True)[2]
     if not node_api:
-        rospy.logerr("could not get api of node %s (%s)" % (node_name, node_api))
+        rospy.logwarn("could not get api of node %s (%s)" % (node_name, node_api))
         return False
     # now try to get the Pid of this process
     try:
         response = ServerProxy(node_api).getPid('/NODEINFO')
     except:
-        rospy.logerr("failed to get of the pid of ros node %s (%s)" % (node_name, node_api))
+        rospy.logwarn("failed to get of the pid of ros node %s (%s)" % (node_name, node_api))
         return False
     # try to get the process using psutil
     try:
@@ -50,7 +50,7 @@ def get_process_ros(node_name, doprint=False):
             rospy.loginfo("adding new node monitor %s (pid %d)" % (node_name, process.pid))
         return process
     except:
-        rospy.logerr("unable to open psutil object for %s" % (response[2]))
+        rospy.logwarn("unable to open psutil object for %s" % (response[2]))
         return False
 
 
