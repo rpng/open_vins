@@ -177,7 +177,7 @@ public:
   std::vector<Eigen::Vector3d> get_features_SLAM() {
     std::vector<Eigen::Vector3d> slam_feats;
     for (auto &f : state->_features_SLAM) {
-      if ((int)f.first <= state->_options.max_aruco_features)
+      if ((int)f.first <= 4 * state->_options.max_aruco_features)
         continue;
       if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
         // Assert that we have an anchor pose for this feature
@@ -201,7 +201,7 @@ public:
   std::vector<Eigen::Vector3d> get_features_ARUCO() {
     std::vector<Eigen::Vector3d> aruco_feats;
     for (auto &f : state->_features_SLAM) {
-      if ((int)f.first > state->_options.max_aruco_features)
+      if ((int)f.first > 4 * state->_options.max_aruco_features)
         continue;
       if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
         // Assert that we have an anchor pose for this feature

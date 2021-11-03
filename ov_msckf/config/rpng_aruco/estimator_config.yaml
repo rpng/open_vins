@@ -55,9 +55,9 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 use_klt: true
 num_pts: 150
 fast_threshold: 15
-grid_x: 5
-grid_y: 3
-min_px_dist: 10
+grid_x: 20
+grid_y: 20
+min_px_dist: 20
 knn_ratio: 0.85
 downsample_cameras: false
 multi_threading: true

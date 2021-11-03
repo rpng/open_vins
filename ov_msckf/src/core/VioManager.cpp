@@ -459,7 +459,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   int curr_aruco_tags = 0;
   auto it0 = state->_features_SLAM.begin();
   while (it0 != state->_features_SLAM.end()) {
-    if ((int)(*it0).second->_featid <= state->_options.max_aruco_features)
+    if ((int)(*it0).second->_featid <= 4 * state->_options.max_aruco_features)
       curr_aruco_tags++;
     it0++;
   }

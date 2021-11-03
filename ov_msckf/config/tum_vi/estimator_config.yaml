@@ -55,9 +55,9 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 use_klt: true
 num_pts: 300
 fast_threshold: 15
-grid_x: 5
-grid_y: 5
-min_px_dist: 5
+grid_x: 10
+grid_y: 10
+min_px_dist: 15
 knn_ratio: 0.65
 downsample_cameras: false
 multi_threading: true
@@ -81,7 +81,9 @@ up_aruco_sigma_px: 1
 up_aruco_chi2_multipler: 1
 
 # masks for our images
-use_mask: false
+use_mask: true
+mask0: "../../../ov_data/masks/tumvi0.png" #relative to current file
+mask1: "../../../ov_data/masks/tumvi1.png" #relative to current file
 
 # imu and camera spacial-temporal
 # imu config should also have the correct noise values

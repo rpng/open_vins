@@ -14,10 +14,10 @@ calib_cam_intrinsics: true
 calib_cam_timeoffset: true
 
 max_clones: 11
-max_slam: 75
+max_slam: 50
 max_slam_in_update: 25
 max_msckf_in_update: 40
-dt_slam_delay: 3
+dt_slam_delay: 2
 
 init_window_time: 0.75
 init_imu_thresh: 1.5
@@ -55,9 +55,9 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 use_klt: true
 num_pts: 250
 fast_threshold: 15
-grid_x: 5
-grid_y: 3
-min_px_dist: 8
+grid_x: 10
+grid_y: 10
+min_px_dist: 15
 knn_ratio: 0.70
 downsample_cameras: false
 multi_threading: true

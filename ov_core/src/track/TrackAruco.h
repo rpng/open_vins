@@ -35,8 +35,10 @@ namespace ov_core {
  * @brief Tracking of OpenCV Aruoc tags.
  *
  * This class handles the tracking of [OpenCV Aruco tags](https://github.com/opencv/opencv_contrib/tree/master/modules/aruco).
- * We track the top left corner of the tag as compared to the pose of the tag or any other corners.
- * Right now we hardcode the dictionary to be `cv::aruco::DICT_6X6_25`, so please generate tags in this family of tags.
+ * We track the corners of the tag as compared to the pose of the tag or any other corners.
+ * Right now we hardcode the dictionary to be `cv::aruco::DICT_6X6_1000`, so please generate tags in this family of tags.
+ * You can generate these tags using an online utility: https://chev.me/arucogen/
+ * The actual size of the tags do not matter since we do not recover the pose and instead just use this for re-detection and tracking of the four corners of the tag.
  */
 class TrackAruco : public TrackBase {
 
