@@ -85,6 +85,12 @@ public:
 #endif
 
   /**
+   * @brief Will get the folder this config file is in
+   * @return Config folder
+   */
+  std::string get_config_folder() { return config_path_.substr(0, config_path_.find_last_of('/')) + "/"; }
+
+  /**
    * @brief Check to see if all parameters were read succesfully
    * @return True if we found all parameters
    */
@@ -166,7 +172,7 @@ public:
       std::exit(EXIT_FAILURE);
     }
     (*config)[external_node_name] >> path;
-    std::string relative_folder = config_path_.substr(0, config_path_.find_last_of('/')) + "/";
+    std::string relative_folder = get_config_folder();
 
     // Now actually try to load them from file!
     auto config_external = std::make_shared<cv::FileStorage>(relative_folder + path, cv::FileStorage::READ);

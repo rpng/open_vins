@@ -24,7 +24,7 @@
 using namespace ov_core;
 
 // Need to define the static variable for everything to work
-Printer::PrintLevel Printer::current_print_level = PrintLevel::ALL;
+Printer::PrintLevel Printer::current_print_level = PrintLevel::INFO;
 
 void Printer::setPrintLevel(const std::string &level) {
   if (level == "ALL")

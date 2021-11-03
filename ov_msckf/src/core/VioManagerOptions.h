@@ -206,6 +206,12 @@ struct VioManagerOptions {
   /// Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.
   std::map<size_t, std::pair<int, int>> camera_wh;
 
+  /// If we should try to load a mask and use it to reject invalid features
+  bool use_mask = false;
+
+  /// Mask images for each camera
+  std::map<size_t, cv::Mat> masks;
+
   /**
    * @brief This function will load and print all state parameters (e.g. sensor extrinsics)
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -261,11 +267,27 @@ struct VioManagerOptions {
         camera_extrinsics.insert({i, cam_eigen});
         camera_wh.insert({i, wh});
       }
+      parser->parse_config("use_mask", use_mask);
+      if (use_mask) {
+        for (int i = 0; i < state_options.num_cameras; i++) {
+          std::string mask_path;
+          std::string mask_node = "mask" + std::to_string(i);
+          parser->parse_config(mask_node, mask_path);
+          std::string total_mask_path = parser->get_config_folder() + mask_path;
+          if (!boost::filesystem::exists(total_mask_path)) {
+            PRINT_ERROR(RED "VioManager(): invalid mask path:\n" RESET);
+            PRINT_ERROR(RED "\t- mask%d - %s\n" RESET, i, total_mask_path.c_str());
+            std::exit(EXIT_FAILURE);
+          }
+          masks.insert({i, cv::imread(total_mask_path, cv::IMREAD_GRAYSCALE)});
+        }
+      }
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);
     PRINT_DEBUG("  - gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
     PRINT_DEBUG("  - calib_camimu_dt: %.4f\n", calib_camimu_dt);
+    PRINT_DEBUG("  - camera masks?: %d\n", use_mask);
     assert(state_options.num_cameras == (int)camera_fisheye.size());
     for (int n = 0; n < state_options.num_cameras; n++) {
       std::stringstream ss;
@@ -324,12 +346,6 @@ struct VioManagerOptions {
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
 
-  /// If we should try to load a mask and use it to reject invalid features
-  bool use_mask = false;
-
-  /// Mask images for each camera
-  std::map<size_t, cv::Mat> masks;
-
   /// Parameters used by our feature initialize / triangulator
   ov_core::FeatureInitializerOptions featinit_options;
 
@@ -367,7 +383,6 @@ struct VioManagerOptions {
         std::exit(EXIT_FAILURE);
       }
       parser->parse_config("knn_ratio", knn_ratio);
-      parser->parse_config("use_mask", use_mask);
     }
     PRINT_DEBUG("FEATURE TRACKING PARAMETERS:\n");
     PRINT_DEBUG("  - use_stereo: %d\n", use_stereo);
@@ -382,7 +397,6 @@ struct VioManagerOptions {
     PRINT_DEBUG("  - min px dist: %d\n", min_px_dist);
     PRINT_DEBUG("  - hist method: %d\n", (int)histogram_method);
     PRINT_DEBUG("  - knn ratio: %.3f\n", knn_ratio);
-    PRINT_DEBUG("  - use mask?: %d\n", use_mask);
     featinit_options.print(parser);
   }
 

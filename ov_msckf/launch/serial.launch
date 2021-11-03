@@ -50,8 +50,6 @@
         <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
         <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
 
-        <param name="cam0_timeshift_cam_imu"            type="double" value="99999" />
-
     </node>
 
     <!-- record the trajectory if enabled -->
