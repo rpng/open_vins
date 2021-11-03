@@ -24,7 +24,7 @@
 
     <!-- if we should viz the groundtruth -->
     <arg name="dolivetraj"  default="false" />
-    <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).csv" />
+    <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
 
 
     <!-- MASTER NODE! -->
