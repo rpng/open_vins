@@ -22,6 +22,7 @@
 #ifndef OV_INIT_STATICINITIALIZER_H
 #define OV_INIT_STATICINITIALIZER_H
 
+#include "feat/FeatureHelper.h"
 #include "init/InertialInitializerOptions.h"
 
 #include "types/IMU.h"
@@ -51,10 +52,12 @@ public:
   /**
    * @brief Default constructor
    * @param params_ Parameters loaded from either ROS or CMDLINE
+   * @param db Feature tracker database with all features in it
    * @param imu_data_ Shared pointer to our IMU vector of historical information
    */
-  explicit StaticInitializer(InertialInitializerOptions &params_, std::shared_ptr<std::vector<ov_core::ImuData>> imu_data_)
-      : params(params_), imu_data(imu_data_) {}
+  explicit StaticInitializer(InertialInitializerOptions &params_, std::shared_ptr<ov_core::FeatureDatabase> db,
+                             std::shared_ptr<std::vector<ov_core::ImuData>> imu_data_)
+      : params(params_), _db(db), imu_data(imu_data_) {}
 
   /**
    * @brief Try to get the initialized system using just the imu
@@ -80,6 +83,9 @@ public:
 private:
   /// Initialization parameters
   InertialInitializerOptions params;
+
+  /// Feature tracker database with all features in it
+  std::shared_ptr<ov_core::FeatureDatabase> _db;
 
   /// Our history of IMU messages (time, angular, linear)
   std::shared_ptr<std::vector<ov_core::ImuData>> imu_data;

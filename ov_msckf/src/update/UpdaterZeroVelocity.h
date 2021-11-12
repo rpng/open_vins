@@ -23,13 +23,14 @@
 #define OV_MSCKF_UPDATER_ZEROVELOCITY_H
 
 #include "feat/FeatureDatabase.h"
+#include "feat/FeatureHelper.h"
 #include "state/Propagator.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "utils/colors.h"
+#include "utils/print.h"
 #include "utils/quat_ops.h"
 #include "utils/sensor_data.h"
-#include "utils/print.h"
 
 #include "UpdaterHelper.h"
 #include "UpdaterOptions.h"

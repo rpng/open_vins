@@ -27,7 +27,7 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
-try_zupt: true
+try_zupt: false
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
 zupt_noise_multiplier: 50
@@ -46,9 +46,10 @@ init_state_bias_accel: true
 init_enforce_gravity_magnitude: true
 
 init_camera_rate: 10.0
-init_window_time: 1.0
-init_imu_thresh: 0.60 # room1-5:0.60, room6:0.45
-init_max_disparity: 0.5
+init_window_time: 0.85
+init_imu_thresh: 0.45 # room1-5:0.45, room6:0.25
+init_max_disparity: 15.0
+init_max_features: 45.0
 
 # ==================================================================
 # ==================================================================

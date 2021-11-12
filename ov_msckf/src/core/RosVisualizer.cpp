@@ -117,7 +117,7 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
 void RosVisualizer::visualize() {
 
   // Return if we have already visualized
-  if (last_visualization_timestamp == _app->get_state()->_timestamp)
+  if (last_visualization_timestamp == _app->get_state()->_timestamp && _app->initialized())
     return;
   last_visualization_timestamp = _app->get_state()->_timestamp;
 

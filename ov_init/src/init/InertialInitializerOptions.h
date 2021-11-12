@@ -54,7 +54,6 @@ struct InertialInitializerOptions {
     print_and_load_initializer(parser);
     print_and_load_noise(parser);
     print_and_load_state(parser);
-    print_and_load_trackers(parser);
   }
 
   // CALIBRATION ============================
@@ -89,6 +88,9 @@ struct InertialInitializerOptions {
   /// Max disparity we will consider the unit to be stationary
   double init_max_disparity = 1.0;
 
+  /// Number of features we should try to track
+  int init_max_features = 20;
+
   /**
    * @brief This function will load print out all initializer settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -108,6 +110,7 @@ struct InertialInitializerOptions {
       parser->parse_config("init_window_time", init_window_time);
       parser->parse_config("init_imu_thresh", init_imu_thresh);
       parser->parse_config("init_max_disparity", init_max_disparity);
+      parser->parse_config("init_max_features", init_max_features);
     }
     PRINT_DEBUG("  - init_only_use_dynamic: %d\n", init_only_use_dynamic);
     PRINT_DEBUG("  - init_only_use_static: %d\n", init_only_use_static);
@@ -125,6 +128,7 @@ struct InertialInitializerOptions {
     PRINT_DEBUG("  - init_window_time: %.2f\n", init_window_time);
     PRINT_DEBUG("  - init_imu_thresh: %.2f\n", init_imu_thresh);
     PRINT_DEBUG("  - init_max_disparity: %.2f\n", init_max_disparity);
+    PRINT_DEBUG("  - init_max_features: %.2f\n", init_max_features);
     // Ensure we have enough frames to work with
     double dt = 1.0 / init_camera_rate;
     int num_frames = std::floor(init_window_time / dt);
@@ -133,6 +137,11 @@ struct InertialInitializerOptions {
       PRINT_ERROR(RED "  init_camera_rate = %.2f (%.2f seconds)\n" RESET, init_camera_rate, dt);
       PRINT_ERROR(RED "  init_window_time = %.2f seconds\n" RESET, init_window_time);
       PRINT_ERROR(RED "  num init frames = %d\n" RESET, num_frames);
+      std::exit(EXIT_FAILURE);
+    }
+    if (init_max_features < 15) {
+      PRINT_ERROR(RED "number of requested feature tracks to init not enough!!\n" RESET);
+      PRINT_ERROR(RED "  init_max_features = %d\n" RESET, init_max_features);
       std::exit(EXIT_FAILURE);
     }
   }
@@ -309,106 +318,6 @@ struct InertialInitializerOptions {
 //      ss << "T_C" << n << "toI:" << std::endl << T_CtoI << std::endl << std::endl;
 //      PRINT_DEBUG(ss.str().c_str());
 //    }
-  }
-
-  // TRACKERS ===============================
-
-  /// If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.
-  bool use_stereo = true;
-
-  /// If we should use KLT tracking, or descriptor matcher
-  bool use_klt = true;
-
-  /// If should extract aruco tags and estimate them
-  bool use_aruco = true;
-
-  /// Will half the resolution of the aruco tag image (will be faster)
-  bool downsize_aruco = true;
-
-  /// Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)
-  bool downsample_cameras = false;
-
-  /// If our front-end should try to use some multi-threading for stereo matching
-  bool use_multi_threading = true;
-
-  /// The number of points we should extract and track in *each* image frame. This highly effects the computation required for tracking.
-  int num_pts = 150;
-
-  /// Fast extraction threshold
-  int fast_threshold = 20;
-
-  /// Number of grids we should split column-wise to do feature extraction in
-  int grid_x = 5;
-
-  /// Number of grids we should split row-wise to do feature extraction in
-  int grid_y = 5;
-
-  /// Will check after doing KLT track and remove any features closer than this
-  int min_px_dist = 10;
-
-  /// What type of pre-processing histogram method should be applied to images
-  ov_core::TrackBase::HistogramMethod histogram_method = ov_core::TrackBase::HistogramMethod::HISTOGRAM;
-
-  /// KNN ration between top two descriptor matcher which is required to be a good match
-  double knn_ratio = 0.85;
-
-  /// Parameters used by our feature initialize / triangulator
-  ov_core::FeatureInitializerOptions featinit_options;
-
-  /**
-   * @brief This function will load print out all parameters related to visual tracking
-   * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
-   *
-   * @param parser If not null, this parser will be used to load our parameters
-   */
-  void print_and_load_trackers(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
-    if (parser != nullptr) {
-      parser->parse_config("use_stereo", use_stereo);
-      parser->parse_config("use_klt", use_klt);
-      parser->parse_config("use_aruco", use_aruco);
-      parser->parse_config("downsize_aruco", downsize_aruco);
-      parser->parse_config("multi_threading", use_multi_threading);
-      parser->parse_config("num_pts", num_pts);
-      parser->parse_config("fast_threshold", fast_threshold);
-      parser->parse_config("grid_x", grid_x);
-      parser->parse_config("grid_y", grid_y);
-      parser->parse_config("min_px_dist", min_px_dist);
-      std::string histogram_method_str = "HISTOGRAM";
-      parser->parse_config("histogram_method", histogram_method_str);
-      if (histogram_method_str == "NONE") {
-        histogram_method = ov_core::TrackBase::NONE;
-      } else if (histogram_method_str == "HISTOGRAM") {
-        histogram_method = ov_core::TrackBase::HISTOGRAM;
-      } else if (histogram_method_str == "CLAHE") {
-        histogram_method = ov_core::TrackBase::CLAHE;
-      } else {
-        printf(RED "Initializer(): invalid feature histogram specified:\n" RESET);
-        printf(RED "\t- NONE\n" RESET);
-        printf(RED "\t- HISTOGRAM\n" RESET);
-        printf(RED "\t- CLAHE\n" RESET);
-        std::exit(EXIT_FAILURE);
-      }
-      parser->parse_config("knn_ratio", knn_ratio);
-    }
-    PRINT_DEBUG("FEATURE TRACKING PARAMETERS:\n");
-    PRINT_DEBUG("  - use_stereo: %d\n", use_stereo);
-    PRINT_DEBUG("  - use_klt: %d\n", use_klt);
-    PRINT_DEBUG("  - use_aruco: %d\n", use_aruco);
-    PRINT_DEBUG("  - downsize aruco: %d\n", downsize_aruco);
-    PRINT_DEBUG("  - downsize cameras: %d\n", downsample_cameras);
-    PRINT_DEBUG("  - use multi-threading: %d\n", use_multi_threading);
-    PRINT_DEBUG("  - num_pts: %d\n", num_pts);
-    PRINT_DEBUG("  - fast threshold: %d\n", fast_threshold);
-    PRINT_DEBUG("  - grid X by Y: %d by %d\n", grid_x, grid_y);
-    PRINT_DEBUG("  - min px dist: %d\n", min_px_dist);
-    PRINT_DEBUG("  - hist method: %d\n", (int)histogram_method);
-    PRINT_DEBUG("  - knn ratio: %.3f\n", knn_ratio);
-    featinit_options.print(parser);
-    if (num_pts < 15) {
-      PRINT_ERROR(RED "number of requested features tracked not enough!!\n" RESET);
-      PRINT_ERROR(RED "  num_pts = %d\n" RESET, num_pts);
-      std::exit(EXIT_FAILURE);
-    }
   }
 
   // SIMULATOR ===============================

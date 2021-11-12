@@ -157,6 +157,12 @@ public:
     }
   }
 
+  /// Getter method for number of active features
+  int get_num_features() { return num_features; }
+
+  /// Setter method for number of active features
+  void set_num_features(int _num_features) { num_features = _num_features; }
+
 protected:
   /// Camera object which has all calibration in it
   std::unordered_map<size_t, std::shared_ptr<CamBase>> camera_calib;

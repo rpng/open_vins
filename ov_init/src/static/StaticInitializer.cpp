@@ -55,9 +55,57 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
   }
 
   // Return if both of these failed
-  if (window_1to0.empty() || window_2to1.empty()) {
+  if (window_1to0.size() < 2 || window_2to1.size() < 2) {
     // PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
     return false;
+  }
+
+  // First we can check the disparity of the two
+  if (params.init_max_disparity > 0) {
+
+    // Get time in the camera
+    double time0_imu_in_cam = window_2to1.at(0).timestamp;
+    double time1_imu_in_cam = window_2to1.at(window_2to1.size() - 1).timestamp;
+
+    // Find the closest camera timestamps
+    std::map<double, bool> camera_times;
+    for (auto const &row : _db->get_internal_data()) {
+      for (auto const &times : row.second->timestamps) {
+        for (auto const &time : times.second) {
+          camera_times[time] = true;
+        }
+      }
+    }
+    auto it0 = camera_times.lower_bound(time0_imu_in_cam);
+    auto it1 = camera_times.lower_bound(time1_imu_in_cam);
+    if (it0 == camera_times.end() || it1 == camera_times.end()) {
+      PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to find camera timestamps to compute disparity (have you tracked features?)\n" RESET);
+      return false;
+    }
+
+    // Get the disparity statistics from this image to the previous
+    double time0_cam = it0->first;
+    double time1_cam = it1->first;
+    int num_features = 0;
+    double average_disparity = 0.0;
+    double variance_disparity = 0.0;
+    FeatureHelper::compute_disparity(_db, time0_cam, time1_cam, average_disparity, variance_disparity, num_features);
+
+    // Remove old timestamps
+    _db->cleanup_measurements(time0_imu_in_cam);
+
+    // Return if we can't compute the disparity
+    if (num_features < 10) {
+      PRINT_DEBUG(YELLOW "[INIT-IMU]: not enough features to compute disparity %d < 10\n" RESET, num_features);
+      return false;
+    }
+
+    // Check if it passed our check!
+    if (average_disparity > params.init_max_disparity) {
+      PRINT_DEBUG(YELLOW "[INIT-IMU]: disparity says the platform is moving %.4f < %.4f\n" RESET, average_disparity,
+                  params.init_max_disparity);
+      return false;
+    }
   }
 
   // Calculate the sample variance for the newest window from 1 to 0

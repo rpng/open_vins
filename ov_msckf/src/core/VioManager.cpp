@@ -103,16 +103,17 @@ VioManager::VioManager(VioManagerOptions &params_) {
   //===================================================================================
   //===================================================================================
 
-  // Lets make a feature extractor
+  // Let's make a feature extractor
+  // NOTE: after we initialize we will increase the total number of feature tracks
   trackDATABASE = std::make_shared<FeatureDatabase>();
   if (params.use_klt) {
-    trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras, params.num_pts, state->_options.max_aruco_features,
-                                                         params.use_stereo, params.histogram_method, params.fast_threshold, params.grid_x,
-                                                         params.grid_y, params.min_px_dist));
+    trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras, params.init_options.init_max_features,
+                                                         state->_options.max_aruco_features, params.use_stereo, params.histogram_method,
+                                                         params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist));
   } else {
     trackFEATS = std::shared_ptr<TrackBase>(new TrackDescriptor(
-        state->_cam_intrinsics_cameras, params.num_pts, state->_options.max_aruco_features, params.use_stereo, params.histogram_method,
-        params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist, params.knn_ratio));
+        state->_cam_intrinsics_cameras, params.init_options.init_max_features, state->_options.max_aruco_features, params.use_stereo,
+        params.histogram_method, params.fast_threshold, params.grid_x, params.grid_y, params.min_px_dist, params.knn_ratio));
   }
 
   // Initialize our aruco tag extractor
@@ -125,7 +126,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity_mag);
 
   // Our state initialize
-  initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options);
+  initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options, trackFEATS->get_feature_database());
 
   // Make the updater!
   updaterMSCKF = std::make_shared<UpdaterMSCKF>(params.msckf_options, params.featinit_options);
@@ -286,12 +287,14 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
-  trackDATABASE->append_new_measurements(trackFEATS->get_feature_database());
+  if (is_initialized_vio) {
+    trackDATABASE->append_new_measurements(trackFEATS->get_feature_database());
+  }
 
   // If the aruco tracker is available, the also pass to it
   // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids
   // NOTE: thus we just call the stereo tracking if we are doing binocular!
-  if (trackARUCO != nullptr) {
+  if (is_initialized_vio && trackARUCO != nullptr) {
     trackARUCO->feed_new_camera(message);
     trackDATABASE->append_new_measurements(trackARUCO->get_feature_database());
   }
@@ -339,8 +342,27 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   // TODO: Or if we are trying to reset the system, then do that here!
   if (!is_initialized_vio) {
     is_initialized_vio = try_to_initialize();
-    if (!is_initialized_vio)
+    if (!is_initialized_vio) {
+
+      // Get timing statitics information
+      rT3 = boost::posix_time::microsec_clock::local_time();
+      double time_track = (rT2 - rT1).total_microseconds() * 1e-6;
+      double time_init = (rT3 - rT2).total_microseconds() * 1e-6;
+      double time_total = (rT3 - rT1).total_microseconds() * 1e-6;
+
+      // Timing information
+      PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for tracking\n" RESET, time_track);
+      PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for initialization\n" RESET, time_init);
+      std::stringstream ss;
+      ss << "[TIME]: " << std::setprecision(4) << time_total << " seconds for total (camera";
+      for (const auto &id : message.sensor_ids) {
+        ss << " " << id;
+      }
+      ss << ")" << std::endl;
+      PRINT_INFO(BLUE "%s" RESET, ss.str().c_str());
+
       return;
+    }
   }
 
   // Call on our propagate and update function
@@ -729,8 +751,9 @@ bool VioManager::try_to_initialize() {
   startup_time = timestamp;
 
   // Cleanup any features older then the initialization time
-  // TODO: ensure we keep the feature tracks from our dynamic init so we can match to the init'ed features!
+  // Also increase the number of features to the desired amount during estimation
   trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
+  trackFEATS->set_num_features(params.num_pts);
   if (trackARUCO != nullptr) {
     trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
   }

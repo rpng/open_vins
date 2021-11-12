@@ -174,6 +174,10 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
       max_height = pair.second.rows;
   }
 
+  // Return if we didn't have a last image
+  if (max_width == -1 || max_height == -1)
+    return;
+
   // If the image is "small" thus we shoudl use smaller display codes
   bool is_small = (std::min(max_width, max_height) < 400);
 

@@ -19,7 +19,6 @@ max_slam_in_update: 25
 max_msckf_in_update: 40
 dt_slam_delay: 2
 
-
 gravity_mag: 9.81
 
 feat_rep_msckf: "GLOBAL_3D"
@@ -49,7 +48,8 @@ init_enforce_gravity_magnitude: true
 init_camera_rate: 10.0
 init_window_time: 0.5
 init_imu_thresh: 1.5
-init_max_disparity: 0.5
+init_max_disparity: 1.5
+init_max_features: 25.0
 
 # ==================================================================
 # ==================================================================

@@ -48,7 +48,8 @@ init_enforce_gravity_magnitude: true
 init_camera_rate: 10.0
 init_window_time: 0.75
 init_imu_thresh: 1.0
-init_max_disparity: 0.5
+init_max_disparity: 1.5
+init_max_features: 25.0
 
 # ==================================================================
 # ==================================================================

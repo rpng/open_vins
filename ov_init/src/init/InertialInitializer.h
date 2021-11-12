@@ -56,8 +56,9 @@ public:
   /**
    * @brief Default constructor
    * @param params_ Parameters loaded from either ROS or CMDLINE
+   * @param db Feature tracker database with all features in it
    */
-  explicit InertialInitializer(InertialInitializerOptions &params_);
+  explicit InertialInitializer(InertialInitializerOptions &params_, std::shared_ptr<ov_core::FeatureDatabase> db);
 
   /**
    * @brief Feed function for inertial data
@@ -91,6 +92,9 @@ public:
 protected:
   /// Initialization parameters
   InertialInitializerOptions params;
+
+  /// Feature tracker database with all features in it
+  std::shared_ptr<ov_core::FeatureDatabase> _db;
 
   /// Our history of IMU messages (time, angular, linear)
   std::shared_ptr<std::vector<ov_core::ImuData>> imu_data;

@@ -25,13 +25,14 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_init;
 
-InertialInitializer::InertialInitializer(InertialInitializerOptions &params_) : params(params_) {
+InertialInitializer::InertialInitializer(InertialInitializerOptions &params_, std::shared_ptr<ov_core::FeatureDatabase> db)
+    : params(params_), _db(db) {
 
   // Vector of our IMU data
   imu_data = std::make_shared<std::vector<ov_core::ImuData>>();
 
   // Create static initializer
-  init_static = std::make_shared<StaticInitializer>(params, imu_data);
+  init_static = std::make_shared<StaticInitializer>(params, _db, imu_data);
 
   // TODO: create the feature tracker here
   // TODO: create dynamic initialize class object
