@@ -79,10 +79,10 @@ public:
     assert(dx.rows() == _size);
     set_value(_value + dx);
     // Ensure we are not near zero in the z-direction
-    if (LandmarkRepresentation::is_relative_representation(_feat_representation) && _value(_value.rows() - 1) < 1e-8) {
-      PRINT_WARNING(YELLOW "WARNING DEPTH %.8f BECAME CLOSE TO ZERO IN UPDATE!!!\n" RESET, _value(_value.rows() - 1));
-      should_marg = true;
-    }
+    // if (LandmarkRepresentation::is_relative_representation(_feat_representation) && _value(_value.rows() - 1) < 1e-8) {
+    //  PRINT_DEBUG(YELLOW "WARNING DEPTH %.8f BECAME CLOSE TO ZERO IN UPDATE!!!\n" RESET, _value(_value.rows() - 1));
+    //  should_marg = true;
+    // }
   }
 
   /**
