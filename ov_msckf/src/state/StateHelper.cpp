@@ -184,17 +184,31 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
   }
 }
 
-void StateHelper::fix_4dof_gauge_freedoms(std::shared_ptr<State> state, const Eigen::Vector4d &q_GtoI) {
+void StateHelper::set_initial_covariance(std::shared_ptr<State> state, const Eigen::MatrixXd &covariance,
+                                         const std::vector<std::shared_ptr<ov_type::Type>> &order) {
 
-  // Fix our global yaw and position
-  state->_Cov(state->_imu->q()->id() + 2, state->_imu->q()->id() + 2) = 0.0;
-  state->_Cov.block(state->_imu->p()->id(), state->_imu->p()->id(), 3, 3).setZero();
+  // We need to loop through each element and overwrite the current covariance values
+  // For example consider the following:
+  // x = [ ori pos ] -> insert into -> x = [ ori bias pos ]
+  // P = [ P_oo P_op ] -> P = [ P_oo  0   P_op ]
+  //     [ P_po P_pp ]        [  0    P*    0  ]
+  //                          [ P_po  0   P_pp ]
+  // The key assumption here is that the covariance is block diagonal (cross-terms zero with P* can be dense)
+  // This is normally the care on startup (for example between calibration and the initial state
 
-  // Propagate into the current local IMU frame
-  // R_GtoI = R_GtoI*R_GtoG -> H = R_GtoI
-  Eigen::Matrix3d R_GtoI = quat_2_Rot(q_GtoI);
-  state->_Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) =
-      R_GtoI * state->_Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) * R_GtoI.transpose();
+  // For each variable, lets copy over all other variable cross terms
+  // Note: this copies over itself to when i_index=k_index
+  int i_index = 0;
+  for (size_t i = 0; i < order.size(); i++) {
+    int k_index = 0;
+    for (size_t k = 0; k < order.size(); k++) {
+      state->_Cov.block(order[i]->id(), order[k]->id(), order[i]->size(), order[k]->size()) =
+          covariance.block(i_index, k_index, order[i]->size(), order[k]->size());
+      k_index += order[k]->size();
+    }
+    i_index += order[i]->size();
+  }
+  state->_Cov = state->_Cov.selfadjointView<Eigen::Upper>();
 }
 
 Eigen::MatrixXd StateHelper::get_marginal_covariance(std::shared_ptr<State> state,

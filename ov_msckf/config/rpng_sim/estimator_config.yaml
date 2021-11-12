@@ -19,8 +19,6 @@ max_slam_in_update: 25
 max_msckf_in_update: 10
 dt_slam_delay: 2
 
-init_window_time: 0.75
-init_imu_thresh: 1.0
 gravity_mag: 9.81
 
 feat_rep_msckf: "GLOBAL_3D"
@@ -35,6 +33,22 @@ zupt_max_velocity: 0.1
 zupt_noise_multiplier: 50
 zupt_max_disparity: 0.5 # set to 0 for only imu-based
 zupt_only_at_beginning: true
+
+# ==================================================================
+# ==================================================================
+
+init_only_use_dynamic: false
+init_only_use_static: true
+
+init_camera_pose: false
+init_camera_timeoffset: false
+init_state_bias_accel: true
+init_enforce_gravity_magnitude: true
+
+init_camera_rate: 10.0
+init_window_time: 0.75
+init_imu_thresh: 1.0
+init_max_disparity: 0.5
 
 # ==================================================================
 # ==================================================================

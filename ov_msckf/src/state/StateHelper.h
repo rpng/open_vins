@@ -72,7 +72,8 @@ public:
    * @param Q Additive state propagation noise matrix (size order_NEW by size order_NEW)
    */
   static void EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &order_NEW,
-                             const std::vector<std::shared_ptr<ov_type::Type>> &order_OLD, const Eigen::MatrixXd &Phi, const Eigen::MatrixXd &Q);
+                             const std::vector<std::shared_ptr<ov_type::Type>> &order_OLD, const Eigen::MatrixXd &Phi,
+                             const Eigen::MatrixXd &Q);
 
   /**
    * @brief Performs EKF update of the state (see @ref linear-meas page)
@@ -86,17 +87,14 @@ public:
                         const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
   /**
-   * @brief This will fix the initial covariance matrix gauge freedoms (4dof, yaw and position).
-   *
-   * A VIO system has 4dof unobservabile directions which can be arbitarily picked.
-   * This means that on startup, we can fix the yaw and position to be 100 percent known.
-   * Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
-   * into the new IMU pose. In this case the position is directly equivilent, but the orientation needs to be propagated.
-   *
+   * @brief This will set the initial covaraince of the specified state elements.
+   * Will also ensure that proper cross-covariances are inserted.
    * @param state Pointer to state
-   * @param q_GtoI Initial rotation from global frame to the first ever IMU orientation.
+   * @param covariance The covariance of the system state
+   * @param order Order of the covariance matrix
    */
-  static void fix_4dof_gauge_freedoms(std::shared_ptr<State> state, const Eigen::Vector4d &q_GtoI);
+  static void set_initial_covariance(std::shared_ptr<State> state, const Eigen::MatrixXd &covariance,
+                                     const std::vector<std::shared_ptr<ov_type::Type>> &order);
 
   /**
    * @brief For a given set of variables, this will this will calculate a smaller covariance.
@@ -109,7 +107,8 @@ public:
    * @param small_variables Vector of variables whose marginal covariance is desired
    * @return marginal covariance of the passed variables
    */
-  static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &small_variables);
+  static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state,
+                                                 const std::vector<std::shared_ptr<ov_type::Type>> &small_variables);
 
   /**
    * @brief This gets the full covariance matrix.
@@ -162,8 +161,8 @@ public:
    * @param chi_2_mult Value we should multiply the chi2 threshold by (larger means it will be accepted more measurements)
    */
   static bool initialize(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> new_variable,
-                         const std::vector<std::shared_ptr<ov_type::Type>> &H_order, Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L, Eigen::MatrixXd &R,
-                         Eigen::VectorXd &res, double chi_2_mult);
+                         const std::vector<std::shared_ptr<ov_type::Type>> &H_order, Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L,
+                         Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult);
 
   /**
    * @brief Initializes new variable into covariance (H_L must be invertible)

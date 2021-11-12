@@ -125,7 +125,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity_mag);
 
   // Our state initialize
-  initializer = std::make_shared<InertialInitializer>(params.gravity_mag, params.init_window_time, params.init_imu_thresh);
+  initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options);
 
   // Make the updater!
   updaterMSCKF = std::make_shared<UpdaterMSCKF>(params.msckf_options, params.featinit_options);
@@ -706,40 +706,30 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
 bool VioManager::try_to_initialize() {
 
   // Returns from our initializer
-  double time0;
-  Eigen::Matrix<double, 4, 1> q_GtoI0;
-  Eigen::Matrix<double, 3, 1> b_w0, v_I0inG, b_a0, p_I0inG;
+  double timestamp;
+  Eigen::MatrixXd covariance;
+  std::vector<std::shared_ptr<ov_type::Type>> order;
 
   // Try to initialize the system
   // We will wait for a jerk if we do not have the zero velocity update enabled
   // Otherwise we can initialize right away as the zero velocity will handle the stationary case
   bool wait_for_jerk = (updaterZUPT == nullptr);
-  bool success = initializer->initialize_with_imu(time0, q_GtoI0, b_w0, v_I0inG, b_a0, p_I0inG, wait_for_jerk);
+  bool success = initializer->initialize(timestamp, covariance, order, state->_imu, wait_for_jerk);
 
   // Return if it failed
   if (!success) {
     return false;
   }
 
-  // Make big vector (q,p,v,bg,ba), and update our state
-  // Note: start from zero position, as this is what our covariance is based off of
-  Eigen::Matrix<double, 16, 1> imu_val;
-  imu_val.block(0, 0, 4, 1) = q_GtoI0;
-  imu_val.block(4, 0, 3, 1) << 0, 0, 0;
-  imu_val.block(7, 0, 3, 1) = v_I0inG;
-  imu_val.block(10, 0, 3, 1) = b_w0;
-  imu_val.block(13, 0, 3, 1) = b_a0;
-  // imu_val.block(10,0,3,1) << 0,0,0;
-  // imu_val.block(13,0,3,1) << 0,0,0;
-  state->_imu->set_value(imu_val);
-  state->_imu->set_fej(imu_val);
-  state->_timestamp = time0;
-  startup_time = time0;
+  // Set our covariance (state should already be set in the initializer)
+  StateHelper::set_initial_covariance(state, covariance, order);
 
-  // Fix the global yaw and position gauge freedoms
-  StateHelper::fix_4dof_gauge_freedoms(state, q_GtoI0);
+  // Set the state time
+  state->_timestamp = timestamp;
+  startup_time = timestamp;
 
   // Cleanup any features older then the initialization time
+  // TODO: ensure we keep the feature tracks from our dynamic init so we can match to the init'ed features!
   trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
   if (trackARUCO != nullptr) {
     trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);

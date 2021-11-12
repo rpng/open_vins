@@ -79,7 +79,7 @@ public:
   int max_covariance_size() { return (int)_Cov.rows(); }
 
   /// Current timestamp (should be the last update time!)
-  double _timestamp;
+  double _timestamp = -1;
 
   /// Struct containing filter options
   StateOptions _options;

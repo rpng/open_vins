@@ -11,7 +11,7 @@ project(ov_msckf)
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 # Find catkin (the ROS build system)
-find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core)
+find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core ov_init)
 
 # Include libraries (if we don't have opencv 4, then fallback to opencv 3)
 # The OpenCV version needs to match the one used by cv_bridge otherwise you will get a segmentation fault!
@@ -37,7 +37,7 @@ option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
-            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core
+            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core ov_init
             INCLUDE_DIRS src
             LIBRARIES ov_msckf_lib
     )
@@ -87,6 +87,9 @@ if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
     message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
     include_directories(${ov_core_SOURCE_DIR}/src/)
     list(APPEND thirdparty_libraries ov_core_lib)
+    message(WARNING "MANUALLY LINKING TO OV_INIT LIBRARY....")
+    include_directories(${ov_init_SOURCE_DIR}/src/)
+    list(APPEND thirdparty_libraries ov_init_lib)
 endif ()
 
 ##################################################

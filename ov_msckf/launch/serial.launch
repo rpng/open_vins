@@ -12,10 +12,6 @@
     <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
     <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />
 
-    <!-- imu starting thresholds -->
-    <arg name="init_window_time"  default="0.75" />
-    <arg name="init_imu_thresh"   default="1.5" />
-
     <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
     <arg name="dotime"      default="false" />
@@ -43,8 +39,6 @@
         <!-- world/filter parameters -->
         <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
-        <param name="init_window_time"       type="double" value="$(arg init_window_time)" />
-        <param name="init_imu_thresh"        type="double" value="$(arg init_imu_thresh)" />
 
         <!-- timing statistics recording -->
         <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />

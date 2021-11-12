@@ -28,11 +28,14 @@
 #include <string>
 #include <vector>
 
-#include "feat/FeatureInitializerOptions.h"
 #include "state/Propagator.h"
 #include "state/StateOptions.h"
-#include "track/TrackBase.h"
 #include "update/UpdaterOptions.h"
+
+#include "init/InertialInitializerOptions.h"
+
+#include "feat/FeatureInitializerOptions.h"
+#include "track/TrackBase.h"
 #include "utils/colors.h"
 #include "utils/opencv_yaml_parse.h"
 #include "utils/print.h"
@@ -65,14 +68,11 @@ struct VioManagerOptions {
   /// Core state options (e.g. number of cameras, use fej, stereo, what calibration to enable etc)
   StateOptions state_options;
 
+  /// Our state initialization options (e.g. window size, num features, if we should get the calibration)
+  ov_init::InertialInitializerOptions init_options;
+
   /// Delay, in seconds, that we should wait from init before we start estimating SLAM features
   double dt_slam_delay = 2.0;
-
-  /// Amount of time we will initialize over (seconds)
-  double init_window_time = 1.0;
-
-  ///  Variance threshold on our acceleration to be classified as moving
-  double init_imu_thresh = 1.0;
 
   /// If we should try to use zero velocity update
   bool try_zupt = false;
@@ -104,10 +104,9 @@ struct VioManagerOptions {
   void print_and_load_estimator(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     PRINT_DEBUG("ESTIMATOR PARAMETERS:\n");
     state_options.print(parser);
+    init_options.print_and_load(parser);
     if (parser != nullptr) {
       parser->parse_config("dt_slam_delay", dt_slam_delay);
-      parser->parse_config("init_window_time", init_window_time);
-      parser->parse_config("init_imu_thresh", init_imu_thresh);
       parser->parse_config("try_zupt", try_zupt);
       parser->parse_config("zupt_max_velocity", zupt_max_velocity);
       parser->parse_config("zupt_noise_multiplier", zupt_noise_multiplier);
@@ -117,8 +116,6 @@ struct VioManagerOptions {
       parser->parse_config("record_timing_filepath", record_timing_filepath);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
-    PRINT_DEBUG("  - init_window_time: %.2f\n", init_window_time);
-    PRINT_DEBUG("  - init_imu_thresh: %.2f\n", init_imu_thresh);
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
@@ -224,7 +221,8 @@ struct VioManagerOptions {
       parser->parse_config("max_cameras", state_options.num_cameras); // might be redundant
       for (int i = 0; i < state_options.num_cameras; i++) {
 
-        // Time offset (use the first one, todo: support multiple!)
+        // Time offset (use the first one)
+        // TODO: support multiple time offsets between cameras
         if (i == 0) {
           parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "timeshift_cam_imu", calib_camimu_dt, false);
         }

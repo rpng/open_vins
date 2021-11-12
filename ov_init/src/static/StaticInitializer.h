@@ -19,22 +19,23 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OV_CORE_INERTIALINITIALIZER_H
-#define OV_CORE_INERTIALINITIALIZER_H
+#ifndef OV_INIT_STATICINITIALIZER_H
+#define OV_INIT_STATICINITIALIZER_H
 
+#include "init/InertialInitializerOptions.h"
+
+#include "types/IMU.h"
 #include "utils/colors.h"
 #include "utils/print.h"
 #include "utils/quat_ops.h"
 #include "utils/sensor_data.h"
 
-namespace ov_core {
+namespace ov_init {
 
 /**
- * @brief Initializer for visual-inertial system.
+ * @brief Initializer for a static visual-inertial system.
  *
- * This class has a series of functions that can be used to initialize your system.
- * Right now we have our implementation that assumes that the imu starts from standing still.
- * In the future we plan to add support for structure-from-motion dynamic initialization.
+ * This implementation that assumes that the imu starts from standing still.
  *
  * To initialize from standstill:
  * 1. Collect all inertial measurements
@@ -44,28 +45,19 @@ namespace ov_core {
  * 5. Return a roll and pitch aligned with gravity and biases.
  *
  */
-class InertialInitializer {
+class StaticInitializer {
 
 public:
   /**
    * @brief Default constructor
-   * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
-   * @param window_length Amount of time we will initialize over (seconds)
-   * @param imu_excite_threshold Variance threshold on our acceleration to be classified as moving
+   * @param params_ Parameters loaded from either ROS or CMDLINE
+   * @param imu_data_ Shared pointer to our IMU vector of historical information
    */
-  InertialInitializer(double gravity_mag, double window_length, double imu_excite_threshold)
-      : _window_length(window_length), _imu_excite_threshold(imu_excite_threshold) {
-    _gravity << 0.0, 0.0, gravity_mag;
-  }
+  explicit StaticInitializer(InertialInitializerOptions &params_, std::shared_ptr<std::vector<ov_core::ImuData>> imu_data_)
+      : params(params_), imu_data(imu_data_) {}
 
   /**
-   * @brief Feed function for inertial data
-   * @param message Contains our timestamp and inertial information
-   */
-  void feed_imu(const ImuData &message);
-
-  /**
-   * @brief Try to initialize the system using just the imu
+   * @brief Try to get the initialized system using just the imu
    *
    * This will check if we have had a large enough jump in our acceleration.
    * If we have then we will use the period of time before this jump to initialize the state.
@@ -75,33 +67,24 @@ public:
    * This is only recommended if you have zero velocity update enabled to handle the stationary cases.
    * To initialize in this case, we need to have the average angular variance be below the set threshold (i.e. we need to be stationary).
    *
-   * @param[out] time0 Timestamp that the returned state is at
-   * @param[out] q_GtoI0 Orientation at initialization
-   * @param[out] b_w0 Gyro bias at initialization
-   * @param[out] v_I0inG Velocity at initialization
-   * @param[out] b_a0 Acceleration bias at initialization
-   * @param[out] p_I0inG Position at initialization
+   * @param[out] timestamp Timestamp we have initialized the state at
+   * @param[out] covariance Calculated covariance of the returned state
+   * @param[out] order Order of the covariance matrix
+   * @param[out] t_imu Our imu type element
    * @param wait_for_jerk If true we will wait for a "jerk"
    * @return True if we have successfully initialized our system
    */
-  bool initialize_with_imu(double &time0, Eigen::Matrix<double, 4, 1> &q_GtoI0, Eigen::Matrix<double, 3, 1> &b_w0,
-                           Eigen::Matrix<double, 3, 1> &v_I0inG, Eigen::Matrix<double, 3, 1> &b_a0, Eigen::Matrix<double, 3, 1> &p_I0inG,
-                           bool wait_for_jerk = true);
+  bool initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
+                  std::shared_ptr<ov_type::IMU> t_imu, bool wait_for_jerk = true);
 
-protected:
-  /// Gravity vector
-  Eigen::Matrix<double, 3, 1> _gravity;
-
-  /// Amount of time we will initialize over (seconds)
-  double _window_length;
-
-  /// Variance threshold on our acceleration to be classified as moving
-  double _imu_excite_threshold;
+private:
+  /// Initialization parameters
+  InertialInitializerOptions params;
 
   /// Our history of IMU messages (time, angular, linear)
-  std::vector<ImuData> imu_data;
+  std::shared_ptr<std::vector<ov_core::ImuData>> imu_data;
 };
 
-} // namespace ov_core
+} // namespace ov_init
 
-#endif // OV_CORE_INERTIALINITIALIZER_H
+#endif // OV_INIT_STATICINITIALIZER_H

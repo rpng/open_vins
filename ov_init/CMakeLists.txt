@@ -5,29 +5,14 @@ cmake_minimum_required(VERSION 3.3)
 include(GNUInstallDirs)
 
 # Project name
-project(ov_core)
+project(ov_init)
 
 # Find catkin (the ROS build system)
-find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge)
+find_package(catkin QUIET COMPONENTS roscpp rospy geometry_msgs nav_msgs sensor_msgs ov_core)
 
-# Include libraries (if we don't have opencv 4, then fallback to opencv 3)
-# The OpenCV version needs to match the one used by cv_bridge otherwise you will get a segmentation fault!
+# Include libraries
 find_package(Eigen3 REQUIRED)
-find_package(OpenCV 3 QUIET)
-if (NOT OpenCV_FOUND)
-    find_package(OpenCV 4 REQUIRED)
-endif ()
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
-message(STATUS "OPENCV: " ${OpenCV_VERSION} " | BOOST: " ${Boost_VERSION})
-
-# If we will compile with aruco support
-option(ENABLE_ARUCO_TAGS "Enable or disable aruco tag (disable if no contrib modules)" ON)
-if (NOT ENABLE_ARUCO_TAGS)
-    add_definitions(-DENABLE_ARUCO_TAGS=0)
-    message(WARNING "DISABLING ARUCOTAG TRACKING!")
-else ()
-    add_definitions(-DENABLE_ARUCO_TAGS=1)
-endif ()
 
 # check if we have our python libs files
 # sudo apt-get install python-matplotlib python-numpy python2.7-dev
@@ -45,9 +30,9 @@ option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
-            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge
+            CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs ov_core
             INCLUDE_DIRS src
-            LIBRARIES ov_core_lib
+            LIBRARIES ov_init_lib
     )
 else ()
     add_definitions(-DROS_AVAILABLE=0)
@@ -71,13 +56,14 @@ endif ()
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 -fsee -fomit-frame-pointer -fno-signed-zeros -fno-math-errno -funroll-loops")
 
 # Enable debug flags (use if you want to debug in gdb)
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninitialized -fno-omit-frame-pointer")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninitialized")
 
 # Include our header files
 include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
+        ${PYTHON_INCLUDE_DIRS}
         /usr/local/lib/python2.7/dist-packages/numpy/core/include
         /usr/local/lib/python2.7/site-packages/numpy/core/include
         ${catkin_INCLUDE_DIRS}
@@ -86,30 +72,30 @@ include_directories(
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
-        ${OpenCV_LIBRARIES}
+        ${PYTHON_LIBRARIES}
         ${catkin_LIBRARIES}
 )
 
+# If we are not building with ROS then we need to manually link to its headers
+# This isn't that elegant of a way, but this at least allows for building without ROS
+# See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
+if (NOT catkin_FOUND OR NOT ENABLE_CATKIN_ROS)
+    message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
+    include_directories(${ov_core_SOURCE_DIR}/src/)
+    list(APPEND thirdparty_libraries ov_core_lib)
+endif ()
+
 ##################################################
-# Make the core library
+# Make the shared library
 ##################################################
 
-add_library(ov_core_lib SHARED
+add_library(ov_init_lib SHARED
         src/dummy.cpp
-        src/sim/BsplineSE3.cpp
-        src/track/TrackBase.cpp
-        src/track/TrackAruco.cpp
-        src/track/TrackDescriptor.cpp
-        src/track/TrackKLT.cpp
-        src/track/TrackSIM.cpp
-        src/types/Landmark.cpp
-        src/feat/Feature.cpp
-        src/feat/FeatureInitializer.cpp
-        src/utils/print.cpp
+        src/init/InertialInitializer.cpp
+        src/static/StaticInitializer.cpp
 )
-target_link_libraries(ov_core_lib ${thirdparty_libraries})
-target_include_directories(ov_core_lib PUBLIC src)
-install(TARGETS ov_core_lib
+target_link_libraries(ov_init_lib ${thirdparty_libraries})
+install(TARGETS ov_init_lib
         LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
         RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
         PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
@@ -121,17 +107,10 @@ install(TARGETS ov_core_lib
 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
 
-    add_executable(test_tracking src/test_tracking.cpp)
-    target_link_libraries(test_tracking ov_core_lib ${thirdparty_libraries})
+    add_executable(test_orientation src/test_orientation.cpp)
+    target_link_libraries(test_orientation ov_init_lib ${thirdparty_libraries})
 
 endif ()
 
-add_executable(test_webcam src/test_webcam.cpp)
-target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})
-install(TARGETS test_webcam
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-)
 
 

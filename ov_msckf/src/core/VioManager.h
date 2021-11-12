@@ -32,7 +32,6 @@
 #include "cam/CamBase.h"
 #include "cam/CamEqui.h"
 #include "cam/CamRadtan.h"
-#include "init/InertialInitializer.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
@@ -42,6 +41,8 @@
 #include "utils/opencv_lambda_body.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
+
+#include "init/InertialInitializer.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"
@@ -103,12 +104,21 @@ public:
     // Initialize the system
     state->_imu->set_value(imustate.block(1, 0, 16, 1));
     state->_imu->set_fej(imustate.block(1, 0, 16, 1));
+
+    // Fix the global yaw and position gauge freedoms
+    std::vector<std::shared_ptr<ov_type::Type>> order = {state->_imu};
+    Eigen::MatrixXd Cov = 1e-2 * Eigen::MatrixXd::Identity(state->_imu->size(), state->_imu->size());
+    Cov.block(state->_imu->v()->id(), state->_imu->v()->id(), 3, 3) *= 10;
+    Cov(state->_imu->q()->id() + 2, state->_imu->q()->id() + 2) = 0.0;
+    Cov.block(state->_imu->p()->id(), state->_imu->p()->id(), 3, 3).setZero();
+    Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) =
+        state->_imu->Rot() * Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) * state->_imu->Rot().transpose();
+    StateHelper::set_initial_covariance(state, Cov, order);
+
+    // Set the state time
     state->_timestamp = imustate(0, 0);
     startup_time = imustate(0, 0);
     is_initialized_vio = true;
-
-    // Fix the global yaw and position gauge freedoms
-    StateHelper::fix_4dof_gauge_freedoms(state, imustate.block(1, 0, 4, 1));
 
     // Cleanup any features older then the initialization time
     trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
@@ -293,7 +303,7 @@ protected:
   std::shared_ptr<ov_core::TrackBase> trackARUCO;
 
   /// State initializer
-  std::shared_ptr<ov_core::InertialInitializer> initializer;
+  std::shared_ptr<ov_init::InertialInitializer> initializer;
 
   /// Boolean if we are initialized or not
   bool is_initialized_vio = false;
