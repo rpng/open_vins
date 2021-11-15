@@ -30,6 +30,9 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
   // Setup our transform broadcaster
   mTfBr = new tf::TransformBroadcaster();
 
+  // Create image transport
+  image_transport::ImageTransport it(nh);
+
   // Setup pose and path publisher
   pub_poseimu = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu.getTopic().c_str());
@@ -49,8 +52,8 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
   PRINT_DEBUG("Publishing: %s\n", pub_points_sim.getTopic().c_str());
 
   // Our tracking image
-  pub_tracks = nh.advertise<sensor_msgs::Image>("/ov_msckf/trackhist", 2);
-  PRINT_DEBUG("Publishing: %s\n", pub_tracks.getTopic().c_str());
+  it_pub_tracks = it.advertise("/ov_msckf/trackhist", 2);
+  PRINT_DEBUG("Publishing: %s\n", it_pub_tracks.getTopic().c_str());
 
   // Groundtruth publishers
   pub_posegt = nh.advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
@@ -63,8 +66,8 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
   pub_loop_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
   pub_loop_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
   pub_loop_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
-  pub_loop_img_depth = nh.advertise<sensor_msgs::Image>("/ov_msckf/loop_depth", 2);
-  pub_loop_img_depth_color = nh.advertise<sensor_msgs::Image>("/ov_msckf/loop_depth_colored", 2);
+  it_pub_loop_img_depth = it.advertise("/ov_msckf/loop_depth", 2);
+  it_pub_loop_img_depth_color = it.advertise("/ov_msckf/loop_depth_colored", 2);
 
   // option to enable publishing of global to IMU transformation
   nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
@@ -150,9 +153,10 @@ void RosVisualizer::visualize() {
   // Publish keyframe information
   publish_loopclosure_information();
 
-  // save total state
-  if (save_total_state)
-    sim_save_total_state_to_file();
+  // Save total state
+  if (save_total_state) {
+    RosVisualizerHelper::sim_save_total_state_to_file(_app->get_state(), _sim, of_state_est, of_state_std, of_state_gt);
+  }
 
   // Print how much time it took to publish / displaying things
   rT0_2 = boost::posix_time::microsec_clock::local_time();
@@ -331,7 +335,7 @@ void RosVisualizer::publish_state() {
   arrIMU.header.stamp = ros::Time::now();
   arrIMU.header.seq = poses_seq_imu;
   arrIMU.header.frame_id = "global";
-  for (size_t i = 0; i < poses_imu.size(); i += std::floor(poses_imu.size() / 16384.0) + 1) {
+  for (size_t i = 0; i < poses_imu.size(); i += std::floor((double)poses_imu.size() / 16384.0) + 1) {
     arrIMU.poses.push_back(poses_imu.at(i));
   }
   pub_pathimu.publish(arrIMU);
@@ -342,36 +346,20 @@ void RosVisualizer::publish_state() {
   // Publish our transform on TF
   // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
   // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
-  tf::StampedTransform trans;
-  trans.stamp_ = ros::Time::now();
+  tf::StampedTransform trans = RosVisualizerHelper::get_stamped_transform_from_pose(state->_imu->pose(), false);
   trans.frame_id_ = "global";
   trans.child_frame_id_ = "imu";
-  tf::Quaternion quat(state->_imu->quat()(0), state->_imu->quat()(1), state->_imu->quat()(2), state->_imu->quat()(3));
-  trans.setRotation(quat);
-  tf::Vector3 orig(state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
-  trans.setOrigin(orig);
   if (publish_global2imu_tf) {
     mTfBr->sendTransform(trans);
   }
 
   // Loop through each camera calibration and publish it
   for (const auto &calib : state->_calib_IMUtoCAM) {
-    // need to flip the transform to the IMU frame
-    Eigen::Vector4d q_ItoC = calib.second->quat();
-    Eigen::Vector3d p_CinI = -calib.second->Rot().transpose() * calib.second->pos();
-    // publish our transform on TF
-    // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
-    // NOTE: a rotation from ItoC in JPL has the same xyzw as a CtoI Hamilton rotation
-    tf::StampedTransform trans;
-    trans.stamp_ = ros::Time::now();
-    trans.frame_id_ = "imu";
-    trans.child_frame_id_ = "cam" + std::to_string(calib.first);
-    tf::Quaternion quat(q_ItoC(0), q_ItoC(1), q_ItoC(2), q_ItoC(3));
-    trans.setRotation(quat);
-    tf::Vector3 orig(p_CinI(0), p_CinI(1), p_CinI(2));
-    trans.setOrigin(orig);
+    tf::StampedTransform trans_calib = RosVisualizerHelper::get_stamped_transform_from_pose(calib.second, true);
+    trans_calib.frame_id_ = "imu";
+    trans_calib.child_frame_id_ = "cam" + std::to_string(calib.first);
     if (publish_calibration_tf) {
-      mTfBr->sendTransform(trans);
+      mTfBr->sendTransform(trans_calib);
     }
   }
 }
@@ -379,7 +367,7 @@ void RosVisualizer::publish_state() {
 void RosVisualizer::publish_images() {
 
   // Check if we have subscribers
-  if (pub_tracks.getNumSubscribers() == 0)
+  if (it_pub_tracks.getNumSubscribers() == 0)
     return;
 
   // Get our image of history tracks
@@ -391,7 +379,7 @@ void RosVisualizer::publish_images() {
   sensor_msgs::ImagePtr exl_msg = cv_bridge::CvImage(header, "bgr8", img_history).toImageMsg();
 
   // Publish
-  pub_tracks.publish(exl_msg);
+  it_pub_tracks.publish(exl_msg);
 }
 
 void RosVisualizer::publish_features() {
@@ -401,157 +389,28 @@ void RosVisualizer::publish_features() {
       pub_points_sim.getNumSubscribers() == 0)
     return;
 
-  // Get our good features
+  // Get our good MSCKF features
   std::vector<Eigen::Vector3d> feats_msckf = _app->get_good_features_MSCKF();
-
-  // Declare message and sizes
-  sensor_msgs::PointCloud2 cloud;
-  cloud.header.frame_id = "global";
-  cloud.header.stamp = ros::Time::now();
-  cloud.width = 3 * feats_msckf.size();
-  cloud.height = 1;
-  cloud.is_bigendian = false;
-  cloud.is_dense = false; // there may be invalid points
-
-  // Setup pointcloud fields
-  sensor_msgs::PointCloud2Modifier modifier(cloud);
-  modifier.setPointCloud2FieldsByString(1, "xyz");
-  modifier.resize(3 * feats_msckf.size());
-
-  // Iterators
-  sensor_msgs::PointCloud2Iterator<float> out_x(cloud, "x");
-  sensor_msgs::PointCloud2Iterator<float> out_y(cloud, "y");
-  sensor_msgs::PointCloud2Iterator<float> out_z(cloud, "z");
-
-  // Fill our iterators
-  for (const auto &pt : feats_msckf) {
-    *out_x = pt(0);
-    ++out_x;
-    *out_y = pt(1);
-    ++out_y;
-    *out_z = pt(2);
-    ++out_z;
-  }
-
-  // Publish
+  sensor_msgs::PointCloud2 cloud = RosVisualizerHelper::get_ros_pointcloud(feats_msckf);
   pub_points_msckf.publish(cloud);
 
-  //====================================================================
-  //====================================================================
-
-  // Get our good features
+  // Get our good SLAM features
   std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
-
-  // Declare message and sizes
-  sensor_msgs::PointCloud2 cloud_SLAM;
-  cloud_SLAM.header.frame_id = "global";
-  cloud_SLAM.header.stamp = ros::Time::now();
-  cloud_SLAM.width = 3 * feats_slam.size();
-  cloud_SLAM.height = 1;
-  cloud_SLAM.is_bigendian = false;
-  cloud_SLAM.is_dense = false; // there may be invalid points
-
-  // Setup pointcloud fields
-  sensor_msgs::PointCloud2Modifier modifier_SLAM(cloud_SLAM);
-  modifier_SLAM.setPointCloud2FieldsByString(1, "xyz");
-  modifier_SLAM.resize(3 * feats_slam.size());
-
-  // Iterators
-  sensor_msgs::PointCloud2Iterator<float> out_x_SLAM(cloud_SLAM, "x");
-  sensor_msgs::PointCloud2Iterator<float> out_y_SLAM(cloud_SLAM, "y");
-  sensor_msgs::PointCloud2Iterator<float> out_z_SLAM(cloud_SLAM, "z");
-
-  // Fill our iterators
-  for (const auto &pt : feats_slam) {
-    *out_x_SLAM = pt(0);
-    ++out_x_SLAM;
-    *out_y_SLAM = pt(1);
-    ++out_y_SLAM;
-    *out_z_SLAM = pt(2);
-    ++out_z_SLAM;
-  }
-
-  // Publish
+  sensor_msgs::PointCloud2 cloud_SLAM = RosVisualizerHelper::get_ros_pointcloud(feats_slam);
   pub_points_slam.publish(cloud_SLAM);
 
-  //====================================================================
-  //====================================================================
-
-  // Get our good features
+  // Get our good ARUCO features
   std::vector<Eigen::Vector3d> feats_aruco = _app->get_features_ARUCO();
-
-  // Declare message and sizes
-  sensor_msgs::PointCloud2 cloud_ARUCO;
-  cloud_ARUCO.header.frame_id = "global";
-  cloud_ARUCO.header.stamp = ros::Time::now();
-  cloud_ARUCO.width = 3 * feats_aruco.size();
-  cloud_ARUCO.height = 1;
-  cloud_ARUCO.is_bigendian = false;
-  cloud_ARUCO.is_dense = false; // there may be invalid points
-
-  // Setup pointcloud fields
-  sensor_msgs::PointCloud2Modifier modifier_ARUCO(cloud_ARUCO);
-  modifier_ARUCO.setPointCloud2FieldsByString(1, "xyz");
-  modifier_ARUCO.resize(3 * feats_aruco.size());
-
-  // Iterators
-  sensor_msgs::PointCloud2Iterator<float> out_x_ARUCO(cloud_ARUCO, "x");
-  sensor_msgs::PointCloud2Iterator<float> out_y_ARUCO(cloud_ARUCO, "y");
-  sensor_msgs::PointCloud2Iterator<float> out_z_ARUCO(cloud_ARUCO, "z");
-
-  // Fill our iterators
-  for (const auto &pt : feats_aruco) {
-    *out_x_ARUCO = pt(0);
-    ++out_x_ARUCO;
-    *out_y_ARUCO = pt(1);
-    ++out_y_ARUCO;
-    *out_z_ARUCO = pt(2);
-    ++out_z_ARUCO;
-  }
-
-  // Publish
+  sensor_msgs::PointCloud2 cloud_ARUCO = RosVisualizerHelper::get_ros_pointcloud(feats_aruco);
   pub_points_aruco.publish(cloud_ARUCO);
-
-  //====================================================================
-  //====================================================================
 
   // Skip the rest of we are not doing simulation
   if (_sim == nullptr)
     return;
 
-  // Get our good features
-  std::unordered_map<size_t, Eigen::Vector3d> feats_sim = _sim->get_map();
-
-  // Declare message and sizes
-  sensor_msgs::PointCloud2 cloud_SIM;
-  cloud_SIM.header.frame_id = "global";
-  cloud_SIM.header.stamp = ros::Time::now();
-  cloud_SIM.width = 3 * feats_sim.size();
-  cloud_SIM.height = 1;
-  cloud_SIM.is_bigendian = false;
-  cloud_SIM.is_dense = false; // there may be invalid points
-
-  // Setup pointcloud fields
-  sensor_msgs::PointCloud2Modifier modifier_SIM(cloud_SIM);
-  modifier_SIM.setPointCloud2FieldsByString(1, "xyz");
-  modifier_SIM.resize(3 * feats_sim.size());
-
-  // Iterators
-  sensor_msgs::PointCloud2Iterator<float> out_x_SIM(cloud_SIM, "x");
-  sensor_msgs::PointCloud2Iterator<float> out_y_SIM(cloud_SIM, "y");
-  sensor_msgs::PointCloud2Iterator<float> out_z_SIM(cloud_SIM, "z");
-
-  // Fill our iterators
-  for (const auto &pt : feats_sim) {
-    *out_x_SIM = pt.second(0);
-    ++out_x_SIM;
-    *out_y_SIM = pt.second(1);
-    ++out_y_SIM;
-    *out_z_SIM = pt.second(2);
-    ++out_z_SIM;
-  }
-
-  // Publish
+  // Get our good SIMULATION features
+  std::vector<Eigen::Vector3d> feats_sim = _sim->get_map_vec();
+  sensor_msgs::PointCloud2 cloud_SIM = RosVisualizerHelper::get_ros_pointcloud(feats_sim);
   pub_points_sim.publish(cloud_SIM);
 }
 
@@ -573,7 +432,7 @@ void RosVisualizer::publish_groundtruth() {
   // Get the simulated groundtruth
   // NOTE: we get the true time in the IMU clock frame
   if (_sim != nullptr) {
-    timestamp_inI = _app->get_state()->_timestamp + _sim->get_true_paramters().calib_camimu_dt;
+    timestamp_inI = _app->get_state()->_timestamp + _sim->get_true_parameters().calib_camimu_dt;
     if (!_sim->get_state(timestamp_inI, state_gt))
       return;
   }
@@ -605,7 +464,7 @@ void RosVisualizer::publish_groundtruth() {
   arrIMU.header.stamp = ros::Time::now();
   arrIMU.header.seq = poses_seq_gt;
   arrIMU.header.frame_id = "global";
-  for (size_t i = 0; i < poses_gt.size(); i += std::floor(poses_gt.size() / 16384.0) + 1) {
+  for (size_t i = 0; i < poses_gt.size(); i += std::floor((double)poses_gt.size() / 16384.0) + 1) {
     arrIMU.poses.push_back(poses_gt.at(i));
   }
   pub_pathgt.publish(arrIMU);
@@ -785,7 +644,7 @@ void RosVisualizer::publish_loopclosure_information() {
 
   //======================================================
   // Depth images of sparse points and its colorized version
-  if (pub_loop_img_depth.getNumSubscribers() != 0 || pub_loop_img_depth_color.getNumSubscribers() != 0) {
+  if (it_pub_loop_img_depth.getNumSubscribers() != 0 || it_pub_loop_img_depth_color.getNumSubscribers() != 0) {
 
     // Create the images we will populate with the depths
     std::pair<int, int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
@@ -836,159 +695,8 @@ void RosVisualizer::publish_loopclosure_information() {
 
     // Create our messages
     sensor_msgs::ImagePtr exl_msg1 = cv_bridge::CvImage(header, sensor_msgs::image_encodings::TYPE_16UC1, depthmap).toImageMsg();
-    pub_loop_img_depth.publish(exl_msg1);
+    it_pub_loop_img_depth.publish(exl_msg1);
     sensor_msgs::ImagePtr exl_msg2 = cv_bridge::CvImage(header, "bgr8", depthmap_viz).toImageMsg();
-    pub_loop_img_depth_color.publish(exl_msg2);
+    it_pub_loop_img_depth_color.publish(exl_msg2);
   }
-}
-
-void RosVisualizer::sim_save_total_state_to_file() {
-
-  // Get current state
-  std::shared_ptr<State> state = _app->get_state();
-
-  // We want to publish in the IMU clock frame
-  // The timestamp in the state will be the last camera time
-  double t_ItoC = state->_calib_dt_CAMtoIMU->value()(0);
-  double timestamp_inI = state->_timestamp + t_ItoC;
-
-  // If we have our simulator, then save it to our groundtruth file
-  if (_sim != nullptr) {
-
-    // Note that we get the true time in the IMU clock frame
-    // NOTE: we record both the estimate and groundtruth with the same "true" timestamp if we are doing simulation
-    Eigen::Matrix<double, 17, 1> state_gt;
-    timestamp_inI = state->_timestamp + _sim->get_true_paramters().calib_camimu_dt;
-    if (_sim->get_state(timestamp_inI, state_gt)) {
-      // STATE: write current true state
-      of_state_gt.precision(5);
-      of_state_gt.setf(std::ios::fixed, std::ios::floatfield);
-      of_state_gt << state_gt(0) << " ";
-      of_state_gt.precision(6);
-      of_state_gt << state_gt(1) << " " << state_gt(2) << " " << state_gt(3) << " " << state_gt(4) << " ";
-      of_state_gt << state_gt(5) << " " << state_gt(6) << " " << state_gt(7) << " ";
-      of_state_gt << state_gt(8) << " " << state_gt(9) << " " << state_gt(10) << " ";
-      of_state_gt << state_gt(11) << " " << state_gt(12) << " " << state_gt(13) << " ";
-      of_state_gt << state_gt(14) << " " << state_gt(15) << " " << state_gt(16) << " ";
-
-      // TIMEOFF: Get the current true time offset
-      of_state_gt.precision(7);
-      of_state_gt << _sim->get_true_paramters().calib_camimu_dt << " ";
-      of_state_gt.precision(0);
-      of_state_gt << state->_options.num_cameras << " ";
-      of_state_gt.precision(6);
-
-      // CALIBRATION: Write the camera values to file
-      assert(state->_options.num_cameras == _sim->get_true_paramters().state_options.num_cameras);
-      for (int i = 0; i < state->_options.num_cameras; i++) {
-        // Intrinsics values
-        of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(1)
-                    << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(2) << " "
-                    << _sim->get_true_paramters().camera_intrinsics.at(i)(3) << " ";
-        of_state_gt << _sim->get_true_paramters().camera_intrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(5)
-                    << " " << _sim->get_true_paramters().camera_intrinsics.at(i)(6) << " "
-                    << _sim->get_true_paramters().camera_intrinsics.at(i)(7) << " ";
-        // Rotation and position
-        of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(0) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(1)
-                    << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(2) << " "
-                    << _sim->get_true_paramters().camera_extrinsics.at(i)(3) << " ";
-        of_state_gt << _sim->get_true_paramters().camera_extrinsics.at(i)(4) << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(5)
-                    << " " << _sim->get_true_paramters().camera_extrinsics.at(i)(6) << " ";
-      }
-
-      // New line
-      of_state_gt << endl;
-    }
-  }
-
-  //==========================================================================
-  //==========================================================================
-  //==========================================================================
-
-  // Get the covariance of the whole system
-  Eigen::MatrixXd cov = StateHelper::get_full_covariance(state);
-
-  // STATE: Write the current state to file
-  of_state_est.precision(5);
-  of_state_est.setf(std::ios::fixed, std::ios::floatfield);
-  of_state_est << timestamp_inI << " ";
-  of_state_est.precision(6);
-  of_state_est << state->_imu->quat()(0) << " " << state->_imu->quat()(1) << " " << state->_imu->quat()(2) << " " << state->_imu->quat()(3)
-               << " ";
-  of_state_est << state->_imu->pos()(0) << " " << state->_imu->pos()(1) << " " << state->_imu->pos()(2) << " ";
-  of_state_est << state->_imu->vel()(0) << " " << state->_imu->vel()(1) << " " << state->_imu->vel()(2) << " ";
-  of_state_est << state->_imu->bias_g()(0) << " " << state->_imu->bias_g()(1) << " " << state->_imu->bias_g()(2) << " ";
-  of_state_est << state->_imu->bias_a()(0) << " " << state->_imu->bias_a()(1) << " " << state->_imu->bias_a()(2) << " ";
-
-  // STATE: Write current uncertainty to file
-  of_state_std.precision(5);
-  of_state_std.setf(std::ios::fixed, std::ios::floatfield);
-  of_state_std << timestamp_inI << " ";
-  of_state_std.precision(6);
-  int id = state->_imu->q()->id();
-  of_state_std << std::sqrt(cov(id + 0, id + 0)) << " " << std::sqrt(cov(id + 1, id + 1)) << " " << std::sqrt(cov(id + 2, id + 2)) << " ";
-  id = state->_imu->p()->id();
-  of_state_std << std::sqrt(cov(id + 0, id + 0)) << " " << std::sqrt(cov(id + 1, id + 1)) << " " << std::sqrt(cov(id + 2, id + 2)) << " ";
-  id = state->_imu->v()->id();
-  of_state_std << std::sqrt(cov(id + 0, id + 0)) << " " << std::sqrt(cov(id + 1, id + 1)) << " " << std::sqrt(cov(id + 2, id + 2)) << " ";
-  id = state->_imu->bg()->id();
-  of_state_std << std::sqrt(cov(id + 0, id + 0)) << " " << std::sqrt(cov(id + 1, id + 1)) << " " << std::sqrt(cov(id + 2, id + 2)) << " ";
-  id = state->_imu->ba()->id();
-  of_state_std << std::sqrt(cov(id + 0, id + 0)) << " " << std::sqrt(cov(id + 1, id + 1)) << " " << std::sqrt(cov(id + 2, id + 2)) << " ";
-
-  // TIMEOFF: Get the current estimate time offset
-  of_state_est.precision(7);
-  of_state_est << state->_calib_dt_CAMtoIMU->value()(0) << " ";
-  of_state_est.precision(0);
-  of_state_est << state->_options.num_cameras << " ";
-  of_state_est.precision(6);
-
-  // TIMEOFF: Get the current std values
-  if (state->_options.do_calib_camera_timeoffset) {
-    of_state_std << std::sqrt(cov(state->_calib_dt_CAMtoIMU->id(), state->_calib_dt_CAMtoIMU->id())) << " ";
-  } else {
-    of_state_std << 0.0 << " ";
-  }
-  of_state_std.precision(0);
-  of_state_std << state->_options.num_cameras << " ";
-  of_state_std.precision(6);
-
-  // CALIBRATION: Write the camera values to file
-  for (int i = 0; i < state->_options.num_cameras; i++) {
-    // Intrinsics values
-    of_state_est << state->_cam_intrinsics.at(i)->value()(0) << " " << state->_cam_intrinsics.at(i)->value()(1) << " "
-                 << state->_cam_intrinsics.at(i)->value()(2) << " " << state->_cam_intrinsics.at(i)->value()(3) << " ";
-    of_state_est << state->_cam_intrinsics.at(i)->value()(4) << " " << state->_cam_intrinsics.at(i)->value()(5) << " "
-                 << state->_cam_intrinsics.at(i)->value()(6) << " " << state->_cam_intrinsics.at(i)->value()(7) << " ";
-    // Rotation and position
-    of_state_est << state->_calib_IMUtoCAM.at(i)->value()(0) << " " << state->_calib_IMUtoCAM.at(i)->value()(1) << " "
-                 << state->_calib_IMUtoCAM.at(i)->value()(2) << " " << state->_calib_IMUtoCAM.at(i)->value()(3) << " ";
-    of_state_est << state->_calib_IMUtoCAM.at(i)->value()(4) << " " << state->_calib_IMUtoCAM.at(i)->value()(5) << " "
-                 << state->_calib_IMUtoCAM.at(i)->value()(6) << " ";
-    // Covariance
-    if (state->_options.do_calib_camera_intrinsics) {
-      int index_in = state->_cam_intrinsics.at(i)->id();
-      of_state_std << std::sqrt(cov(index_in + 0, index_in + 0)) << " " << std::sqrt(cov(index_in + 1, index_in + 1)) << " "
-                   << std::sqrt(cov(index_in + 2, index_in + 2)) << " " << std::sqrt(cov(index_in + 3, index_in + 3)) << " ";
-      of_state_std << std::sqrt(cov(index_in + 4, index_in + 4)) << " " << std::sqrt(cov(index_in + 5, index_in + 5)) << " "
-                   << std::sqrt(cov(index_in + 6, index_in + 6)) << " " << std::sqrt(cov(index_in + 7, index_in + 7)) << " ";
-    } else {
-      of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " ";
-      of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " " << 0.0 << " ";
-    }
-    if (state->_options.do_calib_camera_pose) {
-      int index_ex = state->_calib_IMUtoCAM.at(i)->id();
-      of_state_std << std::sqrt(cov(index_ex + 0, index_ex + 0)) << " " << std::sqrt(cov(index_ex + 1, index_ex + 1)) << " "
-                   << std::sqrt(cov(index_ex + 2, index_ex + 2)) << " ";
-      of_state_std << std::sqrt(cov(index_ex + 3, index_ex + 3)) << " " << std::sqrt(cov(index_ex + 4, index_ex + 4)) << " "
-                   << std::sqrt(cov(index_ex + 5, index_ex + 5)) << " ";
-    } else {
-      of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
-      of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
-    }
-  }
-
-  // Done with the estimates!
-  of_state_est << endl;
-  of_state_std << endl;
 }

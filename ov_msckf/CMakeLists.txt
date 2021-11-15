@@ -11,7 +11,7 @@ project(ov_msckf)
 #set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake/)
 
 # Find catkin (the ROS build system)
-find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core ov_init)
+find_package(catkin QUIET COMPONENTS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs image_transport cv_bridge ov_core ov_init)
 
 # Include libraries (if we don't have opencv 4, then fallback to opencv 3)
 # The OpenCV version needs to match the one used by cv_bridge otherwise you will get a segmentation fault!
@@ -37,7 +37,7 @@ option(ENABLE_CATKIN_ROS "Enable or disable building with ROS (if it is found)" 
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
-            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs cv_bridge ov_core ov_init
+            CATKIN_DEPENDS roscpp rosbag tf std_msgs geometry_msgs sensor_msgs nav_msgs visualization_msgs image_transport cv_bridge ov_core ov_init
             INCLUDE_DIRS src
             LIBRARIES ov_msckf_lib
     )
@@ -109,7 +109,7 @@ list(APPEND library_source_files
 )
 if (catkin_FOUND AND ENABLE_CATKIN_ROS)
     list(APPEND library_source_files
-            src/core/RosVisualizer.cpp
+            src/ros/RosVisualizer.cpp
     )
 endif ()
 add_library(ov_msckf_lib SHARED ${library_source_files})

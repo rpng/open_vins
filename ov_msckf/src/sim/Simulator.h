@@ -101,8 +101,16 @@ public:
   /// Returns the true 3d map of features
   std::unordered_map<size_t, Eigen::Vector3d> get_map() { return featmap; }
 
+  /// Returns the true 3d map of features
+  std::vector<Eigen::Vector3d> get_map_vec() {
+    std::vector<Eigen::Vector3d> feats;
+    for (auto const &feat : featmap)
+      feats.push_back(feat.second);
+    return feats;
+  }
+
   /// Access function to get the true parameters (i.e. calibration and settings)
-  VioManagerOptions get_true_paramters() { return params; }
+  VioManagerOptions get_true_parameters() { return params; }
 
 protected:
   /**

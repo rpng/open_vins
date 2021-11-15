@@ -28,9 +28,9 @@
 
 #include <memory>
 
-#include "core/RosVisualizer.h"
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
+#include "ros/RosVisualizer.h"
 #include "utils/dataset_reader.h"
 #include "utils/sensor_data.h"
 

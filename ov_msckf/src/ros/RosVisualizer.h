@@ -24,6 +24,7 @@
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <image_transport/image_transport.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
@@ -40,7 +41,8 @@
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-#include "VioManager.h"
+#include "core/VioManager.h"
+#include "ros/RosVisualizerHelper.h"
 #include "sim/Simulator.h"
 #include "utils/dataset_reader.h"
 #include "utils/print.h"
@@ -101,9 +103,6 @@ protected:
   /// Publish loop-closure information of current pose and active track information
   void publish_loopclosure_information();
 
-  /// Save current estimate state and groundtruth including calibration
-  void sim_save_total_state_to_file();
-
   /// Core application of the filter system
   std::shared_ptr<VioManager> _app;
 
@@ -111,11 +110,10 @@ protected:
   std::shared_ptr<Simulator> _sim;
 
   // Our publishers
+  image_transport::Publisher it_pub_tracks, it_pub_loop_img_depth, it_pub_loop_img_depth_color;
   ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
-  ros::Publisher pub_tracks;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
-  ros::Publisher pub_loop_img_depth, pub_loop_img_depth_color;
   tf::TransformBroadcaster *mTfBr;
 
   // For path viz
