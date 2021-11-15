@@ -90,6 +90,11 @@ endif ()
 
 add_executable(run_simulation src/run_simulation.cpp)
 target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
+install(TARGETS run_simulation
+        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
+        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
+        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 add_executable(test_sim_meas src/test_sim_meas.cpp)
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})

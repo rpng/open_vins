@@ -118,9 +118,9 @@ public:
   template <class T> void parse_config(const std::string &node_name, T &node_result, bool required = true) {
 
 #if ROS_AVAILABLE == 1
-    if (nh->getParam(node_name, node_result)) {
-      nh->param<T>(node_name, node_result);
+    if (nh != nullptr && nh->getParam(node_name, node_result)) {
       PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, node_name.c_str());
+      nh->param<T>(node_name, node_result);
       return;
     }
 #elif ROS_AVAILABLE == 2
@@ -156,9 +156,9 @@ public:
 
 #if ROS_AVAILABLE == 1
     std::string rosnode = sensor_name + "_" + node_name;
-    if (nh->getParam(rosnode, node_result)) {
-      nh->param<T>(rosnode, node_result);
+    if (nh != nullptr && nh->getParam(rosnode, node_result)) {
       PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, rosnode.c_str());
+      nh->param<T>(rosnode, node_result);
       return;
     }
 #elif ROS_AVAILABLE == 2
@@ -196,9 +196,9 @@ public:
     // NOTE: for our 4x4 matrix we should read it as an array from ROS then covert it back into the 4x4
     std::string rosnode = sensor_name + "_" + node_name;
     std::vector<double> matrix_TCtoI;
-    if (nh->getParam(rosnode, matrix_TCtoI)) {
-      nh->param<std::vector<double>>(rosnode, matrix_TCtoI);
+    if (nh != nullptr && nh->getParam(rosnode, matrix_TCtoI)) {
       PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, rosnode.c_str());
+      nh->param<std::vector<double>>(rosnode, matrix_TCtoI);
       node_result << matrix_TCtoI.at(0), matrix_TCtoI.at(1), matrix_TCtoI.at(2), matrix_TCtoI.at(3), matrix_TCtoI.at(4), matrix_TCtoI.at(5),
           matrix_TCtoI.at(6), matrix_TCtoI.at(7), matrix_TCtoI.at(8), matrix_TCtoI.at(9), matrix_TCtoI.at(10), matrix_TCtoI.at(11),
           matrix_TCtoI.at(12), matrix_TCtoI.at(13), matrix_TCtoI.at(14), matrix_TCtoI.at(15);

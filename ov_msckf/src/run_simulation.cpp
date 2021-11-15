@@ -68,7 +68,6 @@ int main(int argc, char **argv) {
   options.allow_undeclared_parameters(true);
   options.automatically_declare_parameters_from_overrides(true);
   auto node = std::make_shared<rclcpp::Node>("run_simulation", options);
-  //node->declare_parameter<std::string>("config_path", config_path);
   node->get_parameter<std::string>("config_path", config_path);
 #endif
 
