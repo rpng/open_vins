@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.3)
 # Find ros dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(cv_bridge REQUIRED)
 
 # Describe ROS project
 option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
@@ -43,7 +44,7 @@ add_library(ov_core_lib SHARED
         src/feat/FeatureInitializer.cpp
         src/utils/print.cpp
 )
-ament_target_dependencies(ov_core_lib rclcpp)
+ament_target_dependencies(ov_core_lib rclcpp cv_bridge)
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
 target_include_directories(ov_core_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 install(TARGETS ov_core_lib
@@ -65,7 +66,7 @@ ament_export_libraries(ov_core_lib)
 #endif ()
 
 add_executable(test_webcam src/test_webcam.cpp)
-ament_target_dependencies(test_webcam rclcpp)
+ament_target_dependencies(test_webcam rclcpp cv_bridge)
 target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})
 install(TARGETS test_webcam DESTINATION lib/${PROJECT_NAME})
 

@@ -13,7 +13,7 @@ find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
 
 # check if we have our python libs files
 # sudo apt-get install python-matplotlib python-numpy python2.7-dev
-find_package(PythonLibs 2.7)
+find_package(PythonLibs 2.7 QUIET)
 option(DISABLE_MATPLOTLIB "Disable or enable matplotlib plot scripts in ov_eval" OFF)
 if (PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
     add_definitions(-DHAVE_PYTHONLIBS=1)
