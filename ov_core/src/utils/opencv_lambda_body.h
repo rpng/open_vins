@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OPENCV_LAMBDA_BODY_H
-#define OPENCV_LAMBDA_BODY_H
+#ifndef OV_CORE_OPENCV_LAMBDA_BODY_H
+#define OV_CORE_OPENCV_LAMBDA_BODY_H
 
 #include <functional>
 #include <opencv2/opencv.hpp>
@@ -45,4 +45,4 @@ private:
 
 } /* namespace ov_core */
 
-#endif /* OPENCV_LAMBDA_BODY_H */
+#endif /* OV_CORE_OPENCV_LAMBDA_BODY_H */

@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef PRINT_H
-#define PRINT_H
+#ifndef OV_CORE_PRINT_H
+#define OV_CORE_PRINT_H
 
 #include <cstdarg>
 #include <cstdint>
@@ -99,4 +99,4 @@ private:
 #define PRINT_WARNING(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::WARNING, __FILE__, TOSTRING(__LINE__), x);
 #define PRINT_ERROR(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::ERROR, __FILE__, TOSTRING(__LINE__), x);
 
-#endif /* PRINT_H */
+#endif /* OV_CORE_PRINT_H */
