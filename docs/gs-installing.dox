@@ -23,7 +23,7 @@ Please see the official instructions to install ROS:
 @par ROS Usage in OpenVINS
     We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
     You will need to ensure you have installed OpenCV and Eigen3 which are the only dependencies.
-    If ROS is not found on the system, one can use command line options to run the simulation without any visualization or `cmake -DENABLE_CATKIN_ROS=OFF ..`.
+    If ROS is not found on the system, one can use command line options to run the simulation without any visualization or `cmake -DENABLE_ROS=OFF ..`.
     If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
 
 @code{.shell-session}
@@ -46,18 +46,19 @@ If you run into any problems please google search the issue first and if you are
 After the build is successful please following the @ref gs-tutorial guide on getting a dataset and running the system.
 
 @code{.shell-session}
-sudo apt-get install python-catkin-tools
 mkdir -p ~/workspace/catkin_ws_ov/src/
 cd ~/workspace/catkin_ws_ov/src/
 git clone https://github.com/rpng/open_vins/
 cd ..
-catkin build
+catkin build # ROS1
+colcon build # ROS2
+colcon build --event-handlers console_cohesion+ # ROS2 with verbose output
 @endcode
 
 There are additional options that users might be interested in.
 Configure these with `catkin build -D<option_name>=OFF` or `cmake -D<option_name>=ON ..` in the ROS free case.
 
-* `ENABLE_CATKIN_ROS` - (default ON) - Enable or disable building with ROS (if it is found)
+* `ENABLE_ROS` - (default ON) - Enable or disable building with ROS (if it is found)
 * `ENABLE_ARUCO_TAGS` - (default ON) - Enable or disable aruco tag (disable if no contrib modules)
 * `BUILD_OV_EVAL` - (default ON) - Enable or disable building of ov_eval
 * `DISABLE_MATPLOTLIB` - (default OFF) - Disable or enable matplotlib plot scripts in ov_eval

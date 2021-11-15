@@ -414,7 +414,7 @@ struct VioManagerOptions {
   bool sim_do_perturbation = false;
 
   /// Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.
-  std::string sim_traj_path = "../ov_data/sim/udel_gore.txt";
+  std::string sim_traj_path = "src/open_vins/ov_data/sim/udel_gore.txt";
 
   /// We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in
   /// simulation.

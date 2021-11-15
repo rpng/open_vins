@@ -45,14 +45,34 @@ void signal_callback_handler(int signum) { std::exit(signum); }
 // Main function
 int main(int argc, char **argv) {
 
+  // Ensure we have a path, if the user passes it then we should use it
+  std::string config_path = "unset_path_to_config.yaml";
+  if (argc > 1) {
+    config_path = argv[1];
+  }
+
 #if ROS_AVAILABLE
   // Launch our ros node
   ros::init(argc, argv, "test_sim_meas");
   ros::NodeHandle nh("~");
+  nh.param<std::string>("config_path", config_path, config_path);
 #endif
+
+  // Load the config
+  auto parser = std::make_shared<ov_core::YamlParser>(config_path);
+#if ROS_AVAILABLE
+  parser->set_node_handler(nh);
+#endif
+
+  // Verbosity
+  std::string verbosity = "INFO";
+  parser->parse_config("verbosity", verbosity);
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Create the simulator
   VioManagerOptions params;
+  params.print_and_load(parser);
+  params.print_and_load_simulation(parser);
   Simulator sim(params);
 
   // Continue to simulate until we have processed all the measurements

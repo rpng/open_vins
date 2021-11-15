@@ -43,7 +43,7 @@ std::shared_ptr<RosVisualizer> viz;
 int main(int argc, char **argv) {
 
   // Ensure we have a path, if the user passes it then we should use it
-  std::string config_path = "unset_path.txt";
+  std::string config_path = "unset_path_to_config.yaml";
   if (argc > 1) {
     config_path = argv[1];
   }
