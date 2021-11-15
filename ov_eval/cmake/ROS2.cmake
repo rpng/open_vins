@@ -18,14 +18,14 @@ include_directories(
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
         ${PYTHON_INCLUDE_DIRS}
-        /usr/local/lib/python2.7/dist-packages/numpy/core/include
-        /usr/local/lib/python2.7/site-packages/numpy/core/include
+#        /usr/local/lib/python2.7/dist-packages/numpy/core/include
+#        /usr/local/lib/python2.7/site-packages/numpy/core/include
 )
 
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
-        ${PYTHON_LIBRARIES}
+#        ${PYTHON_LIBRARIES}
 )
 
 ##################################################
