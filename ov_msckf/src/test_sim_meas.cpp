@@ -30,7 +30,7 @@
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
 #include <ros/ros.h>
 #endif
 
@@ -51,7 +51,7 @@ int main(int argc, char **argv) {
     config_path = argv[1];
   }
 
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   // Launch our ros node
   ros::init(argc, argv, "test_sim_meas");
   ros::NodeHandle nh("~");
@@ -60,7 +60,7 @@ int main(int argc, char **argv) {
 
   // Load the config
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);
 #endif
 

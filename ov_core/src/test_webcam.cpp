@@ -40,7 +40,7 @@
 #include "utils/print.h"
 #include "utils/opencv_yaml_parse.h"
 
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
 #include <ros/ros.h>
 #endif
 
@@ -58,7 +58,7 @@ int main(int argc, char **argv) {
     config_path = argv[1];
   }
 
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   // Initialize this as a ROS node
   ros::init(argc, argv, "test_webcam");
   ros::NodeHandle nh("~");
@@ -67,7 +67,7 @@ int main(int argc, char **argv) {
 
   // Load parameters
   auto parser = std::make_shared<ov_core::YamlParser>(config_path, false);
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);
 #endif
 

@@ -19,13 +19,13 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "RosVisualizer.h"
+#include "ROS1Visualizer.h"
 
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
 
-RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _app(app), _sim(sim) {
+ROS1Visualizer::ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _app(app), _sim(sim) {
 
   // Setup our transform broadcaster
   mTfBr = new tf::TransformBroadcaster();
@@ -117,7 +117,7 @@ RosVisualizer::RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> ap
   }
 }
 
-void RosVisualizer::visualize() {
+void ROS1Visualizer::visualize() {
 
   // Return if we have already visualized
   if (last_visualization_timestamp == _app->get_state()->_timestamp && _app->initialized())
@@ -164,7 +164,7 @@ void RosVisualizer::visualize() {
   PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for visualization\n" RESET, time_total);
 }
 
-void RosVisualizer::visualize_odometry(double timestamp) {
+void ROS1Visualizer::visualize_odometry(double timestamp) {
 
   // Check if we have subscribers
   if (pub_odomimu.getNumSubscribers() == 0)
@@ -233,7 +233,7 @@ void RosVisualizer::visualize_odometry(double timestamp) {
   pub_odomimu.publish(odomIinM);
 }
 
-void RosVisualizer::visualize_final() {
+void ROS1Visualizer::visualize_final() {
 
   // Final time offset value
   if (_app->get_state()->_options.do_calib_camera_timeoffset) {
@@ -284,7 +284,7 @@ void RosVisualizer::visualize_final() {
   PRINT_INFO(REDPURPLE "TIME: %.3f seconds\n\n" RESET, (rT2 - rT1).total_microseconds() * 1e-6);
 }
 
-void RosVisualizer::publish_state() {
+void ROS1Visualizer::publish_state() {
 
   // Get the current state
   std::shared_ptr<State> state = _app->get_state();
@@ -364,7 +364,7 @@ void RosVisualizer::publish_state() {
   }
 }
 
-void RosVisualizer::publish_images() {
+void ROS1Visualizer::publish_images() {
 
   // Check if we have subscribers
   if (it_pub_tracks.getNumSubscribers() == 0)
@@ -382,7 +382,7 @@ void RosVisualizer::publish_images() {
   it_pub_tracks.publish(exl_msg);
 }
 
-void RosVisualizer::publish_features() {
+void ROS1Visualizer::publish_features() {
 
   // Check if we have subscribers
   if (pub_points_msckf.getNumSubscribers() == 0 && pub_points_slam.getNumSubscribers() == 0 && pub_points_aruco.getNumSubscribers() == 0 &&
@@ -414,7 +414,7 @@ void RosVisualizer::publish_features() {
   pub_points_sim.publish(cloud_SIM);
 }
 
-void RosVisualizer::publish_groundtruth() {
+void ROS1Visualizer::publish_groundtruth() {
 
   // Our groundtruth state
   Eigen::Matrix<double, 17, 1> state_gt;
@@ -537,7 +537,7 @@ void RosVisualizer::publish_groundtruth() {
   //==========================================================================
 }
 
-void RosVisualizer::publish_loopclosure_information() {
+void ROS1Visualizer::publish_loopclosure_information() {
 
   // Get the current tracks in this frame
   double active_tracks_time1 = -1;

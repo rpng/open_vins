@@ -30,14 +30,14 @@
 
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
-#include "ros/RosVisualizer.h"
+#include "ros/ROS1Visualizer.h"
 #include "utils/dataset_reader.h"
 #include "utils/sensor_data.h"
 
 using namespace ov_msckf;
 
 std::shared_ptr<VioManager> sys;
-std::shared_ptr<RosVisualizer> viz;
+std::shared_ptr<ROS1Visualizer> viz;
 
 // Main function
 int main(int argc, char **argv) {
@@ -66,7 +66,7 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   sys = std::make_shared<VioManager>(params);
-  viz = std::make_shared<RosVisualizer>(nh, sys);
+  viz = std::make_shared<ROS1Visualizer>(nh, sys);
 
   // Ensure we read in all parameters required
   if (!parser->successful()) {

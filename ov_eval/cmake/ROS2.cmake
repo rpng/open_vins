@@ -10,6 +10,7 @@ option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (NOT ENABLE_ROS)
     message(FATAL_ERROR "Build with ROS1.cmake if you don't have ROS.")
 endif ()
+add_definitions(-DROS_AVAILABLE=2)
 
 # Include our header files
 include_directories(

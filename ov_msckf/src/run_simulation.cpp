@@ -29,17 +29,19 @@
 #include "utils/print.h"
 #include "utils/sensor_data.h"
 
-#if ROS_AVAILABLE
-#include "ros/RosVisualizer.h"
+#if ROS_AVAILABLE == 1
+#include "ros/ROS1Visualizer.h"
 #include <ros/ros.h>
+#elif ROS_AVAILABLE == 2
+#include <rclcpp/rclcpp.hpp>
 #endif
 
 using namespace ov_msckf;
 
 std::shared_ptr<Simulator> sim;
 std::shared_ptr<VioManager> sys;
-#if ROS_AVAILABLE
-std::shared_ptr<RosVisualizer> viz;
+#if ROS_AVAILABLE == 1
+std::shared_ptr<ROS1Visualizer> viz;
 #endif
 
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
@@ -54,17 +56,28 @@ int main(int argc, char **argv) {
     config_path = argv[1];
   }
 
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   // Launch our ros node
   ros::init(argc, argv, "run_simulation");
   ros::NodeHandle nh("~");
   nh.param<std::string>("config_path", config_path, config_path);
+#elif ROS_AVAILABLE == 2
+  // Launch our ros node
+  rclcpp::init(argc, argv);
+  rclcpp::NodeOptions options;
+  options.allow_undeclared_parameters(true);
+  options.automatically_declare_parameters_from_overrides(true);
+  auto node = std::make_shared<rclcpp::Node>("run_simulation", options);
+  //node->declare_parameter<std::string>("config_path", config_path);
+  node->get_parameter<std::string>("config_path", config_path);
 #endif
 
   // Load the config
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);
+#elif ROS_AVAILABLE == 2
+  parser->set_node(node);
 #endif
 
   // Verbosity
@@ -78,8 +91,8 @@ int main(int argc, char **argv) {
   params.print_and_load_simulation(parser);
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
-#if ROS_AVAILABLE
-  viz = std::make_shared<RosVisualizer>(nh, sys, sim);
+#if ROS_AVAILABLE == 1
+  viz = std::make_shared<ROS1Visualizer>(nh, sys, sim);
 #endif
 
   // Ensure we read in all parameters required
@@ -119,8 +132,10 @@ int main(int argc, char **argv) {
 
   // Step through the rosbag
   signal(SIGINT, signal_callback_handler);
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   while (sim->ok() && ros::ok()) {
+#elif ROS_AVAILABLE == 2
+  while (sim->ok() && rclcpp::ok()) {
 #else
   while (sim->ok()) {
 #endif
@@ -130,7 +145,7 @@ int main(int argc, char **argv) {
     bool hasimu = sim->get_next_imu(message_imu.timestamp, message_imu.wm, message_imu.am);
     if (hasimu) {
       sys->feed_measurement_imu(message_imu);
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
       viz->visualize_odometry(message_imu.timestamp);
 #endif
     }
@@ -143,7 +158,7 @@ int main(int argc, char **argv) {
     if (hascam) {
       if (buffer_timecam != -1) {
         sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
         viz->visualize();
 #endif
       }
@@ -158,7 +173,7 @@ int main(int argc, char **argv) {
   //===================================================================================
 
   // Final visualization
-#if ROS_AVAILABLE
+#if ROS_AVAILABLE == 1
   viz->visualize_final();
 #endif
 

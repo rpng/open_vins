@@ -38,6 +38,7 @@ namespace ov_msckf {
 class RosVisualizerHelper {
 
 public:
+#if ROS_AVAILABLE == 1
   /**
    * @brief Will visualize the system if we have new things
    * @param feats Vector of features we will convert into ros format
@@ -106,6 +107,7 @@ public:
     trans.setOrigin(orig);
     return trans;
   }
+#endif
 
   /**
    * @brief Save current estimate state and groundtruth including calibration
@@ -116,7 +118,7 @@ public:
    * @param of_state_gt Output file for groundtruth (if we have it from sim)
    */
   static void sim_save_total_state_to_file(std::shared_ptr<State> state, std::shared_ptr<Simulator> sim, std::ofstream &of_state_est,
-                                    std::ofstream &of_state_std, std::ofstream &of_state_gt) {
+                                           std::ofstream &of_state_std, std::ofstream &of_state_gt) {
 
     // We want to publish in the IMU clock frame
     // The timestamp in the state will be the last camera time

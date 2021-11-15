@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OV_MSCKF_ROSVISUALIZER_H
-#define OV_MSCKF_ROSVISUALIZER_H
+#ifndef OV_MSCKF_ROS1VISUALIZER_H
+#define OV_MSCKF_ROS1VISUALIZER_H
 
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
@@ -59,7 +59,7 @@ namespace ov_msckf {
  * - Our different features (SLAM, MSCKF, ARUCO)
  * - Groundtruth trajectory if we have it
  */
-class RosVisualizer {
+class ROS1Visualizer {
 
 public:
   /**
@@ -68,7 +68,7 @@ public:
    * @param app Core estimator manager
    * @param sim Simulator if we are simulating
    */
-  RosVisualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
+  ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
 
   /**
    * @brief Will visualize the system if we have new things
@@ -151,4 +151,4 @@ protected:
 
 } // namespace ov_msckf
 
-#endif // OV_MSCKF_ROSVISUALIZER_H
+#endif // OV_MSCKF_ROS1VISUALIZER_H

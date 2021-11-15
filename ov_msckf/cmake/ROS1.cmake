@@ -62,7 +62,7 @@ list(APPEND library_source_files
 )
 if (catkin_FOUND AND ENABLE_ROS)
     list(APPEND library_source_files
-            src/ros/RosVisualizer.cpp
+            src/ros/ROS1Visualizer.cpp
     )
 endif ()
 add_library(ov_msckf_lib SHARED ${library_source_files})

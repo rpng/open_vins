@@ -9,6 +9,7 @@ option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (NOT ENABLE_ROS)
     message(FATAL_ERROR "Build with ROS1.cmake if you don't have ROS.")
 endif ()
+add_definitions(-DROS_AVAILABLE=2)
 
 # Include our header files
 include_directories(
@@ -42,6 +43,7 @@ add_library(ov_core_lib SHARED
         src/feat/FeatureInitializer.cpp
         src/utils/print.cpp
 )
+ament_target_dependencies(ov_core_lib rclcpp)
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
 target_include_directories(ov_core_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 install(TARGETS ov_core_lib
