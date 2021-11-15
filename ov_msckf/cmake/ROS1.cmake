@@ -80,11 +80,11 @@ install(TARGETS ov_msckf_lib
 
 if (catkin_FOUND AND ENABLE_ROS)
 
-    add_executable(run_serial_msckf src/ros_serial_msckf.cpp)
-    target_link_libraries(run_serial_msckf ov_msckf_lib ${thirdparty_libraries})
+    add_executable(ros1_serial_msckf src/ros1_serial_msckf.cpp)
+    target_link_libraries(ros1_serial_msckf ov_msckf_lib ${thirdparty_libraries})
 
-    add_executable(run_subscribe_msckf src/ros_subscribe_msckf.cpp)
-    target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
+    add_executable(ros1_subscribe_msckf src/ros1_subscribe_msckf.cpp)
+    target_link_libraries(ros1_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
 
 endif ()
 

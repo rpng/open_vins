@@ -24,8 +24,8 @@
 
 
     <!-- MASTER NODE! -->
-<!--    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <node name="run_serial_msckf" pkg="ov_msckf" type="run_serial_msckf" output="screen" clear_params="true" required="true">
+<!--    <node name="ros1_serial_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="ros1_serial_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true">
 
         <!-- bag parameters -->
         <param name="path_bag"    type="string" value="$(arg bag)" />

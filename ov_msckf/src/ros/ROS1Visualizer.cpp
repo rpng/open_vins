@@ -25,30 +25,31 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
 
-ROS1Visualizer::ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim) : _app(app), _sim(sim) {
+ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
+    : _nh(nh), _app(app), _sim(sim) {
 
   // Setup our transform broadcaster
   mTfBr = new tf::TransformBroadcaster();
 
   // Create image transport
-  image_transport::ImageTransport it(nh);
+  image_transport::ImageTransport it(*_nh);
 
   // Setup pose and path publisher
-  pub_poseimu = nh.advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
+  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu.getTopic().c_str());
-  pub_odomimu = nh.advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
+  pub_odomimu = nh->advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
-  pub_pathimu = nh.advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
+  pub_pathimu = nh->advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
 
   // 3D points publishing
-  pub_points_msckf = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_msckf", 2);
+  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_msckf", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_slam = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_slam", 2);
+  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_slam", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_aruco = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_aruco", 2);
+  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_aruco", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_aruco.getTopic().c_str());
-  pub_points_sim = nh.advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
+  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_sim.getTopic().c_str());
 
   // Our tracking image
@@ -56,27 +57,27 @@ ROS1Visualizer::ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> 
   PRINT_DEBUG("Publishing: %s\n", it_pub_tracks.getTopic().c_str());
 
   // Groundtruth publishers
-  pub_posegt = nh.advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
+  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_posegt.getTopic().c_str());
-  pub_pathgt = nh.advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
+  pub_pathgt = nh->advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathgt.getTopic().c_str());
 
   // Loop closure publishers
-  pub_loop_pose = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
-  pub_loop_point = nh.advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
-  pub_loop_extrinsic = nh.advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
-  pub_loop_intrinsics = nh.advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
+  pub_loop_pose = nh->advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
+  pub_loop_point = nh->advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
+  pub_loop_extrinsic = nh->advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
+  pub_loop_intrinsics = nh->advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
   it_pub_loop_img_depth = it.advertise("/ov_msckf/loop_depth", 2);
   it_pub_loop_img_depth_color = it.advertise("/ov_msckf/loop_depth_colored", 2);
 
   // option to enable publishing of global to IMU transformation
-  nh.param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
-  nh.param<bool>("publish_calibration_tf", publish_calibration_tf, true);
+  nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
+  nh->param<bool>("publish_calibration_tf", publish_calibration_tf, true);
 
   // Load groundtruth if we have it and are not doing simulation
-  if (nh.hasParam("path_gt") && _sim == nullptr) {
+  if (nh->hasParam("path_gt") && _sim == nullptr) {
     std::string path_to_gt;
-    nh.param<std::string>("path_gt", path_to_gt, "");
+    nh->param<std::string>("path_gt", path_to_gt, "");
     if (!path_to_gt.empty()) {
       DatasetReader::load_gt_file(path_to_gt, gt_states);
       PRINT_DEBUG("gt file path is: %s\n", path_to_gt.c_str());
@@ -84,16 +85,16 @@ ROS1Visualizer::ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> 
   }
 
   // Load if we should save the total state to file
-  nh.param<bool>("save_total_state", save_total_state, false);
+  nh->param<bool>("save_total_state", save_total_state, false);
 
   // If the file is not open, then open the file
   if (save_total_state) {
 
     // files we will open
     std::string filepath_est, filepath_std, filepath_gt;
-    nh.param<std::string>("filepath_est", filepath_est, "state_estimate.txt");
-    nh.param<std::string>("filepath_std", filepath_std, "state_deviation.txt");
-    nh.param<std::string>("filepath_gt", filepath_gt, "state_groundtruth.txt");
+    nh->param<std::string>("filepath_est", filepath_est, "state_estimate.txt");
+    nh->param<std::string>("filepath_std", filepath_std, "state_deviation.txt");
+    nh->param<std::string>("filepath_gt", filepath_gt, "state_groundtruth.txt");
 
     // If it exists, then delete it
     if (boost::filesystem::exists(filepath_est))
@@ -113,6 +114,54 @@ ROS1Visualizer::ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> 
         boost::filesystem::remove(filepath_gt);
       of_state_gt.open(filepath_gt.c_str());
       of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
+    }
+  }
+}
+
+void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser) {
+
+  // We need a valid parser
+  assert(parser != nullptr);
+
+  // Create imu subscriber (handle legacy ros param info)
+  std::string topic_imu;
+  _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
+  parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
+  sub_imu = _nh->subscribe(topic_imu, 9999999, &ROS1Visualizer::callback_inertial, this);
+
+  // Logic for sync stereo subscriber
+  // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
+  if (_app->get_params().state_options.num_cameras == 2) {
+    // Read in the topics
+    std::string cam_topic0, cam_topic1;
+    _nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
+    _nh->param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
+    // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
+    auto image_sub0 = std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
+        new message_filters::Subscriber<sensor_msgs::Image>(*_nh, cam_topic0, 5));
+    auto image_sub1 = std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
+        new message_filters::Subscriber<sensor_msgs::Image>(*_nh, cam_topic1, 5));
+    auto sync = std::unique_ptr<message_filters::Synchronizer<sync_pol>>(
+        new message_filters::Synchronizer<sync_pol>(sync_pol(5), *image_sub0, *image_sub1));
+    sync->registerCallback(boost::bind(&ROS1Visualizer::callback_stereo, this, _1, _2, 0, 1));
+    // Append to our vector of subscribers
+    sync_cam.push_back(std::move(sync));
+    sync_subs_cam.push_back(std::move(image_sub0));
+    sync_subs_cam.push_back(std::move(image_sub1));
+    PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic0.c_str());
+    PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic1.c_str());
+  } else {
+    // Now we should add any non-stereo callbacks here
+    for (int i = 0; i < _app->get_params().state_options.num_cameras; i++) {
+      // read in the topic
+      std::string cam_topic;
+      _nh->param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
+      // create subscriber
+      subs_cam.push_back(_nh->subscribe<sensor_msgs::Image>(cam_topic, 5, boost::bind(&ROS1Visualizer::callback_monocular, this, _1, i)));
+      PRINT_DEBUG("subscribing to cam (mono): %s", cam_topic.c_str());
     }
   }
 }
@@ -283,6 +332,93 @@ void ROS1Visualizer::visualize_final() {
   rT2 = boost::posix_time::microsec_clock::local_time();
   PRINT_INFO(REDPURPLE "TIME: %.3f seconds\n\n" RESET, (rT2 - rT1).total_microseconds() * 1e-6);
 }
+
+void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
+
+  // convert into correct format
+  ov_core::ImuData message;
+  message.timestamp = msg->header.stamp.toSec();
+  message.wm << msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z;
+  message.am << msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z;
+
+  // send it to our VIO system
+  _app->feed_measurement_imu(message);
+  visualize();
+  visualize_odometry(message.timestamp);
+}
+
+void ROS1Visualizer::callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
+
+  // Get the image
+  cv_bridge::CvImageConstPtr cv_ptr;
+  try {
+    cv_ptr = cv_bridge::toCvShare(msg0, sensor_msgs::image_encodings::MONO8);
+  } catch (cv_bridge::Exception &e) {
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+
+  // Create the measurement
+  ov_core::CameraData message;
+  message.timestamp = cv_ptr->header.stamp.toSec();
+  message.sensor_ids.push_back(cam_id0);
+  message.images.push_back(cv_ptr->image.clone());
+
+  // Load the mask if we are using it, else it is empty
+  // TODO: in the future we should get this from external pixel segmentation
+  if (_app->get_params().use_mask) {
+    message.masks.push_back(_app->get_params().masks.at(cam_id0));
+  } else {
+    message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
+  }
+
+  // send it to our VIO system
+  _app->feed_measurement_camera(message);
+}
+
+void ROS1Visualizer::callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0, int cam_id1) {
+
+  // Get the image
+  cv_bridge::CvImageConstPtr cv_ptr0;
+  try {
+    cv_ptr0 = cv_bridge::toCvShare(msg0, sensor_msgs::image_encodings::MONO8);
+  } catch (cv_bridge::Exception &e) {
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+
+  // Get the image
+  cv_bridge::CvImageConstPtr cv_ptr1;
+  try {
+    cv_ptr1 = cv_bridge::toCvShare(msg1, sensor_msgs::image_encodings::MONO8);
+  } catch (cv_bridge::Exception &e) {
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+
+  // Create the measurement
+  ov_core::CameraData message;
+  message.timestamp = cv_ptr0->header.stamp.toSec();
+  message.sensor_ids.push_back(cam_id0);
+  message.sensor_ids.push_back(cam_id1);
+  message.images.push_back(cv_ptr0->image.clone());
+  message.images.push_back(cv_ptr1->image.clone());
+
+  // Load the mask if we are using it, else it is empty
+  // TODO: in the future we should get this from external pixel segmentation
+  if (_app->get_params().use_mask) {
+    message.masks.push_back(_app->get_params().masks.at(cam_id0));
+    message.masks.push_back(_app->get_params().masks.at(cam_id1));
+  } else {
+    // message.masks.push_back(cv::Mat(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1, cv::Scalar(255)));
+    message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
+    message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
+  }
+
+  // send it to our VIO system
+  _app->feed_measurement_camera(message);
+}
+
 
 void ROS1Visualizer::publish_state() {
 

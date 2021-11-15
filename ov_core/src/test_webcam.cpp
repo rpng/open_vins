@@ -61,8 +61,8 @@ int main(int argc, char **argv) {
 #if ROS_AVAILABLE == 1
   // Initialize this as a ROS node
   ros::init(argc, argv, "test_webcam");
-  ros::NodeHandle nh("~");
-  nh.param<std::string>("config_path", config_path, config_path);
+  auto nh = std::make_shared<ros::NodeHandle>("~");
+  nh->param<std::string>("config_path", config_path, config_path);
 #endif
 
   // Load parameters

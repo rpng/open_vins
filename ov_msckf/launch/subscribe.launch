@@ -10,7 +10,7 @@
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
     <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
-    <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />
+    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 3/$(arg config)/$(arg dataset).bag" />
 
     <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
@@ -24,8 +24,8 @@
 
 
     <!-- MASTER NODE! -->
-<!--    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+<!--    <node name="ros1_subscribe_msckf" pkg="ov_msckf" type="ros1_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="ros1_subscribe_msckf" pkg="ov_msckf" type="ros1_subscribe_msckf" output="screen" clear_params="true" required="true">
 
         <!-- master configuration object -->
         <param name="verbosity"              type="string" value="$(arg verbosity)" />

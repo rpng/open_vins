@@ -19,7 +19,6 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include <cv_bridge/cv_bridge.h>
 #include <ros/ros.h>
 #include <rosbag/bag.h>
 #include <rosbag/view.h>
@@ -32,7 +31,6 @@
 #include "core/VioManagerOptions.h"
 #include "ros/ROS1Visualizer.h"
 #include "utils/dataset_reader.h"
-#include "utils/sensor_data.h"
 
 using namespace ov_msckf;
 
@@ -50,8 +48,8 @@ int main(int argc, char **argv) {
 
   // Launch our ros node
   ros::init(argc, argv, "run_serial_msckf");
-  ros::NodeHandle nh("~");
-  nh.param<std::string>("config_path", config_path, config_path);
+  auto nh = std::make_shared<ros::NodeHandle>("~");
+  nh->param<std::string>("config_path", config_path, config_path);
 
   // Load the config
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
@@ -80,7 +78,7 @@ int main(int argc, char **argv) {
 
   // Our imu topic
   std::string topic_imu;
-  nh.param<std::string>("topic_imu", topic_imu, "/imu0");
+  nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
 
   // Our camera topics (stereo pairs and non-stereo mono)
@@ -88,8 +86,8 @@ int main(int argc, char **argv) {
   if (params.use_stereo && params.state_options.num_cameras == 2) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
-    nh.param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
-    nh.param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
+    nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
+    nh->param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
     topic_cameras.emplace_back(0, cam_topic0);
@@ -100,7 +98,7 @@ int main(int argc, char **argv) {
     for (int i = 0; i < params.state_options.num_cameras; i++) {
       // read in the topic
       std::string cam_topic;
-      nh.param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      nh->param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
       parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
       topic_cameras.emplace_back(i, cam_topic);
       PRINT_DEBUG("serial cam (mono): %s\n", cam_topic.c_str());
@@ -109,14 +107,14 @@ int main(int argc, char **argv) {
 
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
-  nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
+  nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
   PRINT_DEBUG("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Load groundtruth if we have it
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
-  if (nh.hasParam("path_gt")) {
+  if (nh->hasParam("path_gt")) {
     std::string path_to_gt;
-    nh.param<std::string>("path_gt", path_to_gt, "");
+    nh->param<std::string>("path_gt", path_to_gt, "");
     if (!path_to_gt.empty()) {
       ov_core::DatasetReader::load_gt_file(path_to_gt, gt_states);
       PRINT_DEBUG("gt file path is: %s\n", path_to_gt.c_str());
@@ -126,8 +124,8 @@ int main(int argc, char **argv) {
   // Get our start location and how much of the bag we want to play
   // Make the bag duration < 0 to just process to the end of the bag
   double bag_start, bag_durr;
-  nh.param<double>("bag_start", bag_start, 0);
-  nh.param<double>("bag_durr", bag_durr, -1);
+  nh->param<double>("bag_start", bag_start, 0);
+  nh->param<double>("bag_durr", bag_durr, -1);
   PRINT_DEBUG("bag start: %.1f\n", bag_start);
   PRINT_DEBUG("bag duration: %.1f\n", bag_durr);
 
@@ -216,17 +214,7 @@ int main(int argc, char **argv) {
       }
     }
     if (should_process_imu) {
-      // convert into correct format
-      ov_core::ImuData message;
-      message.timestamp = msg_imu_current->header.stamp.toSec();
-      message.wm << msg_imu_current->angular_velocity.x, msg_imu_current->angular_velocity.y, msg_imu_current->angular_velocity.z;
-      message.am << msg_imu_current->linear_acceleration.x, msg_imu_current->linear_acceleration.y, msg_imu_current->linear_acceleration.z;
-      // send it to our VIO system
-      // PRINT_DEBUG("%.15f = imu time",msg_imu_current->header.stamp.toSec()-time_init.toSec());
-      sys->feed_measurement_imu(message);
-      viz->visualize();
-      viz->visualize_odometry(message.timestamp);
-      // move forward in time
+      viz->callback_inertial(msg_imu_current);
       msg_imu_current = msg_imu_next;
       view_imu_iter++;
       msg_imu_next = view_imu_iter->instantiate<sensor_msgs::Imu>();
@@ -289,43 +277,10 @@ int main(int argc, char **argv) {
         sys->initialize_with_gt(imustate);
       }
 
-      // Get the image
-      cv_bridge::CvImageConstPtr cv_ptr0, cv_ptr1;
-      try {
-        cv_ptr0 = cv_bridge::toCvShare(msg_images_current.at(0), sensor_msgs::image_encodings::MONO8);
-        cv_ptr1 = cv_bridge::toCvShare(msg_images_current.at(1), sensor_msgs::image_encodings::MONO8);
-      } catch (cv_bridge::Exception &e) {
-        PRINT_ERROR("cv_bridge exception: %s\n", e.what());
-        msg_images_current.at(0) = msg_images_next.at(0);
-        view_cameras_iterators.at(0)++;
-        msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
-        msg_images_current.at(1) = msg_images_next.at(1);
-        view_cameras_iterators.at(1)++;
-        msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
-        continue;
-      }
+      // Feed it into our system
+      viz->callback_stereo(msg_images_current.at(0), msg_images_current.at(1), 0, 1);
 
-      // Create viomanager message datatype
-      ov_core::CameraData message;
-      message.timestamp = msg_images_current.at(0)->header.stamp.toSec();
-      message.sensor_ids.push_back(0);
-      message.sensor_ids.push_back(1);
-      message.images.push_back(cv_ptr0->image.clone());
-      message.images.push_back(cv_ptr1->image.clone());
-      if (sys->get_params().use_mask) {
-        message.masks.push_back(sys->get_params().masks.at(0));
-        message.masks.push_back(sys->get_params().masks.at(1));
-      } else {
-        // message.masks.push_back(cv::Mat(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1, cv::Scalar(255)));
-        message.masks.push_back(cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1));
-        message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
-      }
-      // PRINT_DEBUG("%.15f = cam %d time",msg_images_current.at(0)->header.stamp.toSec()-time_init.toSec(), 0);
-      // PRINT_DEBUG("%.15f = cam %d time",msg_images_current.at(1)->header.stamp.toSec()-time_init.toSec(), 1);
-      // PRINT_DEBUG("(difference is %.15f)",msg_images_current.at(1)->header.stamp.toSec()-msg_images_current.at(0)->header.stamp.toSec());
-      sys->feed_measurement_camera(message);
-
-      // move forward in time
+      // Move forward in time
       msg_images_current.at(0) = msg_images_next.at(0);
       view_cameras_iterators.at(0)++;
       msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
@@ -355,30 +310,8 @@ int main(int argc, char **argv) {
         sys->initialize_with_gt(imustate);
       }
 
-      // Get the image
-      cv_bridge::CvImageConstPtr cv_ptr;
-      try {
-        cv_ptr = cv_bridge::toCvShare(msg_camera, sensor_msgs::image_encodings::MONO8);
-      } catch (cv_bridge::Exception &e) {
-        PRINT_ERROR("cv_bridge exception: %s\n", e.what());
-        msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
-        view_cameras_iterators.at(smallest_cam)++;
-        msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
-        continue;
-      }
-
-      // Create viomanager message datatype
-      ov_core::CameraData message;
-      message.timestamp = msg_camera->header.stamp.toSec();
-      message.sensor_ids.push_back(smallest_cam);
-      message.images.push_back(cv_ptr->image.clone());
-      if (sys->get_params().use_mask) {
-        message.masks.push_back(sys->get_params().masks.at(smallest_cam));
-      } else {
-        message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
-      }
-      // PRINT_DEBUG("%.15f = cam %d time",msg_camera->header.stamp.toSec()-time_init.toSec(), smallest_cam);
-      sys->feed_measurement_camera(message);
+      // Feed it into our system
+      viz->callback_monocular(msg_camera, smallest_cam);
 
       // move forward
       msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);

@@ -25,6 +25,9 @@
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <image_transport/image_transport.h>
+#include <message_filters/subscriber.h>
+#include <message_filters/sync_policies/approximate_time.h>
+#include <message_filters/time_synchronizer.h>
 #include <nav_msgs/Odometry.h>
 #include <nav_msgs/Path.h>
 #include <ros/ros.h>
@@ -46,6 +49,7 @@
 #include "sim/Simulator.h"
 #include "utils/dataset_reader.h"
 #include "utils/print.h"
+#include "utils/sensor_data.h"
 
 namespace ov_msckf {
 
@@ -68,7 +72,13 @@ public:
    * @param app Core estimator manager
    * @param sim Simulator if we are simulating
    */
-  ROS1Visualizer(ros::NodeHandle &nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
+  ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
+
+  /**
+   * @brief Will setup ROS subscribers and callbacks
+   * @param parser Configuration file parser
+   */
+  void setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser);
 
   /**
    * @brief Will visualize the system if we have new things
@@ -87,6 +97,15 @@ public:
    */
   void visualize_final();
 
+  /// Callback for inertial information
+  void callback_inertial(const sensor_msgs::Imu::ConstPtr &msg);
+
+  /// Callback for monocular cameras information
+  void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0);
+
+  /// Callback for synchronized stereo camera information
+  void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0, int cam_id1);
+
 protected:
   /// Publish the current state
   void publish_state();
@@ -103,6 +122,9 @@ protected:
   /// Publish loop-closure information of current pose and active track information
   void publish_loopclosure_information();
 
+  /// Global node handler
+  std::shared_ptr<ros::NodeHandle> _nh;
+
   /// Core application of the filter system
   std::shared_ptr<VioManager> _app;
 
@@ -115,6 +137,13 @@ protected:
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
   tf::TransformBroadcaster *mTfBr;
+
+  // Our subscribers and camera synchronizers
+  ros::Subscriber sub_imu;
+  std::vector<ros::Subscriber> subs_cam;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
+  std::vector<std::unique_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
+  std::vector<std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>> sync_subs_cam;
 
   // For path viz
   unsigned int poses_seq_imu = 0;

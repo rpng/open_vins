@@ -84,7 +84,7 @@ public:
 
 #if ROS_AVAILABLE == 1
   /// Allows setting of the node handler if we have ROS to override parameters
-  void set_node_handler(ros::NodeHandle &nh_) { this->nh = nh_; }
+  void set_node_handler(std::shared_ptr<ros::NodeHandle> nh_) { this->nh = nh_; }
 #endif
 
 #if ROS_AVAILABLE == 2
@@ -118,8 +118,8 @@ public:
   template <class T> void parse_config(const std::string &node_name, T &node_result, bool required = true) {
 
 #if ROS_AVAILABLE == 1
-    if (nh.getParam(node_name, node_result)) {
-      nh.param<T>(node_name, node_result);
+    if (nh->getParam(node_name, node_result)) {
+      nh->param<T>(node_name, node_result);
       PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, node_name.c_str());
       return;
     }
@@ -156,8 +156,8 @@ public:
 
 #if ROS_AVAILABLE == 1
     std::string rosnode = sensor_name + "_" + node_name;
-    if (nh.getParam(rosnode, node_result)) {
-      nh.param<T>(rosnode, node_result);
+    if (nh->getParam(rosnode, node_result)) {
+      nh->param<T>(rosnode, node_result);
       PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, rosnode.c_str());
       return;
     }
@@ -196,8 +196,8 @@ public:
     // NOTE: for our 4x4 matrix we should read it as an array from ROS then covert it back into the 4x4
     std::string rosnode = sensor_name + "_" + node_name;
     std::vector<double> matrix_TCtoI;
-    if (nh.getParam(rosnode, matrix_TCtoI)) {
-      nh.param<std::vector<double>>(rosnode, matrix_TCtoI);
+    if (nh->getParam(rosnode, matrix_TCtoI)) {
+      nh->param<std::vector<double>>(rosnode, matrix_TCtoI);
       PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, rosnode.c_str());
       node_result << matrix_TCtoI.at(0), matrix_TCtoI.at(1), matrix_TCtoI.at(2), matrix_TCtoI.at(3), matrix_TCtoI.at(4), matrix_TCtoI.at(5),
           matrix_TCtoI.at(6), matrix_TCtoI.at(7), matrix_TCtoI.at(8), matrix_TCtoI.at(9), matrix_TCtoI.at(10), matrix_TCtoI.at(11),
@@ -267,12 +267,12 @@ private:
   bool all_params_found_successfully = true;
 
 #if ROS_AVAILABLE == 1
-  /// Ros node handler that will override values
-  ros::NodeHandle nh;
+  /// ROS1 node handler that will override values
+  std::shared_ptr<ros::NodeHandle> nh;
 #endif
 
 #if ROS_AVAILABLE == 2
-  /// Our rclcpp node pointer
+  /// Our ROS2 rclcpp node pointer
   std::shared_ptr<rclcpp::Node> node = nullptr;
 #endif
 

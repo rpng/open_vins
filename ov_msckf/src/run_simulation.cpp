@@ -59,8 +59,8 @@ int main(int argc, char **argv) {
 #if ROS_AVAILABLE == 1
   // Launch our ros node
   ros::init(argc, argv, "run_simulation");
-  ros::NodeHandle nh("~");
-  nh.param<std::string>("config_path", config_path, config_path);
+  auto nh = std::make_shared<ros::NodeHandle>("~");
+  nh->param<std::string>("config_path", config_path, config_path);
 #elif ROS_AVAILABLE == 2
   // Launch our ros node
   rclcpp::init(argc, argv);

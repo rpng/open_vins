@@ -70,8 +70,8 @@ int main(int argc, char **argv) {
 
   // Initialize this as a ROS node
   ros::init(argc, argv, "test_tracking");
-  ros::NodeHandle nh("~");
-  nh.param<std::string>("config_path", config_path, config_path);
+  auto nh = std::make_shared<ros::NodeHandle>("~");
+  nh->param<std::string>("config_path", config_path, config_path);
 
   // Load parameters
   auto parser = std::make_shared<ov_core::YamlParser>(config_path, false);
@@ -84,22 +84,22 @@ int main(int argc, char **argv) {
 
   // Our camera topics (left and right stereo)
   std::string topic_camera0, topic_camera1;
-  nh.param<std::string>("topic_camera0", topic_camera0, "/cam0/image_raw");
-  nh.param<std::string>("topic_camera1", topic_camera1, "/cam1/image_raw");
+  nh->param<std::string>("topic_camera0", topic_camera0, "/cam0/image_raw");
+  nh->param<std::string>("topic_camera1", topic_camera1, "/cam1/image_raw");
   parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", topic_camera0);
   parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", topic_camera1);
 
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
-  nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
-  // nh.param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
+  nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
+  // nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
   PRINT_INFO("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Get our start location and how much of the bag we want to play
   // Make the bag duration < 0 to just process to the end of the bag
   double bag_start, bag_durr;
-  nh.param<double>("bag_start", bag_start, 0);
-  nh.param<double>("bag_durr", bag_durr, -1);
+  nh->param<double>("bag_start", bag_start, 0);
+  nh->param<double>("bag_durr", bag_durr, -1);
 
   //===================================================================================
   //===================================================================================
