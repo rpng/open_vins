@@ -20,6 +20,13 @@ if (PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
     message(STATUS "PYTHON VERSION: " ${PYTHONLIBS_VERSION_STRING})
     message(STATUS "PYTHON INCLUDE: " ${PYTHON_INCLUDE_DIRS})
     message(STATUS "PYTHON LIBRARIES: " ${PYTHON_LIBRARIES})
+    include_directories(
+            /usr/local/lib/python2.7/dist-packages/numpy/core/include
+            /usr/local/lib/python2.7/site-packages/numpy/core/include
+    )
+    list(APPEND thirdparty_libraries
+            ${PYTHON_LIBRARIES}
+    )
 endif ()
 
 # We need c++14 for ROS2, thus just require it for everybody

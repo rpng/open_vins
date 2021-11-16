@@ -3,6 +3,13 @@ cmake_minimum_required(VERSION 3.3)
 # Find ROS build system
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
+find_package(tf2_ros REQUIRED)
+find_package(std_msgs REQUIRED)
+find_package(geometry_msgs REQUIRED)
+find_package(sensor_msgs REQUIRED)
+find_package(nav_msgs REQUIRED)
+find_package(cv_bridge REQUIRED)
+find_package(image_transport REQUIRED)
 find_package(ov_core REQUIRED)
 find_package(ov_init REQUIRED)
 
@@ -25,6 +32,18 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
 )
+list(APPEND ament_libraries
+        rclcpp
+        tf2_ros
+        std_msgs
+        geometry_msgs
+        sensor_msgs
+        nav_msgs
+        cv_bridge
+        image_transport
+        ov_core
+        ov_init
+)
 
 ##################################################
 # Make the shared library
@@ -41,14 +60,11 @@ list(APPEND library_source_files
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
 )
-# TODO: UPGRADE THIS TO ROS2 AS ANOTHER FILE!!
-#if (catkin_FOUND AND ENABLE_ROS)
-#    list(APPEND library_source_files
-#            src/ros/RosVisualizer.cpp
-#    )
-#endif ()
+list(APPEND library_source_files
+        src/ros/ROS2Visualizer.cpp
+)
 add_library(ov_msckf_lib SHARED ${library_source_files})
-ament_target_dependencies(ov_msckf_lib rclcpp ov_core ov_init)
+ament_target_dependencies(ov_msckf_lib ${ament_libraries})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
 target_include_directories(ov_msckf_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
 install(TARGETS ov_msckf_lib
@@ -64,28 +80,26 @@ ament_export_libraries(ov_msckf_lib)
 ##################################################
 
 # TODO: UPGRADE THIS TO ROS2 AS ANOTHER FILE!!
-#if (catkin_FOUND AND ENABLE_ROS)
-#
-#    add_executable(ros2_serial_msckf src/ros2_serial_msckf.cpp)
-#    target_link_libraries(ros2_serial_msckf ov_msckf_lib ${thirdparty_libraries})
-#
-#    add_executable(ros2_subscribe_msckf src/ros2_subscribe_msckf.cpp)
-#    target_link_libraries(ros2_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
-#
-#endif ()
+#add_executable(ros2_serial_msckf src/ros2_serial_msckf.cpp)
+#target_link_libraries(ros2_serial_msckf ov_msckf_lib ${thirdparty_libraries})
+
+#add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
+#ament_target_dependencies(run_subscribe_msckf ${ament_libraries})
+#target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
+#install(TARGETS run_subscribe_msckf DESTINATION lib/${PROJECT_NAME})
 
 add_executable(run_simulation src/run_simulation.cpp)
-ament_target_dependencies(run_simulation rclcpp ov_core ov_init)
+ament_target_dependencies(run_simulation ${ament_libraries})
 target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS run_simulation DESTINATION lib/${PROJECT_NAME})
 
 add_executable(test_sim_meas src/test_sim_meas.cpp)
-ament_target_dependencies(test_sim_meas rclcpp ov_core ov_init)
+ament_target_dependencies(test_sim_meas ${ament_libraries})
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS test_sim_meas DESTINATION lib/${PROJECT_NAME})
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
-ament_target_dependencies(test_sim_repeat rclcpp ov_core ov_init)
+ament_target_dependencies(test_sim_repeat ${ament_libraries})
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS test_sim_repeat DESTINATION lib/${PROJECT_NAME})
 

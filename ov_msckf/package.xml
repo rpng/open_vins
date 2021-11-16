@@ -21,7 +21,6 @@
     <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
     <depend condition="$ROS_VERSION == 1">cmake_modules</depend>
     <depend condition="$ROS_VERSION == 1">roscpp</depend>
-    <depend condition="$ROS_VERSION == 1">rosbag</depend>
     <depend condition="$ROS_VERSION == 1">tf</depend>
     <depend condition="$ROS_VERSION == 1">std_msgs</depend>
     <depend condition="$ROS_VERSION == 1">sensor_msgs</depend>
@@ -33,15 +32,17 @@
     <depend condition="$ROS_VERSION == 1">ov_core</depend>
     <depend condition="$ROS_VERSION == 1">ov_init</depend>
 
-    <!-- These are really "soft" dependencies, and are just required if you need them for launch... -->
-    <!--    <depend condition="$ROS_VERSION == 1">ov_eval</depend>-->
-    <!--    <depend condition="$ROS_VERSION == 1">ov_data</depend>-->
-    <!--    <depend condition="$ROS_VERSION == 2">ov_eval</depend>-->
-    <!--    <depend condition="$ROS_VERSION == 2">ov_data</depend>-->
-
     <!-- ROS2: Dependencies needed to compile this package. -->
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
     <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+    <depend condition="$ROS_VERSION == 2">rosbag</depend>
+    <depend condition="$ROS_VERSION == 2">tf2_ros</depend>
+    <depend condition="$ROS_VERSION == 2">std_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">sensor_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">nav_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">cv_bridge</depend>
+    <depend condition="$ROS_VERSION == 2">image_transport</depend>
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
     <depend condition="$ROS_VERSION == 2">ov_init</depend>
 
@@ -50,5 +51,11 @@
         <build_type condition="$ROS_VERSION == 1">catkin</build_type>
         <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
     </export>
+
+    <!-- These are really "soft" dependencies, and are just required if you need them for launch... -->
+    <!--    <depend condition="$ROS_VERSION == 1">ov_eval</depend>-->
+    <!--    <depend condition="$ROS_VERSION == 1">ov_data</depend>-->
+    <!--    <depend condition="$ROS_VERSION == 2">ov_eval</depend>-->
+    <!--    <depend condition="$ROS_VERSION == 2">ov_data</depend>-->
 
 </package>

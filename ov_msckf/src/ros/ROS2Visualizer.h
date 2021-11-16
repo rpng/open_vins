@@ -19,27 +19,31 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OV_MSCKF_ROS1VISUALIZER_H
-#define OV_MSCKF_ROS1VISUALIZER_H
+#ifndef OV_MSCKF_ROS2VISUALIZER_H
+#define OV_MSCKF_ROS2VISUALIZER_H
 
-#include <geometry_msgs/PoseStamped.h>
-#include <geometry_msgs/PoseWithCovarianceStamped.h>
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
 #include <image_transport/image_transport.h>
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
-#include <nav_msgs/Odometry.h>
-#include <nav_msgs/Path.h>
-#include <ros/ros.h>
-#include <sensor_msgs/CameraInfo.h>
-#include <sensor_msgs/Image.h>
-#include <sensor_msgs/Imu.h>
-#include <sensor_msgs/NavSatFix.h>
-#include <sensor_msgs/PointCloud.h>
-#include <sensor_msgs/PointCloud2.h>
-#include <sensor_msgs/point_cloud2_iterator.h>
-#include <std_msgs/Float64.h>
-#include <tf/transform_broadcaster.h>
+#include <nav_msgs/msg/odometry.hpp>
+#include <nav_msgs/msg/path.hpp>
+#include <rclcpp/rclcpp.hpp>
+#include <sensor_msgs/msg/camera_info.hpp>
+#include <sensor_msgs/msg/image.hpp>
+#include <sensor_msgs/msg/imu.hpp>
+#include <sensor_msgs/msg/nav_sat_fix.hpp>
+#include <sensor_msgs/msg/point_cloud.hpp>
+#include <sensor_msgs/msg/point_cloud2.hpp>
+#include <sensor_msgs/point_cloud2_iterator.hpp>
+#include <std_msgs/msg/float64.hpp>
+#include <tf2/LinearMath/Quaternion.h>
+#include <tf2/transform_datatypes.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_ros/transform_broadcaster.h>
 
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
@@ -63,16 +67,16 @@ namespace ov_msckf {
  * - Our different features (SLAM, MSCKF, ARUCO)
  * - Groundtruth trajectory if we have it
  */
-class ROS1Visualizer {
+class ROS2Visualizer {
 
 public:
   /**
    * @brief Default constructor
-   * @param nh ROS node handler
+   * @param node ROS node pointer
    * @param app Core estimator manager
    * @param sim Simulator if we are simulating
    */
-  ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
+  ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
 
   /**
    * @brief Will setup ROS subscribers and callbacks
@@ -98,13 +102,13 @@ public:
   void visualize_final();
 
   /// Callback for inertial information
-  void callback_inertial(const sensor_msgs::Imu::ConstPtr &msg);
+  //void callback_inertial(const sensor_msgs::Imu::ConstPtr &msg);
 
   /// Callback for monocular cameras information
-  void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0);
+  //void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0);
 
   /// Callback for synchronized stereo camera information
-  void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0, int cam_id1);
+  //void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0, int cam_id1);
 
 protected:
   /// Publish the current state
@@ -123,7 +127,7 @@ protected:
   void publish_loopclosure_information();
 
   /// Global node handler
-  std::shared_ptr<ros::NodeHandle> _nh;
+  std::shared_ptr<rclcpp::Node> _node;
 
   /// Core application of the filter system
   std::shared_ptr<VioManager> _app;
@@ -133,24 +137,28 @@ protected:
 
   // Our publishers
   image_transport::Publisher it_pub_tracks, it_pub_loop_img_depth, it_pub_loop_img_depth_color;
-  ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
-  ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
-  ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
-  tf::TransformBroadcaster *mTfBr;
+  rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pub_poseimu;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_odomimu;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_pathimu;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud2>::SharedPtr pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
+  rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_loop_pose, pub_loop_extrinsic;
+  rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_loop_point;
+  rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pub_loop_intrinsics;
+  tf2_ros::TransformBroadcaster *mTfBr;
 
-  // Our subscribers and camera synchronizers
-  ros::Subscriber sub_imu;
-  std::vector<ros::Subscriber> subs_cam;
-  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-  std::vector<std::unique_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
-  std::vector<std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>> sync_subs_cam;
+//  // Our subscribers and camera synchronizers
+//  ros::Subscriber sub_imu;
+//  std::vector<ros::Subscriber> subs_cam;
+//  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
+//  std::vector<std::unique_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
+//  std::vector<std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>> sync_subs_cam;
 
   // For path viz
-  unsigned int poses_seq_imu = 0;
-  std::vector<geometry_msgs::PoseStamped> poses_imu;
+  std::vector<geometry_msgs::msg::PoseStamped> poses_imu;
 
   // Groundtruth infomation
-  ros::Publisher pub_pathgt, pub_posegt;
+  rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_pathgt;
+  rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_posegt;
   double summed_rmse_ori = 0.0;
   double summed_rmse_pos = 0.0;
   double summed_nees_ori = 0.0;
@@ -168,8 +176,7 @@ protected:
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
 
   // For path viz
-  unsigned int poses_seq_gt = 0;
-  std::vector<geometry_msgs::PoseStamped> poses_gt;
+  std::vector<geometry_msgs::msg::PoseStamped> poses_gt;
   bool publish_global2imu_tf = true;
   bool publish_calibration_tf = true;
 
@@ -180,4 +187,4 @@ protected:
 
 } // namespace ov_msckf
 
-#endif // OV_MSCKF_ROS1VISUALIZER_H
+#endif // OV_MSCKF_ROS2VISUALIZER_H

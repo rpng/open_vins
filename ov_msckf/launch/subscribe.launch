@@ -24,8 +24,8 @@
 
 
     <!-- MASTER NODE! -->
-<!--    <node name="ros1_subscribe_msckf" pkg="ov_msckf" type="ros1_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <node name="ros1_subscribe_msckf" pkg="ov_msckf" type="ros1_subscribe_msckf" output="screen" clear_params="true" required="true">
+<!--    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
         <!-- master configuration object -->
         <param name="verbosity"              type="string" value="$(arg verbosity)" />

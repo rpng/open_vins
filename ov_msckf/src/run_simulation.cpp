@@ -33,6 +33,7 @@
 #include "ros/ROS1Visualizer.h"
 #include <ros/ros.h>
 #elif ROS_AVAILABLE == 2
+#include "ros/ROS2Visualizer.h"
 #include <rclcpp/rclcpp.hpp>
 #endif
 
@@ -42,6 +43,8 @@ std::shared_ptr<Simulator> sim;
 std::shared_ptr<VioManager> sys;
 #if ROS_AVAILABLE == 1
 std::shared_ptr<ROS1Visualizer> viz;
+#elif ROS_AVAILABLE == 2
+std::shared_ptr<ROS2Visualizer> viz;
 #endif
 
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
@@ -92,6 +95,8 @@ int main(int argc, char **argv) {
   sys = std::make_shared<VioManager>(params);
 #if ROS_AVAILABLE == 1
   viz = std::make_shared<ROS1Visualizer>(nh, sys, sim);
+#elif ROS_AVAILABLE == 2
+  viz = std::make_shared<ROS2Visualizer>(node, sys, sim);
 #endif
 
   // Ensure we read in all parameters required
@@ -144,7 +149,7 @@ int main(int argc, char **argv) {
     bool hasimu = sim->get_next_imu(message_imu.timestamp, message_imu.wm, message_imu.am);
     if (hasimu) {
       sys->feed_measurement_imu(message_imu);
-#if ROS_AVAILABLE == 1
+#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
       viz->visualize_odometry(message_imu.timestamp);
 #endif
     }
@@ -157,7 +162,7 @@ int main(int argc, char **argv) {
     if (hascam) {
       if (buffer_timecam != -1) {
         sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
-#if ROS_AVAILABLE == 1
+#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
         viz->visualize();
 #endif
       }
@@ -167,12 +172,8 @@ int main(int argc, char **argv) {
     }
   }
 
-  //===================================================================================
-  //===================================================================================
-  //===================================================================================
-
   // Final visualization
-#if ROS_AVAILABLE == 1
+#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
   viz->visualize_final();
 #endif
 
