@@ -102,13 +102,14 @@ public:
   void visualize_final();
 
   /// Callback for inertial information
-  //void callback_inertial(const sensor_msgs::Imu::ConstPtr &msg);
+  void callback_inertial(const sensor_msgs::msg::Imu::SharedPtr msg);
 
   /// Callback for monocular cameras information
-  //void callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0);
+  void callback_monocular(const sensor_msgs::msg::Image::SharedPtr msg0, int cam_id0);
 
   /// Callback for synchronized stereo camera information
-  //void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0, int cam_id1);
+  void callback_stereo(const sensor_msgs::msg::Image::ConstSharedPtr msg0, const sensor_msgs::msg::Image::ConstSharedPtr msg1, int cam_id0,
+                       int cam_id1);
 
 protected:
   /// Publish the current state
@@ -146,12 +147,12 @@ protected:
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pub_loop_intrinsics;
   tf2_ros::TransformBroadcaster *mTfBr;
 
-//  // Our subscribers and camera synchronizers
-//  ros::Subscriber sub_imu;
-//  std::vector<ros::Subscriber> subs_cam;
-//  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
-//  std::vector<std::unique_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
-//  std::vector<std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>> sync_subs_cam;
+  // Our subscribers and camera synchronizers
+  rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu;
+  std::vector<rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr> subs_cam;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol;
+  std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
+  std::vector<std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>>> sync_subs_cam;
 
   // For path viz
   std::vector<geometry_msgs::msg::PoseStamped> poses_imu;

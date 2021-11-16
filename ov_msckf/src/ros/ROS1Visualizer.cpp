@@ -139,17 +139,14 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
     // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
-    auto image_sub0 = std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
-        new message_filters::Subscriber<sensor_msgs::Image>(*_nh, cam_topic0, 5));
-    auto image_sub1 = std::unique_ptr<message_filters::Subscriber<sensor_msgs::Image>>(
-        new message_filters::Subscriber<sensor_msgs::Image>(*_nh, cam_topic1, 5));
-    auto sync = std::unique_ptr<message_filters::Synchronizer<sync_pol>>(
-        new message_filters::Synchronizer<sync_pol>(sync_pol(5), *image_sub0, *image_sub1));
+    auto image_sub0 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic0, 5);
+    auto image_sub1 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic1, 5);
+    auto sync = std::make_shared<message_filters::Synchronizer<sync_pol>>(sync_pol(5), *image_sub0, *image_sub1);
     sync->registerCallback(boost::bind(&ROS1Visualizer::callback_stereo, this, _1, _2, 0, 1));
     // Append to our vector of subscribers
-    sync_cam.push_back(std::move(sync));
-    sync_subs_cam.push_back(std::move(image_sub0));
-    sync_subs_cam.push_back(std::move(image_sub1));
+    sync_cam.push_back(sync);
+    sync_subs_cam.push_back(image_sub0);
+    sync_subs_cam.push_back(image_sub1);
     PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic0.c_str());
     PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic1.c_str());
   } else {
