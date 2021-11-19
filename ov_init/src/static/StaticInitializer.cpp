@@ -39,7 +39,7 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
 
   // Return if we don't have enough for two windows
   if (newesttime - oldesttime < 2 * params.init_window_time) {
-    // PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
+    PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
     return false;
   }
 
@@ -56,7 +56,7 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
 
   // Return if both of these failed
   if (window_1to0.size() < 2 || window_2to1.size() < 2) {
-    // PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
+    PRINT_DEBUG(YELLOW "[INIT-IMU]: unable to select window of IMU readings, not enough readings\n" RESET);
     return false;
   }
 
