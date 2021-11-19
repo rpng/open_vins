@@ -391,10 +391,10 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   // Note that we need to convert our continuous time noises to discrete
   // Equations (129) amd (130) of Trawny tech report
   Eigen::Matrix<double, 12, 12> Qc = Eigen::Matrix<double, 12, 12>::Zero();
-  Qc.block(0, 0, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(3, 3, 3, 3) = _noises.sigma_a_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(6, 6, 3, 3) = _noises.sigma_wb_2 * dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(9, 9, 3, 3) = _noises.sigma_ab_2 * dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(0, 0, 3, 3) = _imu_config.sigma_w_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(3, 3, 3, 3) = _imu_config.sigma_a_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(6, 6, 3, 3) = _imu_config.sigma_wb_2 * dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(9, 9, 3, 3) = _imu_config.sigma_ab_2 * dt * Eigen::Matrix<double, 3, 3>::Identity();
 
   // Compute the noise injected into the state over the interval
   Qd = G * Qc * G.transpose();

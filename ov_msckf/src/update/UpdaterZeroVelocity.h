@@ -63,20 +63,20 @@ public:
    * @param zupt_noise_multiplier Multiplier of our IMU noise matrix (default should be 1.0)
    * @param zupt_max_disparity Max disparity we should consider to do a update with
    */
-  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<ov_core::FeatureDatabase> db,
+  UpdaterZeroVelocity(UpdaterOptions &options, ov_core::ImuConfig &imu_config, std::shared_ptr<ov_core::FeatureDatabase> db,
                       std::shared_ptr<Propagator> prop, double gravity_mag, double zupt_max_velocity, double zupt_noise_multiplier,
                       double zupt_max_disparity)
-      : _options(options), _noises(noises), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
+      : _options(options), _imu_config(imu_config), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
         _zupt_noise_multiplier(zupt_noise_multiplier), _zupt_max_disparity(zupt_max_disparity) {
 
     // Gravity
     _gravity << 0.0, 0.0, gravity_mag;
 
     // Save our raw pixel noise squared
-    _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
-    _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
-    _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
-    _noises.sigma_ab_2 = std::pow(_noises.sigma_ab, 2);
+    _imu_config.sigma_w_2 = std::pow(_imu_config.sigma_w, 2);
+    _imu_config.sigma_a_2 = std::pow(_imu_config.sigma_a, 2);
+    _imu_config.sigma_wb_2 = std::pow(_imu_config.sigma_wb, 2);
+    _imu_config.sigma_ab_2 = std::pow(_imu_config.sigma_ab, 2);
 
     // Initialize the chi squared test table with confidence level 0.95
     // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
@@ -126,7 +126,7 @@ protected:
   UpdaterOptions _options;
 
   /// Container for the imu noise values
-  Propagator::NoiseManager _noises;
+  ov_core::ImuConfig _imu_config;
 
   /// Feature tracker database with all features in it
   std::shared_ptr<ov_core::FeatureDatabase> _db;

@@ -25,6 +25,7 @@
 #include <Eigen/Eigen>
 #include <opencv2/opencv.hpp>
 #include <vector>
+#include "utils/quat_ops.h"
 
 namespace ov_core {
 
@@ -75,6 +76,115 @@ struct CameraData {
     }
   }
 };
+
+/**
+   * @brief Struct of our imu noise parameters
+   */
+struct ImuConfig {
+
+  /// imu model, 0: Kalibr model and 1: RPNG model
+  int imu_model = 0;
+
+  /// imu intrinsics
+  Eigen::Matrix<double,6,1> imu_x_dw; // the columnwise elements for Dw
+  Eigen::Matrix<double,6,1> imu_x_da; // the columnwise elements for Da
+  Eigen::Matrix<double,9,1> imu_x_tg; // the ccolumnwise elements for Tg
+  Eigen::Matrix<double,4,1> imu_quat_AcctoI; // the JPL quat for R_AcctoI
+  Eigen::Matrix<double,4,1> imu_quat_GyrotoI; // the JPL quat for R_GyrotoI
+
+  /// Gyroscope white noise (rad/s/sqrt(hz))
+  double sigma_w = 1.6968e-04;
+
+  /// Gyroscope white noise covariance
+  double sigma_w_2 = pow(1.6968e-04, 2);
+
+  /// Gyroscope random walk (rad/s^2/sqrt(hz))
+  double sigma_wb = 1.9393e-05;
+
+  /// Gyroscope random walk covariance
+  double sigma_wb_2 = pow(1.9393e-05, 2);
+
+  /// Accelerometer white noise (m/s^2/sqrt(hz))
+  double sigma_a = 2.0000e-3;
+
+  /// Accelerometer white noise covariance
+  double sigma_a_2 = pow(2.0000e-3, 2);
+
+  /// Accelerometer random walk (m/s^3/sqrt(hz))
+  double sigma_ab = 3.0000e-03;
+
+  /// Accelerometer random walk covariance
+  double sigma_ab_2 = pow(3.0000e-03, 2);
+
+  /// Nice print function of what parameters we have loaded
+  void print() {
+    PRINT_DEBUG("  - gyroscope_noise_density: %.6f\n", sigma_w);
+    PRINT_DEBUG("  - accelerometer_noise_density: %.5f\n", sigma_a);
+    PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
+    PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
+  }
+
+  /// get the IMU Dw
+  Eigen::Matrix3d Dw(){
+    Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
+    if(imu_model == 0){
+      Dw <<
+          imu_x_dw(0), 0,                 0,
+          imu_x_dw(1), imu_x_dw(3), 0,
+          imu_x_dw(2), imu_x_dw(4), imu_x_dw(5);
+    }else{
+      Dw <<
+          imu_x_dw(0), imu_x_dw(1), imu_x_dw(3),
+          0,                 imu_x_dw(2), imu_x_dw(4),
+          0,                  0,                imu_x_dw(5);
+    }
+    return Dw;
+  }
+
+  /// get the IMU Da
+  Eigen::Matrix3d Da(){
+    Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
+    if(imu_model == 0){
+      Da <<
+         imu_x_da(0), 0,                 0,
+          imu_x_da(1), imu_x_da(3), 0,
+          imu_x_da(2), imu_x_da(4), imu_x_da(5);
+    }else{
+      Da <<
+         imu_x_da(0), imu_x_da(1), imu_x_da(3),
+          0,                 imu_x_da(2), imu_x_da(4),
+          0,                  0,                imu_x_da(5);
+    }
+    return Da;
+  }
+
+  /// get the IMU Tg
+  Eigen::Matrix3d Tg(){
+    Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
+    Tg << imu_x_tg(0), imu_x_tg(3), imu_x_tg(6),
+        imu_x_tg(1), imu_x_tg(4), imu_x_tg(7),
+        imu_x_tg(2), imu_x_tg(5), imu_x_tg(8);
+    return Tg;
+  }
+
+  /// get the R_AcctoI
+  Eigen::Matrix3d R_AcctoI(){
+    return ov_core::quat_2_Rot(imu_quat_AcctoI);
+  }
+
+  /// get the R_GyrotoI
+  Eigen::Matrix3d R_GyrotoI(){
+    return ov_core::quat_2_Rot(imu_quat_GyrotoI);
+  }
+
+
+
+
+};
+
+
+
+
 
 } // namespace ov_core
 

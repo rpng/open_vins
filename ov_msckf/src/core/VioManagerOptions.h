@@ -128,7 +128,7 @@ struct VioManagerOptions {
   // NOISE / CHI2 ============================
 
   /// IMU noise (gyroscope and accelerometer)
-  Propagator::NoiseManager imu_noises;
+  ov_core::ImuConfig imu_config;
 
   /// Update options for MSCKF features (pixel noise and chi2 multiplier)
   UpdaterOptions msckf_options;
@@ -151,16 +151,16 @@ struct VioManagerOptions {
   void print_and_load_noise(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     PRINT_DEBUG("NOISE PARAMETERS:\n");
     if (parser != nullptr) {
-      parser->parse_external("relative_config_imu", "imu0", "gyroscope_noise_density", imu_noises.sigma_w);
-      parser->parse_external("relative_config_imu", "imu0", "gyroscope_random_walk", imu_noises.sigma_wb);
-      parser->parse_external("relative_config_imu", "imu0", "accelerometer_noise_density", imu_noises.sigma_a);
-      parser->parse_external("relative_config_imu", "imu0", "accelerometer_random_walk", imu_noises.sigma_ab);
-      imu_noises.sigma_w_2 = std::pow(imu_noises.sigma_w, 2);
-      imu_noises.sigma_wb_2 = std::pow(imu_noises.sigma_wb, 2);
-      imu_noises.sigma_a_2 = std::pow(imu_noises.sigma_a, 2);
-      imu_noises.sigma_ab_2 = std::pow(imu_noises.sigma_ab, 2);
+      parser->parse_external("relative_config_imu", "imu0", "gyroscope_noise_density", imu_config.sigma_w);
+      parser->parse_external("relative_config_imu", "imu0", "gyroscope_random_walk", imu_config.sigma_wb);
+      parser->parse_external("relative_config_imu", "imu0", "accelerometer_noise_density", imu_config.sigma_a);
+      parser->parse_external("relative_config_imu", "imu0", "accelerometer_random_walk", imu_config.sigma_ab);
+      imu_config.sigma_w_2 = std::pow(imu_config.sigma_w, 2);
+      imu_config.sigma_wb_2 = std::pow(imu_config.sigma_wb, 2);
+      imu_config.sigma_a_2 = std::pow(imu_config.sigma_a, 2);
+      imu_config.sigma_ab_2 = std::pow(imu_config.sigma_ab, 2);
     }
-    imu_noises.print();
+    imu_config.print();
     if (parser != nullptr) {
       parser->parse_config("up_msckf_sigma_px", msckf_options.sigma_pix);
       parser->parse_config("up_msckf_chi2_multipler", msckf_options.chi2_multipler);
@@ -208,16 +208,6 @@ struct VioManagerOptions {
 
   /// Mask images for each camera
   std::map<size_t, cv::Mat> masks;
-
-  /// Map between imu model, 0: Kalibr model and 1: RPNG model
-  int imu_model = 0;
-
-  /// imu intrinsics
-  Eigen::VectorXd imu_x_dw; // the columnwise elements for Dw
-  Eigen::VectorXd imu_x_da; // the columnwise elements for Da
-  Eigen::VectorXd imu_x_tg; // the ccolumnwise elements for Tg
-  Eigen::VectorXd imu_quat_AcctoI; // the JPL quat for R_AcctoI
-  Eigen::VectorXd imu_quat_GyrotoI; // the JPL quat for R_GyrotoI
 
   /**
    * @brief This function will load and print all state parameters (e.g. sensor extrinsics)
@@ -293,8 +283,8 @@ struct VioManagerOptions {
       // IMU model
       std::string imu_model_str = "kalibr";
       parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
-      if(imu_model_str == "kalibr") imu_model = 0;
-      else if(imu_model_str == "rpng") imu_model = 1;
+      if(imu_model_str == "kalibr") imu_config.imu_model = 0;
+      else if(imu_model_str == "rpng") imu_config.imu_model = 1;
       else {
         PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
       }
@@ -319,21 +309,16 @@ struct VioManagerOptions {
       Eigen::Matrix3d R_GyrotoI = R_ItoGyro.transpose();
 
       // store these parameters
-      imu_x_da.resize(6,1);
-      imu_x_dw.resize(6,1);
-      imu_quat_AcctoI.resize(4,1);
-      imu_quat_GyrotoI.resize(4,1);
-      imu_x_tg.resize(9,1);
-      if(imu_model == 0){
-        imu_x_dw << Dw.block<3,1>(0,0), Dw.block<2,1>(1,1), Dw(2,2);
-        imu_x_da << Da.block<3,1>(0,0), Da.block<2,1>(1,1), Da(2,2);
+      if(imu_config.imu_model == 0){
+        imu_config.imu_x_dw << Dw.block<3,1>(0,0), Dw.block<2,1>(1,1), Dw(2,2);
+        imu_config.imu_x_da << Da.block<3,1>(0,0), Da.block<2,1>(1,1), Da(2,2);
       }else{
-        imu_x_dw << Dw(0,0), Dw.block<2,1>(0,1), Dw.block<3,1>(0,2);
-        imu_x_da << Da(0,0), Da.block<2,1>(0,1), Da.block<3,1>(0,2);
+        imu_config.imu_x_dw << Dw(0,0), Dw.block<2,1>(0,1), Dw.block<3,1>(0,2);
+        imu_config.imu_x_da << Da(0,0), Da.block<2,1>(0,1), Da.block<3,1>(0,2);
       }
-      imu_quat_GyrotoI = ov_core::rot_2_quat(R_GyrotoI);
-      imu_quat_AcctoI = ov_core::rot_2_quat(R_AcctoI);
-      imu_x_tg << Tg.block<3,1>(0,0), Tg.block<3,1>(0,1), Tg.block<3,1>(0,2);
+      imu_config.imu_quat_GyrotoI = ov_core::rot_2_quat(R_GyrotoI);
+      imu_config.imu_quat_AcctoI = ov_core::rot_2_quat(R_AcctoI);
+      imu_config.imu_x_tg << Tg.block<3,1>(0,0), Tg.block<3,1>(0,1), Tg.block<3,1>(0,2);
 
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");

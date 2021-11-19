@@ -59,6 +59,9 @@ struct StateOptions {
   /// Bool to determine whether or not to calibrate the Gravity sensitivity
   bool do_calib_imu_g_sensitivity = false;
 
+  /// Indicator to use which model, 0: kalibr and 1: rpng
+  int imu_mode = 0;
+
   /// Max clone size of sliding window
   int max_clone_size = 11;
 
