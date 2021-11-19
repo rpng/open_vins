@@ -123,7 +123,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   }
 
   // Initialize our state propagator
-  propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity_mag);
+  propagator = std::make_shared<Propagator>(params.imu_config, params.gravity_mag);
 
   // Our state initialize
   initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options, trackFEATS->get_feature_database());
@@ -134,7 +134,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
 
   // If we are using zero velocity updates, then create the updater
   if (params.try_zupt) {
-    updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_noises, trackFEATS->get_feature_database(),
+    updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_config, trackFEATS->get_feature_database(),
                                                         propagator, params.gravity_mag, params.zupt_max_velocity,
                                                         params.zupt_noise_multiplier, params.zupt_max_disparity);
   }
