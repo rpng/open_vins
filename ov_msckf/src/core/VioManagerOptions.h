@@ -209,6 +209,16 @@ struct VioManagerOptions {
   /// Mask images for each camera
   std::map<size_t, cv::Mat> masks;
 
+  /// Map between imu model, 0: Kalibr model and 1: RPNG model
+  int imu_model = 0;
+
+  /// imu intrinsics
+  Eigen::VectorXd imu_x_dw; // the columnwise elements for Dw
+  Eigen::VectorXd imu_x_da; // the columnwise elements for Da
+  Eigen::VectorXd imu_x_tg; // the ccolumnwise elements for Tg
+  Eigen::VectorXd imu_quat_AcctoI; // the JPL quat for R_AcctoI
+  Eigen::VectorXd imu_quat_GyrotoI; // the JPL quat for R_GyrotoI
+
   /**
    * @brief This function will load and print all state parameters (e.g. sensor extrinsics)
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -280,6 +290,51 @@ struct VioManagerOptions {
           masks.insert({i, cv::imread(total_mask_path, cv::IMREAD_GRAYSCALE)});
         }
       }
+      // IMU model
+      std::string imu_model_str = "kalibr";
+      parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
+      if(imu_model_str == "kalibr") imu_model = 0;
+      else if(imu_model_str == "rpng") imu_model = 1;
+      else {
+        PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
+      }
+
+      // IMU intrinsics
+      Eigen::Matrix3d Tw = Eigen::Matrix3d::Identity();
+      parser->parse_external("relative_config_imu", "imu0", "Tw", Tw);
+      Eigen::Matrix3d Ta = Eigen::Matrix3d::Identity();
+      parser->parse_external("relative_config_imu", "imu0", "Ta", Ta);
+      Eigen::Matrix3d R_ItoAcc = Eigen::Matrix3d::Identity();
+      parser->parse_external("relative_config_imu", "imu0", "R_ItoAcc", R_ItoAcc);
+      Eigen::Matrix3d R_ItoGyro = Eigen::Matrix3d::Identity();
+      parser->parse_external("relative_config_imu", "imu0", "R_ItoGyro", R_ItoGyro);
+      Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
+      parser->parse_external("relative_config_imu", "imu0", "Tg", Tg);
+
+
+      // generate the parameters we need
+      Eigen::Matrix3d Dw = Tw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
+      Eigen::Matrix3d Da = Ta.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
+      Eigen::Matrix3d R_AcctoI = R_ItoAcc.transpose();
+      Eigen::Matrix3d R_GyrotoI = R_ItoGyro.transpose();
+
+      // store these parameters
+      imu_x_da.resize(6,1);
+      imu_x_dw.resize(6,1);
+      imu_quat_AcctoI.resize(4,1);
+      imu_quat_GyrotoI.resize(4,1);
+      imu_x_tg.resize(9,1);
+      if(imu_model == 0){
+        imu_x_dw << Dw.block<3,1>(0,0), Dw.block<2,1>(1,1), Dw(2,2);
+        imu_x_da << Da.block<3,1>(0,0), Da.block<2,1>(1,1), Da(2,2);
+      }else{
+        imu_x_dw << Dw(0,0), Dw.block<2,1>(0,1), Dw.block<3,1>(0,2);
+        imu_x_da << Da(0,0), Da.block<2,1>(0,1), Da.block<3,1>(0,2);
+      }
+      imu_quat_GyrotoI = ov_core::rot_2_quat(R_GyrotoI);
+      imu_quat_AcctoI = ov_core::rot_2_quat(R_AcctoI);
+      imu_x_tg << Tg.block<3,1>(0,0), Tg.block<3,1>(0,1), Tg.block<3,1>(0,2);
+
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);

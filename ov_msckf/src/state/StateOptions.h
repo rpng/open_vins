@@ -53,6 +53,12 @@ struct StateOptions {
   /// Bool to determine whether or not to calibrate camera to IMU time offset
   bool do_calib_camera_timeoffset = false;
 
+  /// Bool to determine whether or not to calibrate the IMU intrinsics
+  bool do_calib_imu_intrinsics = false;
+
+  /// Bool to determine whether or not to calibrate the Gravity sensitivity
+  bool do_calib_imu_g_sensitivity = false;
+
   /// Max clone size of sliding window
   int max_clone_size = 11;
 
@@ -89,6 +95,8 @@ struct StateOptions {
       parser->parse_config("calib_cam_extrinsics", do_calib_camera_pose);
       parser->parse_config("calib_cam_intrinsics", do_calib_camera_intrinsics);
       parser->parse_config("calib_cam_timeoffset", do_calib_camera_timeoffset);
+      parser->parse_config("calib_imu_intrinsics", do_calib_imu_intrinsics);
+      parser->parse_config("calib_imu_g_sensitivity", do_calib_imu_g_sensitivity);
       parser->parse_config("max_clones", max_clone_size);
       parser->parse_config("max_slam", max_slam_features);
       parser->parse_config("max_slam_in_update", max_slam_in_update);
