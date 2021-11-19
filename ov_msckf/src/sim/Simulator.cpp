@@ -223,7 +223,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
   }
 
   // Nice sleep so the user can look at the printout
-  sleep(3);
+  sleep(1);
 }
 
 bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
