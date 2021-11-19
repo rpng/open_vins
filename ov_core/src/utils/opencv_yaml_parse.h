@@ -175,6 +175,53 @@ public:
   }
 
   /**
+   * @brief Custom parser for Matrix3d in the external parameter files with levels.
+   *
+   * This will first load the external file requested.
+   * From there it will try to find the first level requested (e.g. imu0, cam0, cam1).
+   * Then the requested node can be found under this sensor name.
+   * ROS can override the config with `<sensor_name>_<node_name>` (e.g., cam0_distortion).
+   *
+   * @param external_node_name Name of the node we will get our relative path from
+   * @param sensor_name The first level node we will try to get the requested node under
+   * @param node_name Name of the node
+   * @param node_result Resulting value (should already have default value in it)
+   * @param required If this parameter is required by the user to set
+   */
+  void parse_external(const std::string &external_node_name, const std::string &sensor_name, const std::string &node_name,
+                      Eigen::Matrix3d &node_result, bool required = true) {
+
+#if ROS_AVAILABLE == 1
+    // If we have the ROS parameter, we should just get that one
+    // NOTE: for our 3x3 matrix we should read it as an array from ROS then covert it back into the 3x3
+    std::string rosnode = sensor_name + "_" + node_name;
+    std::vector<double> matrix_RCtoI;
+    if (nh != nullptr && nh->getParam(rosnode, matrix_RCtoI)) {
+      PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, rosnode.c_str());
+      nh->param<std::vector<double>>(rosnode, matrix_RCtoI);
+      node_result << matrix_RCtoI.at(0), matrix_RCtoI.at(1), matrix_RCtoI.at(2), matrix_RCtoI.at(3), matrix_RCtoI.at(4), matrix_RCtoI.at(5),
+          matrix_RCtoI.at(6), matrix_RCtoI.at(7), matrix_RCtoI.at(8);
+      return;
+    }
+#elif ROS_AVAILABLE == 2
+    // If we have the ROS parameter, we should just get that one
+    // NOTE: for our 3x3 matrix we should read it as an array from ROS then covert it back into the 4x4
+    std::string rosnode = sensor_name + "_" + node_name;
+    std::vector<double> matrix_RCtoI;
+    if (node != nullptr && node->has_parameter(rosnode)) {
+      PRINT_INFO(GREEN "overriding node " BOLDGREEN "%s" RESET GREEN " with value from ROS!\n" RESET, rosnode.c_str());
+      node->get_parameter<std::vector<double>>(rosnode, matrix_RCtoI);
+      node_result << matrix_RCtoI.at(0), matrix_RCtoI.at(1), matrix_RCtoI.at(2), matrix_RCtoI.at(3), matrix_RCtoI.at(4), matrix_RCtoI.at(5),
+          matrix_RCtoI.at(6), matrix_RCtoI.at(7), matrix_RCtoI.at(8);
+      return;
+    }
+#endif
+
+    // Else we just parse from the YAML file!
+    parse_external_yaml(external_node_name, sensor_name, node_name, node_result, required);
+  }
+
+  /**
    * @brief Custom parser for Matrix4d in the external parameter files with levels.
    *
    * This will first load the external file requested.
@@ -385,6 +432,47 @@ private:
                     typeid(node_result).name());
       }
     }
+  }
+
+  /**
+   * @brief Custom parser for camera extrinsic 3x3 transformations
+   * @param file_node OpenCV file node we will get the data from
+   * @param node_name Name of the node
+   * @param node_result Resulting value (should already have default value in it)
+   * @param required If this parameter is required by the user to set
+   */
+  void parse(const cv::FileNode &file_node, const std::string &node_name, Eigen::Matrix3d &node_result, bool required = true) {
+
+    // Check that we have the requested node
+    if (!node_found(file_node, node_name)) {
+      if (required) {
+        PRINT_WARNING(YELLOW "the node %s of type [%s] was not found...\n" RESET, node_name.c_str(), typeid(node_result).name());
+        all_params_found_successfully = false;
+      } else {
+        PRINT_DEBUG("the node %s of type [%s] was not found (not required)...\n", node_name.c_str(), typeid(node_result).name());
+      }
+      return;
+    }
+
+    // Now try to get it from the config
+    node_result = Eigen::Matrix3d::Identity();
+    try {
+      for (int r = 0; r < (int)file_node[node_name].size() && r < 3; r++) {
+        for (int c = 0; c < (int)file_node[node_name][r].size() && c < 3; c++) {
+          node_result(r, c) = (double)file_node[node_name][r][c];
+        }
+      }
+    } catch (...) {
+      if (required) {
+        PRINT_WARNING(YELLOW "unable to parse %s node of type [%s] in the config file!\n" RESET, node_name.c_str(),
+                      typeid(node_result).name());
+        all_params_found_successfully = false;
+      } else {
+        PRINT_DEBUG("unable to parse %s node of type [%s] in the config file (not required)\n", node_name.c_str(),
+                    typeid(node_result).name());
+      }
+    }
+
   }
 
   /**
