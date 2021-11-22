@@ -91,8 +91,12 @@ namespace ov_core {
 class CamEqui : public CamBase {
 
 public:
-  // constructor
-  CamEqui() {}
+  /**
+   * @brief Default constructor
+   * @param width Width of the camera (raw pixels)
+   * @param height Height of the camera (raw pixels)
+   */
+  CamEqui(int width, int height) : CamBase(width, height) {}
 
   /**
    * @brief Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.

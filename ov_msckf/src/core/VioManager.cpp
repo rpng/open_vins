@@ -55,22 +55,10 @@ VioManager::VioManager(VioManagerOptions &params_) {
   state->_calib_dt_CAMtoIMU->set_fej(temp_camimu_dt);
 
   // Loop through and load each of the cameras
+  state->_cam_intrinsics_cameras = params.camera_intrinsics;
   for (int i = 0; i < state->_options.num_cameras; i++) {
-
-    // Create the actual camera object and set the values
-    if (params.camera_fisheye.at(i)) {
-      state->_cam_intrinsics_cameras.insert({i, std::make_shared<CamEqui>()});
-      state->_cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
-    } else {
-      state->_cam_intrinsics_cameras.insert({i, std::make_shared<CamRadtan>()});
-      state->_cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
-    }
-
-    // Camera intrinsic properties
-    state->_cam_intrinsics.at(i)->set_value(params.camera_intrinsics.at(i));
-    state->_cam_intrinsics.at(i)->set_fej(params.camera_intrinsics.at(i));
-
-    // Our camera extrinsic transform
+    state->_cam_intrinsics.at(i)->set_value(params.camera_intrinsics.at(i)->get_value());
+    state->_cam_intrinsics.at(i)->set_fej(params.camera_intrinsics.at(i)->get_value());
     state->_calib_IMUtoCAM.at(i)->set_value(params.camera_extrinsics.at(i));
     state->_calib_IMUtoCAM.at(i)->set_fej(params.camera_extrinsics.at(i));
   }
@@ -196,7 +184,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     trackFEATS = trackSIM;
     PRINT_WARNING(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
   }
-  trackSIM->set_width_height(params.camera_wh);
 
   // Feed our simulation tracker
   trackSIM->feed_measurement_simulation(timestamp, camids, feats);
@@ -215,11 +202,13 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     if (did_zupt_update) {
       int max_width = -1;
       int max_height = -1;
-      for (auto &pair : params.camera_wh) {
-        if (max_width < pair.second.first)
-          max_width = pair.second.first;
-        if (max_height < pair.second.second)
-          max_height = pair.second.second;
+      for (int n = 0; n < params.state_options.num_cameras; n++) {
+        int width = state->_cam_intrinsics_cameras.at(n)->w();
+        int height = state->_cam_intrinsics_cameras.at(n)->h();
+        if (max_width < width)
+          max_width = width;
+        if (max_height < height)
+          max_height = height;
       }
       for (int n = 0; n < params.state_options.num_cameras; n++) {
         cv::Mat img_outtemp0 = cv::Mat::zeros(cv::Size(max_width, max_height), CV_8UC3);
@@ -248,10 +237,11 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
   ov_core::CameraData message;
   message.timestamp = timestamp;
   for (auto const &camid : camids) {
-    auto &wh = params.camera_wh.at(camid);
+    int width = state->_cam_intrinsics_cameras.at(camid)->w();
+    int height = state->_cam_intrinsics_cameras.at(camid)->h();
     message.sensor_ids.push_back(camid);
-    message.images.push_back(cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1));
-    message.masks.push_back(cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1));
+    message.images.push_back(cv::Mat::zeros(cv::Size(width, height), CV_8UC1));
+    message.masks.push_back(cv::Mat::zeros(cv::Size(width, height), CV_8UC1));
   }
   do_feature_propagate_update(message);
 }
@@ -922,8 +912,9 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     }
 
     // Skip if not valid (i.e. negative depth, or outside of image)
-    if (uv_dist(0) < 0 || (int)uv_dist(0) >= params.camera_wh.at(0).first || uv_dist(1) < 0 ||
-        (int)uv_dist(1) >= params.camera_wh.at(0).second) {
+    int width = state->_cam_intrinsics_cameras.at(0)->w();
+    int height = state->_cam_intrinsics_cameras.at(0)->h();
+    if (uv_dist(0) < 0 || (int)uv_dist(0) >= width || uv_dist(1) < 0 || (int)uv_dist(1) >= height) {
       // PRINT_DEBUG("feat %zu -> depth = %.2f | u_d = %.2f | v_d = %.2f\n",(*it2)->featid,depth,uv_dist(0),uv_dist(1));
       continue;
     }

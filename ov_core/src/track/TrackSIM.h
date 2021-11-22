@@ -43,11 +43,6 @@ public:
    */
   TrackSIM(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco)
       : TrackBase(cameras, 0, numaruco, false, HistogramMethod::NONE) {}
-  /**
-   * @brief Set the width and height for the cameras
-   * @param _camera_wh Width and height for each camera
-   */
-  void set_width_height(std::map<size_t, std::pair<int, int>> _camera_wh) { this->camera_wh = _camera_wh; }
 
   /**
    * @brief Process a new image
@@ -68,10 +63,6 @@ public:
    */
   void feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
                                    const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats);
-
-protected:
-  /// Width and height of our cameras
-  std::map<size_t, std::pair<int, int>> camera_wh;
 };
 
 } // namespace ov_core

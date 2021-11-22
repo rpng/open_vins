@@ -33,10 +33,11 @@
 #include "cam/CamBase.h"
 #include "cam/CamEqui.h"
 #include "cam/CamRadtan.h"
-#include "core/VioManagerOptions.h"
 #include "sim/BsplineSE3.h"
 #include "utils/colors.h"
 #include "utils/dataset_reader.h"
+
+#include "core/VioManagerOptions.h"
 
 namespace ov_msckf {
 
@@ -141,9 +142,6 @@ protected:
 
   /// True vio manager params (a copy of the parsed ones)
   VioManagerOptions params;
-
-  /// Camera intrinsics camera objects
-  std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> _cam_intrinsics_cameras;
 
   //===================================================================
   // State related variables

@@ -34,6 +34,8 @@
 
 #include "init/InertialInitializerOptions.h"
 
+#include "cam/CamEqui.h"
+#include "cam/CamRadtan.h"
 #include "feat/FeatureInitializerOptions.h"
 #include "track/TrackBase.h"
 #include "utils/colors.h"
@@ -191,17 +193,11 @@ struct VioManagerOptions {
   /// Time offset between camera and IMU.
   double calib_camimu_dt = 0.0;
 
-  /// Map between camid and camera model (true=fisheye, false=radtan)
-  std::map<size_t, bool> camera_fisheye;
-
-  /// Map between camid and intrinsics. Values depends on the model but each should be a 4x1 vector normally.
-  std::map<size_t, Eigen::VectorXd> camera_intrinsics;
+  /// Map between camid and camera intrinsics (fx, fy, cx, cy, d1...d4, cam_w, cam_h)
+  std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> camera_intrinsics;
 
   /// Map between camid and camera extrinsics (q_ItoC, p_IinC).
   std::map<size_t, Eigen::VectorXd> camera_extrinsics;
-
-  /// Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.
-  std::map<size_t, std::pair<int, int>> camera_wh;
 
   /// If we should try to load a mask and use it to reject invalid features
   bool use_mask = false;
@@ -237,7 +233,8 @@ struct VioManagerOptions {
         parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "intrinsics", cam_calib1);
         parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "distortion_coeffs", cam_calib2);
         Eigen::VectorXd cam_calib = Eigen::VectorXd::Zero(8);
-        cam_calib << cam_calib1.at(0), cam_calib1.at(1), cam_calib1.at(2), cam_calib1.at(3), cam_calib2.at(0), cam_calib2.at(1), cam_calib2.at(2), cam_calib2.at(3);
+        cam_calib << cam_calib1.at(0), cam_calib1.at(1), cam_calib1.at(2), cam_calib1.at(3), cam_calib2.at(0), cam_calib2.at(1),
+            cam_calib2.at(2), cam_calib2.at(3);
         cam_calib(0) /= (downsample_cameras) ? 2.0 : 1.0;
         cam_calib(1) /= (downsample_cameras) ? 2.0 : 1.0;
         cam_calib(2) /= (downsample_cameras) ? 2.0 : 1.0;
@@ -259,11 +256,15 @@ struct VioManagerOptions {
         cam_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_CtoI.block(0, 0, 3, 3).transpose());
         cam_eigen.block(4, 0, 3, 1) = -T_CtoI.block(0, 0, 3, 3).transpose() * T_CtoI.block(0, 3, 3, 1);
 
-        // Insert
-        camera_fisheye.insert({i, dist_model == "equidistant"});
-        camera_intrinsics.insert({i, cam_calib});
+        // Create intrinsics model
+        if (dist_model == "equidistant") {
+          camera_intrinsics.insert({i, std::make_shared<ov_core::CamEqui>(matrix_wh.at(0), matrix_wh.at(1))});
+          camera_intrinsics.at(i)->set_value(cam_calib);
+        } else {
+          camera_intrinsics.insert({i, std::make_shared<ov_core::CamRadtan>(matrix_wh.at(0), matrix_wh.at(1))});
+          camera_intrinsics.at(i)->set_value(cam_calib);
+        }
         camera_extrinsics.insert({i, cam_eigen});
-        camera_wh.insert({i, wh});
       }
       parser->parse_config("use_mask", use_mask);
       if (use_mask) {
@@ -286,13 +287,22 @@ struct VioManagerOptions {
     PRINT_DEBUG("  - gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
     PRINT_DEBUG("  - calib_camimu_dt: %.4f\n", calib_camimu_dt);
     PRINT_DEBUG("  - camera masks?: %d\n", use_mask);
-    assert(state_options.num_cameras == (int)camera_fisheye.size());
+    if (state_options.num_cameras != (int)camera_intrinsics.size() || state_options.num_cameras != (int)camera_extrinsics.size()) {
+      PRINT_ERROR(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
+      PRINT_ERROR(RED "[SIM]: got %d but expected %d max cameras (camera_intrinsics)\n" RESET, (int)camera_intrinsics.size(),
+                  state_options.num_cameras);
+      PRINT_ERROR(RED "[SIM]: got %d but expected %d max cameras (camera_extrinsics)\n" RESET, (int)camera_extrinsics.size(),
+                  state_options.num_cameras);
+      std::exit(EXIT_FAILURE);
+    }
     for (int n = 0; n < state_options.num_cameras; n++) {
       std::stringstream ss;
-      ss << "cam_" << n << "_fisheye:" << camera_fisheye.at(n) << std::endl;
-      ss << "cam_" << n << "_wh:" << std::endl << camera_wh.at(n).first << " x " << camera_wh.at(n).second << std::endl;
-      ss << "cam_" << n << "_intrinsic(0:3):" << std::endl << camera_intrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
-      ss << "cam_" << n << "_intrinsic(4:7):" << std::endl << camera_intrinsics.at(n).block(4, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_fisheye:" << (std::dynamic_pointer_cast<ov_core::CamEqui>(camera_intrinsics.at(n)) != nullptr) << std::endl;
+      ss << "cam_" << n << "_wh:" << std::endl << camera_intrinsics.at(n)->w() << " x " << camera_intrinsics.at(n)->h() << std::endl;
+      ss << "cam_" << n << "_intrinsic(0:3):" << std::endl
+         << camera_intrinsics.at(n)->get_value().block(0, 0, 4, 1).transpose() << std::endl;
+      ss << "cam_" << n << "_intrinsic(4:7):" << std::endl
+         << camera_intrinsics.at(n)->get_value().block(4, 0, 4, 1).transpose() << std::endl;
       ss << "cam_" << n << "_extrinsic(0:3):" << std::endl << camera_extrinsics.at(n).block(0, 0, 4, 1).transpose() << std::endl;
       ss << "cam_" << n << "_extrinsic(4:6):" << std::endl << camera_extrinsics.at(n).block(4, 0, 3, 1).transpose() << std::endl;
       Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();

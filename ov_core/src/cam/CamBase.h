@@ -43,6 +43,13 @@ class CamBase {
 
 public:
   /**
+   * @brief Default constructor
+   * @param width Width of the camera (raw pixels)
+   * @param height Height of the camera (raw pixels)
+   */
+  CamBase(int width, int height) : _width(width), _height(height) {}
+
+  /**
    * @brief This will set and update the camera calibration values.
    * This should be called on startup for each camera and after update!
    * @param calib Camera calibration information (f_x & f_y & c_x & c_y & k_1 & k_2 & k_3 & k_4)
@@ -160,6 +167,12 @@ public:
   /// Gets the camera distortion
   cv::Vec4d get_D() { return camera_d_OPENCV; }
 
+  /// Gets the width of the camera images
+  int w() { return _width; }
+
+  /// Gets the height of the camera images
+  int h() { return _height; }
+
 protected:
   // Cannot construct the base camera class, needs a distortion model
   CamBase() = default;
@@ -172,6 +185,12 @@ protected:
 
   /// Camera distortion in OpenCV format
   cv::Vec4d camera_d_OPENCV;
+
+  /// Width of the camera (raw pixels)
+  int _width;
+
+  /// Height of the camera (raw pixels)
+  int _height;
 };
 
 } // namespace ov_core

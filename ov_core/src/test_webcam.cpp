@@ -130,7 +130,7 @@ int main(int argc, char **argv) {
   for (int i = 0; i < 2; i++) {
     Eigen::Matrix<double, 8, 1> cam0_calib;
     cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
-    std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>();
+    std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>(100, 100);
     camera_calib->set_value(cam0_calib);
     cameras.insert({i, camera_calib});
   }
