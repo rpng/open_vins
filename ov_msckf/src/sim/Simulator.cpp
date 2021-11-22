@@ -130,50 +130,22 @@ Simulator::Simulator(VioManagerOptions &params_) {
   //===============================================================
   //===============================================================
 
-  // One std generator
-  std::normal_distribution<double> w(0, 1);
-
   // Perturb all calibration if we should
   if (params.sim_do_perturbation) {
 
-    // cam imu offset
-    params_.calib_camimu_dt += 0.01 * w(gen_state_perturb);
+    // Do the perturbation
+    perturb_parameters(gen_state_perturb, params_);
 
-    // camera intrinsics and extrinsics
-    for (int i = 0; i < params_.state_options.num_cameras; i++) {
-
-      // Camera intrinsic properties (k1, k2, p1, p2, r1, r2, r3, r4)
-      Eigen::MatrixXd intrinsics = params_.camera_intrinsics.at(i)->get_value();
-      for (int r = 0; r < 4; r++) {
-        intrinsics(r) += 1.0 * w(gen_state_perturb);
-      }
-      for (int r = 4; r < 8; r++) {
-        intrinsics(r) += 0.005 * w(gen_state_perturb);
-      }
-      params_.camera_intrinsics.at(i)->set_value(intrinsics);
-
-      // Our camera extrinsics transform (orientation)
-      Eigen::Vector3d w_vec;
-      w_vec << 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb);
-      params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
-          rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
-
-      // Our camera extrinsics transform (position)
-      for (int r = 4; r < 7; r++) {
-        params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state_perturb);
-      }
-    }
+    // Debug print simulation parameters
+    params.print_and_load_estimator();
+    params.print_and_load_noise();
+    params.print_and_load_state();
+    params.print_and_load_trackers();
+    params.print_and_load_simulation();
   }
 
   //===============================================================
   //===============================================================
-
-  // Debug print simulation parameters
-  params.print_and_load_estimator();
-  params.print_and_load_noise();
-  params.print_and_load_state();
-  params.print_and_load_trackers();
-  params.print_and_load_simulation();
 
   // We will create synthetic camera frames and ensure that each has enough features
   // double dt = 0.25/freq_cam;
@@ -220,6 +192,40 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
   // Nice sleep so the user can look at the printout
   sleep(1);
+}
+
+void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &params_) {
+
+  // One std generator
+  std::normal_distribution<double> w(0, 1);
+
+  // Camera IMU offset
+  params_.calib_camimu_dt += 0.01 * w(gen_state);
+
+  // Camera intrinsics and extrinsics
+  for (int i = 0; i < params_.state_options.num_cameras; i++) {
+
+    // Camera intrinsic properties (k1, k2, p1, p2, r1, r2, r3, r4)
+    Eigen::MatrixXd intrinsics = params_.camera_intrinsics.at(i)->get_value();
+    for (int r = 0; r < 4; r++) {
+      intrinsics(r) += 1.0 * w(gen_state);
+    }
+    for (int r = 4; r < 8; r++) {
+      intrinsics(r) += 0.005 * w(gen_state);
+    }
+    params_.camera_intrinsics.at(i)->set_value(intrinsics);
+
+    // Our camera extrinsics transform (orientation)
+    Eigen::Vector3d w_vec;
+    w_vec << 0.001 * w(gen_state), 0.001 * w(gen_state), 0.001 * w(gen_state);
+    params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
+        rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
+
+    // Our camera extrinsics transform (position)
+    for (int r = 4; r < 7; r++) {
+      params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state);
+    }
+  }
 }
 
 bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {

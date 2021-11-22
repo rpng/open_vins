@@ -62,6 +62,13 @@ public:
   Simulator(VioManagerOptions &params_);
 
   /**
+   * @brief Will get a set of perturbed parameters
+   * @param gen_state Random number gen to use
+   * @param params_ Parameters we will perturb
+   */
+  static void perturb_parameters(std::mt19937 gen_state, VioManagerOptions &params_);
+
+  /**
    * @brief Returns if we are actively simulating
    * @return True if we still have simulation data
    */

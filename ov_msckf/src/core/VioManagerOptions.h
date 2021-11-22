@@ -215,6 +215,7 @@ struct VioManagerOptions {
     if (parser != nullptr) {
       parser->parse_config("gravity_mag", gravity_mag);
       parser->parse_config("max_cameras", state_options.num_cameras); // might be redundant
+      parser->parse_config("downsample_cameras", downsample_cameras); // might be redundant
       for (int i = 0; i < state_options.num_cameras; i++) {
 
         // Time offset (use the first one)
@@ -285,7 +286,6 @@ struct VioManagerOptions {
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);
     PRINT_DEBUG("  - gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
-    PRINT_DEBUG("  - calib_camimu_dt: %.4f\n", calib_camimu_dt);
     PRINT_DEBUG("  - camera masks?: %d\n", use_mask);
     if (state_options.num_cameras != (int)camera_intrinsics.size() || state_options.num_cameras != (int)camera_extrinsics.size()) {
       PRINT_ERROR(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
@@ -295,6 +295,7 @@ struct VioManagerOptions {
                   state_options.num_cameras);
       std::exit(EXIT_FAILURE);
     }
+    PRINT_DEBUG("  - calib_camimu_dt: %.4f\n", calib_camimu_dt);
     for (int n = 0; n < state_options.num_cameras; n++) {
       std::stringstream ss;
       ss << "cam_" << n << "_fisheye:" << (std::dynamic_pointer_cast<ov_core::CamEqui>(camera_intrinsics.at(n)) != nullptr) << std::endl;
@@ -369,6 +370,7 @@ struct VioManagerOptions {
       parser->parse_config("use_klt", use_klt);
       parser->parse_config("use_aruco", use_aruco);
       parser->parse_config("downsize_aruco", downsize_aruco);
+      parser->parse_config("downsample_cameras", downsample_cameras);
       parser->parse_config("multi_threading", use_multi_threading);
       parser->parse_config("num_pts", num_pts);
       parser->parse_config("fast_threshold", fast_threshold);
