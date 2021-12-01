@@ -230,7 +230,7 @@ inline Eigen::Matrix<double, 3, 1> vee(const Eigen::Matrix<double, 3, 3> &w_x) {
  * \mathrm{where}&\quad \theta^2 = \mathbf{v}^\top\mathbf{v}
  * @f}
  *
- * @param[in] w 3x1 vector we will take the exponential of
+ * @param[in] w 3x1 vector in R(3) we will take the exponential of
  * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> exp_so3(const Eigen::Matrix<double, 3, 1> &w) {
@@ -239,7 +239,7 @@ inline Eigen::Matrix<double, 3, 3> exp_so3(const Eigen::Matrix<double, 3, 1> &w)
   double theta = w.norm();
   // Handle small angle values
   double A, B;
-  if (theta < 1e-12) {
+  if (theta < 1e-7) {
     A = 1;
     B = 0.5;
   } else {
@@ -266,30 +266,52 @@ inline Eigen::Matrix<double, 3, 3> exp_so3(const Eigen::Matrix<double, 3, 1> &w)
  * \lfloor\mathbf{v}\times\rfloor &= \frac{\theta}{2\sin{\theta}}(\mathbf{R}-\mathbf{R}^\top)
  * @f}
  *
+ * This function is based on the GTSAM one as the original implementation was a bit unstable.
+ * See the following:
+ * - https://github.com/borglab/gtsam/
+ * - https://github.com/borglab/gtsam/issues/746
+ * - https://github.com/borglab/gtsam/pull/780
+ *
  * @param[in] R 3x3 SO(3) rotation matrix
- * @return 3x1 in the so(3) space [omegax, omegay, omegaz]
+ * @return 3x1 in the R(3) space [omegax, omegay, omegaz]
  */
 inline Eigen::Matrix<double, 3, 1> log_so3(const Eigen::Matrix<double, 3, 3> &R) {
-  // magnitude of the skew elements (handle edge case where we sometimes have a>1...)
-  double a = 0.5 * (R.trace() - 1);
-  double theta = (a > 1) ? acos(1) : ((a < -1) ? acos(-1) : acos(a));
-  // Handle small angle values
-  double D;
-  if (theta < 1e-12) {
-    D = 0.5;
+
+  // note switch to base 1
+  double R11 = R(0, 0), R12 = R(0, 1), R13 = R(0, 2);
+  double R21 = R(1, 0), R22 = R(1, 1), R23 = R(1, 2);
+  double R31 = R(2, 0), R32 = R(2, 1), R33 = R(2, 2);
+
+  // Get trace(R)
+  const double tr = R.trace();
+  Eigen::Vector3d omega;
+
+  // when trace == -1, i.e., when theta = +-pi, +-3pi, +-5pi, etc.
+  // we do something special
+  if (tr + 1.0 < 1e-10) {
+    if (std::abs(R33 + 1.0) > 1e-5)
+      omega = (M_PI / sqrt(2.0 + 2.0 * R33)) * Eigen::Vector3d(R13, R23, 1.0 + R33);
+    else if (std::abs(R22 + 1.0) > 1e-5)
+      omega = (M_PI / sqrt(2.0 + 2.0 * R22)) * Eigen::Vector3d(R12, 1.0 + R22, R32);
+    else
+      // if(std::abs(R.r1_.x()+1.0) > 1e-5)  This is implicit
+      omega = (M_PI / sqrt(2.0 + 2.0 * R11)) * Eigen::Vector3d(1.0 + R11, R21, R31);
   } else {
-    D = theta / (2 * sin(theta));
+    double magnitude;
+    const double tr_3 = tr - 3.0; // always negative
+    if (tr_3 < -1e-7) {
+      double theta = acos((tr - 1.0) / 2.0);
+      magnitude = theta / (2.0 * sin(theta));
+    } else {
+      // when theta near 0, +-2pi, +-4pi, etc. (trace near 3.0)
+      // use Taylor expansion: theta \approx 1/2-(t-3)/12 + O((t-3)^2)
+      // see https://github.com/borglab/gtsam/issues/746 for details
+      magnitude = 0.5 - tr_3 / 12.0;
+    }
+    omega = magnitude * Eigen::Vector3d(R32 - R23, R13 - R31, R21 - R12);
   }
-  // calculate the skew symetric matrix
-  Eigen::Matrix<double, 3, 3> w_x = D * (R - R.transpose());
-  // check if we are near the identity
-  if (R != Eigen::MatrixXd::Identity(3, 3)) {
-    Eigen::Vector3d vec;
-    vec << w_x(2, 1), w_x(0, 2), w_x(1, 0);
-    return vec;
-  } else {
-    return Eigen::Vector3d::Zero();
-  }
+
+  return omega;
 }
 
 /**
@@ -309,7 +331,7 @@ inline Eigen::Matrix<double, 3, 1> log_so3(const Eigen::Matrix<double, 3, 3> &R)
  * C &= (1-A)/\theta^2
  * \f}
  *
- * @param vec 6x1 in the se(3) space [omega, u]
+ * @param vec 6x1 in the R(6) space [omega, u]
  * @return 4x4 SE(3) matrix
  */
 inline Eigen::Matrix4d exp_se3(Eigen::Matrix<double, 6, 1> vec) {
@@ -323,7 +345,7 @@ inline Eigen::Matrix4d exp_se3(Eigen::Matrix<double, 6, 1> vec) {
 
   // Handle small angle values
   double A, B, C;
-  if (theta < 1e-12) {
+  if (theta < 1e-7) {
     A = 1;
     B = 0.5;
     C = 1.0 / 6.0;
@@ -359,43 +381,34 @@ inline Eigen::Matrix4d exp_se3(Eigen::Matrix<double, 6, 1> vec) {
  * \mathbf V^{-1} &= \mathbf I - \frac{1}{2} \lfloor \boldsymbol\omega \times\rfloor + \frac{1}{\theta^2}\Big(1-\frac{A}{2B}\Big)\lfloor
  * \boldsymbol\omega \times\rfloor^2 \f}
  *
+ * This function is based on the GTSAM one as the original implementation was a bit unstable.
+ * See the following:
+ * - https://github.com/borglab/gtsam/
+ * - https://github.com/borglab/gtsam/issues/746
+ * - https://github.com/borglab/gtsam/pull/780
+ *
  * @param mat 4x4 SE(3) matrix
- * @return 6x1 in the se(3) space [omega, u]
+ * @return 6x1 in the R(6) space [omega, u]
  */
 inline Eigen::Matrix<double, 6, 1> log_se3(Eigen::Matrix4d mat) {
-
-  // Get sub-matrices
-  Eigen::Matrix3d R = mat.block(0, 0, 3, 3);
-  Eigen::Vector3d t = mat.block(0, 3, 3, 1);
-
-  // Get theta (handle edge case where we sometimes have a>1...)
-  double a = 0.5 * (R.trace() - 1);
-  double theta = (a > 1) ? acos(1) : ((a < -1) ? acos(-1) : acos(a));
-
-  // Handle small angle values
-  double A, B, D, E;
-  if (theta < 1e-12) {
-    A = 1;
-    B = 0.5;
-    D = 0.5;
-    E = 1.0 / 12.0;
+  Eigen::Vector3d w = log_so3(mat.block<3, 3>(0, 0));
+  Eigen::Vector3d T = mat.block<3, 1>(0, 3);
+  const double t = w.norm();
+  if (t < 1e-10) {
+    Eigen::Matrix<double, 6, 1> log;
+    log << w, T;
+    return log;
   } else {
-    A = sin(theta) / theta;
-    B = (1 - cos(theta)) / (theta * theta);
-    D = theta / (2 * sin(theta));
-    E = 1 / (theta * theta) * (1 - 0.5 * A / B);
+    Eigen::Matrix3d W = skew_x(w / t);
+    // Formula from Agrawal06iros, equation (14)
+    // simplified with Mathematica, and multiplying in T to avoid matrix math
+    double Tan = tan(0.5 * t);
+    Eigen::Vector3d WT = W * T;
+    Eigen::Vector3d u = T - (0.5 * t) * WT + (1 - t / (2. * Tan)) * (W * WT);
+    Eigen::Matrix<double, 6, 1> log;
+    log << w, u;
+    return log;
   }
-
-  // Get the skew matrix and V inverse
-  Eigen::Matrix3d I_33 = Eigen::Matrix3d::Identity();
-  Eigen::Matrix3d wskew = D * (R - R.transpose());
-  Eigen::Matrix3d Vinv = I_33 - 0.5 * wskew + E * wskew * wskew;
-
-  // Calculate vector
-  Eigen::Matrix<double, 6, 1> vec;
-  vec.head(3) << wskew(2, 1), wskew(0, 2), wskew(1, 0);
-  vec.tail(3) = Vinv * t;
-  return vec;
 }
 
 /**
@@ -405,7 +418,7 @@ inline Eigen::Matrix<double, 6, 1> log_se3(Eigen::Matrix4d mat) {
  * \boldsymbol\Omega^{\wedge} = \begin{bmatrix} \lfloor \boldsymbol\omega \times\rfloor & \mathbf u \\ \mathbf 0 & 0 \end{bmatrix}
  * \f}
  *
- * @param vec 6x1 in the se(3) space [omega, u]
+ * @param vec 6x1 in the R(6) space [omega, u]
  * @return Lie algebra se(3) 4x4 matrix
  */
 inline Eigen::Matrix4d hat_se3(const Eigen::Matrix<double, 6, 1> &vec) {
@@ -493,9 +506,9 @@ inline Eigen::Matrix<double, 4, 1> quatnorm(Eigen::Matrix<double, 4, 1> q_t) {
  * @param w axis-angle
  * @return The left Jacobian of SO(3)
  */
-inline Eigen::Matrix<double, 3, 3> Jl_so3(Eigen::Matrix<double, 3, 1> w) {
+inline Eigen::Matrix<double, 3, 3> Jl_so3(const Eigen::Matrix<double, 3, 1> &w) {
   double theta = w.norm();
-  if (theta < 1e-12) {
+  if (theta < 1e-6) {
     return Eigen::MatrixXd::Identity(3, 3);
   } else {
     Eigen::Matrix<double, 3, 1> a = w / theta;
@@ -515,7 +528,7 @@ inline Eigen::Matrix<double, 3, 3> Jl_so3(Eigen::Matrix<double, 3, 1> w) {
  * @param w axis-angle
  * @return The right Jacobian of SO(3)
  */
-inline Eigen::Matrix<double, 3, 3> Jr_so3(Eigen::Matrix<double, 3, 1> w) { return Jl_so3(-w); }
+inline Eigen::Matrix<double, 3, 3> Jr_so3(const Eigen::Matrix<double, 3, 1> &w) { return Jl_so3(-w); }
 
 /**
  * @brief Gets roll, pitch, yaw of argument rotation (in that order).
