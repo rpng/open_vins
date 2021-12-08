@@ -7,7 +7,7 @@
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
     <arg name="config"      default="rpng_sim" />
-    <arg name="config_path" default="$(find ov_msckf)/config/$(arg config)/estimator_config.yaml" />
+    <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
 
     <!-- simulation parameters we can vary with our scripts -->
     <arg name="seed"        default="3" />
@@ -82,15 +82,15 @@
         <param name="feat_rep_aruco"         type="string" value="$(arg feat_rep)" />
 
         <!-- tracker/extractor properties -->
-        <param name="num_pts"            type="int"    value="$(arg num_pts)" />
+        <param name="num_pts"                type="int"    value="$(arg num_pts)" />
 
         <!-- sensor noise values / update -->
-        <param name="up_msckf_sigma_px"            type="double"   value="1" />
-        <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
-        <param name="up_slam_sigma_px"             type="double"   value="1" />
-        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
-        <param name="up_aruco_sigma_px"            type="double"   value="1" />
-        <param name="up_aruco_chi2_multipler"      type="double"   value="1" />
+        <param name="up_msckf_sigma_px"                 type="double"   value="1" />
+        <param name="up_msckf_chi2_multipler"           type="double"   value="1" />
+        <param name="up_slam_sigma_px"                  type="double"   value="1" />
+        <param name="up_slam_chi2_multipler"            type="double"   value="1" />
+        <param name="up_aruco_sigma_px"                 type="double"   value="1" />
+        <param name="up_aruco_chi2_multipler"           type="double"   value="1" />
         <param name="imu0_gyroscope_noise_density"      type="double"   value="1.6968e-04" />
         <param name="imu0_gyroscope_random_walk"        type="double"   value="1.9393e-05" />
         <param name="imu0_accelerometer_noise_density"  type="double"   value="2.0000e-3" />
