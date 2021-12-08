@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 #endif
 
   // Ensure we read in all parameters required
-  if(!parser->successful()) {
+  if (!parser->successful()) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }

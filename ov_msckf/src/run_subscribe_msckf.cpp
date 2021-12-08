@@ -107,7 +107,6 @@ int main(int argc, char **argv) {
   rclcpp::spin(node);
 #endif
 
-
   // Final visualization
   viz->visualize_final();
 

@@ -79,7 +79,7 @@ public:
     // NOTE:    -> 1 = num_features / (grid_x * grid_y))
     // NOTE:    -> grid_x = ratio * grid_y (keep the original grid ratio)
     // NOTE:    -> grid_y = sqrt(num_features / ratio)
-    if(num_features < grid_x * grid_y) {
+    if (num_features < grid_x * grid_y) {
       double ratio = (double)grid_x / (double)grid_y;
       grid_y = std::ceil(std::sqrt(num_features / ratio));
       grid_x = std::ceil(grid_y * ratio);

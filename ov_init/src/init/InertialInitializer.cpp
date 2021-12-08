@@ -33,7 +33,6 @@ InertialInitializer::InertialInitializer(InertialInitializerOptions &params_, st
 
   // Create static initializer
   init_static = std::make_shared<StaticInitializer>(params, _db, imu_data);
-
 }
 
 bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,

@@ -472,7 +472,6 @@ private:
                     typeid(node_result).name());
       }
     }
-
   }
 
   /**

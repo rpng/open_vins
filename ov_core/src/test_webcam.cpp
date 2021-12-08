@@ -37,8 +37,8 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
-#include "utils/print.h"
 #include "utils/opencv_yaml_parse.h"
+#include "utils/print.h"
 
 #if ROS_AVAILABLE == 1
 #include <ros/ros.h>

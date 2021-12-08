@@ -118,7 +118,6 @@ struct InertialInitializerOptions {
     PRINT_DEBUG("  - gravity: %.3f, %.3f, %.3f\n", 0.0, 0.0, gravity_mag);
     PRINT_DEBUG("  - num_cameras: %d\n", num_cameras);
   }
-
 };
 
 } // namespace ov_init
