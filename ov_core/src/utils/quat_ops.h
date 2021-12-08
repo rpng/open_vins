@@ -148,7 +148,7 @@ inline Eigen::Matrix<double, 3, 3> skew_x(const Eigen::Matrix<double, 3, 1> &w) 
  *
  * This is based on equation 62 in [Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf):
  * \f{align*}{
- *  \mathbf{R} = (2q_4^2-1)\mathbf{I}_3-2q_4\lfloor\mathbf{q}\times\rfloor+2\mathbf{q}^\top\mathbf{q}
+ *  \mathbf{R} = (2q_4^2-1)\mathbf{I}_3-2q_4\lfloor\mathbf{q}\times\rfloor+2\mathbf{q}\mathbf{q}^\top
  * @f}
  *
  * @param[in] q JPL quaternion
@@ -180,7 +180,7 @@ inline Eigen::Matrix<double, 3, 3> quat_2_Rot(const Eigen::Matrix<double, 4, 1> 
  *
  * @param[in] q First JPL quaternion
  * @param[in] p Second JPL quaternion
- * @return 4x1 resulting p*q quaternion
+ * @return 4x1 resulting q*p quaternion
  */
 inline Eigen::Matrix<double, 4, 1> quat_multiply(const Eigen::Matrix<double, 4, 1> &q, const Eigen::Matrix<double, 4, 1> &p) {
   Eigen::Matrix<double, 4, 1> q_t;
@@ -267,7 +267,7 @@ inline Eigen::Matrix<double, 3, 3> exp_so3(const Eigen::Matrix<double, 3, 1> &w)
  * @f}
  *
  * @param[in] R 3x3 SO(3) rotation matrix
- * @return 3x1 in the se(3) space [omegax, omegay, omegaz]
+ * @return 3x1 in the so(3) space [omegax, omegay, omegaz]
  */
 inline Eigen::Matrix<double, 3, 1> log_so3(const Eigen::Matrix<double, 3, 3> &R) {
   // magnitude of the skew elements (handle edge case where we sometimes have a>1...)
