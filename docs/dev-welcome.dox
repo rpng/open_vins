@@ -4,7 +4,6 @@
 @page dev-welcome Internals and Developers
 
 -   @subpage dev-coding-style --- General coding styles and conventions
--   @subpage dev-docker --- How to use docker images to develop with
 -   @subpage dev-docs --- Developer guide on how documentation can be built
 -   @subpage dev-ros1-to-ros2 --- Some notes on ROS bag conversion
 -   @subpage dev-index --- Description of the covariance index system

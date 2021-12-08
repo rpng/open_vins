@@ -95,6 +95,18 @@ source ~/.bashrc
 @endcode
 
 
+@section gs-install-cmake Upgrading CMake to Version 3.12
+
+We use a newer version of [cmake](https://cmake.org/download/) so you will probably need to upgrade your system if you are on an old ubuntu version.
+You can run the following which downloads a script and will install it for you.
+
+@code{.shell-session}
+wget https://cmake.org/files/v3.13/cmake-3.13.5-Linux-x86_64.sh
+sudo mkdir /opt/cmake
+sudo sh cmake-3.13.5-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
+sudo ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+cmake --version
+@endcode
 
 
 @section gs-install-openvins Cloning the OpenVINS Project

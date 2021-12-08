@@ -1,7 +1,7 @@
 /**
 
 
-@page dev-docker Developing with Docker
+@page dev-docker Building with Docker
 @tableofcontents
 
 
@@ -62,8 +62,7 @@ docker run -it --net=host --gpus all \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     osrf/ros:noetic-desktop-full \
     bash
-# you should be able to launch rviz once in bash
-rviz
+rviz # you should be able to launch rviz once in bash
 @endcode
 
 
@@ -88,9 +87,7 @@ mkdir -p ~/workspace/catkin_ws_ov/src
 cd ~/workspace/catkin_ws_ov/src
 git clone https://github.com/rpng/open_vins.git
 cd open_vins
-# which docker file version you want (ROS1 vs ROS2 and ubuntu version)
-# ros1_20_04, ros1_18_04
-export VERSION=ros1_20_04
+export VERSION=ros1_20_04 # which docker file version you want (ROS1 vs ROS2 and ubuntu version)
 docker build -t ov_$VERSION -f Dockerfile_$VERSION .
 @endcode
 
@@ -113,8 +110,7 @@ Here you can append it to the bottom of the ~/.bashrc so that we always have it 
     can add and remove mounts from this command as you see the need.
 
 @code{.shell-session}
-nano ~/.bashrc
-# add to the bashrc file
+nano ~/.bashrc # add to the bashrc file
 xhost + &> /dev/null
 export DOCKER_CATKINWS=/home/username/workspace/catkin_ws_ov
 export DOCKER_DATASETS=/home/username/datasets
@@ -123,8 +119,7 @@ alias ov_docker="docker run -it --net=host --gpus all \
     --env=\"QT_X11_NO_MITSHM=1\" --volume=\"/tmp/.X11-unix:/tmp/.X11-unix:rw\" \
     --mount type=bind,source=$DOCKER_CATKINWS,target=/catkin_ws \
     --mount type=bind,source=$DOCKER_DATASETS,target=/datasets $1"
-# save and exit
-source ~/.bashrc
+source ~/.bashrc # after you save and exit
 @endcode
 
 Now we can launch RVIZ and also compile the OpenVINS codebase.
@@ -187,7 +182,7 @@ After building the OpenVINS image (as above) we can do the following which will 
 This process will allow us to connect Clion to it.
 
 @code{.shell-session}
-docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name clion_remote_env openvins
+docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name clion_remote_env ov_ros1_20_04
 @endcode
 
 We can now change Clion to use the docker remote:

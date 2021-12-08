@@ -35,6 +35,7 @@ The ov_eval library has a bunch of evaluation methods and scripts that one can u
 @section getting-started-more Getting Started Guides
 
 -   @subpage gs-installing --- Installation guide for OpenVINS and dependencies
+-   @subpage dev-docker --- Installing with Docker instead of from source
 -   @subpage gs-tutorial --- Simple tutorial on getting OpenVINS running out of the box.
 -   @subpage gs-datasets --- Links to supported datasets and configuration files
 -   @subpage gs-calibration --- Guide to how to calibration your own visual-inertial sensors.
