@@ -37,19 +37,10 @@ zupt_only_at_beginning: true
 # ==================================================================
 # ==================================================================
 
-init_only_use_dynamic: false
-init_only_use_static: true
-
-init_camera_pose: false
-init_camera_timeoffset: false
-init_state_bias_accel: true
-init_enforce_gravity_magnitude: true
-
-init_camera_rate: 10.0
 init_window_time: 0.85
 init_imu_thresh: 0.45 # room1-5:0.45, room6:0.25
 init_max_disparity: 15.0
-init_max_features: 45.0
+init_max_features: 50.0
 
 # ==================================================================
 # ==================================================================
