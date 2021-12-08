@@ -53,9 +53,9 @@ public:
    * @param db Feature database pointer
    * @param time0 First camera frame timestamp
    * @param time1 Second camera frame timestamp
-   * @param disp_mean[out] Average raw disparity
-   * @param disp_var[out] Variance of the disparities
-   * @param total_feats[out] Total number of common features
+   * @param disp_mean Average raw disparity
+   * @param disp_var Variance of the disparities
+   * @param total_feats Total number of common features
    */
   static void compute_disparity(std::shared_ptr<ov_core::FeatureDatabase> db, double time0, double time1, double &disp_mean,
                                 double &disp_var, int &total_feats) {

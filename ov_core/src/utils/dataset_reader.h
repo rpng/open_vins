@@ -172,7 +172,7 @@ public:
   /**
    * @brief This will load the trajectory into memory (space separated)
    * @param path Path to the trajectory file that we want to read in.
-   * @param path_traj Will be filled with groundtruth states (timestamp(s), q_GtoI, p_IinG)
+   * @param traj_data Will be filled with groundtruth states (timestamp(s), q_GtoI, p_IinG)
    */
   static void load_simulated_trajectory(std::string path, std::vector<Eigen::VectorXd> &traj_data) {
 
