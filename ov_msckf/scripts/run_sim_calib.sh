@@ -14,7 +14,6 @@ datasets=(
 #    "udel_arl"
 #    "udel_gore_zupt"
 #    "tum_corridor1_512_16_okvis"
-#    "udel_neighborhood"
 )
 
 # If we want to calibrate parameters

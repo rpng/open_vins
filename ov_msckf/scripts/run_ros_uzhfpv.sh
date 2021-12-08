@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 # Source our workspace directory to load ENV variables
-source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+source ${SCRIPT_DIR}/../../../../devel/setup.bash
 
 
 #=============================================================
