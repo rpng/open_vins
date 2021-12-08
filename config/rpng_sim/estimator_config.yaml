@@ -103,8 +103,7 @@ sim_seed_state_init: 0
 sim_seed_preturb: 0
 sim_seed_measurements: 0
 sim_do_perturbation: false
-#sim_traj_path: "/tmp/trajectory_not_set.txt"
-sim_traj_path: "/home/patrick/workspace/catkin_ws_init2/src/open_vins/ov_data/sim/tum_corridor1_512_16_okvis.txt"
+sim_traj_path: "src/open_vins/ov_data/sim/tum_corridor1_512_16_okvis.txt"
 sim_distance_threshold: 1.2
 sim_freq_cam: 10
 sim_freq_imu: 400

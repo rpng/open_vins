@@ -1,4 +1,4 @@
-FROM osrf/ros:noetic-desktop-full
+FROM osrf/ros:kinetic-desktop-full
 
 # =========================================================
 # =========================================================
@@ -12,9 +12,19 @@ FROM osrf/ros:noetic-desktop-full
 # =========================================================
 
 # Dependencies we use, catkin tools is very good build system
-# Also some helper utitiles for fast in terminal edits (nano etc)
-RUN apt-get update && apt-get install -y libeigen3-dev nano git cmake
-RUN sudo apt-get install -y python3-catkin-tools python3-osrf-pycommon
+# Also some helper utilities for fast in terminal edits (nano etc)
+RUN apt-get update && apt-get install -y libeigen3-dev nano git
+RUN sudo apt-get install -y python-catkin-tools
+
+# Seems this has Python 2.7 installed on it...
+RUN sudo apt-get install -y python2.7-dev python-matplotlib python-numpy python-psutil python-tk
+
+# Install CMake 3.13.5
+ADD https://cmake.org/files/v3.13/cmake-3.13.5-Linux-x86_64.sh /cmake-3.13.5-Linux-x86_64.sh
+RUN mkdir /opt/cmake
+RUN sh /cmake-3.13.5-Linux-x86_64.sh --prefix=/opt/cmake --skip-license
+RUN ln -s /opt/cmake/bin/cmake /usr/local/bin/cmake
+RUN cmake --version
 
 # Install deps needed for clion remote debugging
 # https://blog.jetbrains.com/clion/2020/01/using-docker-with-clion/

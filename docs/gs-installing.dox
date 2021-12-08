@@ -17,8 +17,8 @@ Please see the official instructions to install ROS:
 - [Ubuntu 16.04 ROS 1 Kinetic](http://wiki.ros.org/kinetic/Installation/Ubuntu) (uses OpenCV 3.3)
 - [Ubuntu 18.04 ROS 1 Melodic](http://wiki.ros.org/melodic/Installation/Ubuntu) (uses OpenCV 3.2)
 - [Ubuntu 20.04 ROS 1 Noetic](http://wiki.ros.org/noetic/Installation/Ubuntu) (uses OpenCV 4.2)
-- [Ubuntu 18.04 ROS 2 Dashing](https://docs.ros.org/en/dashing/)
-- [Ubuntu 20.04 ROS 2 Galactic](https://docs.ros.org/en/galactic/)
+- [Ubuntu 18.04 ROS 2 Dashing](https://docs.ros.org/en/dashing/) (uses OpenCV 3.2)
+- [Ubuntu 20.04 ROS 2 Galactic](https://docs.ros.org/en/galactic/) (uses OpenCV 4.2)
 
 
 We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
@@ -37,7 +37,7 @@ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31
 sudo apt-get update
 export ROS1_DISTRO=noetic # kinetic=16.04, melodic=18.04, noetic=20.04
 sudo apt-get install ros-$ROS1_DISTRO-desktop-full
-sudo apt-get install libeigen3-dev python-catkin-tools # ubuntu 16.04 or 18.04
+sudo apt-get install libeigen3-dev python-catkin-tools # ubuntu 16.04, 18.04
 sudo apt-get install libeigen3-dev python3-catkin-tools python3-osrf-pycommon # ubuntu 20.04
 @endcode
 
@@ -133,8 +133,8 @@ You can disable this visualization if it is broken for you by passing the -DDISA
 Additionally if you wish to record CPU and memory usage of the node, you will need to install the [psutil](https://github.com/giampaolo/psutil) library.
 
 @code{.shell-session}
-sudo apt-get install python-matplotlib python-numpy python2.7-dev python-psutil # for python2 systems
-sudo apt-get install python-matplotlib python3-numpy python3-dev python3-psutil # for python3 systems
+sudo apt-get install python2.7-dev python-matplotlib python-numpy python-psutil # for python2 systems
+sudo apt-get install python3-dev python3-matplotlib python3-numpy python3-psutil python3-tk # for python3 systems
 catkin build -DDISABLE_MATPLOTLIB=OFF # build with viz (default)
 catkin build -DDISABLE_MATPLOTLIB=ON # build without viz
 @endcode

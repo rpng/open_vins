@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.3)
+cmake_minimum_required(VERSION 3.12)
 
 # Define our install directories based on GNU conventions
 # https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
