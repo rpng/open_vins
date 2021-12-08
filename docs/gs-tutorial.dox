@@ -27,6 +27,11 @@ In this tutorial we will run on the [EuRoC MAV Dataset](https://projects.asl.eth
 All configuration information for the system is exposed to the user in the configuration file, and can be overridden in the launch file.
 We will create a launch file that will launch our MSCKF estimation node and feed the ROS bag into the system.
 One can take a look in the [launch](https://github.com/rpng/open_vins/tree/master/ov_msckf/launch) folder for more examples.
+For OpenVINS we need to define a series of files:
+
+- `estimator_config.yaml` - Contains OpenVINS specific configuration files. Each of these can be overridden in the launch file.
+- `kalibr_imu_chain.yaml` - IMU noise parameters and topic information based on the sensor in the dataset. This should be the same as Kalibr's (see @ref gs-calib-imu-static).
+- `kalibr_imucam_chain.yaml` - Camera to IMU transformation and camera intrinsics. This should be the same as Kalibr's (see @ref gs-calib-cam-static).
 
 
 
@@ -34,12 +39,6 @@ One can take a look in the [launch](https://github.com/rpng/open_vins/tree/maste
 
 The ROS1 system uses the [roslaunch](http://wiki.ros.org/roslaunch) system to manage and launch nodes.
 These files can launch multiple nodes, and each node can their own set of parameters set.
-For OpenVINS we need to define a series of files:
-
-- `estimator_config.yaml` - Contains OpenVINS specific configuration files. Each of these can be overridden in the launch file.
-- `kalibr_imu_chain.yaml` - IMU noise parameters and topic information based on the sensor in the dataset. This should be the same as Kalibr's (see @ref gs-calib-imu-static).
-- `kalibr_imucam_chain.yaml` - Camera to IMU transformation and camera intrinsics. This should be the same as Kalibr's (see @ref gs-calib-cam-static).
-
 Consider the below launch file.
 We can see the main parameter that is being passed into the estimator is the `config_path` file which has all configuration for this specific dataset.
 Additionally, we can see that we are launching the `run_subscribe_msckf` ROS 1 node, and are going to be overriding the `use_stereo` and `max_cameras` with the specificed values.
@@ -151,6 +150,7 @@ First make sure you have installed the rosbag2 and all its backends.
 If you downloaded the bag above you should already have a valid bag format.
 Otherwise, you will need to convert it following @ref dev-ros1-to-ros2 .
 A "bag" is now defined by a db3 sqlite database and config yaml file in a folder.
+In another terminal we can run the following:
 
 @code{.shell-session}
 ros2 bag play V1_01_easy

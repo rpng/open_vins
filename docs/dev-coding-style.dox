@@ -52,13 +52,14 @@ In general the user can specify the following (see [ov_core/src/utils/print.h](o
 - PrintLevel::SILENT : All PRINT_XXXX will be silenced.
 
 To use these, you can specify the following using the [printf](https://www.cplusplus.com/reference/cstdio/printf/) standard input logic.
+A user can also specify colors (see [ov_core/src/utils/colors.h](ov_core/src/utils/colors.h) file for details):
 
 @code{.cpp}
-PRINT_ALL("the value is %.2f", variable);
-PRINT_DEBUG("the value is %.2f", variable);
-PRINT_INFO("the value is %.2f", variable);
-PRINT_WARNING("the value is %.2f", variable);
-PRINT_ERROR("the value is %.2f", variable);
+PRINT_ALL("the value is %.2f\n", variable);
+PRINT_DEBUG("the value is %.2f\n", variable);
+PRINT_INFO("the value is %.2f\n", variable);
+PRINT_WARNING("the value is %.2f\n", variable);
+PRINT_ERROR(RED "the value is %.2f\n" RESET, variable);
 @endcode
 
 
