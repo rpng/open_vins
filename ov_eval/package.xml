@@ -3,11 +3,11 @@
 
     <!-- Package Information -->
     <name>ov_eval</name>
-    <version>2.4.0</version>
+    <version>2.5.0</version>
     <description>
         Evaluation methods and scripts for visual-inertial odometry systems.
     </description>
-    <url>https://github.com/rpng/open_vins</url>
+    <url>https://docs.openvins.com/</url>
 
     <!-- Code Authors -->
     <author email="pgeneva@udel.edu">Patrick Geneva</author>
