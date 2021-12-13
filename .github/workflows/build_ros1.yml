@@ -18,6 +18,9 @@ jobs:
           cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
           mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
           docker build -t openvins -f $GITHUB_WORKSPACE/src/$REPO/Dockerfile_ros1_16_04 .
+      - name: Echo Enviroment
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "echo $ROS_DISTRO && echo $ROS_VERSION"
       - name: Run Build in Docker
         run: |
           docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && catkin build"
@@ -36,6 +39,9 @@ jobs:
           cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
           mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
           docker build -t openvins -f $GITHUB_WORKSPACE/src/$REPO/Dockerfile_ros1_18_04 .
+      - name: Echo Enviroment
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "echo $ROS_DISTRO && echo $ROS_VERSION"
       - name: Run Build in Docker
         run: |
           docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && catkin build"
@@ -54,6 +60,9 @@ jobs:
           cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
           mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
           docker build -t openvins -f $GITHUB_WORKSPACE/src/$REPO/Dockerfile_ros1_20_04 .
+      - name: Echo Enviroment
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "echo $ROS_DISTRO && echo $ROS_VERSION"
       - name: Run Build in Docker
         run: |
           docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && catkin build"

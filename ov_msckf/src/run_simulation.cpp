@@ -177,6 +177,10 @@ int main(int argc, char **argv) {
   viz->visualize_final();
 #endif
 
+#if ROS_AVAILABLE == 2
+  rclcpp::shutdown();
+#endif
+
   // Done!
   return EXIT_SUCCESS;
 }
