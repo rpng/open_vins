@@ -29,7 +29,8 @@
 #include <Eigen/Eigen>
 #include <boost/filesystem.hpp>
 
-#include "Colors.h"
+#include "utils/colors.h"
+#include "utils/print.h"
 
 namespace ov_eval {
 

@@ -22,6 +22,7 @@
 #include "UpdaterMSCKF.h"
 
 using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec) {
@@ -187,16 +188,18 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     } else {
       boost::math::chi_squared chi_squared_dist(res.rows());
       chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
-      printf(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
+      PRINT_WARNING(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
     }
 
     // Check if we should delete or not
     if (chi2 > _options.chi2_multipler * chi2_check) {
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
-      // cout << "featid = " << feat.featid << endl;
-      // cout << "chi2 = " << chi2 << " > " << _options.chi2_multipler*chi2_check << endl;
-      // cout << "res = " << endl << res.transpose() << endl;
+      // PRINT_DEBUG("featid = %d\n", feat.featid);
+      // PRINT_DEBUG("chi2 = %f > %f\n", chi2, _options.chi2_multipler*chi2_check);
+      // std::stringstream ss;
+      // ss << "res = " << std::endl << res.transpose() << std::endl;
+      // PRINT_DEBUG(ss.str().c_str());
       continue;
     }
 
@@ -253,10 +256,10 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
   rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Debug print timing information
-  // printf("[MSCKF-UP]: %.4f seconds to clean\n",(rT1-rT0).total_microseconds() * 1e-6);
-  // printf("[MSCKF-UP]: %.4f seconds to triangulate\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // printf("[MSCKF-UP]: %.4f seconds create system (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
-  // printf("[MSCKF-UP]: %.4f seconds compress system\n",(rT4-rT3).total_microseconds() * 1e-6);
-  // printf("[MSCKF-UP]: %.4f seconds update state (%d size)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)res_big.rows());
-  // printf("[MSCKF-UP]: %.4f seconds total\n",(rT5-rT1).total_microseconds() * 1e-6);
+  PRINT_DEBUG("[MSCKF-UP]: %.4f seconds to clean\n", (rT1 - rT0).total_microseconds() * 1e-6);
+  PRINT_DEBUG("[MSCKF-UP]: %.4f seconds to triangulate\n", (rT2 - rT1).total_microseconds() * 1e-6);
+  PRINT_DEBUG("[MSCKF-UP]: %.4f seconds create system (%d features)\n", (rT3 - rT2).total_microseconds() * 1e-6, (int)feature_vec.size());
+  PRINT_DEBUG("[MSCKF-UP]: %.4f seconds compress system\n", (rT4 - rT3).total_microseconds() * 1e-6);
+  PRINT_DEBUG("[MSCKF-UP]: %.4f seconds update state (%d size)\n", (rT5 - rT4).total_microseconds() * 1e-6, (int)res_big.rows());
+  PRINT_DEBUG("[MSCKF-UP]: %.4f seconds total\n", (rT5 - rT1).total_microseconds() * 1e-6);
 }

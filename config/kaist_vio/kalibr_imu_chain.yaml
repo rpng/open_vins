@@ -1,0 +1,16 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+imu0:
+  T_i_b:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+  accelerometer_noise_density: 0.00333388 # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
+  accelerometer_random_walk: 0.00047402   # [ m / s^3 / sqrt(Hz) ].  ( accel bias diffusion )
+  gyroscope_noise_density: 0.00005770     # [ rad / s / sqrt(Hz) ]   ( gyro "white noise" )
+  gyroscope_random_walk: 0.00001565       # [ rad / s^2 / sqrt(Hz) ] ( gyro bias diffusion )
+  model: calibrated
+  rostopic: /mavros/imu/data
+  time_offset: 0.0
+  update_rate: 100.0

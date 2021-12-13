@@ -29,6 +29,7 @@
 #include <string>
 
 #include "colors.h"
+#include "print.h"
 
 using namespace std;
 
@@ -70,8 +71,8 @@ public:
 
     // Check that it was successfull
     if (!file) {
-      printf(RED "ERROR: Unable to open groundtruth file...\n" RESET);
-      printf(RED "ERROR: %s\n" RESET, path.c_str());
+      PRINT_ERROR(RED "ERROR: Unable to open groundtruth file...\n" RESET);
+      PRINT_ERROR(RED "ERROR: %s\n" RESET, path.c_str());
       std::exit(EXIT_FAILURE);
     }
 
@@ -89,8 +90,8 @@ public:
       while (getline(s, field, ',')) {
         // Ensure we are in the range
         if (i > 16) {
-          printf(RED "ERROR: Invalid groudtruth line, too long!\n" RESET);
-          printf(RED "ERROR: %s\n" RESET, line.c_str());
+          PRINT_ERROR(RED "ERROR: Invalid groudtruth line, too long!\n" RESET);
+          PRINT_ERROR(RED "ERROR: %s\n" RESET, line.c_str());
           std::exit(EXIT_FAILURE);
         }
         // Save our groundtruth state value
@@ -115,7 +116,7 @@ public:
 
     // Check that we even have groundtruth loaded
     if (gt_states.empty()) {
-      printf(RED "Groundtruth data loaded is empty, make sure you call load before asking for a state.\n" RESET);
+      PRINT_ERROR(RED "Groundtruth data loaded is empty, make sure you call load before asking for a state.\n" RESET);
       return false;
     }
 
@@ -131,14 +132,14 @@ public:
 
     // If close to this timestamp, then use it
     if (std::abs(closest_time - timestep) < 0.10) {
-      // printf("init DT = %.4f\n", std::abs(closest_time-timestep));
-      // printf("timestamp = %.15f\n", closest_time);
+      // PRINT_DEBUG("init DT = %.4f\n", std::abs(closest_time-timestep));
+      // PRINT_DEBUG("timestamp = %.15f\n", closest_time);
       timestep = closest_time;
     }
 
     // Check that we have the timestamp in our GT file
     if (gt_states.find(timestep) == gt_states.end()) {
-      printf(YELLOW "Unable to find %.6f timestamp in GT file, wrong GT file loaded???\n" RESET, timestep);
+      PRINT_WARNING(YELLOW "Unable to find %.6f timestamp in GT file, wrong GT file loaded???\n" RESET, timestep);
       return false;
     }
 
@@ -166,6 +167,71 @@ public:
 
     // Success!
     return true;
+  }
+
+  /**
+   * @brief This will load the trajectory into memory (space separated)
+   * @param path Path to the trajectory file that we want to read in.
+   * @param traj_data Will be filled with groundtruth states (timestamp(s), q_GtoI, p_IinG)
+   */
+  static void load_simulated_trajectory(std::string path, std::vector<Eigen::VectorXd> &traj_data) {
+
+    // Try to open our groundtruth file
+    std::ifstream file;
+    file.open(path);
+    if (!file) {
+      PRINT_ERROR(RED "ERROR: Unable to open simulation trajectory file...\n" RESET);
+      PRINT_ERROR(RED "ERROR: %s\n" RESET, path.c_str());
+      std::exit(EXIT_FAILURE);
+    }
+
+    // Debug print
+    std::string base_filename = path.substr(path.find_last_of("/\\") + 1);
+    PRINT_DEBUG("loaded trajectory %s\n", base_filename.c_str());
+
+    // Loop through each line of this file
+    std::string current_line;
+    while (std::getline(file, current_line)) {
+
+      // Skip if we start with a comment
+      if (!current_line.find("#"))
+        continue;
+
+      // Loop variables
+      int i = 0;
+      std::istringstream s(current_line);
+      std::string field;
+      Eigen::Matrix<double, 8, 1> data;
+
+      // Loop through this line (timestamp(s) tx ty tz qx qy qz qw)
+      while (std::getline(s, field, ' ')) {
+        // Skip if empty
+        if (field.empty() || i >= data.rows())
+          continue;
+        // save the data to our vector
+        data(i) = std::atof(field.c_str());
+        i++;
+      }
+
+      // Only a valid line if we have all the parameters
+      if (i > 7) {
+        traj_data.push_back(data);
+
+        // std::stringstream ss;
+        // ss << std::setprecision(15) << data.transpose() << std::endl;
+        // PRINT_DEBUG(ss.str().c_str());
+      }
+    }
+
+    // Finally close the file
+    file.close();
+
+    // Error if we don't have any data
+    if (traj_data.empty()) {
+      PRINT_ERROR(RED "ERROR: Could not parse any data from the file!!\n" RESET);
+      PRINT_ERROR(RED "ERROR: %s\n" RESET, path.c_str());
+      std::exit(EXIT_FAILURE);
+    }
   }
 
 private:

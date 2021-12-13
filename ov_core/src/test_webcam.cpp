@@ -37,7 +37,12 @@
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
-#include "utils/CLI11.hpp"
+#include "utils/opencv_yaml_parse.h"
+#include "utils/print.h"
+
+#if ROS_AVAILABLE == 1
+#include <ros/ros.h>
+#endif
 
 using namespace ov_core;
 
@@ -47,8 +52,29 @@ TrackBase *extractor;
 // Main function
 int main(int argc, char **argv) {
 
-  // Create our command line parser
-  CLI::App app{"test_webcam"};
+  // Ensure we have a path, if the user passes it then we should use it
+  std::string config_path = "unset_path.txt";
+  if (argc > 1) {
+    config_path = argv[1];
+  }
+
+#if ROS_AVAILABLE == 1
+  // Initialize this as a ROS node
+  ros::init(argc, argv, "test_webcam");
+  auto nh = std::make_shared<ros::NodeHandle>("~");
+  nh->param<std::string>("config_path", config_path, config_path);
+#endif
+
+  // Load parameters
+  auto parser = std::make_shared<ov_core::YamlParser>(config_path, false);
+#if ROS_AVAILABLE == 1
+  parser->set_node_handler(nh);
+#endif
+
+  // Verbosity
+  std::string verbosity = "INFO";
+  parser->parse_config("verbosity", verbosity);
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Defaults
   int num_pts = 500;
@@ -61,41 +87,50 @@ int main(int argc, char **argv) {
   double knn_ratio = 0.85;
   bool do_downsizing = false;
   bool use_stereo = false;
-  ov_core::TrackBase::HistogramMethod method = ov_core::TrackBase::HistogramMethod::NONE;
+  parser->parse_config("num_pts", num_pts, false);
+  parser->parse_config("num_aruco", num_aruco, false);
+  parser->parse_config("clone_states", clone_states, false);
+  parser->parse_config("fast_threshold", fast_threshold, false);
+  parser->parse_config("grid_x", grid_x, false);
+  parser->parse_config("grid_y", grid_y, false);
+  parser->parse_config("min_px_dist", min_px_dist, false);
+  parser->parse_config("knn_ratio", knn_ratio, false);
+  parser->parse_config("do_downsizing", do_downsizing, false);
+  parser->parse_config("use_stereo", use_stereo, false);
 
-  // Parameters for our extractor
-  app.add_option("--num_pts", num_pts, "Number of feature tracks");
-  app.add_option("--num_aruco", num_aruco, "Number of aruco tag ids we have");
-  app.add_option("--clone_states", clone_states, "Amount of clones to visualize track length with");
-  app.add_option("--fast_threshold", fast_threshold, "Fast extraction threshold");
-  app.add_option("--grid_x", grid_x, "Grid x size");
-  app.add_option("--grid_y", grid_y, "Grid y size");
-  app.add_option("--min_px_dist", min_px_dist, "Minimum number of pixels between different tracks");
-  app.add_option("--knn_ratio", knn_ratio, "Knn descriptor ratio threshold");
-  app.add_option("--do_downsizing", do_downsizing, "If we should downsize our arucotag images");
-
-  // Finally actually parse the command line and load it
-  try {
-    app.parse(argc, argv);
-  } catch (const CLI::ParseError &e) {
-    return app.exit(e);
+  // Histogram method
+  ov_core::TrackBase::HistogramMethod method;
+  std::string histogram_method_str = "HISTOGRAM";
+  parser->parse_config("histogram_method", histogram_method_str, false);
+  if (histogram_method_str == "NONE") {
+    method = ov_core::TrackBase::NONE;
+  } else if (histogram_method_str == "HISTOGRAM") {
+    method = ov_core::TrackBase::HISTOGRAM;
+  } else if (histogram_method_str == "CLAHE") {
+    method = ov_core::TrackBase::CLAHE;
+  } else {
+    printf(RED "invalid feature histogram specified:\n" RESET);
+    printf(RED "\t- NONE\n" RESET);
+    printf(RED "\t- HISTOGRAM\n" RESET);
+    printf(RED "\t- CLAHE\n" RESET);
+    std::exit(EXIT_FAILURE);
   }
 
   // Debug print!
-  printf("max features: %d\n", num_pts);
-  printf("max aruco: %d\n", num_aruco);
-  printf("clone states: %d\n", clone_states);
-  printf("grid size: %d x %d\n", grid_x, grid_y);
-  printf("fast threshold: %d\n", fast_threshold);
-  printf("min pixel distance: %d\n", min_px_dist);
-  printf("downsize aruco image: %d\n", do_downsizing);
+  PRINT_DEBUG("max features: %d\n", num_pts);
+  PRINT_DEBUG("max aruco: %d\n", num_aruco);
+  PRINT_DEBUG("clone states: %d\n", clone_states);
+  PRINT_DEBUG("grid size: %d x %d\n", grid_x, grid_y);
+  PRINT_DEBUG("fast threshold: %d\n", fast_threshold);
+  PRINT_DEBUG("min pixel distance: %d\n", min_px_dist);
+  PRINT_DEBUG("downsize aruco image: %d\n", do_downsizing);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
   std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
   for (int i = 0; i < 2; i++) {
     Eigen::Matrix<double, 8, 1> cam0_calib;
     cam0_calib << 1, 1, 0, 0, 0, 0, 0, 0;
-    std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>();
+    std::shared_ptr<CamBase> camera_calib = std::make_shared<CamRadtan>(100, 100);
     camera_calib->set_value(cam0_calib);
     cameras.insert({i, camera_calib});
   }
@@ -112,7 +147,7 @@ int main(int argc, char **argv) {
   // Open the first webcam (0=laptop cam, 1=usb device)
   cv::VideoCapture cap;
   if (!cap.open(0)) {
-    printf(RED "Unable to open a webcam feed!\n" RESET);
+    PRINT_ERROR(RED "Unable to open a webcam feed!\n" RESET);
     return EXIT_FAILURE;
   }
 

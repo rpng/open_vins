@@ -32,15 +32,17 @@
 #include "cam/CamBase.h"
 #include "cam/CamEqui.h"
 #include "cam/CamRadtan.h"
-#include "init/InertialInitializer.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
 #include "track/TrackSIM.h"
 #include "types/Landmark.h"
 #include "types/LandmarkRepresentation.h"
-#include "utils/lambda_body.h"
+#include "utils/opencv_lambda_body.h"
+#include "utils/print.h"
 #include "utils/sensor_data.h"
+
+#include "init/InertialInitializer.h"
 
 #include "state/Propagator.h"
 #include "state/State.h"
@@ -102,12 +104,22 @@ public:
     // Initialize the system
     state->_imu->set_value(imustate.block(1, 0, 16, 1));
     state->_imu->set_fej(imustate.block(1, 0, 16, 1));
+
+    // Fix the global yaw and position gauge freedoms
+    // TODO: Why does this break out simulation consistency metrics?
+    std::vector<std::shared_ptr<ov_type::Type>> order = {state->_imu};
+    Eigen::MatrixXd Cov = 1e-4 * Eigen::MatrixXd::Identity(state->_imu->size(), state->_imu->size());
+    // Cov.block(state->_imu->v()->id(), state->_imu->v()->id(), 3, 3) *= 10;
+    // Cov(state->_imu->q()->id() + 2, state->_imu->q()->id() + 2) = 0.0;
+    // Cov.block(state->_imu->p()->id(), state->_imu->p()->id(), 3, 3).setZero();
+    // Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) =
+    //     state->_imu->Rot() * Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) * state->_imu->Rot().transpose();
+    StateHelper::set_initial_covariance(state, Cov, order);
+
+    // Set the state time
     state->_timestamp = imustate(0, 0);
     startup_time = imustate(0, 0);
     is_initialized_vio = true;
-
-    // Fix the global yaw and position gauge freedoms
-    StateHelper::fix_4dof_gauge_freedoms(state, imustate.block(1, 0, 4, 1));
 
     // Cleanup any features older then the initialization time
     trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
@@ -116,15 +128,15 @@ public:
     }
 
     // Print what we init'ed with
-    printf(GREEN "[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\n" RESET);
-    printf(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
-           state->_imu->quat()(2), state->_imu->quat()(3));
-    printf(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
-           state->_imu->bias_g()(2));
-    printf(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
-    printf(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
-           state->_imu->bias_a()(2));
-    printf(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
+    PRINT_DEBUG(GREEN "[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\n" RESET);
+    PRINT_DEBUG(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
+                state->_imu->quat()(2), state->_imu->quat()(3));
+    PRINT_DEBUG(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
+                state->_imu->bias_g()(2));
+    PRINT_DEBUG(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
+    PRINT_DEBUG(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
+                state->_imu->bias_a()(2));
+    PRINT_DEBUG(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
   }
 
   /// If we are initialized or not
@@ -176,9 +188,9 @@ public:
   std::vector<Eigen::Vector3d> get_features_SLAM() {
     std::vector<Eigen::Vector3d> slam_feats;
     for (auto &f : state->_features_SLAM) {
-      if ((int)f.first <= state->_options.max_aruco_features)
+      if ((int)f.first <= 4 * state->_options.max_aruco_features)
         continue;
-      if (LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
+      if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
         // Assert that we have an anchor pose for this feature
         assert(f.second->_anchor_cam_id != -1);
         // Get calibration for our anchor camera
@@ -200,9 +212,9 @@ public:
   std::vector<Eigen::Vector3d> get_features_ARUCO() {
     std::vector<Eigen::Vector3d> aruco_feats;
     for (auto &f : state->_features_SLAM) {
-      if ((int)f.first > state->_options.max_aruco_features)
+      if ((int)f.first > 4 * state->_options.max_aruco_features)
         continue;
-      if (LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
+      if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
         // Assert that we have an anchor pose for this feature
         assert(f.second->_anchor_cam_id != -1);
         // Get calibration for our anchor camera
@@ -283,16 +295,16 @@ protected:
   std::shared_ptr<Propagator> propagator;
 
   /// Complete history of our feature tracks
-  std::shared_ptr<FeatureDatabase> trackDATABASE;
+  std::shared_ptr<ov_core::FeatureDatabase> trackDATABASE;
 
   /// Our sparse feature tracker (klt or descriptor)
-  std::shared_ptr<TrackBase> trackFEATS;
+  std::shared_ptr<ov_core::TrackBase> trackFEATS;
 
   /// Our aruoc tracker
-  std::shared_ptr<TrackBase> trackARUCO;
+  std::shared_ptr<ov_core::TrackBase> trackARUCO;
 
   /// State initializer
-  std::shared_ptr<InertialInitializer> initializer;
+  std::shared_ptr<ov_init::InertialInitializer> initializer;
 
   /// Boolean if we are initialized or not
   bool is_initialized_vio = false;
@@ -333,7 +345,7 @@ protected:
   std::vector<Eigen::Vector3d> good_features_MSCKF;
 
   /// Feature initializer used to triangulate all active tracks
-  std::shared_ptr<FeatureInitializer> active_tracks_initializer;
+  std::shared_ptr<ov_core::FeatureInitializer> active_tracks_initializer;
 
   // Re-triangulated features 3d positions seen from the current frame (used in visualization)
   double active_tracks_time = -1;

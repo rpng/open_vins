@@ -27,9 +27,10 @@
 #include <iostream>
 #include <string>
 
-#include "utils/Colors.h"
 #include "utils/Loader.h"
 #include "utils/Statistics.h"
+#include "utils/colors.h"
+#include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -42,11 +43,14 @@
 
 int main(int argc, char **argv) {
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
+
   // Ensure we have a path
   if (argc < 2) {
-    printf(RED "ERROR: Please specify a timing file\n" RESET);
-    printf(RED "ERROR: ./timing_flamegraph <file_times.txt>\n" RESET);
-    printf(RED "ERROR: rosrun ov_eval timing_flamegraph <file_times.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a timing file\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./timing_flamegraph <file_times.txt>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval timing_flamegraph <file_times.txt>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -55,7 +59,7 @@ int main(int argc, char **argv) {
   std::vector<double> times;
   std::vector<Eigen::VectorXd> timing_values;
   ov_eval::Loader::load_timing_flamegraph(argv[1], names, times, timing_values);
-  printf("[TIME]: loaded %d timestamps from file (%d categories)!!\n", (int)times.size(), (int)names.size());
+  PRINT_INFO("[TIME]: loaded %d timestamps from file (%d categories)!!\n", (int)times.size(), (int)names.size());
 
   // Our categories
   std::vector<ov_eval::Statistics> stats;
@@ -73,8 +77,8 @@ int main(int argc, char **argv) {
   // Now print the statistic for this run
   for (size_t i = 0; i < names.size(); i++) {
     stats.at(i).calculate();
-    printf("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std, stats.at(i).ninetynine,
-           stats.at(i).max, names.at(i).c_str());
+    PRINT_INFO("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std,
+               stats.at(i).ninetynine, stats.at(i).max, names.at(i).c_str());
   }
 
 #ifdef HAVE_PYTHONLIBS

@@ -23,10 +23,9 @@
 #define OV_MSCKF_STATE_PROPAGATOR_H
 
 #include "state/StateHelper.h"
+#include "utils/print.h"
 #include "utils/quat_ops.h"
 #include "utils/sensor_data.h"
-
-using namespace ov_core;
 
 namespace ov_msckf {
 
@@ -71,10 +70,10 @@ public:
 
     /// Nice print function of what parameters we have loaded
     void print() {
-      printf("\t- gyroscope_noise_density: %.6f\n", sigma_w);
-      printf("\t- accelerometer_noise_density: %.5f\n", sigma_a);
-      printf("\t- gyroscope_random_walk: %.7f\n", sigma_wb);
-      printf("\t- accelerometer_random_walk: %.6f\n", sigma_ab);
+      PRINT_DEBUG("  - gyroscope_noise_density: %.6f\n", sigma_w);
+      PRINT_DEBUG("  - accelerometer_noise_density: %.5f\n", sigma_a);
+      PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
+      PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
     }
   };
 
@@ -170,7 +169,7 @@ public:
   static ov_core::ImuData interpolate_data(const ov_core::ImuData &imu_1, const ov_core::ImuData &imu_2, double timestamp) {
     // time-distance lambda
     double lambda = (timestamp - imu_1.timestamp) / (imu_2.timestamp - imu_1.timestamp);
-    // cout << "lambda - " << lambda << endl;
+    // PRINT_DEBUG("lambda - %d\n", lambda);
     // interpolate between the two times
     ov_core::ImuData data;
     data.timestamp = timestamp;

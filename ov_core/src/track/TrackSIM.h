@@ -23,6 +23,7 @@
 #define OV_CORE_TRACK_SIM_H
 
 #include "TrackBase.h"
+#include "utils/print.h"
 
 namespace ov_core {
 
@@ -42,11 +43,6 @@ public:
    */
   TrackSIM(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco)
       : TrackBase(cameras, 0, numaruco, false, HistogramMethod::NONE) {}
-  /**
-   * @brief Set the width and height for the cameras
-   * @param _camera_wh Width and height for each camera
-   */
-  void set_width_height(std::map<size_t, std::pair<int, int>> _camera_wh) { this->camera_wh = _camera_wh; }
 
   /**
    * @brief Process a new image
@@ -54,8 +50,8 @@ public:
    * @param message Contains our timestamp, images, and camera ids
    */
   void feed_new_camera(const CameraData &message) override {
-    printf(RED "[SIM]: SIM TRACKER FEED NEW CAMERA CALLED!!!\n" RESET);
-    printf(RED "[SIM]: THIS SHOULD NEVER HAPPEN!\n" RESET);
+    PRINT_ERROR(RED "[SIM]: SIM TRACKER FEED NEW CAMERA CALLED!!!\n" RESET);
+    PRINT_ERROR(RED "[SIM]: THIS SHOULD NEVER HAPPEN!\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -67,10 +63,6 @@ public:
    */
   void feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
                                    const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats);
-
-protected:
-  /// Width and height of our cameras
-  std::map<size_t, std::pair<int, int>> camera_wh;
 };
 
 } // namespace ov_core

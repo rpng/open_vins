@@ -21,6 +21,7 @@
 
 #include "Simulator.h"
 
+using namespace ov_core;
 using namespace ov_msckf;
 
 Simulator::Simulator(VioManagerOptions &params_) {
@@ -29,27 +30,28 @@ Simulator::Simulator(VioManagerOptions &params_) {
   //===============================================================
 
   // Nice startup message
-  printf("=======================================\n");
-  printf("VISUAL-INERTIAL SIMULATOR STARTING\n");
-  printf("=======================================\n");
+  PRINT_DEBUG("=======================================\n");
+  PRINT_DEBUG("VISUAL-INERTIAL SIMULATOR STARTING\n");
+  PRINT_DEBUG("=======================================\n");
 
   // Store a copy of our params
+  // NOTE: We need to explicitly create a copy of our shared pointers to the camera objects
+  // NOTE: Otherwise if we perturb it would also change our "true" parameters
   this->params = params_;
-  params.print_estimator();
-  params.print_noise();
-  params.print_state();
-  params.print_trackers();
-  params.print_simulation();
-
-  // Check that the max cameras matches the size of our cam matrices
-  if (params.state_options.num_cameras != (int)params.camera_fisheye.size()) {
-    printf(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
-    printf(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(), params.state_options.num_cameras);
-    std::exit(EXIT_FAILURE);
+  params.camera_intrinsics.clear();
+  for (auto const &tmp : params_.camera_intrinsics) {
+    auto tmp_cast = std::dynamic_pointer_cast<ov_core::CamEqui>(tmp.second);
+    if (tmp_cast != nullptr) {
+      params.camera_intrinsics.insert({tmp.first, std::make_shared<ov_core::CamEqui>(tmp.second->w(), tmp.second->h())});
+      params.camera_intrinsics.at(tmp.first)->set_value(params_.camera_intrinsics.at(tmp.first)->get_value());
+    } else {
+      params.camera_intrinsics.insert({tmp.first, std::make_shared<ov_core::CamRadtan>(tmp.second->w(), tmp.second->h())});
+      params.camera_intrinsics.at(tmp.first)->set_value(params_.camera_intrinsics.at(tmp.first)->get_value());
+    }
   }
 
   // Load the groundtruth trajectory and its spline
-  load_data(params.sim_traj_path);
+  DatasetReader::load_simulated_trajectory(params.sim_traj_path, traj_data);
   spline.feed_trajectory(traj_data);
 
   // Set all our timestamps as starting from the minimum spline time
@@ -62,7 +64,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
   Eigen::Vector3d p_IinG_init;
   bool success_pose_init = spline.get_pose(timestamp, R_GtoI_init, p_IinG_init);
   if (!success_pose_init) {
-    printf(RED "[SIM]: unable to find the first pose in the spline...\n" RESET);
+    PRINT_ERROR(RED "[SIM]: unable to find the first pose in the spline...\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -78,7 +80,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
     // Check if it fails
     if (!success_pose) {
-      printf(RED "[SIM]: unable to find jolt in the groundtruth data to initialize at\n" RESET);
+      PRINT_ERROR(RED "[SIM]: unable to find jolt in the groundtruth data to initialize at\n" RESET);
       std::exit(EXIT_FAILURE);
     }
 
@@ -95,7 +97,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
       timestamp_last_cam += 1.0 / params.sim_freq_cam;
     }
   }
-  printf("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline.get_start_time());
+  PRINT_DEBUG("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline.get_start_time());
 
   // Append the current true bias to our history
   hist_true_bias_time.push_back(timestamp_last_imu - 1.0 / params.sim_freq_imu);
@@ -128,39 +130,18 @@ Simulator::Simulator(VioManagerOptions &params_) {
   //===============================================================
   //===============================================================
 
-  // One std generator
-  std::normal_distribution<double> w(0, 1);
-
   // Perturb all calibration if we should
   if (params.sim_do_perturbation) {
 
-    // cam imu offset
-    params_.calib_camimu_dt += 0.01 * w(gen_state_perturb);
+    // Do the perturbation
+    perturb_parameters(gen_state_perturb, params_);
 
-    // camera intrinsics and extrinsics
-    for (int i = 0; i < params_.state_options.num_cameras; i++) {
-
-      // Camera intrinsic properties (k1, k2, p1, p2)
-      for (int r = 0; r < 4; r++) {
-        params_.camera_intrinsics.at(i)(r) += 1.0 * w(gen_state_perturb);
-      }
-
-      // Camera intrinsic properties (r1, r2, r3, r4)
-      for (int r = 4; r < 8; r++) {
-        params_.camera_intrinsics.at(i)(r) += 0.005 * w(gen_state_perturb);
-      }
-
-      // Our camera extrinsics transform (position)
-      for (int r = 4; r < 7; r++) {
-        params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state_perturb);
-      }
-
-      // Our camera extrinsics transform (orientation)
-      Eigen::Vector3d w_vec;
-      w_vec << 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb);
-      params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
-          rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
-    }
+    // Debug print simulation parameters
+    params.print_and_load_estimator();
+    params.print_and_load_noise();
+    params.print_and_load_state();
+    params.print_and_load_trackers();
+    params.print_and_load_simulation();
   }
 
   //===============================================================
@@ -170,7 +151,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
   // double dt = 0.25/freq_cam;
   double dt = 0.25;
   size_t mapsize = featmap.size();
-  printf("[SIM]: Generating map features at %d rate\n", (int)(1.0 / dt));
+  PRINT_DEBUG("[SIM]: Generating map features at %d rate\n", (int)(1.0 / dt));
 
   // Loop through each camera
   // NOTE: we loop through cameras here so that the feature map for camera 1 will always be the same
@@ -204,13 +185,47 @@ Simulator::Simulator(VioManagerOptions &params_) {
     }
 
     // Debug print
-    printf("[SIM]: Generated %d map features in total over %d frames (camera %d)\n", (int)(featmap.size() - mapsize),
-           (int)((time_synth - spline.get_start_time()) / dt), i);
+    PRINT_DEBUG("[SIM]: Generated %d map features in total over %d frames (camera %d)\n", (int)(featmap.size() - mapsize),
+                (int)((time_synth - spline.get_start_time()) / dt), i);
     mapsize = featmap.size();
   }
 
   // Nice sleep so the user can look at the printout
-  sleep(3);
+  sleep(1);
+}
+
+void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &params_) {
+
+  // One std generator
+  std::normal_distribution<double> w(0, 1);
+
+  // Camera IMU offset
+  params_.calib_camimu_dt += 0.01 * w(gen_state);
+
+  // Camera intrinsics and extrinsics
+  for (int i = 0; i < params_.state_options.num_cameras; i++) {
+
+    // Camera intrinsic properties (k1, k2, p1, p2, r1, r2, r3, r4)
+    Eigen::MatrixXd intrinsics = params_.camera_intrinsics.at(i)->get_value();
+    for (int r = 0; r < 4; r++) {
+      intrinsics(r) += 1.0 * w(gen_state);
+    }
+    for (int r = 4; r < 8; r++) {
+      intrinsics(r) += 0.005 * w(gen_state);
+    }
+    params_.camera_intrinsics.at(i)->set_value(intrinsics);
+
+    // Our camera extrinsics transform (orientation)
+    Eigen::Vector3d w_vec;
+    w_vec << 0.001 * w(gen_state), 0.001 * w(gen_state), 0.001 * w(gen_state);
+    params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
+        rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
+
+    // Our camera extrinsics transform (position)
+    for (int r = 4; r < 7; r++) {
+      params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state);
+    }
+  }
 }
 
 bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
@@ -349,8 +364,8 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
 
     // If we do not have enough, generate more
     if ((int)uvs.size() < params.num_pts) {
-      printf(YELLOW "[SIM]: cam %d was unable to generate enough features (%d < %d projections)\n" RESET, (int)i, (int)uvs.size(),
-             params.num_pts);
+      PRINT_WARNING(YELLOW "[SIM]: cam %d was unable to generate enough features (%d < %d projections)\n" RESET, (int)i, (int)uvs.size(),
+                    params.num_pts);
     }
 
     // If greater than only select the first set
@@ -380,78 +395,19 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
   return true;
 }
 
-void Simulator::load_data(std::string path_traj) {
-
-  // Try to open our groundtruth file
-  std::ifstream file;
-  file.open(path_traj);
-  if (!file) {
-    printf(RED "ERROR: Unable to open simulation trajectory file...\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, path_traj.c_str());
-    std::exit(EXIT_FAILURE);
-  }
-
-  // Debug print
-  std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
-  printf("[SIM]: loaded trajectory %s\n", base_filename.c_str());
-
-  // Loop through each line of this file
-  std::string current_line;
-  while (std::getline(file, current_line)) {
-
-    // Skip if we start with a comment
-    if (!current_line.find("#"))
-      continue;
-
-    // Loop variables
-    int i = 0;
-    std::istringstream s(current_line);
-    std::string field;
-    Eigen::Matrix<double, 8, 1> data;
-
-    // Loop through this line (timestamp(s) tx ty tz qx qy qz qw)
-    while (std::getline(s, field, ' ')) {
-      // Skip if empty
-      if (field.empty() || i >= data.rows())
-        continue;
-      // save the data to our vector
-      data(i) = std::atof(field.c_str());
-      i++;
-    }
-
-    // Only a valid line if we have all the parameters
-    if (i > 7) {
-      traj_data.push_back(data);
-      // std::cout << std::setprecision(15) << data.transpose() << std::endl;
-    }
-  }
-
-  // Finally close the file
-  file.close();
-
-  // Error if we don't have any data
-  if (traj_data.empty()) {
-    printf(RED "ERROR: Could not parse any data from the file!!\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, path_traj.c_str());
-    std::exit(EXIT_FAILURE);
-  }
-}
-
 std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
                                                                               int camid,
                                                                               const std::unordered_map<size_t, Eigen::Vector3d> &feats) {
 
   // Assert we have good camera
   assert(camid < params.state_options.num_cameras);
-  assert((int)params.camera_fisheye.size() == params.state_options.num_cameras);
-  assert((int)params.camera_wh.size() == params.state_options.num_cameras);
   assert((int)params.camera_intrinsics.size() == params.state_options.num_cameras);
   assert((int)params.camera_extrinsics.size() == params.state_options.num_cameras);
 
   // Grab our extrinsic and intrinsic values
   Eigen::Matrix<double, 3, 3> R_ItoC = quat_2_Rot(params.camera_extrinsics.at(camid).block(0, 0, 4, 1));
   Eigen::Matrix<double, 3, 1> p_IinC = params.camera_extrinsics.at(camid).block(4, 0, 3, 1);
-  Eigen::Matrix<double, 8, 1> cam_d = params.camera_intrinsics.at(camid);
+  std::shared_ptr<ov_core::CamBase> camera = params.camera_intrinsics.at(camid);
 
   // Our projected uv true measurements
   std::vector<std::pair<size_t, Eigen::VectorXf>> uvs;
@@ -464,52 +420,19 @@ std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(co
     Eigen::Vector3d p_FinC = R_ItoC * p_FinI + p_IinC;
 
     // Skip cloud if too far away
-    if (p_FinC(2) > 15 || p_FinC(2) < 0.5)
+    if (p_FinC(2) > params.sim_max_feature_gen_distance || p_FinC(2) < 0.1)
       continue;
 
     // Project to normalized coordinates
     Eigen::Vector2f uv_norm;
-    uv_norm << p_FinC(0) / p_FinC(2), p_FinC(1) / p_FinC(2);
+    uv_norm << (float)(p_FinC(0) / p_FinC(2)), (float)(p_FinC(1) / p_FinC(2));
 
-    // Distort the normalized coordinates (false=radtan, true=fisheye)
+    // Distort the normalized coordinates
     Eigen::Vector2f uv_dist;
-
-    // Calculate distortion uv and jacobian
-    if (params.camera_fisheye.at(camid)) {
-
-      // Calculate distorted coordinates for fisheye
-      double r = sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-      double theta = std::atan(r);
-      double theta_d = theta + cam_d(4) * std::pow(theta, 3) + cam_d(5) * std::pow(theta, 5) + cam_d(6) * std::pow(theta, 7) +
-                       cam_d(7) * std::pow(theta, 9);
-
-      // Handle when r is small (meaning our xy is near the camera center)
-      double inv_r = r > 1e-8 ? 1.0 / r : 1;
-      double cdist = r > 1e-8 ? theta_d * inv_r : 1;
-
-      // Calculate distorted coordinates for fisheye
-      double x1 = uv_norm(0) * cdist;
-      double y1 = uv_norm(1) * cdist;
-      uv_dist(0) = cam_d(0) * x1 + cam_d(2);
-      uv_dist(1) = cam_d(1) * y1 + cam_d(3);
-
-    } else {
-
-      // Calculate distorted coordinates for radial
-      double r = std::sqrt(uv_norm(0) * uv_norm(0) + uv_norm(1) * uv_norm(1));
-      double r_2 = r * r;
-      double r_4 = r_2 * r_2;
-      double x1 = uv_norm(0) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + 2 * cam_d(6) * uv_norm(0) * uv_norm(1) +
-                  cam_d(7) * (r_2 + 2 * uv_norm(0) * uv_norm(0));
-      double y1 = uv_norm(1) * (1 + cam_d(4) * r_2 + cam_d(5) * r_4) + cam_d(6) * (r_2 + 2 * uv_norm(1) * uv_norm(1)) +
-                  2 * cam_d(7) * uv_norm(0) * uv_norm(1);
-      uv_dist(0) = cam_d(0) * x1 + cam_d(2);
-      uv_dist(1) = cam_d(1) * y1 + cam_d(3);
-    }
+    uv_dist = camera->distort_f(uv_norm);
 
     // Check that it is inside our bounds
-    if (uv_dist(0) < 0 || uv_dist(0) > params.camera_wh.at(camid).first || uv_dist(1) < 0 ||
-        uv_dist(1) > params.camera_wh.at(camid).second) {
+    if (uv_dist(0) < 0 || uv_dist(0) > camera->w() || uv_dist(1) < 0 || uv_dist(1) > camera->h()) {
       continue;
     }
 
@@ -526,70 +449,39 @@ void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vect
 
   // Assert we have good camera
   assert(camid < params.state_options.num_cameras);
-  assert((int)params.camera_fisheye.size() == params.state_options.num_cameras);
-  assert((int)params.camera_wh.size() == params.state_options.num_cameras);
   assert((int)params.camera_intrinsics.size() == params.state_options.num_cameras);
   assert((int)params.camera_extrinsics.size() == params.state_options.num_cameras);
 
   // Grab our extrinsic and intrinsic values
   Eigen::Matrix<double, 3, 3> R_ItoC = quat_2_Rot(params.camera_extrinsics.at(camid).block(0, 0, 4, 1));
   Eigen::Matrix<double, 3, 1> p_IinC = params.camera_extrinsics.at(camid).block(4, 0, 3, 1);
-  Eigen::Matrix<double, 8, 1> cam_d = params.camera_intrinsics.at(camid);
-
-  // Convert to opencv format since we will use their undistort functions
-  cv::Matx33d camK;
-  camK(0, 0) = cam_d(0);
-  camK(0, 1) = 0;
-  camK(0, 2) = cam_d(2);
-  camK(1, 0) = 0;
-  camK(1, 1) = cam_d(1);
-  camK(1, 2) = cam_d(3);
-  camK(2, 0) = 0;
-  camK(2, 1) = 0;
-  camK(2, 2) = 1;
-  cv::Vec4d camD;
-  camD(0) = cam_d(4);
-  camD(1) = cam_d(5);
-  camD(2) = cam_d(6);
-  camD(3) = cam_d(7);
+  std::shared_ptr<ov_core::CamBase> camera = params.camera_intrinsics.at(camid);
 
   // Generate the desired number of features
   for (int i = 0; i < numpts; i++) {
 
     // Uniformly randomly generate within our fov
-    std::uniform_real_distribution<double> gen_u(0, params.camera_wh.at(camid).first);
-    std::uniform_real_distribution<double> gen_v(0, params.camera_wh.at(camid).second);
+    std::uniform_real_distribution<double> gen_u(0, camera->w());
+    std::uniform_real_distribution<double> gen_v(0, camera->h());
     double u_dist = gen_u(gen_state_init);
     double v_dist = gen_v(gen_state_init);
 
     // Convert to opencv format
-    cv::Mat mat(1, 2, CV_32F);
-    mat.at<float>(0, 0) = u_dist;
-    mat.at<float>(0, 1) = v_dist;
-    mat = mat.reshape(2); // Nx1, 2-channel
+    cv::Point2f uv_dist((float)u_dist, (float)v_dist);
 
-    // Undistort this point to our normalized coordinates (false=radtan, true=fisheye)
-    if (params.camera_fisheye.at(camid)) {
-      cv::fisheye::undistortPoints(mat, mat, camK, camD);
-    } else {
-      cv::undistortPoints(mat, mat, camK, camD);
-    }
-
-    // Construct our return vector
-    Eigen::Vector3d uv_norm;
-    mat = mat.reshape(1); // Nx2, 1-channel
-    uv_norm(0) = mat.at<float>(0, 0);
-    uv_norm(1) = mat.at<float>(0, 1);
-    uv_norm(2) = 1;
+    // Undistort this point to our normalized coordinates
+    cv::Point2f uv_norm;
+    uv_norm = camera->undistort_cv(uv_dist);
 
     // Generate a random depth
-    // TODO: we should probably have this as a simulation parameter
-    std::uniform_real_distribution<double> gen_depth(5, 10);
+    std::uniform_real_distribution<double> gen_depth(params.sim_min_feature_gen_distance, params.sim_max_feature_gen_distance);
     double depth = gen_depth(gen_state_init);
 
     // Get the 3d point
+    Eigen::Vector3d bearing;
+    bearing << uv_norm.x, uv_norm.y, 1;
     Eigen::Vector3d p_FinC;
-    p_FinC = depth * uv_norm;
+    p_FinC = depth * bearing;
 
     // Move to the global frame of reference
     Eigen::Vector3d p_FinI = R_ItoC.transpose() * (p_FinC - p_IinC);

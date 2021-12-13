@@ -25,10 +25,9 @@
 #include "State.h"
 #include "types/Landmark.h"
 #include "utils/colors.h"
+#include "utils/print.h"
 
 #include <boost/math/distributions/chi_squared.hpp>
-
-using namespace ov_core;
 
 namespace ov_msckf {
 
@@ -72,8 +71,9 @@ public:
    * @param Phi State transition matrix (size order_NEW by size order_OLD)
    * @param Q Additive state propagation noise matrix (size order_NEW by size order_NEW)
    */
-  static void EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &order_NEW,
-                             const std::vector<std::shared_ptr<Type>> &order_OLD, const Eigen::MatrixXd &Phi, const Eigen::MatrixXd &Q);
+  static void EKFPropagation(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &order_NEW,
+                             const std::vector<std::shared_ptr<ov_type::Type>> &order_OLD, const Eigen::MatrixXd &Phi,
+                             const Eigen::MatrixXd &Q);
 
   /**
    * @brief Performs EKF update of the state (see @ref linear-meas page)
@@ -83,21 +83,18 @@ public:
    * @param res residual of updating measurement
    * @param R updating measurement covariance
    */
-  static void EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &H_order, const Eigen::MatrixXd &H,
+  static void EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &H_order, const Eigen::MatrixXd &H,
                         const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
 
   /**
-   * @brief This will fix the initial covariance matrix gauge freedoms (4dof, yaw and position).
-   *
-   * A VIO system has 4dof unobservabile directions which can be arbitarily picked.
-   * This means that on startup, we can fix the yaw and position to be 100 percent known.
-   * Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
-   * into the new IMU pose. In this case the position is directly equivilent, but the orientation needs to be propagated.
-   *
+   * @brief This will set the initial covaraince of the specified state elements.
+   * Will also ensure that proper cross-covariances are inserted.
    * @param state Pointer to state
-   * @param q_GtoI Initial rotation from global frame to the first ever IMU orientation.
+   * @param covariance The covariance of the system state
+   * @param order Order of the covariance matrix
    */
-  static void fix_4dof_gauge_freedoms(std::shared_ptr<State> state, const Eigen::Vector4d &q_GtoI);
+  static void set_initial_covariance(std::shared_ptr<State> state, const Eigen::MatrixXd &covariance,
+                                     const std::vector<std::shared_ptr<ov_type::Type>> &order);
 
   /**
    * @brief For a given set of variables, this will this will calculate a smaller covariance.
@@ -110,7 +107,8 @@ public:
    * @param small_variables Vector of variables whose marginal covariance is desired
    * @return marginal covariance of the passed variables
    */
-  static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &small_variables);
+  static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state,
+                                                 const std::vector<std::shared_ptr<ov_type::Type>> &small_variables);
 
   /**
    * @brief This gets the full covariance matrix.
@@ -136,14 +134,14 @@ public:
    * @param state Pointer to state
    * @param marg Pointer to variable to marginalize
    */
-  static void marginalize(std::shared_ptr<State> state, std::shared_ptr<Type> marg);
+  static void marginalize(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> marg);
 
   /**
    * @brief Clones "variable to clone" and places it at end of covariance
    * @param state Pointer to state
    * @param variable_to_clone Pointer to variable that will be cloned
    */
-  static std::shared_ptr<Type> clone(std::shared_ptr<State> state, std::shared_ptr<Type> variable_to_clone);
+  static std::shared_ptr<ov_type::Type> clone(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> variable_to_clone);
 
   /**
    * @brief Initializes new variable into covariance.
@@ -162,9 +160,9 @@ public:
    * @param res Residual of initializing measurements
    * @param chi_2_mult Value we should multiply the chi2 threshold by (larger means it will be accepted more measurements)
    */
-  static bool initialize(std::shared_ptr<State> state, std::shared_ptr<Type> new_variable,
-                         const std::vector<std::shared_ptr<Type>> &H_order, Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L, Eigen::MatrixXd &R,
-                         Eigen::VectorXd &res, double chi_2_mult);
+  static bool initialize(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> new_variable,
+                         const std::vector<std::shared_ptr<ov_type::Type>> &H_order, Eigen::MatrixXd &H_R, Eigen::MatrixXd &H_L,
+                         Eigen::MatrixXd &R, Eigen::VectorXd &res, double chi_2_mult);
 
   /**
    * @brief Initializes new variable into covariance (H_L must be invertible)
@@ -180,8 +178,8 @@ public:
    * @param R Covariance of initializing measurements
    * @param res Residual of initializing measurements
    */
-  static void initialize_invertible(std::shared_ptr<State> state, std::shared_ptr<Type> new_variable,
-                                    const std::vector<std::shared_ptr<Type>> &H_order, const Eigen::MatrixXd &H_R,
+  static void initialize_invertible(std::shared_ptr<State> state, std::shared_ptr<ov_type::Type> new_variable,
+                                    const std::vector<std::shared_ptr<ov_type::Type>> &H_order, const Eigen::MatrixXd &H_R,
                                     const Eigen::MatrixXd &H_L, const Eigen::MatrixXd &R, const Eigen::VectorXd &res);
 
   /**
@@ -240,7 +238,7 @@ public:
     // We also check that we do not remove any aruoctag landmarks
     auto it0 = state->_features_SLAM.begin();
     while (it0 != state->_features_SLAM.end()) {
-      if ((*it0).second->should_marg && (int)(*it0).first > state->_options.max_aruco_features) {
+      if ((*it0).second->should_marg && (int)(*it0).first > 4 * state->_options.max_aruco_features) {
         StateHelper::marginalize(state, (*it0).second);
         it0 = state->_features_SLAM.erase(it0);
       } else {

@@ -29,8 +29,8 @@ void Loader::load_data(std::string path_traj, std::vector<double> &times, std::v
   // Try to open our trajectory file
   std::ifstream file(path_traj);
   if (!file.is_open()) {
-    printf(RED "[LOAD]: Unable to open trajectory file...\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Unable to open trajectory file...\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -82,28 +82,28 @@ void Loader::load_data(std::string path_traj, std::vector<double> &times, std::v
 
   // Error if we don't have any data
   if (times.empty()) {
-    printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
   // Assert that they are all equal
   if (times.size() != poses.size()) {
-    printf(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
   // Assert that they are all equal
   if (!cov_ori.empty() && (times.size() != cov_ori.size() || times.size() != cov_pos.size())) {
-    printf(RED "[LOAD]: Parsing error, timestamps covariance size do not match!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Parsing error, timestamps covariance size do not match!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
   // Debug print amount
   // std::string base_filename = path_traj.substr(path_traj.find_last_of("/\\") + 1);
-  // printf("[LOAD]: loaded %d poses from %s\n",(int)poses.size(),base_filename.c_str());
+  // PRINT_DEBUG("[LOAD]: loaded %d poses from %s\n",(int)poses.size(),base_filename.c_str());
 }
 
 void Loader::load_data_csv(std::string path_traj, std::vector<double> &times, std::vector<Eigen::Matrix<double, 7, 1>> &poses,
@@ -112,8 +112,8 @@ void Loader::load_data_csv(std::string path_traj, std::vector<double> &times, st
   // Try to open our trajectory file
   std::ifstream file(path_traj);
   if (!file.is_open()) {
-    printf(RED "[LOAD]: Unable to open trajectory file...\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Unable to open trajectory file...\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -163,15 +163,15 @@ void Loader::load_data_csv(std::string path_traj, std::vector<double> &times, st
 
   // Error if we don't have any data
   if (times.empty()) {
-    printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 
   // Assert that they are all equal
   if (times.size() != poses.size()) {
-    printf(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
+    PRINT_ERROR(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path_traj.c_str());
     std::exit(EXIT_FAILURE);
   }
 }
@@ -181,8 +181,8 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
   // Try to open our trajectory file
   std::ifstream file(path);
   if (!file.is_open()) {
-    printf(RED "[LOAD]: Unable to open file...\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Unable to open file...\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -221,8 +221,8 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
 
   // Error if we don't have any data
   if (values.empty()) {
-    printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -230,8 +230,8 @@ void Loader::load_simulation(std::string path, std::vector<Eigen::VectorXd> &val
   int rowsize = values.at(0).rows();
   for (size_t i = 0; i < values.size(); i++) {
     if (values.at(i).rows() != rowsize) {
-      printf(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET, (int)i, (int)values.at(i).rows(), rowsize);
-      printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+      PRINT_ERROR(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET, (int)i, (int)values.at(i).rows(), rowsize);
+      PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
       std::exit(EXIT_FAILURE);
     }
   }
@@ -243,8 +243,8 @@ void Loader::load_timing_flamegraph(std::string path, std::vector<std::string> &
   // Try to open our trajectory file
   std::ifstream file(path);
   if (!file.is_open()) {
-    printf(RED "[LOAD]: Unable to open file...\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Unable to open file...\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -301,8 +301,8 @@ void Loader::load_timing_flamegraph(std::string path, std::vector<std::string> &
 
   // Error if we don't have any data
   if (timing_values.empty()) {
-    printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -310,9 +310,9 @@ void Loader::load_timing_flamegraph(std::string path, std::vector<std::string> &
   int rowsize = names.size();
   for (size_t i = 0; i < timing_values.size(); i++) {
     if (timing_values.at(i).rows() != rowsize) {
-      printf(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET, (int)i, (int)timing_values.at(i).rows(),
-             rowsize);
-      printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+      PRINT_ERROR(RED "[LOAD]: Invalid row size on line %d (of size %d instead of %d)\n" RESET, (int)i, (int)timing_values.at(i).rows(),
+                  rowsize);
+      PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
       std::exit(EXIT_FAILURE);
     }
   }
@@ -324,8 +324,8 @@ void Loader::load_timing_percent(std::string path, std::vector<double> &times, s
   // Try to open our trajectory file
   std::ifstream file(path);
   if (!file.is_open()) {
-    printf(RED "[LOAD]: Unable to open timing file...\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Unable to open timing file...\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -372,15 +372,15 @@ void Loader::load_timing_percent(std::string path, std::vector<double> &times, s
 
   // Error if we don't have any data
   if (times.empty()) {
-    printf(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 
   // Assert that they are all equal
   if (times.size() != summed_values.size() || times.size() != node_values.size()) {
-    printf(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
-    printf(RED "[LOAD]: %s\n" RESET, path.c_str());
+    PRINT_ERROR(RED "[LOAD]: Parsing error, pose and timestamps do not match!!\n" RESET);
+    PRINT_ERROR(RED "[LOAD]: %s\n" RESET, path.c_str());
     std::exit(EXIT_FAILURE);
   }
 }

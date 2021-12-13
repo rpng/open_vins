@@ -21,9 +21,8 @@
 
 #include "State.h"
 
-#include <memory>
-
 using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 State::State(StateOptions &options) {

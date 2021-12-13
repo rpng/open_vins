@@ -27,6 +27,7 @@
 #endif
 
 #include "TrackBase.h"
+#include "utils/print.h"
 
 namespace ov_core {
 
@@ -34,8 +35,11 @@ namespace ov_core {
  * @brief Tracking of OpenCV Aruoc tags.
  *
  * This class handles the tracking of [OpenCV Aruco tags](https://github.com/opencv/opencv_contrib/tree/master/modules/aruco).
- * We track the top left corner of the tag as compared to the pose of the tag or any other corners.
- * Right now we hardcode the dictionary to be `cv::aruco::DICT_6X6_25`, so please generate tags in this family of tags.
+ * We track the corners of the tag as compared to the pose of the tag or any other corners.
+ * Right now we hardcode the dictionary to be `cv::aruco::DICT_6X6_1000`, so please generate tags in this family of tags.
+ * You can generate these tags using an online utility: https://chev.me/arucogen/
+ * The actual size of the tags do not matter since we do not recover the pose and instead just use this for re-detection and tracking of the
+ * four corners of the tag.
  */
 class TrackAruco : public TrackBase {
 
@@ -52,12 +56,12 @@ public:
                       HistogramMethod histmethod, bool downsize)
       : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
 #if ENABLE_ARUCO_TAGS
-    aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_250);
+    aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_1000);
     aruco_params = cv::aruco::DetectorParameters::create();
     // NOTE: people with newer opencv might fail here
     // aruco_params->cornerRefinementMethod = cv::aruco::CornerRefineMethod::CORNER_REFINE_SUBPIX;
 #else
-    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+    PRINT_ERROR(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
     std::exit(EXIT_FAILURE);
 #endif
   }
@@ -107,7 +111,6 @@ protected:
   std::unordered_map<size_t, std::vector<int>> ids_aruco;
   std::unordered_map<size_t, std::vector<std::vector<cv::Point2f>>> corners, rejects;
 #endif
-
 };
 
 } // namespace ov_core

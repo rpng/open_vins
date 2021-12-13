@@ -1,0 +1,68 @@
+<launch>
+
+    <!-- what config we are going to run (should match folder name) -->
+    <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
+    <arg name="config"      default="euroc_mav" /> <!-- euroc_mav, tum_vi, rpng_aruco -->
+    <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
+
+    <!-- mono or stereo and what ros bag to play -->
+    <arg name="max_cameras" default="2" />
+    <arg name="use_stereo"  default="true" />
+    <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
+    <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
+    <arg name="dobag"       default="false" /> <!-- if we should play back the bag -->
+    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 3/$(arg config)/$(arg dataset).bag" />
+
+    <!-- saving trajectory path and timing information -->
+    <arg name="dosave"      default="false" />
+    <arg name="dotime"      default="false" />
+    <arg name="path_est"    default="/tmp/traj_estimate.txt" />
+    <arg name="path_time"   default="/tmp/traj_timing.txt" />
+
+    <!-- if we should viz the groundtruth -->
+    <arg name="dolivetraj"  default="false" />
+    <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
+
+
+    <!-- MASTER NODE! -->
+<!--    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+
+        <!-- master configuration object -->
+        <param name="verbosity"              type="string" value="$(arg verbosity)" />
+        <param name="config_path"            type="string" value="$(arg config_path)" />
+
+        <!-- world/filter parameters -->
+        <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
+        <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
+
+        <!-- timing statistics recording -->
+        <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
+        <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
+
+    </node>
+
+    <!-- play the dataset -->
+    <group if="$(arg dobag)">
+        <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -s $(arg bag_start) $(arg bag)" required="true"/>
+    </group>
+
+    <!-- record the trajectory if enabled -->
+    <group if="$(arg dosave)">
+        <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen" required="true">
+            <param name="topic"      type="str" value="/ov_msckf/poseimu" />
+            <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
+            <param name="output"     type="str" value="$(arg path_est)" />
+        </node>
+    </group>
+
+    <!-- path viz of aligned gt -->
+    <group if="$(arg dolivetraj)">
+        <node name="live_align_trajectory" pkg="ov_eval" type="live_align_trajectory" output="log" clear_params="true">
+            <param name="alignment_type" type="str" value="posyaw" />
+            <param name="path_gt"        type="str" value="$(arg path_gt)" />
+        </node>
+    </group>
+
+
+</launch>

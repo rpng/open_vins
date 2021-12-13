@@ -24,25 +24,30 @@
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <iostream>
+#include <sstream>
 #include <string>
 
-#include "utils/Colors.h"
+#include "utils/colors.h"
+#include "utils/print.h"
 
 /**
  * Given a CSV file this will convert it to our text file format.
  */
 void process_csv(std::string infile) {
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
+
   // Check if file paths are good
   std::ifstream file1;
   std::string line;
   file1.open(infile);
-  printf("Opening file %s\n", boost::filesystem::path(infile).filename().c_str());
+  PRINT_INFO("Opening file %s\n", boost::filesystem::path(infile).filename().c_str());
 
   // Check that it was successful
   if (!file1) {
-    printf(RED "ERROR: Unable to open input file...\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, infile.c_str());
+    PRINT_ERROR(RED "ERROR: Unable to open input file...\n" RESET);
+    PRINT_ERROR(RED "ERROR: %s\n" RESET, infile.c_str());
     std::exit(EXIT_FAILURE);
   }
 
@@ -74,7 +79,9 @@ void process_csv(std::string infile) {
     // Only a valid line if we have all the parameters
     if (i > 7) {
       traj_data.push_back(data);
-      // std::cout << std::setprecision(5) << data.transpose() << std::endl;
+      // std::stringstream ss;
+      // ss << std::setprecision(5) << data.transpose() << std::endl;
+      // PRINT_DEBUG(ss.str().c_str());
     }
   }
 
@@ -83,17 +90,17 @@ void process_csv(std::string infile) {
 
   // Error if we don't have any data
   if (traj_data.empty()) {
-    printf(RED "ERROR: Could not parse any data from the file!!\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, infile.c_str());
+    PRINT_ERROR(RED "ERROR: Could not parse any data from the file!!\n" RESET);
+    PRINT_ERROR(RED "ERROR: %s\n" RESET, infile.c_str());
     std::exit(EXIT_FAILURE);
   }
-  printf("\t- Loaded %d poses from file\n", (int)traj_data.size());
+  PRINT_INFO("\t- Loaded %d poses from file\n", (int)traj_data.size());
 
   // If file exists already then crash
   std::string outfile = infile.substr(0, infile.find_last_of('.')) + ".txt";
   if (boost::filesystem::exists(outfile)) {
-    printf(RED "\t- ERROR: Output file already exists, please delete and re-run this script!!\n" RESET);
-    printf(RED "\t- ERROR: %s\n" RESET, outfile.c_str());
+    PRINT_ERROR(RED "\t- ERROR: Output file already exists, please delete and re-run this script!!\n" RESET);
+    PRINT_ERROR(RED "\t- ERROR: %s\n" RESET, outfile.c_str());
     return;
   }
 
@@ -101,8 +108,8 @@ void process_csv(std::string infile) {
   std::ofstream file2;
   file2.open(outfile.c_str());
   if (file2.fail()) {
-    printf(RED "ERROR: Unable to open output file!!\n" RESET);
-    printf(RED "ERROR: %s\n" RESET, outfile.c_str());
+    PRINT_ERROR(RED "ERROR: Unable to open output file!!\n" RESET);
+    PRINT_ERROR(RED "ERROR: %s\n" RESET, outfile.c_str());
     std::exit(EXIT_FAILURE);
   }
   file2 << "# timestamp(s) tx ty tz qx qy qz qw" << std::endl;
@@ -116,7 +123,7 @@ void process_csv(std::string infile) {
     file2 << traj_data.at(i)(1) << " " << traj_data.at(i)(2) << " " << traj_data.at(i)(3) << " " << traj_data.at(i)(5) << " "
           << traj_data.at(i)(6) << " " << traj_data.at(i)(7) << " " << traj_data.at(i)(4) << std::endl;
   }
-  printf("\t- Saved to file %s\n", boost::filesystem::path(outfile).filename().c_str());
+  PRINT_INFO("\t- Saved to file %s\n", boost::filesystem::path(outfile).filename().c_str());
 
   // Finally close the file
   file2.close();
@@ -126,9 +133,9 @@ int main(int argc, char **argv) {
 
   // Ensure we have a path
   if (argc < 2) {
-    printf(RED "ERROR: Please specify a file to convert\n" RESET);
-    printf(RED "ERROR: ./format_convert <file.csv or folder\n" RESET);
-    printf(RED "ERROR: rosrun ov_eval format_convert <file.csv or folder>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a file to convert\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./format_convert <file.csv or folder\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval format_convert <file.csv or folder>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 

@@ -83,9 +83,11 @@ class CamRadtan : public CamBase {
 
 public:
   /**
-   * Default constructor.
+   * @brief Default constructor
+   * @param width Width of the camera (raw pixels)
+   * @param height Height of the camera (raw pixels)
    */
-  CamRadtan() {}
+  CamRadtan(int width, int height) : CamBase(width, height) {}
 
   /**
    * @brief Given a raw uv point, this will undistort it based on the camera matrices into normalized camera coords.

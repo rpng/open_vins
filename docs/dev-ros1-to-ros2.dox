@@ -1,0 +1,49 @@
+/**
+
+
+@page dev-ros1-to-ros2 ROS1 to ROS2 Bag Conversion Guide
+
+
+
+@section gs-ros1-to-ros2-option-1 rosbags
+
+[rosbags](https://gitlab.com/ternaris/rosbags) is the simplest utility which does not depend on ROS installs at all.
+ROS bag conversion is a hard problem since you need to have both ROS1 and ROS2 dependencies.
+This is what was used to generate the converted ROS2 bag files for standard datasets.
+To do a conversion of a bag file we can do the following:
+
+@code{.shell-session}
+pip install rosbags
+rosbags-convert V1_01_easy.bag
+@endcode
+
+
+
+
+@section dev-ros1-to-ros2-option-2 rosbag2 play
+
+To do this conversion you will need to have both ROS1 and ROS2 installed on your system.
+Also ensure that you have installed all dependencies and backends required.
+The main [rosbag2](https://github.com/ros2/rosbag2) readme has a lot of good details.
+
+@code{.shell-session}
+sudo apt-get install ros-$ROS2_DISTRO-ros2bag ros-$ROS2_DISTRO-rosbag2*
+sudo apt install ros-$ROS2_DISTRO-rosbag2-bag-v2-plugins
+@endcode
+
+From here we can do the following.
+This is based on [this issue](https://github.com/ros2/rosbag2/issues/139#issuecomment-516167831).
+You might run into issues with the .so files being corrupted (see [this issue](https://github.com/ros2/rosbag2/issues/94))
+Not sure if there is a fix besides building it from scratch yourself.
+
+@code{.shell-session}
+source_ros1
+source_ros2
+ros2 bag play -s rosbag_v2 V1_01_easy.bag
+@endcode
+
+
+
+
+
+*/

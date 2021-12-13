@@ -1,11 +1,13 @@
 <?xml version="1.0"?>
-<package>
+<package format="3">
+
     <!-- Package Information -->
     <name>ov_msckf</name>
-    <version>1.0.0</version>
+    <version>2.5.0</version>
     <description>
-        Implementation of the MSCKF.
+        Implementation of a type-based error-state Kalman filter.
     </description>
+    <url>https://docs.openvins.com/</url>
 
     <!-- Code Authors -->
     <author email="pgeneva@udel.edu">Patrick Geneva</author>
@@ -15,35 +17,45 @@
     <!-- Licensing -->
     <license>GNU General Public License v3.0</license>
 
-    <!-- Dependencies which this package needs to build itself. -->
-    <buildtool_depend>catkin</buildtool_depend>
+    <!-- ROS1: Dependencies needed to compile this package. -->
+    <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+    <depend condition="$ROS_VERSION == 1">cmake_modules</depend>
+    <depend condition="$ROS_VERSION == 1">roscpp</depend>
+    <depend condition="$ROS_VERSION == 1">tf</depend>
+    <depend condition="$ROS_VERSION == 1">std_msgs</depend>
+    <depend condition="$ROS_VERSION == 1">sensor_msgs</depend>
+    <depend condition="$ROS_VERSION == 1">geometry_msgs</depend>
+    <depend condition="$ROS_VERSION == 1">nav_msgs</depend>
+    <depend condition="$ROS_VERSION == 1">visualization_msgs</depend>
+    <depend condition="$ROS_VERSION == 1">image_transport</depend>
+    <depend condition="$ROS_VERSION == 1">cv_bridge</depend>
+    <depend condition="$ROS_VERSION == 1">ov_core</depend>
+    <depend condition="$ROS_VERSION == 1">ov_init</depend>
 
-    <!-- Dependencies needed to compile this package. -->
-    <build_depend>cmake_modules</build_depend>
-    <build_depend>roscpp</build_depend>
-    <build_depend>rosbag</build_depend>
-    <build_depend>tf</build_depend>
-    <build_depend>std_msgs</build_depend>
-    <build_depend>geometry_msgs</build_depend>
-    <build_depend>sensor_msgs</build_depend>
-    <build_depend>nav_msgs</build_depend>
-    <build_depend>visualization_msgs</build_depend>
-    <build_depend>cv_bridge</build_depend>
-    <build_depend>ov_core</build_depend>
+    <!-- ROS2: Dependencies needed to compile this package. -->
+    <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+    <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+    <depend condition="$ROS_VERSION == 2">rosbag</depend>
+    <depend condition="$ROS_VERSION == 2">tf2_ros</depend>
+    <depend condition="$ROS_VERSION == 2">std_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">sensor_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">nav_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">cv_bridge</depend>
+    <depend condition="$ROS_VERSION == 2">image_transport</depend>
+    <depend condition="$ROS_VERSION == 2">ov_core</depend>
+    <depend condition="$ROS_VERSION == 2">ov_init</depend>
 
-    <!-- Dependencies needed after this package is compiled. -->
-    <run_depend>roscpp</run_depend>
-    <run_depend>rosbag</run_depend>
-    <run_depend>tf</run_depend>
-    <run_depend>std_msgs</run_depend>
-    <run_depend>geometry_msgs</run_depend>
-    <run_depend>sensor_msgs</run_depend>
-    <run_depend>nav_msgs</run_depend>
-    <run_depend>visualization_msgs</run_depend>
-    <run_depend>cv_bridge</run_depend>
-    <run_depend>ov_core</run_depend>
-    <run_depend>ov_eval</run_depend>
-    <run_depend>ov_data</run_depend>
+    <!-- Note the export is required to expose the executables -->
+    <export>
+        <build_type condition="$ROS_VERSION == 1">catkin</build_type>
+        <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+    </export>
 
+    <!-- These are really "soft" dependencies, and are just required if you need them for launch... -->
+    <!--    <depend condition="$ROS_VERSION == 1">ov_eval</depend>-->
+    <!--    <depend condition="$ROS_VERSION == 1">ov_data</depend>-->
+    <!--    <depend condition="$ROS_VERSION == 2">ov_eval</depend>-->
+    <!--    <depend condition="$ROS_VERSION == 2">ov_data</depend>-->
 
 </package>

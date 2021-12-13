@@ -20,6 +20,7 @@
  */
 
 #include "TrackDescriptor.h"
+#include "utils/print.h"
 
 using namespace ov_core;
 
@@ -27,10 +28,10 @@ void TrackDescriptor::feed_new_camera(const CameraData &message) {
 
   // Error check that we have all the data
   if (message.sensor_ids.empty() || message.sensor_ids.size() != message.images.size() || message.images.size() != message.masks.size()) {
-    printf(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
-    printf(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
-    printf(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
-    printf(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
+    PRINT_ERROR(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
+    PRINT_ERROR(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
+    PRINT_ERROR(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
+    PRINT_ERROR(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
     std::exit(EXIT_FAILURE);
   }
 
@@ -48,7 +49,7 @@ void TrackDescriptor::feed_new_camera(const CameraData &message) {
                     }
                   }));
   } else {
-    printf(RED "[ERROR]: invalid number of images passed %zu, we only support mono or stereo tracking", num_images);
+    PRINT_ERROR(RED "[ERROR]: invalid number of images passed %zu, we only support mono or stereo tracking", num_images);
     std::exit(EXIT_FAILURE);
   }
 }
@@ -141,7 +142,7 @@ void TrackDescriptor::feed_monocular(const CameraData &message, size_t msg_id) {
   }
 
   // Debug info
-  // printf("LtoL = %d | good = %d | fromlast = %d\n",(int)matches_ll.size(),(int)good_left.size(),num_tracklast);
+  // PRINT_DEBUG("LtoL = %d | good = %d | fromlast = %d\n",(int)matches_ll.size(),(int)good_left.size(),num_tracklast);
 
   // Move forward in time
   img_last[cam_id] = img;
@@ -152,11 +153,11 @@ void TrackDescriptor::feed_monocular(const CameraData &message, size_t msg_id) {
   rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Our timing information
-  // printf("[TIME-DESC]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // printf("[TIME-DESC]: %.4f seconds for matching\n",(rT3-rT2).total_microseconds() * 1e-6);
-  // printf("[TIME-DESC]: %.4f seconds for merging\n",(rT4-rT3).total_microseconds() * 1e-6);
-  // printf("[TIME-DESC]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
-  // printf("[TIME-DESC]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for matching\n",(rT3-rT2).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for merging\n",(rT4-rT3).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6,
+  // (int)good_left.size()); PRINT_DEBUG("[TIME-DESC]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
 }
 
 void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left, size_t msg_id_right) {
@@ -297,7 +298,7 @@ void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left,
   }
 
   // Debug info
-  // printf("LtoL = %d | RtoR = %d | LtoR = %d | good = %d | fromlast = %d\n", (int)matches_ll.size(),
+  // PRINT_DEBUG("LtoL = %d | RtoR = %d | LtoR = %d | good = %d | fromlast = %d\n", (int)matches_ll.size(),
   //       (int)matches_rr.size(),(int)ids_left_new.size(),(int)good_left.size(),num_tracklast);
 
   // Move forward in time
@@ -314,11 +315,11 @@ void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left,
   rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Our timing information
-  // printf("[TIME-DESC]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // printf("[TIME-DESC]: %.4f seconds for matching\n",(rT3-rT2).total_microseconds() * 1e-6);
-  // printf("[TIME-DESC]: %.4f seconds for merging\n",(rT4-rT3).total_microseconds() * 1e-6);
-  // printf("[TIME-DESC]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6, (int)good_left.size());
-  // printf("[TIME-DESC]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for matching\n",(rT3-rT2).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for merging\n",(rT4-rT3).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-DESC]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6,
+  // (int)good_left.size()); PRINT_DEBUG("[TIME-DESC]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
 }
 
 void TrackDescriptor::perform_detection_monocular(const cv::Mat &img0, const cv::Mat &mask0, std::vector<cv::KeyPoint> &pts0,

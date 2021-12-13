@@ -1,0 +1,37 @@
+<?xml version="1.0"?>
+<package format="3">
+
+    <!-- Package Information -->
+    <name>ov_init</name>
+    <version>2.5.0</version>
+    <description>
+        Initialization package which handles dynamic and static initialization.
+    </description>
+    <url>https://docs.openvins.com/</url>
+
+    <!-- Code Authors -->
+    <author email="pgeneva@udel.edu">Patrick Geneva</author>
+    <maintainer email="pgeneva@udel.edu">Patrick Geneva</maintainer>
+
+    <!-- Licensing -->
+    <license>GNU General Public License v3.0</license>
+
+    <!-- ROS1: Dependencies needed to compile this package. -->
+    <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+    <depend condition="$ROS_VERSION == 1">cmake_modules</depend>
+    <depend condition="$ROS_VERSION == 1">roscpp</depend>
+    <depend condition="$ROS_VERSION == 1">ov_core</depend>
+
+    <!-- ROS2: Dependencies needed to compile this package. -->
+    <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
+    <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+    <depend condition="$ROS_VERSION == 2">ov_core</depend>
+    <depend condition="$ROS_VERSION == 2">cv_bridge</depend>
+
+    <!-- Note the export is required to expose the executables -->
+    <export>
+        <build_type condition="$ROS_VERSION == 1">catkin</build_type>
+        <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+    </export>
+
+</package>

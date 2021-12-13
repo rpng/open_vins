@@ -24,8 +24,9 @@
 #include <string>
 
 #include "calc/ResultTrajectory.h"
-#include "utils/Colors.h"
 #include "utils/Loader.h"
+#include "utils/colors.h"
+#include "utils/print.h"
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -38,11 +39,14 @@
 
 int main(int argc, char **argv) {
 
+  // Verbosity setting
+  ov_core::Printer::setPrintLevel("INFO");
+
   // Ensure we have a path
   if (argc < 4) {
-    printf(RED "ERROR: Please specify a align mode, folder, and algorithms\n" RESET);
-    printf(RED "ERROR: ./error_dataset <align_mode> <file_gt.txt> <folder_algorithms>\n" RESET);
-    printf(RED "ERROR: rosrun ov_eval error_dataset <align_mode> <file_gt.txt> <folder_algorithms>\n" RESET);
+    PRINT_ERROR(RED "ERROR: Please specify a align mode, folder, and algorithms\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./error_dataset <align_mode> <file_gt.txt> <folder_algorithms>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval error_dataset <align_mode> <file_gt.txt> <folder_algorithms>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -54,7 +58,7 @@ int main(int argc, char **argv) {
   ov_eval::Loader::load_data(argv[2], times, poses, cov_ori, cov_pos);
   // Print its length and stats
   double length = ov_eval::Loader::get_total_length(poses);
-  printf("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_gt.stem().string().c_str(), length);
+  PRINT_DEBUG("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_gt.stem().string().c_str(), length);
 
   // Get the algorithms we will process
   // Also create empty statistic objects for each of our datasets
@@ -83,8 +87,8 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < path_algorithms.size(); i++) {
 
     // Debug print
-    printf("======================================\n");
-    printf("[COMP]: processing %s algorithm\n", path_algorithms.at(i).filename().c_str());
+    PRINT_INFO("======================================\n");
+    PRINT_INFO("[COMP]: processing %s algorithm\n", path_algorithms.at(i).filename().c_str());
 
     // Get the list of datasets this algorithm records
     std::map<std::string, boost::filesystem::path> path_algo_datasets;
@@ -96,8 +100,8 @@ int main(int argc, char **argv) {
 
     // Check if we have runs for our dataset
     if (path_algo_datasets.find(path_gt.stem().string()) == path_algo_datasets.end()) {
-      printf(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET, path_algorithms.at(i).filename().c_str(),
-             path_gt.stem().c_str());
+      PRINT_ERROR(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET, path_algorithms.at(i).filename().c_str(),
+                  path_gt.stem().c_str());
       continue;
     }
 
@@ -123,7 +127,7 @@ int main(int argc, char **argv) {
 
     // Check if we have runs
     if (file_paths.empty()) {
-      printf(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).filename().c_str());
+      PRINT_ERROR(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).filename().c_str());
       continue;
     }
 
@@ -188,18 +192,18 @@ int main(int argc, char **argv) {
 
     // Print stats for this specific dataset
     std::string prefix = (ate_dataset_ori.mean > 10 || ate_dataset_pos.mean > 10) ? RED : "";
-    printf("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET, prefix.c_str(), ate_dataset_ori.mean, ate_dataset_pos.mean,
-           (int)ate_dataset_ori.values.size());
-    printf("\tATE: std_ori  = %.5f | std_pos  = %.5f\n", ate_dataset_ori.std, ate_dataset_pos.std);
-    printf("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n", ate_2d_dataset_ori.mean, ate_2d_dataset_pos.mean,
-           (int)ate_2d_dataset_ori.values.size());
-    printf("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n", ate_2d_dataset_ori.std, ate_2d_dataset_pos.std);
+    PRINT_INFO("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET, prefix.c_str(), ate_dataset_ori.mean, ate_dataset_pos.mean,
+               (int)ate_dataset_ori.values.size());
+    PRINT_INFO("\tATE: std_ori  = %.5f | std_pos  = %.5f\n", ate_dataset_ori.std, ate_dataset_pos.std);
+    PRINT_INFO("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n", ate_2d_dataset_ori.mean, ate_2d_dataset_pos.mean,
+               (int)ate_2d_dataset_ori.values.size());
+    PRINT_INFO("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n", ate_2d_dataset_ori.std, ate_2d_dataset_pos.std);
     for (auto &seg : rpe_dataset) {
       seg.second.first.calculate();
       seg.second.second.calculate();
-      printf("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.mean,
-             seg.second.second.mean, (int)seg.second.second.values.size());
-      // printf("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
+      PRINT_INFO("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.mean,
+                 seg.second.second.mean, (int)seg.second.second.values.size());
+      // PRINT_DEBUG("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
     }
 
     // RMSE: Convert into the right format (only use times where all runs have an error)
@@ -216,7 +220,7 @@ int main(int argc, char **argv) {
     }
     rmse_ori.calculate();
     rmse_pos.calculate();
-    printf("\tRMSE: mean_ori = %.3f | mean_pos = %.3f\n", rmse_ori.mean, rmse_pos.mean);
+    PRINT_INFO("\tRMSE: mean_ori = %.3f | mean_pos = %.3f\n", rmse_ori.mean, rmse_pos.mean);
 
     // RMSE: Convert into the right format (only use times where all runs have an error)
     ov_eval::Statistics rmse_2d_ori, rmse_2d_pos;
@@ -232,7 +236,7 @@ int main(int argc, char **argv) {
     }
     rmse_2d_ori.calculate();
     rmse_2d_pos.calculate();
-    printf("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f\n", rmse_2d_ori.mean, rmse_2d_pos.mean);
+    PRINT_INFO("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f\n", rmse_2d_ori.mean, rmse_2d_pos.mean);
 
     // NEES: Convert into the right format (only use times where all runs have an error)
     ov_eval::Statistics nees_ori, nees_pos;
@@ -248,7 +252,7 @@ int main(int argc, char **argv) {
     }
     nees_ori.calculate();
     nees_pos.calculate();
-    printf("\tNEES: mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
+    PRINT_INFO("\tNEES: mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -315,7 +319,7 @@ int main(int argc, char **argv) {
   }
 
   // Final line for our printed stats
-  printf("============================================\n");
+  PRINT_DEBUG("============================================\n");
 
 #ifdef HAVE_PYTHONLIBS
 

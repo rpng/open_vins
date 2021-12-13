@@ -44,7 +44,6 @@ namespace ov_msckf {
  *
  */
 class UpdaterHelper {
-
 public:
   /**
    * @brief Feature object that our UpdaterHelper leverages, has all measurements and means
@@ -64,7 +63,7 @@ public:
     std::unordered_map<size_t, std::vector<double>> timestamps;
 
     /// What representation our feature is in
-    LandmarkRepresentation::Representation feat_representation;
+    ov_type::LandmarkRepresentation::Representation feat_representation;
 
     /// What camera ID our pose is anchored in!! By default the first measurement is the anchor.
     int anchor_cam_id = -1;
@@ -95,7 +94,7 @@ public:
    * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
    */
   static void get_feature_jacobian_representation(std::shared_ptr<State> state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
-                                                  std::vector<Eigen::MatrixXd> &H_x, std::vector<std::shared_ptr<Type>> &x_order);
+                                                  std::vector<Eigen::MatrixXd> &H_x, std::vector<std::shared_ptr<ov_type::Type>> &x_order);
 
   /**
    * @brief Will construct the "stacked" Jacobians for a single feature from all its measurements
@@ -108,7 +107,7 @@ public:
    * @param[out] x_order Extra variables our extra Jacobian has (for example anchored pose)
    */
   static void get_feature_jacobian_full(std::shared_ptr<State> state, UpdaterHelperFeature &feature, Eigen::MatrixXd &H_f,
-                                        Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<std::shared_ptr<Type>> &x_order);
+                                        Eigen::MatrixXd &H_x, Eigen::VectorXd &res, std::vector<std::shared_ptr<ov_type::Type>> &x_order);
 
   /**
    * @brief This will project the left nullspace of H_f onto the linear system.

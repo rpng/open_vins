@@ -37,7 +37,7 @@
 #include "cam/CamBase.h"
 #include "feat/FeatureDatabase.h"
 #include "utils/colors.h"
-#include "utils/lambda_body.h"
+#include "utils/opencv_lambda_body.h"
 #include "utils/sensor_data.h"
 
 namespace ov_core {
@@ -156,6 +156,12 @@ public:
       }
     }
   }
+
+  /// Getter method for number of active features
+  int get_num_features() { return num_features; }
+
+  /// Setter method for number of active features
+  void set_num_features(int _num_features) { num_features = _num_features; }
 
 protected:
   /// Camera object which has all calibration in it

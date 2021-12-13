@@ -25,9 +25,10 @@
 
 #include "alignment/AlignTrajectory.h"
 #include "alignment/AlignUtils.h"
-#include "utils/Colors.h"
 #include "utils/Loader.h"
-#include "utils/Math.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
 
 ros::Publisher pub_path;
 void align_and_publish(const nav_msgs::Path::ConstPtr &msg);
@@ -40,6 +41,11 @@ int main(int argc, char **argv) {
   // Create ros node
   ros::init(argc, argv, "live_align_trajectory");
   ros::NodeHandle nh("~");
+
+  // Verbosity setting
+  std::string verbosity;
+  nh.param<std::string>("verbosity", verbosity, "INFO");
+  ov_core::Printer::setPrintLevel(verbosity);
 
   // Load what type of alignment we should use
   nh.param<std::string>("alignment_type", alignment_type, "posyaw");
@@ -93,8 +99,8 @@ void align_and_publish(const nav_msgs::Path::ConstPtr &msg) {
 
   // Return failure if we didn't have any common timestamps
   if (poses_temp.size() < 3) {
-    printf(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
-    printf(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
+    PRINT_ERROR(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
+    PRINT_ERROR(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
     return;
   }
 
@@ -103,9 +109,9 @@ void align_and_publish(const nav_msgs::Path::ConstPtr &msg) {
   Eigen::Vector3d t_ESTinGT;
   double s_ESTtoGT;
   ov_eval::AlignTrajectory::align_trajectory(poses_temp, gt_poses_temp, R_ESTtoGT, t_ESTinGT, s_ESTtoGT, alignment_type);
-  Eigen::Vector4d q_ESTtoGT = ov_eval::Math::rot_2_quat(R_ESTtoGT);
-  printf("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n", q_ESTtoGT(0), q_ESTtoGT(1), q_ESTtoGT(2),
-         q_ESTtoGT(3), t_ESTinGT(0), t_ESTinGT(1), t_ESTinGT(2), s_ESTtoGT);
+  Eigen::Vector4d q_ESTtoGT = ov_core::rot_2_quat(R_ESTtoGT);
+  PRINT_DEBUG("[TRAJ]: q_ESTtoGT = %.3f, %.3f, %.3f, %.3f | p_ESTinGT = %.3f, %.3f, %.3f | s = %.2f\n", q_ESTtoGT(0), q_ESTtoGT(1),
+              q_ESTtoGT(2), q_ESTtoGT(3), t_ESTinGT(0), t_ESTinGT(1), t_ESTinGT(2), s_ESTtoGT);
 
   // Finally lets calculate the aligned trajectories
   // TODO: maybe in the future we could live publish trajectory errors...
@@ -119,7 +125,7 @@ void align_and_publish(const nav_msgs::Path::ConstPtr &msg) {
     double timestamp = gt_times_temp.at(i);
     Eigen::Matrix<double, 7, 1> pose_inGT = gt_poses_temp.at(i);
     Eigen::Vector3d pos_IinEST = R_ESTtoGT.transpose() * (pose_inGT.block(0, 0, 3, 1) - t_ESTinGT) / s_ESTtoGT;
-    Eigen::Vector4d quat_ESTtoI = ov_eval::Math::quat_multiply(pose_inGT.block(3, 0, 4, 1), q_ESTtoGT);
+    Eigen::Vector4d quat_ESTtoI = ov_core::quat_multiply(pose_inGT.block(3, 0, 4, 1), q_ESTtoGT);
     // Finally push back
     geometry_msgs::PoseStamped posetemp;
     posetemp.header = msg->header;

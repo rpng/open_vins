@@ -122,10 +122,7 @@ public:
   Eigen::Matrix<double, 3, 3> Rot() const { return _q->Rot(); }
 
   /// FEJ Rotation access
-  Eigen::Matrix<double, 3, 3> Rot_fej() const {
-    return _q->Rot_fej();
-    ;
-  }
+  Eigen::Matrix<double, 3, 3> Rot_fej() const { return _q->Rot_fej(); }
 
   /// Rotation access as quaternion
   Eigen::Matrix<double, 4, 1> quat() const { return _q->value(); }

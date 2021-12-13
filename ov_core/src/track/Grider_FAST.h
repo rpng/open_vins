@@ -31,7 +31,7 @@
 #include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "utils/lambda_body.h"
+#include "utils/opencv_lambda_body.h"
 
 namespace ov_core {
 
@@ -73,6 +73,22 @@ public:
   static void perform_griding(const cv::Mat &img, const cv::Mat &mask, std::vector<cv::KeyPoint> &pts, int num_features, int grid_x,
                               int grid_y, int threshold, bool nonmaxSuppression) {
 
+    // We want to have equally distributed features
+    // NOTE: If we have more grids than number of total points, we calc the biggest grid we can do
+    // NOTE: Thus if we extract 1 point per grid we have
+    // NOTE:    -> 1 = num_features / (grid_x * grid_y))
+    // NOTE:    -> grid_x = ratio * grid_y (keep the original grid ratio)
+    // NOTE:    -> grid_y = sqrt(num_features / ratio)
+    if (num_features < grid_x * grid_y) {
+      double ratio = (double)grid_x / (double)grid_y;
+      grid_y = std::ceil(std::sqrt(num_features / ratio));
+      grid_x = std::ceil(grid_y * ratio);
+    }
+    int num_features_grid = (int)((double)num_features / (double)(grid_x * grid_y)) + 1;
+    assert(grid_x > 0);
+    assert(grid_y > 0);
+    assert(num_features_grid > 0);
+
     // Calculate the size our extraction boxes should be
     int size_x = img.cols / grid_x;
     int size_y = img.rows / grid_y;
@@ -80,9 +96,6 @@ public:
     // Make sure our sizes are not zero
     assert(size_x > 0);
     assert(size_y > 0);
-
-    // We want to have equally distributed features
-    auto num_features_grid = (int)(num_features / (grid_x * grid_y)) + 1;
 
     // Parallelize our 2d grid extraction!!
     int ct_cols = std::floor(img.cols / size_x);

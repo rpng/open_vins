@@ -29,7 +29,7 @@ Within this *OpenVINS* project we address these by advocating the *online* estim
 
 
 The first task is to calibrate the camera intrinsic values such as the focal length, camera center, and distortion coefficients.
-Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) @cite Furgale2013ICRA calibration toolbox to perform both intrinsic and extrinsic offline calibrations, by proceeding the following steps:
+Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) @cite Furgale2013IROS calibration toolbox to perform both intrinsic and extrinsic offline calibrations, by proceeding the following steps:
 
 1. Clone and build the [Kalibr](https://github.com/ethz-asl/kalibr/) toolbox
 2. Print out a calibration board to use (we normally use the [Aprilgrid 6x6 0.8x0.8 m (A0 page)](https://drive.google.com/file/d/0B0T1sizOvRsUdjFJem9mQXdiMTQ/edit?usp=sharing))

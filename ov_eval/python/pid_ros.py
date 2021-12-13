@@ -18,11 +18,12 @@
 # along with this program.  If not, see <https://www.gnu.org/licenses/>.
 
 
-import sys
 import os
-import time
 import rosnode
 import rospy
+import sys
+import time
+
 try:
     from xmlrpc.client import ServerProxy
 except ImportError:
@@ -30,18 +31,17 @@ except ImportError:
 import psutil
 
 
-
 def get_process_ros(node_name, doprint=False):
     # get the node object from ros
     node_api = rosnode.get_api_uri(rospy.get_master(), node_name, skip_cache=True)[2]
     if not node_api:
-        rospy.logerr("could not get api of node %s (%s)"%(node_name, node_api))
+        rospy.logwarn("could not get api of node %s (%s)" % (node_name, node_api))
         return False
     # now try to get the Pid of this process
     try:
         response = ServerProxy(node_api).getPid('/NODEINFO')
     except:
-        rospy.logerr("failed to get of the pid of ros node %s (%s)"%(node_name, node_api))
+        rospy.logwarn("failed to get of the pid of ros node %s (%s)" % (node_name, node_api))
         return False
     # try to get the process using psutil
     try:
@@ -50,9 +50,8 @@ def get_process_ros(node_name, doprint=False):
             rospy.loginfo("adding new node monitor %s (pid %d)" % (node_name, process.pid))
         return process
     except:
-        rospy.logerr("unable to open psutil object for %s"%(response[2]))
+        rospy.logwarn("unable to open psutil object for %s" % (response[2]))
         return False
-
 
 
 if __name__ == '__main__':
@@ -72,11 +71,11 @@ if __name__ == '__main__':
     save_path = rospy.get_param("~output")
 
     # debug print to console
-    rospy.loginfo("processes: %s (%d in total)"%(node_csv,len(node_list)))
-    rospy.loginfo("save path: %s"%save_path)
+    rospy.loginfo("processes: %s (%d in total)" % (node_csv, len(node_list)))
+    rospy.loginfo("save path: %s" % save_path)
 
-    #===================================================================
-    #===================================================================
+    # ===================================================================
+    # ===================================================================
 
     # make sure the directory is made
     if not os.path.exists(os.path.dirname(save_path)):
@@ -87,18 +86,18 @@ if __name__ == '__main__':
             sys.exit(-1)
 
     # open the file we will write the stats into
-    file = open(save_path,"w")
+    file = open(save_path, "w")
 
     # write header to file
     header = "# timestamp(s) summed_cpu_perc summed_mem_perc summed_threads"
     for node in node_list:
-        get_process_ros(node, True) # nice debug print!
-        header += " "+str(node)+"_cpu_perc "+str(node)+"_mem_perc "+str(node)+"_threads"
+        get_process_ros(node, True)  # nice debug print!
+        header += " " + str(node) + "_cpu_perc " + str(node) + "_mem_perc " + str(node) + "_threads"
     header += "\n"
     file.write(header)
 
-    #===================================================================
-    #===================================================================
+    # ===================================================================
+    # ===================================================================
 
     # exit if we should end
     if rospy.is_shutdown():
@@ -114,9 +113,9 @@ if __name__ == '__main__':
         for node in node_list:
             ps_list.append(get_process_ros(node, False))
             try:
-                perc_cpu = ps_list[len(ps_list)-1].cpu_percent(interval=None)
-                perc_mem = ps_list[len(ps_list)-1].memory_percent()
-                threads = ps_list[len(ps_list)-1].num_threads()
+                perc_cpu = ps_list[len(ps_list) - 1].cpu_percent(interval=None)
+                perc_mem = ps_list[len(ps_list) - 1].memory_percent()
+                threads = ps_list[len(ps_list) - 1].num_threads()
             except:
                 continue
 
@@ -127,7 +126,7 @@ if __name__ == '__main__':
         perc_cpu = []
         perc_mem = []
         threads = []
-        for i in range(0,len(node_list)):
+        for i in range(0, len(node_list)):
             try:
                 # get readings
                 p_cpu = ps_list[i].cpu_percent(interval=None)
@@ -144,12 +143,12 @@ if __name__ == '__main__':
                 threads.append(0)
 
         # print what the total summed value is
-        rospy.loginfo("cpu%% = %.3f | mem%% = %.3f | threads = %d"%(sum(perc_cpu),sum(perc_mem),sum(threads)))
+        rospy.loginfo("cpu%% = %.3f | mem%% = %.3f | threads = %d" % (sum(perc_cpu), sum(perc_mem), sum(threads)))
 
         # save the current stats to file!
-        data = "%.8f %.3f %.3f %d"%(time.time(),sum(perc_cpu),sum(perc_mem),sum(threads))
-        for i in range(0,len(node_list)):
-            data += " %.3f %.3f %d"%(perc_cpu[i],perc_mem[i],threads[i])
+        data = "%.8f %.3f %.3f %d" % (time.time(), sum(perc_cpu), sum(perc_mem), sum(threads))
+        for i in range(0, len(node_list)):
+            data += " %.3f %.3f %d" % (perc_cpu[i], perc_mem[i], threads[i])
         data += "\n"
         file.write(data)
         file.flush()

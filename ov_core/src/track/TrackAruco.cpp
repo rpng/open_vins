@@ -20,6 +20,7 @@
  */
 
 #include "TrackAruco.h"
+#include "utils/print.h"
 
 using namespace ov_core;
 
@@ -27,10 +28,10 @@ void TrackAruco::feed_new_camera(const CameraData &message) {
 
   // Error check that we have all the data
   if (message.sensor_ids.empty() || message.sensor_ids.size() != message.images.size() || message.images.size() != message.masks.size()) {
-    printf(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
-    printf(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
-    printf(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
-    printf(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
+    PRINT_ERROR(RED "[ERROR]: MESSAGE DATA SIZES DO NOT MATCH OR EMPTY!!!\n" RESET);
+    PRINT_ERROR(RED "[ERROR]:   - message.sensor_ids.size() = %zu\n" RESET, message.sensor_ids.size());
+    PRINT_ERROR(RED "[ERROR]:   - message.images.size() = %zu\n" RESET, message.images.size());
+    PRINT_ERROR(RED "[ERROR]:   - message.masks.size() = %zu\n" RESET, message.masks.size());
     std::exit(EXIT_FAILURE);
   }
 
@@ -44,8 +45,8 @@ void TrackAruco::feed_new_camera(const CameraData &message) {
                   }
                 }));
 #else
-    printf(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
-    std::exit(EXIT_FAILURE);
+  PRINT_ERROR(RED "[ERROR]: you have not compiled with aruco tag support!!!\n" RESET);
+  std::exit(EXIT_FAILURE);
 #endif
 }
 
@@ -147,9 +148,9 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
   rT3 = boost::posix_time::microsec_clock::local_time();
 
   // Timing information
-  // printf("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // printf("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6,
-  // (int)good_left.size()); printf("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
+  // PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6,
+  // (int)good_left.size()); PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
 }
 
 void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
@@ -172,6 +173,10 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
     if (max_height < pair.second.rows)
       max_height = pair.second.rows;
   }
+
+  // Return if we didn't have a last image
+  if (max_width == -1 || max_height == -1)
+    return;
 
   // If the image is "small" thus we shoudl use smaller display codes
   bool is_small = (std::min(max_width, max_height) < 400);

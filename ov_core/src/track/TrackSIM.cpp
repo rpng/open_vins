@@ -60,11 +60,12 @@ void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<i
     }
 
     // Get our width and height
-    auto wh = camera_wh.at(cam_id);
+    int width = camera_calib.at(cam_id)->w();
+    int height = camera_calib.at(cam_id)->h();
 
     // Move forward in time
-    img_last[cam_id] = cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1);
-    img_mask_last[cam_id] = cv::Mat::zeros(cv::Size(wh.first, wh.second), CV_8UC1);
+    img_last[cam_id] = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
+    img_mask_last[cam_id] = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
     pts_last[cam_id] = good_left;
     ids_last[cam_id] = good_ids_left;
   }

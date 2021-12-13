@@ -23,10 +23,12 @@
 #define OV_MSCKF_UPDATER_ZEROVELOCITY_H
 
 #include "feat/FeatureDatabase.h"
+#include "feat/FeatureHelper.h"
 #include "state/Propagator.h"
 #include "state/State.h"
 #include "state/StateHelper.h"
 #include "utils/colors.h"
+#include "utils/print.h"
 #include "utils/quat_ops.h"
 #include "utils/sensor_data.h"
 
@@ -61,7 +63,7 @@ public:
    * @param zupt_noise_multiplier Multiplier of our IMU noise matrix (default should be 1.0)
    * @param zupt_max_disparity Max disparity we should consider to do a update with
    */
-  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<FeatureDatabase> db,
+  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<ov_core::FeatureDatabase> db,
                       std::shared_ptr<Propagator> prop, double gravity_mag, double zupt_max_velocity, double zupt_noise_multiplier,
                       double zupt_max_disparity)
       : _options(options), _noises(noises), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
@@ -127,7 +129,7 @@ protected:
   Propagator::NoiseManager _noises;
 
   /// Feature tracker database with all features in it
-  std::shared_ptr<FeatureDatabase> _db;
+  std::shared_ptr<ov_core::FeatureDatabase> _db;
 
   /// Our propagator!
   std::shared_ptr<Propagator> _prop;
@@ -154,7 +156,7 @@ protected:
   double last_prop_time_offset = 0.0;
   bool have_last_prop_time_offset = false;
 
-  // Last timestamp we did zero velocity update with
+  /// Last timestamp we did zero velocity update with
   double last_zupt_state_timestamp = 0.0;
 };
 

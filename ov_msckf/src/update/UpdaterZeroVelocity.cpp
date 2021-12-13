@@ -21,6 +21,8 @@
 
 #include "UpdaterZeroVelocity.h"
 
+using namespace ov_core;
+using namespace ov_type;
 using namespace ov_msckf;
 
 bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
@@ -62,7 +64,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
   // Check that we have at least one measurement to propagate with
   if (imu_recent.size() < 2) {
-    printf(RED "[ZUPT]: There are no IMU data to check for zero velocity with!!\n" RESET);
+    PRINT_WARNING(RED "[ZUPT]: There are no IMU data to check for zero velocity with!!\n" RESET);
     last_zupt_state_timestamp = 0.0;
     return false;
   }
@@ -159,53 +161,29 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   } else {
     boost::math::chi_squared chi_squared_dist(res.rows());
     chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
-    printf(YELLOW "[ZUPT]: chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
+    PRINT_WARNING(YELLOW "[ZUPT]: chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
   }
 
   // Check if the image disparity
   bool disparity_passed = false;
   if (override_with_disparity_check) {
 
-    // Get features seen from this image, and the previous image
+    // Get the disparity statistics from this image to the previous
     double time0_cam = state->_timestamp;
     double time1_cam = timestamp;
-    std::vector<std::shared_ptr<Feature>> feats0 = _db->features_containing(time0_cam, false, true);
-
-    // Compute the disparity
+    int num_features = 0;
     double average_disparity = 0.0;
-    double num_features = 0.0;
-    for (auto &feat : feats0) {
+    double variance_disparity = 0.0;
+    FeatureHelper::compute_disparity(_db, time0_cam, time1_cam, average_disparity, variance_disparity, num_features);
 
-      // Get the two uvs for both times
-      for (auto &campairs : feat->timestamps) {
-
-        // First find the two timestamps
-        size_t camid = campairs.first;
-        auto it0 = std::find(feat->timestamps.at(camid).begin(), feat->timestamps.at(camid).end(), time0_cam);
-        auto it1 = std::find(feat->timestamps.at(camid).begin(), feat->timestamps.at(camid).end(), time1_cam);
-        if (it0 == feat->timestamps.at(camid).end() || it1 == feat->timestamps.at(camid).end())
-          continue;
-        auto idx0 = std::distance(feat->timestamps.at(camid).begin(), it0);
-        auto idx1 = std::distance(feat->timestamps.at(camid).begin(), it1);
-
-        // Now lets calculate the disparity
-        Eigen::Vector2f uv0 = feat->uvs.at(camid).at(idx0).block(0, 0, 2, 1);
-        Eigen::Vector2f uv1 = feat->uvs.at(camid).at(idx1).block(0, 0, 2, 1);
-        average_disparity += (uv1 - uv0).norm();
-        num_features += 1;
-      }
-    }
-
-    // Now check if we have passed the threshold
-    if (num_features > 0) {
-      average_disparity /= num_features;
-    }
+    // Check if this disparity is enough to be classified as moving
     disparity_passed = (average_disparity < _zupt_max_disparity && num_features > 20);
     if (disparity_passed) {
-      printf(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity, (int)num_features);
+      PRINT_INFO(CYAN "[ZUPT]: passed disparity (%.3f < %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+                 (int)num_features);
     } else {
-      printf(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
-             (int)num_features);
+      PRINT_DEBUG(YELLOW "[ZUPT]: failed disparity (%.3f > %.3f, %d features)\n" RESET, average_disparity, _zupt_max_disparity,
+                  (int)num_features);
     }
   }
 
@@ -213,12 +191,12 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   // We need to pass the chi2 and not be above our velocity threshold
   if (!disparity_passed && (chi2 > _options.chi2_multipler * chi2_check || state->_imu->vel().norm() > _zupt_max_velocity)) {
     last_zupt_state_timestamp = 0.0;
-    printf(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
-           _options.chi2_multipler * chi2_check);
+    PRINT_DEBUG(YELLOW "[ZUPT]: rejected |v_IinG| = %.3f (chi2 %.3f > %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+                _options.chi2_multipler * chi2_check);
     return false;
   }
-  printf(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
-         _options.chi2_multipler * chi2_check);
+  PRINT_INFO(CYAN "[ZUPT]: accepted |v_IinG| = %.3f (chi2 %.3f < %.3f)\n" RESET, state->_imu->vel().norm(), chi2,
+             _options.chi2_multipler * chi2_check);
 
   // Do our update, only do this update if we have previously detected
   // If we have succeeded, then we should remove the current timestamp feature tracks
