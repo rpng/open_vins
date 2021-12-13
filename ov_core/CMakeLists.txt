@@ -26,15 +26,19 @@ else ()
     add_definitions(-DENABLE_ARUCO_TAGS=1)
 endif ()
 
-# check if we have our python libs files
-# sudo apt-get install python-matplotlib python-numpy python2.7-dev
-find_package(PythonLibs 2.7)
+# check if we have our python libs files (will search for python3 then python2 installs)
+# sudo apt-get install python-matplotlib python-numpy python-dev
+# https://cmake.org/cmake/help/latest/module/FindPython.html
+# https://stackoverflow.com/a/34580995/7718197
+find_package(Python COMPONENTS Interpreter Development)
 option(DISABLE_MATPLOTLIB "Disable or enable matplotlib plot scripts in ov_eval" OFF)
-if (PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
+if (Python_FOUND AND NOT DISABLE_MATPLOTLIB)
     add_definitions(-DHAVE_PYTHONLIBS=1)
-    message(STATUS "PYTHON VERSION: " ${PYTHONLIBS_VERSION_STRING})
-    message(STATUS "PYTHON INCLUDE: " ${PYTHON_INCLUDE_DIRS})
-    message(STATUS "PYTHON LIBRARIES: " ${PYTHON_LIBRARIES})
+    message(STATUS "PYTHON VERSION: " ${Python_VERSION})
+    message(STATUS "PYTHON INCLUDE: " ${Python_INCLUDE_DIRS})
+    message(STATUS "PYTHON LIBRARIES: " ${Python_LIBRARIES})
+    include_directories(${Python_INCLUDE_DIRS})
+    list(APPEND thirdparty_libraries ${Python_LIBRARIES})
 endif ()
 
 # We need c++14 for ROS2, thus just require it for everybody
