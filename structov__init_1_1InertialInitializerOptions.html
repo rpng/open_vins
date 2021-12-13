@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_init::InertialInitializerOptions struct | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="8">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__init.html">ov_init</a>::<wbr/></span>InertialInitializerOptions <span class="m-thin">struct</span>
+        </h1>
+        <p>Struct which stores all options needed for state estimation.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>This is broken into a few different parts: estimator, trackers, and simulation. If you are going to add a parameter here you will need to add it to the parsers. You will also need to add it to the print statement at the bottom of each.</p>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4b4ecffffd22caa546e78b7765e6d0ea" class="m-doc">print_and_load</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
+            </dt>
+            <dd>This function will load the non-simulation parameters of the system and print.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a0f807d03fd000d632baaf934660a3a4c" class="m-doc">print_and_load_initializer</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
+            </dt>
+            <dd>This function will load print out all initializer settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4bbf49110ccf3f02b36d90f2504a0196" class="m-doc">print_and_load_state</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
+            </dt>
+            <dd>This function will load and print all state parameters (e.g. sensor extrinsics) This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+          </dl>
+        </section>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="a8fc45471d64b463b54b49fafc2372391">
+              double <a href="#a8fc45471d64b463b54b49fafc2372391" class="m-doc-self">init_window_time</a>
+            </dt>
+            <dd>Amount of time we will initialize over (seconds)</dd>
+            <dt id="ae52064e908cacf87016bb56162890b5c">
+              double <a href="#ae52064e908cacf87016bb56162890b5c" class="m-doc-self">init_imu_thresh</a>
+            </dt>
+            <dd>Variance threshold on our acceleration to be classified as moving.</dd>
+            <dt id="a2ccadc84d3b4085f3d639efacc1850c6">
+              double <a href="#a2ccadc84d3b4085f3d639efacc1850c6" class="m-doc-self">init_max_disparity</a>
+            </dt>
+            <dd>Max disparity we will consider the unit to be stationary.</dd>
+            <dt id="a442ed53391151e45582a365c057ac492">
+              int <a href="#a442ed53391151e45582a365c057ac492" class="m-doc-self">init_max_features</a>
+            </dt>
+            <dd>Number of features we should try to track.</dd>
+            <dt id="a94b223e0b714d700d3b489b3918b002d">
+              double <a href="#a94b223e0b714d700d3b489b3918b002d" class="m-doc-self">gravity_mag</a>
+            </dt>
+            <dd>Gravity magnitude in the global frame (i.e. should be 9.81 typically)</dd>
+            <dt id="a6525a195b4ba524597a0031fa23f65af">
+              int <a href="#a6525a195b4ba524597a0031fa23f65af" class="m-doc-self">num_cameras</a>
+            </dt>
+            <dd>Number of distinct cameras that we will observe features in.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a4b4ecffffd22caa546e78b7765e6d0ea"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />InertialInitializerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4b4ecffffd22caa546e78b7765e6d0ea" class="m-doc-self">print_and_load</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load the non-simulation parameters of the system and print.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a0f807d03fd000d632baaf934660a3a4c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />InertialInitializerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0f807d03fd000d632baaf934660a3a4c" class="m-doc-self">print_and_load_initializer</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all initializer settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a4bbf49110ccf3f02b36d90f2504a0196"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />InertialInitializerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4bbf49110ccf3f02b36d90f2504a0196" class="m-doc-self">print_and_load_state</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load and print all state parameters (e.g. sensor extrinsics) This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

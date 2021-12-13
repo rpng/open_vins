@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -2490,7 +2491,7 @@ $\mathbf a$
 <g id='eq41-page1'>
 <use x='0' y='0' xlink:href='#eq41-g0-97'/>
 </g>
-</svg> (see <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Quaternion TR</a> <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[19]</a>). Note also that in above expression (as well as in ensuing derivations), there is a little abuse of notation; that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotation angle vector. Moreover, if performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is needed:</p><div class="m-math"><svg style="width: 17.926em; height: 6.261em;" viewBox="108.824984 -60.108668 172.088524 60.10868">
+</svg> (see <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Quaternion TR</a> <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[20]</a>). Note also that in above expression (as well as in ensuing derivations), there is a little abuse of notation; that is, the Jacobian with respect to the rotation matrix is not the direct differentiation with respect to the 3x3 rotation matrix, instead with respect to the corresponding 3x1 rotation angle vector. Moreover, if performing online extrinsic calibration, the Jacobian with respect to the IMU-camera extrinsics is needed:</p><div class="m-math"><svg style="width: 17.926em; height: 6.261em;" viewBox="108.824984 -60.108668 172.088524 60.10868">
 <title>
 \begin{align*} \frac{\partial \mathbf h_t (\cdot)}{\partial {}^{C}_{I}\mathbf{R}} &amp;= \left\lfloor {}^{C}_{I}\mathbf{R}{}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\right\rfloor \\ \frac{\partial \mathbf h_t (\cdot)}{\partial {}^{C}\mathbf{p}_I} &amp;= \mathbf{I}_{3\times 3} \end{align*}
 </title>
@@ -3820,7 +3821,7 @@ $\{{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a}\}$
 <use x='184.163144' y='-10.525258' xlink:href='#eq58-g0-82'/>
 <use x='194.194987' y='-15.461444' xlink:href='#eq58-g2-62'/>
 </g>
-</svg></div></section><section id="feat-rep-anchor-inv2"><h3><a href="#feat-rep-anchor-inv2">Anchored Inverse Depth (MSCKF Version)</a></h3><p>Note that a simpler version of inverse depth was used in the original MSCKF paper <a href="citelist.html#CITEREF_Mourikis2007ICRA" class="m-doc">[13]</a>. This representation does not have the singularity if it is represented in a camera frame the feature was measured from.</p><div class="m-math"><svg style="width: 22.756em; height: 10.610em;" viewBox="84.542341 -102.006377 218.462035 101.856981">
+</svg></div></section><section id="feat-rep-anchor-inv2"><h3><a href="#feat-rep-anchor-inv2">Anchored Inverse Depth (MSCKF Version)</a></h3><p>Note that a simpler version of inverse depth was used in the original MSCKF paper <a href="citelist.html#CITEREF_Mourikis2007ICRA" class="m-doc">[14]</a>. This representation does not have the singularity if it is represented in a camera frame the feature was measured from.</p><div class="m-math"><svg style="width: 22.756em; height: 10.610em;" viewBox="84.542341 -102.006377 218.462035 101.856981">
 <title>
 \begin{align*} {}^{G}\mathbf{p}_f &amp;= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I}) \\ &amp;= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\ &amp;= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top\Bigg(\frac{1}{\rho}\begin{bmatrix} \alpha \\ \beta \\ 1 \end{bmatrix}-{}^{C}\mathbf{p}_{I}\Bigg) + {}^{G}\mathbf{p}_{I_a} \\ \text{where} &amp;\quad \boldsymbol\lambda = \begin{bmatrix} \alpha &amp; \beta &amp; \rho \end{bmatrix}^\top \end{align*}
 </title>
@@ -4197,7 +4198,7 @@ $\{{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a}\}$
 <use x='184.163144' y='-10.525258' xlink:href='#eq62-g0-82'/>
 <use x='194.194987' y='-15.461444' xlink:href='#eq62-g2-62'/>
 </g>
-</svg></div></section><section id="feat-rep-anchor-inv3"><h3><a href="#feat-rep-anchor-inv3">Anchored Inverse Depth (MSCKF Single Depth Version)</a></h3><p>This feature representation is based on the MSCKF representation <a href="citelist.html#CITEREF_Mourikis2007ICRA" class="m-doc">[13]</a>, and the the single depth from VINS-Mono <a href="citelist.html#CITEREF_Qin2018TRO" class="m-doc">[16]</a>. As compared to the implementation in <a href="citelist.html#CITEREF_Qin2018TRO" class="m-doc">[16]</a>, we are careful about how we handle treating of the bearing of the feature. During initialization we initialize a full 3D feature and then follow that by marginalize the bearing portion of it leaving the depth in the state vector. The marginalized bearing is then fixed for all future linearizations.</p><p>Then during update, we perform nullspace projection at every timestep to remove the feature dependence on this bearing. To do so, we need at least <em>two</em> sets of UV measurements to perform this bearing nullspace operation since we loose two dimensions of the feature in the process. We can define the feature measurement function as follows:</p><div class="m-math"><svg style="width: 20.702em; height: 8.589em;" viewBox="94.404756 -82.606425 198.737205 82.457029">
+</svg></div></section><section id="feat-rep-anchor-inv3"><h3><a href="#feat-rep-anchor-inv3">Anchored Inverse Depth (MSCKF Single Depth Version)</a></h3><p>This feature representation is based on the MSCKF representation <a href="citelist.html#CITEREF_Mourikis2007ICRA" class="m-doc">[14]</a>, and the the single depth from VINS-Mono <a href="citelist.html#CITEREF_Qin2018TRO" class="m-doc">[17]</a>. As compared to the implementation in <a href="citelist.html#CITEREF_Qin2018TRO" class="m-doc">[17]</a>, we are careful about how we handle treating of the bearing of the feature. During initialization we initialize a full 3D feature and then follow that by marginalize the bearing portion of it leaving the depth in the state vector. The marginalized bearing is then fixed for all future linearizations.</p><p>Then during update, we perform nullspace projection at every timestep to remove the feature dependence on this bearing. To do so, we need at least <em>two</em> sets of UV measurements to perform this bearing nullspace operation since we loose two dimensions of the feature in the process. We can define the feature measurement function as follows:</p><div class="m-math"><svg style="width: 20.702em; height: 8.589em;" viewBox="94.404756 -82.606425 198.737205 82.457029">
 <title>
 \begin{align*} {}^{G}\mathbf{p}_f &amp;= \mathbf f(\boldsymbol\lambda,~{}^{I_a}_{G}\mathbf{R},~{}^{G}\mathbf{p}_{I_a},~{}^{C}_{I}\mathbf{R},~{}^{C}\mathbf{p}_{I}) \\ &amp;= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top({}^{C_a}\mathbf{p}_f-{}^{C}\mathbf{p}_{I}) + {}^{G}\mathbf{p}_{I_a} \\ &amp;= {}^{I_a}_{G}\mathbf{R}^\top{}^{C}_{I}\mathbf{R}^\top\Big(\frac{1}{\rho}\hat{\mathbf{b}}-{}^{C}\mathbf{p}_{I}\Big) + {}^{G}\mathbf{p}_{I_a} \\ \text{where} &amp;\quad \boldsymbol\lambda = \begin{bmatrix} \rho \end{bmatrix} \end{align*}
 </title>

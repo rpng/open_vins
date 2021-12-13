@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -57,6 +58,7 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pro-methods">Protected functions</a></li>
@@ -66,6 +68,16 @@
           </ul>
         </div>
 <p>Given a trajectory this will generate a SE(3) <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a> for that trajectory. This allows us to get the inertial measurement information at each timestep during this trajectory. After creating the bspline we will generate an environmental feature map which will be used as our feature measurements. This map will be projected into the frame at each timestep to get our &quot;raw&quot; uv measurements. We inject bias and white noises into our inertial readings while adding our white noise to the uv measurements also. The user should specify the sensor rates that they desire along with the seeds of the random number generators.</p>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#ab7b38fccf364b602eef8294524f3f30a" class="m-doc">perturb_parameters</a>(</span><span class="m-doc-wrap">std::mt19937 gen_state,
+              <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span>
+            </dt>
+            <dd>Will get a set of perturbed parameters.</dd>
+          </dl>
+        </section>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
@@ -107,8 +119,12 @@
               <span class="m-doc-wrap-bumper">auto <a href="#aca2fcef0b73e4c570049030438caa60b" class="m-doc-self">get_map</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::Vector3d&gt;</span>
             </dt>
             <dd>Returns the true 3d map of features.</dd>
-            <dt id="a58c20c739823602e6a943bde2411bf7e">
-              <span class="m-doc-wrap-bumper">auto <a href="#a58c20c739823602e6a943bde2411bf7e" class="m-doc-self">get_true_paramters</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a></span>
+            <dt id="aa6f03a9aefbf97bccf950059608bd3c1">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa6f03a9aefbf97bccf950059608bd3c1" class="m-doc-self">get_map_vec</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
+            </dt>
+            <dd>Returns the true 3d map of features.</dd>
+            <dt id="a3a7f99eb6dd01918d88f6db017c83830">
+              <span class="m-doc-wrap-bumper">auto <a href="#a3a7f99eb6dd01918d88f6db017c83830" class="m-doc-self">get_true_parameters</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a></span>
             </dt>
             <dd>Access function to get the true parameters (i.e. calibration and settings)</dd>
           </dl>
@@ -116,10 +132,6 @@
         <section id="pro-methods">
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a1be4cc060b90a75cb1bbdfb4214deab4" class="m-doc">load_data</a>(</span><span class="m-doc-wrap">std::string path_traj)</span>
-            </dt>
-            <dd>This will load the trajectory into memory.</dd>
             <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
@@ -148,8 +160,8 @@
               std::vector&lt;Eigen::VectorXd&gt; <a href="#af1e667cafe40b3f648ebd773153de72e" class="m-doc-self">traj_data</a>
             </dt>
             <dd>Our loaded trajectory data (timestamp(s), q_GtoI, p_IinG)</dd>
-            <dt id="a1d648f4937b67fac92948db15c998e69">
-              <a href="classov__core_1_1BsplineSE3.html" class="m-doc">BsplineSE3</a> <a href="#a1d648f4937b67fac92948db15c998e69" class="m-doc-self">spline</a>
+            <dt id="aba22fd0ac92f34bf5ad491f82d021c72">
+              <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a> <a href="#aba22fd0ac92f34bf5ad491f82d021c72" class="m-doc-self">spline</a>
             </dt>
             <dd>Our b-spline trajectory.</dd>
             <dt id="a125ad6c49a2f30934a1b233534fbfb27">
@@ -200,6 +212,28 @@
         </section>
         <section>
           <h2>Function documentation</h2>
+          <section class="m-doc-details" id="ab7b38fccf364b602eef8294524f3f30a"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab7b38fccf364b602eef8294524f3f30a" class="m-doc-self">perturb_parameters</a>(</span><span class="m-doc-wrap">std::mt19937 gen_state,
+              <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span></span>
+            </h3>
+            <p>Will get a set of perturbed parameters.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">gen_state</td>
+                  <td>Random number gen to use</td>
+                </tr>
+                <tr>
+                  <td>params_</td>
+                  <td>Parameters we will perturb</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="ab36fe774609d9e764219266867e21c4d"><div>
             <h3>
               <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab36fe774609d9e764219266867e21c4d" class="m-doc-self">Simulator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">VioManagerOptions</a>&amp; params_)</span></span>
@@ -337,23 +371,6 @@
                   <td>True if we have a measurement</td>
                 </tr>
               </tfoot>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="a1be4cc060b90a75cb1bbdfb4214deab4"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1be4cc060b90a75cb1bbdfb4214deab4" class="m-doc-self">load_data</a>(</span><span class="m-doc-wrap">std::string path_traj) <span class="m-label m-warning">protected</span></span></span>
-            </h3>
-            <p>This will load the trajectory into memory.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">path_traj</td>
-                  <td>Path to the trajectory file that we want to read in.</td>
-                </tr>
-              </tbody>
             </table>
           </div></section>
           <section class="m-doc-details" id="a1c6947099892bd64e2bad9b4c9303226"><div>

@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -58,6 +59,7 @@
               Reference
               <ul>
                 <li><a href="#base-classes">Base classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
               </ul>
             </li>
@@ -738,6 +740,16 @@ $ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top$
             <dd>Base pinhole camera model class.</dd>
           </dl>
         </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#aac99e3cb833ebf47a7ba2db390ba5f66" class="m-doc">CamEqui</a>(</span><span class="m-doc-wrap">int width,
+              int height)</span>
+            </dt>
+            <dd>Default constructor.</dd>
+          </dl>
+        </section>
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
@@ -759,6 +771,28 @@ $ \mathbf{z}_{n,k} = [ x_n ~ y_n ]^\top$
         </section>
         <section>
           <h2>Function documentation</h2>
+          <section class="m-doc-details" id="aac99e3cb833ebf47a7ba2db390ba5f66"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />CamEqui::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aac99e3cb833ebf47a7ba2db390ba5f66" class="m-doc-self">CamEqui</a>(</span><span class="m-doc-wrap">int width,
+              int height)</span></span>
+            </h3>
+            <p>Default constructor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">width</td>
+                  <td>Width of the camera (raw pixels)</td>
+                </tr>
+                <tr>
+                  <td>height</td>
+                  <td>Height of the camera (raw pixels)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="a737d6b4b634ae1da976d362158323059"><div>
             <h3>
               <span class="m-doc-wrap-bumper">Eigen::Vector2f ov_core::<wbr />CamEqui::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a737d6b4b634ae1da976d362158323059" class="m-doc-self">undistort_f</a>(</span><span class="m-doc-wrap">const Eigen::Vector2f&amp; uv_dist) <span class="m-label m-warning">override</span></span></span>

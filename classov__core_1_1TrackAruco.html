@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -64,7 +65,7 @@
             </li>
           </ul>
         </div>
-<p>This class handles the tracking of <a href="https://github.com/opencv/opencv_contrib/tree/master/modules/aruco">OpenCV Aruco tags</a>. We track the top left corner of the tag as compared to the pose of the tag or any other corners. Right now we hardcode the dictionary to be <code>cv::aruco::DICT_6X6_25</code>, so please generate tags in this family of tags.</p>
+<p>This class handles the tracking of <a href="https://github.com/opencv/opencv_contrib/tree/master/modules/aruco">OpenCV Aruco tags</a>. We track the corners of the tag as compared to the pose of the tag or any other corners. Right now we hardcode the dictionary to be <code>cv::aruco::DICT_6X6_1000</code>, so please generate tags in this family of tags. You can generate these tags using an online utility: <a href="https://chev.me/arucogen/">https:/<wbr />/<wbr />chev.me/<wbr />arucogen/<wbr /></a> The actual size of the tags do not matter since we do not recover the pose and instead just use this for re-detection and tracking of the four corners of the tag.</p>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">

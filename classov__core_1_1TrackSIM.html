@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -60,7 +61,6 @@
                 <li><a href="#base-classes">Base classes</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
-                <li><a href="#pro-attribs">Protected variables</a></li>
               </ul>
             </li>
           </ul>
@@ -89,10 +89,6 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ae58f5e3a8739ed989afa92db869d4957" class="m-doc">set_width_height</a>(</span><span class="m-doc-wrap">std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; _camera_wh)</span>
-            </dt>
-            <dd>Set the width and height for the cameras.</dd>
-            <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a4c1537c48eec664a2c83dacc4b7e5778" class="m-doc">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Process a new image.</dd>
@@ -102,15 +98,6 @@
               const std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span>
             </dt>
             <dd>Feed function for a synchronized simulated cameras.</dd>
-          </dl>
-        </section>
-        <section id="pro-attribs">
-          <h2><a href="#pro-attribs">Protected variables</a></h2>
-          <dl class="m-doc">
-            <dt id="a6d24f1b505e22b334a4585fefcb03d6a">
-              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#a6d24f1b505e22b334a4585fefcb03d6a" class="m-doc-self">camera_wh</a>
-            </dt>
-            <dd>Width and height of our cameras.</dd>
           </dl>
         </section>
         <section>
@@ -133,23 +120,6 @@
                 <tr>
                   <td>numaruco</td>
                   <td>the max id of the arucotags, so we ensure that we start our non-auroc features above this value</td>
-                </tr>
-              </tbody>
-            </table>
-          </div></section>
-          <section class="m-doc-details" id="ae58f5e3a8739ed989afa92db869d4957"><div>
-            <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackSIM::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae58f5e3a8739ed989afa92db869d4957" class="m-doc-self">set_width_height</a>(</span><span class="m-doc-wrap">std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; _camera_wh)</span></span>
-            </h3>
-            <p>Set the width and height for the cameras.</p>
-            <table class="m-table m-fullwidth m-flat">
-              <thead>
-                <tr><th colspan="2">Parameters</th></tr>
-              </thead>
-              <tbody>
-                <tr>
-                  <td style="width: 1%">_camera_wh</td>
-                  <td>Width and height for each camera</td>
                 </tr>
               </tbody>
             </table>

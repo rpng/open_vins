@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -717,7 +718,7 @@ $\tilde{\boldsymbol{\theta}} = \tilde{\theta}~\hat{\mathbf{k}}$
 <use x='231.101828' y='-30.407365' xlink:href='#eq28-g2-55'/>
 <use x='231.101828' y='-22.756004' xlink:href='#eq28-g2-53'/>
 </g>
-</svg></div></section><section id="imu_kinematic"><h2><a href="#imu_kinematic">IMU Kinematics</a></h2><p>The IMU state evolves over time as follows (see <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a> <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[19]</a>).</p><div class="m-math"><svg style="width: 18.894em; height: 13.731em;" viewBox="104.128378 -133.166952 181.378622 131.821959">
+</svg></div></section><section id="imu_kinematic"><h2><a href="#imu_kinematic">IMU Kinematics</a></h2><p>The IMU state evolves over time as follows (see <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a> <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[20]</a>).</p><div class="m-math"><svg style="width: 18.894em; height: 13.731em;" viewBox="104.128378 -133.166952 181.378622 131.821959">
 <title>
 \begin{align*} \newcommand{\comm}[1]{} ^I_G\dot{\bar{q}}(t) \comm{ &amp;= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I_{t + \delta t}}_G\bar{q} - \text{}^{I_{t}}_G\bar{q})\\ &amp;= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I_{t + \delta t}}_{L_{t}}\bar{q} \otimes ^{I_{t}}_{G}\bar{q} - \bar{q}_0 \otimes \text{}^{I_{t}}_G\bar{q})\\ &amp;= \lim_{\delta t \to 0} \frac{1}{\delta t} (^{I_{t + \delta t}}_{L_{t}}\bar{q} - \bar{q}_0 ) \otimes \text{}^{I_{t}}_{G}\bar{q}\\ &amp;\approx \lim_{\delta t \to 0} \frac{1}{\delta t} \Bigg (\begin{bmatrix} \frac{1}{2}\delta \boldsymbol{\theta}\\ 1 \end{bmatrix} -\begin{bmatrix} \boldsymbol{0}\\ 1 \end{bmatrix} \Bigg ) \otimes \text{}^{I_{t}}_{G}\bar{q} \\ &amp;= \frac{1}{2} \begin{bmatrix} \boldsymbol{\omega}\\ 0 \end{bmatrix} \otimes \text{}^{I_{t}}_{G}\bar{q}\\} &amp;= \frac{1}{2} \begin{bmatrix} -\lfloor \boldsymbol{\omega}(t) \times \rfloor &amp;&amp; \boldsymbol{\omega}(t) \\ -\boldsymbol{\omega}^\top(t) &amp;&amp; 0 \end{bmatrix} \text{}^{I_{t}}_{G}\bar{q}\\ &amp;=: \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \text{}^{I_{t}}_{G}\bar{q}\\ ^G\dot{\mathbf{p}}_I(t) &amp;=\text{} ^G\mathbf{v}_I(t)\\ ^G\dot{\mathbf{v}}_I(t) &amp;=\text{} ^{I_{t}}_G\mathbf{R}^\top\mathbf{a}(t) \\ \dot{\mathbf{b}}_{\mathbf{g}}(t) &amp;= \mathbf{n}_{wg}\\ \dot{\mathbf{b}}_{\mathbf{a}}(t) &amp;= \mathbf{n}_{wa} \end{align*}
 </title>
@@ -1269,7 +1270,7 @@ $\boldsymbol{\Theta}$
 <g id='eq41-page1'>
 <use x='0' y='0' xlink:href='#eq41-g0-2'/>
 </g>
-</svg> can be solved as (see <a href="https://books.google.com/books?id=L_YVMUJKNQUC">[Stochastic Models, Estimation, and Control]</a> <a href="citelist.html#CITEREF_Maybeck1982STOC" class="m-doc">[12]</a>):</p><div class="m-math"><svg style="width: 30.490em; height: 9.356em;" viewBox="47.920913 -89.813263 292.701126 89.813263">
+</svg> can be solved as (see <a href="https://books.google.com/books?id=L_YVMUJKNQUC">[Stochastic Models, Estimation, and Control]</a> <a href="citelist.html#CITEREF_Maybeck1982STOC" class="m-doc">[13]</a>):</p><div class="m-math"><svg style="width: 30.490em; height: 9.356em;" viewBox="47.920913 -89.813263 292.701126 89.813263">
 <title>
 \begin{align*} \boldsymbol{\Theta}(t_{k+1},t_k) &amp;= \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})\Delta t\bigg)\\ &amp;= \cos\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t \bigg) \cdot \mathbf{I}_4 + \frac{1}{|\boldsymbol{\omega}|}\sin\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t \bigg) \cdot \boldsymbol{\Omega}(\boldsymbol{\omega})\\ &amp;\simeq \mathbf{I}_4 + \frac{\Delta t}{2}\boldsymbol{\Omega}(\boldsymbol{\omega}) \end{align*}
 </title>
@@ -2307,7 +2308,7 @@ $\mathbf{Q}_d$
 <use x='0' y='0' xlink:href='#eq67-g0-81'/>
 <use x='10.101003' y='1.793263' xlink:href='#eq67-g1-100'/>
 </g>
-</svg> can be computed as (see [<a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>] <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[19]</a> Eq. (129) and (130)):</p><div class="m-math"><svg style="width: 17.283em; height: 13.007em;" viewBox="111.311722 -125.096375 165.919527 124.867969">
+</svg> can be computed as (see [<a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>] <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[20]</a> Eq. (129) and (130)):</p><div class="m-math"><svg style="width: 17.283em; height: 13.007em;" viewBox="111.311722 -125.096375 165.919527 124.867969">
 <title>
 \begin{align*} \sigma_{g} &amp;= \frac{1}{\sqrt{\Delta t}}~ \sigma_{g_c} \\ \sigma_{bg} &amp;= \sqrt{\Delta t}~ \sigma_{bg_c} \\[1em] \mathbf{Q}_{meas} &amp;= \begin{bmatrix} \frac{1}{\Delta t}~ \sigma_{g_c}^2~ \mathbf{I}_3 &amp; \mathbf{0}_3 \\ \mathbf{0}_3 &amp; \frac{1}{\Delta t}~ \sigma_{a_c}^2~ \mathbf{I}_3 \end{bmatrix} \\ \mathbf{Q}_{bias} &amp;= \begin{bmatrix} \Delta t~ \sigma_{bg_c}^2~ \mathbf{I}_3 &amp; \mathbf{0}_3 \\ \mathbf{0}_3 &amp; \Delta t~ \sigma_{ba_c}^2~ \mathbf{I}_3 \end{bmatrix} \end{align*}
 </title>
@@ -2941,7 +2942,7 @@ $\mathbf{SO}(3)$
 <use x='22.125297' y='0' xlink:href='#eq79-g1-51'/>
 <use x='27.978288' y='0' xlink:href='#eq79-g1-41'/>
 </g>
-</svg> that maps the variation of rotation angle in the parameter vector space into the variation in the tangent vector space to the manifold [see <a href="namespaceov__core.html#a229de3ba88b298fab8b9fdc0d3ce6349" class="m-doc">ov_core::<wbr />Jr_so3()</a>]. By neglecting the second order terms from above, we obtain the following orientation error propagation:</p><div class="m-math"><svg style="width: 26.107em; height: 1.713em;" viewBox="68.956288 -16.447112 250.630407 16.447112">
+</svg> that maps the variation of rotation angle in the parameter vector space into the variation in the tangent vector space to the manifold [see <a href="namespaceov__core.html#a0406d085d6175d3bc8a539328ec214b5" class="m-doc">ov_core::<wbr />Jr_so3()</a>]. By neglecting the second order terms from above, we obtain the following orientation error propagation:</p><div class="m-math"><svg style="width: 26.107em; height: 1.713em;" viewBox="68.956288 -16.447112 250.630407 16.447112">
 <title>
 \begin{align*} \text{}^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}} \approx \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}} \text{}^{I_k}_{G}\tilde{\boldsymbol{\theta}} - \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\mathbf J_r(\text{}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}}) \Delta t (\tilde{\mathbf{b}}_{\mathbf{g},k} + \mathbf{n}_{\mathbf{g},k}) \end{align*}
 </title>

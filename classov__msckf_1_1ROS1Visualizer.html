@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_msckf::RosVisualizer class | OpenVINS</title>
+  <title>ov_msckf::ROS1Visualizer class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -48,7 +49,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>RosVisualizer <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>ROS1Visualizer <span class="m-thin">class</span>
         </h1>
         <p>Helper class that will publish results onto the ROS framework.</p>
         <div class="m-block m-default">
@@ -70,7 +71,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a93649edb41467fc71b40d9a5ba83636a" class="m-doc">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
+              <span class="m-doc-wrap-bumper"><a href="#abd76c037fd103010fcdb74d2d9f9e391" class="m-doc">ROS1Visualizer</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;ros::NodeHandle&gt; nh,
               std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; app,
               std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; sim = nullptr)</span>
             </dt>
@@ -80,67 +81,87 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="a5ba7b560b00d0a312378b4fcf6101321">
-              <span class="m-doc-wrap-bumper">void <a href="#a5ba7b560b00d0a312378b4fcf6101321" class="m-doc-self">visualize</a>(</span><span class="m-doc-wrap">)</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4e2e37124ca201ce654ff0b0b60ad3c2" class="m-doc">setup_subscribers</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt; parser)</span>
+            </dt>
+            <dd>Will setup ROS subscribers and callbacks.</dd>
+            <dt id="af1b81d6404be911527608c6564b031de">
+              <span class="m-doc-wrap-bumper">void <a href="#af1b81d6404be911527608c6564b031de" class="m-doc-self">visualize</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Will visualize the system if we have new things.</dd>
-            <dt id="ac18c4d5638c9b21740fa5246fb57b7aa">
-              <span class="m-doc-wrap-bumper">void <a href="#ac18c4d5638c9b21740fa5246fb57b7aa" class="m-doc-self">visualize_odometry</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+            <dt id="ae3f4eb0a391d47c3bd811cb43935b9bc">
+              <span class="m-doc-wrap-bumper">void <a href="#ae3f4eb0a391d47c3bd811cb43935b9bc" class="m-doc-self">visualize_odometry</a>(</span><span class="m-doc-wrap">double timestamp)</span>
             </dt>
             <dd>Will publish our odometry message for the current timestep. This will take the current state estimate and get the propagated pose to the desired time. This can be used to get pose estimates on systems which require high frequency pose estimates.</dd>
-            <dt id="af7742f2e349e47b948b18b8426c7b39d">
-              <span class="m-doc-wrap-bumper">void <a href="#af7742f2e349e47b948b18b8426c7b39d" class="m-doc-self">visualize_final</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a08dbac86db9d9e7bfb80a1a10202df9e">
+              <span class="m-doc-wrap-bumper">void <a href="#a08dbac86db9d9e7bfb80a1a10202df9e" class="m-doc-self">visualize_final</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>After the run has ended, print results.</dd>
+            <dt id="a2f1cd044b066db51d6637933abed5549">
+              <span class="m-doc-wrap-bumper">void <a href="#a2f1cd044b066db51d6637933abed5549" class="m-doc-self">callback_inertial</a>(</span><span class="m-doc-wrap">const sensor_msgs::Imu::ConstPtr&amp; msg)</span>
+            </dt>
+            <dd>Callback for inertial information.</dd>
+            <dt id="ac0e01dd741b752ba22e0e9eba40675a0">
+              <span class="m-doc-wrap-bumper">void <a href="#ac0e01dd741b752ba22e0e9eba40675a0" class="m-doc-self">callback_monocular</a>(</span><span class="m-doc-wrap">const sensor_msgs::ImageConstPtr&amp; msg0,
+              int cam_id0)</span>
+            </dt>
+            <dd>Callback for monocular cameras information.</dd>
+            <dt id="a1f8e90c31c8b4b6dcd33e05b839cdaa2">
+              <span class="m-doc-wrap-bumper">void <a href="#a1f8e90c31c8b4b6dcd33e05b839cdaa2" class="m-doc-self">callback_stereo</a>(</span><span class="m-doc-wrap">const sensor_msgs::ImageConstPtr&amp; msg0,
+              const sensor_msgs::ImageConstPtr&amp; msg1,
+              int cam_id0,
+              int cam_id1)</span>
+            </dt>
+            <dd>Callback for synchronized stereo camera information.</dd>
           </dl>
         </section>
         <section id="pro-methods">
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
-            <dt id="a630ce450fc6acb528b248af5e4e5735d">
-              <span class="m-doc-wrap-bumper">void <a href="#a630ce450fc6acb528b248af5e4e5735d" class="m-doc-self">publish_state</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="aa1960cf9554976e0cd0d7bae5f13658c">
+              <span class="m-doc-wrap-bumper">void <a href="#aa1960cf9554976e0cd0d7bae5f13658c" class="m-doc-self">publish_state</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish the current state.</dd>
-            <dt id="aefe2ba58c19ca3d89e8e5fcd2fd42909">
-              <span class="m-doc-wrap-bumper">void <a href="#aefe2ba58c19ca3d89e8e5fcd2fd42909" class="m-doc-self">publish_images</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="accfd5dbc7c5d646152eaa21694ac7e73">
+              <span class="m-doc-wrap-bumper">void <a href="#accfd5dbc7c5d646152eaa21694ac7e73" class="m-doc-self">publish_images</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish the active tracking image.</dd>
-            <dt id="a6773e7c1953f6c21551a8ee078559cb2">
-              <span class="m-doc-wrap-bumper">void <a href="#a6773e7c1953f6c21551a8ee078559cb2" class="m-doc-self">publish_features</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a38e20e3c610668aa902f18d70b5f55cb">
+              <span class="m-doc-wrap-bumper">void <a href="#a38e20e3c610668aa902f18d70b5f55cb" class="m-doc-self">publish_features</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish current features.</dd>
-            <dt id="a97757b4dd59f20fb28487c1a4d0dc233">
-              <span class="m-doc-wrap-bumper">void <a href="#a97757b4dd59f20fb28487c1a4d0dc233" class="m-doc-self">publish_groundtruth</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="af5c658c203ebb405da10710491fcd5e1">
+              <span class="m-doc-wrap-bumper">void <a href="#af5c658c203ebb405da10710491fcd5e1" class="m-doc-self">publish_groundtruth</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish groundtruth (if we have it)</dd>
-            <dt id="a2e5bbd88247063ff3d7814613333db79">
-              <span class="m-doc-wrap-bumper">void <a href="#a2e5bbd88247063ff3d7814613333db79" class="m-doc-self">publish_loopclosure_information</a>(</span><span class="m-doc-wrap">)</span>
+            <dt id="a1acd1fa8c3f57152ac75211553ecb536">
+              <span class="m-doc-wrap-bumper">void <a href="#a1acd1fa8c3f57152ac75211553ecb536" class="m-doc-self">publish_loopclosure_information</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>Publish loop-closure information of current pose and active track information.</dd>
-            <dt id="a0f031981480cafe4833d6ab4d6da46a4">
-              <span class="m-doc-wrap-bumper">void <a href="#a0f031981480cafe4833d6ab4d6da46a4" class="m-doc-self">sim_save_total_state_to_file</a>(</span><span class="m-doc-wrap">)</span>
-            </dt>
-            <dd>Save current estimate state and groundtruth including calibration.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="a02405596da83fb166b7c2d999388d60c">
-              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; <a href="#a02405596da83fb166b7c2d999388d60c" class="m-doc-self">_app</a>
+            <dt id="a5888fecd6f5e2505b9bc68b3e0d1bba0">
+              std::shared_ptr&lt;ros::NodeHandle&gt; <a href="#a5888fecd6f5e2505b9bc68b3e0d1bba0" class="m-doc-self">_nh</a>
+            </dt>
+            <dd>Global node handler.</dd>
+            <dt id="a94f9aec2778d9739fa35391174e4215f">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; <a href="#a94f9aec2778d9739fa35391174e4215f" class="m-doc-self">_app</a>
             </dt>
             <dd>Core application of the filter system.</dd>
-            <dt id="a36ca786335db6f2f60328cf349b66819">
-              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; <a href="#a36ca786335db6f2f60328cf349b66819" class="m-doc-self">_sim</a>
+            <dt id="a3e28ea010550b2bbf938d505b172ba42">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; <a href="#a3e28ea010550b2bbf938d505b172ba42" class="m-doc-self">_sim</a>
             </dt>
             <dd><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> (is nullptr if we are not sim&#x27;ing)</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a93649edb41467fc71b40d9a5ba83636a"><div>
+          <section class="m-doc-details" id="abd76c037fd103010fcdb74d2d9f9e391"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />RosVisualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a93649edb41467fc71b40d9a5ba83636a" class="m-doc-self">RosVisualizer</a>(</span><span class="m-doc-wrap">ros::NodeHandle&amp; nh,
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />ROS1Visualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abd76c037fd103010fcdb74d2d9f9e391" class="m-doc-self">ROS1Visualizer</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;ros::NodeHandle&gt; nh,
               std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; app,
               std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; sim = nullptr)</span></span>
             </h3>
@@ -161,6 +182,23 @@
                 <tr>
                   <td>sim</td>
                   <td><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> if we are simulating</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a4e2e37124ca201ce654ff0b0b60ad3c2"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />ROS1Visualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4e2e37124ca201ce654ff0b0b60ad3c2" class="m-doc-self">setup_subscribers</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt; parser)</span></span>
+            </h3>
+            <p>Will setup ROS subscribers and callbacks.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>Configuration file parser</td>
                 </tr>
               </tbody>
             </table>

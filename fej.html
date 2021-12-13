@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -177,7 +178,7 @@
 <use x='264.33031' y='-14.509372' xlink:href='#eq2-g1-3'/>
 <use x='269.311645' y='-12.473975' xlink:href='#eq2-g2-62'/>
 </g>
-</svg></div><p>Note that we use the left quaternion error state (see [<a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>] <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[19]</a> for details). For simplicity we assume that the camera and IMU frame have an identity transform. We can compute the measurement Jacobian of a given feature based on the perspective projection camera model at the <em>k</em>-th timestep as follows:</p><div class="m-math"><svg style="width: 33.896em; height: 7.463em;" viewBox="31.568462 -72.127714 325.406036 71.649033">
+</svg></div><p>Note that we use the left quaternion error state (see [<a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>] <a href="citelist.html#CITEREF_Trawny2005TR" class="m-doc">[20]</a> for details). For simplicity we assume that the camera and IMU frame have an identity transform. We can compute the measurement Jacobian of a given feature based on the perspective projection camera model at the <em>k</em>-th timestep as follows:</p><div class="m-math"><svg style="width: 33.896em; height: 7.463em;" viewBox="31.568462 -72.127714 325.406036 71.649033">
 <title>
 \begin{align*} \mathbf{H}_{k} &amp;= \mathbf H_{proj,k}~\mathbf H_{state,k} \\ &amp;= \begin{bmatrix} \frac{1}{{}^Iz} &amp; 0 &amp; \frac{-{}^Ix}{({}^Iz)^2} \\ 0 &amp; \frac{1}{{}^Iz} &amp; \frac{-{}^Iy}{({}^Iz)^2} \\ \end{bmatrix} \begin{bmatrix} \lfloor {}^{I_k}_{G}\mathbf{R}({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\rfloor &amp; -{}^{I_k}_{G}\mathbf{R} &amp; \mathbf 0_{3\times3} &amp; {}^{I_k}_{G}\mathbf{R} \end{bmatrix} \\ &amp;= \mathbf H_{proj,k}~ {}^{I_k}_{G}\mathbf{R} \begin{bmatrix} \lfloor ({}^{G}\mathbf{p}_f-{}^{G}\mathbf{p}_{I_k}) \times\rfloor {}^{I_k}_{G}\mathbf{R}^\top &amp; -\mathbf I_{3\times3} &amp; \mathbf 0_{3\times3} &amp; \mathbf I_{3\times3} \end{bmatrix} \end{align*}
 </title>
@@ -1137,7 +1138,7 @@ $ \mathbf{H}_{k}\mathbf{\Phi}_{(k,0)}\mathcal{N}_{vio} = \mathbf 0 $
 <use x='68.65592' y='0' xlink:href='#eq14-g4-61'/>
 <use x='81.081401' y='0' xlink:href='#eq14-g0-48'/>
 </g>
-</svg>. Thus this is a nullspace of the system, which clearly shows that there are the four unobserable directions (global yaw and position) of visual-inertial systems.</p></section><section id="fej-fej"><h2><a href="#fej-fej">First Estimate Jacobians</a></h2><p>The main idea of First-Estimate Jacobains (FEJ) approaches is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true. For those interested in the technical details please take a look at: <a href="citelist.html#CITEREF_Huang2010IJRR" class="m-doc">[6]</a> and <a href="citelist.html#CITEREF_Li2013IJRR" class="m-doc">[10]</a>. Let us first consider a small thought experiment of how the standard Kalman filter computes its state transition matrix. From a timestep zero to one it will use the current estimates from state zero forward in time. At the next timestep after it updates the state with measurements from other sensors, it will compute the state transition with the updated values to evolve the state to timestep two. This causes a miss-match in the &quot;continuity&quot; of the state transition matrix which when multiply sequentially should represent the evolution from time zero to time two.</p><div class="m-math"><svg style="width: 39.702em; height: 1.335em;" viewBox="3.700068 -13.300161 381.142827 12.818614">
+</svg>. Thus this is a nullspace of the system, which clearly shows that there are the four unobserable directions (global yaw and position) of visual-inertial systems.</p></section><section id="fej-fej"><h2><a href="#fej-fej">First Estimate Jacobians</a></h2><p>The main idea of First-Estimate Jacobains (FEJ) approaches is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true. For those interested in the technical details please take a look at: <a href="citelist.html#CITEREF_Huang2010IJRR" class="m-doc">[7]</a> and <a href="citelist.html#CITEREF_Li2013IJRR" class="m-doc">[11]</a>. Let us first consider a small thought experiment of how the standard Kalman filter computes its state transition matrix. From a timestep zero to one it will use the current estimates from state zero forward in time. At the next timestep after it updates the state with measurements from other sensors, it will compute the state transition with the updated values to evolve the state to timestep two. This causes a miss-match in the &quot;continuity&quot; of the state transition matrix which when multiply sequentially should represent the evolution from time zero to time two.</p><div class="m-math"><svg style="width: 39.702em; height: 1.335em;" viewBox="3.700068 -13.300161 381.142827 12.818614">
 <title>
 \begin{align*} \mathbf{\Phi}_{(k+1,k-1)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k-1|k-1}) \neq \mathbf{\Phi}_{(k+1,k)}(\mathbf{x}_{k+1|k},\mathbf{x}_{k|k}) ~ \mathbf{\Phi}_{(k,k-1)}(\mathbf{x}_{k|k-1},\mathbf{x}_{k-1|k-1}) \end{align*}
 </title>

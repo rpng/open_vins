@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -101,7 +102,7 @@
 <span class="go">mean_time = 0.0020 | std = 0.0026 | 99th = 0.0079  | max = 0.0205 (slam delayed)</span>
 <span class="go">mean_time = 0.0019 | std = 0.0005 | 99th = 0.0031  | max = 0.0052 (marginalization)</span>
 <span class="go">mean_time = 0.0263 | std = 0.0063 | 99th = 0.0410  | max = 0.0979 (total)</span>
-<span class="go">======================================</span></pre><img class="m-image" src="timing_compare.png" alt="Image" style="width: 90%;" /></section><section id="eval-ov-timing-percentages"><h3><a href="#eval-ov-timing-percentages">Script &quot;timing_percentages&quot;</a></h3><p>This utility allows for comparing the resources used by the algorithm on a specific platform. An example usage would be how the memory and cpu requirements increase as the state size grows or as more cameras are added. You will need to record the format using the <code>pid_ros.py</code> node (see <a href="eval-timing.html#eval-ov-timing-collection" class="m-doc">Collection</a> for details on how to use it). Remember that 100% cpu usage means that it takes one cpu thread to support the system, while 200% means it takes two cpu threads to support the system (see <a href="https://superuser.com/a/457634/707974">this link</a> for an explanation). The folder structure needed is as follows:</p><pre class="m-code">psutil_logs/
+<span class="go">======================================</span></pre><img class="m-image" src="timing_compare.png" alt="Image" style="width: 90%;" /></section><section id="eval-ov-timing-percentages"><h3><a href="#eval-ov-timing-percentages">Script &quot;timing_percentages&quot;</a></h3><p>This utility allows for comparing the resources used by the algorithm on a specific platform. An example usage would be how the memory and cpu requirements increase as the state size grows or as more cameras are added. You will need to record the format using the <code><a href="pid__ros_8py.html" class="m-doc">pid_<wbr />ros.py</a></code> node (see <a href="eval-timing.html#eval-ov-timing-collection" class="m-doc">Collection</a> for details on how to use it). Remember that 100% cpu usage means that it takes one cpu thread to support the system, while 200% means it takes two cpu threads to support the system (see <a href="https://superuser.com/a/457634/707974">this link</a> for an explanation). The folder structure needed is as follows:</p><pre class="m-code">psutil_logs/
     ov_mono/
         run1<span class="p">.</span>txt
         run2<span class="p">.</span>txt

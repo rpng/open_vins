@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html" id="m-navbar-current">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -63,7 +64,7 @@
             </li>
           </ul>
         </div>
-<p>This has the core algorithms that all projects within the OpenVINS ecosystem leverage. The purpose is to allow for the reuse of code that could be shared between different localization systems (i.e. msckf-based, batch-based, etc.). These algorithms are the foundation which is necessary before we can even write an estimator that can perform localization. The key components of the <a href="namespaceov__core.html" class="m-doc">ov_<wbr />core</a> codebase are the following:</p><ul><li>3d feature initialization (see <a href="classov__core_1_1FeatureInitializer.html" class="m-doc">ov_core::<wbr />FeatureInitializer</a>)</li><li>Inertial state initialization (see <a href="classov__core_1_1InertialInitializer.html" class="m-doc">ov_core::<wbr />InertialInitializer</a>)</li><li>SE(3) b-spline (see <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a>)</li><li>KLT, descriptor, aruco, and simulation feature trackers</li><li>Groundtruth dataset reader (see <a href="classov__core_1_1DatasetReader.html" class="m-doc">ov_core::<wbr />DatasetReader</a>)</li><li>Quaternion and other manifold math operations</li><li>Generic type system and their implementations (see <a href="namespaceov__type.html" class="m-doc">ov_<wbr />type</a> namespace)</li><li>Closed-form preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[4]</a></li></ul><p>Please take a look at classes that we offer for the user to leverage as each has its own documentation. If you are looking for the estimator please take a look at the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> project which leverages these algorithms. If you are looking for the different types please take a look at the <a href="namespaceov__type.html" class="m-doc">ov_<wbr />type</a> namespace for the ones we have.</p>
+<p>This has the core algorithms that all projects within the OpenVINS ecosystem leverage. The purpose is to allow for the reuse of code that could be shared between different localization systems (i.e. msckf-based, batch-based, etc.). These algorithms are the foundation which is necessary before we can even write an estimator that can perform localization. The key components of the <a href="namespaceov__core.html" class="m-doc">ov_<wbr />core</a> codebase are the following:</p><ul><li>3d feature initialization (see <a href="classov__core_1_1FeatureInitializer.html" class="m-doc">ov_core::<wbr />FeatureInitializer</a>)</li><li>SE(3) b-spline (see <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a>)</li><li>KLT, descriptor, aruco, and simulation feature trackers</li><li>Groundtruth dataset reader (see <a href="classov__core_1_1DatasetReader.html" class="m-doc">ov_core::<wbr />DatasetReader</a>)</li><li>Quaternion and other manifold math operations</li><li>Generic type system and their implementations (see <a href="namespaceov__type.html" class="m-doc">ov_<wbr />type</a> namespace)</li><li>Closed-form preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[5]</a></li></ul><p>Please take a look at classes that we offer for the user to leverage as each has its own documentation. If you are looking for the estimator please take a look at the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> project which leverages these algorithms. If you are looking for the different types please take a look at the <a href="namespaceov__type.html" class="m-doc">ov_<wbr />type</a> namespace for the ones we have.</p>
         <section id="nested-classes">
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
@@ -112,6 +113,10 @@
             </dt>
             <dd>Database containing features we are currently tracking.</dd>
             <dt>
+              class <a href="classov__core_1_1FeatureHelper.html" class="m-doc">FeatureHelper</a>
+            </dt>
+            <dd>Contains some nice helper functions for features.</dd>
+            <dt>
               class <a href="classov__core_1_1FeatureInitializer.html" class="m-doc">FeatureInitializer</a>
             </dt>
             <dd>Class that triangulates feature.</dd>
@@ -128,13 +133,13 @@
             </dt>
             <dd>Struct for a single imu measurement (time, wm, am)</dd>
             <dt>
-              class <a href="classov__core_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a>
-            </dt>
-            <dd>Initializer for visual-inertial system.</dd>
-            <dt>
               class <a href="classov__core_1_1LambdaBody.html" class="m-doc">LambdaBody</a>
             </dt>
-            <dd></dd>
+            <dd>Helper class to do OpenCV parallelization.</dd>
+            <dt>
+              class <a href="classov__core_1_1Printer.html" class="m-doc">Printer</a>
+            </dt>
+            <dd><a href="classov__core_1_1Printer.html" class="m-doc">Printer</a> for open_vins that allows for various levels of printing to be done.</dd>
             <dt>
               class <a href="classov__core_1_1TrackAruco.html" class="m-doc">TrackAruco</a>
             </dt>
@@ -155,6 +160,10 @@
               class <a href="classov__core_1_1TrackSIM.html" class="m-doc">TrackSIM</a>
             </dt>
             <dd>Simulated tracker for when we already have uv measurements!</dd>
+            <dt>
+              class <a href="classov__core_1_1YamlParser.html" class="m-doc">YamlParser</a>
+            </dt>
+            <dd>Helper class to do OpenCV yaml parsing from both file and ROS.</dd>
           </dl>
         </section>
         <section id="func-members">
@@ -218,13 +227,29 @@
             </dt>
             <dd>Normalizes a quaternion to make sure it is unit norm.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a45cfe4a23dbed1c393e58b77a76263ef" class="m-doc">Jl_so3</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; w) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a518b7324a4106ccad60558e2e5c4b14f" class="m-doc">Jl_so3</a>(</span><span class="m-doc-wrap">const Eigen::Matrix&lt;double, 3, 1&gt;&amp; w) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
             <dd>Computes left Jacobian of SO(3)</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a229de3ba88b298fab8b9fdc0d3ce6349" class="m-doc">Jr_so3</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; w) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a0406d085d6175d3bc8a539328ec214b5" class="m-doc">Jr_so3</a>(</span><span class="m-doc-wrap">const Eigen::Matrix&lt;double, 3, 1&gt;&amp; w) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
             </dt>
             <dd>Computes right Jacobian of SO(3)</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#af608ab8e3f8cd8554ade192cd804b7ce" class="m-doc">rot2rpy</a>(</span><span class="m-doc-wrap">const Eigen::Matrix&lt;double, 3, 3&gt;&amp; rot) -&gt; Eigen::Matrix&lt;double, 3, 1&gt;</span>
+            </dt>
+            <dd>Gets roll, pitch, yaw of argument rotation (in that order).</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ab3268e0844642c119fe45c2880afb581" class="m-doc">rot_x</a>(</span><span class="m-doc-wrap">double t) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+            </dt>
+            <dd>Construct rotation matrix from given roll.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a2a212d931b6f4325052b3169ad6161a3" class="m-doc">rot_y</a>(</span><span class="m-doc-wrap">double t) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+            </dt>
+            <dd>Construct rotation matrix from given pitch.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a512a53c9e1519a8e202277db433d37d1" class="m-doc">rot_z</a>(</span><span class="m-doc-wrap">double t) -&gt; Eigen::Matrix&lt;double, 3, 3&gt;</span>
+            </dt>
+            <dd>Construct rotation matrix from given yaw.</dd>
           </dl>
         </section>
         <section>
@@ -503,9 +528,9 @@
                 </tr>
               </tfoot>
             </table>
-<p>This is based on equation 62 in <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>:</p><div class="m-math"><svg style="width: 18.777em; height: 1.402em;" viewBox="104.143079 -14.804773 180.25683 13.45978">
+<p>This is based on equation 62 in <a href="http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf">Indirect Kalman Filter for 3D Attitude Estimation</a>:</p><div class="m-math"><svg style="width: 18.725em; height: 1.402em;" viewBox="104.143079 -14.804773 179.758698 13.45978">
 <title>
-\begin{align*} \mathbf{R} = (2q_4^2-1)\mathbf{I}_3-2q_4\lfloor\mathbf{q}\times\rfloor+2\mathbf{q}^\top\mathbf{q} \end{align*}
+\begin{align*} \mathbf{R} = (2q_4^2-1)\mathbf{I}_3-2q_4\lfloor\mathbf{q}\times\rfloor+2\mathbf{q}\mathbf{q}^\top \end{align*}
 </title>
 <defs>
 <path id='eq3-g1-62' d='M3.474969-5.164633H5.810212C5.937733-5.164633 6.113076-5.164633 6.113076-5.347945S5.937733-5.531258 5.810212-5.531258H.781071C.645579-5.531258 .470237-5.531258 .470237-5.347945S.645579-5.164633 .781071-5.164633H3.108344V-.310834C3.108344-.175342 3.108344 0 3.291656 0S3.474969-.175342 3.474969-.302864V-5.164633Z'/>
@@ -551,8 +576,8 @@
 <use x='245.504202' y='-4.333785' xlink:href='#eq3-g5-43'/>
 <use x='257.265517' y='-4.333785' xlink:href='#eq3-g5-50'/>
 <use x='263.118507' y='-4.333785' xlink:href='#eq3-g0-113'/>
-<use x='270.216888' y='-9.269971' xlink:href='#eq3-g1-62'/>
-<use x='277.301527' y='-4.333785' xlink:href='#eq3-g0-113'/>
+<use x='270.216888' y='-4.333785' xlink:href='#eq3-g0-113'/>
+<use x='277.315269' y='-9.269971' xlink:href='#eq3-g1-62'/>
 </g>
 </svg></div>
           </div></section>
@@ -579,7 +604,7 @@
               <tfoot>
                 <tr>
                   <th>Returns</th>
-                  <td>4x1 resulting p*q quaternion</td>
+                  <td>4x1 resulting q*p quaternion</td>
                 </tr>
               </tfoot>
             </table>
@@ -686,7 +711,7 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">w&nbsp;<span class="m-label m-flat m-info">in</span></td>
-                  <td>3x1 vector we will take the exponential of</td>
+                  <td>3x1 vector in R(3) we will take the exponential of</td>
                 </tr>
               </tbody>
               <tfoot>
@@ -816,7 +841,7 @@
               <tfoot>
                 <tr>
                   <th>Returns</th>
-                  <td>3x1 in the se(3) space [omegax, omegay, omegaz]</td>
+                  <td>3x1 in the R(3) space [omegax, omegay, omegaz]</td>
                 </tr>
               </tfoot>
             </table>
@@ -897,7 +922,7 @@
 <use x='224.094095' y='-13.136848' xlink:href='#eq6-g1-62'/>
 <use x='231.178734' y='-8.200662' xlink:href='#eq6-g5-41'/>
 </g>
-</svg></div>
+</svg></div><p>This function is based on the GTSAM one as the original implementation was a bit unstable. See the following:</p><ul><li><a href="https://github.com/borglab/gtsam/">https:/<wbr />/<wbr />github.com/<wbr />borglab/<wbr />gtsam/<wbr /></a></li><li><a href="https://github.com/borglab/gtsam/issues/746">https:/<wbr />/<wbr />github.com/<wbr />borglab/<wbr />gtsam/<wbr />issues/<wbr />746</a></li><li><a href="https://github.com/borglab/gtsam/pull/780">https:/<wbr />/<wbr />github.com/<wbr />borglab/<wbr />gtsam/<wbr />pull/<wbr />780</a></li></ul>
           </div></section>
           <section class="m-doc-details" id="a8907fdb4273f23741299fb23a1c1f572"><div>
             <h3>
@@ -911,7 +936,7 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">vec</td>
-                  <td>6x1 in the se(3) space [omega, u]</td>
+                  <td>6x1 in the R(6) space [omega, u]</td>
                 </tr>
               </tbody>
               <tfoot>
@@ -1090,7 +1115,7 @@
               <tfoot>
                 <tr>
                   <th>Returns</th>
-                  <td>6x1 in the se(3) space [omega, u]</td>
+                  <td>6x1 in the R(6) space [omega, u]</td>
                 </tr>
               </tfoot>
             </table>
@@ -1254,7 +1279,7 @@
 <use x='288.081544' y='-8.200662' xlink:href='#eq10-g4-99'/>
 <use x='293.394966' y='-13.136848' xlink:href='#eq10-g6-50'/>
 </g>
-</svg></div>
+</svg></div><p>This function is based on the GTSAM one as the original implementation was a bit unstable. See the following:</p><ul><li><a href="https://github.com/borglab/gtsam/">https:/<wbr />/<wbr />github.com/<wbr />borglab/<wbr />gtsam/<wbr /></a></li><li><a href="https://github.com/borglab/gtsam/issues/746">https:/<wbr />/<wbr />github.com/<wbr />borglab/<wbr />gtsam/<wbr />issues/<wbr />746</a></li><li><a href="https://github.com/borglab/gtsam/pull/780">https:/<wbr />/<wbr />github.com/<wbr />borglab/<wbr />gtsam/<wbr />pull/<wbr />780</a></li></ul>
           </div></section>
           <section class="m-doc-details" id="a2854f4368bab599be2404f396f5ee434"><div>
             <h3>
@@ -1268,7 +1293,7 @@
               <tbody>
                 <tr>
                   <td style="width: 1%">vec</td>
-                  <td>6x1 in the se(3) space [omega, u]</td>
+                  <td>6x1 in the R(6) space [omega, u]</td>
                 </tr>
               </tbody>
               <tfoot>
@@ -1453,9 +1478,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a45cfe4a23dbed1c393e58b77a76263ef"><div>
+          <section class="m-doc-details" id="a518b7324a4106ccad60558e2e5c4b14f"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a45cfe4a23dbed1c393e58b77a76263ef" class="m-doc-self">Jl_so3</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; w)</span></span>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a518b7324a4106ccad60558e2e5c4b14f" class="m-doc-self">Jl_so3</a>(</span><span class="m-doc-wrap">const Eigen::Matrix&lt;double, 3, 1&gt;&amp; w)</span></span>
             </h3>
             <p>Computes left Jacobian of SO(3)</p>
             <table class="m-table m-fullwidth m-flat">
@@ -1585,9 +1610,9 @@ $\mathbf a=\boldsymbol\theta/|\boldsymbol\theta|$
 </g>
 </svg></div>
           </div></section>
-          <section class="m-doc-details" id="a229de3ba88b298fab8b9fdc0d3ce6349"><div>
+          <section class="m-doc-details" id="a0406d085d6175d3bc8a539328ec214b5"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a229de3ba88b298fab8b9fdc0d3ce6349" class="m-doc-self">Jr_so3</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 3, 1&gt; w)</span></span>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0406d085d6175d3bc8a539328ec214b5" class="m-doc-self">Jr_so3</a>(</span><span class="m-doc-wrap">const Eigen::Matrix&lt;double, 3, 1&gt;&amp; w)</span></span>
             </h3>
             <p>Computes right Jacobian of SO(3)</p>
             <table class="m-table m-fullwidth m-flat">
@@ -1607,7 +1632,82 @@ $\mathbf a=\boldsymbol\theta/|\boldsymbol\theta|$
                 </tr>
               </tfoot>
             </table>
-<p>The right Jacobian of SO(3) is related to the left by Jl(-w)=Jr(w). See equation (7.87) in <a href="http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf">State Estimation for Robotics</a> by Timothy D. Barfoot. See <a href="namespaceov__core.html#a45cfe4a23dbed1c393e58b77a76263ef" class="m-doc">Jl_<wbr />so3()</a> for the definition of the left Jacobian of SO(3).</p>
+<p>The right Jacobian of SO(3) is related to the left by Jl(-w)=Jr(w). See equation (7.87) in <a href="http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf">State Estimation for Robotics</a> by Timothy D. Barfoot. See <a href="namespaceov__core.html#a518b7324a4106ccad60558e2e5c4b14f" class="m-doc">Jl_<wbr />so3()</a> for the definition of the left Jacobian of SO(3).</p>
+          </div></section>
+          <section class="m-doc-details" id="af608ab8e3f8cd8554ade192cd804b7ce"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 1&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#af608ab8e3f8cd8554ade192cd804b7ce" class="m-doc-self">rot2rpy</a>(</span><span class="m-doc-wrap">const Eigen::Matrix&lt;double, 3, 3&gt;&amp; rot)</span></span>
+            </h3>
+            <p>Gets roll, pitch, yaw of argument rotation (in that order).</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">rot</td>
+                  <td>Rotation matrix</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>roll, pitch, yaw values (in that order)</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>To recover the matrix: R_input = R_z(yaw)*R_y(pitch)*R_x(roll) If you are interested in how to compute Jacobians checkout this report: <a href="http://mars.cs.umn.edu/tr/reports/Trawny05c.pdf">http:/<wbr />/<wbr />mars.cs.umn.edu/<wbr />tr/<wbr />reports/<wbr />Trawny05c.pdf</a></p>
+          </div></section>
+          <section class="m-doc-details" id="ab3268e0844642c119fe45c2880afb581"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab3268e0844642c119fe45c2880afb581" class="m-doc-self">rot_x</a>(</span><span class="m-doc-wrap">double t)</span></span>
+            </h3>
+            <p>Construct rotation matrix from given roll.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">t</td>
+                  <td>roll angle</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a2a212d931b6f4325052b3169ad6161a3"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2a212d931b6f4325052b3169ad6161a3" class="m-doc-self">rot_y</a>(</span><span class="m-doc-wrap">double t)</span></span>
+            </h3>
+            <p>Construct rotation matrix from given pitch.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">t</td>
+                  <td>pitch angle</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a512a53c9e1519a8e202277db433d37d1"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">Eigen::Matrix&lt;double, 3, 3&gt; ov_<wbr />core::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a512a53c9e1519a8e202277db433d37d1" class="m-doc-self">rot_z</a>(</span><span class="m-doc-wrap">double t)</span></span>
+            </h3>
+            <p>Construct rotation matrix from given yaw.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">t</td>
+                  <td>yaw angle</td>
+                </tr>
+              </tbody>
+            </table>
           </div></section>
         </section>
       </div>

@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -77,20 +78,20 @@
           <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a0ae117a704651e3c4efa705bbb834e86" class="m-doc">get_feature_jacobian_representation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              <span class="m-doc-wrap-bumper">static void <a href="#a56158bf8f62681bb1458500589d80aa7" class="m-doc">get_feature_jacobian_representation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               <a href="structov__msckf_1_1UpdaterHelper_1_1UpdaterHelperFeature.html" class="m-doc">UpdaterHelperFeature</a>&amp; feature,
               Eigen::MatrixXd&amp; H_f,
               std::vector&lt;Eigen::MatrixXd&gt;&amp; H_x,
-              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; x_order)</span>
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; x_order)</span>
             </dt>
             <dd>This gets the feature and state Jacobian in respect to the feature representation.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a2eb160b7550b5a976bbe6a31e2387096" class="m-doc">get_feature_jacobian_full</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              <span class="m-doc-wrap-bumper">static void <a href="#a83ba71455395ed13bbd15eb9134a6075" class="m-doc">get_feature_jacobian_full</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               <a href="structov__msckf_1_1UpdaterHelper_1_1UpdaterHelperFeature.html" class="m-doc">UpdaterHelperFeature</a>&amp; feature,
               Eigen::MatrixXd&amp; H_f,
               Eigen::MatrixXd&amp; H_x,
               Eigen::VectorXd&amp; res,
-              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; x_order)</span>
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; x_order)</span>
             </dt>
             <dd>Will construct the &quot;stacked&quot; Jacobians for a single feature from all its measurements.</dd>
             <dt>
@@ -108,13 +109,13 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a0ae117a704651e3c4efa705bbb834e86"><div>
+          <section class="m-doc-details" id="a56158bf8f62681bb1458500589d80aa7"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />UpdaterHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0ae117a704651e3c4efa705bbb834e86" class="m-doc-self">get_feature_jacobian_representation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />UpdaterHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a56158bf8f62681bb1458500589d80aa7" class="m-doc-self">get_feature_jacobian_representation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               <a href="structov__msckf_1_1UpdaterHelper_1_1UpdaterHelperFeature.html" class="m-doc">UpdaterHelperFeature</a>&amp; feature,
               Eigen::MatrixXd&amp; H_f,
               std::vector&lt;Eigen::MatrixXd&gt;&amp; H_x,
-              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; x_order)</span></span>
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; x_order)</span></span>
             </h3>
             <p>This gets the feature and state Jacobian in respect to the feature representation.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -146,14 +147,14 @@
             </table>
 <p>CASE: Estimate single depth of the feature using the initial bearing</p>
           </div></section>
-          <section class="m-doc-details" id="a2eb160b7550b5a976bbe6a31e2387096"><div>
+          <section class="m-doc-details" id="a83ba71455395ed13bbd15eb9134a6075"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />UpdaterHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2eb160b7550b5a976bbe6a31e2387096" class="m-doc-self">get_feature_jacobian_full</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />UpdaterHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a83ba71455395ed13bbd15eb9134a6075" class="m-doc-self">get_feature_jacobian_full</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               <a href="structov__msckf_1_1UpdaterHelper_1_1UpdaterHelperFeature.html" class="m-doc">UpdaterHelperFeature</a>&amp; feature,
               Eigen::MatrixXd&amp; H_f,
               Eigen::MatrixXd&amp; H_x,
               Eigen::VectorXd&amp; res,
-              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; x_order)</span></span>
+              std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; x_order)</span></span>
             </h3>
             <p>Will construct the &quot;stacked&quot; Jacobians for a single feature from all its measurements.</p>
             <table class="m-table m-fullwidth m-flat">

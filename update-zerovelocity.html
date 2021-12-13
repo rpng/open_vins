@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -308,7 +309,7 @@ $\boldsymbol{\omega}$
 <use x='238.380453' y='-9.750408' xlink:href='#eq6-g2-2'/>
 <use x='244.96696' y='-9.750408' xlink:href='#eq6-g7-51'/>
 </g>
-</svg></div></section><section id="update-zerovelocity-detect"><h2><a href="#update-zerovelocity-detect">Zero Velocity Detection</a></h2><p>Zero velocity detection in itself is a challenging problem which has seen many different works tried to address this issue <a href="citelist.html#CITEREF_Wagstaff2017IPIN" class="m-doc">[20]</a>, <a href="citelist.html#CITEREF_Ramanandan2011TITS" class="m-doc">[17]</a>, <a href="citelist.html#CITEREF_Davidson2009ENC" class="m-doc">[2]</a>. Most works boil down to simple thresholding and the approach is to try to determine the optimal threshold which allows for the best classifications of zero velocity update (ZUPT) portion of the trajectories. There have been other works, <a href="citelist.html#CITEREF_Wagstaff2017IPIN" class="m-doc">[20]</a> and <a href="citelist.html#CITEREF_Ramanandan2011TITS" class="m-doc">[17]</a>, which have looked at more complicated methods and try to address the issue that this threshold can be dependent on the type of different motions (such as running vs walking) and characteristics of the platform which the sensor is mounted on (we want to ignore vehicle engine vibrations and other non-essential observed vibrations).</p><section id="update-zerovelocity-detect-imu"><h3><a href="#update-zerovelocity-detect-imu">Inertial-based Detection</a></h3><p>We approach this detection problem based on tuning of a <svg class="m-math" style="width: 1.205em; height: 1.229em; vertical-align: -0.243em;" viewBox="0 -9.474739 11.567739 11.799346">
+</svg></div></section><section id="update-zerovelocity-detect"><h2><a href="#update-zerovelocity-detect">Zero Velocity Detection</a></h2><p>Zero velocity detection in itself is a challenging problem which has seen many different works tried to address this issue <a href="citelist.html#CITEREF_Wagstaff2017IPIN" class="m-doc">[21]</a>, <a href="citelist.html#CITEREF_Ramanandan2011TITS" class="m-doc">[18]</a>, <a href="citelist.html#CITEREF_Davidson2009ENC" class="m-doc">[2]</a>. Most works boil down to simple thresholding and the approach is to try to determine the optimal threshold which allows for the best classifications of zero velocity update (ZUPT) portion of the trajectories. There have been other works, <a href="citelist.html#CITEREF_Wagstaff2017IPIN" class="m-doc">[21]</a> and <a href="citelist.html#CITEREF_Ramanandan2011TITS" class="m-doc">[18]</a>, which have looked at more complicated methods and try to address the issue that this threshold can be dependent on the type of different motions (such as running vs walking) and characteristics of the platform which the sensor is mounted on (we want to ignore vehicle engine vibrations and other non-essential observed vibrations).</p><section id="update-zerovelocity-detect-imu"><h3><a href="#update-zerovelocity-detect-imu">Inertial-based Detection</a></h3><p>We approach this detection problem based on tuning of a <svg class="m-math" style="width: 1.205em; height: 1.229em; vertical-align: -0.243em;" viewBox="0 -9.474739 11.567739 11.799346">
 <title>
 $\chi^2$
 </title>

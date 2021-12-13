@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -64,7 +65,7 @@
             </li>
           </ul>
         </div>
-<p>This model is the &quot;piecewise constant measurement assumption&quot; which was first presented in:</p><blockquote><p>Eckenhoff, Kevin, Patrick Geneva, and Guoquan Huang. &quot;High-accuracy preintegration for visual inertial navigation.&quot; International Workshop on the Algorithmic Foundations of Robotics. 2016.</p></blockquote><p>Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[4]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiV1.html#ab67271cdc9f2e77b4665e3ba2311f047" class="m-doc">feed_<wbr />IMU()</a> will all IMU measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
+<p>This model is the &quot;piecewise constant measurement assumption&quot; which was first presented in:</p><blockquote><p>Eckenhoff, Kevin, Patrick Geneva, and Guoquan Huang. &quot;High-accuracy preintegration for visual inertial navigation.&quot; International Workshop on the Algorithmic Foundations of Robotics. 2016.</p></blockquote><p>Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[5]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiV1.html#ab67271cdc9f2e77b4665e3ba2311f047" class="m-doc">feed_<wbr />IMU()</a> will all IMU measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">

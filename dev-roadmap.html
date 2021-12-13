@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -51,7 +52,7 @@
           <span class="m-breadcrumb"><a href="dev-welcome.html">Developer and Internals</a> &raquo;</span>
           Future Roadmap
         </h1>
-<p>The initial release provides the library foundation which contains a filter-based visual-inertial localization solution. This can be used in a wide range of scenarios and the type-based index system allows for others to easily add new features and develop on top of this system. Here is a list of future directions, although nothing is set in stone, that we are interested in taking:</p><ul><li>Creation of a secondary graph-based thread that loosely introduces loop closures (akin to the second thread of VINS-Mono and others) which should allow for drift free long-term localization.</li><li>Large scale offline batch graph optimization which leverages the trajectory of the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> as its initial guess and then optimizes both the map and trajectory.</li><li>Incorporate our prior work in preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[4]</a> into the same framework structure to allow for easy extensibility. Focus on sparsification and marginalization to allow for realtime computation.</li><li>Leverage this sliding-window batch method to perform SFM initialization of all methods.</li><li>Support for arbitrary Schmidt&#x27;ing of state elements allowing for modeling of their prior uncertainties but without optimizing their values online.</li><li>More advance imu integration schemes, quantification of the integration noises to handle low frequency readings, and modeling of the imu intrinsics.</li></ul>
+<p>The initial release provides the library foundation which contains a filter-based visual-inertial localization solution. This can be used in a wide range of scenarios and the type-based index system allows for others to easily add new features and develop on top of this system. Here is a list of future directions, although nothing is set in stone, that we are interested in taking:</p><ul><li>Creation of a secondary graph-based thread that loosely introduces loop closures (akin to the second thread of VINS-Mono and others) which should allow for drift free long-term localization.</li><li>Large scale offline batch graph optimization which leverages the trajectory of the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> as its initial guess and then optimizes both the map and trajectory.</li><li>Incorporate our prior work in preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[5]</a> into the same framework structure to allow for easy extensibility. Focus on sparsification and marginalization to allow for realtime computation.</li><li>Leverage this sliding-window batch method to perform SFM initialization of all methods.</li><li>Support for arbitrary Schmidt&#x27;ing of state elements allowing for modeling of their prior uncertainties but without optimizing their values online.</li><li>More advance imu integration schemes, quantification of the integration noises to handle low frequency readings, and modeling of the imu intrinsics.</li></ul>
       </div>
     </div>
   </div>

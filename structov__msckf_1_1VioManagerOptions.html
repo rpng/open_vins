@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -67,26 +68,30 @@
         <section id="pub-methods">
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt id="afde43a7a425504f9e88c48178aaf2bc5">
-              <span class="m-doc-wrap-bumper">void <a href="#afde43a7a425504f9e88c48178aaf2bc5" class="m-doc-self">print_estimator</a>(</span><span class="m-doc-wrap">)</span>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a47c23046d8d14887345655c41086a6be" class="m-doc">print_and_load</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
             </dt>
-            <dd>This function will print out all estimator settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
-            <dt id="aff173b4dccff5bab799dc7a3c8d84509">
-              <span class="m-doc-wrap-bumper">void <a href="#aff173b4dccff5bab799dc7a3c8d84509" class="m-doc-self">print_noise</a>(</span><span class="m-doc-wrap">)</span>
+            <dd>This function will load the non-simulation parameters of the system and print.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a2881476b186ab8998e3e53a1c786d064" class="m-doc">print_and_load_estimator</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
             </dt>
-            <dd>This function will print out all noise parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
-            <dt id="a5c6a8217d11f73ee76c0551d20cb0f23">
-              <span class="m-doc-wrap-bumper">void <a href="#a5c6a8217d11f73ee76c0551d20cb0f23" class="m-doc-self">print_state</a>(</span><span class="m-doc-wrap">)</span>
+            <dd>This function will load print out all estimator settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a8b6747bbaa472ee1b1ecb790e480162c" class="m-doc">print_and_load_noise</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
             </dt>
-            <dd>This function will print out all simulated parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
-            <dt id="a3a21a0c95fdf005683659cd56368aa4d">
-              <span class="m-doc-wrap-bumper">void <a href="#a3a21a0c95fdf005683659cd56368aa4d" class="m-doc-self">print_trackers</a>(</span><span class="m-doc-wrap">)</span>
+            <dd>This function will load print out all noise parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a36f57d2065478652ae129ec538c1b98e" class="m-doc">print_and_load_state</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
             </dt>
-            <dd>This function will print out all parameters releated to our visual trackers.</dd>
-            <dt id="a8dac378be0242a742f9b87bd8fe439cb">
-              <span class="m-doc-wrap-bumper">void <a href="#a8dac378be0242a742f9b87bd8fe439cb" class="m-doc-self">print_simulation</a>(</span><span class="m-doc-wrap">)</span>
+            <dd>This function will load and print all state parameters (e.g. sensor extrinsics) This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a88ac10c8c334619721be00810e590f4b" class="m-doc">print_and_load_trackers</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
             </dt>
-            <dd>This function will print out all simulated parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dd>This function will load print out all parameters related to visual tracking This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ac7ede3345d96f3c8c16bb5bbddcc08d0" class="m-doc">print_and_load_simulation</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
+            </dt>
+            <dd>This function will load print out all simulated parameters. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
           </dl>
         </section>
         <section id="pub-attribs">
@@ -96,18 +101,14 @@
               <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a578756373f9bcd2eadae31c419fb8c43" class="m-doc-self">state_options</a>
             </dt>
             <dd>Core state options (e.g. number of cameras, use fej, stereo, what calibration to enable etc)</dd>
+            <dt id="aeab967a61ff3c317e7d1d30ab61c70cc">
+              <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">ov_init::<wbr />InertialInitializerOptions</a> <a href="#aeab967a61ff3c317e7d1d30ab61c70cc" class="m-doc-self">init_options</a>
+            </dt>
+            <dd>Our state initialization options (e.g. window size, num features, if we should get the calibration)</dd>
             <dt id="ae921221a9db709f06fbd7379e3430bf8">
               double <a href="#ae921221a9db709f06fbd7379e3430bf8" class="m-doc-self">dt_slam_delay</a>
             </dt>
             <dd>Delay, in seconds, that we should wait from init before we start estimating SLAM features.</dd>
-            <dt id="aebb2f0982775b7bff756b389c1548224">
-              double <a href="#aebb2f0982775b7bff756b389c1548224" class="m-doc-self">init_window_time</a>
-            </dt>
-            <dd>Amount of time we will initialize over (seconds)</dd>
-            <dt id="a0af9805017c4871384791e5dbb9d4e5d">
-              double <a href="#a0af9805017c4871384791e5dbb9d4e5d" class="m-doc-self">init_imu_thresh</a>
-            </dt>
-            <dd>Variance threshold on our acceleration to be classified as moving.</dd>
             <dt id="a92fe206a83fc4b6c79b88a19c7ff7f3a">
               bool <a href="#a92fe206a83fc4b6c79b88a19c7ff7f3a" class="m-doc-self">try_zupt</a>
             </dt>
@@ -164,22 +165,22 @@
               double <a href="#a10bb45ab36e74b8e4d25f8e68bc2ffd7" class="m-doc-self">calib_camimu_dt</a>
             </dt>
             <dd>Time offset between camera and IMU.</dd>
-            <dt id="abdbf74bd2fce0b604f1e4ff072b807e4">
-              std::map&lt;size_t, bool&gt; <a href="#abdbf74bd2fce0b604f1e4ff072b807e4" class="m-doc-self">camera_fisheye</a>
+            <dt id="ae5855bbb2f0191344acd87e2dbd6d39b">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">ov_core::<wbr />CamBase</a>&gt;&gt; <a href="#ae5855bbb2f0191344acd87e2dbd6d39b" class="m-doc-self">camera_intrinsics</a>
             </dt>
-            <dd>Map between camid and camera model (true=fisheye, false=radtan)</dd>
-            <dt id="aeb474318330f0ae53613af5b6299f000">
-              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#aeb474318330f0ae53613af5b6299f000" class="m-doc-self">camera_intrinsics</a>
-            </dt>
-            <dd>Map between camid and intrinsics. Values depends on the model but each should be a 4x1 vector normally.</dd>
+            <dd>Map between camid and camera intrinsics (fx, fy, cx, cy, d1...d4, cam_w, cam_h)</dd>
             <dt id="ab5cecc1b5cf69b6835d9af0df4496401">
               std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#ab5cecc1b5cf69b6835d9af0df4496401" class="m-doc-self">camera_extrinsics</a>
             </dt>
             <dd>Map between camid and camera extrinsics (q_ItoC, p_IinC).</dd>
-            <dt id="abf204d54c313e8f462aabba18180b40c">
-              std::map&lt;size_t, std::pair&lt;int, int&gt;&gt; <a href="#abf204d54c313e8f462aabba18180b40c" class="m-doc-self">camera_wh</a>
+            <dt id="a3b74f8ceb35bd36df62d0e2403adcd25">
+              bool <a href="#a3b74f8ceb35bd36df62d0e2403adcd25" class="m-doc-self">use_mask</a>
             </dt>
-            <dd>Map between camid and the dimensions of incoming images (width/cols, height/rows). This is normally only used during simulation.</dd>
+            <dd>If we should try to load a mask and use it to reject invalid features.</dd>
+            <dt id="ae4b385302e72d09d7c5abccb48a83442">
+              std::map&lt;size_t, cv::Mat&gt; <a href="#ae4b385302e72d09d7c5abccb48a83442" class="m-doc-self">masks</a>
+            </dt>
+            <dd>Mask images for each camera.</dd>
             <dt id="af01535da59b1d2d5e3309aaa34e69c8e">
               bool <a href="#af01535da59b1d2d5e3309aaa34e69c8e" class="m-doc-self">use_stereo</a>
             </dt>
@@ -224,42 +225,18 @@
               int <a href="#a66d1e76bc9e8ffdd1c669d99fdce76b7" class="m-doc-self">min_px_dist</a>
             </dt>
             <dd>Will check after doing KLT track and remove any features closer than this.</dd>
-            <dt id="a27d7283522d060c9b3290f33bcc1b274">
-              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">TrackBase::<wbr />HistogramMethod</a> <a href="#a27d7283522d060c9b3290f33bcc1b274" class="m-doc-self">histogram_method</a>
+            <dt id="a16dc81c1a909ece39ad6b8d46e01f17f">
+              <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">ov_core::<wbr />TrackBase::<wbr />HistogramMethod</a> <a href="#a16dc81c1a909ece39ad6b8d46e01f17f" class="m-doc-self">histogram_method</a>
             </dt>
             <dd>What type of pre-processing histogram method should be applied to images.</dd>
             <dt id="a62800a75870b19213d1c44e69b2c32f7">
               double <a href="#a62800a75870b19213d1c44e69b2c32f7" class="m-doc-self">knn_ratio</a>
             </dt>
             <dd>KNN ration between top two descriptor matcher which is required to be a good match.</dd>
-            <dt id="a3b74f8ceb35bd36df62d0e2403adcd25">
-              bool <a href="#a3b74f8ceb35bd36df62d0e2403adcd25" class="m-doc-self">use_mask</a>
-            </dt>
-            <dd>If we should try to load a mask and use it to reject invalid features.</dd>
-            <dt id="ae4b385302e72d09d7c5abccb48a83442">
-              std::map&lt;size_t, cv::Mat&gt; <a href="#ae4b385302e72d09d7c5abccb48a83442" class="m-doc-self">masks</a>
-            </dt>
-            <dd>Mask images for each camera.</dd>
-            <dt id="adb73a6bc125800109a3a334cf0386203">
-              <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a> <a href="#adb73a6bc125800109a3a334cf0386203" class="m-doc-self">featinit_options</a>
+            <dt id="a3ef0a31865f542c778762883c5d1bb11">
+              <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">ov_core::<wbr />FeatureInitializerOptions</a> <a href="#a3ef0a31865f542c778762883c5d1bb11" class="m-doc-self">featinit_options</a>
             </dt>
             <dd>Parameters used by our feature initialize / triangulator.</dd>
-            <dt id="aa9c57558a61ebbdb3ef98cc529f3f01a">
-              string <a href="#aa9c57558a61ebbdb3ef98cc529f3f01a" class="m-doc-self">sim_traj_path</a>
-            </dt>
-            <dd>Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.</dd>
-            <dt>
-              double <a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc">sim_distance_threshold</a>
-            </dt>
-            <dd></dd>
-            <dt id="a093cc163f266b0c013d7eda528bb1e80">
-              double <a href="#a093cc163f266b0c013d7eda528bb1e80" class="m-doc-self">sim_freq_cam</a>
-            </dt>
-            <dd>Frequency (Hz) that we will simulate our cameras.</dd>
-            <dt id="aaf63d79014853441849b5e6a2813020f">
-              double <a href="#aaf63d79014853441849b5e6a2813020f" class="m-doc-self">sim_freq_imu</a>
-            </dt>
-            <dd>Frequency (Hz) that we will simulate our inertial measurement unit.</dd>
             <dt id="a04e82ff351254354378cd7568aaef6ed">
               int <a href="#a04e82ff351254354378cd7568aaef6ed" class="m-doc-self">sim_seed_state_init</a>
             </dt>
@@ -276,21 +253,150 @@
               bool <a href="#a4d595d5277582b53d12ad75bc7a6ad57" class="m-doc-self">sim_do_perturbation</a>
             </dt>
             <dd>If we should perturb the calibration that the estimator starts with.</dd>
+            <dt id="ab948eee26f7031d626297b172c9d183d">
+              std::string <a href="#ab948eee26f7031d626297b172c9d183d" class="m-doc-self">sim_traj_path</a>
+            </dt>
+            <dd>Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.</dd>
+            <dt>
+              double <a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc">sim_distance_threshold</a>
+            </dt>
+            <dd></dd>
+            <dt id="a093cc163f266b0c013d7eda528bb1e80">
+              double <a href="#a093cc163f266b0c013d7eda528bb1e80" class="m-doc-self">sim_freq_cam</a>
+            </dt>
+            <dd>Frequency (Hz) that we will simulate our cameras.</dd>
+            <dt id="aaf63d79014853441849b5e6a2813020f">
+              double <a href="#aaf63d79014853441849b5e6a2813020f" class="m-doc-self">sim_freq_imu</a>
+            </dt>
+            <dd>Frequency (Hz) that we will simulate our inertial measurement unit.</dd>
+            <dt id="ae229dda22c11905a023f944f2b25842a">
+              double <a href="#ae229dda22c11905a023f944f2b25842a" class="m-doc-self">sim_min_feature_gen_distance</a>
+            </dt>
+            <dd>Feature distance we generate features from (minimum)</dd>
+            <dt id="a2663dc7c331d58f45e1ce701211f68dc">
+              double <a href="#a2663dc7c331d58f45e1ce701211f68dc" class="m-doc-self">sim_max_feature_gen_distance</a>
+            </dt>
+            <dd>Feature distance we generate features from (maximum)</dd>
           </dl>
         </section>
         <section>
-          <h2>Variable documentation</h2>
-          <section class="m-doc-details" id="a3b6af0048e6bb9b903088f30f9be7221"><div>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a47c23046d8d14887345655c41086a6be"><div>
             <h3>
-              double ov_msckf::<wbr />VioManagerOptions::<wbr /><a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc-self">sim_distance_threshold</a>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManagerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a47c23046d8d14887345655c41086a6be" class="m-doc-self">print_and_load</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
             </h3>
-<p>We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in simulation.</p>
+            <p>This function will load the non-simulation parameters of the system and print.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
           </div></section>
+          <section class="m-doc-details" id="a2881476b186ab8998e3e53a1c786d064"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManagerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2881476b186ab8998e3e53a1c786d064" class="m-doc-self">print_and_load_estimator</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all estimator settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a8b6747bbaa472ee1b1ecb790e480162c"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManagerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8b6747bbaa472ee1b1ecb790e480162c" class="m-doc-self">print_and_load_noise</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all noise parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a36f57d2065478652ae129ec538c1b98e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManagerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a36f57d2065478652ae129ec538c1b98e" class="m-doc-self">print_and_load_state</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load and print all state parameters (e.g. sensor extrinsics) This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a88ac10c8c334619721be00810e590f4b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManagerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a88ac10c8c334619721be00810e590f4b" class="m-doc-self">print_and_load_trackers</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all parameters related to visual tracking This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="ac7ede3345d96f3c8c16bb5bbddcc08d0"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManagerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac7ede3345d96f3c8c16bb5bbddcc08d0" class="m-doc-self">print_and_load_simulation</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all simulated parameters. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
           <section class="m-doc-details" id="a9b3fee122a7d3b2069a424b5ef1b1155"><div>
             <h3>
               int ov_msckf::<wbr />VioManagerOptions::<wbr /><a href="#a9b3fee122a7d3b2069a424b5ef1b1155" class="m-doc-self">sim_seed_measurements</a>
             </h3>
 <p>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</p>
+          </div></section>
+          <section class="m-doc-details" id="a3b6af0048e6bb9b903088f30f9be7221"><div>
+            <h3>
+              double ov_msckf::<wbr />VioManagerOptions::<wbr /><a href="#a3b6af0048e6bb9b903088f30f9be7221" class="m-doc-self">sim_distance_threshold</a>
+            </h3>
+<p>We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in simulation.</p>
           </div></section>
         </section>
       </div>

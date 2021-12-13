@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -98,32 +99,32 @@
               <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a2af409a71537d305b45c62a91b6dda75" class="m-doc-self">_options</a>
             </dt>
             <dd>Struct containing filter options.</dd>
-            <dt id="a0e5aab70a0e05265c1a31a75235fc1e1">
-              std::shared_ptr&lt;<a href="classov__type_1_1IMU.html" class="m-doc">IMU</a>&gt; <a href="#a0e5aab70a0e05265c1a31a75235fc1e1" class="m-doc-self">_imu</a>
+            <dt id="aeb5600395921fb8ac81f585006186a64">
+              std::shared_ptr&lt;<a href="classov__type_1_1IMU.html" class="m-doc">ov_type::<wbr />IMU</a>&gt; <a href="#aeb5600395921fb8ac81f585006186a64" class="m-doc-self">_imu</a>
             </dt>
             <dd>Pointer to the &quot;active&quot; IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)</dd>
-            <dt id="a012c41adb640d5d5b9e7f6ae18939c88">
-              std::map&lt;double, std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>&gt;&gt; <a href="#a012c41adb640d5d5b9e7f6ae18939c88" class="m-doc-self">_clones_IMU</a>
+            <dt id="a9fdd8bcc9f67c124257a8daa81bfb15d">
+              std::map&lt;double, std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">ov_type::<wbr />PoseJPL</a>&gt;&gt; <a href="#a9fdd8bcc9f67c124257a8daa81bfb15d" class="m-doc-self">_clones_IMU</a>
             </dt>
             <dd>Map between imaging times and clone poses (q_GtoIi, p_IiinG)</dd>
-            <dt id="ae303f8999efeefe48dfa4218ae6a1cc4">
-              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1Landmark.html" class="m-doc">Landmark</a>&gt;&gt; <a href="#ae303f8999efeefe48dfa4218ae6a1cc4" class="m-doc-self">_features_SLAM</a>
+            <dt id="ac08dc6bd1557fd4c3639d5eb2a998cb4">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1Landmark.html" class="m-doc">ov_type::<wbr />Landmark</a>&gt;&gt; <a href="#ac08dc6bd1557fd4c3639d5eb2a998cb4" class="m-doc-self">_features_SLAM</a>
             </dt>
             <dd>Our current set of SLAM features (3d positions)</dd>
-            <dt id="a25a973823a81892c7df755439bf9e36f">
-              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt; <a href="#a25a973823a81892c7df755439bf9e36f" class="m-doc-self">_calib_dt_CAMtoIMU</a>
+            <dt id="a0ef68be4e06e4b4947c86852d1005893">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">ov_type::<wbr />Vec</a>&gt; <a href="#a0ef68be4e06e4b4947c86852d1005893" class="m-doc-self">_calib_dt_CAMtoIMU</a>
             </dt>
             <dd>Time offset base IMU to camera (t_imu = t_cam + t_off)</dd>
-            <dt id="ac650652c6bd9d980ff59b5b43f8ee902">
-              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">PoseJPL</a>&gt;&gt; <a href="#ac650652c6bd9d980ff59b5b43f8ee902" class="m-doc-self">_calib_IMUtoCAM</a>
+            <dt id="a61797fa8310111f413c5c5b45c19460b">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1PoseJPL.html" class="m-doc">ov_type::<wbr />PoseJPL</a>&gt;&gt; <a href="#a61797fa8310111f413c5c5b45c19460b" class="m-doc-self">_calib_IMUtoCAM</a>
             </dt>
             <dd>Calibration poses for each camera (R_ItoC, p_IinC)</dd>
-            <dt id="a62a97fb4781503711f6d7e82d09bdfa8">
-              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">Vec</a>&gt;&gt; <a href="#a62a97fb4781503711f6d7e82d09bdfa8" class="m-doc-self">_cam_intrinsics</a>
+            <dt id="a5323d1f31a15c9b54b6696ffb5db353f">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">ov_type::<wbr />Vec</a>&gt;&gt; <a href="#a5323d1f31a15c9b54b6696ffb5db353f" class="m-doc-self">_cam_intrinsics</a>
             </dt>
             <dd>Camera intrinsics.</dd>
-            <dt id="a3f52dd909a59f6c0aa9d95852611df66">
-              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; <a href="#a3f52dd909a59f6c0aa9d95852611df66" class="m-doc-self">_cam_intrinsics_cameras</a>
+            <dt id="af66308da3cab5bcc0098aadd5a16e874">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">ov_core::<wbr />CamBase</a>&gt;&gt; <a href="#af66308da3cab5bcc0098aadd5a16e874" class="m-doc-self">_cam_intrinsics_cameras</a>
             </dt>
             <dd>Camera intrinsics camera objects.</dd>
           </dl>

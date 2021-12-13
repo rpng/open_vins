@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>ov_msckf::ROS2Visualizer class | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="8">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>ROS2Visualizer <span class="m-thin">class</span>
+        </h1>
+        <p>Helper class that will publish results onto the ROS framework.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pro-methods">Protected functions</a></li>
+                <li><a href="#pro-attribs">Protected variables</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+<p>Also save to file the current total state and covariance along with the groundtruth if we are simulating. We visualize the following things:</p><ul><li><a href="classov__msckf_1_1State.html" class="m-doc">State</a> of the system on TF, pose message, and path</li><li>Image of our tracker</li><li>Our different features (SLAM, MSCKF, ARUCO)</li><li>Groundtruth trajectory if we have it</li></ul>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a78a07d5b059b81b009a3c1adac36bc0b" class="m-doc">ROS2Visualizer</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;rclcpp::Node&gt; node,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; app,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; sim = nullptr)</span>
+            </dt>
+            <dd>Default constructor.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#afa4b0e1730e4fc588a09b3a6ffca55f3" class="m-doc">setup_subscribers</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt; parser)</span>
+            </dt>
+            <dd>Will setup ROS subscribers and callbacks.</dd>
+            <dt id="a4d8b4b52e84096d9d78fe580b99515f6">
+              <span class="m-doc-wrap-bumper">void <a href="#a4d8b4b52e84096d9d78fe580b99515f6" class="m-doc-self">visualize</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Will visualize the system if we have new things.</dd>
+            <dt id="aae1460121f1096401c1fa1a36d9c299b">
+              <span class="m-doc-wrap-bumper">void <a href="#aae1460121f1096401c1fa1a36d9c299b" class="m-doc-self">visualize_odometry</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+            </dt>
+            <dd>Will publish our odometry message for the current timestep. This will take the current state estimate and get the propagated pose to the desired time. This can be used to get pose estimates on systems which require high frequency pose estimates.</dd>
+            <dt id="a9126120133a9b4e329c55f0b84c6cf37">
+              <span class="m-doc-wrap-bumper">void <a href="#a9126120133a9b4e329c55f0b84c6cf37" class="m-doc-self">visualize_final</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>After the run has ended, print results.</dd>
+            <dt id="afd07ffaa161451684954a6b890de9848">
+              <span class="m-doc-wrap-bumper">void <a href="#afd07ffaa161451684954a6b890de9848" class="m-doc-self">callback_inertial</a>(</span><span class="m-doc-wrap">const sensor_msgs::msg::Imu::SharedPtr msg)</span>
+            </dt>
+            <dd>Callback for inertial information.</dd>
+            <dt id="a22f4ec95cccb5a98bc9b5c196d3c29cb">
+              <span class="m-doc-wrap-bumper">void <a href="#a22f4ec95cccb5a98bc9b5c196d3c29cb" class="m-doc-self">callback_monocular</a>(</span><span class="m-doc-wrap">const sensor_msgs::msg::Image::SharedPtr msg0,
+              int cam_id0)</span>
+            </dt>
+            <dd>Callback for monocular cameras information.</dd>
+            <dt id="a03578b71069992491971ef4e5c5f3c1d">
+              <span class="m-doc-wrap-bumper">void <a href="#a03578b71069992491971ef4e5c5f3c1d" class="m-doc-self">callback_stereo</a>(</span><span class="m-doc-wrap">const sensor_msgs::msg::Image::ConstSharedPtr msg0,
+              const sensor_msgs::msg::Image::ConstSharedPtr msg1,
+              int cam_id0,
+              int cam_id1)</span>
+            </dt>
+            <dd>Callback for synchronized stereo camera information.</dd>
+          </dl>
+        </section>
+        <section id="pro-methods">
+          <h2><a href="#pro-methods">Protected functions</a></h2>
+          <dl class="m-doc">
+            <dt id="aea6f0c1073edfe9b47dcaf1ef341d4be">
+              <span class="m-doc-wrap-bumper">void <a href="#aea6f0c1073edfe9b47dcaf1ef341d4be" class="m-doc-self">publish_state</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Publish the current state.</dd>
+            <dt id="a1fac4c51134464475f3a40b15ab252af">
+              <span class="m-doc-wrap-bumper">void <a href="#a1fac4c51134464475f3a40b15ab252af" class="m-doc-self">publish_images</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Publish the active tracking image.</dd>
+            <dt id="ab88802145290ae7b52b3d544b70db3a9">
+              <span class="m-doc-wrap-bumper">void <a href="#ab88802145290ae7b52b3d544b70db3a9" class="m-doc-self">publish_features</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Publish current features.</dd>
+            <dt id="a160bf85485c49a5f80462ad717e12837">
+              <span class="m-doc-wrap-bumper">void <a href="#a160bf85485c49a5f80462ad717e12837" class="m-doc-self">publish_groundtruth</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Publish groundtruth (if we have it)</dd>
+            <dt id="a81f6ad6d7e9e03f950ce58ad2c065844">
+              <span class="m-doc-wrap-bumper">void <a href="#a81f6ad6d7e9e03f950ce58ad2c065844" class="m-doc-self">publish_loopclosure_information</a>(</span><span class="m-doc-wrap">)</span>
+            </dt>
+            <dd>Publish loop-closure information of current pose and active track information.</dd>
+          </dl>
+        </section>
+        <section id="pro-attribs">
+          <h2><a href="#pro-attribs">Protected variables</a></h2>
+          <dl class="m-doc">
+            <dt id="aad482388407009f1bdacd886d9a7d74c">
+              std::shared_ptr&lt;rclcpp::Node&gt; <a href="#aad482388407009f1bdacd886d9a7d74c" class="m-doc-self">_node</a>
+            </dt>
+            <dd>Global node handler.</dd>
+            <dt id="a1586e2d19475d770bb83405d04218941">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; <a href="#a1586e2d19475d770bb83405d04218941" class="m-doc-self">_app</a>
+            </dt>
+            <dd>Core application of the filter system.</dd>
+            <dt id="af343bba4d35f89ebe2d28943bc82cced">
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; <a href="#af343bba4d35f89ebe2d28943bc82cced" class="m-doc-self">_sim</a>
+            </dt>
+            <dd><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> (is nullptr if we are not sim&#x27;ing)</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a78a07d5b059b81b009a3c1adac36bc0b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />ROS2Visualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a78a07d5b059b81b009a3c1adac36bc0b" class="m-doc-self">ROS2Visualizer</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;rclcpp::Node&gt; node,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1VioManager.html" class="m-doc">VioManager</a>&gt; app,
+              std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; sim = nullptr)</span></span>
+            </h3>
+            <p>Default constructor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">node</td>
+                  <td>ROS node pointer</td>
+                </tr>
+                <tr>
+                  <td>app</td>
+                  <td>Core estimator manager</td>
+                </tr>
+                <tr>
+                  <td>sim</td>
+                  <td><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> if we are simulating</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="afa4b0e1730e4fc588a09b3a6ffca55f3"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />ROS2Visualizer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afa4b0e1730e4fc588a09b3a6ffca55f3" class="m-doc-self">setup_subscribers</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt; parser)</span></span>
+            </h3>
+            <p>Will setup ROS subscribers and callbacks.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>Configuration file parser</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

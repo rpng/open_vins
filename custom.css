@@ -1,4 +1,3 @@
-
 /* don't indent each paragraph since we frequently use equations */
 main p {
     text-indent: 0rem !important;
@@ -36,9 +35,11 @@ body > header > nav a#m-navbar-brand, body > header > nav #m-navbar-brand a {
 .m-doc-template, dl.m-doc dd, ul.m-doc li > span.m-doc {
     color: #1a1a1a;
 }
+
 .m-doc-template a, dl.m-doc dd a, ul.m-doc li > span.m-doc a {
     color: #1a1a1a;
 }
+
 .m-block.m-dim, .m-text.m-dim, .m-label.m-flat.m-dim {
     color: #1a1a1a;
 }

@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -67,29 +68,30 @@
           <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a4d46ec9685f0b9b2727295f501fcf49a" class="m-doc">EKFPropagation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; order_NEW,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; order_OLD,
+              <span class="m-doc-wrap-bumper">static void <a href="#a31f92fdf5bac87bfc23d34334af7bd4d" class="m-doc">EKFPropagation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; order_NEW,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; order_OLD,
               const Eigen::MatrixXd&amp; Phi,
               const Eigen::MatrixXd&amp; Q)</span>
             </dt>
             <dd>Performs EKF propagation of the state covariance.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a0ce1a0cb854bf687285500e55b8260f7" class="m-doc">EKFUpdate</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; H_order,
+              <span class="m-doc-wrap-bumper">static void <a href="#a471d81fcc22b706654556950931067fd" class="m-doc">EKFUpdate</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H,
               const Eigen::VectorXd&amp; res,
               const Eigen::MatrixXd&amp; R)</span>
             </dt>
             <dd>Performs EKF update of the state (see <a href="update.html#linear-meas" class="m-doc">Linear Measurement Update</a> page)</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a2552a9b41e3287fd9f0638656f52c279" class="m-doc">fix_4dof_gauge_freedoms</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const Eigen::Vector4d&amp; q_GtoI)</span>
+              <span class="m-doc-wrap-bumper">static void <a href="#a5f19646a05e77e67d5be2da8aed19f14" class="m-doc">set_initial_covariance</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const Eigen::MatrixXd&amp; covariance,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; order)</span>
             </dt>
-            <dd>This will fix the initial covariance matrix gauge freedoms (4dof, yaw and position).</dd>
+            <dd>This will set the initial covaraince of the specified state elements. Will also ensure that proper cross-covariances are inserted.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static auto <a href="#ae49342fcfb15f992f8742b904ff1ab3c" class="m-doc">get_marginal_covariance</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; small_variables) -&gt; Eigen::MatrixXd</span>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a23ec77c8411dcc7cfed64273f6882805" class="m-doc">get_marginal_covariance</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; small_variables) -&gt; Eigen::MatrixXd</span>
             </dt>
             <dd>For a given set of variables, this will this will calculate a smaller covariance.</dd>
             <dt>
@@ -97,19 +99,19 @@
             </dt>
             <dd>This gets the full covariance matrix.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a8ea2f61ff85d1404e561b3e2a971d3a8" class="m-doc">marginalize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; marg)</span>
+              <span class="m-doc-wrap-bumper">static void <a href="#a7a6d020115f02fe783ced90b90c32287" class="m-doc">marginalize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; marg)</span>
             </dt>
             <dd>Marginalizes a variable, properly modifying the ordering/covariances in the state.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static auto <a href="#a85147edb95990cc260c66a6746033421" class="m-doc">clone</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; variable_to_clone) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;</span>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a3aecb942a1d9bb7dec915fdad303acc8" class="m-doc">clone</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; variable_to_clone) -&gt; std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;</span>
             </dt>
             <dd>Clones &quot;variable to clone&quot; and places it at end of covariance.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static auto <a href="#ac3e10c58e618a813a9eee2fd347f34aa" class="m-doc">initialize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; new_variable,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; H_order,
+              <span class="m-doc-wrap-bumper">static auto <a href="#a58ed364529ae3802a7110edf3ac4dbbb" class="m-doc">initialize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; new_variable,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; H_order,
               Eigen::MatrixXd&amp; H_R,
               Eigen::MatrixXd&amp; H_L,
               Eigen::MatrixXd&amp; R,
@@ -118,9 +120,9 @@
             </dt>
             <dd>Initializes new variable into covariance.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static void <a href="#a645d15e6ea6b4c9e36341561a62a0c24" class="m-doc">initialize_invertible</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; new_variable,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; H_order,
+              <span class="m-doc-wrap-bumper">static void <a href="#adb0f34932bb91d89bfd5ae72c2e693d8" class="m-doc">initialize_invertible</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; new_variable,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H_R,
               const Eigen::MatrixXd&amp; H_L,
               const Eigen::MatrixXd&amp; R,
@@ -144,11 +146,11 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a4d46ec9685f0b9b2727295f501fcf49a"><div>
+          <section class="m-doc-details" id="a31f92fdf5bac87bfc23d34334af7bd4d"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4d46ec9685f0b9b2727295f501fcf49a" class="m-doc-self">EKFPropagation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; order_NEW,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; order_OLD,
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a31f92fdf5bac87bfc23d34334af7bd4d" class="m-doc-self">EKFPropagation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; order_NEW,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; order_OLD,
               const Eigen::MatrixXd&amp; Phi,
               const Eigen::MatrixXd&amp; Q)</span></span>
             </h3>
@@ -233,10 +235,10 @@
 </g>
 </svg></div>
           </div></section>
-          <section class="m-doc-details" id="a0ce1a0cb854bf687285500e55b8260f7"><div>
+          <section class="m-doc-details" id="a471d81fcc22b706654556950931067fd"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0ce1a0cb854bf687285500e55b8260f7" class="m-doc-self">EKFUpdate</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; H_order,
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a471d81fcc22b706654556950931067fd" class="m-doc-self">EKFUpdate</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H,
               const Eigen::VectorXd&amp; res,
               const Eigen::MatrixXd&amp; R)</span></span>
@@ -270,12 +272,13 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a2552a9b41e3287fd9f0638656f52c279"><div>
+          <section class="m-doc-details" id="a5f19646a05e77e67d5be2da8aed19f14"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2552a9b41e3287fd9f0638656f52c279" class="m-doc-self">fix_4dof_gauge_freedoms</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const Eigen::Vector4d&amp; q_GtoI)</span></span>
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5f19646a05e77e67d5be2da8aed19f14" class="m-doc-self">set_initial_covariance</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const Eigen::MatrixXd&amp; covariance,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; order)</span></span>
             </h3>
-            <p>This will fix the initial covariance matrix gauge freedoms (4dof, yaw and position).</p>
+            <p>This will set the initial covaraince of the specified state elements. Will also ensure that proper cross-covariances are inserted.</p>
             <table class="m-table m-fullwidth m-flat">
               <thead>
                 <tr><th colspan="2">Parameters</th></tr>
@@ -286,17 +289,20 @@
                   <td>Pointer to state</td>
                 </tr>
                 <tr>
-                  <td>q_GtoI</td>
-                  <td>Initial rotation from global frame to the first ever IMU orientation.</td>
+                  <td>covariance</td>
+                  <td>The covariance of the system state</td>
+                </tr>
+                <tr>
+                  <td>order</td>
+                  <td>Order of the covariance matrix</td>
                 </tr>
               </tbody>
             </table>
-<p>A VIO system has 4dof unobservabile directions which can be arbitarily picked. This means that on startup, we can fix the yaw and position to be 100 percent known. Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error into the new IMU pose. In this case the position is directly equivilent, but the orientation needs to be propagated.</p>
           </div></section>
-          <section class="m-doc-details" id="ae49342fcfb15f992f8742b904ff1ab3c"><div>
+          <section class="m-doc-details" id="a23ec77c8411dcc7cfed64273f6882805"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static Eigen::MatrixXd ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae49342fcfb15f992f8742b904ff1ab3c" class="m-doc-self">get_marginal_covariance</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; small_variables)</span></span>
+              <span class="m-doc-wrap-bumper">static Eigen::MatrixXd ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a23ec77c8411dcc7cfed64273f6882805" class="m-doc-self">get_marginal_covariance</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; small_variables)</span></span>
             </h3>
             <p>For a given set of variables, this will this will calculate a smaller covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -346,10 +352,10 @@
             </table>
 <p>Should only be used during simulation as operations on this covariance will be slow. This will return a copy, so this cannot be used to change the covariance by design. Please use the other interface functions in the <a href="classov__msckf_1_1StateHelper.html" class="m-doc">StateHelper</a> to progamatically change to covariance.</p>
           </div></section>
-          <section class="m-doc-details" id="a8ea2f61ff85d1404e561b3e2a971d3a8"><div>
+          <section class="m-doc-details" id="a7a6d020115f02fe783ced90b90c32287"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8ea2f61ff85d1404e561b3e2a971d3a8" class="m-doc-self">marginalize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; marg)</span></span>
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7a6d020115f02fe783ced90b90c32287" class="m-doc-self">marginalize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; marg)</span></span>
             </h3>
             <p>Marginalizes a variable, properly modifying the ordering/covariances in the state.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -369,10 +375,10 @@
             </table>
 <p>This function can support any Type variable out of the box. Right now the marginalization of a sub-variable/type is not supported. For example if you wanted to just marginalize the orientation of a PoseJPL, that isn&#x27;t supported. We will first remove the rows and columns corresponding to the type (i.e. do the marginalization). After we update all the type ids so that they take into account that the covariance has shrunk in parts of it.</p>
           </div></section>
-          <section class="m-doc-details" id="a85147edb95990cc260c66a6746033421"><div>
+          <section class="m-doc-details" id="a3aecb942a1d9bb7dec915fdad303acc8"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a85147edb95990cc260c66a6746033421" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; variable_to_clone)</span></span>
+              <span class="m-doc-wrap-bumper">static std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3aecb942a1d9bb7dec915fdad303acc8" class="m-doc-self">clone</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; variable_to_clone)</span></span>
             </h3>
             <p>Clones &quot;variable to clone&quot; and places it at end of covariance.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -391,11 +397,11 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ac3e10c58e618a813a9eee2fd347f34aa"><div>
+          <section class="m-doc-details" id="a58ed364529ae3802a7110edf3ac4dbbb"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static bool ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac3e10c58e618a813a9eee2fd347f34aa" class="m-doc-self">initialize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; new_variable,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; H_order,
+              <span class="m-doc-wrap-bumper">static bool ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a58ed364529ae3802a7110edf3ac4dbbb" class="m-doc-self">initialize</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; new_variable,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; H_order,
               Eigen::MatrixXd&amp; H_R,
               Eigen::MatrixXd&amp; H_L,
               Eigen::MatrixXd&amp; R,
@@ -442,13 +448,13 @@
                 </tr>
               </tbody>
             </table>
-<p>Uses Givens to separate into updating and initializing systems (therefore system must be fed as isotropic). If you are not isotropic first whiten your system (TODO: we should add a helper function to do this). If your H_L Jacobian is already directly invertable, the just call the <a href="classov__msckf_1_1StateHelper.html#a645d15e6ea6b4c9e36341561a62a0c24" class="m-doc">initialize_<wbr />invertible()</a> instead of this function. Please refer to <a href="update-delay.html" class="m-doc">Delayed Feature Initialization</a> page for detailed derivation.</p>
+<p>Uses Givens to separate into updating and initializing systems (therefore system must be fed as isotropic). If you are not isotropic first whiten your system (TODO: we should add a helper function to do this). If your H_L Jacobian is already directly invertable, the just call the <a href="classov__msckf_1_1StateHelper.html#adb0f34932bb91d89bfd5ae72c2e693d8" class="m-doc">initialize_<wbr />invertible()</a> instead of this function. Please refer to <a href="update-delay.html" class="m-doc">Delayed Feature Initialization</a> page for detailed derivation.</p>
           </div></section>
-          <section class="m-doc-details" id="a645d15e6ea6b4c9e36341561a62a0c24"><div>
+          <section class="m-doc-details" id="adb0f34932bb91d89bfd5ae72c2e693d8"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a645d15e6ea6b4c9e36341561a62a0c24" class="m-doc-self">initialize_invertible</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
-              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt; new_variable,
-              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">Type</a>&gt;&gt;&amp; H_order,
+              <span class="m-doc-wrap-bumper">static void ov_msckf::<wbr />StateHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adb0f34932bb91d89bfd5ae72c2e693d8" class="m-doc-self">initialize_invertible</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
+              std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt; new_variable,
+              const std::vector&lt;std::shared_ptr&lt;<a href="classov__type_1_1Type.html" class="m-doc">ov_type::<wbr />Type</a>&gt;&gt;&amp; H_order,
               const Eigen::MatrixXd&amp; H_R,
               const Eigen::MatrixXd&amp; H_L,
               const Eigen::MatrixXd&amp; R,

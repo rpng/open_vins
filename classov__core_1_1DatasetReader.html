@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -77,6 +78,11 @@
               std::map&lt;double, Eigen::Matrix&lt;double, 17, 1&gt;&gt;&amp; gt_states) -&gt; bool</span>
             </dt>
             <dd>Gets the 17x1 groundtruth state at a given timestep.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#accb2a66a6468edf517c254aaa2e691d4" class="m-doc">load_simulated_trajectory</a>(</span><span class="m-doc-wrap">std::string path,
+              std::vector&lt;Eigen::VectorXd&gt;&amp; traj_data)</span>
+            </dt>
+            <dd>This will load the trajectory into memory (space separated)</dd>
           </dl>
         </section>
         <section>
@@ -135,6 +141,28 @@
                   <td>true if we found the state, false otherwise</td>
                 </tr>
               </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="accb2a66a6468edf517c254aaa2e691d4"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_core::<wbr />DatasetReader::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#accb2a66a6468edf517c254aaa2e691d4" class="m-doc-self">load_simulated_trajectory</a>(</span><span class="m-doc-wrap">std::string path,
+              std::vector&lt;Eigen::VectorXd&gt;&amp; traj_data)</span></span>
+            </h3>
+            <p>This will load the trajectory into memory (space separated)</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">path</td>
+                  <td>Path to the trajectory file that we want to read in.</td>
+                </tr>
+                <tr>
+                  <td>traj_data</td>
+                  <td>Will be filled with groundtruth states (timestamp(s), q_GtoI, p_IinG)</td>
+                </tr>
+              </tbody>
             </table>
           </div></section>
         </section>

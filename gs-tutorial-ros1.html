@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Simple Tutorial | OpenVINS</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
+  <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
+  <link rel="stylesheet" href="custom.css" />
+  <link rel="icon" href="favicon-light.png" type="image/png" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#2f73a3" />
+</head>
+<body>
+<header><nav id="navigation">
+  <div class="m-container">
+    <div class="m-row">
+      <a href="index.html" id="m-navbar-brand" class="m-col-t-8 m-col-m-none m-left-m">OpenVINS</a>
+      <div class="m-col-t-4 m-hide-m m-text-right m-nopadr">
+        <a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+          <path id="m-doc-search-icon-path" d="m6 0c-3.31 0-6 2.69-6 6 0 3.31 2.69 6 6 6 1.49 0 2.85-0.541 3.89-1.44-0.0164 0.338 0.147 0.759 0.5 1.15l3.22 3.79c0.552 0.614 1.45 0.665 2 0.115 0.55-0.55 0.499-1.45-0.115-2l-3.79-3.22c-0.392-0.353-0.812-0.515-1.15-0.5 0.895-1.05 1.44-2.41 1.44-3.89 0-3.31-2.69-6-6-6zm0 1.56a4.44 4.44 0 0 1 4.44 4.44 4.44 4.44 0 0 1-4.44 4.44 4.44 4.44 0 0 1-4.44-4.44 4.44 4.44 0 0 1 4.44-4.44z"/>
+        </svg></a>
+        <a id="m-navbar-show" href="#navigation" title="Show navigation"></a>
+        <a id="m-navbar-hide" href="#" title="Hide navigation"></a>
+      </div>
+      <div id="m-navbar-collapse" class="m-col-t-12 m-show-m m-col-m-none m-right-m">
+        <div class="m-row">
+          <ol class="m-col-t-6 m-col-m-none">
+            <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
+            <li><a href="namespaceov__core.html">ov_core</a></li>
+            <li><a href="namespaceov__type.html">ov_type</a></li>
+            <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
+          </ol>
+          <ol class="m-col-t-6 m-col-m-none" start="8">
+            <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
+            <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
+              <use href="#m-doc-search-icon-path" />
+            </svg></a></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</nav></header>
+<main><article>
+  <div class="m-container m-container-inflatable">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <h1>
+          Simple Tutorial
+        </h1>
+<p>The ROS1 system uses the <a href="http://wiki.ros.org/roslaunch">roslaunch</a> system to manage and launch nodes. These files can launch multiple nodes, and each node can their own set of parameters set. For OpenVINS we need to define a series of files</p><ul><li><code>estimator_config.yaml</code> - Contains OpenVINS specific configuration files. Each of these can be overridden in the launch file.</li><li><code>kalibr_imu_chain.yaml</code> - IMU noise parameters and topic information based on the sensor in the dataset. This should be the same as Kalibr&#x27;s (see <a href="gs-calibration.html#gs-calib-imu-static" class="m-doc">IMU Intrinsic Calibration (Offline)</a>).</li><li><code>kalibr_imucam_chain.yaml</code> - Camera to IMU transformation and camera intrinsics. This should be the same as Kalibr&#x27;s (see <a href="gs-calibration.html#gs-calib-cam-static" class="m-doc">Camera Intrinsic Calibration (Offline)</a>).</li></ul><p>Consider the below launch file. We can see the main parameter that is being passed into the estimator is the <code>config_path</code> file which has all configuration for this specific dataset. Additionally, we can see that we are launching the <code>run_subscribe_msckf</code> ROS 1 node, and are going to be overriding the <code>use_stereo</code> and <code>max_cameras</code> with the specificed values. ROS parameters always have priority, and you should see in the console that they have been successfully overridden.</p><div class="m-container-inflate"><pre class="m-code"><span class="nt">&lt;launch&gt;</span>
+
+    <span class="c">&lt;!-- what config we are going to run (should match folder name) --&gt;</span>
+    <span class="nt">&lt;arg</span> <span class="na">name=</span><span class="s">&quot;verbosity&quot;</span>   <span class="na">default=</span><span class="s">&quot;INFO&quot;</span> <span class="nt">/&gt;</span> <span class="c">&lt;!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT --&gt;</span>
+    <span class="nt">&lt;arg</span> <span class="na">name=</span><span class="s">&quot;config&quot;</span>      <span class="na">default=</span><span class="s">&quot;euroc_mav&quot;</span> <span class="nt">/&gt;</span> <span class="c">&lt;!-- euroc_mav, tum_vi, rpng_aruco --&gt;</span>
+    <span class="nt">&lt;arg</span> <span class="na">name=</span><span class="s">&quot;config_path&quot;</span> <span class="na">default=</span><span class="s">&quot;$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml&quot;</span> <span class="nt">/&gt;</span>
+
+    <span class="c">&lt;!-- MASTER NODE! --&gt;</span>
+    <span class="nt">&lt;node</span> <span class="na">name=</span><span class="s">&quot;run_subscribe_msckf&quot;</span> <span class="na">pkg=</span><span class="s">&quot;ov_msckf&quot;</span> <span class="na">type=</span><span class="s">&quot;run_subscribe_msckf&quot;</span> <span class="na">output=</span><span class="s">&quot;screen&quot;</span> <span class="na">clear_params=</span><span class="s">&quot;true&quot;</span> <span class="na">required=</span><span class="s">&quot;true&quot;</span><span class="nt">&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;verbosity&quot;</span>              <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;$(arg verbosity)&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;config_path&quot;</span>            <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;$(arg config_path)&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;use_stereo&quot;</span>             <span class="na">type=</span><span class="s">&quot;bool&quot;</span>   <span class="na">value=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;max_cameras&quot;</span>            <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;2&quot;</span> <span class="nt">/&gt;</span>
+    <span class="nt">&lt;/node&gt;</span>
+
+<span class="nt">&lt;/launch&gt;</span></pre></div><pre class="m-console"><span class="go">source devel/setup.bash</span>
+<span class="go">roslaunch ov_msckf tutorial.launch</span></pre><div class="m-container-inflate"><pre class="m-code"><span class="nt">&lt;launch&gt;</span>
+
+    <span class="nt">&lt;node</span> <span class="na">name=</span><span class="s">&quot;run_serial_msckf&quot;</span> <span class="na">pkg=</span><span class="s">&quot;ov_msckf&quot;</span> <span class="na">type=</span><span class="s">&quot;run_serial_msckf&quot;</span> <span class="na">output=</span><span class="s">&quot;screen&quot;</span><span class="nt">&gt;</span>
+    
+        <span class="c">&lt;!-- bag topics --&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;topic_imu&quot;</span>      <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;/imu0&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;topic_camera0&quot;</span>  <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;/cam0/image_raw&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;topic_camera1&quot;</span>  <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;/cam1/image_raw&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;stereo_pairs&quot;</span><span class="nt">&gt;</span>[0,1]<span class="nt">&lt;/rosparam&gt;</span>
+    
+        <span class="c">&lt;!-- bag parameters --&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;path_bag&quot;</span>    <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;/&lt;path&gt;/V1_01_easy.bag&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;bag_start&quot;</span>   <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;0&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;bag_durr&quot;</span>    <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;-1&quot;</span> <span class="nt">/&gt;</span>
+    
+        <span class="c">&lt;!-- world/filter parameters --&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;max_clones&quot;</span>             <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;11&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;max_slam&quot;</span>               <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;0&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;max_cameras&quot;</span>            <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;2&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;init_window_time&quot;</span>       <span class="na">type=</span><span class="s">&quot;double&quot;</span> <span class="na">value=</span><span class="s">&quot;0.5&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;init_imu_thresh&quot;</span>        <span class="na">type=</span><span class="s">&quot;double&quot;</span> <span class="na">value=</span><span class="s">&quot;2.0&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;gravity&quot;</span><span class="nt">&gt;</span>[0.0,0.0,9.81]<span class="nt">&lt;/rosparam&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;feat_rep_msckf&quot;</span>         <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;GLOBAL_3D&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;feat_rep_slam&quot;</span>          <span class="na">type=</span><span class="s">&quot;string&quot;</span> <span class="na">value=</span><span class="s">&quot;GLOBAL_3D&quot;</span> <span class="nt">/&gt;</span>
+    
+        <span class="c">&lt;!-- tracker/extractor parameters --&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;use_klt&quot;</span>          <span class="na">type=</span><span class="s">&quot;bool&quot;</span>   <span class="na">value=</span><span class="s">&quot;true&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;fast_threshold&quot;</span>   <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;10&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;grid_x&quot;</span>           <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;5&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;grid_y&quot;</span>           <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;3&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;min_px_dist&quot;</span>      <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;10&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;num_pts&quot;</span>          <span class="na">type=</span><span class="s">&quot;int&quot;</span>    <span class="na">value=</span><span class="s">&quot;400&quot;</span> <span class="nt">/&gt;</span>
+    
+        <span class="c">&lt;!-- sensor noise values / update --&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;up_msckf_sigma_px&quot;</span>            <span class="na">type=</span><span class="s">&quot;double&quot;</span>   <span class="na">value=</span><span class="s">&quot;1&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;up_msckf_chi2_multipler&quot;</span>      <span class="na">type=</span><span class="s">&quot;double&quot;</span>   <span class="na">value=</span><span class="s">&quot;1&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;gyroscope_noise_density&quot;</span>      <span class="na">type=</span><span class="s">&quot;double&quot;</span>   <span class="na">value=</span><span class="s">&quot;1.6968e-04&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;gyroscope_random_walk&quot;</span>        <span class="na">type=</span><span class="s">&quot;double&quot;</span>   <span class="na">value=</span><span class="s">&quot;1.9393e-05&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;accelerometer_noise_density&quot;</span>  <span class="na">type=</span><span class="s">&quot;double&quot;</span>   <span class="na">value=</span><span class="s">&quot;2.0000e-3&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;accelerometer_random_walk&quot;</span>    <span class="na">type=</span><span class="s">&quot;double&quot;</span>   <span class="na">value=</span><span class="s">&quot;3.0000e-3&quot;</span> <span class="nt">/&gt;</span>
+    
+        <span class="c">&lt;!-- camera intrinsics --&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;cam0_is_fisheye&quot;</span> <span class="na">type=</span><span class="s">&quot;bool&quot;</span> <span class="na">value=</span><span class="s">&quot;false&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;param</span> <span class="na">name=</span><span class="s">&quot;cam1_is_fisheye&quot;</span> <span class="na">type=</span><span class="s">&quot;bool&quot;</span> <span class="na">value=</span><span class="s">&quot;false&quot;</span> <span class="nt">/&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;cam0_k&quot;</span><span class="nt">&gt;</span>[458.654,457.296,367.215,248.375]<span class="nt">&lt;/rosparam&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;cam0_d&quot;</span><span class="nt">&gt;</span>[-0.28340811,0.07395907,0.00019359,1.76187114e-05]<span class="nt">&lt;/rosparam&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;cam1_k&quot;</span><span class="nt">&gt;</span>[457.587,456.134,379.999,255.238]<span class="nt">&lt;/rosparam&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;cam1_d&quot;</span><span class="nt">&gt;</span>[-0.28368365,0.07451284,-0.00010473,-3.55590700e-05]<span class="nt">&lt;/rosparam&gt;</span>
+    
+        <span class="c">&lt;!-- camera extrinsics --&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;T_C0toI&quot;</span><span class="nt">&gt;</span>
+            [
+            0.0148655429818, -0.999880929698, 0.00414029679422, -0.0216401454975,
+            0.999557249008, 0.0149672133247, 0.025715529948, -0.064676986768,
+            -0.0257744366974, 0.00375618835797, 0.999660727178, 0.00981073058949,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        <span class="nt">&lt;/rosparam&gt;</span>
+        <span class="nt">&lt;rosparam</span> <span class="na">param=</span><span class="s">&quot;T_C1toI&quot;</span><span class="nt">&gt;</span>
+            [
+            0.0125552670891, -0.999755099723, 0.0182237714554, -0.0198435579556,
+            0.999598781151, 0.0130119051815, 0.0251588363115, 0.0453689425024,
+            -0.0253898008918, 0.0179005838253, 0.999517347078, 0.00786212447038,
+            0.0, 0.0, 0.0, 1.0
+            ]
+        <span class="nt">&lt;/rosparam&gt;</span>
+    
+    <span class="nt">&lt;/node&gt;</span>
+    
+    <span class="nt">&lt;node</span> <span class="na">type=</span><span class="s">&quot;rviz&quot;</span> <span class="na">name=</span><span class="s">&quot;rviz&quot;</span> <span class="na">pkg=</span><span class="s">&quot;rviz&quot;</span> <span class="na">args=</span><span class="s">&quot;-d $(find ov_msckf)/launch/display.rviz&quot;</span> <span class="nt">/&gt;</span>
+    
+<span class="nt">&lt;/launch&gt;</span></pre></div><p>One will need to edit the path to the ROS bag that was downloaded from the <a href="https://projects.asl.ethz.ch/datasets/doku.php?id=kmavvisualinertialdatasets">EuRoC MAV Dataset</a> website. Lets now look at the different sections in this launch file in more detail. A lot of the parameters that are exposed have not been included in the above file and will instead be set to their default values. Please take a look at the other launch files or the <a href="classov__msckf_1_1VioManager.html" class="m-doc">ov_msckf::<wbr />VioManager</a> constructor for more details on what parameters are exposed.</p><table class="m-table"><thead><tr><th>Group</th><th>Description</th></tr></thead><tbody><tr><td>bag topics</td><td>ROS topics that we will parse the IMU and camera data from. If we are only using one camera, i.e. monocular, then only the first camera topic is used.</td></tr><tr><td>stereo pairs</td><td>Even set of camera ids, which stereo tracking will be tried to be performed on. For example a 0,1,2,3 means that you want to perform stereo tracking of the 0,1 and 2,3 camera pairs.</td></tr><tr><td>bag params.</td><td>Location of the bag we will read along with the start time, in seconds, and duration we want to run on.</td></tr><tr><td>world/filter params.</td><td>This has most of the core parameters that can be tuned to improve filter performance including the sliding window size, representation, gravity, and number of environmental SLAM features. One can also change the number of cameras from 1 to 2 to do stereo matching and update.</td></tr><tr><td>tracker/extractor params.</td><td>For our visual front-end tracker we have a few key parameters that we can tune, most importantly is the number of features extracted.</td></tr><tr><td>sensor noise values</td><td>Since our feature measurement function is on the raw pixels (see <a href="update-feat.html" class="m-doc">Camera Measurement Update</a>), the pixel noise should be 1 pixel if we have good calibration. We additionally have the <em>continuous time</em> white noise and random walk values for our IMU.</td></tr><tr><td>camera intrinsics</td><td>Camera intrinsic values from the EurocMav dataset.</td></tr><tr><td>camera extrinsics</td><td>Camera extrinsics values from the EurocMav dataset. Note that they have the rotation from camera to imu and position of the imu in the camera in the imu frame.</td></tr></tbody></table><p>If we create a launch file <code>tutorial.launch</code> in our <code>/ov_msckf/launch/</code> folder with the above contents and have replaced the bag path to the downloaded bag location, we can do the following.</p><pre class="m-console"><span class="go">source devel/setup.bash</span>
+<span class="go">roslaunch ov_msckf tutorial.launch</span></pre>
+      </div>
+    </div>
+  </div>
+</article></main>
+<div class="m-doc-search" id="search">
+  <a href="#!" onclick="return hideSearch()"></a>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-m-8 m-push-m-2">
+        <div class="m-doc-search-header m-text m-small">
+          <div><span class="m-label m-default">Tab</span> / <span class="m-label m-default">T</span> to search, <span class="m-label m-default">Esc</span> to close</div>
+          <div id="search-symbolcount">&hellip;</div>
+        </div>
+        <div class="m-doc-search-content">
+          <form>
+            <input type="search" name="q" id="search-input" placeholder="Loading &hellip;" disabled="disabled" autofocus="autofocus" autocomplete="off" spellcheck="false" />
+          </form>
+          <noscript class="m-text m-danger m-text-center">Unlike everything else in the docs, the search functionality <em>requires</em> JavaScript.</noscript>
+          <div id="search-help" class="m-text m-dim m-text-center">
+            <p class="m-noindent">Search for symbols, directories, files, pages or
+            modules. You can omit any prefix from the symbol or file path; adding a
+            <code>:</code> or <code>/</code> suffix lists all members of given symbol or
+            directory.</p>
+            <p class="m-noindent">Use <span class="m-label m-dim">&darr;</span>
+            / <span class="m-label m-dim">&uarr;</span> to navigate through the list,
+            <span class="m-label m-dim">Enter</span> to go.
+            <span class="m-label m-dim">Tab</span> autocompletes common prefix, you can
+            copy a link to the result using <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">L</span> while <span class="m-label m-dim">⌘</span>
+            <span class="m-label m-dim">M</span> produces a Markdown link.</p>
+          </div>
+          <div id="search-notfound" class="m-text m-warning m-text-center">Sorry, nothing was found.</div>
+          <ul id="search-results"></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<script src="search-v1.js"></script>
+<script src="searchdata-v1.js" async="async"></script>
+<footer><nav>
+  <div class="m-container">
+    <div class="m-row">
+      <div class="m-col-l-10 m-push-l-1">
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.16 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+      </div>
+    </div>
+  </div>
+</nav></footer>
+</body>
+</html>

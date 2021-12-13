@@ -26,13 +26,14 @@
         <div class="m-row">
           <ol class="m-col-t-6 m-col-m-none">
             <li><a href="pages.html">Pages</a></li>
+            <li><a href="annotated.html">Classes</a></li>
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
-            <li><a href="annotated.html">Classes</a></li>
           </ol>
-          <ol class="m-col-t-6 m-col-m-none" start="7">
+          <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
             <li class="m-show-m"><a href="#search" class="m-doc-search-icon" title="Search" onclick="return showSearch()"><svg style="height: 0.9rem;" viewBox="0 0 16 16">
               <use href="#m-doc-search-icon-path" />
@@ -58,6 +59,7 @@
               Reference
               <ul>
                 <li><a href="#derived-classes">Derived classes</a></li>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pro-attribs">Protected variables</a></li>
               </ul>
@@ -76,6 +78,16 @@
               class <a href="classov__core_1_1CamRadtan.html" class="m-doc">CamRadtan</a>
             </dt>
             <dd>Radial-tangential / Brown–Conrady model pinhole camera model class.</dd>
+          </dl>
+        </section>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a1f11a6e4e8324d6843b578c0dabe0f94" class="m-doc">CamBase</a>(</span><span class="m-doc-wrap">int width,
+              int height)</span>
+            </dt>
+            <dd>Default constructor.</dd>
           </dl>
         </section>
         <section id="pub-methods">
@@ -127,6 +139,14 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a7ee1a5a19bf68bbf7bcd55dcd56748fb" class="m-doc-self">get_D</a>(</span><span class="m-doc-wrap">) -&gt; cv::Vec4d</span>
             </dt>
             <dd>Gets the camera distortion.</dd>
+            <dt id="a9eea297b76bc8acfe69946699b83d4f5">
+              <span class="m-doc-wrap-bumper">auto <a href="#a9eea297b76bc8acfe69946699b83d4f5" class="m-doc-self">w</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
+            </dt>
+            <dd>Gets the width of the camera images.</dd>
+            <dt id="aa159148b3d1b3789f68c61ca54084e2a">
+              <span class="m-doc-wrap-bumper">auto <a href="#aa159148b3d1b3789f68c61ca54084e2a" class="m-doc-self">h</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
+            </dt>
+            <dd>Gets the height of the camera images.</dd>
           </dl>
         </section>
         <section id="pro-attribs">
@@ -144,10 +164,40 @@
               cv::Vec4d <a href="#a5783a122e28281c1cd72a23f4bee212c" class="m-doc-self">camera_d_OPENCV</a>
             </dt>
             <dd>Camera distortion in OpenCV format.</dd>
+            <dt id="aa7b9e38e6da0ee85af5f82c3bc3ea91d">
+              int <a href="#aa7b9e38e6da0ee85af5f82c3bc3ea91d" class="m-doc-self">_width</a>
+            </dt>
+            <dd>Width of the camera (raw pixels)</dd>
+            <dt id="aa9d833d887ee0ca92044e72d788c54de">
+              int <a href="#aa9d833d887ee0ca92044e72d788c54de" class="m-doc-self">_height</a>
+            </dt>
+            <dd>Height of the camera (raw pixels)</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a1f11a6e4e8324d6843b578c0dabe0f94"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1f11a6e4e8324d6843b578c0dabe0f94" class="m-doc-self">CamBase</a>(</span><span class="m-doc-wrap">int width,
+              int height)</span></span>
+            </h3>
+            <p>Default constructor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">width</td>
+                  <td>Width of the camera (raw pixels)</td>
+                </tr>
+                <tr>
+                  <td>height</td>
+                  <td>Height of the camera (raw pixels)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="a630f35e703c3893ae694fe0f14693216"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_core::<wbr />CamBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a630f35e703c3893ae694fe0f14693216" class="m-doc-self">set_value</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; calib) <span class="m-label m-warning">virtual</span></span></span>
