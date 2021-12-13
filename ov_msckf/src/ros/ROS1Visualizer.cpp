@@ -29,7 +29,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
     : _nh(nh), _app(app), _sim(sim) {
 
   // Setup our transform broadcaster
-  mTfBr = new tf::TransformBroadcaster();
+  mTfBr = std::make_shared<tf::TransformBroadcaster>();
 
   // Create image transport
   image_transport::ImageTransport it(*_nh);

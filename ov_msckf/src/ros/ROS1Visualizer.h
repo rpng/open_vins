@@ -136,7 +136,7 @@ protected:
   ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
-  tf::TransformBroadcaster *mTfBr;
+  std::shared_ptr<tf::TransformBroadcaster> mTfBr;
 
   // Our subscribers and camera synchronizers
   ros::Subscriber sub_imu;

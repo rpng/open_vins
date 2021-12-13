@@ -173,11 +173,11 @@ int main(int argc, char **argv) {
   }
 
   // Final visualization
-#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
+#if ROS_AVAILABLE == 1
   viz->visualize_final();
-#endif
-
-#if ROS_AVAILABLE == 2
+  ros::shutdown();
+#elif ROS_AVAILABLE == 2
+  viz->visualize_final();
   rclcpp::shutdown();
 #endif
 

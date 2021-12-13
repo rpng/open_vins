@@ -29,7 +29,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
     : _node(node), _app(app), _sim(sim) {
 
   // Setup our transform broadcaster
-  mTfBr = new tf2_ros::TransformBroadcaster(node);
+  mTfBr = std::make_shared<tf2_ros::TransformBroadcaster>(node);
 
   // Create image transport
   image_transport::ImageTransport it(node);
