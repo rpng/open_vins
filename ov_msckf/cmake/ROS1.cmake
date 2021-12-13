@@ -38,10 +38,11 @@ list(APPEND thirdparty_libraries
 # See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
     message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${ov_core_SOURCE_DIR}/src/)
+    message(WARNING ${ov_core_SOURCE_DIR})
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
     list(APPEND thirdparty_libraries ov_core_lib)
     message(WARNING "MANUALLY LINKING TO OV_INIT LIBRARY....")
-    include_directories(${ov_init_SOURCE_DIR}/src/)
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_init/src/)
     list(APPEND thirdparty_libraries ov_init_lib)
 endif ()
 
