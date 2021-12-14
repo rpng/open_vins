@@ -508,7 +508,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
         return;
     }
 
-    int num_cam = 1 + 16 + 1;
+    int num_cam = (int)est_state.at(0)(18);
     int imu_model = (int) est_state.at(0)(1 + 16 + 1 + 1 + 15 * num_cam);
     int dw_id = 1 + 16 + 1 + 1 + 15 * num_cam + 1;
     int dw_cov_id = 1 + 15 + 1 + 1 + 14 * num_cam + 1;
@@ -520,6 +520,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
     int wtoI_cov_id = tg_cov_id + 9;
     int atoI_id = wtoI_id + 4;
     int atoI_cov_id = wtoI_cov_id + 3;
+
 
     // Camera extrinsics statistic storage
     std::vector<Statistics> error_dw, error_da, error_tg, error_wtoI, error_atoI;
@@ -535,7 +536,6 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
         error_wtoI.emplace_back(Statistics());
         error_atoI.emplace_back(Statistics());
     }
-
 
     // Loop through and calculate error
     double start_time = est_state.at(0)(0);
@@ -590,6 +590,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
         }
 
     }
+
 
     // return if we don't want to plot
     if (!doplotting)

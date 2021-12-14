@@ -177,14 +177,14 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
     // perturb the imu intrinsics
     for(int j=0; j<6; j++){
-      params_.imu_config.imu_x_dw(j) += 0.005 * w(gen_state_perturb);
-      params_.imu_config.imu_x_da(j) += 0.005 * w(gen_state_perturb);
+      params_.imu_config.imu_x_dw(j) += 0.004 * w(gen_state_perturb);
+      params_.imu_config.imu_x_da(j) += 0.004 * w(gen_state_perturb);
     }
 
     // if we need to perturb gravity sensitivity
     for(int j=0; j<5; j++){
       if(params_.state_options.do_calib_imu_g_sensitivity){
-        params_.imu_config.imu_x_tg(j) += 0.005 * w(gen_state_perturb);
+        params_.imu_config.imu_x_tg(j) += 0.004 * w(gen_state_perturb);
       }
     }
 
