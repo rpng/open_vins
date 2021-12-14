@@ -225,20 +225,59 @@ protected:
                         Eigen::Vector3d &new_p);
 
 
-  /// TODO: comment this....
+  /**
+   * @brief Analytically compute the integration componenets based on ACI^2
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param Xi_sum All the needed integration componenets, including R, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   */
+  void compute_Xi_sum(std::shared_ptr<State> state, double dt,
+                      const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                      Eigen::Matrix<double,3,18> &Xi_sum);
+
+
+  /**
+   * @brief Analytically predict IMU mean
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param new_q The resulting new orientation after integration
+   * @param new_v The resulting new velocity after integration
+   * @param new_p The resulting new position after integration
+   * @param Xi_sum All the needed integration componenets, including R, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   */
   void predict_mean_analytic(std::shared_ptr<State> state, double dt,
                              const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                              Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p,
                              Eigen::Matrix<double,3,18> &Xi_sum);
 
 
-
-  /// TODO: comment this....
-  void compute_Xi_sum(std::shared_ptr<State> state, double dt,
-                       const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
-                       Eigen::Matrix<double,3,18> &Xi_sum);
-
-  /// TODO: comment this....
+  /**
+   * @brief Analytically compute state transition matrix F and noise Jacobian G
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param w_uncorrected Angular velocity in acc frame with bias and gravity sensitivity removed
+   * @param new_q The resulting new orientation after integration
+   * @param new_v The resulting new velocity after integration
+   * @param new_p The resulting new position after integration
+   * @param Xi_sum All the needed integration componenets, including R, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   * @param F State transition matrix
+   * @param G Noise Jacobian
+   */
   void compute_F_and_G_analytic(std::shared_ptr<State> state, double dt,
                                 const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                                 const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected,
@@ -246,27 +285,58 @@ protected:
                                 const Eigen::Matrix<double,3,18> &Xi_sum,
                                 Eigen::MatrixXd &F, Eigen::MatrixXd &G);
 
-  /// TODO: comment this....
+  /**
+   * @brief compute state transition matrix F and noise Jacobian G
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param w_uncorrected Angular velocity in acc frame with bias and gravity sensitivity removed
+   * @param new_q The resulting new orientation after integration
+   * @param new_v The resulting new velocity after integration
+   * @param new_p The resulting new position after integration
+   * @param F State transition matrix
+   * @param G Noise Jacobian
+   */
   void compute_F_and_G_discrete(std::shared_ptr<State> state, double dt,
                                 const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                                 const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected,
                                 const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p,
                                 Eigen::MatrixXd &F, Eigen::MatrixXd &G);
 
-  /// TODO: comment this....
+  /**
+   * @brief compute the Jacobians for Dw
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param w_uncorrected Angular velocity in a frame with bias and gravity sensitivity removed
+   */
   Eigen::MatrixXd compute_H_Dw(std::shared_ptr<State> state, const Eigen::Vector3d &w_uncorrected);
 
-  /// TODO: comment this....
+  /**
+   * @brief compute the Jacobians for Da
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param a_uncorrected Linear acceleration in gyro frame with bias removed
+   */
   Eigen::MatrixXd compute_H_Da(std::shared_ptr<State> state, const Eigen::Vector3d &a_uncorrected);
 
-  /// TODO: comment this....
+  /**
+   * @brief compute the Jacobians for Tg
+   *
+   * See the paper for ACI^2 or IJRR paper
+   *
+   * @param state Pointer to state
+   * @param a_inI Linear acceleration with bias removed
+   */
   Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
-
-
-
-
-
-
+  
   /// Container for the noise values
   ov_core::ImuConfig _imu_config;
 
