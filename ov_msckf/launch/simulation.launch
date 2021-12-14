@@ -10,7 +10,7 @@
     <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
 
     <!-- simulation parameters we can vary with our scripts -->
-    <arg name="seed"        default="100" />
+    <arg name="seed"        default="5" />
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
@@ -37,6 +37,8 @@
     <arg name="path_state_est"  default="$(find ov_eval)/data/sim/state_estimate.txt" />
     <arg name="path_state_std"  default="$(find ov_eval)/data/sim/state_deviation.txt" />
     <arg name="path_state_gt"   default="$(find ov_eval)/data/sim/state_groundtruth.txt" />
+
+
 
     <!-- ================================================================ -->
     <!-- ================================================================ -->
