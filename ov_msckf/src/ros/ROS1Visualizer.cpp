@@ -634,6 +634,11 @@ void ROS1Visualizer::publish_groundtruth() {
   quat_diff = quat_multiply(quat_st, Inv(quat_gt));
   double rmse_ori = (180 / M_PI) * 2 * quat_diff.block(0, 0, 3, 1).norm();
 
+  //
+  std::cout << " debug the initial values " << std::endl;
+  std::cout << state_ekf.block<3,1>(4,0).transpose() << std::endl;
+  std::cout << state_gt.block<3,1>(5,0).transpose() << std::endl;
+
   //==========================================================================
   //==========================================================================
 

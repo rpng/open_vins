@@ -377,6 +377,11 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
     predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
 
 
+//  std::cout << "check propagation: " << std::endl;
+//  std::cout << state->_imu->pos().transpose() << std::endl;
+//  std::cout << new_p.transpose() << std::endl;
+//  std::cout << a_hat.transpose() * dt << std::endl;
+
   // Allocate state transition and noise Jacobian
   F = Eigen::MatrixXd::Zero(state->imu_intrinsic_size()+15, state->imu_intrinsic_size()+15);
   Eigen::MatrixXd G = Eigen::MatrixXd::Zero(state->imu_intrinsic_size()+15,12);
@@ -389,14 +394,86 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
                              new_q, new_v,  new_p, F, G);
   }
 
+
+//  // Get the locations of each entry of the imu state
+//  int th_id = state->_imu->q()->id() - state->_imu->id();
+//  int p_id = state->_imu->p()->id() - state->_imu->id();
+//  int v_id = state->_imu->v()->id() - state->_imu->id();
+//  int bg_id = state->_imu->bg()->id() - state->_imu->id();
+//  int ba_id = state->_imu->ba()->id() - state->_imu->id();
+//
+//  // Allocate noise Jacobian
+////  Eigen::Matrix<double, 15, 12> G = Eigen::Matrix<double, 15, 12>::Zero();
+//
+//  // Now compute Jacobian of new state wrt old state and noise
+//  if (state->_options.do_fej) {
+//
+//    // This is the change in the orientation from the end of the last prop to the current prop
+//    // This is needed since we need to include the "k-th" updated orientation information
+//    Eigen::Matrix<double, 3, 3> Rfej = state->_imu->Rot_fej();
+//    Eigen::Matrix<double, 3, 3> dR = quat_2_Rot(new_q) * Rfej.transpose();
+//
+//    Eigen::Matrix<double, 3, 1> v_fej = state->_imu->vel_fej();
+//    Eigen::Matrix<double, 3, 1> p_fej = state->_imu->pos_fej();
+//
+//    F.block(th_id, th_id, 3, 3) = dR;
+//    F.block(th_id, bg_id, 3, 3).noalias() = -dR * Jr_so3(-w_hat * dt) * dt;
+//    // F.block(th_id, bg_id, 3, 3).noalias() = -dR * Jr_so3(-log_so3(dR)) * dt;
+//    F.block(bg_id, bg_id, 3, 3).setIdentity();
+//    F.block(v_id, th_id, 3, 3).noalias() = -skew_x(new_v - v_fej + _gravity * dt) * Rfej.transpose();
+//    // F.block(v_id, th_id, 3, 3).noalias() = -Rfej.transpose() * skew_x(Rfej*(new_v-v_fej+_gravity*dt));
+//    F.block(v_id, v_id, 3, 3).setIdentity();
+//    F.block(v_id, ba_id, 3, 3) = -Rfej.transpose() * dt;
+//    F.block(ba_id, ba_id, 3, 3).setIdentity();
+//    F.block(p_id, th_id, 3, 3).noalias() = -skew_x(new_p - p_fej - v_fej * dt + 0.5 * _gravity * dt * dt) * Rfej.transpose();
+//    // F.block(p_id, th_id, 3, 3).noalias() = -0.5 * Rfej.transpose() * skew_x(2*Rfej*(new_p-p_fej-v_fej*dt+0.5*_gravity*dt*dt));
+//    F.block(p_id, v_id, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
+//    F.block(p_id, ba_id, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
+//    F.block(p_id, p_id, 3, 3).setIdentity();
+//
+//    G.block(th_id, 0, 3, 3) = -dR * Jr_so3(-w_hat * dt) * dt;
+//    // G.block(th_id, 0, 3, 3) = -dR * Jr_so3(-log_so3(dR)) * dt;
+//    G.block(v_id, 3, 3, 3) = -Rfej.transpose() * dt;
+//    G.block(p_id, 3, 3, 3) = -0.5 * Rfej.transpose() * dt * dt;
+//    G.block(bg_id, 6, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity();
+//    G.block(ba_id, 9, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity();
+//
+//  } else {
+//
+//    Eigen::Matrix<double, 3, 3> R_Gtoi = state->_imu->Rot();
+//
+//    F.block(th_id, th_id, 3, 3) = exp_so3(-w_hat * dt);
+//    F.block(th_id, bg_id, 3, 3).noalias() = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
+//    F.block(bg_id, bg_id, 3, 3).setIdentity();
+//    F.block(v_id, th_id, 3, 3).noalias() = -R_Gtoi.transpose() * skew_x(a_hat * dt);
+//    F.block(v_id, v_id, 3, 3).setIdentity();
+//    F.block(v_id, ba_id, 3, 3) = -R_Gtoi.transpose() * dt;
+//    F.block(ba_id, ba_id, 3, 3).setIdentity();
+//    F.block(p_id, th_id, 3, 3).noalias() = -0.5 * R_Gtoi.transpose() * skew_x(a_hat * dt * dt);
+//    F.block(p_id, v_id, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
+//    F.block(p_id, ba_id, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
+//    F.block(p_id, p_id, 3, 3).setIdentity();
+//
+//    G.block(th_id, 0, 3, 3) = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
+//    G.block(v_id, 3, 3, 3) = -R_Gtoi.transpose() * dt;
+//    G.block(p_id, 3, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
+//    G.block(bg_id, 6, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity();
+//    G.block(ba_id, 9, 3, 3) = Eigen::Matrix<double, 3, 3>::Identity();
+//  }
+
+
+
+
+
+
   // Construct our discrete noise covariance matrix
   // Note that we need to convert our continuous time noises to discrete
   // Equations (129) amd (130) of Trawny tech report
   Eigen::Matrix<double, 12, 12> Qc = Eigen::Matrix<double, 12, 12>::Zero();
   Qc.block(0, 0, 3, 3) = _imu_config.sigma_w_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
   Qc.block(3, 3, 3, 3) = _imu_config.sigma_a_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(6, 6, 3, 3) = _imu_config.sigma_wb_2 * dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(9, 9, 3, 3) = _imu_config.sigma_ab_2 * dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(6, 6, 3, 3) = _imu_config.sigma_wb_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(9, 9, 3, 3) = _imu_config.sigma_ab_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
 
   // Compute the noise injected into the state over the interval
   Qd = Eigen::MatrixXd::Zero(state->imu_intrinsic_size()+15, state->imu_intrinsic_size()+15);
@@ -759,7 +836,7 @@ void Propagator::predict_mean_analytic(std::shared_ptr<State> state, double dt,
   Eigen::Matrix<double,3,3> R_Gtok = state->_imu->Rot();
 
   // get the pre-computed value
-  Eigen::Matrix3d R_k1_to_k = Xi_sum.block(0,0,3,3);
+  Eigen::Matrix3d R_k1_to_k = Xi_sum.block<3,3>(0,0);
   Eigen::Matrix3d Xi_1 = Xi_sum.block<3,3>(0,3);
   Eigen::Matrix3d Xi_2 = Xi_sum.block<3,3>(0,6);
 

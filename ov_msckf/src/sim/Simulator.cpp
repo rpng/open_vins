@@ -336,7 +336,7 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   Eigen::Matrix3d Tw = params.imu_config.Tw();
   Eigen::Matrix3d Ta = params.imu_config.Ta();
   Eigen::Vector3d omega_inw = Tw * params.imu_config.R_ItoGyro() * omega_inI + Tg * accel_inI;
-  Eigen::Vector3d accel_ina = Ta * params.imu_config.R_ItoAcc() * R_GtoI * accel_inI;
+  Eigen::Vector3d accel_ina = Ta * params.imu_config.R_ItoAcc()  * accel_inI;
 
 
 
