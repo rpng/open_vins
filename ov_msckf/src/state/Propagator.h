@@ -162,7 +162,7 @@ protected:
    * @param Qd Discrete-time noise covariance over the interval
    */
   void predict_and_compute(std::shared_ptr<State> state, const ov_core::ImuData &data_minus, const ov_core::ImuData &data_plus,
-                           Eigen::Matrix<double, 15, 15> &F, Eigen::Matrix<double, 15, 15> &Qd);
+                           Eigen::MatrixXd &F, Eigen::MatrixXd &Qd);
 
   /**
    * @brief Discrete imu mean propagation.
@@ -223,6 +223,49 @@ protected:
   void predict_mean_rk4(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                         const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2, Eigen::Vector4d &new_q, Eigen::Vector3d &new_v,
                         Eigen::Vector3d &new_p);
+
+
+  /// TODO: comment this....
+  void predict_mean_analytic(std::shared_ptr<State> state, double dt,
+                             const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                             Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p,
+                             Eigen::Matrix<double,3,18> &Xi_sum);
+
+
+
+  /// TODO: comment this....
+  void compute_Xi_sum(std::shared_ptr<State> state, double dt,
+                       const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                       Eigen::Matrix<double,3,18> &Xi_sum);
+
+  /// TODO: comment this....
+  void compute_F_and_G_analytic(std::shared_ptr<State> state, double dt,
+                                const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                                const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected,
+                                const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p,
+                                const Eigen::Matrix<double,3,18> &Xi_sum,
+                                Eigen::MatrixXd &F, Eigen::MatrixXd &G);
+
+  /// TODO: comment this....
+  void compute_F_and_G_discrete(std::shared_ptr<State> state, double dt,
+                                const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                                const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected,
+                                const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p,
+                                Eigen::MatrixXd &F, Eigen::MatrixXd &G);
+
+  /// TODO: comment this....
+  Eigen::MatrixXd compute_H_Dw(std::shared_ptr<State> state, const Eigen::Vector3d &w_uncorrected);
+
+  /// TODO: comment this....
+  Eigen::MatrixXd compute_H_Da(std::shared_ptr<State> state, const Eigen::Vector3d &a_uncorrected);
+
+  /// TODO: comment this....
+  Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
+
+
+
+
+
 
   /// Container for the noise values
   ov_core::ImuConfig _imu_config;

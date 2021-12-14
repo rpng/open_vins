@@ -42,7 +42,10 @@ struct StateOptions {
   bool imu_avg = false;
 
   /// Bool to determine if we should use Rk4 imu integration
-  bool use_rk4_integration = true;
+  bool use_rk4_integration = false;
+
+  /// Bool to determine if we should use analytic imu integration
+  bool use_analytic_integration = true;
 
   /// Bool to determine whether or not to calibrate imu-to-camera pose
   bool do_calib_camera_pose = false;
@@ -60,7 +63,7 @@ struct StateOptions {
   bool do_calib_imu_g_sensitivity = false;
 
   /// Indicator to use which model, 0: kalibr and 1: rpng
-  int imu_mode = 0;
+  int imu_model = 0;
 
   /// Max clone size of sliding window
   int max_clone_size = 11;
@@ -95,6 +98,7 @@ struct StateOptions {
       parser->parse_config("use_fej", do_fej);
       parser->parse_config("use_imuavg", imu_avg);
       parser->parse_config("use_rk4int", use_rk4_integration);
+      parser->parse_config("use_analytic_int", use_analytic_integration);
       parser->parse_config("calib_cam_extrinsics", do_calib_camera_pose);
       parser->parse_config("calib_cam_intrinsics", do_calib_camera_intrinsics);
       parser->parse_config("calib_cam_timeoffset", do_calib_camera_timeoffset);
@@ -115,6 +119,16 @@ struct StateOptions {
       std::string rep3 = ov_type::LandmarkRepresentation::as_string(feat_rep_aruco);
       parser->parse_config("feat_rep_aruco", rep3);
       feat_rep_aruco = ov_type::LandmarkRepresentation::from_string(rep3);
+
+      // IMU model
+      std::string imu_model_str = "kalibr";
+      parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
+      if(imu_model_str == "kalibr") imu_model = 0;
+      else if(imu_model_str == "rpng") imu_model = 1;
+      else {
+        PRINT_ERROR(RED "StateOption(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
+      }
+
     }
     PRINT_DEBUG("  - use_fej: %d\n", do_fej);
     PRINT_DEBUG("  - use_imuavg: %d\n", imu_avg);

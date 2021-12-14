@@ -78,6 +78,29 @@ public:
    */
   int max_covariance_size() { return (int)_Cov.rows(); }
 
+
+  // get Dw
+  Eigen::Matrix3d Dw();
+  // get Da
+  Eigen::Matrix3d Da();
+  // get Tg
+  Eigen::Matrix3d Tg();
+  // get R_AcctoI
+  Eigen::Matrix3d R_AcctoI();
+  // get R_GyrotoI
+  Eigen::Matrix3d R_GyrotoI();
+
+  int imu_intrinsic_size() {
+    int sz = 0;
+    if(_options.do_calib_imu_intrinsics){
+      sz += 15;
+      if(_options.do_calib_imu_g_sensitivity){
+        sz += 9;
+      }
+    }
+    return sz;
+  }
+
   /// Current timestamp (should be the last update time!)
   double _timestamp = -1;
 
@@ -104,6 +127,13 @@ public:
 
   /// Camera intrinsics camera objects
   std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> _cam_intrinsics_cameras;
+
+  /// IMU intrinsics
+  std::shared_ptr<ov_type::Vec> _imu_x_dw;
+  std::shared_ptr<ov_type::Vec> _imu_x_da;
+  std::shared_ptr<ov_type::JPLQuat> _imu_quat_acctoI;
+  std::shared_ptr<ov_type::JPLQuat> _imu_quat_gyrotoI;
+  std::shared_ptr<ov_type::Vec> _imu_x_tg;
 
 private:
   // Define that the state helper is a friend class of this class

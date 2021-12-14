@@ -158,6 +158,15 @@ struct ImuConfig {
     return Da;
   }
 
+  /// get the IMU Tw
+  Eigen::Matrix3d Tw() {
+    return Dw().inverse();
+  }
+
+  Eigen::Matrix3d Ta() {
+    return Da().inverse();
+  }
+
   /// get the IMU Tg
   Eigen::Matrix3d Tg(){
     Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
@@ -172,9 +181,17 @@ struct ImuConfig {
     return ov_core::quat_2_Rot(imu_quat_AcctoI);
   }
 
+  Eigen::Matrix3d R_ItoAcc(){
+    return R_AcctoI().transpose();
+  }
+
   /// get the R_GyrotoI
   Eigen::Matrix3d R_GyrotoI(){
     return ov_core::quat_2_Rot(imu_quat_GyrotoI);
+  }
+
+  Eigen::Matrix3d R_ItoGyro(){
+    return R_GyrotoI().transpose();
   }
 
 

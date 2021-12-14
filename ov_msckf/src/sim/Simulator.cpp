@@ -299,20 +299,29 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   }
 
   // Transform omega and linear acceleration into imu frame
-  Eigen::Vector3d omega_inI = w_IinI;
   Eigen::Vector3d gravity;
   gravity << 0.0, 0.0, params.gravity_mag;
   Eigen::Vector3d accel_inI = R_GtoI * (a_IinG + gravity);
+  Eigen::Vector3d omega_inI = w_IinI;
+
+  // get the readings with the imu intrinsics
+  Eigen::Matrix3d Tg = params.imu_config.Tg();
+  Eigen::Matrix3d Tw = params.imu_config.Tw();
+  Eigen::Matrix3d Ta = params.imu_config.Ta();
+  Eigen::Vector3d omega_inw = Tw * params.imu_config.R_ItoGyro() * omega_inI + Tg * accel_inI;
+  Eigen::Vector3d accel_ina = Ta * params.imu_config.R_ItoAcc() * R_GtoI * accel_inI;
+
+
 
   // Now add noise to these measurements
   double dt = 1.0 / params.sim_freq_imu;
   std::normal_distribution<double> w(0, 1);
-  wm(0) = omega_inI(0) + true_bias_gyro(0) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  wm(1) = omega_inI(1) + true_bias_gyro(1) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  wm(2) = omega_inI(2) + true_bias_gyro(2) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  am(0) = accel_inI(0) + true_bias_accel(0) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-  am(1) = accel_inI(1) + true_bias_accel(1) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-  am(2) = accel_inI(2) + true_bias_accel(2) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  wm(0) = omega_inw(0) + true_bias_gyro(0) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  wm(1) = omega_inw(1) + true_bias_gyro(1) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  wm(2) = omega_inw(2) + true_bias_gyro(2) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  am(0) = accel_ina(0) + true_bias_accel(0) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  am(1) = accel_ina(1) + true_bias_accel(1) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  am(2) = accel_ina(2) + true_bias_accel(2) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
 
   // Move the biases forward in time
   true_bias_gyro(0) += params.imu_config.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
