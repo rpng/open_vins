@@ -174,6 +174,33 @@ Simulator::Simulator(VioManagerOptions &params_) {
       params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
           rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
     }
+
+    // perturb the imu intrinsics
+    for(int j=0; j<6; j++){
+      params_.imu_config.imu_x_dw(j) += 0.005 * w(gen_state_perturb);
+      params_.imu_config.imu_x_da(j) += 0.005 * w(gen_state_perturb);
+    }
+
+    // if we need to perturb gravity sensitivity
+    for(int j=0; j<5; j++){
+      if(params_.state_options.do_calib_imu_g_sensitivity){
+        params_.imu_config.imu_x_tg(j) += 0.005 * w(gen_state_perturb);
+      }
+    }
+
+    // depends on Kalibr model or RPNG model
+    if(params_.state_options.imu_model == 0){
+      Eigen::Vector3d w_vec;
+      w_vec << 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb);
+      params_.imu_config.imu_quat_GyrotoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_GyrotoI));
+    }else{
+      Eigen::Vector3d w_vec;
+      w_vec << 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb);
+      params_.imu_config.imu_quat_AcctoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_AcctoI));
+    }
+
+
+
   }
 
   //===============================================================
