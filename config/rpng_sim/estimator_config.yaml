@@ -4,8 +4,8 @@ verbosity: "INFO" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
 
 use_fej: true # if we should use first-estimate Jacobians (enable for good consistency)
 use_imuavg: true # for our discrete integration, if we should average sequential IMU measurements to "smooth" it
-use_rk4int: false # if rk4 integration should be used (overrides imu averaging)
-use_analytic_int: true # if analytic integration should be used (overrides imu averaging)
+use_rk4int: true # if rk4 integration should be used (overrides imu averaging)
+use_analytic_int: false # if analytic integration should be used (overrides imu averaging)
 
 use_stereo: true # if we have more than 1 camera, if we should try to track stereo constraints
 max_cameras: 2
@@ -13,20 +13,20 @@ max_cameras: 2
 calib_cam_extrinsics: true
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true
-calib_imu_intrinsics: false
-calib_imu_g_sensitivity: false
+calib_imu_intrinsics: true
+calib_imu_g_sensitivity: true
 
 max_clones: 11
 max_slam: 50
 max_slam_in_update: 25
-max_msckf_in_update: 40
-dt_slam_delay: 5
+max_msckf_in_update: 10
+dt_slam_delay: 2
 
-gravity_mag: 9.80766
+gravity_mag: 9.81
 
 feat_rep_msckf: "GLOBAL_3D"
-feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
-feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_slam: "GLOBAL_3D"
+feat_rep_aruco: "GLOBAL_3D"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
@@ -34,25 +34,16 @@ try_zupt: false
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
 zupt_noise_multiplier: 50
-zupt_max_disparity: 2.0 # set to 0 for only imu-based
+zupt_max_disparity: 0.5 # set to 0 for only imu-based
 zupt_only_at_beginning: true
 
 # ==================================================================
 # ==================================================================
 
-init_only_use_dynamic: false
-init_only_use_static: true
-
-init_camera_pose: false
-init_camera_timeoffset: false
-init_state_bias_accel: true
-init_enforce_gravity_magnitude: true
-
-init_camera_rate: 10.0
-init_window_time: 0.85
-init_imu_thresh: 0.45 # room1-5:0.45, room6:0.25
-init_max_disparity: 15.0
-init_max_features: 45.0
+init_window_time: 0.75
+init_imu_thresh: 1.0
+init_max_disparity: 1.5
+init_max_features: 50.0
 
 # ==================================================================
 # ==================================================================
@@ -76,7 +67,7 @@ fast_threshold: 15
 grid_x: 20
 grid_y: 20
 min_px_dist: 15
-knn_ratio: 0.65
+knn_ratio: 0.70
 downsample_cameras: false
 multi_threading: true
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
@@ -99,9 +90,7 @@ up_aruco_sigma_px: 1
 up_aruco_chi2_multipler: 1
 
 # masks for our images
-use_mask: true
-mask0: "../../../ov_data/masks/tumvi0.png" #relative to current file
-mask1: "../../../ov_data/masks/tumvi1.png" #relative to current file
+use_mask: false
 
 # imu and camera spacial-temporal
 # imu config should also have the correct noise values
@@ -109,4 +98,17 @@ relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "kalibr_imucam_chain.yaml"
 
 
+# ==================================================================
+# ==================================================================
 
+
+sim_seed_state_init: 0
+sim_seed_preturb: 0
+sim_seed_measurements: 0
+sim_do_perturbation: false
+sim_traj_path: "src/open_vins/ov_data/sim/tum_corridor1_512_16_okvis.txt"
+sim_distance_threshold: 1.2
+sim_freq_cam: 10
+sim_freq_imu: 400
+sim_min_feature_gen_dist: 5.0
+sim_max_feature_gen_dist: 7.0

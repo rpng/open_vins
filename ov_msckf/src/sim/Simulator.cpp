@@ -35,29 +35,18 @@ Simulator::Simulator(VioManagerOptions &params_) {
   PRINT_DEBUG("=======================================\n");
 
   // Store a copy of our params
+  // NOTE: We need to explicitly create a copy of our shared pointers to the camera objects
+  // NOTE: Otherwise if we perturb it would also change our "true" parameters
   this->params = params_;
-  params.print_and_load_estimator();
-  params.print_and_load_noise();
-  params.print_and_load_state();
-  params.print_and_load_trackers();
-  params.print_and_load_simulation();
-
-  // Check that the max cameras matches the size of our cam matrices
-  if (params.state_options.num_cameras != (int)params.camera_fisheye.size()) {
-    PRINT_ERROR(RED "[SIM]: camera calib size does not match max cameras...\n" RESET);
-    PRINT_ERROR(RED "[SIM]: got %d but expected %d max cameras\n" RESET, (int)params.camera_fisheye.size(),
-                params.state_options.num_cameras);
-    std::exit(EXIT_FAILURE);
-  }
-
-  // Loop through and load each of the cameras
-  for (int i = 0; i < params.state_options.num_cameras; i++) {
-    if (params.camera_fisheye.at(i)) {
-      _cam_intrinsics_cameras.insert({i, std::make_shared<ov_core::CamEqui>()});
-      _cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
+  params.camera_intrinsics.clear();
+  for (auto const &tmp : params_.camera_intrinsics) {
+    auto tmp_cast = std::dynamic_pointer_cast<ov_core::CamEqui>(tmp.second);
+    if (tmp_cast != nullptr) {
+      params.camera_intrinsics.insert({tmp.first, std::make_shared<ov_core::CamEqui>(tmp.second->w(), tmp.second->h())});
+      params.camera_intrinsics.at(tmp.first)->set_value(params_.camera_intrinsics.at(tmp.first)->get_value());
     } else {
-      _cam_intrinsics_cameras.insert({i, std::make_shared<ov_core::CamRadtan>()});
-      _cam_intrinsics_cameras.at(i)->set_value(params.camera_intrinsics.at(i));
+      params.camera_intrinsics.insert({tmp.first, std::make_shared<ov_core::CamRadtan>(tmp.second->w(), tmp.second->h())});
+      params.camera_intrinsics.at(tmp.first)->set_value(params_.camera_intrinsics.at(tmp.first)->get_value());
     }
   }
 
@@ -141,66 +130,18 @@ Simulator::Simulator(VioManagerOptions &params_) {
   //===============================================================
   //===============================================================
 
-  // One std generator
-  std::normal_distribution<double> w(0, 1);
-
   // Perturb all calibration if we should
   if (params.sim_do_perturbation) {
 
-    // cam imu offset
-    params_.calib_camimu_dt += 0.01 * w(gen_state_perturb);
+    // Do the perturbation
+    perturb_parameters(gen_state_perturb, params_);
 
-    // camera intrinsics and extrinsics
-    for (int i = 0; i < params_.state_options.num_cameras; i++) {
-
-      // Camera intrinsic properties (k1, k2, p1, p2)
-      for (int r = 0; r < 4; r++) {
-        params_.camera_intrinsics.at(i)(r) += 1.0 * w(gen_state_perturb);
-      }
-
-      // Camera intrinsic properties (r1, r2, r3, r4)
-      for (int r = 4; r < 8; r++) {
-        params_.camera_intrinsics.at(i)(r) += 0.005 * w(gen_state_perturb);
-      }
-
-      // Our camera extrinsics transform (position)
-      for (int r = 4; r < 7; r++) {
-        params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state_perturb);
-      }
-
-      // Our camera extrinsics transform (orientation)
-      Eigen::Vector3d w_vec;
-      w_vec << 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb);
-      params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
-          rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
-    }
-
-    // perturb the imu intrinsics
-    for(int j=0; j<6; j++){
-      params_.imu_config.imu_x_dw(j) += 0.004 * w(gen_state_perturb);
-      params_.imu_config.imu_x_da(j) += 0.004 * w(gen_state_perturb);
-    }
-
-    // if we need to perturb gravity sensitivity
-    for(int j=0; j<5; j++){
-      if(params_.state_options.do_calib_imu_g_sensitivity){
-        params_.imu_config.imu_x_tg(j) += 0.004 * w(gen_state_perturb);
-      }
-    }
-
-    // depends on Kalibr model or RPNG model
-    if(params_.state_options.imu_model == 0){
-      Eigen::Vector3d w_vec;
-      w_vec << 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb);
-      params_.imu_config.imu_quat_GyrotoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_GyrotoI));
-    }else{
-      Eigen::Vector3d w_vec;
-      w_vec << 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb), 0.002 * w(gen_state_perturb);
-      params_.imu_config.imu_quat_AcctoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_AcctoI));
-    }
-
-
-
+    // Debug print simulation parameters
+    params.print_and_load_estimator();
+    params.print_and_load_noise();
+    params.print_and_load_state();
+    params.print_and_load_trackers();
+    params.print_and_load_simulation();
   }
 
   //===============================================================
@@ -250,7 +191,67 @@ Simulator::Simulator(VioManagerOptions &params_) {
   }
 
   // Nice sleep so the user can look at the printout
-  sleep(3);
+  sleep(1);
+}
+
+void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &params_) {
+
+  // One std generator
+  std::normal_distribution<double> w(0, 1);
+
+  // Camera IMU offset
+  params_.calib_camimu_dt += 0.01 * w(gen_state);
+
+  // Camera intrinsics and extrinsics
+  for (int i = 0; i < params_.state_options.num_cameras; i++) {
+
+    // Camera intrinsic properties (k1, k2, p1, p2, r1, r2, r3, r4)
+    Eigen::MatrixXd intrinsics = params_.camera_intrinsics.at(i)->get_value();
+    for (int r = 0; r < 4; r++) {
+      intrinsics(r) += 1.0 * w(gen_state);
+    }
+    for (int r = 4; r < 8; r++) {
+      intrinsics(r) += 0.005 * w(gen_state);
+    }
+    params_.camera_intrinsics.at(i)->set_value(intrinsics);
+
+    // Our camera extrinsics transform (orientation)
+    Eigen::Vector3d w_vec;
+    w_vec << 0.001 * w(gen_state), 0.001 * w(gen_state), 0.001 * w(gen_state);
+    params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
+        rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.camera_extrinsics.at(i).block(0, 0, 4, 1)));
+
+    // Our camera extrinsics transform (position)
+    for (int r = 4; r < 7; r++) {
+      params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state);
+    }
+  }
+
+  // perturb the imu intrinsics
+  for(int j=0; j<6; j++){
+    params_.imu_config.imu_x_dw(j) += 0.004 * w(gen_state);
+    params_.imu_config.imu_x_da(j) += 0.004 * w(gen_state);
+  }
+
+  // if we need to perturb gravity sensitivity
+  for(int j=0; j<5; j++){
+    if(params_.state_options.do_calib_imu_g_sensitivity){
+      params_.imu_config.imu_x_tg(j) += 0.004 * w(gen_state);
+    }
+  }
+
+  // depends on Kalibr model or RPNG model
+  if(params_.state_options.imu_model == 0){
+    Eigen::Vector3d w_vec;
+    w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
+    params_.imu_config.imu_quat_GyrotoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_GyrotoI));
+  }else{
+    Eigen::Vector3d w_vec;
+    w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
+    params_.imu_config.imu_quat_AcctoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_AcctoI));
+  }
+
+
 }
 
 bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
@@ -424,11 +425,6 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
     feats.push_back(uvs);
     camids.push_back(i);
   }
-  /**
-   * @brief This will load the trajectory into memory.
-   * @param path_traj Path to the trajectory file that we want to read in.
-   */
-  void load_data(std::string path_traj);
 
   // Return success
   return true;
@@ -440,15 +436,13 @@ std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(co
 
   // Assert we have good camera
   assert(camid < params.state_options.num_cameras);
-  assert((int)params.camera_fisheye.size() == params.state_options.num_cameras);
-  assert((int)params.camera_wh.size() == params.state_options.num_cameras);
-  assert((int)_cam_intrinsics_cameras.size() == params.state_options.num_cameras);
+  assert((int)params.camera_intrinsics.size() == params.state_options.num_cameras);
   assert((int)params.camera_extrinsics.size() == params.state_options.num_cameras);
 
   // Grab our extrinsic and intrinsic values
   Eigen::Matrix<double, 3, 3> R_ItoC = quat_2_Rot(params.camera_extrinsics.at(camid).block(0, 0, 4, 1));
   Eigen::Matrix<double, 3, 1> p_IinC = params.camera_extrinsics.at(camid).block(4, 0, 3, 1);
-  std::shared_ptr<ov_core::CamBase> camera = _cam_intrinsics_cameras.at(camid);
+  std::shared_ptr<ov_core::CamBase> camera = params.camera_intrinsics.at(camid);
 
   // Our projected uv true measurements
   std::vector<std::pair<size_t, Eigen::VectorXf>> uvs;
@@ -473,8 +467,7 @@ std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(co
     uv_dist = camera->distort_f(uv_norm);
 
     // Check that it is inside our bounds
-    if (uv_dist(0) < 0 || uv_dist(0) > params.camera_wh.at(camid).first || uv_dist(1) < 0 ||
-        uv_dist(1) > params.camera_wh.at(camid).second) {
+    if (uv_dist(0) < 0 || uv_dist(0) > camera->w() || uv_dist(1) < 0 || uv_dist(1) > camera->h()) {
       continue;
     }
 
@@ -491,22 +484,20 @@ void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vect
 
   // Assert we have good camera
   assert(camid < params.state_options.num_cameras);
-  assert((int)params.camera_fisheye.size() == params.state_options.num_cameras);
-  assert((int)params.camera_wh.size() == params.state_options.num_cameras);
-  assert((int)_cam_intrinsics_cameras.size() == params.state_options.num_cameras);
+  assert((int)params.camera_intrinsics.size() == params.state_options.num_cameras);
   assert((int)params.camera_extrinsics.size() == params.state_options.num_cameras);
 
   // Grab our extrinsic and intrinsic values
   Eigen::Matrix<double, 3, 3> R_ItoC = quat_2_Rot(params.camera_extrinsics.at(camid).block(0, 0, 4, 1));
   Eigen::Matrix<double, 3, 1> p_IinC = params.camera_extrinsics.at(camid).block(4, 0, 3, 1);
-  std::shared_ptr<ov_core::CamBase> camera = _cam_intrinsics_cameras.at(camid);
+  std::shared_ptr<ov_core::CamBase> camera = params.camera_intrinsics.at(camid);
 
   // Generate the desired number of features
   for (int i = 0; i < numpts; i++) {
 
     // Uniformly randomly generate within our fov
-    std::uniform_real_distribution<double> gen_u(0, params.camera_wh.at(camid).first);
-    std::uniform_real_distribution<double> gen_v(0, params.camera_wh.at(camid).second);
+    std::uniform_real_distribution<double> gen_u(0, camera->w());
+    std::uniform_real_distribution<double> gen_v(0, camera->h());
     double u_dist = gen_u(gen_state_init);
     double v_dist = gen_v(gen_state_init);
 

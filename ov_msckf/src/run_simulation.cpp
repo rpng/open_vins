@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
 #endif
 
   // Ensure we read in all parameters required
-  if(!parser->successful()) {
+  if (!parser->successful()) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }
@@ -173,8 +173,12 @@ int main(int argc, char **argv) {
   }
 
   // Final visualization
-#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
+#if ROS_AVAILABLE == 1
   viz->visualize_final();
+  ros::shutdown();
+#elif ROS_AVAILABLE == 2
+  viz->visualize_final();
+  rclcpp::shutdown();
 #endif
 
   // Done!

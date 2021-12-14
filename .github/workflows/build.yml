@@ -1,0 +1,20 @@
+name: ROS Free Workflow
+
+on:
+  push:
+    branches: [ master]
+  pull_request:
+
+jobs:
+  build:
+    name: "Ubuntu Latest"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v2
+      - name: Configure and Build
+        run: |
+          sudo apt-get update && sudo apt-get install -y libeigen3-dev libopencv-dev libboost-all-dev &&
+          mkdir build && cd build &&
+          cmake ../ov_msckf/ && make
+

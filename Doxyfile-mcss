@@ -35,7 +35,7 @@ ALIASES += \
 ##! M_THEME_COLOR           = #2f73a3
 ##! M_FAVICON               = docs/img/favicon-light.png
 
-##! M_LINKS_NAVBAR1 = pages namespaceov__core namespaceov__type namespaceov__msckf namespaceov__eval annotated
+##! M_LINKS_NAVBAR1 = pages annotated namespaceov__core namespaceov__type namespaceov__msckf namespaceov__init namespaceov__eval
 ##! M_LINKS_NAVBAR2 = \
 ##!     "<a href=\"https://github.com/rpng/open_vins/">GitHub</a>"
 

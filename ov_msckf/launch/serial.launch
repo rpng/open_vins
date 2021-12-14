@@ -3,7 +3,7 @@
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
     <arg name="config"      default="euroc_mav" /> <!-- euroc_mav, tum_vi, rpng_aruco -->
-    <arg name="config_path" default="$(find ov_msckf)/config/$(arg config)/estimator_config.yaml" />
+    <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
 
     <!-- mono or stereo and what ros bag to play -->
     <arg name="max_cameras" default="2" />
@@ -28,21 +28,21 @@
     <node name="ros1_serial_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true">
 
         <!-- bag parameters -->
-        <param name="path_bag"    type="string" value="$(arg bag)" />
-        <param name="bag_start"   type="double" value="$(arg bag_start)" />
-        <param name="bag_durr"    type="int"    value="-1" />
+        <param name="path_bag"                 type="str"    value="$(arg bag)" />
+        <param name="bag_start"                type="double" value="$(arg bag_start)" />
+        <param name="bag_durr"                 type="int"    value="-1" />
 
         <!-- master configuration object -->
-        <param name="verbosity"              type="string" value="$(arg verbosity)" />
-        <param name="config_path"            type="string" value="$(arg config_path)" />
+        <param name="verbosity"                 type="str"    value="$(arg verbosity)" />
+        <param name="config_path"               type="str"    value="$(arg config_path)" />
 
         <!-- world/filter parameters -->
-        <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
-        <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
+        <param name="use_stereo"                type="bool"   value="$(arg use_stereo)" />
+        <param name="max_cameras"               type="int"    value="$(arg max_cameras)" />
 
         <!-- timing statistics recording -->
-        <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
-        <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
+        <param name="record_timing_information" type="bool"   value="$(arg dotime)" />
+        <param name="record_timing_filepath"    type="str"    value="$(arg path_time)" />
 
     </node>
 

@@ -1,6 +1,8 @@
 # OpenVINS
 
-![C/C++ CI](https://github.com/rpng/open_vins/workflows/C/C++%20CI/badge.svg)
+[![ROS 1 Workflow](https://github.com/rpng/open_vins/actions/workflows/build_ros1.yml/badge.svg)](https://github.com/rpng/open_vins/actions/workflows/build_ros1.yml)
+[![ROS 2 Workflow](https://github.com/rpng/open_vins/actions/workflows/build_ros2.yml/badge.svg)](https://github.com/rpng/open_vins/actions/workflows/build_ros2.yml)
+[![ROS Free Workflow](https://github.com/rpng/open_vins/actions/workflows/build.yml/badge.svg)](https://github.com/rpng/open_vins/actions/workflows/build.yml)
 
 Welcome to the OpenVINS project!
 The OpenVINS project houses some core computer vision code along with a state-of-the art filter-based visual-inertial
@@ -19,6 +21,8 @@ details on what the system supports.
 
 ## News / Events
 
+* **December 13, 2021** - New YAML configuration system, ROS2 support, Docker images, robust static initialization based on disparity, internal logging system to reduce verbosity, image transport publishers, dynamic number of features support, and other small fixes. See
+  v2.5 [PR#209](https://github.com/rpng/open_vins/pull/209) for details.
 * **July 19, 2021** - Camera classes, masking support, alignment utility, and other small fixes. See
   v2.4 [PR#117](https://github.com/rpng/open_vins/pull/186) for details.
 * **December 1, 2020** - Released improved memory management, active feature pointcloud publishing, limiting number of

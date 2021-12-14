@@ -1,6 +1,6 @@
 %YAML:1.0 # need to specify the file type at the top!
 
-verbosity: "INFO" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
+verbosity: "DEBUG" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
 
 use_fej: true # if we should use first-estimate Jacobians (enable for good consistency)
 use_imuavg: true # for our discrete integration, if we should average sequential IMU measurements to "smooth" it
@@ -16,15 +16,15 @@ calib_cam_timeoffset: true
 calib_imu_intrinsics: false
 calib_imu_g_sensitivity: false
 
-max_clones: 11
-max_slam: 50
+max_clones: 25
+max_slam: 10
 max_slam_in_update: 25
-max_msckf_in_update: 30
-dt_slam_delay: 2
+max_msckf_in_update: 100
+dt_slam_delay: 1
 
-gravity_mag: 9.81
+gravity_mag: 9.79858
 
-feat_rep_msckf: "GLOBAL_3D"
+feat_rep_msckf: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
@@ -32,27 +32,18 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 # we support either IMU-based or disparity detection.
 try_zupt: true
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
-zupt_max_velocity: 0.5
-zupt_noise_multiplier: 20
-zupt_max_disparity: 0.4 # set to 0 for only imu-based
+zupt_max_velocity: 0.1
+zupt_noise_multiplier: 1
+zupt_max_disparity: 0.3 # set to 0 for only imu-based
 zupt_only_at_beginning: false
 
 # ==================================================================
 # ==================================================================
 
-init_only_use_dynamic: false
-init_only_use_static: true
-
-init_camera_pose: false
-init_camera_timeoffset: false
-init_state_bias_accel: true
-init_enforce_gravity_magnitude: true
-
-init_camera_rate: 10.0
 init_window_time: 1.0
 init_imu_thresh: 0.5
 init_max_disparity: 1.5
-init_max_features: 25.0
+init_max_features: 50.0
 
 # ==================================================================
 # ==================================================================
@@ -71,15 +62,20 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
-num_pts: 200
-fast_threshold: 15
+num_pts: 300
+fast_threshold: 10
 grid_x: 20
 grid_y: 20
-min_px_dist: 15
-knn_ratio: 0.70
+min_px_dist: 20
+knn_ratio: 0.65
 downsample_cameras: false
 multi_threading: true
-histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
+histogram_method: "CLAHE" # NONE, HISTOGRAM, CLAHE
+
+fi_max_dist: 150
+fi_max_baseline: 200
+fi_max_cond_number: 20000
+fi_triangulate_1d: false
 
 # aruco tag tracker for the system
 # DICT_6X6_1000 from https://chev.me/arucogen/
@@ -91,9 +87,9 @@ downsize_aruco: true
 # ==================================================================
 
 # camera noises and chi-squared threshold multipliers
-up_msckf_sigma_px: 2
+up_msckf_sigma_px: 1
 up_msckf_chi2_multipler: 1
-up_slam_sigma_px: 2
+up_slam_sigma_px: 1
 up_slam_chi2_multipler: 1
 up_aruco_sigma_px: 1
 up_aruco_chi2_multipler: 1
@@ -105,7 +101,6 @@ use_mask: false
 # imu config should also have the correct noise values
 relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "kalibr_imucam_chain.yaml"
-
 
 
 

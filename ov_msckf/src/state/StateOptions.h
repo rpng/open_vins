@@ -23,8 +23,8 @@
 #define OV_MSCKF_STATE_OPTIONS_H
 
 #include "types/LandmarkRepresentation.h"
-#include "utils/print.h"
 #include "utils/opencv_yaml_parse.h"
+#include "utils/print.h"
 
 #include <climits>
 
@@ -93,7 +93,7 @@ struct StateOptions {
   ov_type::LandmarkRepresentation::Representation feat_rep_aruco = ov_type::LandmarkRepresentation::Representation::GLOBAL_3D;
 
   /// Nice print function of what parameters we have loaded
-  void print(const std::shared_ptr<ov_core::YamlParser>& parser=nullptr) {
+  void print(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     if (parser != nullptr) {
       parser->parse_config("use_fej", do_fej);
       parser->parse_config("use_imuavg", imu_avg);

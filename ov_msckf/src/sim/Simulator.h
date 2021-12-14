@@ -33,10 +33,11 @@
 #include "cam/CamBase.h"
 #include "cam/CamEqui.h"
 #include "cam/CamRadtan.h"
-#include "core/VioManagerOptions.h"
 #include "sim/BsplineSE3.h"
 #include "utils/colors.h"
 #include "utils/dataset_reader.h"
+
+#include "core/VioManagerOptions.h"
 
 namespace ov_msckf {
 
@@ -59,6 +60,13 @@ public:
    * @param params_ VioManager parameters. Should have already been loaded from cmd.
    */
   Simulator(VioManagerOptions &params_);
+
+  /**
+   * @brief Will get a set of perturbed parameters
+   * @param gen_state Random number gen to use
+   * @param params_ Parameters we will perturb
+   */
+  static void perturb_parameters(std::mt19937 gen_state, VioManagerOptions &params_);
 
   /**
    * @brief Returns if we are actively simulating
@@ -141,9 +149,6 @@ protected:
 
   /// True vio manager params (a copy of the parsed ones)
   VioManagerOptions params;
-
-  /// Camera intrinsics camera objects
-  std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> _cam_intrinsics_cameras;
 
   //===================================================================
   // State related variables

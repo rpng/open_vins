@@ -33,24 +33,11 @@ InertialInitializer::InertialInitializer(InertialInitializerOptions &params_, st
 
   // Create static initializer
   init_static = std::make_shared<StaticInitializer>(params, _db, imu_data);
-
-  // TODO: create the feature tracker here
-  // TODO: create dynamic initialize class object
 }
 
 bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
                                      std::shared_ptr<ov_type::IMU> t_imu, bool wait_for_jerk) {
 
-  // TODO: calculate the current disparity to see if we are stationary
-
-  // TODO: if not stationary, first try to do our dynamic initialization, return on success
-
-  // TODO: return if we need to initalize any of the calibration (only dynamic can do this)
-
-  // TODO: return if we are wait_for_jerk and disparity says we are moving (handles constant accel case)
-
-  // TODO: if we have calibration, check if we are still, and use our static initalizer
-
-  // TEMP: use our static initializer!
+  // Use our static initializer!
   return init_static->initialize(timestamp, covariance, order, t_imu, wait_for_jerk);
 }

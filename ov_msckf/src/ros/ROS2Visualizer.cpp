@@ -29,7 +29,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
     : _node(node), _app(app), _sim(sim) {
 
   // Setup our transform broadcaster
-  mTfBr = new tf2_ros::TransformBroadcaster(node);
+  mTfBr = std::make_shared<tf2_ros::TransformBroadcaster>(node);
 
   // Create image transport
   image_transport::ImageTransport it(node);
@@ -737,10 +737,11 @@ void ROS2Visualizer::publish_loopclosure_information() {
     pub_loop_extrinsic->publish(odometry_calib);
 
     // PUBLISH CAMERA0 INTRINSICS
+    bool is_fisheye = (std::dynamic_pointer_cast<ov_core::CamEqui>(_app->get_params().camera_intrinsics.at(0)) != nullptr);
     sensor_msgs::msg::CameraInfo cameraparams;
     cameraparams.header = header;
     cameraparams.header.frame_id = "cam0";
-    cameraparams.distortion_model = (_app->get_params().camera_fisheye.at(0)) ? "equidistant" : "plumb_bob";
+    cameraparams.distortion_model = is_fisheye ? "equidistant" : "plumb_bob";
     Eigen::VectorXd cparams = _app->get_state()->_cam_intrinsics.at(0)->value();
     cameraparams.d = {cparams(4), cparams(5), cparams(6), cparams(7)};
     cameraparams.k = {cparams(0), 0, cparams(2), 0, cparams(1), cparams(3), 0, 0, 1};

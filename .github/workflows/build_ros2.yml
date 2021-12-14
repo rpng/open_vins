@@ -1,0 +1,51 @@
+name: ROS 2 Workflow
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+
+jobs:
+  build_1804:
+    name: "ROS2 Ubuntu 18.04"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v2
+      - name: Create Workspace and Docker Image
+        run: |
+          export REPO=$(basename $GITHUB_REPOSITORY) &&
+          cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
+          mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
+          docker build -t openvins -f $GITHUB_WORKSPACE/src/$REPO/Dockerfile_ros2_18_04 .
+      - name: Echo Enviroment
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "echo $ROS_DISTRO && echo $ROS_VERSION"
+      - name: Run Build in Docker
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && colcon build"
+      # THIS SEEMS TO FAIL WITH 245 ERROR, NOT SURE WHY!!!!!
+      #- name: Run OpenVINS Simulation!
+      #  run: |
+      #    docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && source install/setup.bash && ros2 run ov_msckf run_simulation src/open_vins/config/rpng_sim/estimator_config.yaml"
+  build_2004:
+    name: "ROS2 Ubuntu 20.04"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Code Checkout
+        uses: actions/checkout@v2
+      - name: Create Workspace and Docker Image
+        run: |
+          export REPO=$(basename $GITHUB_REPOSITORY) &&
+          cd $GITHUB_WORKSPACE/.. && mkdir src/ &&
+          mv $REPO/ src/ && mkdir $REPO/ && mv src/ $REPO/ && cd $REPO/ &&
+          docker build -t openvins -f $GITHUB_WORKSPACE/src/$REPO/Dockerfile_ros2_20_04 .
+      - name: Echo Enviroment
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "echo $ROS_DISTRO && echo $ROS_VERSION"
+      - name: Run Build in Docker
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && colcon build"
+      - name: Run OpenVINS Simulation!
+        run: |
+          docker run -t --mount type=bind,source=$GITHUB_WORKSPACE,target=/catkin_ws openvins /bin/bash -c "cd /catkin_ws && source install/setup.bash && ros2 run ov_msckf run_simulation src/open_vins/config/rpng_sim/estimator_config.yaml"

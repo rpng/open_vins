@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 # Source our workspace directory to load ENV variables
-source /home/patrick/workspace/catkin_ws_ov/devel/setup.bash
-
+SCRIPT_DIR="$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
+source ${SCRIPT_DIR}/../../../../devel/setup.bash
 
 #=============================================================
 #=============================================================
@@ -47,30 +47,15 @@ bagstarttimes=(
   "18"
 )
 
-# threshold for variance to detect if the unit has moved yet
-imuthreshold=(
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-  "1.5"
-)
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.4/exp_euroc/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2020_openvins_2.4/exp_euroc/timings"
-bag_path="/media/patrick/RPNG\ FLASH\ 2/euroc"
-
+save_path1="/home/chuchu/test_ov/openvins_pra/exp_euroc/algorithms"
+save_path2="/home/chuchu/test_ov/openvins_pra/exp_euroc/timings"
+bag_path="/home/chuchu/datasets/euroc_mav/"
 
 #=============================================================
 #=============================================================
 #=============================================================
-
 
 # Loop through all modes
 for h in "${!modes[@]}"; do
@@ -104,15 +89,16 @@ then
 fi
 
 # run our ROS launch file (note we send console output to terminator)
-roslaunch ov_msckf pgeneva_ros_eth.launch \
+roslaunch ov_msckf serial.launch \
   max_cameras:="$temp1" \
   use_stereo:="$temp2" \
+  config:="euroc_mav" \
   bag:="$bag_path/${bagnames[i]}.bag" \
   bag_start:="${bagstarttimes[i]}" \
-  init_imu_thresh:="${imuthreshold[i]}" \
   dosave:="true" \
   path_est:="$filename_est" \
   dotime:="true" \
+  dolivetraj:="true" \
   path_time:="$filename_time" &> /dev/null
 
 # print out the time elapsed

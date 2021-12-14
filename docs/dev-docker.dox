@@ -1,7 +1,7 @@
 /**
 
 
-@page dev-docker Developing with Docker
+@page dev-docker Building with Docker
 @tableofcontents
 
 
@@ -62,16 +62,18 @@ docker run -it --net=host --gpus all \
     --volume="/tmp/.X11-unix:/tmp/.X11-unix:rw" \
     osrf/ros:noetic-desktop-full \
     bash
-# you should be able to launch rviz once in bash
-rviz
+rviz # you should be able to launch rviz once in bash
 @endcode
+
+
 
 
 @section dev-docker-openvins Running OpenVINS with Docker
 
 Clone the OpenVINS repository, build the container and then launch it.
-The [Dockerfile](https://github.com/rpng/open_vins/blob/master/Dockerfile) will not build the repo by default, thus you will need to build the project.
-
+The [Dockerfile](https://docs.docker.com/engine/reference/builder/) will not build the repo by default, thus you will need to build the project.
+We have a few docker files for each version of ROS and operating system we support.
+In the following we will use the [Dockerfile_ros1_20_04](https://github.com/rpng/open_vins/blob/master/Dockerfile_ros1_20_04) which is for a ROS1 install with a 20.04 system.
 
 @m_class{m-block m-warning}
 
@@ -85,15 +87,15 @@ mkdir -p ~/workspace/catkin_ws_ov/src
 cd ~/workspace/catkin_ws_ov/src
 git clone https://github.com/rpng/open_vins.git
 cd open_vins
-docker build -t openvins .
-cd ~/workspace/catkin_ws_ov
+export VERSION=ros1_20_04 # which docker file version you want (ROS1 vs ROS2 and ubuntu version)
+docker build -t ov_$VERSION -f Dockerfile_$VERSION .
 @endcode
 
-If the dockerfile breaks, you can remove the image and reinstall using the above
+If the dockerfile breaks, you can remove the image and reinstall using the following:
 
 @code{.shell-session}
 docker image list
-docker image rm openvins --force
+docker image rm ov_ros1_20_04 --force
 @endcode
 
 From here it is a good idea to create a nice helper command which will launch the docker and also pass the GUI to your host machine.
@@ -108,8 +110,7 @@ Here you can append it to the bottom of the ~/.bashrc so that we always have it 
     can add and remove mounts from this command as you see the need.
 
 @code{.shell-session}
-nano ~/.bashrc
-# add to the bashrc file
+nano ~/.bashrc # add to the bashrc file
 xhost + &> /dev/null
 export DOCKER_CATKINWS=/home/username/workspace/catkin_ws_ov
 export DOCKER_DATASETS=/home/username/datasets
@@ -117,19 +118,23 @@ alias ov_docker="docker run -it --net=host --gpus all \
     --env=\"NVIDIA_DRIVER_CAPABILITIES=all\" --env=\"DISPLAY\" \
     --env=\"QT_X11_NO_MITSHM=1\" --volume=\"/tmp/.X11-unix:/tmp/.X11-unix:rw\" \
     --mount type=bind,source=$DOCKER_CATKINWS,target=/catkin_ws \
-    --mount type=bind,source=$DOCKER_DATASETS,target=/datasets \
-    openvins $1"
-# save and exit
-source ~/.bashrc
+    --mount type=bind,source=$DOCKER_DATASETS,target=/datasets $1"
+source ~/.bashrc # after you save and exit
 @endcode
 
 Now we can launch RVIZ and also compile the OpenVINS codebase.
-From two different terminals on the host machine one can run the following:
+From two different terminals on the host machine one can run the following (ROS 1):
 
 @code{.shell-session}
-ov_docker roscore
-ov_docker rosrun rviz rviz -d /catkin_ws/src/open_vins/ov_msckf/launch/display.rviz
-ov_docker bash
+ov_docker ov_ros1_20_04 roscore
+ov_docker ov_ros1_20_04 rosrun rviz rviz -d /catkin_ws/src/open_vins/ov_msckf/launch/display.rviz
+@endcode
+
+To actually get a bash environment that we can use to build and run things with we can do the following.
+Note that any install or changes to operating system variables will not persist, thus only edit within your workspace which is linked as a volume.
+
+@code{.shell-session}
+ov_docker ov_ros1_20_04 bash
 @endcode
 
 Now once inside the docker with the bash shell we can build and launch an example simulation:
@@ -138,8 +143,20 @@ Now once inside the docker with the bash shell we can build and launch an exampl
 cd catkin_ws
 catkin build
 source devel/setup.bash
-roslaunch ov_msckf pgeneva_sim.launch
+rosrun ov_eval plot_trajectories none src/open_vins/ov_data/sim/udel_gore.txt
+roslaunch ov_msckf simulation.launch
 @endcode
+
+And a version for ROS 2 we can do the following:
+
+@code{.shell-session}
+cd catkin_ws
+colcon build --event-handlers console_cohesion+
+source install/setup.bash
+ros2 run ov_eval plot_trajectories none src/open_vins/ov_data/sim/udel_gore.txt
+ros2 run ov_msckf run_simulation src/open_vins/config/rpng_sim/estimator_config.yaml
+@endcode
+
 
 @m_class{m-block m-danger}
 
@@ -147,6 +164,8 @@ roslaunch ov_msckf pgeneva_sim.launch
     On my machine running inside of the docker container is not real-time in nature. I am not sure why this is the case
     if someone knows if something is setup incorrectly please open a github issue. Thus it is recommended to only use
     the "serial" nodes which allows for the same parameters to be used as when installing directly on an OS.
+
+
 
 
 @section dev-docker-clion Using Jetbrains Clion and Docker
@@ -163,7 +182,7 @@ After building the OpenVINS image (as above) we can do the following which will 
 This process will allow us to connect Clion to it.
 
 @code{.shell-session}
-docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name clion_remote_env openvins
+docker run -d --cap-add sys_ptrace -p127.0.0.1:2222:22 --name clion_remote_env ov_ros1_20_04
 @endcode
 
 We can now change Clion to use the docker remote:

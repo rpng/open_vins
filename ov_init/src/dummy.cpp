@@ -22,10 +22,8 @@
 /**
  * @namespace ov_init
  *
- * This is an implementation and extension of the work [Estimator initialization in vision-aided inertial navigation with unknown camera-IMU
- * calibration](https://ieeexplore.ieee.org/document/6386235) @cite Dong2012IROS which solves the initialization problem by first creating a
- * linear system for recovering the camera to IMU rotation, then for velocity, gravity, and feature positions, and finally a full
- * optimization to allow for covariance recovery. Specifically, we focus on also recovering the biases of the platform and the time offset.
+ * Right now this contains static initialization code for a visual-inertial system.
+ * It will wait for the platform to stationary, and then initialize its orientation in the gravity frame.
  *
  */
 namespace ov_init {}

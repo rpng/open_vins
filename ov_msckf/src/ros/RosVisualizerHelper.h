@@ -263,14 +263,14 @@ public:
         assert(state->_options.num_cameras == sim->get_true_parameters().state_options.num_cameras);
         for (int i = 0; i < state->_options.num_cameras; i++) {
           // Intrinsics values
-          of_state_gt << sim->get_true_parameters().camera_intrinsics.at(i)(0) << " "
-                      << sim->get_true_parameters().camera_intrinsics.at(i)(1) << " "
-                      << sim->get_true_parameters().camera_intrinsics.at(i)(2) << " "
-                      << sim->get_true_parameters().camera_intrinsics.at(i)(3) << " ";
-          of_state_gt << sim->get_true_parameters().camera_intrinsics.at(i)(4) << " "
-                      << sim->get_true_parameters().camera_intrinsics.at(i)(5) << " "
-                      << sim->get_true_parameters().camera_intrinsics.at(i)(6) << " "
-                      << sim->get_true_parameters().camera_intrinsics.at(i)(7) << " ";
+          of_state_gt << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(0) << " "
+                      << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(1) << " "
+                      << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(2) << " "
+                      << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(3) << " ";
+          of_state_gt << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(4) << " "
+                      << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(5) << " "
+                      << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(6) << " "
+                      << sim->get_true_parameters().camera_intrinsics.at(i)->get_value()(7) << " ";
           // Rotation and position
           of_state_gt << sim->get_true_parameters().camera_extrinsics.at(i)(0) << " "
                       << sim->get_true_parameters().camera_extrinsics.at(i)(1) << " "

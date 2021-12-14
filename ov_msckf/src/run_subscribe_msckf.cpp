@@ -107,9 +107,13 @@ int main(int argc, char **argv) {
   rclcpp::spin(node);
 #endif
 
-
   // Final visualization
   viz->visualize_final();
+#if ROS_AVAILABLE == 1
+  ros::shutdown();
+#elif ROS_AVAILABLE == 2
+  rclcpp::shutdown();
+#endif
 
   // Done!
   return EXIT_SUCCESS;

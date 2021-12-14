@@ -22,8 +22,8 @@
 #ifndef OV_CORE_INITIALIZEROPTIONS_H
 #define OV_CORE_INITIALIZEROPTIONS_H
 
-#include "utils/print.h"
 #include "utils/opencv_yaml_parse.h"
+#include "utils/print.h"
 
 namespace ov_core {
 

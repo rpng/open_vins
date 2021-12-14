@@ -28,7 +28,6 @@
  * key components of the ov_core codebase are the following:
  *
  * - 3d feature initialization (see @ref ov_core::FeatureInitializer)
- * - Inertial state initialization (see @ref ov_core::InertialInitializer)
  * - SE(3) b-spline (see @ref ov_core::BsplineSE3)
  * - KLT, descriptor, aruco, and simulation feature trackers
  * - Groundtruth dataset reader (see @ref ov_core::DatasetReader)

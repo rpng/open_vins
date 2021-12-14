@@ -35,14 +35,34 @@ list(APPEND thirdparty_libraries
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
-# See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
+# If we had a root cmake we could do this: https://stackoverflow.com/a/11217008/7718197
+# But since we don't we need to basically build all the cpp / h files explicitly :(
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
+
     message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${ov_core_SOURCE_DIR}/src/)
-    list(APPEND thirdparty_libraries ov_core_lib)
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/cam/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/cpi/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/feat/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/plot/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/sim/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/track/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/types/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+    file(GLOB_RECURSE ov_core_files "${CMAKE_SOURCE_DIR}/../ov_core/src/utils/*.cpp")
+    list(APPEND library_source_files ${ov_core_files})
+
     message(WARNING "MANUALLY LINKING TO OV_INIT LIBRARY....")
-    include_directories(${ov_init_SOURCE_DIR}/src/)
-    list(APPEND thirdparty_libraries ov_init_lib)
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_init/src/)
+    file(GLOB_RECURSE ov_init_files "${CMAKE_SOURCE_DIR}/../ov_init/src/*.[hc]pp")
+    list(APPEND library_source_files ${ov_init_files})
+
 endif ()
 
 ##################################################

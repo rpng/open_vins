@@ -7,7 +7,7 @@
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
     <arg name="config"      default="rpng_sim" />
-    <arg name="config_path" default="$(find ov_msckf)/config/$(arg config)/estimator_config.yaml" />
+    <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
 
     <!-- simulation parameters we can vary with our scripts -->
     <arg name="seed"        default="100" />
@@ -21,7 +21,7 @@
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
 
-    <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood -->
+    <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl -->
 
     <!-- if we should perturb the initial state values (i.e. calibration) -->
     <arg name="sim_do_perturbation"             default="true" />
@@ -53,7 +53,7 @@
         <!-- SIMULATION PARAMETERS -->
         <!-- =============================================== -->
 
-        <param name="sim_traj_path"          type="string" value="$(find ov_data)/sim/$(arg dataset)" />
+        <param name="sim_traj_path"          type="str"    value="$(find ov_data)/sim/$(arg dataset)" />
         <param name="sim_seed_state_init"    type="int"    value="0" />
         <param name="sim_seed_measurements"  type="int"    value="$(arg seed)" />
         <param name="sim_seed_preturb"       type="int"    value="$(arg seed)" />
@@ -61,17 +61,17 @@
         <param name="sim_freq_imu"           type="int"    value="$(arg freq_imu)" />
         <param name="sim_do_perturbation"    type="bool"   value="$(arg sim_do_perturbation)" />
 
-        <param name="save_total_state"  type="bool"   value="$(arg dosave_state)" />
-        <param name="filepath_est"      type="string" value="$(arg path_state_est)" />
-        <param name="filepath_std"      type="string" value="$(arg path_state_std)" />
-        <param name="filepath_gt"       type="string" value="$(arg path_state_gt)" />
+        <param name="save_total_state"       type="bool"   value="$(arg dosave_state)" />
+        <param name="filepath_est"           type="str"    value="$(arg path_state_est)" />
+        <param name="filepath_std"           type="str"    value="$(arg path_state_std)" />
+        <param name="filepath_gt"            type="str"    value="$(arg path_state_gt)" />
 
         <!-- =============================================== -->
         <!-- =============================================== -->
 
         <!-- master configuration object -->
-        <param name="verbosity"              type="string" value="$(arg verbosity)" />
-        <param name="config_path"            type="string" value="$(arg config_path)" />
+        <param name="verbosity"              type="str"    value="$(arg verbosity)" />
+        <param name="config_path"            type="str"    value="$(arg config_path)" />
 
         <!-- world/filter parameters -->
         <param name="use_fej"                   type="bool"   value="$(arg fej)" />
@@ -87,20 +87,9 @@
         <param name="feat_rep_slam"             type="string" value="$(arg feat_rep)" />
         <param name="feat_rep_aruco"            type="string" value="$(arg feat_rep)" />
 
-        <!-- tracker/extractor properties -->
-        <param name="num_pts"            type="int"    value="$(arg num_pts)" />
 
-        <!-- sensor noise values / update -->
-        <param name="up_msckf_sigma_px"            type="double"   value="1" />
-        <param name="up_msckf_chi2_multipler"      type="double"   value="1" />
-        <param name="up_slam_sigma_px"             type="double"   value="1" />
-        <param name="up_slam_chi2_multipler"       type="double"   value="1" />
-        <param name="up_aruco_sigma_px"            type="double"   value="1" />
-        <param name="up_aruco_chi2_multipler"      type="double"   value="1" />
-        <param name="imu0_gyroscope_noise_density"      type="double"   value="1.6968e-04" />
-        <param name="imu0_gyroscope_random_walk"        type="double"   value="1.9393e-05" />
-        <param name="imu0_accelerometer_noise_density"  type="double"   value="2.0000e-3" />
-        <param name="imu0_accelerometer_random_walk"    type="double"   value="3.0000e-3" />
+        <!-- tracker/extractor properties -->
+        <param name="num_pts"                type="int"    value="$(arg num_pts)" />
 
     </node>
 
