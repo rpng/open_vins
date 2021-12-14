@@ -34,39 +34,44 @@
 
 int main(int argc, char **argv) {
 
-  // Verbosity setting
-  ov_core::Printer::setPrintLevel("INFO");
+    // Verbosity setting
+    ov_core::Printer::setPrintLevel("INFO");
 
-  // Ensure we have a path
-  if (argc < 4) {
-    PRINT_ERROR(RED "ERROR: ./error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
-    PRINT_ERROR(RED "ERROR: rosrun ov_eval error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
-    std::exit(EXIT_FAILURE);
-  }
+    // Ensure we have a path
+    if (argc < 4) {
+        PRINT_ERROR(RED "ERROR: ./error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
+        PRINT_ERROR(RED "ERROR: rosrun ov_eval error_simulation <file_est.txt> <file_std.txt> <file_gt.txt>\n" RESET);
+        std::exit(EXIT_FAILURE);
+    }
 
-  // Create our trajectory object
-  ov_eval::ResultSimulation traj(argv[1], argv[2], argv[3]);
+    // Create our trajectory object
+    ov_eval::ResultSimulation traj(argv[1], argv[2], argv[3]);
 
-  // Plot the state errors
-  PRINT_INFO("Plotting state variable errors...\n");
-  traj.plot_state(true);
+    // Plot the state errors
+    PRINT_INFO("Plotting state variable errors...\n");
+    traj.plot_state(true);
 
-  // Plot time offset
-  PRINT_INFO("Plotting time offset error...\n");
-  traj.plot_timeoff(true, 10);
+    // Plot time offset
+    PRINT_INFO("Plotting time offset error...\n");
+    traj.plot_timeoff(true, 10);
 
-  // Plot camera intrinsics
-  PRINT_INFO("Plotting camera intrinsics...\n");
-  traj.plot_cam_instrinsics(true, 60);
+    // Plot camera intrinsics
+    PRINT_INFO("Plotting camera intrinsics...\n");
+    traj.plot_cam_instrinsics(true, 60);
 
-  // Plot camera extrinsics
-  PRINT_INFO("Plotting camera extrinsics...\n");
-  traj.plot_cam_extrinsics(true, 60);
+    // Plot camera extrinsics
+    PRINT_INFO("Plotting camera extrinsics...\n");
+    traj.plot_cam_extrinsics(true, 60);
+
+
+    // Plot camera intrinsics
+    PRINT_INFO("Plotting IMU intrinsics...\n");
+    traj.plot_imu_intrinsics(true);
 
 #ifdef HAVE_PYTHONLIBS
-  matplotlibcpp::show(true);
+    matplotlibcpp::show(true);
 #endif
 
-  // Done!
-  return EXIT_SUCCESS;
+    // Done!
+    return EXIT_SUCCESS;
 }

@@ -95,6 +95,8 @@ public:
    */
   void plot_cam_extrinsics(bool doplotting, double max_time = INFINITY);
 
+  void plot_imu_intrinsics(bool doploting, double max_time = INFINITY);
+
 protected:
   // Trajectory data (loaded from file and timestamp intersected)
   std::vector<Eigen::VectorXd> est_state, gt_state;
