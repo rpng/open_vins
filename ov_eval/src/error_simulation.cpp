@@ -64,7 +64,7 @@ int main(int argc, char **argv) {
     traj.plot_cam_extrinsics(true, 60);
 
 
-    // Plot camera intrinsics
+    // Plot IMU intrinsics
     PRINT_INFO("Plotting IMU intrinsics...\n");
     traj.plot_imu_intrinsics(true);
 

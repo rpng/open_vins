@@ -19,7 +19,7 @@
     <arg name="max_cameras" default="1" />
 
     <arg name="freq_cam"    default="10" />
-    <arg name="freq_imu"    default="200" />
+    <arg name="freq_imu"    default="400" />
 
     <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood -->
 
@@ -46,8 +46,8 @@
 
 
     <!-- MASTER NODE! -->
-<!--    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">-->
-    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run --args">
+    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">
+<!--    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->

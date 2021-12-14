@@ -13,6 +13,8 @@ max_cameras: 2
 calib_cam_extrinsics: false
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true
+calib_imu_intrinsics: false
+calib_imu_g_sensitivity: false
 
 max_clones: 12
 max_slam: 50
