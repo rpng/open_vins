@@ -336,7 +336,7 @@ protected:
    * @param a_inI Linear acceleration with bias removed
    */
   Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
-  
+
   /// Container for the noise values
   ov_core::ImuConfig _imu_config;
 
