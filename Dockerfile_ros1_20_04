@@ -28,7 +28,7 @@ RUN cmake --version
 
 # Install deps needed for clion remote debugging
 # https://blog.jetbrains.com/clion/2020/01/using-docker-with-clion/
-RUN sed -i '6i\source "/catkin_ws/devel/setup.bash"\' /ros_entrypoint.sh
+# RUN sed -i '6i\source "/catkin_ws/devel/setup.bash"\' /ros_entrypoint.sh
 RUN apt-get update && apt-get install -y ssh build-essential gcc g++ \
     gdb clang cmake rsync tar python && apt-get clean
 RUN ( \
