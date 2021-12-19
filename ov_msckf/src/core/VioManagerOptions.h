@@ -312,15 +312,19 @@ struct VioManagerOptions {
 
       // store these parameters
       if(imu_config.imu_model == 0){
+        // kalibr model
+        // lower triangular of the matrix
         imu_config.imu_x_dw << Dw.block<3,1>(0,0), Dw.block<2,1>(1,1), Dw(2,2);
         imu_config.imu_x_da << Da.block<3,1>(0,0), Da.block<2,1>(1,1), Da(2,2);
       }else{
+        // rpng model
+        // upper triangular of the matrix
         imu_config.imu_x_dw << Dw(0,0), Dw.block<2,1>(0,1), Dw.block<3,1>(0,2);
         imu_config.imu_x_da << Da(0,0), Da.block<2,1>(0,1), Da.block<3,1>(0,2);
       }
+      imu_config.imu_x_tg << Tg.block<3,1>(0,0), Tg.block<3,1>(0,1), Tg.block<3,1>(0,2);
       imu_config.imu_quat_GyrotoI = ov_core::rot_2_quat(R_GyrotoI);
       imu_config.imu_quat_AcctoI = ov_core::rot_2_quat(R_AcctoI);
-      imu_config.imu_x_tg << Tg.block<3,1>(0,0), Tg.block<3,1>(0,1), Tg.block<3,1>(0,2);
 
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");

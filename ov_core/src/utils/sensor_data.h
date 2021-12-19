@@ -86,11 +86,11 @@ struct ImuConfig {
   int imu_model = 0;
 
   /// imu intrinsics
-  Eigen::Matrix<double,6,1> imu_x_dw; // the columnwise elements for Dw
-  Eigen::Matrix<double,6,1> imu_x_da; // the columnwise elements for Da
-  Eigen::Matrix<double,9,1> imu_x_tg; // the ccolumnwise elements for Tg
-  Eigen::Matrix<double,4,1> imu_quat_AcctoI; // the JPL quat for R_AcctoI
-  Eigen::Matrix<double,4,1> imu_quat_GyrotoI; // the JPL quat for R_GyrotoI
+  Eigen::Matrix<double,6,1> imu_x_dw; /// the columnwise elements for Dw
+  Eigen::Matrix<double,6,1> imu_x_da; /// the columnwise elements for Da
+  Eigen::Matrix<double,9,1> imu_x_tg; /// the ccolumnwise elements for Tg
+  Eigen::Matrix<double,4,1> imu_quat_AcctoI; /// the JPL quat for R_AcctoI
+  Eigen::Matrix<double,4,1> imu_quat_GyrotoI; /// the JPL quat for R_GyrotoI
 
   /// Gyroscope white noise (rad/s/sqrt(hz))
   double sigma_w = 1.6968e-04;
@@ -128,11 +128,13 @@ struct ImuConfig {
   Eigen::Matrix3d Dw(){
     Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
     if(imu_model == 0){
+      // Kalibr model with lower triangular of the matrix
       Dw <<
           imu_x_dw(0), 0,                 0,
           imu_x_dw(1), imu_x_dw(3), 0,
           imu_x_dw(2), imu_x_dw(4), imu_x_dw(5);
     }else{
+      // rpng model with upper triangular of the matrix
       Dw <<
           imu_x_dw(0), imu_x_dw(1), imu_x_dw(3),
           0,                 imu_x_dw(2), imu_x_dw(4),
@@ -145,11 +147,13 @@ struct ImuConfig {
   Eigen::Matrix3d Da(){
     Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
     if(imu_model == 0){
+      // kalibr model with lower triangular of the matrix
       Da <<
          imu_x_da(0), 0,                 0,
           imu_x_da(1), imu_x_da(3), 0,
           imu_x_da(2), imu_x_da(4), imu_x_da(5);
     }else{
+      // rpng model with upper triangular of the matrix
       Da <<
          imu_x_da(0), imu_x_da(1), imu_x_da(3),
           0,                 imu_x_da(2), imu_x_da(4),
@@ -163,6 +167,7 @@ struct ImuConfig {
     return Dw().inverse();
   }
 
+  /// get the IMU Ta
   Eigen::Matrix3d Ta() {
     return Da().inverse();
   }
@@ -180,7 +185,7 @@ struct ImuConfig {
   Eigen::Matrix3d R_AcctoI(){
     return ov_core::quat_2_Rot(imu_quat_AcctoI);
   }
-
+  /// get the R_ItoAcc
   Eigen::Matrix3d R_ItoAcc(){
     return R_AcctoI().transpose();
   }
@@ -190,6 +195,7 @@ struct ImuConfig {
     return ov_core::quat_2_Rot(imu_quat_GyrotoI);
   }
 
+  /// get the R_ItoGyro
   Eigen::Matrix3d R_ItoGyro(){
     return R_GyrotoI().transpose();
   }

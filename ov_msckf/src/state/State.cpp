@@ -61,19 +61,17 @@ State::State(StateOptions &options) {
     }
 
     if(options.imu_model == 0){
-      // kalibr model
+      // if kalibr model, R_GyrotoI is calibrated
       _imu_quat_gyrotoI->set_local_id(current_id);
       _variables.push_back(_imu_quat_gyrotoI);
       current_id += _imu_quat_gyrotoI->size();
     }else{
-      // rpng model
+      // if rpng model, R_AcctoI is calibrated
       _imu_quat_acctoI->set_local_id(current_id);
       _variables.push_back(_imu_quat_acctoI);
       current_id += _imu_quat_acctoI->size();
     }
   }
-
-
 
   // Camera to IMU time offset
   _calib_dt_CAMtoIMU = std::make_shared<Vec>(1);
@@ -122,8 +120,10 @@ State::State(StateOptions &options) {
       _Cov.block<9,9>(_imu_x_tg->id(),_imu_x_tg->id()) = std::pow(0.005,2) * Eigen::Matrix<double,9,9>::Identity();
     }
     if(_options.imu_model == 0){
+      // if kalibr model, R_GyrotoI is calibrated
       _Cov.block<3,3>(_imu_quat_gyrotoI->id(), _imu_quat_gyrotoI->id()) = std::pow(0.005,2) * Eigen::Matrix<double,3,3>::Identity();
     }else{
+      // if rpng model, R_AcctoI is calibrated
       _Cov.block<3,3>(_imu_quat_acctoI->id(),_imu_quat_acctoI->id()) = std::pow(0.005, 2) * Eigen::Matrix<double,3,3>::Identity();
     }
   }
@@ -152,10 +152,12 @@ State::State(StateOptions &options) {
 Eigen::Matrix3d State::Dw() {
   Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
   if(_options.imu_model == 0){
+    // if kalibr model, lower triangular of the matrix is used
     Dw << _imu_x_dw->value()(0),   0,     0,
         _imu_x_dw->value()(1), _imu_x_dw->value()(3), 0,
         _imu_x_dw->value()(2), _imu_x_dw->value()(4), _imu_x_dw->value()(5);
   }else{
+    // if rpng model, upper triangular of the matrix is used
     Dw << _imu_x_dw->value()(0),  _imu_x_dw->value()(1),  _imu_x_dw->value()(3),
         0,                             _imu_x_dw->value()(2),  _imu_x_dw->value()(4),
         0,                             0,                      _imu_x_dw->value()(5);
@@ -167,10 +169,12 @@ Eigen::Matrix3d State::Dw() {
 Eigen::Matrix3d State::Da() {
   Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
   if(_options.imu_model == 0){
+    // if kalibr model, lower triangular of the matrix is used
     Da << _imu_x_da->value()(0),   0,     0,
         _imu_x_da->value()(1), _imu_x_da->value()(3), 0,
         _imu_x_da->value()(2), _imu_x_da->value()(4), _imu_x_da->value()(5);
   }else{
+    // if rpng model, upper triangular of the matrix is used
     Da << _imu_x_da->value()(0),  _imu_x_da->value()(1),  _imu_x_da->value()(3),
         0,                             _imu_x_da->value()(2),  _imu_x_da->value()(4),
         0,                             0,                      _imu_x_da->value()(5);

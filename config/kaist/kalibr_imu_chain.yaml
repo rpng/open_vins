@@ -17,7 +17,27 @@ imu0:
   # <param name="gyroscope_random_walk"        type="double"   value="1.0000e-05" />
   # <param name="accelerometer_noise_density"  type="double"   value="5.8860e-03" /> <!-- 5.8860e-04 -->
   # <param name="accelerometer_random_walk"    type="double"   value="1.0000e-04" />
-  model: calibrated
   rostopic: /imu/data_raw
   time_offset: 0.0
   update_rate: 500.0
+  Tw:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  R_ItoGyro:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Ta:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  R_ItoAcc:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Tg:
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]
+  model: kalibr # 0: kalibr and 1: rpng

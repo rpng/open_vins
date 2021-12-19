@@ -37,4 +37,4 @@ imu0:
     - [ 0.0, 0.0, 0.0 ]
     - [ 0.0, 0.0, 0.0 ]
     - [ 0.0, 0.0, 0.0 ]
-  model: kalibr
+  model: kalibr # 0: kalibr and 1: rpng
