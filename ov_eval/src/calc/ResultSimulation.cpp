@@ -508,6 +508,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
         return;
     }
 
+    // get the parameters id
     int num_cam = (int)est_state.at(0)(18);
     int imu_model = (int) est_state.at(0)(1 + 16 + 1 + 1 + 15 * num_cam);
     int dw_id = 1 + 16 + 1 + 1 + 15 * num_cam + 1;
@@ -522,7 +523,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
     int atoI_cov_id = wtoI_cov_id + 3;
 
 
-    // Camera extrinsics statistic storage
+    // IMU intrinsics statistic storage
     std::vector<Statistics> error_dw, error_da, error_tg, error_wtoI, error_atoI;
 
     for (int j = 0; j < 6; j++) {
@@ -714,6 +715,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
     //=====================================================
 
     if(imu_model == 0){
+        // Kalibr model
         //=====================================================
         // Plot this figure
         matplotlibcpp::figure_size(800, 500);
@@ -731,6 +733,7 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
         matplotlibcpp::show(false);
         //=====================================================
     }else{
+        // RPNG model
         //=====================================================
         // Plot this figure
         matplotlibcpp::figure_size(800, 500);
