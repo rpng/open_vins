@@ -187,7 +187,9 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
 
   // Feed our simulation tracker
   trackSIM->feed_measurement_simulation(timestamp, camids, feats);
-  trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
+  if (is_initialized_vio) {
+    trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
+  }
   rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Check if we should do zero-velocity, if so update the state with it

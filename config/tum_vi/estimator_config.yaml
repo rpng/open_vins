@@ -40,7 +40,7 @@ zupt_only_at_beginning: true
 init_window_time: 0.85
 init_imu_thresh: 0.45 # room1-5:0.45, room6:0.25
 init_max_disparity: 15.0
-init_max_features: 50.0
+init_max_features: 50
 
 # ==================================================================
 # ==================================================================

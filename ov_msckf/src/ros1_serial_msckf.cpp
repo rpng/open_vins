@@ -47,7 +47,7 @@ int main(int argc, char **argv) {
   }
 
   // Launch our ros node
-  ros::init(argc, argv, "run_serial_msckf");
+  ros::init(argc, argv, "ros1_serial_msckf");
   auto nh = std::make_shared<ros::NodeHandle>("~");
   nh->param<std::string>("config_path", config_path, config_path);
 
@@ -254,12 +254,16 @@ int main(int argc, char **argv) {
           // PRINT_WARNING("skipping cam1 (%.4f >= %.4f)",std::abs(time1-time0), std::abs(time1_next-time0));
           msg_images_current.at(1) = msg_images_next.at(1);
           view_cameras_iterators.at(1)++;
-          msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
+          if(view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
+            msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
+          }
         } else {
           // PRINT_WARNING("skipping cam0 (%.4f >= %.4f)",std::abs(time0-time1), std::abs(time0_next-time1));
           msg_images_current.at(0) = msg_images_next.at(0);
           view_cameras_iterators.at(0)++;
-          msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+          if(view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
+            msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+          }
         }
       }
 
@@ -283,10 +287,14 @@ int main(int argc, char **argv) {
       // Move forward in time
       msg_images_current.at(0) = msg_images_next.at(0);
       view_cameras_iterators.at(0)++;
-      msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+      if(view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
+        msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+      }
       msg_images_current.at(1) = msg_images_next.at(1);
       view_cameras_iterators.at(1)++;
-      msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
+      if(view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
+        msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
+      }
 
     } else {
 
@@ -316,7 +324,9 @@ int main(int argc, char **argv) {
       // move forward
       msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
       view_cameras_iterators.at(smallest_cam)++;
-      msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
+      if(view_cameras_iterators.at(smallest_cam) != view_cameras.at(smallest_cam)->end()) {
+        msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
+      }
     }
   }
 
