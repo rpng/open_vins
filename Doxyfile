@@ -1642,7 +1642,7 @@ PAPER_TYPE             = a4
 # If left blank no extra packages will be included.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-EXTRA_PACKAGES         =
+EXTRA_PACKAGES         = {amsmath,amssymb,stmaryrd,xcolor}
 
 # The LATEX_HEADER tag can be used to specify a personal LaTeX header for the
 # generated LaTeX document. The header should contain everything until the first
@@ -1739,7 +1739,7 @@ LATEX_SOURCE_CODE      = NO
 # The default value is: plain.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_BIB_STYLE        = ieeetr
+LATEX_BIB_STYLE        = plainnat
 
 # If the LATEX_TIMESTAMP tag is set to YES then the footer of each generated
 # page will contain the date and time when the page was generated. Setting this
