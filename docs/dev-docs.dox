@@ -77,6 +77,16 @@
 - Use the command line utility `iperender`  to convert into a svg
 - `iperender -svg -transparent file.ipe file.svg`
 
+@section developers-pdfmanual Building the PDF Reference Manual
 
-
+1. You will need to install doxygen and texlive
+    - `sudo apt-get update`
+    - `sudo apt-get install doxygen texlive-full`
+2. Go into the project folder and generate
+    - `cd PATHTO/open_vins`
+    - `doxygen`
+3. Go into the generated latex folder and build
+    - `cd open_vins/doxgen_generated/latex`
+    - `make`
+4. Open the PDF file `/open_vins/doxgen_generated/latex/refman.pdf` to view documentation
 */
