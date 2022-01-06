@@ -355,6 +355,7 @@ struct VioManagerOptions {
     }
     PRINT_DEBUG("IMU PARAMETERS:\n");
     std::stringstream ss;
+    ss << "imu model:" << ((imu_config.imu_model == 0) ? "kalibr" : "rpng") << std::endl;
     ss << "Dw (columnwise):" << imu_config.vec_dw.transpose() << std::endl;
     ss << "Da (columnwise):" << imu_config.vec_da.transpose() << std::endl;
     ss << "Tg (columnwise):" << imu_config.vec_tg.transpose() << std::endl;

@@ -78,23 +78,67 @@ public:
    */
   int max_covariance_size() { return (int)_Cov.rows(); }
 
+  /**
+   * @brief Gyroscope intrinsic (scale imperfection and axis misalignment)
+   * @return 3x3 matrix of current imu gyroscope intrinsics
+   */
+  Eigen::Matrix3d Dw() {
+    Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
+    if (_options.imu_model == 0) {
+      // if kalibr model, lower triangular of the matrix is used
+      Dw << _calib_imu_dw->value()(0), 0, 0, _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
+          _calib_imu_dw->value()(4), _calib_imu_dw->value()(5);
+    } else {
+      // if rpng model, upper triangular of the matrix is used
+      Dw << _calib_imu_dw->value()(0), _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
+          _calib_imu_dw->value()(4), 0, 0, _calib_imu_dw->value()(5);
+    }
+    return Dw;
+  }
 
-  // get Dw
-  Eigen::Matrix3d Dw();
-  // get Da
-  Eigen::Matrix3d Da();
-  // get Tg
-  Eigen::Matrix3d Tg();
-  // get R_AcctoI
-  Eigen::Matrix3d R_AcctoI();
-  // get R_GyrotoI
-  Eigen::Matrix3d R_GyrotoI();
+  /**
+   * @brief Accelerometer intrinsic (scale imperfection and axis misalignment)
+   * @return 3x3 matrix of current imu accelerometer intrinsics
+   */
+  Eigen::Matrix3d Da() {
+    Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
+    if (_options.imu_model == 0) {
+      // if kalibr model, lower triangular of the matrix is used
+      Da << _calib_imu_da->value()(0), 0, 0, _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
+          _calib_imu_da->value()(4), _calib_imu_da->value()(5);
+    } else {
+      // if rpng model, upper triangular of the matrix is used
+      Da << _calib_imu_da->value()(0), _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
+          _calib_imu_da->value()(4), 0, 0, _calib_imu_da->value()(5);
+    }
+    return Da;
+  }
 
-  int imu_intrinsic_size() {
+  /**
+   * @brief Gyroscope gravity sensitivity
+   * @return 3x3 matrix of current gravity sensitivity
+   */
+  Eigen::Matrix3d Tg() {
+    Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
+    Tg << _calib_imu_tg->value()(0), _calib_imu_tg->value()(3), _calib_imu_tg->value()(6), _calib_imu_tg->value()(1),
+        _calib_imu_tg->value()(4), _calib_imu_tg->value()(7), _calib_imu_tg->value()(2), _calib_imu_tg->value()(5),
+        _calib_imu_tg->value()(8);
+    return Tg;
+  }
+
+  /**
+   * @brief Calculates the error state size for imu intrinsics.
+   *
+   * This is used to construct our state transition which depends on if we are estimating calibration.
+   * 15 if doing intrinsics, another +9 if doing grav sensitivity
+   *
+   * @return size of error state
+   */
+  int imu_intrinsic_size() const {
     int sz = 0;
-    if(_options.do_calib_imu_intrinsics){
+    if (_options.do_calib_imu_intrinsics) {
       sz += 15;
-      if(_options.do_calib_imu_g_sensitivity){
+      if (_options.do_calib_imu_g_sensitivity) {
         sz += 9;
       }
     }

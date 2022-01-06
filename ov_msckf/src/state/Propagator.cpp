@@ -95,10 +95,11 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   Eigen::Vector3d last_a = Eigen::Vector3d::Zero();
   Eigen::Vector3d last_w = Eigen::Vector3d::Zero();
   if (!prop_data.empty()) {
-    last_a = state->R_AcctoI() * state->Da() * (prop_data.at(prop_data.size() - 1).am - state->_imu->bias_a());
+    last_a = state->_calib_imu_ACCtoIMU->Rot() * state->Da() * (prop_data.at(prop_data.size() - 1).am - state->_imu->bias_a());
     // TODO: is this acceleration used correct?
     // Eigen::Vector3d last_aIiinG = state->_imu->Rot().transpose() * last_a - _gravity;
-    last_w = state->R_GyrotoI() * state->Dw() * (prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g() - state->Tg() * last_a);
+    last_w = state->_calib_imu_GYROtoIMU->Rot() * state->Dw() *
+             (prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g() - state->Tg() * last_a);
   }
 
   // Do the update to the covariance with our "summed" state transition and IMU noise addition...
@@ -166,24 +167,24 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       }
 
       // Correct imu readings with IMU intrinsics
-      a_hat = state->R_AcctoI() * state->Da() * a_hat;
-      a_hat1 = state->R_AcctoI() * state->Da() * a_hat1;
-      a_hat2 = state->R_AcctoI() * state->Da() * a_hat2;
+      Eigen::Matrix3d R_ACCtoIMU = state->_calib_imu_ACCtoIMU->Rot();
+      a_hat = R_ACCtoIMU * state->Da() * a_hat;
+      a_hat1 = R_ACCtoIMU * state->Da() * a_hat1;
+      a_hat2 = R_ACCtoIMU * state->Da() * a_hat2;
 
       // Corrected imu gyro measurements with our current biases
-      Eigen::Vector3d gravity_correction1 = state->Tg() * a_hat1;
-      Eigen::Vector3d gravity_correction2 = state->Tg() * a_hat2;
-      Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
-      Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
+      Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - state->Tg() * a_hat1;
+      Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - state->Tg() * a_hat2;
       Eigen::Vector3d w_hat = w_hat1;
       if (state->_options.imu_avg) {
         w_hat = .5 * (w_hat1 + w_hat2);
       }
 
       // Correct imu readings with IMU intrinsics
-      w_hat = state->R_GyrotoI() * state->Dw() * w_hat;
-      w_hat1 = state->R_GyrotoI() * state->Dw() * w_hat1;
-      w_hat2 = state->R_GyrotoI() * state->Dw() * w_hat2;
+      Eigen::Matrix3d R_GYROtoIMU = state->_calib_imu_GYROtoIMU->Rot();
+      w_hat = R_GYROtoIMU * state->Dw() * w_hat;
+      w_hat1 = R_GYROtoIMU * state->Dw() * w_hat1;
+      w_hat2 = R_GYROtoIMU * state->Dw() * w_hat2;
 
       // Pre-compute some analytical values
       Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
@@ -213,7 +214,7 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   }
 
   // Now record what the predicted state should be
-  // TODO: apply IMU intrinsics here to correct the angular velocity
+  // TODO: apply IMU intrinsics here to correct the returned angular velocity
   state_plus = Eigen::Matrix<double, 13, 1>::Zero();
   state_plus.block(0, 0, 4, 1) = state->_imu->quat();
   state_plus.block(4, 0, 3, 1) = state->_imu->pos();
@@ -349,10 +350,6 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
 void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core::ImuData &data_minus, const ov_core::ImuData &data_plus,
                                      Eigen::MatrixXd &F, Eigen::MatrixXd &Qd) {
 
-  // Set them to zero
-  F.setZero();
-  Qd.setZero();
-
   // Time elapsed over interval
   double dt = data_plus.timestamp - data_minus.timestamp;
   // assert(data_plus.timestamp>data_minus.timestamp);
@@ -367,15 +364,14 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
 
   // Convert "raw" imu to its corrected frame using the IMU intrinsics
   Eigen::Vector3d a_uncorrected = a_hat;
-  a_hat = state->R_AcctoI() * state->Da() * a_hat;
-  a_hat1 = state->R_AcctoI() * state->Da() * a_hat1;
-  a_hat2 = state->R_AcctoI() * state->Da() * a_hat2;
+  Eigen::Matrix3d R_ACCtoIMU = state->_calib_imu_ACCtoIMU->Rot();
+  a_hat = R_ACCtoIMU * state->Da() * a_hat;
+  a_hat1 = R_ACCtoIMU * state->Da() * a_hat1;
+  a_hat2 = R_ACCtoIMU * state->Da() * a_hat2;
 
-  // Corrected imu gyro measurements with our current biases and gravity sensativity
-  Eigen::Vector3d gravity_correction1 = state->Tg() * a_hat1;
-  Eigen::Vector3d gravity_correction2 = state->Tg() * a_hat2;
-  Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
-  Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
+  // Corrected imu gyro measurements with our current biases and gravity sensitivity
+  Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - state->Tg() * a_hat1;
+  Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - state->Tg() * a_hat2;
   Eigen::Vector3d w_hat = w_hat1;
   if (state->_options.imu_avg) {
     w_hat = .5 * (w_hat1 + w_hat2);
@@ -383,9 +379,10 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
 
   // Convert "raw" imu to its corrected frame using the IMU intrinsics
   Eigen::Vector3d w_uncorrected = w_hat;
-  w_hat = state->R_GyrotoI() * state->Dw() * w_hat;
-  w_hat1 = state->R_GyrotoI() * state->Dw() * w_hat1;
-  w_hat2 = state->R_GyrotoI() * state->Dw() * w_hat2;
+  Eigen::Matrix3d R_GYROtoIMU = state->_calib_imu_GYROtoIMU->Rot();
+  w_hat = R_GYROtoIMU * state->Dw() * w_hat;
+  w_hat1 = R_GYROtoIMU * state->Dw() * w_hat1;
+  w_hat2 = R_GYROtoIMU * state->Dw() * w_hat2;
 
   // Pre-compute some analytical values for the mean and covariance integration
   Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
@@ -436,289 +433,6 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   state->_imu->set_fej(imu_x);
 }
 
-void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat,
-                                          const Eigen::Vector3d &a_hat, const Eigen::Vector3d &w_uncorrected,
-                                          const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v,
-                                          const Eigen::Vector3d &new_p, const Eigen::Matrix<double, 3, 18> &Xi_sum, Eigen::MatrixXd &F,
-                                          Eigen::MatrixXd &G) {
-
-  // Get the locations of each entry of the imu state
-  int local_size = 0;
-  int th_id = local_size;
-  local_size += state->_imu->q()->size();
-  int p_id = local_size;
-  local_size += state->_imu->p()->size();
-  int v_id = local_size;
-  local_size += state->_imu->v()->size();
-  int bg_id = local_size;
-  local_size += state->_imu->bg()->size();
-  int ba_id = local_size;
-  local_size += state->_imu->ba()->size();
-
-  // If we are doing calibration, we can define their "local" id in the state transition
-  int Dw_id = -1;
-  int Da_id = -1;
-  int Tg_id = -1;
-  int th_atoI_id = -1;
-  int th_wtoI_id = -1;
-  if (state->_options.do_calib_imu_intrinsics) {
-    Dw_id = local_size;
-    local_size += state->_calib_imu_dw->size();
-    Da_id = local_size;
-    local_size += state->_calib_imu_da->size();
-    if (state->_options.do_calib_imu_g_sensitivity) {
-      Tg_id = local_size;
-      local_size += state->_calib_imu_tg->size();
-    }
-    // 0: kalibr, 1: rpng
-    if (state->_options.imu_model == 0) {
-      th_wtoI_id = local_size;
-      local_size += state->_calib_imu_GYROtoIMU->size();
-    } else {
-      th_atoI_id = local_size;
-      local_size += state->_calib_imu_ACCtoIMU->size();
-    }
-  }
-
-  // This is the change in the orientation from the end of the last prop to the current prop
-  // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix3d R_k = state->_imu->Rot();
-  Eigen::Vector3d v_k = state->_imu->vel();
-  Eigen::Vector3d p_k = state->_imu->pos();
-  if (state->_options.do_fej) {
-    R_k = state->_imu->Rot_fej();
-    v_k = state->_imu->vel_fej();
-    p_k = state->_imu->pos_fej();
-  }
-  Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
-
-  Eigen::Matrix3d Da = state->Da();
-  Eigen::Matrix3d Dw = state->Dw();
-  Eigen::Matrix3d Tg = state->Tg();
-  Eigen::Matrix3d R_atoI = state->R_AcctoI();
-  Eigen::Matrix3d R_wtoI = state->R_GyrotoI();
-  Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
-  Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains gravity correction already
-
-  Eigen::Matrix3d Xi_1 = Xi_sum.block<3, 3>(0, 3);
-  Eigen::Matrix3d Xi_2 = Xi_sum.block<3, 3>(0, 6);
-  Eigen::Matrix3d Jr = Xi_sum.block<3, 3>(0, 9);
-  Eigen::Matrix3d Xi_3 = Xi_sum.block<3, 3>(0, 12);
-  Eigen::Matrix3d Xi_4 = Xi_sum.block<3, 3>(0, 15);
-
-  // for th
-  F.block<3, 3>(th_id, th_id) = dR_ktok1;
-  F.block<3, 3>(p_id, th_id).noalias() = -skew_x(new_p - p_k - v_k * dt + 0.5 * _gravity * dt * dt) * R_k.transpose();
-  F.block<3, 3>(v_id, th_id).noalias() = -skew_x(new_v - v_k + _gravity * dt) * R_k.transpose();
-
-  // for p
-  F.block<3, 3>(p_id, p_id).setIdentity();
-
-  // for v
-  F.block<3, 3>(p_id, v_id) = Eigen::Matrix3d::Identity() * dt;
-  F.block<3, 3>(v_id, v_id).setIdentity();
-
-  // for bg
-  F.block<3, 3>(th_id, bg_id).noalias() = -Jr * dt * R_wtoI * Dw;
-  F.block<3, 3>(p_id, bg_id) = R_k.transpose() * Xi_4 * R_wtoI * Dw;
-  F.block<3, 3>(v_id, bg_id) = R_k.transpose() * Xi_3 * R_wtoI * Dw;
-  F.block<3, 3>(bg_id, bg_id).setIdentity();
-
-  // for ba
-  F.block<3, 3>(th_id, ba_id).noalias() = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
-  F.block<3, 3>(p_id, ba_id) = -R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * Da;
-  F.block<3, 3>(v_id, ba_id) = -R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * Da;
-  F.block<3, 3>(ba_id, ba_id).setIdentity();
-
-  // begin to add the state transition matrix for the omega intrinsics part
-  if (Dw_id != -1) {
-    F.block(th_id, Dw_id, 3, state->_calib_imu_dw->size()) = Jr * dt * R_wtoI * compute_H_Dw(state, w_uncorrected);
-    F.block(p_id, Dw_id, 3, state->_calib_imu_dw->size()) = -R_k.transpose() * Xi_4 * R_wtoI * compute_H_Dw(state, w_uncorrected);
-    F.block(v_id, Dw_id, 3, state->_calib_imu_dw->size()) = -R_k.transpose() * Xi_3 * R_wtoI * compute_H_Dw(state, w_uncorrected);
-    F.block(Dw_id, Dw_id, state->_calib_imu_dw->size(), state->_calib_imu_dw->size()).setIdentity();
-  }
-
-  // begin to add the state transition matrix for the acc intrinsics part
-  if (Da_id != -1) {
-    F.block(Da_id, Da_id, state->_calib_imu_da->size(), state->_calib_imu_da->size()).setIdentity();
-    F.block(th_id, Da_id, 3, state->_calib_imu_da->size()) = -Jr * dt * R_wtoI * Dw * Tg * R_atoI * compute_H_Da(state, w_uncorrected);
-    F.block(p_id, Da_id, 3, state->_calib_imu_da->size()) =
-        R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * compute_H_Da(state, a_uncorrected);
-    F.block(v_id, Da_id, 3, state->_calib_imu_da->size()) =
-        R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * compute_H_Da(state, a_uncorrected);
-  }
-
-  // add the state trasition matrix of the tg part
-  if (Tg_id != -1) {
-    F.block(Tg_id, Tg_id, state->_calib_imu_tg->size(), state->_calib_imu_tg->size()).setIdentity();
-    F.block(th_id, Tg_id, 3, state->_calib_imu_tg->size()) = -Jr * dt * R_wtoI * Dw * compute_H_Tg(state, a_k);
-    F.block(p_id, Tg_id, 3, state->_calib_imu_tg->size()) = R_k.transpose() * Xi_4 * R_wtoI * Dw * compute_H_Tg(state, a_k);
-    F.block(v_id, Tg_id, 3, state->_calib_imu_tg->size()) = R_k.transpose() * Xi_3 * R_wtoI * Dw * compute_H_Tg(state, a_k);
-  }
-
-  // begin to add the state transition matrix for the acctoI part
-  if (th_atoI_id != -1) {
-    F.block<3, 3>(th_atoI_id, th_atoI_id).setIdentity();
-    F.block<3, 3>(th_id, th_atoI_id) = -Jr * dt * R_wtoI * Dw * Tg * ov_core::skew_x(a_k);
-    F.block<3, 3>(p_id, th_atoI_id) = R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * ov_core::skew_x(a_k);
-    F.block<3, 3>(v_id, th_atoI_id) = R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * ov_core::skew_x(a_k);
-  }
-
-  // begin to add the state transition matrix for the gyrotoI part
-  if (th_wtoI_id != -1) {
-    F.block<3, 3>(th_wtoI_id, th_wtoI_id).setIdentity();
-    F.block<3, 3>(th_id, th_wtoI_id) = Jr * dt * ov_core::skew_x(w_k);
-    F.block<3, 3>(p_id, th_wtoI_id) = -R_k.transpose() * Xi_4 * ov_core::skew_x(w_k);
-    F.block<3, 3>(v_id, th_wtoI_id) = -R_k.transpose() * Xi_3 * ov_core::skew_x(w_k);
-  }
-
-  // construct the G part
-  G.block<3, 3>(th_id, 0) = -Jr * dt * R_wtoI * Dw;
-  G.block<3, 3>(p_id, 0) = R_k.transpose() * Xi_4 * R_wtoI * Dw;
-  G.block<3, 3>(v_id, 0) = R_k.transpose() * Xi_3 * R_wtoI * Dw;
-  G.block<3, 3>(th_id, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
-  G.block<3, 3>(p_id, 3) = -R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * Da;
-  G.block<3, 3>(v_id, 3) = -R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * Da;
-  G.block<3, 3>(bg_id, 6) = dt * Eigen::Matrix3d::Identity();
-  G.block<3, 3>(ba_id, 9) = dt * Eigen::Matrix3d::Identity();
-}
-
-void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat,
-                                          const Eigen::Vector3d &a_hat, const Eigen::Vector3d &w_uncorrected,
-                                          const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v,
-                                          const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G) {
-
-  // Get the locations of each entry of the imu state
-  int local_size = 0;
-  int th_id = local_size;
-  local_size += state->_imu->q()->size();
-  int p_id = local_size;
-  local_size += state->_imu->p()->size();
-  int v_id = local_size;
-  local_size += state->_imu->v()->size();
-  int bg_id = local_size;
-  local_size += state->_imu->bg()->size();
-  int ba_id = local_size;
-  local_size += state->_imu->ba()->size();
-
-  // If we are doing calibration, we can define their "local" id in the state transition
-  int Dw_id = -1;
-  int Da_id = -1;
-  int Tg_id = -1;
-  int th_atoI_id = -1;
-  int th_wtoI_id = -1;
-  if (state->_options.do_calib_imu_intrinsics) {
-    Dw_id = local_size;
-    local_size += state->_calib_imu_dw->size();
-    Da_id = local_size;
-    local_size += state->_calib_imu_da->size();
-    if (state->_options.do_calib_imu_g_sensitivity) {
-      Tg_id = local_size;
-      local_size += state->_calib_imu_tg->size();
-    }
-    if (state->_options.imu_model == 0) {
-      // Kalibr model
-      th_wtoI_id = local_size;
-      local_size += state->_calib_imu_GYROtoIMU->size();
-    } else {
-      // RPNG model
-      th_atoI_id = local_size;
-      local_size += state->_calib_imu_ACCtoIMU->size();
-    }
-  }
-
-  //============================================================
-  //============================================================
-
-  // This is the change in the orientation from the end of the last prop to the current prop
-  // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix3d R_k = state->_imu->Rot();
-  Eigen::Vector3d v_k = state->_imu->vel();
-  Eigen::Vector3d p_k = state->_imu->pos();
-
-  if (state->_options.do_fej) {
-    R_k = state->_imu->Rot_fej();
-    v_k = state->_imu->vel_fej();
-    p_k = state->_imu->pos_fej();
-  }
-  Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
-
-  // This is the change in the orientation from the end of the last prop to the current prop
-  // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix3d Da = state->Da();
-  Eigen::Matrix3d Dw = state->Dw();
-  Eigen::Matrix3d Tg = state->Tg();
-  Eigen::Matrix3d R_atoI = state->R_AcctoI();
-  Eigen::Matrix3d R_wtoI = state->R_GyrotoI();
-  Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
-  Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains the gravity correction already
-  Eigen::Matrix3d Jr = Jr_so3(w_k * dt);
-
-  // for theta
-  F.block<3, 3>(th_id, th_id) = dR_ktok1;
-  // F.block(th_id, bg_id, 3, 3).noalias() = -Jr_so3(w_hat * dt) * dt * R_wtoI_fej * Dw_fej;
-  F.block<3, 3>(th_id, bg_id).noalias() = -Jr * dt * R_wtoI * Dw;
-  F.block<3, 3>(th_id, ba_id).noalias() = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
-
-  // for position
-  F.block<3, 3>(p_id, th_id).noalias() = -skew_x(new_p - p_k - v_k * dt + 0.5 * _gravity * dt * dt) * R_k.transpose();
-  F.block<3, 3>(p_id, p_id).setIdentity();
-  F.block<3, 3>(p_id, v_id) = Eigen::Matrix3d::Identity() * dt;
-  F.block<3, 3>(p_id, ba_id) = -0.5 * R_k.transpose() * dt * dt * R_atoI * Da;
-
-  // for velocity
-  F.block<3, 3>(v_id, th_id).noalias() = -skew_x(new_v - v_k + _gravity * dt) * R_k.transpose();
-  F.block<3, 3>(v_id, v_id).setIdentity();
-  F.block<3, 3>(v_id, ba_id) = -R_k.transpose() * dt * R_atoI * Da;
-
-  // for bg
-  F.block<3, 3>(bg_id, bg_id).setIdentity();
-  // for ba
-  F.block<3, 3>(ba_id, ba_id).setIdentity();
-
-  // begin to add the state transition matrix for the omega intrinsics part
-  if (Dw_id != -1) {
-    F.block(Dw_id, Dw_id, state->_calib_imu_dw->size(), state->_calib_imu_dw->size()).setIdentity();
-    F.block(th_id, Dw_id, 3, state->_calib_imu_dw->size()) = Jr * dt * R_wtoI * compute_H_Dw(state, w_uncorrected);
-  }
-
-  // begin to add the state transition matrix for the acc intrinsics part
-  if (Da_id != -1) {
-    F.block(th_id, Da_id, 3, state->_calib_imu_da->size()) = -Jr * dt * R_wtoI * Tg * R_atoI * compute_H_Da(state, a_uncorrected);
-    F.block(p_id, Da_id, 3, state->_calib_imu_da->size()) = 0.5 * R_k.transpose() * dt * dt * R_atoI * compute_H_Da(state, a_uncorrected);
-    F.block(v_id, Da_id, 3, state->_calib_imu_da->size()) = R_k.transpose() * dt * R_atoI * compute_H_Da(state, a_uncorrected);
-    F.block(Da_id, Da_id, state->_calib_imu_da->size(), state->_calib_imu_da->size()).setIdentity();
-  }
-
-  // begin to add the state transition matrix for the acc intrinsics part
-  if (th_atoI_id != -1) {
-    F.block<3, 3>(th_atoI_id, th_atoI_id).setIdentity();
-    F.block<3, 3>(th_id, th_atoI_id) = -Jr * dt * R_wtoI * Dw * Tg * ov_core::skew_x(a_k);
-    F.block<3, 3>(p_id, th_atoI_id) = 0.5 * R_k.transpose() * dt * dt * ov_core::skew_x(a_k);
-    F.block<3, 3>(v_id, th_atoI_id) = R_k.transpose() * dt * ov_core::skew_x(a_k);
-  }
-
-  // begin to add the state transition matrix for the gyro intrinsics part
-  if (th_wtoI_id != -1) {
-    F.block<3, 3>(th_wtoI_id, th_wtoI_id).setIdentity();
-    F.block<3, 3>(th_id, th_wtoI_id) = Jr * dt * ov_core::skew_x(w_k);
-  }
-
-  // begin to add the state transition matrix for the gravity sensitivity part
-  if (Tg_id != -1) {
-    F.block(Tg_id, Tg_id, state->_calib_imu_tg->size(), state->_calib_imu_tg->size()).setIdentity();
-    F.block(th_id, Tg_id, 3, state->_calib_imu_tg->size()) = -Jr * dt * R_wtoI * Dw * compute_H_Tg(state, a_k);
-  }
-
-  // Noise jacobian
-  G.block<3, 3>(th_id, 0) = -Jr * dt * R_wtoI * Dw;
-  G.block<3, 3>(th_id, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
-  G.block<3, 3>(v_id, 3) = -R_k.transpose() * dt * R_atoI * Da;
-  G.block<3, 3>(p_id, 3) = -0.5 * R_k.transpose() * dt * dt * R_atoI * Da;
-  G.block<3, 3>(bg_id, 6) = dt * Eigen::Matrix3d::Identity();
-  G.block<3, 3>(ba_id, 9) = dt * Eigen::Matrix3d::Identity();
-}
-
 void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1,
                                        const Eigen::Vector3d &a_hat1, const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
                                        Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p) {
@@ -751,29 +465,6 @@ void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt, 
 
   // Position: just velocity times dt, with the acceleration integrated twice
   new_p = state->_imu->pos() + state->_imu->vel() * dt + 0.5 * R_Gtoi.transpose() * a_hat * dt * dt - 0.5 * _gravity * dt * dt;
-}
-
-void Propagator::predict_mean_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
-                                       Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p,
-                                       Eigen::Matrix<double, 3, 18> &Xi_sum) {
-
-  // Pre-compute things
-  Eigen::Matrix3d R_Gtok = state->_imu->Rot();
-
-  // get the pre-computed value
-  Eigen::Matrix3d R_k1_to_k = Xi_sum.block<3, 3>(0, 0);
-  Eigen::Matrix3d Xi_1 = Xi_sum.block<3, 3>(0, 3);
-  Eigen::Matrix3d Xi_2 = Xi_sum.block<3, 3>(0, 6);
-
-  // use the precomputed value to get the new state
-  Eigen::Matrix<double, 4, 1> q_k_to_k1 = ov_core::rot_2_quat(R_k1_to_k.transpose());
-  new_q = ov_core::quat_multiply(q_k_to_k1, state->_imu->quat());
-
-  // Velocity: just the acceleration in the local frame, minus global gravity
-  new_v = state->_imu->vel() + R_Gtok.transpose() * Xi_1 * a_hat - _gravity * dt;
-
-  // Position: just velocity times dt, with the acceleration integrated twice
-  new_p = state->_imu->pos() + state->_imu->vel() * dt + R_Gtok.transpose() * Xi_2 * a_hat - 0.5 * _gravity * dt * dt;
 }
 
 void Propagator::predict_mean_rk4(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
@@ -860,42 +551,38 @@ void Propagator::predict_mean_rk4(std::shared_ptr<State> state, double dt, const
 void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                                 Eigen::Matrix<double, 3, 18> &Xi_sum) {
 
-  // useful identities
-  Eigen::Matrix3d I_3x3 = Eigen::Matrix3d::Identity();
-  Eigen::Vector3d Z_3x1 = Eigen::MatrixXd::Zero(3, 1);
-
-  // now begin the integration
+  // Decompose our angular velocity into a direction and amount
   double w_norm = w_hat.norm();
   double d_th = w_norm * d_t;
   Eigen::Vector3d k_hat;
   if (w_norm < 1e-8) {
-    k_hat << Z_3x1;
+    k_hat << 0, 0, 0;
   } else {
     k_hat << w_hat / w_norm;
   }
 
-  // comupute usefull identities
+  // Compute useful identities used throughout
+  Eigen::Matrix3d I_3x3 = Eigen::Matrix3d::Identity();
   double d_t2 = std::pow(d_t, 2);
   double d_t3 = std::pow(d_t, 3);
-  ;
   double w_norm2 = std::pow(w_norm, 2);
   double w_norm3 = std::pow(w_norm, 3);
-  double cos_dth = cos(d_th);
-  double sin_dth = sin(d_th);
+  double cos_dth = std::cos(d_th);
+  double sin_dth = std::sin(d_th);
   double d_th2 = std::pow(d_th, 2);
   double d_th3 = std::pow(d_th, 3);
   Eigen::Matrix3d sK = ov_core::skew_x(k_hat);
   Eigen::Matrix3d sK2 = sK * sK;
   Eigen::Matrix3d sA = ov_core::skew_x(a_hat);
 
-  // based on the delta theta, let's decide which integration will be used
+  // Based on the delta theta, let's decide which integration will be used
   bool small_w = (w_norm < 1.0 / 180 * M_PI / 2);
   bool small_th = (d_th < 1.0 / 180 * M_PI / 2);
 
-  // integration components will be used later
+  // Integration components will be used later
   Eigen::Matrix3d R_k1tok, Xi_1, Xi_2, Jr_k1tok, Xi_3, Xi_4;
 
-  // now the R and J can be computed
+  // Now the R and its jacobian J can be computed
   R_k1tok = I_3x3 + sin_dth * sK + (1.0 - cos_dth) * sK2;
   if (!small_th) {
     Jr_k1tok = I_3x3 - (1.0 - cos_dth) / d_th * sK + (d_th - sin_dth) / d_th * sK2;
@@ -903,7 +590,7 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
     Jr_k1tok = I_3x3 - sin_dth * sK + (1.0 - cos_dth) * sK2;
   }
 
-  // now begin the integration
+  // Now begin the integration of each component
   if (!small_w) {
 
     // first order rotation integration with constant omega
@@ -941,66 +628,341 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
     Xi_4 = 1.0 / 3 * d_t * Xi_3;
   }
 
-  // store the integrated parameters
+  // Store the integrated parameters
   Xi_sum << R_k1tok, Xi_1, Xi_2, Jr_k1tok, Xi_3, Xi_4;
+}
 
-  // we are good to go
-  return;
+void Propagator::predict_mean_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                                       Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p,
+                                       Eigen::Matrix<double, 3, 18> &Xi_sum) {
+
+  // Pre-compute things
+  Eigen::Matrix3d R_Gtok = state->_imu->Rot();
+  Eigen::Matrix3d R_k1_to_k = Xi_sum.block(0, 0, 3, 3);
+  Eigen::Vector4d q_k_to_k1 = ov_core::rot_2_quat(R_k1_to_k.transpose());
+  Eigen::Matrix3d Xi_1 = Xi_sum.block(0, 3, 3, 3);
+  Eigen::Matrix3d Xi_2 = Xi_sum.block(0, 6, 3, 3);
+
+  // Use our integrated Xi's to move the state forward
+  new_q = ov_core::quat_multiply(q_k_to_k1, state->_imu->quat());
+  new_v = state->_imu->vel() + R_Gtok.transpose() * Xi_1 * a_hat - _gravity * dt;
+  new_p = state->_imu->pos() + state->_imu->vel() * dt + R_Gtok.transpose() * Xi_2 * a_hat - 0.5 * _gravity * dt * dt;
+}
+
+void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat,
+                                          const Eigen::Vector3d &a_hat, const Eigen::Vector3d &w_uncorrected,
+                                          const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v,
+                                          const Eigen::Vector3d &new_p, const Eigen::Matrix<double, 3, 18> &Xi_sum, Eigen::MatrixXd &F,
+                                          Eigen::MatrixXd &G) {
+
+  // Get the locations of each entry of the imu state
+  int local_size = 0;
+  int th_id = local_size;
+  local_size += state->_imu->q()->size();
+  int p_id = local_size;
+  local_size += state->_imu->p()->size();
+  int v_id = local_size;
+  local_size += state->_imu->v()->size();
+  int bg_id = local_size;
+  local_size += state->_imu->bg()->size();
+  int ba_id = local_size;
+  local_size += state->_imu->ba()->size();
+
+  // If we are doing calibration, we can define their "local" id in the state transition
+  int Dw_id = -1;
+  int Da_id = -1;
+  int Tg_id = -1;
+  int th_atoI_id = -1;
+  int th_wtoI_id = -1;
+  if (state->_options.do_calib_imu_intrinsics) {
+    Dw_id = local_size;
+    local_size += state->_calib_imu_dw->size();
+    Da_id = local_size;
+    local_size += state->_calib_imu_da->size();
+    if (state->_options.do_calib_imu_g_sensitivity) {
+      Tg_id = local_size;
+      local_size += state->_calib_imu_tg->size();
+    }
+    if (state->_options.imu_model == 0) {
+      th_wtoI_id = local_size;
+      local_size += state->_calib_imu_GYROtoIMU->size();
+    } else {
+      th_atoI_id = local_size;
+      local_size += state->_calib_imu_ACCtoIMU->size();
+    }
+  }
+
+  // This is the change in the orientation from the end of the last prop to the current prop
+  // This is needed since we need to include the "k-th" updated orientation information
+  Eigen::Matrix3d R_k = state->_imu->Rot();
+  Eigen::Vector3d v_k = state->_imu->vel();
+  Eigen::Vector3d p_k = state->_imu->pos();
+  if (state->_options.do_fej) {
+    R_k = state->_imu->Rot_fej();
+    v_k = state->_imu->vel_fej();
+    p_k = state->_imu->pos_fej();
+  }
+  Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
+
+  Eigen::Matrix3d Da = state->Da();
+  Eigen::Matrix3d Dw = state->Dw();
+  Eigen::Matrix3d Tg = state->Tg();
+  Eigen::Matrix3d R_atoI = state->_calib_imu_ACCtoIMU->Rot();
+  Eigen::Matrix3d R_wtoI = state->_calib_imu_GYROtoIMU->Rot();
+  Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
+  Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains gravity correction already
+
+  Eigen::Matrix3d Xi_1 = Xi_sum.block<3, 3>(0, 3);
+  Eigen::Matrix3d Xi_2 = Xi_sum.block<3, 3>(0, 6);
+  Eigen::Matrix3d Jr = Xi_sum.block<3, 3>(0, 9);
+  Eigen::Matrix3d Xi_3 = Xi_sum.block<3, 3>(0, 12);
+  Eigen::Matrix3d Xi_4 = Xi_sum.block<3, 3>(0, 15);
+
+  // for th
+  F.block(th_id, th_id, 3, 3) = dR_ktok1;
+  F.block(p_id, th_id, 3, 3) = -skew_x(new_p - p_k - v_k * dt + 0.5 * _gravity * dt * dt) * R_k.transpose();
+  F.block(v_id, th_id, 3, 3) = -skew_x(new_v - v_k + _gravity * dt) * R_k.transpose();
+
+  // for p
+  F.block<3, 3>(p_id, p_id, 3, 3).setIdentity();
+
+  // for v
+  F.block<3, 3>(p_id, v_id, 3, 3) = Eigen::Matrix3d::Identity() * dt;
+  F.block<3, 3>(v_id, v_id, 3, 3).setIdentity();
+
+  // for bg
+  F.block<3, 3>(th_id, bg_id, 3, 3) = -Jr * dt * R_wtoI * Dw;
+  F.block<3, 3>(p_id, bg_id, 3, 3) = R_k.transpose() * Xi_4 * R_wtoI * Dw;
+  F.block<3, 3>(v_id, bg_id, 3, 3) = R_k.transpose() * Xi_3 * R_wtoI * Dw;
+  F.block<3, 3>(bg_id, bg_id, 3, 3).setIdentity();
+
+  // for ba
+  F.block(th_id, ba_id, 3, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
+  F.block(p_id, ba_id, 3, 3) = -R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * Da;
+  F.block(v_id, ba_id, 3, 3) = -R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * Da;
+  F.block(ba_id, ba_id, 3, 3).setIdentity();
+
+  // begin to add the state transition matrix for the omega intrinsics part
+  if (Dw_id != -1) {
+    F.block(th_id, Dw_id, 3, state->_calib_imu_dw->size()) = Jr * dt * R_wtoI * compute_H_Dw(state, w_uncorrected);
+    F.block(p_id, Dw_id, 3, state->_calib_imu_dw->size()) = -R_k.transpose() * Xi_4 * R_wtoI * compute_H_Dw(state, w_uncorrected);
+    F.block(v_id, Dw_id, 3, state->_calib_imu_dw->size()) = -R_k.transpose() * Xi_3 * R_wtoI * compute_H_Dw(state, w_uncorrected);
+    F.block(Dw_id, Dw_id, state->_calib_imu_dw->size(), state->_calib_imu_dw->size()).setIdentity();
+  }
+
+  // begin to add the state transition matrix for the acc intrinsics part
+  if (Da_id != -1) {
+    F.block(Da_id, Da_id, state->_calib_imu_da->size(), state->_calib_imu_da->size()).setIdentity();
+    F.block(th_id, Da_id, 3, state->_calib_imu_da->size()) = -Jr * dt * R_wtoI * Dw * Tg * R_atoI * compute_H_Da(state, w_uncorrected);
+    F.block(p_id, Da_id, 3, state->_calib_imu_da->size()) =
+        R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * compute_H_Da(state, a_uncorrected);
+    F.block(v_id, Da_id, 3, state->_calib_imu_da->size()) =
+        R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * compute_H_Da(state, a_uncorrected);
+  }
+
+  // add the state trasition matrix of the tg part
+  if (Tg_id != -1) {
+    F.block(Tg_id, Tg_id, state->_calib_imu_tg->size(), state->_calib_imu_tg->size()).setIdentity();
+    F.block(th_id, Tg_id, 3, state->_calib_imu_tg->size()) = -Jr * dt * R_wtoI * Dw * compute_H_Tg(state, a_k);
+    F.block(p_id, Tg_id, 3, state->_calib_imu_tg->size()) = R_k.transpose() * Xi_4 * R_wtoI * Dw * compute_H_Tg(state, a_k);
+    F.block(v_id, Tg_id, 3, state->_calib_imu_tg->size()) = R_k.transpose() * Xi_3 * R_wtoI * Dw * compute_H_Tg(state, a_k);
+  }
+
+  // begin to add the state transition matrix for the acctoI part
+  if (th_atoI_id != -1) {
+    F.block(th_atoI_id, th_atoI_id, 3, 3).setIdentity();
+    F.block(th_id, th_atoI_id, 3, 3) = -Jr * dt * R_wtoI * Dw * Tg * ov_core::skew_x(a_k);
+    F.block(p_id, th_atoI_id, 3, 3) = R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * ov_core::skew_x(a_k);
+    F.block(v_id, th_atoI_id, 3, 3) = R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * ov_core::skew_x(a_k);
+  }
+
+  // begin to add the state transition matrix for the gyrotoI part
+  if (th_wtoI_id != -1) {
+    F.block(th_wtoI_id, th_wtoI_id, 3, 3).setIdentity();
+    F.block(th_id, th_wtoI_id, 3, 3) = Jr * dt * ov_core::skew_x(w_k);
+    F.block(p_id, th_wtoI_id, 3, 3) = -R_k.transpose() * Xi_4 * ov_core::skew_x(w_k);
+    F.block(v_id, th_wtoI_id, 3, 3) = -R_k.transpose() * Xi_3 * ov_core::skew_x(w_k);
+  }
+
+  // construct the G part
+  G.block(th_id, 0, 3, 3) = -Jr * dt * R_wtoI * Dw;
+  G.block(p_id, 0, 3, 3) = R_k.transpose() * Xi_4 * R_wtoI * Dw;
+  G.block(v_id, 0, 3, 3) = R_k.transpose() * Xi_3 * R_wtoI * Dw;
+  G.block(th_id, 3, 3, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
+  G.block(p_id, 3, 3, 3) = -R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * Da;
+  G.block(v_id, 3, 3, 3) = -R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * Da;
+  G.block(bg_id, 6, 3, 3) = dt * Eigen::Matrix3d::Identity();
+  G.block(ba_id, 9, 3, 3) = dt * Eigen::Matrix3d::Identity();
+}
+
+void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat,
+                                          const Eigen::Vector3d &a_hat, const Eigen::Vector3d &w_uncorrected,
+                                          const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v,
+                                          const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G) {
+
+  // Get the locations of each entry of the imu state
+  int local_size = 0;
+  int th_id = local_size;
+  local_size += state->_imu->q()->size();
+  int p_id = local_size;
+  local_size += state->_imu->p()->size();
+  int v_id = local_size;
+  local_size += state->_imu->v()->size();
+  int bg_id = local_size;
+  local_size += state->_imu->bg()->size();
+  int ba_id = local_size;
+  local_size += state->_imu->ba()->size();
+
+  // If we are doing calibration, we can define their "local" id in the state transition
+  int Dw_id = -1;
+  int Da_id = -1;
+  int Tg_id = -1;
+  int th_atoI_id = -1;
+  int th_wtoI_id = -1;
+  if (state->_options.do_calib_imu_intrinsics) {
+    Dw_id = local_size;
+    local_size += state->_calib_imu_dw->size();
+    Da_id = local_size;
+    local_size += state->_calib_imu_da->size();
+    if (state->_options.do_calib_imu_g_sensitivity) {
+      Tg_id = local_size;
+      local_size += state->_calib_imu_tg->size();
+    }
+    if (state->_options.imu_model == 0) {
+      th_wtoI_id = local_size;
+      local_size += state->_calib_imu_GYROtoIMU->size();
+    } else {
+      th_atoI_id = local_size;
+      local_size += state->_calib_imu_ACCtoIMU->size();
+    }
+  }
+
+  // This is the change in the orientation from the end of the last prop to the current prop
+  // This is needed since we need to include the "k-th" updated orientation information
+  Eigen::Matrix3d R_k = state->_imu->Rot();
+  Eigen::Vector3d v_k = state->_imu->vel();
+  Eigen::Vector3d p_k = state->_imu->pos();
+  if (state->_options.do_fej) {
+    R_k = state->_imu->Rot_fej();
+    v_k = state->_imu->vel_fej();
+    p_k = state->_imu->pos_fej();
+  }
+  Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
+
+  // This is the change in the orientation from the end of the last prop to the current prop
+  // This is needed since we need to include the "k-th" updated orientation information
+  Eigen::Matrix3d Da = state->Da();
+  Eigen::Matrix3d Dw = state->Dw();
+  Eigen::Matrix3d Tg = state->Tg();
+  Eigen::Matrix3d R_atoI = state->_calib_imu_ACCtoIMU->Rot();
+  Eigen::Matrix3d R_wtoI = state->_calib_imu_GYROtoIMU->Rot();
+  Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
+  Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains gravity correction already
+  Eigen::Matrix3d Jr = Jr_so3(w_k * dt);
+
+  // for theta
+  F.block(th_id, th_id, 3, 3) = dR_ktok1;
+  // F.block(th_id, bg_id, 3, 3) = -Jr_so3(w_hat * dt) * dt * R_wtoI_fej * Dw_fej;
+  F.block(th_id, bg_id, 3, 3) = -Jr * dt * R_wtoI * Dw;
+  F.block(th_id, ba_id, 3, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
+
+  // for position
+  F.block(p_id, th_id, 3, 3) = -skew_x(new_p - p_k - v_k * dt + 0.5 * _gravity * dt * dt) * R_k.transpose();
+  F.block(p_id, p_id, 3, 3).setIdentity();
+  F.block(p_id, v_id, 3, 3) = Eigen::Matrix3d::Identity() * dt;
+  F.block(p_id, ba_id, 3, 3) = -0.5 * R_k.transpose() * dt * dt * R_atoI * Da;
+
+  // for velocity
+  F.block(v_id, th_id, 3, 3) = -skew_x(new_v - v_k + _gravity * dt) * R_k.transpose();
+  F.block(v_id, v_id, 3, 3).setIdentity();
+  F.block(v_id, ba_id, 3, 3) = -R_k.transpose() * dt * R_atoI * Da;
+
+  // for bg
+  F.block(bg_id, bg_id, 3, 3).setIdentity();
+
+  // for ba
+  F.block(ba_id, ba_id, 3, 3).setIdentity();
+
+  // begin to add the state transition matrix for the omega intrinsics part
+  if (Dw_id != -1) {
+    F.block(Dw_id, Dw_id, state->_calib_imu_dw->size(), state->_calib_imu_dw->size()).setIdentity();
+    F.block(th_id, Dw_id, 3, state->_calib_imu_dw->size()) = Jr * dt * R_wtoI * compute_H_Dw(state, w_uncorrected);
+  }
+
+  // begin to add the state transition matrix for the acc intrinsics part
+  if (Da_id != -1) {
+    F.block(th_id, Da_id, 3, state->_calib_imu_da->size()) = -Jr * dt * R_wtoI * Tg * R_atoI * compute_H_Da(state, a_uncorrected);
+    F.block(p_id, Da_id, 3, state->_calib_imu_da->size()) = 0.5 * R_k.transpose() * dt * dt * R_atoI * compute_H_Da(state, a_uncorrected);
+    F.block(v_id, Da_id, 3, state->_calib_imu_da->size()) = R_k.transpose() * dt * R_atoI * compute_H_Da(state, a_uncorrected);
+    F.block(Da_id, Da_id, state->_calib_imu_da->size(), state->_calib_imu_da->size()).setIdentity();
+  }
+
+  // begin to add the state transition matrix for the acc intrinsics part
+  if (th_atoI_id != -1) {
+    F.block(th_atoI_id, th_atoI_id, 3, 3).setIdentity();
+    F.block(th_id, th_atoI_id, 3, 3) = -Jr * dt * R_wtoI * Dw * Tg * ov_core::skew_x(a_k);
+    F.block(p_id, th_atoI_id, 3, 3) = 0.5 * R_k.transpose() * dt * dt * ov_core::skew_x(a_k);
+    F.block(v_id, th_atoI_id, 3, 3) = R_k.transpose() * dt * ov_core::skew_x(a_k);
+  }
+
+  // begin to add the state transition matrix for the gyro intrinsics part
+  if (th_wtoI_id != -1) {
+    F.block(th_wtoI_id, th_wtoI_id, 3, 3).setIdentity();
+    F.block(th_id, th_wtoI_id, 3, 3) = Jr * dt * ov_core::skew_x(w_k);
+  }
+
+  // begin to add the state transition matrix for the gravity sensitivity part
+  if (Tg_id != -1) {
+    F.block(Tg_id, Tg_id, state->_calib_imu_tg->size(), state->_calib_imu_tg->size()).setIdentity();
+    F.block(th_id, Tg_id, 3, state->_calib_imu_tg->size()) = -Jr * dt * R_wtoI * Dw * compute_H_Tg(state, a_k);
+  }
+
+  // Noise jacobian
+  G.block(th_id, 0, 3, 3) = -Jr * dt * R_wtoI * Dw;
+  G.block(th_id, 3, 3, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
+  G.block(v_id, 3, 3, 3) = -R_k.transpose() * dt * R_atoI * Da;
+  G.block(p_id, 3, 3, 3) = -0.5 * R_k.transpose() * dt * dt * R_atoI * Da;
+  G.block(bg_id, 6, 3, 3) = dt * Eigen::Matrix3d::Identity();
+  G.block(ba_id, 9, 3, 3) = dt * Eigen::Matrix3d::Identity();
 }
 
 Eigen::MatrixXd Propagator::compute_H_Dw(std::shared_ptr<State> state, const Eigen::Vector3d &w_uncorrected) {
 
   Eigen::Matrix3d I_3x3 = Eigen::MatrixXd::Identity(3, 3);
-  Eigen::Vector3d e_1 = I_3x3.block<3, 1>(0, 0);
-  Eigen::Vector3d e_2 = I_3x3.block<3, 1>(0, 1);
-  Eigen::Vector3d e_3 = I_3x3.block<3, 1>(0, 2);
-
+  Eigen::Vector3d e_1 = I_3x3.block(0, 0, 3, 1);
+  Eigen::Vector3d e_2 = I_3x3.block(0, 1, 3, 1);
+  Eigen::Vector3d e_3 = I_3x3.block(0, 2, 3, 1);
   double w_1 = w_uncorrected(0);
   double w_2 = w_uncorrected(1);
   double w_3 = w_uncorrected(2);
+  assert(state->_options.do_calib_imu_intrinsics);
 
-  // intrinsic parameters
-  Eigen::MatrixXd H_Dw;
-  if (state->_options.do_calib_imu_intrinsics) {
-    H_Dw = Eigen::MatrixXd::Zero(3, 6);
-    if (state->_options.imu_model == 0) {
-      // Kalibr model
-      H_Dw << w_1 * I_3x3, w_2 * e_2, w_2 * e_3, w_3 * e_3;
-    } else {
-      // RPNG model
-      H_Dw << w_1 * e_1, w_2 * e_1, w_2 * e_2, w_3 * I_3x3;
-    }
+  Eigen::MatrixXd H_Dw = Eigen::MatrixXd::Zero(3, 6);
+  if (state->_options.imu_model == 0) {
+    H_Dw << w_1 * I_3x3, w_2 * e_2, w_2 * e_3, w_3 * e_3;
+  } else {
+    H_Dw << w_1 * e_1, w_2 * e_1, w_2 * e_2, w_3 * I_3x3;
   }
-
-  // we are good to go
   return H_Dw;
 }
 
 Eigen::MatrixXd Propagator::compute_H_Da(std::shared_ptr<State> state, const Eigen::Vector3d &a_uncorrected) {
 
   Eigen::Matrix3d I_3x3 = Eigen::MatrixXd::Identity(3, 3);
-  Eigen::Vector3d e_1 = I_3x3.block<3, 1>(0, 0);
-  Eigen::Vector3d e_2 = I_3x3.block<3, 1>(0, 1);
-  Eigen::Vector3d e_3 = I_3x3.block<3, 1>(0, 2);
-
+  Eigen::Vector3d e_1 = I_3x3.block(0, 0, 3, 1);
+  Eigen::Vector3d e_2 = I_3x3.block(0, 1, 3, 1);
+  Eigen::Vector3d e_3 = I_3x3.block(0, 2, 3, 1);
   double a_1 = a_uncorrected(0);
   double a_2 = a_uncorrected(1);
   double a_3 = a_uncorrected(2);
+  assert(state->_options.do_calib_imu_intrinsics);
 
-  // intrinsic parameters
-  Eigen::MatrixXd H_Da;
-  if (state->_options.do_calib_imu_intrinsics) {
-    H_Da = Eigen::MatrixXd::Zero(3, 6);
-    if (state->_options.imu_model == 0) {
-      // kalibr model
-      H_Da << a_1 * I_3x3, a_2 * e_2, a_2 * e_3, a_3 * e_3;
-    } else {
-      // RPNG model
-      H_Da << a_1 * e_1, a_2 * e_1, a_2 * e_2, a_3 * I_3x3;
-    }
+  Eigen::MatrixXd H_Da = Eigen::MatrixXd::Zero(3, 6);
+  if (state->_options.imu_model == 0) {
+    H_Da << a_1 * I_3x3, a_2 * e_2, a_2 * e_3, a_3 * e_3;
+  } else {
+    H_Da << a_1 * e_1, a_2 * e_1, a_2 * e_2, a_3 * I_3x3;
   }
-
-  // we are good to go
   return H_Da;
 }
 
@@ -1010,13 +972,10 @@ Eigen::MatrixXd Propagator::compute_H_Tg(std::shared_ptr<State> state, const Eig
   double a_1 = a_inI(0);
   double a_2 = a_inI(1);
   double a_3 = a_inI(2);
+  assert(state->_options.do_calib_imu_intrinsics);
+  assert(state->_options.do_calib_imu_g_sensitivity);
 
-  // intrinsic parameters
   Eigen::MatrixXd H_Tg = Eigen::MatrixXd::Zero(3, 9);
-  if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
-    H_Tg << a_1 * I_3x3, a_2 * I_3x3, a_3 * I_3x3;
-  }
-
-  // we are good to go
+  H_Tg << a_1 * I_3x3, a_2 * I_3x3, a_3 * I_3x3;
   return H_Tg;
 }

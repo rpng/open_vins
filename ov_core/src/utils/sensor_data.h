@@ -86,6 +86,7 @@ struct CameraData {
 struct ImuConfig {
 
   /// imu model, 0: Kalibr model and 1: RPNG model
+  // TODO: convert this to an enum!!!
   int imu_model = 0;
 
   /// the columnwise elements for Dw
@@ -97,10 +98,10 @@ struct ImuConfig {
   /// the ccolumnwise elements for Tg
   Eigen::Matrix<double, 9, 1> vec_tg;
 
-  /// the JPL quat for R_AcctoI
+  /// the JPL quat for R_ACCtoIMU
   Eigen::Matrix<double, 4, 1> q_ACCtoIMU;
 
-  /// the JPL quat for R_GyrotoI
+  /// the JPL quat for R_GYROtoIMU
   Eigen::Matrix<double, 4, 1> q_GYROtoIMU;
 
   /// Gyroscope white noise (rad/s/sqrt(hz))
@@ -122,56 +123,6 @@ struct ImuConfig {
     PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
     PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
   }
-
-  /// get the IMU Dw
-  Eigen::Matrix3d Dw() {
-    Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
-    if (imu_model == 0) {
-      // Kalibr model with lower triangular of the matrix
-      Dw << vec_dw(0), 0, 0, vec_dw(1), vec_dw(3), 0, vec_dw(2), vec_dw(4), vec_dw(5);
-    } else {
-      // rpng model with upper triangular of the matrix
-      Dw << vec_dw(0), vec_dw(1), vec_dw(3), 0, vec_dw(2), vec_dw(4), 0, 0, vec_dw(5);
-    }
-    return Dw;
-  }
-
-  /// get the IMU Da
-  Eigen::Matrix3d Da() {
-    Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-    if (imu_model == 0) {
-      // kalibr model with lower triangular of the matrix
-      Da << vec_da(0), 0, 0, vec_da(1), vec_da(3), 0, vec_da(2), vec_da(4), vec_da(5);
-    } else {
-      // rpng model with upper triangular of the matrix
-      Da << vec_da(0), vec_da(1), vec_da(3), 0, vec_da(2), vec_da(4), 0, 0, vec_da(5);
-    }
-    return Da;
-  }
-
-  /// get the IMU Tw
-  Eigen::Matrix3d Tw() { return Dw().inverse(); }
-
-  /// get the IMU Ta
-  Eigen::Matrix3d Ta() { return Da().inverse(); }
-
-  /// get the IMU Tg
-  Eigen::Matrix3d Tg() {
-    Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
-    Tg << vec_tg(0), vec_tg(3), vec_tg(6), vec_tg(1), vec_tg(4), vec_tg(7), vec_tg(2), vec_tg(5), vec_tg(8);
-    return Tg;
-  }
-
-  /// get the R_AcctoI
-  Eigen::Matrix3d R_AcctoI() { return ov_core::quat_2_Rot(q_ACCtoIMU); }
-  /// get the R_ItoAcc
-  Eigen::Matrix3d R_ItoAcc() { return R_AcctoI().transpose(); }
-
-  /// get the R_GyrotoI
-  Eigen::Matrix3d R_GyrotoI() { return ov_core::quat_2_Rot(q_GYROtoIMU); }
-
-  /// get the R_ItoGyro
-  Eigen::Matrix3d R_ItoGyro() { return R_GyrotoI().transpose(); }
 };
 
 } // namespace ov_core

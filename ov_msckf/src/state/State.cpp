@@ -53,7 +53,7 @@ State::State(StateOptions &options) {
   } else {
     // upper triangular of the matrix (column-wise)
     Eigen::Matrix<double, 6, 1> _imu_default = Eigen::Matrix<double, 6, 1>::Zero();
-    _imu_default << 1.0, 0.0, 1.0, 0.0, 0.0, 1.0;
+    _imu_default << 1.0, 0.0, 0.0, 1.0, 0.0, 1.0;
     _calib_imu_dw->set_fej(_imu_default);
     _calib_imu_dw->set_fej(_imu_default);
     _calib_imu_da->set_fej(_imu_default);
@@ -135,20 +135,17 @@ State::State(StateOptions &options) {
 
   // Finally, set some of our priors for our calibration parameters
   if (_options.do_calib_imu_intrinsics) {
-    _Cov.block<6, 6>(_calib_imu_dw->id(), _calib_imu_dw->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 6, 6>::Identity();
-    _Cov.block<6, 6>(_calib_imu_da->id(), _calib_imu_da->id()) = std::pow(0.008, 2) * Eigen::Matrix<double, 6, 6>::Identity();
+    _Cov.block(_calib_imu_dw->id(), _calib_imu_dw->id(), 6, 6) = std::pow(0.005, 2) * Eigen::Matrix<double, 6, 6>::Identity();
+    _Cov.block(_calib_imu_da->id(), _calib_imu_da->id(), 6, 6) = std::pow(0.008, 2) * Eigen::Matrix<double, 6, 6>::Identity();
     if (_options.do_calib_imu_g_sensitivity) {
-      _Cov.block<9, 9>(_calib_imu_tg->id(), _calib_imu_tg->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 9, 9>::Identity();
+      _Cov.block(_calib_imu_tg->id(), _calib_imu_tg->id(), 9, 9) = std::pow(0.005, 2) * Eigen::Matrix<double, 9, 9>::Identity();
     }
     if (_options.imu_model == 0) {
-      // if kalibr model, R_GyrotoI is calibrated
-      _Cov.block<3, 3>(_calib_imu_GYROtoIMU->id(), _calib_imu_GYROtoIMU->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 3, 3>::Identity();
+      _Cov.block(_calib_imu_GYROtoIMU->id(), _calib_imu_GYROtoIMU->id(), 3, 3) = std::pow(0.005, 2) * Eigen::Matrix3d::Identity();
     } else {
-      // if rpng model, R_AcctoI is calibrated
-      _Cov.block<3, 3>(_calib_imu_ACCtoIMU->id(), _calib_imu_ACCtoIMU->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 3, 3>::Identity();
+      _Cov.block(_calib_imu_ACCtoIMU->id(), _calib_imu_ACCtoIMU->id(), 3, 3) = std::pow(0.005, 2) * Eigen::Matrix3d::Identity();
     }
   }
-
   if (_options.do_calib_camera_timeoffset) {
     _Cov(_calib_dt_CAMtoIMU->id(), _calib_dt_CAMtoIMU->id()) = std::pow(0.01, 2);
   }
@@ -167,43 +164,3 @@ State::State(StateOptions &options) {
     }
   }
 }
-
-Eigen::Matrix3d State::Dw() {
-  Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
-  if (_options.imu_model == 0) {
-    // if kalibr model, lower triangular of the matrix is used
-    Dw << _calib_imu_dw->value()(0), 0, 0, _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
-        _calib_imu_dw->value()(4), _calib_imu_dw->value()(5);
-  } else {
-    // if rpng model, upper triangular of the matrix is used
-    Dw << _calib_imu_dw->value()(0), _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
-        _calib_imu_dw->value()(4), 0, 0, _calib_imu_dw->value()(5);
-  }
-  return Dw;
-}
-
-Eigen::Matrix3d State::Da() {
-  Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-  if (_options.imu_model == 0) {
-    // if kalibr model, lower triangular of the matrix is used
-    Da << _calib_imu_da->value()(0), 0, 0, _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
-        _calib_imu_da->value()(4), _calib_imu_da->value()(5);
-  } else {
-    // if rpng model, upper triangular of the matrix is used
-    Da << _calib_imu_da->value()(0), _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
-        _calib_imu_da->value()(4), 0, 0, _calib_imu_da->value()(5);
-  }
-  return Da;
-}
-
-Eigen::Matrix3d State::Tg() {
-  Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
-  Tg << _calib_imu_tg->value()(0), _calib_imu_tg->value()(3), _calib_imu_tg->value()(6), _calib_imu_tg->value()(1),
-      _calib_imu_tg->value()(4), _calib_imu_tg->value()(7), _calib_imu_tg->value()(2), _calib_imu_tg->value()(5), _calib_imu_tg->value()(8);
-
-  return Tg;
-}
-
-Eigen::Matrix3d State::R_AcctoI() { return _calib_imu_ACCtoIMU->Rot(); }
-
-Eigen::Matrix3d State::R_GyrotoI() { return _calib_imu_GYROtoIMU->Rot(); }

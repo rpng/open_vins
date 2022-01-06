@@ -162,11 +162,6 @@ struct StateOptions {
     PRINT_DEBUG("  - feat_rep_msckf: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
     PRINT_DEBUG("  - feat_rep_slam: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_slam).c_str());
     PRINT_DEBUG("  - feat_rep_aruco: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
-    if ((do_calib_imu_intrinsics || do_calib_imu_g_sensitivity) && !use_analytic_integration) {
-      PRINT_ERROR(RED "calibrated IMU model selected, but not using analytical integration!\n" RESET);
-      PRINT_ERROR(RED "please enable analytical integration to perform this calibration!\n" RESET);
-      std::exit(EXIT_FAILURE);
-    }
   }
 };
 

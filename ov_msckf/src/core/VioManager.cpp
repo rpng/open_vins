@@ -741,7 +741,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
                state->_calib_imu_da->value()(5));
   }
   if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
-    PRINT_INFO("Tg = %.3f,%.3f,%.3f |  %.3f,%.3f,%.3f | %.3f,%.3f,%.3f |\n", state->_calib_imu_tg->value()(0),
+    PRINT_INFO("Tg = | %.3f,%.3f,%.3f |  %.3f,%.3f,%.3f | %.3f,%.3f,%.3f |\n", state->_calib_imu_tg->value()(0),
                state->_calib_imu_tg->value()(1), state->_calib_imu_tg->value()(2), state->_calib_imu_tg->value()(3),
                state->_calib_imu_tg->value()(4), state->_calib_imu_tg->value()(5), state->_calib_imu_tg->value()(6),
                state->_calib_imu_tg->value()(7), state->_calib_imu_tg->value()(8));
