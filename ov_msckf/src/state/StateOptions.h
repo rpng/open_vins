@@ -25,8 +25,7 @@
 #include "types/LandmarkRepresentation.h"
 #include "utils/opencv_yaml_parse.h"
 #include "utils/print.h"
-
-#include <climits>
+#include "utils/sensor_data.h"
 
 namespace ov_msckf {
 
@@ -63,7 +62,7 @@ struct StateOptions {
   bool do_calib_imu_g_sensitivity = false;
 
   /// Indicator to use which model, 0: kalibr and 1: rpng
-  int imu_model = 0;
+  ov_core::ImuConfig::ImuModel imu_model = ov_core::ImuConfig::ImuModel::KALIBR;
 
   /// Max clone size of sliding window
   int max_clone_size = 11;
@@ -130,9 +129,9 @@ struct StateOptions {
       std::string imu_model_str = "kalibr";
       parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
       if (imu_model_str == "kalibr" || imu_model_str == "calibrated") {
-        imu_model = 0;
+        imu_model = ov_core::ImuConfig::ImuModel::KALIBR;
       } else if (imu_model_str == "rpng") {
-        imu_model = 1;
+        imu_model = ov_core::ImuConfig::ImuModel::RPNG;
       } else {
         PRINT_ERROR(RED "invalid imu model: %s\n" RESET, imu_model_str.c_str());
         std::exit(EXIT_FAILURE);

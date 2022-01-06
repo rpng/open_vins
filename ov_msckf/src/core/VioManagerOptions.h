@@ -283,9 +283,9 @@ struct VioManagerOptions {
       std::string imu_model_str = "kalibr";
       parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str); // might be redundant
       if (imu_model_str == "kalibr" || imu_model_str == "calibrated") {
-        imu_config.imu_model = 0;
+        imu_config.imu_model = ov_core::ImuConfig::ImuModel::KALIBR;
       } else if (imu_model_str == "rpng") {
-        imu_config.imu_model = 1;
+        imu_config.imu_model = ov_core::ImuConfig::ImuModel::RPNG;
       } else {
         PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
         std::exit(EXIT_FAILURE);
@@ -312,7 +312,7 @@ struct VioManagerOptions {
 
       // kalibr model: lower triangular of the matrix and R_GYROtoI
       // rpng model: upper triangular of the matrix and R_ACCtoI
-      if (imu_config.imu_model == 0) {
+      if (imu_config.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
         imu_config.vec_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
         imu_config.vec_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
       } else {
@@ -355,7 +355,7 @@ struct VioManagerOptions {
     }
     PRINT_DEBUG("IMU PARAMETERS:\n");
     std::stringstream ss;
-    ss << "imu model:" << ((imu_config.imu_model == 0) ? "kalibr" : "rpng") << std::endl;
+    ss << "imu model:" << ((imu_config.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) ? "kalibr" : "rpng") << std::endl;
     ss << "Dw (columnwise):" << imu_config.vec_dw.transpose() << std::endl;
     ss << "Da (columnwise):" << imu_config.vec_da.transpose() << std::endl;
     ss << "Tg (columnwise):" << imu_config.vec_tg.transpose() << std::endl;

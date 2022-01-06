@@ -255,7 +255,6 @@ private:
   StateHelper() {}
 };
 
-
 } // namespace ov_msckf
 
 #endif // OV_MSCKF_STATE_HELPER_H

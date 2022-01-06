@@ -233,7 +233,7 @@ void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &pa
       params_.imu_config.vec_dw(j) += 0.004 * w(gen_state);
       params_.imu_config.vec_da(j) += 0.004 * w(gen_state);
     }
-    if (params_.state_options.imu_model == 0) {
+    if (params_.state_options.imu_model == ImuConfig::ImuModel::KALIBR) {
       Eigen::Vector3d w_vec;
       w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
       params_.imu_config.q_GYROtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.q_GYROtoIMU));
@@ -335,7 +335,7 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   //  - rpng: upper triangular of the matrix is used
   Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
   Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-  if (params.imu_config.imu_model == 0) {
+  if (params.imu_config.imu_model == ImuConfig::ImuModel::KALIBR) {
     Dw << params.imu_config.vec_dw(0), 0, 0, params.imu_config.vec_dw(1), params.imu_config.vec_dw(3), 0, params.imu_config.vec_dw(2),
         params.imu_config.vec_dw(4), params.imu_config.vec_dw(5);
     Da << params.imu_config.vec_da(0), 0, 0, params.imu_config.vec_da(1), params.imu_config.vec_da(3), 0, params.imu_config.vec_da(2),

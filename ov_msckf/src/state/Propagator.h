@@ -369,6 +369,7 @@ protected:
    *   {}^w\hat{w}_1 \mathbf{I}_3  & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_2\mathbf{e}_3 & {}^w\hat{w}_2\mathbf{e}_3
    *   \end{bmatrix}
    * \f}
+   *
    * For rpng model:
    * \f{align*}{
    *   \mathbf{H}_{Dw} & =
@@ -376,6 +377,7 @@ protected:
    *   {}^w\hat{w}_1\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_3 \mathbf{I}_3
    *   \end{bmatrix}
    * \f}
+   *
    * @param state Pointer to state
    * @param w_uncorrected Angular velocity in a frame with bias and gravity sensitivity removed
    */
@@ -385,7 +387,6 @@ protected:
    * @brief compute the Jacobians for Da
    *
    * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   *
    * For kalibr model
    * \f{align*}{
    * \mathbf{H}_{Da} & =
@@ -393,6 +394,7 @@ protected:
    *   {}^a\hat{a}_1\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_3 \mathbf{I}_3
    * \end{bmatrix}
    * \f}
+   *
    * For rpng:
    * \f{align*}{
    * \mathbf{H}_{Da} & =
@@ -400,6 +402,7 @@ protected:
    *   {}^a\hat{a}_1 \mathbf{I}_3 &  & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_2\mathbf{e}_3 & {}^a\hat{a}_3\mathbf{e}_3
    * \end{bmatrix}
    * \f}
+   *
    * @param state Pointer to state
    * @param a_uncorrected Linear acceleration in gyro frame with bias removed
    */
@@ -409,14 +412,13 @@ protected:
    * @brief compute the Jacobians for Tg
    *
    * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   *
-   *
    * \f{align*}{
    * \mathbf{H}_{Tg} & =
    *  \begin{bmatrix}
    *  {}^I\hat{a}_1 \mathbf{I}_3 & {}^I\hat{a}_2 \mathbf{I}_3 & {}^I\hat{a}_3 \mathbf{I}_3
    *  \end{bmatrix}
    * \f}
+   *
    * @param state Pointer to state
    * @param a_inI Linear acceleration with bias removed
    */

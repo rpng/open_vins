@@ -111,7 +111,7 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
     if (state->_options.do_calib_imu_g_sensitivity) {
       Phi_order.push_back(state->_calib_imu_tg);
     }
-    if (state->_options.imu_model == 0) {
+    if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
       Phi_order.push_back(state->_calib_imu_GYROtoIMU);
     } else {
       Phi_order.push_back(state->_calib_imu_ACCtoIMU);
@@ -683,7 +683,7 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
       Tg_id = local_size;
       local_size += state->_calib_imu_tg->size();
     }
-    if (state->_options.imu_model == 0) {
+    if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
       th_wtoI_id = local_size;
       local_size += state->_calib_imu_GYROtoIMU->size();
     } else {
@@ -828,7 +828,7 @@ void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double d
       Tg_id = local_size;
       local_size += state->_calib_imu_tg->size();
     }
-    if (state->_options.imu_model == 0) {
+    if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
       th_wtoI_id = local_size;
       local_size += state->_calib_imu_GYROtoIMU->size();
     } else {
@@ -938,7 +938,7 @@ Eigen::MatrixXd Propagator::compute_H_Dw(std::shared_ptr<State> state, const Eig
   assert(state->_options.do_calib_imu_intrinsics);
 
   Eigen::MatrixXd H_Dw = Eigen::MatrixXd::Zero(3, 6);
-  if (state->_options.imu_model == 0) {
+  if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
     H_Dw << w_1 * I_3x3, w_2 * e_2, w_2 * e_3, w_3 * e_3;
   } else {
     H_Dw << w_1 * e_1, w_2 * e_1, w_2 * e_2, w_3 * I_3x3;
@@ -958,7 +958,7 @@ Eigen::MatrixXd Propagator::compute_H_Da(std::shared_ptr<State> state, const Eig
   assert(state->_options.do_calib_imu_intrinsics);
 
   Eigen::MatrixXd H_Da = Eigen::MatrixXd::Zero(3, 6);
-  if (state->_options.imu_model == 0) {
+  if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
     H_Da << a_1 * I_3x3, a_2 * e_2, a_2 * e_3, a_3 * e_3;
   } else {
     H_Da << a_1 * e_1, a_2 * e_1, a_2 * e_2, a_3 * I_3x3;

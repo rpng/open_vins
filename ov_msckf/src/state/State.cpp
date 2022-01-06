@@ -42,7 +42,7 @@ State::State(StateOptions &options) {
   // NOTE: since if calibrating these will evolve / be correlated during propagation
   _calib_imu_dw = std::make_shared<Vec>(6);
   _calib_imu_da = std::make_shared<Vec>(6);
-  if (options.imu_model == 0) {
+  if (options.imu_model == ImuConfig::ImuModel::KALIBR) {
     // lower triangular of the matrix (column-wise)
     Eigen::Matrix<double, 6, 1> _imu_default = Eigen::Matrix<double, 6, 1>::Zero();
     _imu_default << 1.0, 0.0, 0.0, 1.0, 0.0, 1.0;
@@ -83,7 +83,7 @@ State::State(StateOptions &options) {
 
     // If kalibr model, R_GYROtoIMU is calibrated
     // If rpng model, R_ACCtoIMU is calibrated
-    if (options.imu_model == 0) {
+    if (options.imu_model == ImuConfig::ImuModel::KALIBR) {
       _calib_imu_GYROtoIMU->set_local_id(current_id);
       _variables.push_back(_calib_imu_GYROtoIMU);
       current_id += _calib_imu_GYROtoIMU->size();
@@ -140,7 +140,7 @@ State::State(StateOptions &options) {
     if (_options.do_calib_imu_g_sensitivity) {
       _Cov.block(_calib_imu_tg->id(), _calib_imu_tg->id(), 9, 9) = std::pow(0.005, 2) * Eigen::Matrix<double, 9, 9>::Identity();
     }
-    if (_options.imu_model == 0) {
+    if (_options.imu_model == ImuConfig::ImuModel::KALIBR) {
       _Cov.block(_calib_imu_GYROtoIMU->id(), _calib_imu_GYROtoIMU->id(), 3, 3) = std::pow(0.005, 2) * Eigen::Matrix3d::Identity();
     } else {
       _Cov.block(_calib_imu_ACCtoIMU->id(), _calib_imu_ACCtoIMU->id(), 3, 3) = std::pow(0.005, 2) * Eigen::Matrix3d::Identity();

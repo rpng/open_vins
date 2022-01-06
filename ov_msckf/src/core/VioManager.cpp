@@ -724,7 +724,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 
   // Debug for imu intrinsics
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 0) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
     PRINT_INFO("Dw = | %.3f,%.3f,%.3f | %.3f,%.3f | %.3f |\n", state->_calib_imu_dw->value()(0), state->_calib_imu_dw->value()(1),
                state->_calib_imu_dw->value()(2), state->_calib_imu_dw->value()(3), state->_calib_imu_dw->value()(4),
                state->_calib_imu_dw->value()(5));
@@ -732,7 +732,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
                state->_calib_imu_da->value()(2), state->_calib_imu_da->value()(3), state->_calib_imu_da->value()(4),
                state->_calib_imu_da->value()(5));
   }
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 1) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::RPNG) {
     PRINT_INFO("Dw = | %.3f | %.3f,%.3f | %.3f,%.3f,%.3f |\n", state->_calib_imu_dw->value()(0), state->_calib_imu_dw->value()(1),
                state->_calib_imu_dw->value()(2), state->_calib_imu_dw->value()(3), state->_calib_imu_dw->value()(4),
                state->_calib_imu_dw->value()(5));
@@ -746,11 +746,11 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
                state->_calib_imu_tg->value()(4), state->_calib_imu_tg->value()(5), state->_calib_imu_tg->value()(6),
                state->_calib_imu_tg->value()(7), state->_calib_imu_tg->value()(8));
   }
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 0) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
     PRINT_INFO("q_GYROtoI = %.3f,%.3f,%.3f,%.3f\n", state->_calib_imu_GYROtoIMU->value()(0), state->_calib_imu_GYROtoIMU->value()(1),
                state->_calib_imu_GYROtoIMU->value()(2), state->_calib_imu_GYROtoIMU->value()(3));
   }
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 1) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::RPNG) {
     PRINT_INFO("q_ACCtoI = %.3f,%.3f,%.3f,%.3f\n", state->_calib_imu_ACCtoIMU->value()(0), state->_calib_imu_ACCtoIMU->value()(1),
                state->_calib_imu_ACCtoIMU->value()(2), state->_calib_imu_ACCtoIMU->value()(3));
   }

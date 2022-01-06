@@ -81,27 +81,36 @@ struct CameraData {
 };
 
 /**
- * @brief Struct of our imu noise parameters
+ * @brief Struct of our imu noise and intrinsic parameters.
+ *
+ * For details on each specific model see @ref imu_intrinsics
  */
 struct ImuConfig {
 
-  /// imu model, 0: Kalibr model and 1: RPNG model
-  // TODO: convert this to an enum!!!
-  int imu_model = 0;
+  /**
+   * @brief What model our IMU is
+   */
+  enum ImuModel {
+    KALIBR,
+    RPNG
+  };
 
-  /// the columnwise elements for Dw
+  /// IMU model our intrinsic calibration is using.
+  ImuModel imu_model = ImuModel::KALIBR;
+
+  /// Gyroscope IMU intrinsics (scale imperfection and axis misalignment, column-wise, inverse)
   Eigen::Matrix<double, 6, 1> vec_dw;
 
-  /// the columnwise elements for Da
+  /// Accelerometer IMU intrinsics (scale imperfection and axis misalignment, column-wise, inverse)
   Eigen::Matrix<double, 6, 1> vec_da;
 
-  /// the ccolumnwise elements for Tg
+  /// Gyroscope gravity sensitivity (scale imperfection and axis misalignment, column-wise)
   Eigen::Matrix<double, 9, 1> vec_tg;
 
-  /// the JPL quat for R_ACCtoIMU
+  /// Rotation from gyroscope frame to the "IMU" accelerometer frame
   Eigen::Matrix<double, 4, 1> q_ACCtoIMU;
 
-  /// the JPL quat for R_GYROtoIMU
+  /// Rotation from accelerometer to the "IMU" gyroscope frame frame
   Eigen::Matrix<double, 4, 1> q_GYROtoIMU;
 
   /// Gyroscope white noise (rad/s/sqrt(hz))

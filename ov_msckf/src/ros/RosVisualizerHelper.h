@@ -297,13 +297,11 @@ public:
                     << sim->get_true_parameters().imu_config.vec_tg(4) << " " << sim->get_true_parameters().imu_config.vec_tg(5) << " "
                     << sim->get_true_parameters().imu_config.vec_tg(6) << " " << sim->get_true_parameters().imu_config.vec_tg(7) << " "
                     << sim->get_true_parameters().imu_config.vec_tg(8) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.q_GYROtoIMU(0) << " "
-                    << sim->get_true_parameters().imu_config.q_GYROtoIMU(1) << " "
-                    << sim->get_true_parameters().imu_config.q_GYROtoIMU(2) << " "
+        of_state_gt << sim->get_true_parameters().imu_config.q_GYROtoIMU(0) << " " << sim->get_true_parameters().imu_config.q_GYROtoIMU(1)
+                    << " " << sim->get_true_parameters().imu_config.q_GYROtoIMU(2) << " "
                     << sim->get_true_parameters().imu_config.q_GYROtoIMU(3) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.q_ACCtoIMU(0) << " "
-                    << sim->get_true_parameters().imu_config.q_ACCtoIMU(1) << " "
-                    << sim->get_true_parameters().imu_config.q_ACCtoIMU(2) << " "
+        of_state_gt << sim->get_true_parameters().imu_config.q_ACCtoIMU(0) << " " << sim->get_true_parameters().imu_config.q_ACCtoIMU(1)
+                    << " " << sim->get_true_parameters().imu_config.q_ACCtoIMU(2) << " "
                     << sim->get_true_parameters().imu_config.q_ACCtoIMU(3) << " ";
         // New line
         of_state_gt << endl;
@@ -406,8 +404,9 @@ public:
     of_state_std.precision(8);
 
     // imu intrinsics: dw
-    of_state_est << state->_calib_imu_dw->value()(0) << " " << state->_calib_imu_dw->value()(1) << " " << state->_calib_imu_dw->value()(2) << " "
-                 << state->_calib_imu_dw->value()(3) << " " << state->_calib_imu_dw->value()(4) << " " << state->_calib_imu_dw->value()(5) << " ";
+    of_state_est << state->_calib_imu_dw->value()(0) << " " << state->_calib_imu_dw->value()(1) << " " << state->_calib_imu_dw->value()(2)
+                 << " " << state->_calib_imu_dw->value()(3) << " " << state->_calib_imu_dw->value()(4) << " "
+                 << state->_calib_imu_dw->value()(5) << " ";
     if (state->_options.do_calib_imu_intrinsics) {
       int index_dw = state->_calib_imu_dw->id();
       of_state_std << std::sqrt(cov(index_dw + 0, index_dw + 0)) << " " << std::sqrt(cov(index_dw + 1, index_dw + 1)) << " "
@@ -419,8 +418,9 @@ public:
     }
 
     // imu intrinsics: da
-    of_state_est << state->_calib_imu_da->value()(0) << " " << state->_calib_imu_da->value()(1) << " " << state->_calib_imu_da->value()(2) << " "
-                 << state->_calib_imu_da->value()(3) << " " << state->_calib_imu_da->value()(4) << " " << state->_calib_imu_da->value()(5) << " ";
+    of_state_est << state->_calib_imu_da->value()(0) << " " << state->_calib_imu_da->value()(1) << " " << state->_calib_imu_da->value()(2)
+                 << " " << state->_calib_imu_da->value()(3) << " " << state->_calib_imu_da->value()(4) << " "
+                 << state->_calib_imu_da->value()(5) << " ";
     if (state->_options.do_calib_imu_intrinsics) {
       int index_da = state->_calib_imu_da->id();
       of_state_std << std::sqrt(cov(index_da + 0, index_da + 0)) << " " << std::sqrt(cov(index_da + 1, index_da + 1)) << " "
@@ -432,9 +432,10 @@ public:
     }
 
     // imu intrinsics: tg
-    of_state_est << state->_calib_imu_tg->value()(0) << " " << state->_calib_imu_tg->value()(1) << " " << state->_calib_imu_tg->value()(2) << " "
-                 << state->_calib_imu_tg->value()(3) << " " << state->_calib_imu_tg->value()(4) << " " << state->_calib_imu_tg->value()(5) << " "
-                 << state->_calib_imu_tg->value()(6) << " " << state->_calib_imu_tg->value()(7) << " " << state->_calib_imu_tg->value()(8) << " ";
+    of_state_est << state->_calib_imu_tg->value()(0) << " " << state->_calib_imu_tg->value()(1) << " " << state->_calib_imu_tg->value()(2)
+                 << " " << state->_calib_imu_tg->value()(3) << " " << state->_calib_imu_tg->value()(4) << " "
+                 << state->_calib_imu_tg->value()(5) << " " << state->_calib_imu_tg->value()(6) << " " << state->_calib_imu_tg->value()(7)
+                 << " " << state->_calib_imu_tg->value()(8) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
       int index_tg = state->_calib_imu_tg->id();
       of_state_std << std::sqrt(cov(index_tg + 0, index_tg + 0)) << " " << std::sqrt(cov(index_tg + 1, index_tg + 1)) << " "
@@ -451,7 +452,7 @@ public:
     // imu intrinsics: kalibr R_gyrotoI
     of_state_est << state->_calib_imu_GYROtoIMU->value()(0) << " " << state->_calib_imu_GYROtoIMU->value()(1) << " "
                  << state->_calib_imu_GYROtoIMU->value()(2) << " " << state->_calib_imu_GYROtoIMU->value()(3) << " ";
-    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 0) {
+    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
       int index_wtoI = state->_calib_imu_GYROtoIMU->id();
       of_state_std << std::sqrt(cov(index_wtoI + 0, index_wtoI + 0)) << " " << std::sqrt(cov(index_wtoI + 1, index_wtoI + 1)) << " "
                    << std::sqrt(cov(index_wtoI + 2, index_wtoI + 2)) << " " << std::sqrt(cov(index_wtoI + 3, index_wtoI + 3)) << " ";
@@ -462,7 +463,7 @@ public:
     // imu intrinsics: rpng R_acctoI
     of_state_est << state->_calib_imu_ACCtoIMU->value()(0) << " " << state->_calib_imu_ACCtoIMU->value()(1) << " "
                  << state->_calib_imu_ACCtoIMU->value()(2) << " " << state->_calib_imu_ACCtoIMU->value()(3) << " ";
-    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 1) {
+    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ov_core::ImuConfig::ImuModel::RPNG) {
       int index_atoI = state->_calib_imu_ACCtoIMU->id();
       of_state_std << std::sqrt(cov(index_atoI + 0, index_atoI + 0)) << " " << std::sqrt(cov(index_atoI + 1, index_atoI + 1)) << " "
                    << std::sqrt(cov(index_atoI + 2, index_atoI + 2)) << " " << std::sqrt(cov(index_atoI + 3, index_atoI + 3)) << " ";
