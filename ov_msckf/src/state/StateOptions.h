@@ -97,7 +97,7 @@ struct StateOptions {
     if (parser != nullptr) {
       parser->parse_config("use_fej", do_fej);
       parser->parse_config("use_imuavg", imu_avg);
-      parser->parse_config("use_rk4int", use_rk4_integration);
+      parser->parse_config("use_rk4_int", use_rk4_integration);
       parser->parse_config("use_analytic_int", use_analytic_integration);
 
       // Calibration booleans
@@ -145,10 +145,14 @@ struct StateOptions {
     }
     PRINT_DEBUG("  - use_fej: %d\n", do_fej);
     PRINT_DEBUG("  - use_imuavg: %d\n", imu_avg);
-    PRINT_DEBUG("  - use_rk4int: %d\n", use_rk4_integration);
+    PRINT_DEBUG("  - use_rk4_int: %d\n", use_rk4_integration);
+    PRINT_DEBUG("  - use_analytic_int: %d\n", use_analytic_integration);
     PRINT_DEBUG("  - calib_cam_extrinsics: %d\n", do_calib_camera_pose);
     PRINT_DEBUG("  - calib_cam_intrinsics: %d\n", do_calib_camera_intrinsics);
     PRINT_DEBUG("  - calib_cam_timeoffset: %d\n", do_calib_camera_timeoffset);
+    PRINT_DEBUG("  - calib_imu_intrinsics: %d\n", do_calib_imu_intrinsics);
+    PRINT_DEBUG("  - calib_imu_g_sensitivity: %d\n", do_calib_imu_g_sensitivity);
+    PRINT_DEBUG("  - imu_model: %d\n", imu_model);
     PRINT_DEBUG("  - max_clones: %d\n", max_clone_size);
     PRINT_DEBUG("  - max_slam: %d\n", max_slam_features);
     PRINT_DEBUG("  - max_slam_in_update: %d\n", max_slam_in_update);
@@ -158,6 +162,11 @@ struct StateOptions {
     PRINT_DEBUG("  - feat_rep_msckf: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
     PRINT_DEBUG("  - feat_rep_slam: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_slam).c_str());
     PRINT_DEBUG("  - feat_rep_aruco: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
+    if ((do_calib_imu_intrinsics || do_calib_imu_g_sensitivity) && !use_analytic_integration) {
+      PRINT_ERROR(RED "calibrated IMU model selected, but not using analytical integration!\n" RESET);
+      PRINT_ERROR(RED "please enable analytical integration to perform this calibration!\n" RESET);
+      std::exit(EXIT_FAILURE);
+    }
   }
 };
 

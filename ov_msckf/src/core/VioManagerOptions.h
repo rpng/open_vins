@@ -157,10 +157,6 @@ struct VioManagerOptions {
       parser->parse_external("relative_config_imu", "imu0", "gyroscope_random_walk", imu_config.sigma_wb);
       parser->parse_external("relative_config_imu", "imu0", "accelerometer_noise_density", imu_config.sigma_a);
       parser->parse_external("relative_config_imu", "imu0", "accelerometer_random_walk", imu_config.sigma_ab);
-      imu_config.sigma_w_2 = std::pow(imu_config.sigma_w, 2);
-      imu_config.sigma_wb_2 = std::pow(imu_config.sigma_wb, 2);
-      imu_config.sigma_a_2 = std::pow(imu_config.sigma_a, 2);
-      imu_config.sigma_ab_2 = std::pow(imu_config.sigma_ab, 2);
     }
     imu_config.print();
     if (parser != nullptr) {
@@ -317,15 +313,15 @@ struct VioManagerOptions {
       // kalibr model: lower triangular of the matrix and R_GYROtoI
       // rpng model: upper triangular of the matrix and R_ACCtoI
       if (imu_config.imu_model == 0) {
-        imu_config.imu_x_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
-        imu_config.imu_x_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
+        imu_config.vec_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
+        imu_config.vec_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
       } else {
-        imu_config.imu_x_dw << Dw(0, 0), Dw.block<2, 1>(0, 1), Dw.block<3, 1>(0, 2);
-        imu_config.imu_x_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
+        imu_config.vec_dw << Dw(0, 0), Dw.block<2, 1>(0, 1), Dw.block<3, 1>(0, 2);
+        imu_config.vec_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
       }
-      imu_config.imu_x_tg << Tg.block<3, 1>(0, 0), Tg.block<3, 1>(0, 1), Tg.block<3, 1>(0, 2);
-      imu_config.imu_quat_GyrotoI = ov_core::rot_2_quat(R_GyrotoI);
-      imu_config.imu_quat_AcctoI = ov_core::rot_2_quat(R_AcctoI);
+      imu_config.vec_tg << Tg.block<3, 1>(0, 0), Tg.block<3, 1>(0, 1), Tg.block<3, 1>(0, 2);
+      imu_config.q_GYROtoIMU = ov_core::rot_2_quat(R_GyrotoI);
+      imu_config.q_ACCtoIMU = ov_core::rot_2_quat(R_AcctoI);
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);
@@ -359,11 +355,11 @@ struct VioManagerOptions {
     }
     PRINT_DEBUG("IMU PARAMETERS:\n");
     std::stringstream ss;
-    ss << "Dw (columnwise):" << std::endl << imu_config.imu_x_dw.transpose() << std::endl;
-    ss << "Da (columnwise):" << std::endl << imu_config.imu_x_da.transpose() << std::endl;
-    ss << "Tg (columnwise):" << std::endl << imu_config.imu_x_tg.transpose() << std::endl;
-    ss << "R_GYROtoI:" << std::endl << imu_config.imu_quat_GyrotoI << std::endl;
-    ss << "R_ACCtoI:" << std::endl << imu_config.imu_quat_AcctoI << std::endl;
+    ss << "Dw (columnwise):" << imu_config.vec_dw.transpose() << std::endl;
+    ss << "Da (columnwise):" << imu_config.vec_da.transpose() << std::endl;
+    ss << "Tg (columnwise):" << imu_config.vec_tg.transpose() << std::endl;
+    ss << "q_GYROtoI: " << imu_config.q_GYROtoIMU.transpose() << std::endl;
+    ss << "q_ACCtoI: " << imu_config.q_ACCtoIMU.transpose() << std::endl;
     PRINT_DEBUG(ss.str().c_str());
   }
 

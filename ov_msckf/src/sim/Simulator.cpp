@@ -227,28 +227,28 @@ void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &pa
     }
   }
 
-  // perturb the imu intrinsics
-  for (int j = 0; j < 6; j++) {
-    params_.imu_config.imu_x_dw(j) += 0.004 * w(gen_state);
-    params_.imu_config.imu_x_da(j) += 0.004 * w(gen_state);
-  }
-
-  // if we need to perturb gravity sensitivity
-  for (int j = 0; j < 5; j++) {
-    if (params_.state_options.do_calib_imu_g_sensitivity) {
-      params_.imu_config.imu_x_tg(j) += 0.004 * w(gen_state);
+  // If we need to perturb the imu intrinsics
+  if (params_.state_options.do_calib_imu_intrinsics) {
+    for (int j = 0; j < 6; j++) {
+      params_.imu_config.vec_dw(j) += 0.004 * w(gen_state);
+      params_.imu_config.vec_da(j) += 0.004 * w(gen_state);
+    }
+    if (params_.state_options.imu_model == 0) {
+      Eigen::Vector3d w_vec;
+      w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
+      params_.imu_config.q_GYROtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.q_GYROtoIMU));
+    } else {
+      Eigen::Vector3d w_vec;
+      w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
+      params_.imu_config.q_ACCtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.q_ACCtoIMU));
     }
   }
 
-  // perturb imu intrinsics (depends on model type)
-  if (params_.state_options.imu_model == 0) {
-    Eigen::Vector3d w_vec;
-    w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
-    params_.imu_config.imu_quat_GyrotoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_GyrotoI));
-  } else {
-    Eigen::Vector3d w_vec;
-    w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
-    params_.imu_config.imu_quat_AcctoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_AcctoI));
+  // If we need to perturb gravity sensitivity
+  if (params_.state_options.do_calib_imu_g_sensitivity) {
+    for (int j = 0; j < 9; j++) {
+      params_.imu_config.vec_tg(j) += 0.004 * w(gen_state);
+    }
   }
 }
 

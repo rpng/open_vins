@@ -134,14 +134,14 @@ public:
   /// Accelerometer IMU intrinsics (scale imperfection and axis misalignment)
   std::shared_ptr<ov_type::Vec> _calib_imu_da;
 
+  /// Gyroscope gravity sensitivity
+  std::shared_ptr<ov_type::Vec> _calib_imu_tg;
+
   /// Rotation from gyroscope frame to the "IMU" accelerometer frame
   std::shared_ptr<ov_type::JPLQuat> _calib_imu_GYROtoIMU;
 
   /// Rotation from accelerometer to the "IMU" gyroscope frame frame
   std::shared_ptr<ov_type::JPLQuat> _calib_imu_ACCtoIMU;
-
-  /// Gyroscope gravity sensitivity
-  std::shared_ptr<ov_type::Vec> _calib_imu_tg;
 
 private:
   // Define that the state helper is a friend class of this class

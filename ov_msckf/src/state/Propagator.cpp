@@ -96,7 +96,8 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   Eigen::Vector3d last_w = Eigen::Vector3d::Zero();
   if (!prop_data.empty()) {
     last_a = state->R_AcctoI() * state->Da() * (prop_data.at(prop_data.size() - 1).am - state->_imu->bias_a());
-    Eigen::Vector3d last_aIiinG = state->_imu->Rot().transpose() * last_a - _gravity;
+    // TODO: is this acceleration used correct?
+    // Eigen::Vector3d last_aIiinG = state->_imu->Rot().transpose() * last_a - _gravity;
     last_w = state->R_GyrotoI() * state->Dw() * (prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g() - state->Tg() * last_a);
   }
 
@@ -157,9 +158,9 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       // assert(data_plus.timestamp>data_minus.timestamp);
 
       // Corrected imu acc measurements with our current biases
-      Eigen::Matrix<double, 3, 1> a_hat1 = data_minus.am - state->_imu->bias_a();
-      Eigen::Matrix<double, 3, 1> a_hat2 = data_plus.am - state->_imu->bias_a();
-      Eigen::Matrix<double, 3, 1> a_hat = a_hat1;
+      Eigen::Vector3d a_hat1 = data_minus.am - state->_imu->bias_a();
+      Eigen::Vector3d a_hat2 = data_plus.am - state->_imu->bias_a();
+      Eigen::Vector3d a_hat = a_hat1;
       if (state->_options.imu_avg) {
         a_hat = .5 * (a_hat1 + a_hat2);
       }
@@ -171,19 +172,16 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       a_hat2 = state->R_AcctoI() * state->Da() * a_hat2;
 
       // gravity sensitivity correction
-      Eigen::Matrix<double, 3, 1> gravity_correction1 = state->Tg() * a_hat1;
-      Eigen::Matrix<double, 3, 1> gravity_correction2 = state->Tg() * a_hat2;
+      Eigen::Vector3d gravity_correction1 = state->Tg() * a_hat1;
+      Eigen::Vector3d gravity_correction2 = state->Tg() * a_hat2;
 
       // Corrected imu gyro measurements with our current biases
-      Eigen::Matrix<double, 3, 1> w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
-      Eigen::Matrix<double, 3, 1> w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
-      Eigen::Matrix<double, 3, 1> w_hat = w_hat1;
+      Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
+      Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
+      Eigen::Vector3d w_hat = w_hat1;
       if (state->_options.imu_avg) {
         w_hat = .5 * (w_hat1 + w_hat2);
       }
-
-      // Imu readings in raw frame
-      Eigen::Vector3d w_uncorrected = w_hat;
 
       // Correct imu readings with IMU intrinsics
       w_hat = state->R_GyrotoI() * state->Dw() * w_hat;
@@ -199,12 +197,13 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       // Compute the new state mean value
       Eigen::Vector4d new_q;
       Eigen::Vector3d new_v, new_p;
-      if (state->_options.use_analytic_integration)
+      if (state->_options.use_analytic_integration) {
         predict_mean_analytic(state, dt, w_hat, a_hat, new_q, new_v, new_p, Xi_sum);
-      else if (state->_options.use_rk4_integration)
+      } else if (state->_options.use_rk4_integration) {
         predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
-      else
+      } else {
         predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+      }
 
       // Now replace imu estimate and fej with propagated values
       Eigen::Matrix<double, 16, 1> imu_x = state->_imu->value();
@@ -217,14 +216,16 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   }
 
   // Now record what the predicted state should be
+  // TODO: apply IMU intrinsics here to correct the angular velocity
   state_plus = Eigen::Matrix<double, 13, 1>::Zero();
   state_plus.block(0, 0, 4, 1) = state->_imu->quat();
   state_plus.block(4, 0, 3, 1) = state->_imu->pos();
   state_plus.block(7, 0, 3, 1) = state->_imu->vel();
-  if (prop_data.size() > 1)
+  if (prop_data.size() > 1) {
     state_plus.block(10, 0, 3, 1) = prop_data.at(prop_data.size() - 2).wm - state->_imu->bias_g();
-  else if (!prop_data.empty())
+  } else if (!prop_data.empty()) {
     state_plus.block(10, 0, 3, 1) = prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g();
+  }
 
   // Finally replace the imu with the original state we had
   state->_imu->set_value(orig_val);
@@ -353,64 +354,62 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
 
   // Set them to zero
   F.setZero();
+  Qd.setZero();
 
   // Time elapsed over interval
   double dt = data_plus.timestamp - data_minus.timestamp;
   // assert(data_plus.timestamp>data_minus.timestamp);
 
   // Corrected imu acc measurements with our current biases
-  Eigen::Matrix<double, 3, 1> a_hat1 = data_minus.am - state->_imu->bias_a();
-  Eigen::Matrix<double, 3, 1> a_hat2 = data_plus.am - state->_imu->bias_a();
-  Eigen::Matrix<double, 3, 1> a_hat = a_hat1;
+  Eigen::Vector3d a_hat1 = data_minus.am - state->_imu->bias_a();
+  Eigen::Vector3d a_hat2 = data_plus.am - state->_imu->bias_a();
+  Eigen::Vector3d a_hat = a_hat1;
   if (state->_options.imu_avg) {
     a_hat = .5 * (a_hat1 + a_hat2);
   }
-  // Imu acc readings in raw frame
+
+  // Convert "raw" imu to its corrected frame using the IMU intrinsics
   Eigen::Vector3d a_uncorrected = a_hat;
-  // Correct imu readings with IMU intrinsics
   a_hat = state->R_AcctoI() * state->Da() * a_hat;
   a_hat1 = state->R_AcctoI() * state->Da() * a_hat1;
   a_hat2 = state->R_AcctoI() * state->Da() * a_hat2;
 
-  // gravity sensitivity correction
-  Eigen::Matrix<double, 3, 1> gravity_correction1 = state->Tg() * a_hat1;
-  Eigen::Matrix<double, 3, 1> gravity_correction2 = state->Tg() * a_hat2;
-
-  // Corrected imu gyro measurements with our current biases
-  Eigen::Matrix<double, 3, 1> w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
-  Eigen::Matrix<double, 3, 1> w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
-  Eigen::Matrix<double, 3, 1> w_hat = w_hat1;
+  // Corrected imu gyro measurements with our current biases and gravity sensativity
+  Eigen::Vector3d gravity_correction1 = state->Tg() * a_hat1;
+  Eigen::Vector3d gravity_correction2 = state->Tg() * a_hat2;
+  Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
+  Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
+  Eigen::Vector3d w_hat = w_hat1;
   if (state->_options.imu_avg) {
     w_hat = .5 * (w_hat1 + w_hat2);
   }
-  // Imu readings in raw frame
-  Eigen::Vector3d w_uncorrected = w_hat;
 
-  // Correct imu readings with IMU intrinsics
+  // Convert "raw" imu to its corrected frame using the IMU intrinsics
+  Eigen::Vector3d w_uncorrected = w_hat;
   w_hat = state->R_GyrotoI() * state->Dw() * w_hat;
   w_hat1 = state->R_GyrotoI() * state->Dw() * w_hat1;
   w_hat2 = state->R_GyrotoI() * state->Dw() * w_hat2;
 
-  // Pre-compute some analytical values
+  // Pre-compute some analytical values for the mean and covariance integration
   Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
-  if (state->_options.use_analytic_integration) {
+  if (state->_options.use_analytic_integration || state->_options.use_rk4_integration) {
     compute_Xi_sum(state, dt, w_hat, a_hat, Xi_sum);
   }
 
   // Compute the new state mean value
   Eigen::Vector4d new_q;
   Eigen::Vector3d new_v, new_p;
-  if (state->_options.use_analytic_integration)
+  if (state->_options.use_analytic_integration) {
     predict_mean_analytic(state, dt, w_hat, a_hat, new_q, new_v, new_p, Xi_sum);
-  else if (state->_options.use_rk4_integration)
+  } else if (state->_options.use_rk4_integration) {
     predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
-  else
+  } else {
     predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+  }
 
   // Allocate state transition and noise Jacobian
   F = Eigen::MatrixXd::Zero(state->imu_intrinsic_size() + 15, state->imu_intrinsic_size() + 15);
   Eigen::MatrixXd G = Eigen::MatrixXd::Zero(state->imu_intrinsic_size() + 15, 12);
-
   if (state->_options.use_analytic_integration || state->_options.use_rk4_integration) {
     compute_F_and_G_analytic(state, dt, w_hat, a_hat, w_uncorrected, a_uncorrected, new_q, new_v, new_p, Xi_sum, F, G);
   } else {
@@ -421,10 +420,10 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   // Note that we need to convert our continuous time noises to discrete
   // Equations (129) amd (130) of Trawny tech report
   Eigen::Matrix<double, 12, 12> Qc = Eigen::Matrix<double, 12, 12>::Zero();
-  Qc.block(0, 0, 3, 3) = _imu_config.sigma_w_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(3, 3, 3, 3) = _imu_config.sigma_a_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(6, 6, 3, 3) = _imu_config.sigma_wb_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
-  Qc.block(9, 9, 3, 3) = _imu_config.sigma_ab_2 / dt * Eigen::Matrix<double, 3, 3>::Identity();
+  Qc.block(0, 0, 3, 3) = std::pow(_imu_config.sigma_w, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(3, 3, 3, 3) = std::pow(_imu_config.sigma_a, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(6, 6, 3, 3) = std::pow(_imu_config.sigma_wb, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(9, 9, 3, 3) = std::pow(_imu_config.sigma_ab, 2) / dt * Eigen::Matrix3d::Identity();
 
   // Compute the noise injected into the state over the interval
   Qd = Eigen::MatrixXd::Zero(state->imu_intrinsic_size() + 15, state->imu_intrinsic_size() + 15);
@@ -445,9 +444,6 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
                                           const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v,
                                           const Eigen::Vector3d &new_p, const Eigen::Matrix<double, 3, 18> &Xi_sum, Eigen::MatrixXd &F,
                                           Eigen::MatrixXd &G) {
-
-  //============================================================
-  //============================================================
 
   // Get the locations of each entry of the imu state
   int local_size = 0;
@@ -477,40 +473,35 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
       Tg_id = local_size;
       local_size += state->_calib_imu_tg->size();
     }
+    // 0: kalibr, 1: rpng
     if (state->_options.imu_model == 0) {
-      // Kalibr model
       th_wtoI_id = local_size;
       local_size += state->_calib_imu_GYROtoIMU->size();
     } else {
-      // RPNG model
       th_atoI_id = local_size;
       local_size += state->_calib_imu_ACCtoIMU->size();
     }
   }
 
-  //============================================================
-  //============================================================
-
   // This is the change in the orientation from the end of the last prop to the current prop
   // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix<double, 3, 3> R_k = state->_imu->Rot();
-  Eigen::Matrix<double, 3, 1> v_k = state->_imu->vel();
-  Eigen::Matrix<double, 3, 1> p_k = state->_imu->pos();
-
+  Eigen::Matrix3d R_k = state->_imu->Rot();
+  Eigen::Vector3d v_k = state->_imu->vel();
+  Eigen::Vector3d p_k = state->_imu->pos();
   if (state->_options.do_fej) {
     R_k = state->_imu->Rot_fej();
     v_k = state->_imu->vel_fej();
     p_k = state->_imu->pos_fej();
   }
-  Eigen::Matrix<double, 3, 3> dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
+  Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
 
-  Eigen::Matrix<double, 3, 3> Da = state->Da();
-  Eigen::Matrix<double, 3, 3> Dw = state->Dw();
-  Eigen::Matrix<double, 3, 3> Tg = state->Tg();
-  Eigen::Matrix<double, 3, 3> R_atoI = state->R_AcctoI();
-  Eigen::Matrix<double, 3, 3> R_wtoI = state->R_GyrotoI();
-  Eigen::Matrix<double, 3, 1> a_k = R_atoI * Da * a_uncorrected;
-  Eigen::Matrix<double, 3, 1> w_k = R_wtoI * Dw * w_uncorrected; // contains the gravity correction already
+  Eigen::Matrix3d Da = state->Da();
+  Eigen::Matrix3d Dw = state->Dw();
+  Eigen::Matrix3d Tg = state->Tg();
+  Eigen::Matrix3d R_atoI = state->R_AcctoI();
+  Eigen::Matrix3d R_wtoI = state->R_GyrotoI();
+  Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
+  Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains gravity correction already
 
   Eigen::Matrix3d Xi_1 = Xi_sum.block<3, 3>(0, 3);
   Eigen::Matrix3d Xi_2 = Xi_sum.block<3, 3>(0, 6);
@@ -527,7 +518,7 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
   F.block<3, 3>(p_id, p_id).setIdentity();
 
   // for v
-  F.block<3, 3>(p_id, v_id) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
+  F.block<3, 3>(p_id, v_id) = Eigen::Matrix3d::Identity() * dt;
   F.block<3, 3>(v_id, v_id).setIdentity();
 
   // for bg
@@ -591,17 +582,14 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
   G.block<3, 3>(th_id, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
   G.block<3, 3>(p_id, 3) = -R_k.transpose() * (Xi_2 + Xi_4 * R_wtoI * Dw * Tg) * R_atoI * Da;
   G.block<3, 3>(v_id, 3) = -R_k.transpose() * (Xi_1 + Xi_3 * R_wtoI * Dw * Tg) * R_atoI * Da;
-  G.block<3, 3>(bg_id, 6) = dt * Eigen::Matrix<double, 3, 3>::Identity();
-  G.block<3, 3>(ba_id, 9) = dt * Eigen::Matrix<double, 3, 3>::Identity();
+  G.block<3, 3>(bg_id, 6) = dt * Eigen::Matrix3d::Identity();
+  G.block<3, 3>(ba_id, 9) = dt * Eigen::Matrix3d::Identity();
 }
 
 void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat,
                                           const Eigen::Vector3d &a_hat, const Eigen::Vector3d &w_uncorrected,
                                           const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q, const Eigen::Vector3d &new_v,
                                           const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G) {
-
-  //============================================================
-  //============================================================
 
   // Get the locations of each entry of the imu state
   int local_size = 0;
@@ -647,27 +635,27 @@ void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double d
 
   // This is the change in the orientation from the end of the last prop to the current prop
   // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix<double, 3, 3> R_k = state->_imu->Rot();
-  Eigen::Matrix<double, 3, 1> v_k = state->_imu->vel();
-  Eigen::Matrix<double, 3, 1> p_k = state->_imu->pos();
+  Eigen::Matrix3d R_k = state->_imu->Rot();
+  Eigen::Vector3d v_k = state->_imu->vel();
+  Eigen::Vector3d p_k = state->_imu->pos();
 
   if (state->_options.do_fej) {
     R_k = state->_imu->Rot_fej();
     v_k = state->_imu->vel_fej();
     p_k = state->_imu->pos_fej();
   }
-  Eigen::Matrix<double, 3, 3> dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
+  Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
 
   // This is the change in the orientation from the end of the last prop to the current prop
   // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix<double, 3, 3> Da = state->Da();
-  Eigen::Matrix<double, 3, 3> Dw = state->Dw();
-  Eigen::Matrix<double, 3, 3> Tg = state->Tg();
-  Eigen::Matrix<double, 3, 3> R_atoI = state->R_AcctoI();
-  Eigen::Matrix<double, 3, 3> R_wtoI = state->R_GyrotoI();
-  Eigen::Matrix<double, 3, 1> a_k = R_atoI * Da * a_uncorrected;
-  Eigen::Matrix<double, 3, 1> w_k = R_wtoI * Dw * w_uncorrected; // contains the gravity correction already
-  Eigen::Matrix<double, 3, 3> Jr = Jr_so3(w_k * dt);
+  Eigen::Matrix3d Da = state->Da();
+  Eigen::Matrix3d Dw = state->Dw();
+  Eigen::Matrix3d Tg = state->Tg();
+  Eigen::Matrix3d R_atoI = state->R_AcctoI();
+  Eigen::Matrix3d R_wtoI = state->R_GyrotoI();
+  Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
+  Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains the gravity correction already
+  Eigen::Matrix3d Jr = Jr_so3(w_k * dt);
 
   // for theta
   F.block<3, 3>(th_id, th_id) = dR_ktok1;
@@ -678,7 +666,7 @@ void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double d
   // for position
   F.block<3, 3>(p_id, th_id).noalias() = -skew_x(new_p - p_k - v_k * dt + 0.5 * _gravity * dt * dt) * R_k.transpose();
   F.block<3, 3>(p_id, p_id).setIdentity();
-  F.block<3, 3>(p_id, v_id) = Eigen::Matrix<double, 3, 3>::Identity() * dt;
+  F.block<3, 3>(p_id, v_id) = Eigen::Matrix3d::Identity() * dt;
   F.block<3, 3>(p_id, ba_id) = -0.5 * R_k.transpose() * dt * dt * R_atoI * Da;
 
   // for velocity
@@ -730,8 +718,8 @@ void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double d
   G.block<3, 3>(th_id, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
   G.block<3, 3>(v_id, 3) = -R_k.transpose() * dt * R_atoI * Da;
   G.block<3, 3>(p_id, 3) = -0.5 * R_k.transpose() * dt * dt * R_atoI * Da;
-  G.block<3, 3>(bg_id, 6) = dt * Eigen::Matrix<double, 3, 3>::Identity();
-  G.block<3, 3>(ba_id, 9) = dt * Eigen::Matrix<double, 3, 3>::Identity();
+  G.block<3, 3>(bg_id, 6) = dt * Eigen::Matrix3d::Identity();
+  G.block<3, 3>(ba_id, 9) = dt * Eigen::Matrix3d::Identity();
 }
 
 void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1,
@@ -749,7 +737,7 @@ void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt, 
   // Pre-compute things
   double w_norm = w_hat.norm();
   Eigen::Matrix<double, 4, 4> I_4x4 = Eigen::Matrix<double, 4, 4>::Identity();
-  Eigen::Matrix<double, 3, 3> R_Gtoi = state->_imu->Rot();
+  Eigen::Matrix3d R_Gtoi = state->_imu->Rot();
 
   // Orientation: Equation (101) and (103) and of Trawny indirect TR
   Eigen::Matrix<double, 4, 4> bigO;
@@ -773,7 +761,7 @@ void Propagator::predict_mean_analytic(std::shared_ptr<State> state, double dt, 
                                        Eigen::Matrix<double, 3, 18> &Xi_sum) {
 
   // Pre-compute things
-  Eigen::Matrix<double, 3, 3> R_Gtok = state->_imu->Rot();
+  Eigen::Matrix3d R_Gtok = state->_imu->Rot();
 
   // get the pre-computed value
   Eigen::Matrix3d R_k1_to_k = Xi_sum.block<3, 3>(0, 0);
@@ -1022,15 +1010,12 @@ Eigen::MatrixXd Propagator::compute_H_Da(std::shared_ptr<State> state, const Eig
 Eigen::MatrixXd Propagator::compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI) {
 
   Eigen::Matrix3d I_3x3 = Eigen::MatrixXd::Identity(3, 3);
-  Eigen::Vector3d e_1 = I_3x3.block<3, 1>(0, 0);
-  Eigen::Vector3d e_2 = I_3x3.block<3, 1>(0, 1);
   double a_1 = a_inI(0);
   double a_2 = a_inI(1);
   double a_3 = a_inI(2);
 
   // intrinsic parameters
   Eigen::MatrixXd H_Tg = Eigen::MatrixXd::Zero(3, 9);
-
   if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
     H_Tg << a_1 * I_3x3, a_2 * I_3x3, a_3 * I_3x3;
   }

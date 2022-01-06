@@ -72,12 +72,6 @@ public:
     // Gravity
     _gravity << 0.0, 0.0, gravity_mag;
 
-    // Save our raw pixel noise squared
-    _imu_config.sigma_w_2 = std::pow(_imu_config.sigma_w, 2);
-    _imu_config.sigma_a_2 = std::pow(_imu_config.sigma_a, 2);
-    _imu_config.sigma_wb_2 = std::pow(_imu_config.sigma_wb, 2);
-    _imu_config.sigma_ab_2 = std::pow(_imu_config.sigma_ab, 2);
-
     // Initialize the chi squared test table with confidence level 0.95
     // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
     for (int i = 1; i < 1000; i++) {
