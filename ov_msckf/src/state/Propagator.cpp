@@ -164,18 +164,15 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       if (state->_options.imu_avg) {
         a_hat = .5 * (a_hat1 + a_hat2);
       }
-      // Imu acc readings in raw frame
-      Eigen::Vector3d a_uncorrected = a_hat;
+
       // Correct imu readings with IMU intrinsics
       a_hat = state->R_AcctoI() * state->Da() * a_hat;
       a_hat1 = state->R_AcctoI() * state->Da() * a_hat1;
       a_hat2 = state->R_AcctoI() * state->Da() * a_hat2;
 
-      // gravity sensitivity correction
+      // Corrected imu gyro measurements with our current biases
       Eigen::Vector3d gravity_correction1 = state->Tg() * a_hat1;
       Eigen::Vector3d gravity_correction2 = state->Tg() * a_hat2;
-
-      // Corrected imu gyro measurements with our current biases
       Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - gravity_correction1;
       Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - gravity_correction2;
       Eigen::Vector3d w_hat = w_hat1;
