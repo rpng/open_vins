@@ -4,6 +4,24 @@
 @page dev-docs Documentation Guide
 
 
+@section developers-pdfmanual Building the Latex PDF Reference Manual
+
+1. You will need to install doxygen and texlive with all packages
+    - `sudo apt-get update`
+    - `sudo apt-get install doxygen texlive-full`
+    - You will likely need new version of [doxygen](https://stackoverflow.com/a/50986638/7718197) 1.9.4 to fix ghostscript errors
+2. Go into the project folder and generate latex files
+    - `cd open_vins/`
+    - `doxygen`
+    - This should run, and will stop if there are any latex errors
+    - On my Ubuntu 20.04 this installs version "2019.20200218"
+3. Generate a PDF from the latex files
+    - `cd doxgen_generated/latex/`
+    - `make`
+    - File should be called `refman.pdf`
+
+
+
 @section developers-addpage Adding a Website Page
 
 1. Add a `doc/pagename.dox` file, copy up-to-date license header.
@@ -16,7 +34,6 @@
 
 
 @section latex Math / Latex Equations
-
 
 - More details on how to format your documentation can be found here:
     - http://www.doxygen.nl/manual/formulas.html
@@ -76,7 +93,6 @@
 - Create your figure in IPE then save it to disk (i.e. should have a `file.ipe`)
 - Use the command line utility `iperender`  to convert into a svg
 - `iperender -svg -transparent file.ipe file.svg`
-
 
 
 */

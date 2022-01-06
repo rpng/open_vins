@@ -29,10 +29,6 @@
 #include "utils/quat_ops.h"
 #include <Eigen/Dense>
 
-/**
- * @namespace ov_core
- * @brief Core algorithms for Open VINS
- */
 namespace ov_core {
 
 /**
