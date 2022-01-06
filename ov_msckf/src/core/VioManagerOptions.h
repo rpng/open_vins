@@ -292,6 +292,7 @@ struct VioManagerOptions {
         imu_config.imu_model = 1;
       } else {
         PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
+        std::exit(EXIT_FAILURE);
       }
 
       // IMU intrinsics
@@ -306,22 +307,19 @@ struct VioManagerOptions {
       Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
       parser->parse_external("relative_config_imu", "imu0", "Tg", Tg);
 
-      // generate the parameters we need
+      // Generate the parameters we need
       // TODO: error here if this returns a NaN value (i.e. invalid matrix specified)
       Eigen::Matrix3d Dw = Tw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d Da = Ta.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d R_AcctoI = R_ItoAcc.transpose();
       Eigen::Matrix3d R_GyrotoI = R_ItoGyro.transpose();
 
-      // store these parameters
+      // kalibr model: lower triangular of the matrix and R_GYROtoI
+      // rpng model: upper triangular of the matrix and R_ACCtoI
       if (imu_config.imu_model == 0) {
-        // kalibr model
-        // lower triangular of the matrix
         imu_config.imu_x_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
         imu_config.imu_x_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
       } else {
-        // rpng model
-        // upper triangular of the matrix
         imu_config.imu_x_dw << Dw(0, 0), Dw.block<2, 1>(0, 1), Dw.block<3, 1>(0, 2);
         imu_config.imu_x_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
       }
@@ -342,6 +340,7 @@ struct VioManagerOptions {
       std::exit(EXIT_FAILURE);
     }
     PRINT_DEBUG("  - calib_camimu_dt: %.4f\n", calib_camimu_dt);
+    PRINT_DEBUG("CAMERA PARAMETERS:\n");
     for (int n = 0; n < state_options.num_cameras; n++) {
       std::stringstream ss;
       ss << "cam_" << n << "_fisheye:" << (std::dynamic_pointer_cast<ov_core::CamEqui>(camera_intrinsics.at(n)) != nullptr) << std::endl;
@@ -358,6 +357,14 @@ struct VioManagerOptions {
       ss << "T_C" << n << "toI:" << std::endl << T_CtoI << std::endl << std::endl;
       PRINT_DEBUG(ss.str().c_str());
     }
+    PRINT_DEBUG("IMU PARAMETERS:\n");
+    std::stringstream ss;
+    ss << "Dw (columnwise):" << std::endl << imu_config.imu_x_dw.transpose() << std::endl;
+    ss << "Da (columnwise):" << std::endl << imu_config.imu_x_da.transpose() << std::endl;
+    ss << "Tg (columnwise):" << std::endl << imu_config.imu_x_tg.transpose() << std::endl;
+    ss << "R_GYROtoI:" << std::endl << imu_config.imu_quat_GyrotoI << std::endl;
+    ss << "R_ACCtoI:" << std::endl << imu_config.imu_quat_AcctoI << std::endl;
+    PRINT_DEBUG(ss.str().c_str());
   }
 
   // TRACKERS ===============================

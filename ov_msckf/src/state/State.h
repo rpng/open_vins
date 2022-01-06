@@ -128,12 +128,20 @@ public:
   /// Camera intrinsics camera objects
   std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> _cam_intrinsics_cameras;
 
-  /// IMU intrinsics
-  std::shared_ptr<ov_type::Vec> _imu_x_dw;
-  std::shared_ptr<ov_type::Vec> _imu_x_da;
-  std::shared_ptr<ov_type::JPLQuat> _imu_quat_acctoI;
-  std::shared_ptr<ov_type::JPLQuat> _imu_quat_gyrotoI;
-  std::shared_ptr<ov_type::Vec> _imu_x_tg;
+  /// Gyroscope IMU intrinsics (scale imperfection and axis misalignment)
+  std::shared_ptr<ov_type::Vec> _calib_imu_dw;
+
+  /// Accelerometer IMU intrinsics (scale imperfection and axis misalignment)
+  std::shared_ptr<ov_type::Vec> _calib_imu_da;
+
+  /// Rotation from gyroscope frame to the "IMU" accelerometer frame
+  std::shared_ptr<ov_type::JPLQuat> _calib_imu_GYROtoIMU;
+
+  /// Rotation from accelerometer to the "IMU" gyroscope frame frame
+  std::shared_ptr<ov_type::JPLQuat> _calib_imu_ACCtoIMU;
+
+  /// Gyroscope gravity sensitivity
+  std::shared_ptr<ov_type::Vec> _calib_imu_tg;
 
 private:
   // Define that the state helper is a friend class of this class

@@ -99,11 +99,15 @@ struct StateOptions {
       parser->parse_config("use_imuavg", imu_avg);
       parser->parse_config("use_rk4int", use_rk4_integration);
       parser->parse_config("use_analytic_int", use_analytic_integration);
+
+      // Calibration booleans
       parser->parse_config("calib_cam_extrinsics", do_calib_camera_pose);
       parser->parse_config("calib_cam_intrinsics", do_calib_camera_intrinsics);
       parser->parse_config("calib_cam_timeoffset", do_calib_camera_timeoffset);
       parser->parse_config("calib_imu_intrinsics", do_calib_imu_intrinsics);
       parser->parse_config("calib_imu_g_sensitivity", do_calib_imu_g_sensitivity);
+
+      // State parameters
       parser->parse_config("max_clones", max_clone_size);
       parser->parse_config("max_slam", max_slam_features);
       parser->parse_config("max_slam_in_update", max_slam_in_update);
@@ -130,7 +134,13 @@ struct StateOptions {
       } else if (imu_model_str == "rpng") {
         imu_model = 1;
       } else {
-        PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
+        PRINT_ERROR(RED "invalid imu model: %s\n" RESET, imu_model_str.c_str());
+        std::exit(EXIT_FAILURE);
+      }
+      if (imu_model_str == "calibrated" && (do_calib_imu_intrinsics || do_calib_imu_g_sensitivity)) {
+        PRINT_ERROR(RED "calibrated IMU model selected, but requested calibration!\n" RESET);
+        PRINT_ERROR(RED "please select what model you have: kalibr, rpng\n" RESET);
+        std::exit(EXIT_FAILURE);
       }
     }
     PRINT_DEBUG("  - use_fej: %d\n", do_fej);

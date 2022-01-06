@@ -406,10 +406,10 @@ public:
     of_state_std.precision(8);
 
     // imu intrinsics: dw
-    of_state_est << state->_imu_x_dw->value()(0) << " " << state->_imu_x_dw->value()(1) << " " << state->_imu_x_dw->value()(2) << " "
-                 << state->_imu_x_dw->value()(3) << " " << state->_imu_x_dw->value()(4) << " " << state->_imu_x_dw->value()(5) << " ";
+    of_state_est << state->_calib_imu_dw->value()(0) << " " << state->_calib_imu_dw->value()(1) << " " << state->_calib_imu_dw->value()(2) << " "
+                 << state->_calib_imu_dw->value()(3) << " " << state->_calib_imu_dw->value()(4) << " " << state->_calib_imu_dw->value()(5) << " ";
     if (state->_options.do_calib_imu_intrinsics) {
-      int index_dw = state->_imu_x_dw->id();
+      int index_dw = state->_calib_imu_dw->id();
       of_state_std << std::sqrt(cov(index_dw + 0, index_dw + 0)) << " " << std::sqrt(cov(index_dw + 1, index_dw + 1)) << " "
                    << std::sqrt(cov(index_dw + 2, index_dw + 2)) << " " << std::sqrt(cov(index_dw + 3, index_dw + 3)) << " "
                    << std::sqrt(cov(index_dw + 4, index_dw + 4)) << " " << std::sqrt(cov(index_dw + 5, index_dw + 5)) << " ";
@@ -419,10 +419,10 @@ public:
     }
 
     // imu intrinsics: da
-    of_state_est << state->_imu_x_da->value()(0) << " " << state->_imu_x_da->value()(1) << " " << state->_imu_x_da->value()(2) << " "
-                 << state->_imu_x_da->value()(3) << " " << state->_imu_x_da->value()(4) << " " << state->_imu_x_da->value()(5) << " ";
+    of_state_est << state->_calib_imu_da->value()(0) << " " << state->_calib_imu_da->value()(1) << " " << state->_calib_imu_da->value()(2) << " "
+                 << state->_calib_imu_da->value()(3) << " " << state->_calib_imu_da->value()(4) << " " << state->_calib_imu_da->value()(5) << " ";
     if (state->_options.do_calib_imu_intrinsics) {
-      int index_da = state->_imu_x_da->id();
+      int index_da = state->_calib_imu_da->id();
       of_state_std << std::sqrt(cov(index_da + 0, index_da + 0)) << " " << std::sqrt(cov(index_da + 1, index_da + 1)) << " "
                    << std::sqrt(cov(index_da + 2, index_da + 2)) << " " << std::sqrt(cov(index_da + 3, index_da + 3)) << " "
                    << std::sqrt(cov(index_da + 4, index_da + 4)) << " " << std::sqrt(cov(index_da + 5, index_da + 5)) << " ";
@@ -432,11 +432,11 @@ public:
     }
 
     // imu intrinsics: tg
-    of_state_est << state->_imu_x_tg->value()(0) << " " << state->_imu_x_tg->value()(1) << " " << state->_imu_x_tg->value()(2) << " "
-                 << state->_imu_x_tg->value()(3) << " " << state->_imu_x_tg->value()(4) << " " << state->_imu_x_tg->value()(5) << " "
-                 << state->_imu_x_tg->value()(6) << " " << state->_imu_x_tg->value()(7) << " " << state->_imu_x_tg->value()(8) << " ";
+    of_state_est << state->_calib_imu_tg->value()(0) << " " << state->_calib_imu_tg->value()(1) << " " << state->_calib_imu_tg->value()(2) << " "
+                 << state->_calib_imu_tg->value()(3) << " " << state->_calib_imu_tg->value()(4) << " " << state->_calib_imu_tg->value()(5) << " "
+                 << state->_calib_imu_tg->value()(6) << " " << state->_calib_imu_tg->value()(7) << " " << state->_calib_imu_tg->value()(8) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
-      int index_tg = state->_imu_x_tg->id();
+      int index_tg = state->_calib_imu_tg->id();
       of_state_std << std::sqrt(cov(index_tg + 0, index_tg + 0)) << " " << std::sqrt(cov(index_tg + 1, index_tg + 1)) << " "
                    << std::sqrt(cov(index_tg + 2, index_tg + 2)) << " " << std::sqrt(cov(index_tg + 3, index_tg + 3)) << " "
                    << std::sqrt(cov(index_tg + 4, index_tg + 4)) << " " << std::sqrt(cov(index_tg + 5, index_tg + 5)) << " "
@@ -449,10 +449,10 @@ public:
     }
 
     // imu intrinsics: kalibr R_gyrotoI
-    of_state_est << state->_imu_quat_gyrotoI->value()(0) << " " << state->_imu_quat_gyrotoI->value()(1) << " "
-                 << state->_imu_quat_gyrotoI->value()(2) << " " << state->_imu_quat_gyrotoI->value()(3) << " ";
+    of_state_est << state->_calib_imu_GYROtoIMU->value()(0) << " " << state->_calib_imu_GYROtoIMU->value()(1) << " "
+                 << state->_calib_imu_GYROtoIMU->value()(2) << " " << state->_calib_imu_GYROtoIMU->value()(3) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 0) {
-      int index_wtoI = state->_imu_quat_gyrotoI->id();
+      int index_wtoI = state->_calib_imu_GYROtoIMU->id();
       of_state_std << std::sqrt(cov(index_wtoI + 0, index_wtoI + 0)) << " " << std::sqrt(cov(index_wtoI + 1, index_wtoI + 1)) << " "
                    << std::sqrt(cov(index_wtoI + 2, index_wtoI + 2)) << " " << std::sqrt(cov(index_wtoI + 3, index_wtoI + 3)) << " ";
     } else {
@@ -460,10 +460,10 @@ public:
     }
 
     // imu intrinsics: rpng R_acctoI
-    of_state_est << state->_imu_quat_acctoI->value()(0) << " " << state->_imu_quat_acctoI->value()(1) << " "
-                 << state->_imu_quat_acctoI->value()(2) << " " << state->_imu_quat_acctoI->value()(3) << " ";
+    of_state_est << state->_calib_imu_ACCtoIMU->value()(0) << " " << state->_calib_imu_ACCtoIMU->value()(1) << " "
+                 << state->_calib_imu_ACCtoIMU->value()(2) << " " << state->_calib_imu_ACCtoIMU->value()(3) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 1) {
-      int index_atoI = state->_imu_quat_acctoI->id();
+      int index_atoI = state->_calib_imu_ACCtoIMU->id();
       of_state_std << std::sqrt(cov(index_atoI + 0, index_atoI + 0)) << " " << std::sqrt(cov(index_atoI + 1, index_atoI + 1)) << " "
                    << std::sqrt(cov(index_atoI + 2, index_atoI + 2)) << " " << std::sqrt(cov(index_atoI + 3, index_atoI + 3)) << " ";
     } else {
