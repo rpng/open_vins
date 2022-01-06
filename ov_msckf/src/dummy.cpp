@@ -21,6 +21,7 @@
 
 /**
  * @namespace ov_msckf
+ * @brief Extended Kalman Filter estimator
  *
  * This is an implementation of a [Multi-State Constraint Kalman Filter (MSCKF)](https://ieeexplore.ieee.org/document/4209642) @cite
  * Mourikis2007ICRA which leverages inertial and visual feature information. We want to stress that this is **not** a "vanilla"

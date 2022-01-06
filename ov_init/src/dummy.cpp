@@ -21,6 +21,7 @@
 
 /**
  * @namespace ov_init
+ * @brief State initialization code
  *
  * Right now this contains static initialization code for a visual-inertial system.
  * It will wait for the platform to stationary, and then initialize its orientation in the gravity frame.
