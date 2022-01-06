@@ -282,12 +282,15 @@ struct VioManagerOptions {
           masks.insert({i, cv::imread(total_mask_path, cv::IMREAD_GRAYSCALE)});
         }
       }
+
       // IMU model
       std::string imu_model_str = "kalibr";
-      parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
-      if(imu_model_str == "kalibr") imu_config.imu_model = 0;
-      else if(imu_model_str == "rpng") imu_config.imu_model = 1;
-      else {
+      parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str); // might be redundant
+      if (imu_model_str == "kalibr" || imu_model_str == "calibrated") {
+        imu_config.imu_model = 0;
+      } else if (imu_model_str == "rpng") {
+        imu_config.imu_model = 1;
+      } else {
         PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
       }
 
@@ -303,29 +306,28 @@ struct VioManagerOptions {
       Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
       parser->parse_external("relative_config_imu", "imu0", "Tg", Tg);
 
-
       // generate the parameters we need
+      // TODO: error here if this returns a NaN value (i.e. invalid matrix specified)
       Eigen::Matrix3d Dw = Tw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d Da = Ta.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d R_AcctoI = R_ItoAcc.transpose();
       Eigen::Matrix3d R_GyrotoI = R_ItoGyro.transpose();
 
       // store these parameters
-      if(imu_config.imu_model == 0){
+      if (imu_config.imu_model == 0) {
         // kalibr model
         // lower triangular of the matrix
-        imu_config.imu_x_dw << Dw.block<3,1>(0,0), Dw.block<2,1>(1,1), Dw(2,2);
-        imu_config.imu_x_da << Da.block<3,1>(0,0), Da.block<2,1>(1,1), Da(2,2);
-      }else{
+        imu_config.imu_x_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
+        imu_config.imu_x_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
+      } else {
         // rpng model
         // upper triangular of the matrix
-        imu_config.imu_x_dw << Dw(0,0), Dw.block<2,1>(0,1), Dw.block<3,1>(0,2);
-        imu_config.imu_x_da << Da(0,0), Da.block<2,1>(0,1), Da.block<3,1>(0,2);
+        imu_config.imu_x_dw << Dw(0, 0), Dw.block<2, 1>(0, 1), Dw.block<3, 1>(0, 2);
+        imu_config.imu_x_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
       }
-      imu_config.imu_x_tg << Tg.block<3,1>(0,0), Tg.block<3,1>(0,1), Tg.block<3,1>(0,2);
+      imu_config.imu_x_tg << Tg.block<3, 1>(0, 0), Tg.block<3, 1>(0, 1), Tg.block<3, 1>(0, 2);
       imu_config.imu_quat_GyrotoI = ov_core::rot_2_quat(R_GyrotoI);
       imu_config.imu_quat_AcctoI = ov_core::rot_2_quat(R_AcctoI);
-
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);

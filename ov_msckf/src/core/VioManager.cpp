@@ -47,14 +47,12 @@ VioManager::VioManager(VioManagerOptions &params_) {
   // Create the state!!
   state = std::make_shared<State>(params.state_options);
 
-  // set the IMU intrinsics
-
+  // Set the IMU intrinsics
   state->_imu_x_dw->set_value(params.imu_config.imu_x_dw);
   state->_imu_x_da->set_value(params.imu_config.imu_x_da);
   state->_imu_x_tg->set_value(params.imu_config.imu_x_tg);
   state->_imu_quat_gyrotoI->set_value(params.imu_config.imu_quat_GyrotoI);
   state->_imu_quat_acctoI->set_value(params.imu_config.imu_quat_AcctoI);
-
 
   // Timeoffset from camera to IMU
   Eigen::VectorXd temp_camimu_dt;

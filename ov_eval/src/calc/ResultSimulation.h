@@ -95,6 +95,11 @@ public:
    */
   void plot_cam_extrinsics(bool doplotting, double max_time = INFINITY);
 
+  /**
+   * @brief Will plot the imu intrinsic errors
+   * @param doplotting True if you want to display the plots
+   * @param max_time Max number of second we want to plot
+   */
   void plot_imu_intrinsics(bool doploting, double max_time = INFINITY);
 
 protected:

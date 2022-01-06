@@ -110,6 +110,8 @@ struct StateOptions {
       parser->parse_config("max_msckf_in_update", max_msckf_in_update);
       parser->parse_config("num_aruco", max_aruco_features);
       parser->parse_config("max_cameras", num_cameras);
+
+      // Feature representations
       std::string rep1 = ov_type::LandmarkRepresentation::as_string(feat_rep_msckf);
       parser->parse_config("feat_rep_msckf", rep1);
       feat_rep_msckf = ov_type::LandmarkRepresentation::from_string(rep1);
@@ -123,12 +125,13 @@ struct StateOptions {
       // IMU model
       std::string imu_model_str = "kalibr";
       parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
-      if(imu_model_str == "kalibr") imu_model = 0;
-      else if(imu_model_str == "rpng") imu_model = 1;
-      else {
-        PRINT_ERROR(RED "StateOption(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
+      if (imu_model_str == "kalibr" || imu_model_str == "calibrated") {
+        imu_model = 0;
+      } else if (imu_model_str == "rpng") {
+        imu_model = 1;
+      } else {
+        PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
       }
-
     }
     PRINT_DEBUG("  - use_fej: %d\n", do_fej);
     PRINT_DEBUG("  - use_imuavg: %d\n", imu_avg);

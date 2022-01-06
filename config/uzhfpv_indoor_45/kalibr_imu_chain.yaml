@@ -17,6 +17,7 @@ imu0:
   rostopic: /snappy_imu
   time_offset: 0.0
   update_rate: 200.0
+  model: "kalibr" # calibrated (same as kalibr), kalibr, rpng
   Tw:
     - [ 1.0, 0.0, 0.0 ]
     - [ 0.0, 1.0, 0.0 ]
@@ -37,4 +38,3 @@ imu0:
     - [ 0.0, 0.0, 0.0 ]
     - [ 0.0, 0.0, 0.0 ]
     - [ 0.0, 0.0, 0.0 ]
-  model: kalibr # 0: kalibr and 1: rpng

@@ -281,32 +281,21 @@ public:
                       << sim->get_true_parameters().camera_extrinsics.at(i)(6) << " ";
         }
 
-
         // Get the base IMU information
         of_state_gt.precision(0);
         of_state_gt << sim->get_true_parameters().imu_config.imu_model << " ";
         of_state_gt.precision(8);
 
-        of_state_gt << sim->get_true_parameters().imu_config.imu_x_dw(0) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_dw(1) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_dw(2) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_dw(3) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_dw(4) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_dw(5) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.imu_x_da(0) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_da(1) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_da(2) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_da(3) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_da(4) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_da(5) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.imu_x_tg(0) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(1) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(2) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(3) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(4) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(5) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(6) << " "
-                    << sim->get_true_parameters().imu_config.imu_x_tg(7) << " "
+        of_state_gt << sim->get_true_parameters().imu_config.imu_x_dw(0) << " " << sim->get_true_parameters().imu_config.imu_x_dw(1) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_dw(2) << " " << sim->get_true_parameters().imu_config.imu_x_dw(3) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_dw(4) << " " << sim->get_true_parameters().imu_config.imu_x_dw(5) << " ";
+        of_state_gt << sim->get_true_parameters().imu_config.imu_x_da(0) << " " << sim->get_true_parameters().imu_config.imu_x_da(1) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_da(2) << " " << sim->get_true_parameters().imu_config.imu_x_da(3) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_da(4) << " " << sim->get_true_parameters().imu_config.imu_x_da(5) << " ";
+        of_state_gt << sim->get_true_parameters().imu_config.imu_x_tg(0) << " " << sim->get_true_parameters().imu_config.imu_x_tg(1) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_tg(2) << " " << sim->get_true_parameters().imu_config.imu_x_tg(3) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_tg(4) << " " << sim->get_true_parameters().imu_config.imu_x_tg(5) << " "
+                    << sim->get_true_parameters().imu_config.imu_x_tg(6) << " " << sim->get_true_parameters().imu_config.imu_x_tg(7) << " "
                     << sim->get_true_parameters().imu_config.imu_x_tg(8) << " ";
         of_state_gt << sim->get_true_parameters().imu_config.imu_quat_GyrotoI(0) << " "
                     << sim->get_true_parameters().imu_config.imu_quat_GyrotoI(1) << " "
@@ -408,78 +397,50 @@ public:
       }
     }
 
-
-    /// base IMU parameters
+    // imu intrinsics: what model we are using
     of_state_est.precision(0);
     of_state_est << state->_options.imu_model << " ";
     of_state_est.precision(8);
-
     of_state_std.precision(0);
     of_state_std << state->_options.imu_model << " ";
     of_state_std.precision(8);
 
-    // imu intrinsics
-    // dw
-    of_state_est << state->_imu_x_dw->value()(0) << " "
-                  << state->_imu_x_dw->value()(1) << " "
-                  << state->_imu_x_dw->value()(2) << " "
-                  << state->_imu_x_dw->value()(3) << " "
-                  << state->_imu_x_dw->value()(4) << " "
-                  << state->_imu_x_dw->value()(5) << " ";
+    // imu intrinsics: dw
+    of_state_est << state->_imu_x_dw->value()(0) << " " << state->_imu_x_dw->value()(1) << " " << state->_imu_x_dw->value()(2) << " "
+                 << state->_imu_x_dw->value()(3) << " " << state->_imu_x_dw->value()(4) << " " << state->_imu_x_dw->value()(5) << " ";
     if (state->_options.do_calib_imu_intrinsics) {
       int index_dw = state->_imu_x_dw->id();
-      of_state_std << std::sqrt(cov(index_dw + 0, index_dw + 0)) << " "
-                   << std::sqrt(cov(index_dw + 1, index_dw + 1)) << " "
-                   << std::sqrt(cov(index_dw + 2, index_dw + 2)) << " "
-                   << std::sqrt(cov(index_dw + 3, index_dw + 3)) << " "
-                   << std::sqrt(cov(index_dw + 4, index_dw + 4)) << " "
-                   << std::sqrt(cov(index_dw + 5, index_dw + 5)) << " ";
+      of_state_std << std::sqrt(cov(index_dw + 0, index_dw + 0)) << " " << std::sqrt(cov(index_dw + 1, index_dw + 1)) << " "
+                   << std::sqrt(cov(index_dw + 2, index_dw + 2)) << " " << std::sqrt(cov(index_dw + 3, index_dw + 3)) << " "
+                   << std::sqrt(cov(index_dw + 4, index_dw + 4)) << " " << std::sqrt(cov(index_dw + 5, index_dw + 5)) << " ";
     } else {
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
     }
 
-    // da
-    of_state_est << state->_imu_x_da->value()(0) << " "
-                 << state->_imu_x_da->value()(1) << " "
-                 << state->_imu_x_da->value()(2) << " "
-                 << state->_imu_x_da->value()(3) << " "
-                 << state->_imu_x_da->value()(4) << " "
-                 << state->_imu_x_da->value()(5) << " ";
+    // imu intrinsics: da
+    of_state_est << state->_imu_x_da->value()(0) << " " << state->_imu_x_da->value()(1) << " " << state->_imu_x_da->value()(2) << " "
+                 << state->_imu_x_da->value()(3) << " " << state->_imu_x_da->value()(4) << " " << state->_imu_x_da->value()(5) << " ";
     if (state->_options.do_calib_imu_intrinsics) {
       int index_da = state->_imu_x_da->id();
-      of_state_std << std::sqrt(cov(index_da + 0, index_da + 0)) << " "
-                   << std::sqrt(cov(index_da + 1, index_da + 1)) << " "
-                   << std::sqrt(cov(index_da + 2, index_da + 2)) << " "
-                   << std::sqrt(cov(index_da + 3, index_da + 3)) << " "
-                   << std::sqrt(cov(index_da + 4, index_da + 4)) << " "
-                   << std::sqrt(cov(index_da + 5, index_da + 5)) << " ";
+      of_state_std << std::sqrt(cov(index_da + 0, index_da + 0)) << " " << std::sqrt(cov(index_da + 1, index_da + 1)) << " "
+                   << std::sqrt(cov(index_da + 2, index_da + 2)) << " " << std::sqrt(cov(index_da + 3, index_da + 3)) << " "
+                   << std::sqrt(cov(index_da + 4, index_da + 4)) << " " << std::sqrt(cov(index_da + 5, index_da + 5)) << " ";
     } else {
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
     }
 
-
-    // tg
-    of_state_est << state->_imu_x_tg->value()(0) << " "
-                 << state->_imu_x_tg->value()(1) << " "
-                 << state->_imu_x_tg->value()(2) << " "
-                 << state->_imu_x_tg->value()(3) << " "
-                 << state->_imu_x_tg->value()(4) << " "
-                 << state->_imu_x_tg->value()(5) << " "
-                 << state->_imu_x_tg->value()(6) << " "
-                 << state->_imu_x_tg->value()(7) << " "
-                 << state->_imu_x_tg->value()(8) << " ";
+    // imu intrinsics: tg
+    of_state_est << state->_imu_x_tg->value()(0) << " " << state->_imu_x_tg->value()(1) << " " << state->_imu_x_tg->value()(2) << " "
+                 << state->_imu_x_tg->value()(3) << " " << state->_imu_x_tg->value()(4) << " " << state->_imu_x_tg->value()(5) << " "
+                 << state->_imu_x_tg->value()(6) << " " << state->_imu_x_tg->value()(7) << " " << state->_imu_x_tg->value()(8) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
       int index_tg = state->_imu_x_tg->id();
-      of_state_std << std::sqrt(cov(index_tg + 0, index_tg + 0)) << " "
-                   << std::sqrt(cov(index_tg + 1, index_tg + 1)) << " "
-                   << std::sqrt(cov(index_tg + 2, index_tg + 2)) << " "
-                   << std::sqrt(cov(index_tg + 3, index_tg + 3)) << " "
-                   << std::sqrt(cov(index_tg + 4, index_tg + 4)) << " "
-                   << std::sqrt(cov(index_tg + 5, index_tg + 5)) << " "
-                   << std::sqrt(cov(index_tg + 6, index_tg + 6)) << " "
-                   << std::sqrt(cov(index_tg + 7, index_tg + 7)) << " "
+      of_state_std << std::sqrt(cov(index_tg + 0, index_tg + 0)) << " " << std::sqrt(cov(index_tg + 1, index_tg + 1)) << " "
+                   << std::sqrt(cov(index_tg + 2, index_tg + 2)) << " " << std::sqrt(cov(index_tg + 3, index_tg + 3)) << " "
+                   << std::sqrt(cov(index_tg + 4, index_tg + 4)) << " " << std::sqrt(cov(index_tg + 5, index_tg + 5)) << " "
+                   << std::sqrt(cov(index_tg + 6, index_tg + 6)) << " " << std::sqrt(cov(index_tg + 7, index_tg + 7)) << " "
                    << std::sqrt(cov(index_tg + 8, index_tg + 8)) << " ";
     } else {
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
@@ -487,33 +448,24 @@ public:
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
     }
 
-    // R_gyrotoI
-    of_state_est << state->_imu_quat_gyrotoI->value()(0) << " "
-                 << state->_imu_quat_gyrotoI->value()(1) << " "
-                 << state->_imu_quat_gyrotoI->value()(2) << " "
-                 << state->_imu_quat_gyrotoI->value()(3) << " ";
+    // imu intrinsics: kalibr R_gyrotoI
+    of_state_est << state->_imu_quat_gyrotoI->value()(0) << " " << state->_imu_quat_gyrotoI->value()(1) << " "
+                 << state->_imu_quat_gyrotoI->value()(2) << " " << state->_imu_quat_gyrotoI->value()(3) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 0) {
       int index_wtoI = state->_imu_quat_gyrotoI->id();
-      of_state_std << std::sqrt(cov(index_wtoI + 0, index_wtoI + 0)) << " "
-                   << std::sqrt(cov(index_wtoI + 1, index_wtoI + 1)) << " "
-                   << std::sqrt(cov(index_wtoI + 2, index_wtoI + 2)) << " "
-                   << std::sqrt(cov(index_wtoI + 3, index_wtoI + 3)) << " ";
+      of_state_std << std::sqrt(cov(index_wtoI + 0, index_wtoI + 0)) << " " << std::sqrt(cov(index_wtoI + 1, index_wtoI + 1)) << " "
+                   << std::sqrt(cov(index_wtoI + 2, index_wtoI + 2)) << " " << std::sqrt(cov(index_wtoI + 3, index_wtoI + 3)) << " ";
     } else {
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
     }
 
-
-    // R_acctoI
-    of_state_est << state->_imu_quat_acctoI->value()(0) << " "
-                 << state->_imu_quat_acctoI->value()(1) << " "
-                 << state->_imu_quat_acctoI->value()(2) << " "
-                 << state->_imu_quat_acctoI->value()(3) << " ";
+    // imu intrinsics: rpng R_acctoI
+    of_state_est << state->_imu_quat_acctoI->value()(0) << " " << state->_imu_quat_acctoI->value()(1) << " "
+                 << state->_imu_quat_acctoI->value()(2) << " " << state->_imu_quat_acctoI->value()(3) << " ";
     if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == 1) {
       int index_atoI = state->_imu_quat_acctoI->id();
-      of_state_std << std::sqrt(cov(index_atoI + 0, index_atoI + 0)) << " "
-                   << std::sqrt(cov(index_atoI + 1, index_atoI + 1)) << " "
-                   << std::sqrt(cov(index_atoI + 2, index_atoI + 2)) << " "
-                   << std::sqrt(cov(index_atoI + 3, index_atoI + 3)) << " ";
+      of_state_std << std::sqrt(cov(index_atoI + 0, index_atoI + 0)) << " " << std::sqrt(cov(index_atoI + 1, index_atoI + 1)) << " "
+                   << std::sqrt(cov(index_atoI + 2, index_atoI + 2)) << " " << std::sqrt(cov(index_atoI + 3, index_atoI + 3)) << " ";
     } else {
       of_state_std << 0.0 << " " << 0.0 << " " << 0.0 << " ";
     }

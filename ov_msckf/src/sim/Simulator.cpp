@@ -228,30 +228,28 @@ void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &pa
   }
 
   // perturb the imu intrinsics
-  for(int j=0; j<6; j++){
+  for (int j = 0; j < 6; j++) {
     params_.imu_config.imu_x_dw(j) += 0.004 * w(gen_state);
     params_.imu_config.imu_x_da(j) += 0.004 * w(gen_state);
   }
 
   // if we need to perturb gravity sensitivity
-  for(int j=0; j<5; j++){
-    if(params_.state_options.do_calib_imu_g_sensitivity){
+  for (int j = 0; j < 5; j++) {
+    if (params_.state_options.do_calib_imu_g_sensitivity) {
       params_.imu_config.imu_x_tg(j) += 0.004 * w(gen_state);
     }
   }
 
-  // depends on Kalibr model or RPNG model
-  if(params_.state_options.imu_model == 0){
+  // perturb imu intrinsics (depends on model type)
+  if (params_.state_options.imu_model == 0) {
     Eigen::Vector3d w_vec;
     w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
     params_.imu_config.imu_quat_GyrotoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_GyrotoI));
-  }else{
+  } else {
     Eigen::Vector3d w_vec;
     w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
     params_.imu_config.imu_quat_AcctoI = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.imu_quat_AcctoI));
   }
-
-
 }
 
 bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
@@ -332,14 +330,12 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   Eigen::Vector3d accel_inI = R_GtoI * (a_IinG + gravity);
   Eigen::Vector3d omega_inI = w_IinI;
 
-  // get the readings with the imu intrinsics
+  // Get the readings with the imu intrinsic "distortion"
   Eigen::Matrix3d Tg = params.imu_config.Tg();
   Eigen::Matrix3d Tw = params.imu_config.Tw();
   Eigen::Matrix3d Ta = params.imu_config.Ta();
   Eigen::Vector3d omega_inw = Tw * params.imu_config.R_ItoGyro() * omega_inI + Tg * accel_inI;
-  Eigen::Vector3d accel_ina = Ta * params.imu_config.R_ItoAcc()  * accel_inI;
-
-
+  Eigen::Vector3d accel_ina = Ta * params.imu_config.R_ItoAcc() * accel_inI;
 
   // Now add noise to these measurements
   double dt = 1.0 / params.sim_freq_imu;

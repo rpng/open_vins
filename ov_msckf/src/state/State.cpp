@@ -38,35 +38,56 @@ State::State(StateOptions &options) {
   current_id += _imu->size();
 
   // Append the imu intrinsics to the state and covariance
+  // NOTE: these need to be right "next" to the IMU state in the covariance
+  // NOTE: since if calibrating these will evolve / be correlated during propagation
   _imu_x_dw = std::make_shared<Vec>(6);
   _imu_x_da = std::make_shared<Vec>(6);
+  if (options.imu_model == 0) {
+    // lower triangular of the matrix (column-wise)
+    Eigen::Matrix<double, 6, 1> _imu_default = Eigen::Matrix<double, 6, 1>::Zero();
+    _imu_default << 1.0, 0.0, 0.0, 1.0, 0.0, 1.0;
+    _imu_x_dw->set_value(_imu_default);
+    _imu_x_dw->set_fej(_imu_default);
+    _imu_x_da->set_value(_imu_default);
+    _imu_x_da->set_fej(_imu_default);
+  } else {
+    // upper triangular of the matrix (column-wise)
+    Eigen::Matrix<double, 6, 1> _imu_default = Eigen::Matrix<double, 6, 1>::Zero();
+    _imu_default << 1.0, 0.0, 1.0, 0.0, 0.0, 1.0;
+    _imu_x_dw->set_fej(_imu_default);
+    _imu_x_dw->set_fej(_imu_default);
+    _imu_x_da->set_fej(_imu_default);
+    _imu_x_da->set_fej(_imu_default);
+  }
   _imu_x_tg = std::make_shared<Vec>(9);
   _imu_quat_gyrotoI = std::make_shared<JPLQuat>();
   _imu_quat_acctoI = std::make_shared<JPLQuat>();
+  if (options.do_calib_imu_intrinsics) {
 
-
-  if(options.do_calib_imu_intrinsics) {
+    // Gyroscope dw
     _imu_x_dw->set_local_id(current_id);
     _variables.push_back(_imu_x_dw);
     current_id += _imu_x_dw->size();
 
+    // Accelerometer da
     _imu_x_da->set_local_id(current_id);
     _variables.push_back(_imu_x_da);
     current_id += _imu_x_da->size();
 
-    if(options.do_calib_imu_g_sensitivity){
+    // Gyroscope gravity sensitivity
+    if (options.do_calib_imu_g_sensitivity) {
       _imu_x_tg->set_local_id(current_id);
       _variables.push_back(_imu_x_tg);
       current_id += _imu_x_tg->size();
     }
 
-    if(options.imu_model == 0){
-      // if kalibr model, R_GyrotoI is calibrated
+    // If kalibr model, R_GyrotoI is calibrated
+    // If rpng model, R_AcctoI is calibrated
+    if (options.imu_model == 0) {
       _imu_quat_gyrotoI->set_local_id(current_id);
       _variables.push_back(_imu_quat_gyrotoI);
       current_id += _imu_quat_gyrotoI->size();
-    }else{
-      // if rpng model, R_AcctoI is calibrated
+    } else {
       _imu_quat_acctoI->set_local_id(current_id);
       _variables.push_back(_imu_quat_acctoI);
       current_id += _imu_quat_acctoI->size();
@@ -113,21 +134,20 @@ State::State(StateOptions &options) {
   _Cov = 1e-3 * Eigen::MatrixXd::Identity(current_id, current_id);
 
   // Finally, set some of our priors for our calibration parameters
-  if(_options.do_calib_imu_intrinsics){
-    _Cov.block<6,6>(_imu_x_dw->id(),_imu_x_dw->id()) = std::pow(0.005,2) * Eigen::Matrix<double,6,6>::Identity();
-    _Cov.block<6,6>(_imu_x_da->id(),_imu_x_da->id()) = std::pow(0.008,2) * Eigen::Matrix<double,6,6>::Identity();
-    if(_options.do_calib_imu_g_sensitivity){
-      _Cov.block<9,9>(_imu_x_tg->id(),_imu_x_tg->id()) = std::pow(0.005,2) * Eigen::Matrix<double,9,9>::Identity();
+  if (_options.do_calib_imu_intrinsics) {
+    _Cov.block<6, 6>(_imu_x_dw->id(), _imu_x_dw->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 6, 6>::Identity();
+    _Cov.block<6, 6>(_imu_x_da->id(), _imu_x_da->id()) = std::pow(0.008, 2) * Eigen::Matrix<double, 6, 6>::Identity();
+    if (_options.do_calib_imu_g_sensitivity) {
+      _Cov.block<9, 9>(_imu_x_tg->id(), _imu_x_tg->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 9, 9>::Identity();
     }
-    if(_options.imu_model == 0){
+    if (_options.imu_model == 0) {
       // if kalibr model, R_GyrotoI is calibrated
-      _Cov.block<3,3>(_imu_quat_gyrotoI->id(), _imu_quat_gyrotoI->id()) = std::pow(0.005,2) * Eigen::Matrix<double,3,3>::Identity();
-    }else{
+      _Cov.block<3, 3>(_imu_quat_gyrotoI->id(), _imu_quat_gyrotoI->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 3, 3>::Identity();
+    } else {
       // if rpng model, R_AcctoI is calibrated
-      _Cov.block<3,3>(_imu_quat_acctoI->id(),_imu_quat_acctoI->id()) = std::pow(0.005, 2) * Eigen::Matrix<double,3,3>::Identity();
+      _Cov.block<3, 3>(_imu_quat_acctoI->id(), _imu_quat_acctoI->id()) = std::pow(0.005, 2) * Eigen::Matrix<double, 3, 3>::Identity();
     }
   }
-
 
   if (_options.do_calib_camera_timeoffset) {
     _Cov(_calib_dt_CAMtoIMU->id(), _calib_dt_CAMtoIMU->id()) = std::pow(0.01, 2);
@@ -148,55 +168,42 @@ State::State(StateOptions &options) {
   }
 }
 
-
 Eigen::Matrix3d State::Dw() {
   Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
-  if(_options.imu_model == 0){
+  if (_options.imu_model == 0) {
     // if kalibr model, lower triangular of the matrix is used
-    Dw << _imu_x_dw->value()(0),   0,     0,
-        _imu_x_dw->value()(1), _imu_x_dw->value()(3), 0,
-        _imu_x_dw->value()(2), _imu_x_dw->value()(4), _imu_x_dw->value()(5);
-  }else{
+    Dw << _imu_x_dw->value()(0), 0, 0, _imu_x_dw->value()(1), _imu_x_dw->value()(3), 0, _imu_x_dw->value()(2), _imu_x_dw->value()(4),
+        _imu_x_dw->value()(5);
+  } else {
     // if rpng model, upper triangular of the matrix is used
-    Dw << _imu_x_dw->value()(0),  _imu_x_dw->value()(1),  _imu_x_dw->value()(3),
-        0,                             _imu_x_dw->value()(2),  _imu_x_dw->value()(4),
-        0,                             0,                      _imu_x_dw->value()(5);
+    Dw << _imu_x_dw->value()(0), _imu_x_dw->value()(1), _imu_x_dw->value()(3), 0, _imu_x_dw->value()(2), _imu_x_dw->value()(4), 0, 0,
+        _imu_x_dw->value()(5);
   }
   return Dw;
 }
 
-
 Eigen::Matrix3d State::Da() {
   Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-  if(_options.imu_model == 0){
+  if (_options.imu_model == 0) {
     // if kalibr model, lower triangular of the matrix is used
-    Da << _imu_x_da->value()(0),   0,     0,
-        _imu_x_da->value()(1), _imu_x_da->value()(3), 0,
-        _imu_x_da->value()(2), _imu_x_da->value()(4), _imu_x_da->value()(5);
-  }else{
+    Da << _imu_x_da->value()(0), 0, 0, _imu_x_da->value()(1), _imu_x_da->value()(3), 0, _imu_x_da->value()(2), _imu_x_da->value()(4),
+        _imu_x_da->value()(5);
+  } else {
     // if rpng model, upper triangular of the matrix is used
-    Da << _imu_x_da->value()(0),  _imu_x_da->value()(1),  _imu_x_da->value()(3),
-        0,                             _imu_x_da->value()(2),  _imu_x_da->value()(4),
-        0,                             0,                      _imu_x_da->value()(5);
+    Da << _imu_x_da->value()(0), _imu_x_da->value()(1), _imu_x_da->value()(3), 0, _imu_x_da->value()(2), _imu_x_da->value()(4), 0, 0,
+        _imu_x_da->value()(5);
   }
   return Da;
 }
 
-
 Eigen::Matrix3d State::Tg() {
   Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
-    Tg << _imu_x_tg->value()(0),   _imu_x_tg->value()(3),    _imu_x_tg->value()(6),
-        _imu_x_tg->value()(1), _imu_x_tg->value()(4), _imu_x_tg->value()(7),
-        _imu_x_tg->value()(2), _imu_x_tg->value()(5), _imu_x_tg->value()(8);
+  Tg << _imu_x_tg->value()(0), _imu_x_tg->value()(3), _imu_x_tg->value()(6), _imu_x_tg->value()(1), _imu_x_tg->value()(4),
+      _imu_x_tg->value()(7), _imu_x_tg->value()(2), _imu_x_tg->value()(5), _imu_x_tg->value()(8);
 
   return Tg;
 }
 
+Eigen::Matrix3d State::R_AcctoI() { return _imu_quat_acctoI->Rot(); }
 
-Eigen::Matrix3d State::R_AcctoI() {
-  return _imu_quat_acctoI->Rot();
-}
-
-Eigen::Matrix3d State::R_GyrotoI() {
-  return _imu_quat_gyrotoI->Rot();
-}
+Eigen::Matrix3d State::R_GyrotoI() { return _imu_quat_gyrotoI->Rot(); }
