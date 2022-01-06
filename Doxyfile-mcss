@@ -9,28 +9,9 @@ HTML_EXTRA_STYLESHEET = \
     docs/css/custom.css
 
 
-
 ## No need to expose to-do list or bug list in public docs.
 GENERATE_TODOLIST      = NO
 GENERATE_BUGLIST       = NO
-
-## Add nice shorthand for code comments
-## https://mcss.mosra.cz/documentation/doxygen/#code-highlighting
-ALIASES += \
-    "cb{1}=@code{\1}" \
-    "ce=@endcode" \
-    "cpp=@code{.cpp}" \
-    "cmake=@code{.cmake}" \
-    "m_div{1}=@xmlonly<mcss:div xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:class=\"\1\">@endxmlonly" \
-    "m_enddiv=@xmlonly</mcss:div>@endxmlonly" \
-    "m_span{1}=@xmlonly<mcss:span xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:class=\"\1\">@endxmlonly" \
-    "m_endspan=@xmlonly</mcss:span>@endxmlonly" \
-    "m_class{1}=@xmlonly<mcss:class xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:class=\"\1\" />@endxmlonly" \
-    "m_footernavigation=@xmlonly<mcss:footernavigation xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" />@endxmlonly" \
-    "m_examplenavigation{2}=@xmlonly<mcss:examplenavigation xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:page=\"\1\" mcss:prefix=\"\2\" />@endxmlonly" \
-    "m_keywords{1}=@xmlonly<mcss:search xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:keywords=\"\1\" />@endxmlonly" \
-    "m_keyword{3}=@xmlonly<mcss:search xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:keyword=\"\1\" mcss:title=\"\2\" mcss:suffix-length=\"\3\" />@endxmlonly" \
-    "m_enum_values_as_keywords=@xmlonly<mcss:search xmlns:mcss=\"http://mcss.mosra.cz/doxygen/\" mcss:enum-values-as-keywords=\"true\" />@endxmlonly"
 
 ##! M_THEME_COLOR           = #2f73a3
 ##! M_FAVICON               = docs/img/favicon-light.png

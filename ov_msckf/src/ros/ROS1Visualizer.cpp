@@ -139,7 +139,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
-  if (_app->get_params().state_options.num_cameras == 2) {
+  if (_app->get_params().state_options.num_cameras == 2 && _app->get_params().use_stereo) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
     _nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");

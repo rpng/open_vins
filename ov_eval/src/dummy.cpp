@@ -21,6 +21,7 @@
 
 /**
  * @namespace ov_eval
+ * @brief Evaluation and recording utilities
  *
  * This project contains the key evaluation and research scripts for localization methods.
  * These come from the necessity of trying to quantify the accuracy of the estimated trajectory while

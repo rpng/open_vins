@@ -163,7 +163,7 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
 
   // If we do not have enough unique cameras then we need to wait
   // We should wait till we have one of each camera to ensure we propagate in the correct order
-  size_t num_unique_cameras = (params.state_options.num_cameras == 2) ? 1 : params.state_options.num_cameras;
+  size_t num_unique_cameras = (params.state_options.num_cameras == 2 && params.use_stereo) ? 1 : params.state_options.num_cameras;
   if (unique_cam_ids.size() != num_unique_cameras)
     return;
 
@@ -194,7 +194,9 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
 
   // Feed our simulation tracker
   trackSIM->feed_measurement_simulation(timestamp, camids, feats);
-  trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
+  if (is_initialized_vio) {
+    trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
+  }
   rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Check if we should do zero-velocity, if so update the state with it

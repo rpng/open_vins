@@ -115,14 +115,30 @@ details on what the system supports.
 
 ## Demo Videos
 
-[![](docs/youtube/KCX51GvYGss.jpg)](http://www.youtube.com/watch?v=KCX51GvYGss "OpenVINS - EuRoC MAV Vicon Rooms Flyby")
-[![](docs/youtube/Lc7VQHngSuQ.jpg)](http://www.youtube.com/watch?v=Lc7VQHngSuQ "OpenVINS - TUM VI Datasets Flyby")
-[![](docs/youtube/vaia7iPaRW8.jpg)](http://www.youtube.com/watch?v=vaia7iPaRW8 "OpenVINS - UZH-FPV Drone Racing Dataset Flyby")
-[![](docs/youtube/MCzTF9ye2zw.jpg)](http://www.youtube.com/watch?v=MCzTF9ye2zw "OpenVINS - KAIST Urban 39 Dataset Demonstration")
+<a href="http://www.youtube.com/watch?v=KCX51GvYGss">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/KCX51GvYGss.jpg" width="120" height="90" />
+</a>
+<a href="http://www.youtube.com/watch?v=Lc7VQHngSuQ">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/Lc7VQHngSuQ.jpg" width="120" height="90" />
+</a>
+<a href="http://www.youtube.com/watch?v=vaia7iPaRW8">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/vaia7iPaRW8.jpg" width="120" height="90" />
+</a>
+<a href="http://www.youtube.com/watch?v=MCzTF9ye2zw">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/MCzTF9ye2zw.jpg"  width="120" height="90"/>
+</a>
+<br/>
 
-[![](docs/youtube/187AXuuGNNw.jpg)](http://www.youtube.com/watch?v=187AXuuGNNw "OpenVINS - EuRoC MAV Vicon Rooms Demonstration")
-[![](docs/youtube/oUoLlrFryk0.jpg)](http://www.youtube.com/watch?v=oUoLlrFryk0 "OpenVINS - TUM VI Datasets Demostration")
-[![](docs/youtube/ExPIGwORm4E.jpg)](http://www.youtube.com/watch?v=ExPIGwORm4E "OpenVINS - UZH-FPV Drone Racing Dataset Demonstration")
+<a href="http://www.youtube.com/watch?v=187AXuuGNNw">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/187AXuuGNNw.jpg" width="120" height="90" />
+</a>
+<a href="http://www.youtube.com/watch?v=oUoLlrFryk0">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/oUoLlrFryk0.jpg" width="120" height="90" />
+</a>
+<a href="http://www.youtube.com/watch?v=ExPIGwORm4E">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/ExPIGwORm4E.jpg" width="120" height="90" />
+</a>
+
 
 ## Credit / Licensing
 
