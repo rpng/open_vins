@@ -83,7 +83,7 @@ int main(int argc, char **argv) {
 
   // Our camera topics (stereo pairs and non-stereo mono)
   std::vector<std::pair<size_t, std::string>> topic_cameras;
-  if (params.use_stereo && params.state_options.num_cameras == 2) {
+  if (params.state_options.num_cameras == 2 && params.use_stereo) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
     nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
@@ -222,7 +222,7 @@ int main(int argc, char **argv) {
     }
 
     // If we are stereo, then we should collect both the left and right
-    if (params.state_options.num_cameras == 2) {
+    if (params.state_options.num_cameras == 2 && params.use_stereo) {
 
       // Now lets do some logic to find two images which are next to each other
       // We want to ensure that our stereo pair are very close to occurring at the same time

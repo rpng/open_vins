@@ -156,7 +156,7 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
 
   // If we do not have enough unique cameras then we need to wait
   // We should wait till we have one of each camera to ensure we propagate in the correct order
-  size_t num_unique_cameras = (params.state_options.num_cameras == 2) ? 1 : params.state_options.num_cameras;
+  size_t num_unique_cameras = (params.state_options.num_cameras == 2 && params.use_stereo) ? 1 : params.state_options.num_cameras;
   if (unique_cam_ids.size() != num_unique_cameras)
     return;
 
