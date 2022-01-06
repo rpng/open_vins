@@ -41,7 +41,7 @@ class Propagator {
 public:
   /**
    * @brief Default constructor
-   * @param noises imu noise characteristics (continuous time)
+   * @param imu_config imu noise characteristics (continuous time)
    * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    */
   Propagator(ov_core::ImuConfig imu_config, double gravity_mag) : _imu_config(imu_config) {

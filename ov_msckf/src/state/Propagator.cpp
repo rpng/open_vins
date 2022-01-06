@@ -596,16 +596,16 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
     // first order rotation integration with constant omega
     Xi_1 = I_3x3 * d_t + (1.0 - cos_dth) / w_norm * sK + (d_t - sin_dth / w_norm) * sK2;
 
-    // second order rotation integration with constat omega
+    // second order rotation integration with constant omega
     Xi_2 = 1.0 / 2 * d_t2 * I_3x3 + (d_th - sin_dth) / w_norm2 * sK + (1.0 / 2 * d_t2 - (1.0 - cos_dth) / w_norm2) * sK2;
 
-    // first order RAJ integration with constant omega and constant acc
+    // first order integration with constant omega and constant acc
     Xi_3 = 1.0 / 2 * d_t2 * sA + (sin_dth - d_th) / w_norm2 * sA * sK + (sin_dth - d_th * cos_dth) / w_norm2 * sK * sA +
            (1.0 / 2 * d_t2 - (1.0 - cos_dth) / w_norm2) * sA * sK2 +
-           (1.0 / 2 * d_t2 - (1.0 - cos_dth - d_th * sin_dth) / w_norm2) * (sK2 * sA + k_hat.dot(a_hat) * sK) -
+           (1.0 / 2 * d_t2 + (1.0 - cos_dth - d_th * sin_dth) / w_norm2) * (sK2 * sA + k_hat.dot(a_hat) * sK) -
            (3 * sin_dth - 2 * d_th - d_th * cos_dth) / w_norm2 * k_hat.dot(a_hat) * sK2;
 
-    // second order RAJ integration with constant omega and constant acc
+    // second order integration with constant omega and constant acc
     Xi_4 = 1.0 / 6 * d_t3 * sA + (2 * (1.0 - cos_dth) - d_th2) / (2 * w_norm3) * sA * sK +
            ((2 * (1.0 - cos_dth) - d_th * sin_dth) / w_norm3) * sK * sA + ((sin_dth - d_th) / w_norm3 + d_t3 / 6) * sA * sK2 +
            ((d_th - 2 * sin_dth + 1.0 / 6 * d_th3 + d_th * cos_dth) / w_norm3) * (sK2 * sA + k_hat.dot(a_hat) * sK) +
@@ -613,18 +613,17 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
 
   } else {
 
-    // first order rotation
+    // first order rotation integration with constant omega
     Xi_1 = d_t * (I_3x3 + sin_dth * sK + (1.0 - cos_dth) * sK2);
 
-    // second order rotation
+    // second order rotation integration with constant omega
     Xi_2 = 1.0 / 2 * d_t * Xi_1;
-    // iint_R = 1.0/2 * d_t2 * (I_3x3 + sin_dth * sK + (1.0-cos_dth) * sK2);
 
-    // first order RAJ
+    // first order integration with constant omega and constant acc
     Xi_3 = 1.0 / 2 * d_t2 *
            (sA + sin_dth * (-sA * sK + sK * sA + k_hat.dot(a_hat) * sK2) + (1.0 - cos_dth) * (sA * sK2 + sK2 * sA + k_hat.dot(a_hat) * sK));
 
-    // second order RAJ
+    // second order integration with constant omega and constant acc
     Xi_4 = 1.0 / 3 * d_t * Xi_3;
   }
 

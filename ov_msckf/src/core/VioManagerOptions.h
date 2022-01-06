@@ -307,8 +307,8 @@ struct VioManagerOptions {
       // TODO: error here if this returns a NaN value (i.e. invalid matrix specified)
       Eigen::Matrix3d Dw = Tw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d Da = Ta.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
-      Eigen::Matrix3d R_AcctoI = R_ItoAcc.transpose();
-      Eigen::Matrix3d R_GyrotoI = R_ItoGyro.transpose();
+      Eigen::Matrix3d R_ACCtoIMU = R_ItoAcc.transpose();
+      Eigen::Matrix3d R_GYROtoIMU = R_ItoGyro.transpose();
 
       // kalibr model: lower triangular of the matrix and R_GYROtoI
       // rpng model: upper triangular of the matrix and R_ACCtoI
@@ -320,8 +320,8 @@ struct VioManagerOptions {
         imu_config.vec_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
       }
       imu_config.vec_tg << Tg.block<3, 1>(0, 0), Tg.block<3, 1>(0, 1), Tg.block<3, 1>(0, 2);
-      imu_config.q_GYROtoIMU = ov_core::rot_2_quat(R_GyrotoI);
-      imu_config.q_ACCtoIMU = ov_core::rot_2_quat(R_AcctoI);
+      imu_config.q_GYROtoIMU = ov_core::rot_2_quat(R_GYROtoIMU);
+      imu_config.q_ACCtoIMU = ov_core::rot_2_quat(R_ACCtoIMU);
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);

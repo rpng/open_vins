@@ -49,10 +49,15 @@ VioManager::VioManager(VioManagerOptions &params_) {
 
   // Set the IMU intrinsics
   state->_calib_imu_dw->set_value(params.imu_config.vec_dw);
+  state->_calib_imu_dw->set_fej(params.imu_config.vec_dw);
   state->_calib_imu_da->set_value(params.imu_config.vec_da);
+  state->_calib_imu_da->set_fej(params.imu_config.vec_da);
   state->_calib_imu_tg->set_value(params.imu_config.vec_tg);
+  state->_calib_imu_tg->set_fej(params.imu_config.vec_tg);
   state->_calib_imu_GYROtoIMU->set_value(params.imu_config.q_GYROtoIMU);
+  state->_calib_imu_GYROtoIMU->set_fej(params.imu_config.q_GYROtoIMU);
   state->_calib_imu_ACCtoIMU->set_value(params.imu_config.q_ACCtoIMU);
+  state->_calib_imu_ACCtoIMU->set_fej(params.imu_config.q_ACCtoIMU);
 
   // Timeoffset from camera to IMU
   Eigen::VectorXd temp_camimu_dt;
