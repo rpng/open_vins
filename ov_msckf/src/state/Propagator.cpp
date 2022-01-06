@@ -599,7 +599,7 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
     // second order rotation integration with constat omega
     Xi_2 = 1.0 / 2 * d_t2 * I_3x3 + (d_th - sin_dth) / w_norm2 * sK + (1.0 / 2 * d_t2 - (1.0 - cos_dth) / w_norm2) * sK2;
 
-    // first order RAJ integratioin with constant omega and constant acc
+    // first order RAJ integration with constant omega and constant acc
     Xi_3 = 1.0 / 2 * d_t2 * sA + (sin_dth - d_th) / w_norm2 * sA * sK + (sin_dth - d_th * cos_dth) / w_norm2 * sK * sA +
            (1.0 / 2 * d_t2 - (1.0 - cos_dth) / w_norm2) * sA * sK2 +
            (1.0 / 2 * d_t2 - (1.0 - cos_dth - d_th * sin_dth) / w_norm2) * (sK2 * sA + k_hat.dot(a_hat) * sK) -
@@ -712,11 +712,11 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
   Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
   Eigen::Vector3d w_k = R_wtoI * Dw * w_uncorrected; // contains gravity correction already
 
-  Eigen::Matrix3d Xi_1 = Xi_sum.block<3, 3>(0, 3);
-  Eigen::Matrix3d Xi_2 = Xi_sum.block<3, 3>(0, 6);
-  Eigen::Matrix3d Jr = Xi_sum.block<3, 3>(0, 9);
-  Eigen::Matrix3d Xi_3 = Xi_sum.block<3, 3>(0, 12);
-  Eigen::Matrix3d Xi_4 = Xi_sum.block<3, 3>(0, 15);
+  Eigen::Matrix3d Xi_1 = Xi_sum.block(0, 3, 3, 3);
+  Eigen::Matrix3d Xi_2 = Xi_sum.block(0, 6, 3, 3);
+  Eigen::Matrix3d Jr = Xi_sum.block(0, 9, 3, 3);
+  Eigen::Matrix3d Xi_3 = Xi_sum.block(0, 12, 3, 3);
+  Eigen::Matrix3d Xi_4 = Xi_sum.block(0, 15, 3, 3);
 
   // for th
   F.block(th_id, th_id, 3, 3) = dR_ktok1;
@@ -724,17 +724,17 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
   F.block(v_id, th_id, 3, 3) = -skew_x(new_v - v_k + _gravity * dt) * R_k.transpose();
 
   // for p
-  F.block<3, 3>(p_id, p_id, 3, 3).setIdentity();
+  F.block(p_id, p_id, 3, 3).setIdentity();
 
   // for v
-  F.block<3, 3>(p_id, v_id, 3, 3) = Eigen::Matrix3d::Identity() * dt;
-  F.block<3, 3>(v_id, v_id, 3, 3).setIdentity();
+  F.block(p_id, v_id, 3, 3) = Eigen::Matrix3d::Identity() * dt;
+  F.block(v_id, v_id, 3, 3).setIdentity();
 
   // for bg
-  F.block<3, 3>(th_id, bg_id, 3, 3) = -Jr * dt * R_wtoI * Dw;
-  F.block<3, 3>(p_id, bg_id, 3, 3) = R_k.transpose() * Xi_4 * R_wtoI * Dw;
-  F.block<3, 3>(v_id, bg_id, 3, 3) = R_k.transpose() * Xi_3 * R_wtoI * Dw;
-  F.block<3, 3>(bg_id, bg_id, 3, 3).setIdentity();
+  F.block(th_id, bg_id, 3, 3) = -Jr * dt * R_wtoI * Dw;
+  F.block(p_id, bg_id, 3, 3) = R_k.transpose() * Xi_4 * R_wtoI * Dw;
+  F.block(v_id, bg_id, 3, 3) = R_k.transpose() * Xi_3 * R_wtoI * Dw;
+  F.block(bg_id, bg_id, 3, 3).setIdentity();
 
   // for ba
   F.block(th_id, ba_id, 3, 3) = Jr * dt * R_wtoI * Dw * Tg * R_atoI * Da;
