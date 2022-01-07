@@ -304,9 +304,9 @@ struct VioManagerOptions {
       Eigen::Matrix3d Ta = Eigen::Matrix3d::Identity();
       parser->parse_external("relative_config_imu", "imu0", "Ta", Ta);
       Eigen::Matrix3d R_IMUtoACC = Eigen::Matrix3d::Identity();
-      parser->parse_external("relative_config_imu", "imu0", "R_ItoAcc", R_IMUtoACC);
+      parser->parse_external("relative_config_imu", "imu0", "R_IMUtoACC", R_IMUtoACC);
       Eigen::Matrix3d R_IMUtoGYRO = Eigen::Matrix3d::Identity();
-      parser->parse_external("relative_config_imu", "imu0", "R_ItoGyro", R_IMUtoGYRO);
+      parser->parse_external("relative_config_imu", "imu0", "R_IMUtoGYRO", R_IMUtoGYRO);
       Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
       parser->parse_external("relative_config_imu", "imu0", "Tg", Tg);
 

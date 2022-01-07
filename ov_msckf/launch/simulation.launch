@@ -10,17 +10,15 @@
     <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
 
     <!-- simulation parameters we can vary with our scripts -->
-    <arg name="seed"        default="3" />
+    <arg name="seed"        default="5" />
     <arg name="fej"         default="true" />
     <arg name="feat_rep"    default="GLOBAL_3D" />
     <arg name="num_clones"  default="11" />
     <arg name="num_slam"    default="50" />
     <arg name="num_pts"     default="100" />
     <arg name="max_cameras" default="1" />
-
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
-
     <arg name="dataset"    default="udel_gore.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl -->
 
     <!-- if we should perturb the initial state values (i.e. calibration) -->
@@ -38,11 +36,8 @@
     <arg name="path_state_std"  default="$(find ov_eval)/data/sim/state_deviation.txt" />
     <arg name="path_state_gt"   default="$(find ov_eval)/data/sim/state_groundtruth.txt" />
 
-
-
     <!-- ================================================================ -->
     <!-- ================================================================ -->
-
 
     <!-- MASTER NODE! -->
     <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">
