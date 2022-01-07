@@ -18,7 +18,6 @@ include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
-        ${PYTHON_INCLUDE_DIRS}
 )
 
 # Set link libraries used by all binaries

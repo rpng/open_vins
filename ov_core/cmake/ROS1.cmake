@@ -18,12 +18,16 @@ else ()
 endif ()
 
 # Include our header files
+message(WARNING "EIGEN3_INCLUDE_DIR ${EIGEN3_INCLUDE_DIR}")
+message(WARNING "Boost_INCLUDE_DIRS ${Boost_INCLUDE_DIRS}")
+message(WARNING "catkin_INCLUDE_DIRS ${catkin_INCLUDE_DIRS}")
+message(WARNING "Boost_LIBRARIES ${Boost_LIBRARIES}")
+message(WARNING "OpenCV_LIBRARIES ${OpenCV_LIBRARIES}")
+message(WARNING "catkin_LIBRARIES ${catkin_LIBRARIES}")
 include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
-        /usr/local/lib/python2.7/dist-packages/numpy/core/include
-        /usr/local/lib/python2.7/site-packages/numpy/core/include
         ${catkin_INCLUDE_DIRS}
 )
 

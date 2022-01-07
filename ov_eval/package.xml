@@ -33,6 +33,7 @@
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
 
     <!-- System dependencies for both versions -->
+    <depend version_gte="3.12">cmake</depend>
     <depend>eigen</depend>
     <depend>boost</depend>
 

@@ -22,6 +22,9 @@
     <!-- ROS2: Dependencies needed to compile this package. -->
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
 
+    <!-- System dependencies for both versions -->
+    <depend version_gte="3.12">cmake</depend>
+
     <!-- Note the export is required to expose the executables -->
     <export>
         <build_type condition="$ROS_VERSION == 1">catkin</build_type>
