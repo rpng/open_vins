@@ -80,16 +80,18 @@ public:
 
   /**
    * @brief Gyroscope intrinsic (scale imperfection and axis misalignment)
+   *
+   * If kalibr model, lower triangular of the matrix is used
+   * If rpng model, upper triangular of the matrix is used
+   *
    * @return 3x3 matrix of current imu gyroscope intrinsics
    */
   Eigen::Matrix3d Dw() {
     Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
     if (_options.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
-      // if kalibr model, lower triangular of the matrix is used
       Dw << _calib_imu_dw->value()(0), 0, 0, _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
           _calib_imu_dw->value()(4), _calib_imu_dw->value()(5);
     } else {
-      // if rpng model, upper triangular of the matrix is used
       Dw << _calib_imu_dw->value()(0), _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
           _calib_imu_dw->value()(4), 0, 0, _calib_imu_dw->value()(5);
     }
@@ -98,16 +100,18 @@ public:
 
   /**
    * @brief Accelerometer intrinsic (scale imperfection and axis misalignment)
+   *
+   * If kalibr model, lower triangular of the matrix is used
+   * If rpng model, upper triangular of the matrix is used
+   *
    * @return 3x3 matrix of current imu accelerometer intrinsics
    */
   Eigen::Matrix3d Da() {
     Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
     if (_options.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
-      // if kalibr model, lower triangular of the matrix is used
       Da << _calib_imu_da->value()(0), 0, 0, _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
           _calib_imu_da->value()(4), _calib_imu_da->value()(5);
     } else {
-      // if rpng model, upper triangular of the matrix is used
       Da << _calib_imu_da->value()(0), _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
           _calib_imu_da->value()(4), 0, 0, _calib_imu_da->value()(5);
     }
@@ -145,7 +149,7 @@ public:
     return sz;
   }
 
-  /// Current timestamp (should be the last update time!)
+  /// Current timestamp (should be the last update time in camera clock frame!)
   double _timestamp = -1;
 
   /// Struct containing filter options

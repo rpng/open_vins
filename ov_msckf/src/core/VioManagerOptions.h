@@ -242,7 +242,6 @@ struct VioManagerOptions {
         parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "resolution", matrix_wh);
         matrix_wh.at(0) /= (downsample_cameras) ? 2.0 : 1.0;
         matrix_wh.at(1) /= (downsample_cameras) ? 2.0 : 1.0;
-        std::pair<int, int> wh(matrix_wh.at(0), matrix_wh.at(1));
 
         // Extrinsics
         Eigen::Matrix4d T_CtoI = Eigen::Matrix4d::Identity();
@@ -275,7 +274,15 @@ struct VioManagerOptions {
             PRINT_ERROR(RED "\t- mask%d - %s\n" RESET, i, total_mask_path.c_str());
             std::exit(EXIT_FAILURE);
           }
-          masks.insert({i, cv::imread(total_mask_path, cv::IMREAD_GRAYSCALE)});
+          cv::Mat mask = cv::imread(total_mask_path, cv::IMREAD_GRAYSCALE);
+          masks.insert({i, mask});
+          if (mask.cols != camera_intrinsics.at(i)->w() || mask.rows != camera_intrinsics.at(i)->h()) {
+            PRINT_ERROR(RED "VioManager(): mask size does not match camera!\n" RESET);
+            PRINT_ERROR(RED "\t- mask%d - %s\n" RESET, i, total_mask_path.c_str());
+            PRINT_ERROR(RED "\t- mask%d - %d x %d\n" RESET, mask.cols, mask.rows);
+            PRINT_ERROR(RED "\t- cam%d - %d x %d\n" RESET, camera_intrinsics.at(i)->w(), camera_intrinsics.at(i)->h());
+            std::exit(EXIT_FAILURE);
+          }
         }
       }
 
@@ -296,10 +303,10 @@ struct VioManagerOptions {
       parser->parse_external("relative_config_imu", "imu0", "Tw", Tw);
       Eigen::Matrix3d Ta = Eigen::Matrix3d::Identity();
       parser->parse_external("relative_config_imu", "imu0", "Ta", Ta);
-      Eigen::Matrix3d R_ItoAcc = Eigen::Matrix3d::Identity();
-      parser->parse_external("relative_config_imu", "imu0", "R_ItoAcc", R_ItoAcc);
-      Eigen::Matrix3d R_ItoGyro = Eigen::Matrix3d::Identity();
-      parser->parse_external("relative_config_imu", "imu0", "R_ItoGyro", R_ItoGyro);
+      Eigen::Matrix3d R_IMUtoACC = Eigen::Matrix3d::Identity();
+      parser->parse_external("relative_config_imu", "imu0", "R_IMUtoACC", R_IMUtoACC);
+      Eigen::Matrix3d R_IMUtoGYRO = Eigen::Matrix3d::Identity();
+      parser->parse_external("relative_config_imu", "imu0", "R_IMUtoGYRO", R_IMUtoGYRO);
       Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
       parser->parse_external("relative_config_imu", "imu0", "Tg", Tg);
 
@@ -307,8 +314,8 @@ struct VioManagerOptions {
       // TODO: error here if this returns a NaN value (i.e. invalid matrix specified)
       Eigen::Matrix3d Dw = Tw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d Da = Ta.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
-      Eigen::Matrix3d R_ACCtoIMU = R_ItoAcc.transpose();
-      Eigen::Matrix3d R_GYROtoIMU = R_ItoGyro.transpose();
+      Eigen::Matrix3d R_ACCtoIMU = R_IMUtoACC.transpose();
+      Eigen::Matrix3d R_GYROtoIMU = R_IMUtoGYRO.transpose();
 
       // kalibr model: lower triangular of the matrix and R_GYROtoI
       // rpng model: upper triangular of the matrix and R_ACCtoI
