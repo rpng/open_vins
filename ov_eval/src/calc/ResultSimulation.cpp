@@ -620,11 +620,11 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
   // Update the title and axis labels
   matplotlibcpp::subplot(3, 1, 1);
   matplotlibcpp::title("IMU Dw Error");
-  matplotlibcpp::ylabel("dw_3");
-  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("dw_4");
-  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("dw_5");
+  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::ylabel("dw_6");
   matplotlibcpp::xlabel("dataset time (s)");
   matplotlibcpp::show(false);
 
@@ -652,11 +652,11 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
   // Update the title and axis labels
   matplotlibcpp::subplot(3, 1, 1);
   matplotlibcpp::title("IMU Da Error");
-  matplotlibcpp::ylabel("da_3");
-  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("da_4");
-  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("da_5");
+  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::ylabel("da_6");
   matplotlibcpp::xlabel("dataset time (s)");
   matplotlibcpp::show(false);
 
@@ -684,11 +684,11 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
   // Update the title and axis labels
   matplotlibcpp::subplot(3, 1, 1);
   matplotlibcpp::title("IMU Tg Error");
-  matplotlibcpp::ylabel("tg_3");
-  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("tg_4");
-  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("tg_5");
+  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::ylabel("tg_6");
   matplotlibcpp::xlabel("dataset time (s)");
   matplotlibcpp::show(false);
 
@@ -698,11 +698,11 @@ void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
   // Update the title and axis labels
   matplotlibcpp::subplot(3, 1, 1);
   matplotlibcpp::title("IMU Tg Error");
-  matplotlibcpp::ylabel("tg_6");
-  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("tg_7");
-  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::subplot(3, 1, 2);
   matplotlibcpp::ylabel("tg_8");
+  matplotlibcpp::subplot(3, 1, 3);
+  matplotlibcpp::ylabel("tg_9");
   matplotlibcpp::xlabel("dataset time (s)");
   matplotlibcpp::show(false);
 
