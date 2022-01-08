@@ -198,9 +198,9 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       if (state->_options.use_analytic_integration) {
         predict_mean_analytic(state, dt, w_hat, a_hat, new_q, new_v, new_p, Xi_sum);
       } else if (state->_options.use_rk4_integration) {
-        predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+        predict_mean_rk4(state, dt, w_hat1, a_hat1, w_hat2, a_hat2, new_q, new_v, new_p);
       } else {
-        predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+        predict_mean_discrete(state, dt, w_hat1, a_hat1, w_hat2, a_hat2, new_q, new_v, new_p);
       }
 
       // Now replace imu estimate and fej with propagated values
@@ -386,9 +386,8 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
 
   // Pre-compute some analytical values for the mean and covariance integration
   Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
-  if (state->_options.use_analytic_integration || state->_options.use_rk4_integration) {
-    compute_Xi_sum(state, dt, w_hat, a_hat, Xi_sum);
-  }
+  if (state->_options.use_analytic_integration || state->_options.use_rk4_integration)
+      compute_Xi_sum(state, dt, w_hat, a_hat, Xi_sum);
 
   // Compute the new state mean value
   Eigen::Vector4d new_q;
@@ -396,9 +395,9 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   if (state->_options.use_analytic_integration) {
     predict_mean_analytic(state, dt, w_hat, a_hat, new_q, new_v, new_p, Xi_sum);
   } else if (state->_options.use_rk4_integration) {
-    predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+    predict_mean_rk4(state, dt, w_hat1, a_hat1, w_hat2, a_hat2, new_q, new_v, new_p);
   } else {
-    predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+    predict_mean_discrete(state, dt, w_hat1, a_hat1, w_hat2, a_hat2, new_q, new_v, new_p);
   }
 
   // Allocate state transition and noise Jacobian
@@ -409,6 +408,8 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   } else {
     compute_F_and_G_discrete(state, dt, w_hat, a_hat, w_uncorrected, a_uncorrected, new_q, new_v, new_p, F, G);
   }
+
+
 
   // Construct our discrete noise covariance matrix
   // Note that we need to convert our continuous time noises to discrete

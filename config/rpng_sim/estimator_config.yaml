@@ -3,12 +3,12 @@
 verbosity: "INFO" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
 
 use_fej: true # if we should use first-estimate Jacobians (enable for good consistency)
-use_imuavg: false # for our discrete integration, if we should average sequential IMU measurements to "smooth" it
+use_imuavg: true # for our discrete integration, if we should average sequential IMU measurements to "smooth" it
 use_rk4_int: false # if rk4 integration should be used (overrides imu averaging)
 use_analytic_int: true # if analytic integration should be used (overrides imu averaging)
 
-use_stereo: true # if we have more than 1 camera, if we should try to track stereo constraints
-max_cameras: 2
+use_stereo: false # if we have more than 1 camera, if we should try to track stereo constraints
+max_cameras: 1
 
 calib_cam_extrinsics: true
 calib_cam_intrinsics: true
