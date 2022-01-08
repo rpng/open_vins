@@ -104,7 +104,6 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   std::vector<std::shared_ptr<Type>> Phi_order;
   Phi_order.push_back(state->_imu);
   if (state->_options.do_calib_imu_intrinsics) {
-    assert(false);
     Phi_order.push_back(state->_calib_imu_dw);
     Phi_order.push_back(state->_calib_imu_da);
     if (state->_options.do_calib_imu_g_sensitivity) {
