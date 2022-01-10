@@ -382,6 +382,7 @@ int main(int argc, char **argv) {
   matplotlibcpp::title("Relative Position Error");
   matplotlibcpp::ylabel("translational error (m)");
   matplotlibcpp::xlabel("sub-segment lengths (m)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(true);
 
 #endif

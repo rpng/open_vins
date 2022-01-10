@@ -79,54 +79,37 @@ public:
   int max_covariance_size() { return (int)_Cov.rows(); }
 
   /**
-   * @brief Gyroscope intrinsic (scale imperfection and axis misalignment)
+   * @brief Gyroscope and accelerometer intrinsic matrix (scale imperfection and axis misalignment)
    *
    * If kalibr model, lower triangular of the matrix is used
    * If rpng model, upper triangular of the matrix is used
    *
-   * @return 3x3 matrix of current imu gyroscope intrinsics
+   * @return 3x3 matrix of current imu gyroscope / accelerometer intrinsics
    */
-  Eigen::Matrix3d Dw() {
-    Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
-    if (_options.imu_model == StateOptions::ImuModel::KALIBR) {
-      Dw << _calib_imu_dw->value()(0), 0, 0, _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
-          _calib_imu_dw->value()(4), _calib_imu_dw->value()(5);
+  static Eigen::Matrix3d Dm(StateOptions::ImuModel imu_model, const Eigen::MatrixXd &vec) {
+    assert(vec.rows() == 6);
+    assert(vec.cols() == 1);
+    Eigen::Matrix3d D_matrix = Eigen::Matrix3d::Identity();
+    if (imu_model == StateOptions::ImuModel::KALIBR) {
+      D_matrix << vec(0), 0, 0, vec(1), vec(3), 0, vec(2), vec(4), vec(5);
     } else {
-      Dw << _calib_imu_dw->value()(0), _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
-          _calib_imu_dw->value()(4), 0, 0, _calib_imu_dw->value()(5);
+      D_matrix << vec(0), vec(1), vec(3), 0, vec(2), vec(4), 0, 0, vec(5);
     }
-    return Dw;
-  }
-
-  /**
-   * @brief Accelerometer intrinsic (scale imperfection and axis misalignment)
-   *
-   * If kalibr model, lower triangular of the matrix is used
-   * If rpng model, upper triangular of the matrix is used
-   *
-   * @return 3x3 matrix of current imu accelerometer intrinsics
-   */
-  Eigen::Matrix3d Da() {
-    Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-    if (_options.imu_model == StateOptions::ImuModel::KALIBR) {
-      Da << _calib_imu_da->value()(0), 0, 0, _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
-          _calib_imu_da->value()(4), _calib_imu_da->value()(5);
-    } else {
-      Da << _calib_imu_da->value()(0), _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
-          _calib_imu_da->value()(4), 0, 0, _calib_imu_da->value()(5);
-    }
-    return Da;
+    return D_matrix;
   }
 
   /**
    * @brief Gyroscope gravity sensitivity
+   *
+   * For both kalibr and rpng models, this a 3x3 that is column-wise filled.
+   *
    * @return 3x3 matrix of current gravity sensitivity
    */
-  Eigen::Matrix3d Tg() {
+  static Eigen::Matrix3d Tg(const Eigen::MatrixXd &vec) {
+    assert(vec.rows() == 9);
+    assert(vec.cols() == 1);
     Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
-    Tg << _calib_imu_tg->value()(0), _calib_imu_tg->value()(3), _calib_imu_tg->value()(6), _calib_imu_tg->value()(1),
-        _calib_imu_tg->value()(4), _calib_imu_tg->value()(7), _calib_imu_tg->value()(2), _calib_imu_tg->value()(5),
-        _calib_imu_tg->value()(8);
+    Tg << vec(0), vec(3), vec(6), vec(1), vec(4), vec(7), vec(2), vec(5), vec(8);
     return Tg;
   }
 

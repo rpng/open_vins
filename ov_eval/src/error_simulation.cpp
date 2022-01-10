@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 
   // Plot IMU intrinsics
   PRINT_INFO("Plotting IMU intrinsics...\n");
-  traj.plot_imu_intrinsics(true);
+  traj.plot_imu_intrinsics(true, 60);
 
 #ifdef HAVE_PYTHONLIBS
   matplotlibcpp::show(true);

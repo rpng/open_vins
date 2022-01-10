@@ -333,18 +333,9 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   // Get our imu intrinsic parameters
   //  - kalibr: lower triangular of the matrix is used
   //  - rpng: upper triangular of the matrix is used
-  Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
-  Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-  if (params.state_options.imu_model == StateOptions::ImuModel::KALIBR) {
-    Dw << params.vec_dw(0), 0, 0, params.vec_dw(1), params.vec_dw(3), 0, params.vec_dw(2), params.vec_dw(4), params.vec_dw(5);
-    Da << params.vec_da(0), 0, 0, params.vec_da(1), params.vec_da(3), 0, params.vec_da(2), params.vec_da(4), params.vec_da(5);
-  } else {
-    Dw << params.vec_dw(0), params.vec_dw(1), params.vec_dw(3), 0, params.vec_dw(2), params.vec_dw(4), 0, 0, params.vec_dw(5);
-    Da << params.vec_da(0), params.vec_da(1), params.vec_da(3), 0, params.vec_da(2), params.vec_da(4), 0, 0, params.vec_da(5);
-  }
-  Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
-  Tg << params.vec_tg(0), params.vec_tg(3), params.vec_tg(6), params.vec_tg(1), params.vec_tg(4), params.vec_tg(7), params.vec_tg(2),
-      params.vec_tg(5), params.vec_tg(8);
+  Eigen::Matrix3d Dw = State::Dm(params.state_options.imu_model, params.vec_dw);
+  Eigen::Matrix3d Da = State::Dm(params.state_options.imu_model, params.vec_da);
+  Eigen::Matrix3d Tg = State::Tg(params.vec_tg);
 
   // Get the readings with the imu intrinsic "distortion"
   Eigen::Matrix3d Tw = Dw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());

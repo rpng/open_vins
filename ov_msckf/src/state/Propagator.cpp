@@ -95,9 +95,11 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   Eigen::Vector3d last_a = Eigen::Vector3d::Zero();
   Eigen::Vector3d last_w = Eigen::Vector3d::Zero();
   if (!prop_data.empty()) {
-    last_a = state->_calib_imu_ACCtoIMU->Rot() * state->Da() * (prop_data.at(prop_data.size() - 1).am - state->_imu->bias_a());
-    last_w = state->_calib_imu_GYROtoIMU->Rot() * state->Dw() *
-             (prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g() - state->Tg() * last_a);
+    Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+    Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+    Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
+    last_a = state->_calib_imu_ACCtoIMU->Rot() * Da * (prop_data.at(prop_data.size() - 1).am - state->_imu->bias_a());
+    last_w = state->_calib_imu_GYROtoIMU->Rot() * Dw * (prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g() - Tg * last_a);
   }
 
   // Do the update to the covariance with our "summed" state transition and IMU noise addition...
@@ -144,6 +146,11 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   // Save the original IMU state
   Eigen::VectorXd orig_val = state->_imu->value();
   Eigen::VectorXd orig_fej = state->_imu->fej();
+  
+  // IMU intrinsic calibration estimates (static)
+  Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+  Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+  Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
 
   // Loop through all IMU messages, and use them to move the state forward in time
   // This uses the zero'th order quat, and then constant acceleration discrete
@@ -163,20 +170,20 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
 
       // Correct imu readings with IMU intrinsics
       Eigen::Matrix3d R_ACCtoIMU = state->_calib_imu_ACCtoIMU->Rot();
-      a_hat1 = R_ACCtoIMU * state->Da() * a_hat1;
-      a_hat2 = R_ACCtoIMU * state->Da() * a_hat2;
-      a_hat_avg = R_ACCtoIMU * state->Da() * a_hat_avg;
+      a_hat1 = R_ACCtoIMU * Da * a_hat1;
+      a_hat2 = R_ACCtoIMU * Da * a_hat2;
+      a_hat_avg = R_ACCtoIMU * Da * a_hat_avg;
 
       // Corrected imu gyro measurements with our current biases
-      Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - state->Tg() * a_hat1;
-      Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - state->Tg() * a_hat2;
+      Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - Tg * a_hat1;
+      Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - Tg * a_hat2;
       Eigen::Vector3d w_hat_avg = .5 * (w_hat1 + w_hat2);
 
       // Correct imu readings with IMU intrinsics
       Eigen::Matrix3d R_GYROtoIMU = state->_calib_imu_GYROtoIMU->Rot();
-      w_hat1 = R_GYROtoIMU * state->Dw() * w_hat1;
-      w_hat2 = R_GYROtoIMU * state->Dw() * w_hat2;
-      w_hat_avg = R_GYROtoIMU * state->Dw() * w_hat_avg;
+      w_hat1 = R_GYROtoIMU * Dw * w_hat1;
+      w_hat2 = R_GYROtoIMU * Dw * w_hat2;
+      w_hat_avg = R_GYROtoIMU * Dw * w_hat_avg;
 
       // Pre-compute some analytical values
       Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
@@ -345,6 +352,11 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   // Time elapsed over interval
   double dt = data_plus.timestamp - data_minus.timestamp;
   // assert(data_plus.timestamp>data_minus.timestamp);
+  
+  // IMU intrinsic calibration estimates (static)
+  Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+  Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+  Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
 
   // Corrected imu acc measurements with our current biases
   Eigen::Vector3d a_hat1 = data_minus.am - state->_imu->bias_a();
@@ -354,21 +366,21 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   // Convert "raw" imu to its corrected frame using the IMU intrinsics
   Eigen::Vector3d a_uncorrected = a_hat_avg;
   Eigen::Matrix3d R_ACCtoIMU = state->_calib_imu_ACCtoIMU->Rot();
-  a_hat1 = R_ACCtoIMU * state->Da() * a_hat1;
-  a_hat2 = R_ACCtoIMU * state->Da() * a_hat2;
-  a_hat_avg = R_ACCtoIMU * state->Da() * a_hat_avg;
+  a_hat1 = R_ACCtoIMU * Da * a_hat1;
+  a_hat2 = R_ACCtoIMU * Da * a_hat2;
+  a_hat_avg = R_ACCtoIMU * Da * a_hat_avg;
 
   // Corrected imu gyro measurements with our current biases and gravity sensitivity
-  Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - state->Tg() * a_hat1;
-  Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - state->Tg() * a_hat2;
+  Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - Tg * a_hat1;
+  Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - Tg * a_hat2;
   Eigen::Vector3d w_hat_avg = .5 * (w_hat1 + w_hat2);
 
   // Convert "raw" imu to its corrected frame using the IMU intrinsics
   Eigen::Vector3d w_uncorrected = w_hat_avg;
   Eigen::Matrix3d R_GYROtoIMU = state->_calib_imu_GYROtoIMU->Rot();
-  w_hat1 = R_GYROtoIMU * state->Dw() * w_hat1;
-  w_hat2 = R_GYROtoIMU * state->Dw() * w_hat2;
-  w_hat_avg = R_GYROtoIMU * state->Dw() * w_hat_avg;
+  w_hat1 = R_GYROtoIMU * Dw * w_hat1;
+  w_hat2 = R_GYROtoIMU * Dw * w_hat2;
+  w_hat_avg = R_GYROtoIMU * Dw * w_hat_avg;
 
   // Pre-compute some analytical values for the mean and covariance integration
   Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
@@ -397,8 +409,6 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   } else {
     compute_F_and_G_discrete(state, dt, w_hat_avg, a_hat_avg, w_uncorrected, a_uncorrected, new_q, new_v, new_p, F, G);
   }
-
-
 
   // Construct our discrete noise covariance matrix
   // Note that we need to convert our continuous time noises to discrete
@@ -688,9 +698,9 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
   }
   Eigen::Matrix3d dR_ktok1 = quat_2_Rot(new_q) * R_k.transpose();
 
-  Eigen::Matrix3d Da = state->Da();
-  Eigen::Matrix3d Dw = state->Dw();
-  Eigen::Matrix3d Tg = state->Tg();
+  Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+  Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+  Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
   Eigen::Matrix3d R_atoI = state->_calib_imu_ACCtoIMU->Rot();
   Eigen::Matrix3d R_wtoI = state->_calib_imu_GYROtoIMU->Rot();
   Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
@@ -836,9 +846,9 @@ void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double d
 
   // This is the change in the orientation from the end of the last prop to the current prop
   // This is needed since we need to include the "k-th" updated orientation information
-  Eigen::Matrix3d Da = state->Da();
-  Eigen::Matrix3d Dw = state->Dw();
-  Eigen::Matrix3d Tg = state->Tg();
+  Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+  Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+  Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
   Eigen::Matrix3d R_atoI = state->_calib_imu_ACCtoIMU->Rot();
   Eigen::Matrix3d R_wtoI = state->_calib_imu_GYROtoIMU->Rot();
   Eigen::Vector3d a_k = R_atoI * Da * a_uncorrected;
