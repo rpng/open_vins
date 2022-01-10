@@ -7,7 +7,9 @@
     <description>
         Evaluation methods and scripts for visual-inertial odometry systems.
     </description>
-    <url>https://docs.openvins.com/</url>
+    <url type="website">https://docs.openvins.com/</url>
+    <url type="bugtracker">https://github.com/rpng/open_vins/issues</url>
+    <url type="repository">https://github.com/rpng/open_vins</url>
 
     <!-- Code Authors -->
     <author email="pgeneva@udel.edu">Patrick Geneva</author>
