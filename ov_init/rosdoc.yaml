@@ -1,0 +1,8 @@
+
+# This uses a stupid hack to get all the documentation to be included in each project
+# Right now the `use_mdfile_as_mainpage` is also appended to the doxygen "INPUT"
+# Thus, we will append the whole OpenVINS documentation by going up one directory!
+- builder: doxygen
+  file_patterns: '*.c *.cpp *.h *.cc *.hh *.dox'
+  exclude_patterns: '*/ov_core/* */ov_data/* */ov_eval/* */ov_msckf/*'
+  use_mdfile_as_mainpage: '../'
