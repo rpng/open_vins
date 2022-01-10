@@ -91,7 +91,6 @@ if (catkin_FOUND AND ENABLE_ROS)
             LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
     )
-    message(WARNING "${CATKIN_PACKAGE_LIB_DESTINATION}")
 
     add_executable(live_align_trajectory src/live_align_trajectory.cpp)
     target_link_libraries(live_align_trajectory ov_eval_lib ${thirdparty_libraries})
