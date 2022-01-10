@@ -63,10 +63,10 @@ public:
    * @param zupt_noise_multiplier Multiplier of our IMU noise matrix (default should be 1.0)
    * @param zupt_max_disparity Max disparity we should consider to do a update with
    */
-  UpdaterZeroVelocity(UpdaterOptions &options, ov_core::ImuConfig &imu_config, std::shared_ptr<ov_core::FeatureDatabase> db,
+  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<ov_core::FeatureDatabase> db,
                       std::shared_ptr<Propagator> prop, double gravity_mag, double zupt_max_velocity, double zupt_noise_multiplier,
                       double zupt_max_disparity)
-      : _options(options), _imu_config(imu_config), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
+      : _options(options), _noises(noises), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
         _zupt_noise_multiplier(zupt_noise_multiplier), _zupt_max_disparity(zupt_max_disparity) {
 
     // Gravity
@@ -120,7 +120,7 @@ protected:
   UpdaterOptions _options;
 
   /// Container for the imu noise values
-  ov_core::ImuConfig _imu_config;
+  Propagator::NoiseManager _noises;
 
   /// Feature tracker database with all features in it
   std::shared_ptr<ov_core::FeatureDatabase> _db;

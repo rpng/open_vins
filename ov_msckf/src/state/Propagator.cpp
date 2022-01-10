@@ -104,13 +104,12 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   std::vector<std::shared_ptr<Type>> Phi_order;
   Phi_order.push_back(state->_imu);
   if (state->_options.do_calib_imu_intrinsics) {
-    assert(false);
     Phi_order.push_back(state->_calib_imu_dw);
     Phi_order.push_back(state->_calib_imu_da);
     if (state->_options.do_calib_imu_g_sensitivity) {
       Phi_order.push_back(state->_calib_imu_tg);
     }
-    if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+    if (state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
       Phi_order.push_back(state->_calib_imu_GYROtoIMU);
     } else {
       Phi_order.push_back(state->_calib_imu_ACCtoIMU);
@@ -160,46 +159,40 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
       // Corrected imu acc measurements with our current biases
       Eigen::Vector3d a_hat1 = data_minus.am - state->_imu->bias_a();
       Eigen::Vector3d a_hat2 = data_plus.am - state->_imu->bias_a();
-      Eigen::Vector3d a_hat = a_hat1;
-      if (state->_options.imu_avg) {
-        a_hat = .5 * (a_hat1 + a_hat2);
-      }
+      Eigen::Vector3d a_hat_avg = .5 * (a_hat1 + a_hat2);
 
       // Correct imu readings with IMU intrinsics
       Eigen::Matrix3d R_ACCtoIMU = state->_calib_imu_ACCtoIMU->Rot();
-      a_hat = R_ACCtoIMU * state->Da() * a_hat;
       a_hat1 = R_ACCtoIMU * state->Da() * a_hat1;
       a_hat2 = R_ACCtoIMU * state->Da() * a_hat2;
+      a_hat_avg = R_ACCtoIMU * state->Da() * a_hat_avg;
 
       // Corrected imu gyro measurements with our current biases
       Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - state->Tg() * a_hat1;
       Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - state->Tg() * a_hat2;
-      Eigen::Vector3d w_hat = w_hat1;
-      if (state->_options.imu_avg) {
-        w_hat = .5 * (w_hat1 + w_hat2);
-      }
+      Eigen::Vector3d w_hat_avg = .5 * (w_hat1 + w_hat2);
 
       // Correct imu readings with IMU intrinsics
       Eigen::Matrix3d R_GYROtoIMU = state->_calib_imu_GYROtoIMU->Rot();
-      w_hat = R_GYROtoIMU * state->Dw() * w_hat;
       w_hat1 = R_GYROtoIMU * state->Dw() * w_hat1;
       w_hat2 = R_GYROtoIMU * state->Dw() * w_hat2;
+      w_hat_avg = R_GYROtoIMU * state->Dw() * w_hat_avg;
 
       // Pre-compute some analytical values
       Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
-      if (state->_options.use_analytic_integration) {
-        compute_Xi_sum(state, dt, w_hat, a_hat, Xi_sum);
+      if (state->_options.integration_method == StateOptions::ANALYTICAL) {
+        compute_Xi_sum(state, dt, w_hat_avg, a_hat_avg, Xi_sum);
       }
 
       // Compute the new state mean value
       Eigen::Vector4d new_q;
       Eigen::Vector3d new_v, new_p;
-      if (state->_options.use_analytic_integration) {
-        predict_mean_analytic(state, dt, w_hat, a_hat, new_q, new_v, new_p, Xi_sum);
-      } else if (state->_options.use_rk4_integration) {
-        predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+      if (state->_options.integration_method == StateOptions::ANALYTICAL) {
+        predict_mean_analytic(state, dt, w_hat_avg, a_hat_avg, new_q, new_v, new_p, Xi_sum);
+      } else if (state->_options.integration_method == StateOptions::RK4) {
+        predict_mean_rk4(state, dt, w_hat1, a_hat1, w_hat2, a_hat2, new_q, new_v, new_p);
       } else {
-        predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+        predict_mean_discrete(state, dt, w_hat_avg, a_hat_avg, new_q, new_v, new_p);
       }
 
       // Now replace imu estimate and fej with propagated values
@@ -356,67 +349,63 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   // Corrected imu acc measurements with our current biases
   Eigen::Vector3d a_hat1 = data_minus.am - state->_imu->bias_a();
   Eigen::Vector3d a_hat2 = data_plus.am - state->_imu->bias_a();
-  Eigen::Vector3d a_hat = a_hat1;
-  if (state->_options.imu_avg) {
-    a_hat = .5 * (a_hat1 + a_hat2);
-  }
+  Eigen::Vector3d a_hat_avg = .5 * (a_hat1 + a_hat2);
 
   // Convert "raw" imu to its corrected frame using the IMU intrinsics
-  Eigen::Vector3d a_uncorrected = a_hat;
+  Eigen::Vector3d a_uncorrected = a_hat_avg;
   Eigen::Matrix3d R_ACCtoIMU = state->_calib_imu_ACCtoIMU->Rot();
-  a_hat = R_ACCtoIMU * state->Da() * a_hat;
   a_hat1 = R_ACCtoIMU * state->Da() * a_hat1;
   a_hat2 = R_ACCtoIMU * state->Da() * a_hat2;
+  a_hat_avg = R_ACCtoIMU * state->Da() * a_hat_avg;
 
   // Corrected imu gyro measurements with our current biases and gravity sensitivity
   Eigen::Vector3d w_hat1 = data_minus.wm - state->_imu->bias_g() - state->Tg() * a_hat1;
   Eigen::Vector3d w_hat2 = data_plus.wm - state->_imu->bias_g() - state->Tg() * a_hat2;
-  Eigen::Vector3d w_hat = w_hat1;
-  if (state->_options.imu_avg) {
-    w_hat = .5 * (w_hat1 + w_hat2);
-  }
+  Eigen::Vector3d w_hat_avg = .5 * (w_hat1 + w_hat2);
 
   // Convert "raw" imu to its corrected frame using the IMU intrinsics
-  Eigen::Vector3d w_uncorrected = w_hat;
+  Eigen::Vector3d w_uncorrected = w_hat_avg;
   Eigen::Matrix3d R_GYROtoIMU = state->_calib_imu_GYROtoIMU->Rot();
-  w_hat = R_GYROtoIMU * state->Dw() * w_hat;
   w_hat1 = R_GYROtoIMU * state->Dw() * w_hat1;
   w_hat2 = R_GYROtoIMU * state->Dw() * w_hat2;
+  w_hat_avg = R_GYROtoIMU * state->Dw() * w_hat_avg;
 
   // Pre-compute some analytical values for the mean and covariance integration
   Eigen::Matrix<double, 3, 18> Xi_sum = Eigen::Matrix<double, 3, 18>::Zero(3, 18);
-  if (state->_options.use_analytic_integration || state->_options.use_rk4_integration) {
-    compute_Xi_sum(state, dt, w_hat, a_hat, Xi_sum);
+  if (state->_options.integration_method == StateOptions::IntegrationMethod::RK4 ||
+      state->_options.integration_method == StateOptions::IntegrationMethod::ANALYTICAL) {
+    compute_Xi_sum(state, dt, w_hat_avg, a_hat_avg, Xi_sum);
   }
 
   // Compute the new state mean value
   Eigen::Vector4d new_q;
   Eigen::Vector3d new_v, new_p;
-  if (state->_options.use_analytic_integration) {
-    predict_mean_analytic(state, dt, w_hat, a_hat, new_q, new_v, new_p, Xi_sum);
-  } else if (state->_options.use_rk4_integration) {
-    predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+  if (state->_options.integration_method == StateOptions::IntegrationMethod::ANALYTICAL) {
+    predict_mean_analytic(state, dt, w_hat_avg, a_hat_avg, new_q, new_v, new_p, Xi_sum);
+  } else if (state->_options.integration_method == StateOptions::IntegrationMethod::RK4) {
+    predict_mean_rk4(state, dt, w_hat1, a_hat1, w_hat2, a_hat2, new_q, new_v, new_p);
   } else {
-    predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+    predict_mean_discrete(state, dt, w_hat_avg, a_hat_avg, new_q, new_v, new_p);
   }
 
   // Allocate state transition and continuous-time noise Jacobian
   F = Eigen::MatrixXd::Zero(state->imu_intrinsic_size() + 15, state->imu_intrinsic_size() + 15);
   Eigen::MatrixXd G = Eigen::MatrixXd::Zero(state->imu_intrinsic_size() + 15, 12);
-  if (state->_options.use_analytic_integration || state->_options.use_rk4_integration) {
-    compute_F_and_G_analytic(state, dt, w_hat, a_hat, w_uncorrected, a_uncorrected, new_q, new_v, new_p, Xi_sum, F, G);
+  if (state->_options.integration_method == StateOptions::IntegrationMethod::RK4 ||
+      state->_options.integration_method == StateOptions::IntegrationMethod::ANALYTICAL) {
+    compute_F_and_G_analytic(state, dt, w_hat_avg, a_hat_avg, w_uncorrected, a_uncorrected, new_q, new_v, new_p, Xi_sum, F, G);
   } else {
-    compute_F_and_G_discrete(state, dt, w_hat, a_hat, w_uncorrected, a_uncorrected, new_q, new_v, new_p, F, G);
+    compute_F_and_G_discrete(state, dt, w_hat_avg, a_hat_avg, w_uncorrected, a_uncorrected, new_q, new_v, new_p, F, G);
   }
 
   // Construct our discrete noise covariance matrix
   // Note that we need to convert our continuous time noises to discrete
   // Equations (129) amd (130) of Trawny tech report
   Eigen::Matrix<double, 12, 12> Qc = Eigen::Matrix<double, 12, 12>::Zero();
-  Qc.block(0, 0, 3, 3) = std::pow(_imu_config.sigma_w, 2) / dt * Eigen::Matrix3d::Identity();
-  Qc.block(3, 3, 3, 3) = std::pow(_imu_config.sigma_a, 2) / dt * Eigen::Matrix3d::Identity();
-  Qc.block(6, 6, 3, 3) = std::pow(_imu_config.sigma_wb, 2) / dt * Eigen::Matrix3d::Identity();
-  Qc.block(9, 9, 3, 3) = std::pow(_imu_config.sigma_ab, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(0, 0, 3, 3) = std::pow(_noises.sigma_w, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(3, 3, 3, 3) = std::pow(_noises.sigma_a, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(6, 6, 3, 3) = std::pow(_noises.sigma_wb, 2) / dt * Eigen::Matrix3d::Identity();
+  Qc.block(9, 9, 3, 3) = std::pow(_noises.sigma_ab, 2) / dt * Eigen::Matrix3d::Identity();
 
   // Compute the noise injected into the state over the interval
   Qd = Eigen::MatrixXd::Zero(state->imu_intrinsic_size() + 15, state->imu_intrinsic_size() + 15);
@@ -432,17 +421,8 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
   state->_imu->set_fej(imu_x);
 }
 
-void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1,
-                                       const Eigen::Vector3d &a_hat1, const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2,
+void Propagator::predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                                        Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p) {
-
-  // If we are averaging the IMU, then do so
-  Eigen::Vector3d w_hat = w_hat1;
-  Eigen::Vector3d a_hat = a_hat1;
-  if (state->_options.imu_avg) {
-    w_hat = .5 * (w_hat1 + w_hat2);
-    a_hat = .5 * (a_hat1 + a_hat2);
-  }
 
   // Pre-compute things
   double w_norm = w_hat.norm();
@@ -547,12 +527,12 @@ void Propagator::predict_mean_rk4(std::shared_ptr<State> state, double dt, const
   new_v = v_0 + (1.0 / 6.0) * k1_v + (1.0 / 3.0) * k2_v + (1.0 / 3.0) * k3_v + (1.0 / 6.0) * k4_v;
 }
 
-void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                                 Eigen::Matrix<double, 3, 18> &Xi_sum) {
 
   // Decompose our angular velocity into a direction and amount
   double w_norm = w_hat.norm();
-  double d_th = w_norm * d_t;
+  double d_th = w_norm * dt;
   Eigen::Vector3d k_hat = Eigen::Vector3d::Zero();
   if (w_norm > 1e-12) {
     k_hat = w_hat / w_norm;
@@ -560,8 +540,8 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
 
   // Compute useful identities used throughout
   Eigen::Matrix3d I_3x3 = Eigen::Matrix3d::Identity();
-  double d_t2 = std::pow(d_t, 2);
-  double d_t3 = std::pow(d_t, 3);
+  double d_t2 = std::pow(dt, 2);
+  double d_t3 = std::pow(dt, 3);
   double w_norm2 = std::pow(w_norm, 2);
   double w_norm3 = std::pow(w_norm, 3);
   double cos_dth = std::cos(d_th);
@@ -591,7 +571,7 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
   if (!small_w) {
 
     // first order rotation integration with constant omega
-    Xi_1 = I_3x3 * d_t + (1.0 - cos_dth) / w_norm * sK + (d_t - sin_dth / w_norm) * sK2;
+    Xi_1 = I_3x3 * dt + (1.0 - cos_dth) / w_norm * sK + (dt - sin_dth / w_norm) * sK2;
 
     // second order rotation integration with constant omega
     Xi_2 = 1.0 / 2 * d_t2 * I_3x3 + (d_th - sin_dth) / w_norm2 * sK + (1.0 / 2 * d_t2 - (1.0 - cos_dth) / w_norm2) * sK2;
@@ -611,17 +591,17 @@ void Propagator::compute_Xi_sum(std::shared_ptr<State> state, double d_t, const 
   } else {
 
     // first order rotation integration with constant omega
-    Xi_1 = d_t * (I_3x3 + sin_dth * sK + (1.0 - cos_dth) * sK2);
+    Xi_1 = dt * (I_3x3 + sin_dth * sK + (1.0 - cos_dth) * sK2);
 
     // second order rotation integration with constant omega
-    Xi_2 = 1.0 / 2 * d_t * Xi_1;
+    Xi_2 = 1.0 / 2 * dt * Xi_1;
 
     // first order integration with constant omega and constant acc
     Xi_3 = 1.0 / 2 * d_t2 *
            (sA + sin_dth * (-sA * sK + sK * sA + k_hat.dot(a_hat) * sK2) + (1.0 - cos_dth) * (sA * sK2 + sK2 * sA + k_hat.dot(a_hat) * sK));
 
     // second order integration with constant omega and constant acc
-    Xi_4 = 1.0 / 3 * d_t * Xi_3;
+    Xi_4 = 1.0 / 3 * dt * Xi_3;
   }
 
   // Store the integrated parameters
@@ -685,7 +665,7 @@ void Propagator::compute_F_and_G_analytic(std::shared_ptr<State> state, double d
       Tg_id = local_size;
       local_size += state->_calib_imu_tg->size();
     }
-    if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+    if (state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
       th_wtoI_id = local_size;
       local_size += state->_calib_imu_GYROtoIMU->size();
     } else {
@@ -831,7 +811,7 @@ void Propagator::compute_F_and_G_discrete(std::shared_ptr<State> state, double d
       Tg_id = local_size;
       local_size += state->_calib_imu_tg->size();
     }
-    if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+    if (state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
       th_wtoI_id = local_size;
       local_size += state->_calib_imu_GYROtoIMU->size();
     } else {
@@ -944,7 +924,7 @@ Eigen::MatrixXd Propagator::compute_H_Dw(std::shared_ptr<State> state, const Eig
   assert(state->_options.do_calib_imu_intrinsics);
 
   Eigen::MatrixXd H_Dw = Eigen::MatrixXd::Zero(3, 6);
-  if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+  if (state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
     H_Dw << w_1 * I_3x3, w_2 * e_2, w_2 * e_3, w_3 * e_3;
   } else {
     H_Dw << w_1 * e_1, w_2 * e_1, w_2 * e_2, w_3 * I_3x3;
@@ -964,7 +944,7 @@ Eigen::MatrixXd Propagator::compute_H_Da(std::shared_ptr<State> state, const Eig
   assert(state->_options.do_calib_imu_intrinsics);
 
   Eigen::MatrixXd H_Da = Eigen::MatrixXd::Zero(3, 6);
-  if (state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+  if (state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
     H_Da << a_1 * I_3x3, a_2 * e_2, a_2 * e_3, a_3 * e_3;
   } else {
     H_Da << a_1 * e_1, a_2 * e_1, a_2 * e_2, a_3 * I_3x3;

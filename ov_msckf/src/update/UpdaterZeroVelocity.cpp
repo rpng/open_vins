@@ -127,11 +127,11 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
     // Measurement noise (convert from continuous to discrete)
     // Note the dt time might be different if we have "cut" any imu measurements
-    R.block(6 * i + 0, 6 * i + 0, 3, 3) *= std::pow(_imu_config.sigma_w, 2) / dt;
+    R.block(6 * i + 0, 6 * i + 0, 3, 3) *= std::pow(_noises.sigma_w, 2) / dt;
     if (!integrated_accel_constraint) {
-      R.block(6 * i + 3, 6 * i + 3, 3, 3) *= std::pow(_imu_config.sigma_a, 2) / dt;
+      R.block(6 * i + 3, 6 * i + 3, 3, 3) *= std::pow(_noises.sigma_a, 2) / dt;
     } else {
-      R.block(6 * i + 3, 6 * i + 3, 3, 3) *= std::pow(_imu_config.sigma_a, 2) * dt;
+      R.block(6 * i + 3, 6 * i + 3, 3, 3) *= std::pow(_noises.sigma_a, 2) * dt;
     }
     dt_summed += dt;
   }
@@ -143,8 +143,8 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   // Next propagate the biases forward in time
   // NOTE: G*Qd*G^t = dt*Qd*dt = dt*Qc
   Eigen::MatrixXd Q_bias = Eigen::MatrixXd::Identity(6, 6);
-  Q_bias.block(0, 0, 3, 3) *= dt_summed * std::pow(_imu_config.sigma_wb, 2);
-  Q_bias.block(3, 3, 3, 3) *= dt_summed * std::pow(_imu_config.sigma_ab, 2);
+  Q_bias.block(0, 0, 3, 3) *= dt_summed * std::pow(_noises.sigma_wb, 2);
+  Q_bias.block(3, 3, 3, 3) *= dt_summed * std::pow(_noises.sigma_ab, 2);
 
   // Chi2 distance check
   // NOTE: we also append the propagation we "would do before the update" if this was to be accepted

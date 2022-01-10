@@ -88,7 +88,7 @@ public:
    */
   Eigen::Matrix3d Dw() {
     Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
-    if (_options.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
+    if (_options.imu_model == StateOptions::ImuModel::KALIBR) {
       Dw << _calib_imu_dw->value()(0), 0, 0, _calib_imu_dw->value()(1), _calib_imu_dw->value()(3), 0, _calib_imu_dw->value()(2),
           _calib_imu_dw->value()(4), _calib_imu_dw->value()(5);
     } else {
@@ -108,7 +108,7 @@ public:
    */
   Eigen::Matrix3d Da() {
     Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-    if (_options.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
+    if (_options.imu_model == StateOptions::ImuModel::KALIBR) {
       Da << _calib_imu_da->value()(0), 0, 0, _calib_imu_da->value()(1), _calib_imu_da->value()(3), 0, _calib_imu_da->value()(2),
           _calib_imu_da->value()(4), _calib_imu_da->value()(5);
     } else {

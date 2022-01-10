@@ -37,14 +37,11 @@ struct StateOptions {
   /// Bool to determine whether or not to do first estimate Jacobians
   bool do_fej = true;
 
-  /// Bool to determine whether or not use imu message averaging
-  bool imu_avg = false;
+  /// Numerical integration methods
+  enum IntegrationMethod { DISCRETE, RK4, ANALYTICAL };
 
-  /// Bool to determine if we should use Rk4 imu integration
-  bool use_rk4_integration = false;
-
-  /// Bool to determine if we should use analytic imu integration
-  bool use_analytic_integration = true;
+  /// What type of numerical integration is used during propagation
+  IntegrationMethod integration_method = IntegrationMethod::RK4;
 
   /// Bool to determine whether or not to calibrate imu-to-camera pose
   bool do_calib_camera_pose = false;
@@ -61,8 +58,11 @@ struct StateOptions {
   /// Bool to determine whether or not to calibrate the Gravity sensitivity
   bool do_calib_imu_g_sensitivity = false;
 
-  /// Indicator to use which model, 0: kalibr and 1: rpng
-  ov_core::ImuConfig::ImuModel imu_model = ov_core::ImuConfig::ImuModel::KALIBR;
+  /// IMU intrinsic models
+  enum ImuModel { KALIBR, RPNG };
+
+  /// What model our IMU intrinsics are
+  ImuModel imu_model = ImuModel::KALIBR;
 
   /// Max clone size of sliding window
   int max_clone_size = 11;
@@ -95,9 +95,21 @@ struct StateOptions {
   void print(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     if (parser != nullptr) {
       parser->parse_config("use_fej", do_fej);
-      parser->parse_config("use_imuavg", imu_avg);
-      parser->parse_config("use_rk4_int", use_rk4_integration);
-      parser->parse_config("use_analytic_int", use_analytic_integration);
+
+      // Integration method
+      std::string integration_str = "rk4";
+      parser->parse_config("integration", integration_str);
+      if (integration_str == "discrete") {
+        integration_method = IntegrationMethod::DISCRETE;
+      } else if (integration_str == "rk4") {
+        integration_method = IntegrationMethod::RK4;
+      } else if (integration_str == "analytical") {
+        integration_method = IntegrationMethod::ANALYTICAL;
+      } else {
+        PRINT_ERROR(RED "invalid imu integration model: %s\n" RESET, integration_str.c_str());
+        PRINT_ERROR(RED "please select a valid model: discrete, rk4, analytical\n" RESET);
+        std::exit(EXIT_FAILURE);
+      }
 
       // Calibration booleans
       parser->parse_config("calib_cam_extrinsics", do_calib_camera_pose);
@@ -129,11 +141,12 @@ struct StateOptions {
       std::string imu_model_str = "kalibr";
       parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str);
       if (imu_model_str == "kalibr" || imu_model_str == "calibrated") {
-        imu_model = ov_core::ImuConfig::ImuModel::KALIBR;
+        imu_model = ImuModel::KALIBR;
       } else if (imu_model_str == "rpng") {
-        imu_model = ov_core::ImuConfig::ImuModel::RPNG;
+        imu_model = ImuModel::RPNG;
       } else {
         PRINT_ERROR(RED "invalid imu model: %s\n" RESET, imu_model_str.c_str());
+        PRINT_ERROR(RED "please select a valid model: kalibr, rpng\\n" RESET);
         std::exit(EXIT_FAILURE);
       }
       if (imu_model_str == "calibrated" && (do_calib_imu_intrinsics || do_calib_imu_g_sensitivity)) {
@@ -143,9 +156,7 @@ struct StateOptions {
       }
     }
     PRINT_DEBUG("  - use_fej: %d\n", do_fej);
-    PRINT_DEBUG("  - use_imuavg: %d\n", imu_avg);
-    PRINT_DEBUG("  - use_rk4_int: %d\n", use_rk4_integration);
-    PRINT_DEBUG("  - use_analytic_int: %d\n", use_analytic_integration);
+    PRINT_DEBUG("  - integration: %d\n", integration_method);
     PRINT_DEBUG("  - calib_cam_extrinsics: %d\n", do_calib_camera_pose);
     PRINT_DEBUG("  - calib_cam_intrinsics: %d\n", do_calib_camera_intrinsics);
     PRINT_DEBUG("  - calib_cam_timeoffset: %d\n", do_calib_camera_timeoffset);

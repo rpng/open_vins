@@ -230,24 +230,24 @@ void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &pa
   // If we need to perturb the imu intrinsics
   if (params_.state_options.do_calib_imu_intrinsics) {
     for (int j = 0; j < 6; j++) {
-      params_.imu_config.vec_dw(j) += 0.004 * w(gen_state);
-      params_.imu_config.vec_da(j) += 0.004 * w(gen_state);
+      params_.vec_dw(j) += 0.004 * w(gen_state);
+      params_.vec_da(j) += 0.004 * w(gen_state);
     }
-    if (params_.state_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+    if (params_.state_options.imu_model == StateOptions::ImuModel::KALIBR) {
       Eigen::Vector3d w_vec;
       w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
-      params_.imu_config.q_GYROtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.q_GYROtoIMU));
+      params_.q_GYROtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.q_GYROtoIMU));
     } else {
       Eigen::Vector3d w_vec;
       w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
-      params_.imu_config.q_ACCtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.imu_config.q_ACCtoIMU));
+      params_.q_ACCtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.q_ACCtoIMU));
     }
   }
 
   // If we need to perturb gravity sensitivity
   if (params_.state_options.do_calib_imu_g_sensitivity) {
     for (int j = 0; j < 9; j++) {
-      params_.imu_config.vec_tg(j) += 0.004 * w(gen_state);
+      params_.vec_tg(j) += 0.004 * w(gen_state);
     }
   }
 }
@@ -335,45 +335,40 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   //  - rpng: upper triangular of the matrix is used
   Eigen::Matrix3d Dw = Eigen::Matrix3d::Identity();
   Eigen::Matrix3d Da = Eigen::Matrix3d::Identity();
-  if (params.imu_config.imu_model == ImuConfig::ImuModel::KALIBR) {
-    Dw << params.imu_config.vec_dw(0), 0, 0, params.imu_config.vec_dw(1), params.imu_config.vec_dw(3), 0, params.imu_config.vec_dw(2),
-        params.imu_config.vec_dw(4), params.imu_config.vec_dw(5);
-    Da << params.imu_config.vec_da(0), 0, 0, params.imu_config.vec_da(1), params.imu_config.vec_da(3), 0, params.imu_config.vec_da(2),
-        params.imu_config.vec_da(4), params.imu_config.vec_da(5);
+  if (params.state_options.imu_model == StateOptions::ImuModel::KALIBR) {
+    Dw << params.vec_dw(0), 0, 0, params.vec_dw(1), params.vec_dw(3), 0, params.vec_dw(2), params.vec_dw(4), params.vec_dw(5);
+    Da << params.vec_da(0), 0, 0, params.vec_da(1), params.vec_da(3), 0, params.vec_da(2), params.vec_da(4), params.vec_da(5);
   } else {
-    Dw << params.imu_config.vec_dw(0), params.imu_config.vec_dw(1), params.imu_config.vec_dw(3), 0, params.imu_config.vec_dw(2),
-        params.imu_config.vec_dw(4), 0, 0, params.imu_config.vec_dw(5);
-    Da << params.imu_config.vec_da(0), params.imu_config.vec_da(1), params.imu_config.vec_da(3), 0, params.imu_config.vec_da(2),
-        params.imu_config.vec_da(4), 0, 0, params.imu_config.vec_da(5);
+    Dw << params.vec_dw(0), params.vec_dw(1), params.vec_dw(3), 0, params.vec_dw(2), params.vec_dw(4), 0, 0, params.vec_dw(5);
+    Da << params.vec_da(0), params.vec_da(1), params.vec_da(3), 0, params.vec_da(2), params.vec_da(4), 0, 0, params.vec_da(5);
   }
   Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
-  Tg << params.imu_config.vec_tg(0), params.imu_config.vec_tg(3), params.imu_config.vec_tg(6), params.imu_config.vec_tg(1),
-      params.imu_config.vec_tg(4), params.imu_config.vec_tg(7), params.imu_config.vec_tg(2), params.imu_config.vec_tg(5),
-      params.imu_config.vec_tg(8);
+  Tg << params.vec_tg(0), params.vec_tg(3), params.vec_tg(6), params.vec_tg(1), params.vec_tg(4), params.vec_tg(7), params.vec_tg(2),
+      params.vec_tg(5), params.vec_tg(8);
 
   // Get the readings with the imu intrinsic "distortion"
   Eigen::Matrix3d Tw = Dw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
   Eigen::Matrix3d Ta = Da.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
-  Eigen::Vector3d omega_inGYRO = Tw * quat_2_Rot(params.imu_config.q_GYROtoIMU).transpose() * omega_inI + Tg * accel_inI;
-  Eigen::Vector3d accel_inACC = Ta * quat_2_Rot(params.imu_config.q_ACCtoIMU).transpose() * accel_inI;
+  Eigen::Vector3d omega_inGYRO = Tw * quat_2_Rot(params.q_GYROtoIMU).transpose() * omega_inI + Tg * accel_inI;
+  Eigen::Vector3d accel_inACC = Ta * quat_2_Rot(params.q_ACCtoIMU).transpose() * accel_inI;
 
   // Now add noise to these measurements
   double dt = 1.0 / params.sim_freq_imu;
   std::normal_distribution<double> w(0, 1);
-  wm(0) = omega_inGYRO(0) + true_bias_gyro(0) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  wm(1) = omega_inGYRO(1) + true_bias_gyro(1) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  wm(2) = omega_inGYRO(2) + true_bias_gyro(2) + params.imu_config.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  am(0) = accel_inACC(0) + true_bias_accel(0) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-  am(1) = accel_inACC(1) + true_bias_accel(1) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-  am(2) = accel_inACC(2) + true_bias_accel(2) + params.imu_config.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  wm(0) = omega_inGYRO(0) + true_bias_gyro(0) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  wm(1) = omega_inGYRO(1) + true_bias_gyro(1) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  wm(2) = omega_inGYRO(2) + true_bias_gyro(2) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  am(0) = accel_inACC(0) + true_bias_accel(0) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  am(1) = accel_inACC(1) + true_bias_accel(1) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  am(2) = accel_inACC(2) + true_bias_accel(2) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
 
   // Move the biases forward in time
-  true_bias_gyro(0) += params.imu_config.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_gyro(1) += params.imu_config.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_gyro(2) += params.imu_config.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_accel(0) += params.imu_config.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_accel(1) += params.imu_config.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_accel(2) += params.imu_config.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
+  true_bias_gyro(0) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
+  true_bias_gyro(1) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
+  true_bias_gyro(2) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
+  true_bias_accel(0) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
+  true_bias_accel(1) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
+  true_bias_accel(2) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
 
   // Append the current true bias to our history
   hist_true_bias_time.push_back(timestamp_last_imu);

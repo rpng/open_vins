@@ -283,26 +283,24 @@ public:
 
         // Get the base IMU information
         of_state_gt.precision(0);
-        of_state_gt << sim->get_true_parameters().imu_config.imu_model << " ";
+        of_state_gt << sim->get_true_parameters().state_options.imu_model << " ";
         of_state_gt.precision(8);
 
-        of_state_gt << sim->get_true_parameters().imu_config.vec_dw(0) << " " << sim->get_true_parameters().imu_config.vec_dw(1) << " "
-                    << sim->get_true_parameters().imu_config.vec_dw(2) << " " << sim->get_true_parameters().imu_config.vec_dw(3) << " "
-                    << sim->get_true_parameters().imu_config.vec_dw(4) << " " << sim->get_true_parameters().imu_config.vec_dw(5) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.vec_da(0) << " " << sim->get_true_parameters().imu_config.vec_da(1) << " "
-                    << sim->get_true_parameters().imu_config.vec_da(2) << " " << sim->get_true_parameters().imu_config.vec_da(3) << " "
-                    << sim->get_true_parameters().imu_config.vec_da(4) << " " << sim->get_true_parameters().imu_config.vec_da(5) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.vec_tg(0) << " " << sim->get_true_parameters().imu_config.vec_tg(1) << " "
-                    << sim->get_true_parameters().imu_config.vec_tg(2) << " " << sim->get_true_parameters().imu_config.vec_tg(3) << " "
-                    << sim->get_true_parameters().imu_config.vec_tg(4) << " " << sim->get_true_parameters().imu_config.vec_tg(5) << " "
-                    << sim->get_true_parameters().imu_config.vec_tg(6) << " " << sim->get_true_parameters().imu_config.vec_tg(7) << " "
-                    << sim->get_true_parameters().imu_config.vec_tg(8) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.q_GYROtoIMU(0) << " " << sim->get_true_parameters().imu_config.q_GYROtoIMU(1)
-                    << " " << sim->get_true_parameters().imu_config.q_GYROtoIMU(2) << " "
-                    << sim->get_true_parameters().imu_config.q_GYROtoIMU(3) << " ";
-        of_state_gt << sim->get_true_parameters().imu_config.q_ACCtoIMU(0) << " " << sim->get_true_parameters().imu_config.q_ACCtoIMU(1)
-                    << " " << sim->get_true_parameters().imu_config.q_ACCtoIMU(2) << " "
-                    << sim->get_true_parameters().imu_config.q_ACCtoIMU(3) << " ";
+        of_state_gt << sim->get_true_parameters().vec_dw(0) << " " << sim->get_true_parameters().vec_dw(1) << " "
+                    << sim->get_true_parameters().vec_dw(2) << " " << sim->get_true_parameters().vec_dw(3) << " "
+                    << sim->get_true_parameters().vec_dw(4) << " " << sim->get_true_parameters().vec_dw(5) << " ";
+        of_state_gt << sim->get_true_parameters().vec_da(0) << " " << sim->get_true_parameters().vec_da(1) << " "
+                    << sim->get_true_parameters().vec_da(2) << " " << sim->get_true_parameters().vec_da(3) << " "
+                    << sim->get_true_parameters().vec_da(4) << " " << sim->get_true_parameters().vec_da(5) << " ";
+        of_state_gt << sim->get_true_parameters().vec_tg(0) << " " << sim->get_true_parameters().vec_tg(1) << " "
+                    << sim->get_true_parameters().vec_tg(2) << " " << sim->get_true_parameters().vec_tg(3) << " "
+                    << sim->get_true_parameters().vec_tg(4) << " " << sim->get_true_parameters().vec_tg(5) << " "
+                    << sim->get_true_parameters().vec_tg(6) << " " << sim->get_true_parameters().vec_tg(7) << " "
+                    << sim->get_true_parameters().vec_tg(8) << " ";
+        of_state_gt << sim->get_true_parameters().q_GYROtoIMU(0) << " " << sim->get_true_parameters().q_GYROtoIMU(1) << " "
+                    << sim->get_true_parameters().q_GYROtoIMU(2) << " " << sim->get_true_parameters().q_GYROtoIMU(3) << " ";
+        of_state_gt << sim->get_true_parameters().q_ACCtoIMU(0) << " " << sim->get_true_parameters().q_ACCtoIMU(1) << " "
+                    << sim->get_true_parameters().q_ACCtoIMU(2) << " " << sim->get_true_parameters().q_ACCtoIMU(3) << " ";
         // New line
         of_state_gt << endl;
       }
@@ -452,7 +450,7 @@ public:
     // imu intrinsics: kalibr R_gyrotoI
     of_state_est << state->_calib_imu_GYROtoIMU->value()(0) << " " << state->_calib_imu_GYROtoIMU->value()(1) << " "
                  << state->_calib_imu_GYROtoIMU->value()(2) << " " << state->_calib_imu_GYROtoIMU->value()(3) << " ";
-    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
+    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
       int index_wtoI = state->_calib_imu_GYROtoIMU->id();
       of_state_std << std::sqrt(cov(index_wtoI + 0, index_wtoI + 0)) << " " << std::sqrt(cov(index_wtoI + 1, index_wtoI + 1)) << " "
                    << std::sqrt(cov(index_wtoI + 2, index_wtoI + 2)) << " " << std::sqrt(cov(index_wtoI + 3, index_wtoI + 3)) << " ";
@@ -463,7 +461,7 @@ public:
     // imu intrinsics: rpng R_acctoI
     of_state_est << state->_calib_imu_ACCtoIMU->value()(0) << " " << state->_calib_imu_ACCtoIMU->value()(1) << " "
                  << state->_calib_imu_ACCtoIMU->value()(2) << " " << state->_calib_imu_ACCtoIMU->value()(3) << " ";
-    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ov_core::ImuConfig::ImuModel::RPNG) {
+    if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::RPNG) {
       int index_atoI = state->_calib_imu_ACCtoIMU->id();
       of_state_std << std::sqrt(cov(index_atoI + 0, index_atoI + 0)) << " " << std::sqrt(cov(index_atoI + 1, index_atoI + 1)) << " "
                    << std::sqrt(cov(index_atoI + 2, index_atoI + 2)) << " " << std::sqrt(cov(index_atoI + 3, index_atoI + 3)) << " ";

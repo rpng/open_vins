@@ -80,60 +80,6 @@ struct CameraData {
   }
 };
 
-/**
- * @brief Struct of our imu noise and intrinsic parameters.
- *
- * For details on each specific model see @ref imu_intrinsics
- */
-struct ImuConfig {
-
-  /**
-   * @brief What model our IMU is
-   */
-  enum ImuModel {
-    KALIBR,
-    RPNG
-  };
-
-  /// IMU model our intrinsic calibration is using.
-  ImuModel imu_model = ImuModel::KALIBR;
-
-  /// Gyroscope IMU intrinsics (scale imperfection and axis misalignment, column-wise, inverse)
-  Eigen::Matrix<double, 6, 1> vec_dw;
-
-  /// Accelerometer IMU intrinsics (scale imperfection and axis misalignment, column-wise, inverse)
-  Eigen::Matrix<double, 6, 1> vec_da;
-
-  /// Gyroscope gravity sensitivity (scale imperfection and axis misalignment, column-wise)
-  Eigen::Matrix<double, 9, 1> vec_tg;
-
-  /// Rotation from gyroscope frame to the "IMU" accelerometer frame
-  Eigen::Matrix<double, 4, 1> q_ACCtoIMU;
-
-  /// Rotation from accelerometer to the "IMU" gyroscope frame frame
-  Eigen::Matrix<double, 4, 1> q_GYROtoIMU;
-
-  /// Gyroscope white noise (rad/s/sqrt(hz))
-  double sigma_w = 1.6968e-04;
-
-  /// Gyroscope random walk (rad/s^2/sqrt(hz))
-  double sigma_wb = 1.9393e-05;
-
-  /// Accelerometer white noise (m/s^2/sqrt(hz))
-  double sigma_a = 2.0000e-3;
-
-  /// Accelerometer random walk (m/s^3/sqrt(hz))
-  double sigma_ab = 3.0000e-03;
-
-  /// Nice print function of what parameters we have loaded
-  void print() {
-    PRINT_DEBUG("  - gyroscope_noise_density: %.6f\n", sigma_w);
-    PRINT_DEBUG("  - accelerometer_noise_density: %.5f\n", sigma_a);
-    PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
-    PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
-  }
-};
-
 } // namespace ov_core
 
 #endif // OV_CORE_SENSOR_DATA_H

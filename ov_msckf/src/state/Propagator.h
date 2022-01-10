@@ -37,14 +37,39 @@ namespace ov_msckf {
  * For derivations look at @ref propagation page which has detailed equations.
  */
 class Propagator {
-
 public:
   /**
+   * @brief Struct of our imu noise parameters
+   */
+  struct NoiseManager {
+
+    /// Gyroscope white noise (rad/s/sqrt(hz))
+    double sigma_w = 1.6968e-04;
+
+    /// Gyroscope random walk (rad/s^2/sqrt(hz))
+    double sigma_wb = 1.9393e-05;
+
+    /// Accelerometer white noise (m/s^2/sqrt(hz))
+    double sigma_a = 2.0000e-3;
+
+    /// Accelerometer random walk (m/s^3/sqrt(hz))
+    double sigma_ab = 3.0000e-03;
+
+    /// Nice print function of what parameters we have loaded
+    void print() const {
+      PRINT_DEBUG("  - gyroscope_noise_density: %.6f\n", sigma_w);
+      PRINT_DEBUG("  - accelerometer_noise_density: %.5f\n", sigma_a);
+      PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
+      PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
+    }
+  };
+
+  /**
    * @brief Default constructor
-   * @param imu_config imu noise characteristics (continuous time)
+   * @param noises imu noise characteristics (continuous time)
    * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    */
-  Propagator(ov_core::ImuConfig imu_config, double gravity_mag) : _imu_config(imu_config) {
+  Propagator(NoiseManager noises, double gravity_mag) : _noises(noises) {
     last_prop_time_offset = 0.0;
     _gravity << 0.0, 0.0, gravity_mag;
   }
@@ -178,17 +203,14 @@ protected:
    *
    * @param state Pointer to state
    * @param dt Time we should integrate over
-   * @param w_hat1 Angular velocity with bias removed
-   * @param a_hat1 Linear acceleration with bias removed
-   * @param w_hat2 Next angular velocity with bias removed
-   * @param a_hat2 Next linear acceleration with bias removed
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
    * @param new_q The resulting new orientation after integration
    * @param new_v The resulting new velocity after integration
    * @param new_p The resulting new position after integration
    */
-  void predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
-                             const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2, Eigen::Vector4d &new_q, Eigen::Vector3d &new_v,
-                             Eigen::Vector3d &new_p);
+  void predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &w_hat,
+                             Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);
 
   /**
    * @brief RK4 imu mean propagation.
@@ -425,7 +447,7 @@ protected:
   Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
 
   /// Container for the noise values
-  ov_core::ImuConfig _imu_config;
+  NoiseManager _noises;
 
   /// Our history of IMU messages (time, angular, linear)
   std::vector<ov_core::ImuData> imu_data;

@@ -48,16 +48,16 @@ VioManager::VioManager(VioManagerOptions &params_) {
   state = std::make_shared<State>(params.state_options);
 
   // Set the IMU intrinsics
-  state->_calib_imu_dw->set_value(params.imu_config.vec_dw);
-  state->_calib_imu_dw->set_fej(params.imu_config.vec_dw);
-  state->_calib_imu_da->set_value(params.imu_config.vec_da);
-  state->_calib_imu_da->set_fej(params.imu_config.vec_da);
-  state->_calib_imu_tg->set_value(params.imu_config.vec_tg);
-  state->_calib_imu_tg->set_fej(params.imu_config.vec_tg);
-  state->_calib_imu_GYROtoIMU->set_value(params.imu_config.q_GYROtoIMU);
-  state->_calib_imu_GYROtoIMU->set_fej(params.imu_config.q_GYROtoIMU);
-  state->_calib_imu_ACCtoIMU->set_value(params.imu_config.q_ACCtoIMU);
-  state->_calib_imu_ACCtoIMU->set_fej(params.imu_config.q_ACCtoIMU);
+  state->_calib_imu_dw->set_value(params.vec_dw);
+  state->_calib_imu_dw->set_fej(params.vec_dw);
+  state->_calib_imu_da->set_value(params.vec_da);
+  state->_calib_imu_da->set_fej(params.vec_da);
+  state->_calib_imu_tg->set_value(params.vec_tg);
+  state->_calib_imu_tg->set_fej(params.vec_tg);
+  state->_calib_imu_GYROtoIMU->set_value(params.q_GYROtoIMU);
+  state->_calib_imu_GYROtoIMU->set_fej(params.q_GYROtoIMU);
+  state->_calib_imu_ACCtoIMU->set_value(params.q_ACCtoIMU);
+  state->_calib_imu_ACCtoIMU->set_fej(params.q_ACCtoIMU);
 
   // Timeoffset from camera to IMU
   Eigen::VectorXd temp_camimu_dt;
@@ -123,7 +123,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
   }
 
   // Initialize our state propagator
-  propagator = std::make_shared<Propagator>(params.imu_config, params.gravity_mag);
+  propagator = std::make_shared<Propagator>(params.imu_noises, params.gravity_mag);
 
   // Our state initialize
   initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options, trackFEATS->get_feature_database());
@@ -134,7 +134,7 @@ VioManager::VioManager(VioManagerOptions &params_) {
 
   // If we are using zero velocity updates, then create the updater
   if (params.try_zupt) {
-    updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_config, trackFEATS->get_feature_database(),
+    updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_noises, trackFEATS->get_feature_database(),
                                                         propagator, params.gravity_mag, params.zupt_max_velocity,
                                                         params.zupt_noise_multiplier, params.zupt_max_disparity);
   }
@@ -729,7 +729,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 
   // Debug for imu intrinsics
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
     PRINT_INFO("Dw = | %.4f,%.4f,%.4f | %.4f,%.4f | %.4f |\n", state->_calib_imu_dw->value()(0), state->_calib_imu_dw->value()(1),
                state->_calib_imu_dw->value()(2), state->_calib_imu_dw->value()(3), state->_calib_imu_dw->value()(4),
                state->_calib_imu_dw->value()(5));
@@ -737,7 +737,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
                state->_calib_imu_da->value()(2), state->_calib_imu_da->value()(3), state->_calib_imu_da->value()(4),
                state->_calib_imu_da->value()(5));
   }
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::RPNG) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::RPNG) {
     PRINT_INFO("Dw = | %.4f | %.4f,%.4f | %.4f,%.4f,%.4f |\n", state->_calib_imu_dw->value()(0), state->_calib_imu_dw->value()(1),
                state->_calib_imu_dw->value()(2), state->_calib_imu_dw->value()(3), state->_calib_imu_dw->value()(4),
                state->_calib_imu_dw->value()(5));
@@ -751,11 +751,11 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
                state->_calib_imu_tg->value()(4), state->_calib_imu_tg->value()(5), state->_calib_imu_tg->value()(6),
                state->_calib_imu_tg->value()(7), state->_calib_imu_tg->value()(8));
   }
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::KALIBR) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
     PRINT_INFO("q_GYROtoI = %.3f,%.3f,%.3f,%.3f\n", state->_calib_imu_GYROtoIMU->value()(0), state->_calib_imu_GYROtoIMU->value()(1),
                state->_calib_imu_GYROtoIMU->value()(2), state->_calib_imu_GYROtoIMU->value()(3));
   }
-  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == ImuConfig::ImuModel::RPNG) {
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::RPNG) {
     PRINT_INFO("q_ACCtoI = %.3f,%.3f,%.3f,%.3f\n", state->_calib_imu_ACCtoIMU->value()(0), state->_calib_imu_ACCtoIMU->value()(1),
                state->_calib_imu_ACCtoIMU->value()(2), state->_calib_imu_ACCtoIMU->value()(3));
   }

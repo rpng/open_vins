@@ -60,9 +60,11 @@ struct VioManagerOptions {
    */
   void print_and_load(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     print_and_load_estimator(parser);
-    print_and_load_noise(parser);
-    print_and_load_state(parser);
     print_and_load_trackers(parser);
+    print_and_load_noise(parser);
+
+    // needs to be called last
+    print_and_load_state(parser);
   }
 
   // ESTIMATOR ===============================
@@ -129,8 +131,8 @@ struct VioManagerOptions {
 
   // NOISE / CHI2 ============================
 
-  /// IMU noise (gyroscope and accelerometer)
-  ov_core::ImuConfig imu_config;
+  /// Continuous-time IMU noise (gyroscope and accelerometer)
+  Propagator::NoiseManager imu_noises;
 
   /// Update options for MSCKF features (pixel noise and chi2 multiplier)
   UpdaterOptions msckf_options;
@@ -153,12 +155,12 @@ struct VioManagerOptions {
   void print_and_load_noise(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     PRINT_DEBUG("NOISE PARAMETERS:\n");
     if (parser != nullptr) {
-      parser->parse_external("relative_config_imu", "imu0", "gyroscope_noise_density", imu_config.sigma_w);
-      parser->parse_external("relative_config_imu", "imu0", "gyroscope_random_walk", imu_config.sigma_wb);
-      parser->parse_external("relative_config_imu", "imu0", "accelerometer_noise_density", imu_config.sigma_a);
-      parser->parse_external("relative_config_imu", "imu0", "accelerometer_random_walk", imu_config.sigma_ab);
+      parser->parse_external("relative_config_imu", "imu0", "gyroscope_noise_density", imu_noises.sigma_w);
+      parser->parse_external("relative_config_imu", "imu0", "gyroscope_random_walk", imu_noises.sigma_wb);
+      parser->parse_external("relative_config_imu", "imu0", "accelerometer_noise_density", imu_noises.sigma_a);
+      parser->parse_external("relative_config_imu", "imu0", "accelerometer_random_walk", imu_noises.sigma_ab);
     }
-    imu_config.print();
+    imu_noises.print();
     if (parser != nullptr) {
       parser->parse_config("up_msckf_sigma_px", msckf_options.sigma_pix);
       parser->parse_config("up_msckf_chi2_multipler", msckf_options.chi2_multipler);
@@ -186,6 +188,21 @@ struct VioManagerOptions {
   /// Gravity magnitude in the global frame (i.e. should be 9.81 typically)
   double gravity_mag = 9.81;
 
+  /// Gyroscope IMU intrinsics (scale imperfection and axis misalignment, column-wise, inverse)
+  Eigen::Matrix<double, 6, 1> vec_dw;
+
+  /// Accelerometer IMU intrinsics (scale imperfection and axis misalignment, column-wise, inverse)
+  Eigen::Matrix<double, 6, 1> vec_da;
+
+  /// Gyroscope gravity sensitivity (scale imperfection and axis misalignment, column-wise)
+  Eigen::Matrix<double, 9, 1> vec_tg;
+
+  /// Rotation from gyroscope frame to the "IMU" accelerometer frame
+  Eigen::Matrix<double, 4, 1> q_ACCtoIMU;
+
+  /// Rotation from accelerometer to the "IMU" gyroscope frame frame
+  Eigen::Matrix<double, 4, 1> q_GYROtoIMU;
+
   /// Time offset between camera and IMU.
   double calib_camimu_dt = 0.0;
 
@@ -210,8 +227,6 @@ struct VioManagerOptions {
   void print_and_load_state(const std::shared_ptr<ov_core::YamlParser> &parser = nullptr) {
     if (parser != nullptr) {
       parser->parse_config("gravity_mag", gravity_mag);
-      parser->parse_config("max_cameras", state_options.num_cameras); // might be redundant
-      parser->parse_config("downsample_cameras", downsample_cameras); // might be redundant
       for (int i = 0; i < state_options.num_cameras; i++) {
 
         // Time offset (use the first one)
@@ -286,18 +301,6 @@ struct VioManagerOptions {
         }
       }
 
-      // IMU model
-      std::string imu_model_str = "kalibr";
-      parser->parse_external("relative_config_imu", "imu0", "model", imu_model_str); // might be redundant
-      if (imu_model_str == "kalibr" || imu_model_str == "calibrated") {
-        imu_config.imu_model = ov_core::ImuConfig::ImuModel::KALIBR;
-      } else if (imu_model_str == "rpng") {
-        imu_config.imu_model = ov_core::ImuConfig::ImuModel::RPNG;
-      } else {
-        PRINT_ERROR(RED "VioManager(): invalid imu model: %s\n" RESET, imu_model_str.c_str());
-        std::exit(EXIT_FAILURE);
-      }
-
       // IMU intrinsics
       Eigen::Matrix3d Tw = Eigen::Matrix3d::Identity();
       parser->parse_external("relative_config_imu", "imu0", "Tw", Tw);
@@ -316,19 +319,35 @@ struct VioManagerOptions {
       Eigen::Matrix3d Da = Ta.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
       Eigen::Matrix3d R_ACCtoIMU = R_IMUtoACC.transpose();
       Eigen::Matrix3d R_GYROtoIMU = R_IMUtoGYRO.transpose();
+      if (std::isnan(Tw.norm()) || std::isnan(Dw.norm())) {
+        std::stringstream ss;
+        ss << "gyroscope has bad intrinsic values!" << std::endl;
+        ss << "Tw - " << std::endl << Tw << std::endl << std::endl;
+        ss << "Dw - " << std::endl << Dw << std::endl << std::endl;
+        PRINT_DEBUG(RED "" RESET, ss.str().c_str());
+        std::exit(EXIT_FAILURE);
+      }
+      if (std::isnan(Ta.norm()) || std::isnan(Da.norm())) {
+        std::stringstream ss;
+        ss << "accelerometer has bad intrinsic values!" << std::endl;
+        ss << "Ta - " << std::endl << Ta << std::endl << std::endl;
+        ss << "Da - " << std::endl << Da << std::endl << std::endl;
+        PRINT_DEBUG(RED "" RESET, ss.str().c_str());
+        std::exit(EXIT_FAILURE);
+      }
 
       // kalibr model: lower triangular of the matrix and R_GYROtoI
       // rpng model: upper triangular of the matrix and R_ACCtoI
-      if (imu_config.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) {
-        imu_config.vec_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
-        imu_config.vec_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
+      if (state_options.imu_model == StateOptions::ImuModel::KALIBR) {
+        vec_dw << Dw.block<3, 1>(0, 0), Dw.block<2, 1>(1, 1), Dw(2, 2);
+        vec_da << Da.block<3, 1>(0, 0), Da.block<2, 1>(1, 1), Da(2, 2);
       } else {
-        imu_config.vec_dw << Dw(0, 0), Dw.block<2, 1>(0, 1), Dw.block<3, 1>(0, 2);
-        imu_config.vec_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
+        vec_dw << Dw(0, 0), Dw.block<2, 1>(0, 1), Dw.block<3, 1>(0, 2);
+        vec_da << Da(0, 0), Da.block<2, 1>(0, 1), Da.block<3, 1>(0, 2);
       }
-      imu_config.vec_tg << Tg.block<3, 1>(0, 0), Tg.block<3, 1>(0, 1), Tg.block<3, 1>(0, 2);
-      imu_config.q_GYROtoIMU = ov_core::rot_2_quat(R_GYROtoIMU);
-      imu_config.q_ACCtoIMU = ov_core::rot_2_quat(R_ACCtoIMU);
+      vec_tg << Tg.block<3, 1>(0, 0), Tg.block<3, 1>(0, 1), Tg.block<3, 1>(0, 2);
+      q_GYROtoIMU = ov_core::rot_2_quat(R_GYROtoIMU);
+      q_ACCtoIMU = ov_core::rot_2_quat(R_ACCtoIMU);
     }
     PRINT_DEBUG("STATE PARAMETERS:\n");
     PRINT_DEBUG("  - gravity_mag: %.4f\n", gravity_mag);
@@ -362,12 +381,12 @@ struct VioManagerOptions {
     }
     PRINT_DEBUG("IMU PARAMETERS:\n");
     std::stringstream ss;
-    ss << "imu model:" << ((imu_config.imu_model == ov_core::ImuConfig::ImuModel::KALIBR) ? "kalibr" : "rpng") << std::endl;
-    ss << "Dw (columnwise):" << imu_config.vec_dw.transpose() << std::endl;
-    ss << "Da (columnwise):" << imu_config.vec_da.transpose() << std::endl;
-    ss << "Tg (columnwise):" << imu_config.vec_tg.transpose() << std::endl;
-    ss << "q_GYROtoI: " << imu_config.q_GYROtoIMU.transpose() << std::endl;
-    ss << "q_ACCtoI: " << imu_config.q_ACCtoIMU.transpose() << std::endl;
+    ss << "imu model:" << ((state_options.imu_model == StateOptions::ImuModel::KALIBR) ? "kalibr" : "rpng") << std::endl;
+    ss << "Dw (columnwise):" << vec_dw.transpose() << std::endl;
+    ss << "Da (columnwise):" << vec_da.transpose() << std::endl;
+    ss << "Tg (columnwise):" << vec_tg.transpose() << std::endl;
+    ss << "q_GYROtoI: " << q_GYROtoIMU.transpose() << std::endl;
+    ss << "q_ACCtoI: " << q_ACCtoIMU.transpose() << std::endl;
     PRINT_DEBUG(ss.str().c_str());
   }
 
