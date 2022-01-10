@@ -31,7 +31,6 @@
     <depend condition="$ROS_VERSION == 2">cv_bridge</depend>
 
     <!-- System dependencies for both versions -->
-    <depend version_gte="3.12">cmake</depend>
     <depend>eigen</depend>
     <depend>libopencv-dev</depend>
     <depend>libopencv-contrib-dev</depend>

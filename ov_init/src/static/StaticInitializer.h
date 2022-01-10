@@ -22,9 +22,9 @@
 #ifndef OV_INIT_STATICINITIALIZER_H
 #define OV_INIT_STATICINITIALIZER_H
 
-#include "feat/FeatureHelper.h"
 #include "init/InertialInitializerOptions.h"
 
+#include "feat/FeatureHelper.h"
 #include "types/IMU.h"
 #include "utils/colors.h"
 #include "utils/print.h"

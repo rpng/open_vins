@@ -29,7 +29,7 @@ list(APPEND thirdparty_libraries
 # Make the core library
 ##################################################
 
-add_library(ov_core_lib SHARED
+list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/sim/BsplineSE3.cpp
         src/track/TrackBase.cpp
@@ -42,15 +42,21 @@ add_library(ov_core_lib SHARED
         src/feat/FeatureInitializer.cpp
         src/utils/print.cpp
 )
+file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
+add_library(ov_core_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 ament_target_dependencies(ov_core_lib rclcpp cv_bridge)
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
-target_include_directories(ov_core_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(ov_core_lib PUBLIC src/)
 install(TARGETS ov_core_lib
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        PUBLIC_HEADER DESTINATION include
 )
-ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
+install(DIRECTORY src/
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+ament_export_include_directories(include)
 ament_export_libraries(ov_core_lib)
 
 ##################################################
