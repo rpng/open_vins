@@ -29,7 +29,7 @@ list(APPEND thirdparty_libraries
 # Make the shared library
 ##################################################
 
-add_library(ov_eval_lib SHARED
+list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/alignment/AlignTrajectory.cpp
         src/alignment/AlignUtils.cpp
@@ -37,15 +37,21 @@ add_library(ov_eval_lib SHARED
         src/calc/ResultSimulation.cpp
         src/utils/Loader.cpp
 )
+file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
+add_library(ov_eval_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 ament_target_dependencies(ov_eval_lib rclcpp ov_core)
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
-target_include_directories(ov_eval_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(ov_eval_lib PUBLIC src/)
 install(TARGETS ov_eval_lib
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        PUBLIC_HEADER DESTINATION include
 )
-ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
+install(DIRECTORY src/
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+ament_export_include_directories(include)
 ament_export_libraries(ov_eval_lib)
 
 ##################################################
