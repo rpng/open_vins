@@ -63,8 +63,6 @@
 
 #include <Eigen/Eigen>
 
-#include "utils/print.h"
-
 namespace ov_core {
 
 /**
@@ -90,26 +88,22 @@ inline Eigen::Matrix<double, 4, 1> rot_2_quat(const Eigen::Matrix<double, 3, 3> 
   Eigen::Matrix<double, 4, 1> q;
   double T = rot.trace();
   if ((rot(0, 0) >= T) && (rot(0, 0) >= rot(1, 1)) && (rot(0, 0) >= rot(2, 2))) {
-    // PRINT_DEBUG("case 1- \n");
     q(0) = sqrt((1 + (2 * rot(0, 0)) - T) / 4);
     q(1) = (1 / (4 * q(0))) * (rot(0, 1) + rot(1, 0));
     q(2) = (1 / (4 * q(0))) * (rot(0, 2) + rot(2, 0));
     q(3) = (1 / (4 * q(0))) * (rot(1, 2) - rot(2, 1));
 
   } else if ((rot(1, 1) >= T) && (rot(1, 1) >= rot(0, 0)) && (rot(1, 1) >= rot(2, 2))) {
-    // PRINT_DEBUG("case 2- \n");
     q(1) = sqrt((1 + (2 * rot(1, 1)) - T) / 4);
     q(0) = (1 / (4 * q(1))) * (rot(0, 1) + rot(1, 0));
     q(2) = (1 / (4 * q(1))) * (rot(1, 2) + rot(2, 1));
     q(3) = (1 / (4 * q(1))) * (rot(2, 0) - rot(0, 2));
   } else if ((rot(2, 2) >= T) && (rot(2, 2) >= rot(0, 0)) && (rot(2, 2) >= rot(1, 1))) {
-    // PRINT_DEBUG("case 3- \n");
     q(2) = sqrt((1 + (2 * rot(2, 2)) - T) / 4);
     q(0) = (1 / (4 * q(2))) * (rot(0, 2) + rot(2, 0));
     q(1) = (1 / (4 * q(2))) * (rot(1, 2) + rot(2, 1));
     q(3) = (1 / (4 * q(2))) * (rot(0, 1) - rot(1, 0));
   } else {
-    // PRINT_DEBUG("case 4- \n");
     q(3) = sqrt((1 + T) / 4);
     q(0) = (1 / (4 * q(3))) * (rot(1, 2) - rot(2, 1));
     q(1) = (1 / (4 * q(3))) * (rot(2, 0) - rot(0, 2));
