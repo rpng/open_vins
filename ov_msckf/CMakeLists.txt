@@ -1,10 +1,4 @@
-cmake_minimum_required(VERSION 3.12)
-
-# Define our install directories based on GNU conventions
-# https://cmake.org/cmake/help/latest/module/GNUInstallDirs.html
-include(GNUInstallDirs)
-
-# Project name
+cmake_minimum_required(VERSION 3.3)
 project(ov_msckf)
 
 # Include libraries (if we don't have opencv 4, then fallback to opencv 3)
@@ -43,16 +37,16 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninit
 # NOTE: https://github.com/romainreignier/share_ros1_ros2_lib_demo
 find_package(catkin QUIET COMPONENTS roscpp)
 find_package(ament_cmake QUIET)
-if(catkin_FOUND)
+if (catkin_FOUND)
     message(STATUS "ROS *1* version found, building ROS1.cmake")
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROS1.cmake)
-elseif(ament_cmake_FOUND)
+elseif (ament_cmake_FOUND)
     message(STATUS "ROS *2* version found, building ROS2.cmake")
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROS2.cmake)
-else()
+else ()
     message(STATUS "No ROS versions found, building ROS1.cmake")
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROS1.cmake)
-endif()
+endif ()
 
 
 

@@ -9,12 +9,16 @@ if (catkin_FOUND AND ENABLE_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp ov_core
-            INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/
+            INCLUDE_DIRS src/
             LIBRARIES ov_init_lib
     )
 else ()
     add_definitions(-DROS_AVAILABLE=0)
     message(WARNING "BUILDING WITHOUT ROS!")
+    include(GNUInstallDirs)
+    set(CATKIN_PACKAGE_LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set(CATKIN_PACKAGE_BIN_DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif ()
 
 # Include our header files
@@ -22,7 +26,6 @@ include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
-        ${PYTHON_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -36,26 +39,39 @@ list(APPEND thirdparty_libraries
 # This isn't that elegant of a way, but this at least allows for building without ROS
 # See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
-    message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${ov_core_SOURCE_DIR}/src/)
-    list(APPEND thirdparty_libraries ov_core_lib)
+
+    message(STATUS "MANUALLY LINKING TO OV_CORE LIBRARY....")
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
+    file(GLOB_RECURSE OVCORE_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_core/src/*.cpp")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_webcam\\.cpp$")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_tracking\\.cpp$")
+    list(APPEND LIBRARY_SOURCES ${OVCORE_LIBRARY_SOURCES})
+    file(GLOB_RECURSE OVCORE_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_core/src/*.h")
+    list(APPEND LIBRARY_HEADERS ${OVCORE_LIBRARY_HEADERS})
+
 endif ()
 
 ##################################################
 # Make the shared library
 ##################################################
 
-add_library(ov_init_lib SHARED
+list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/init/InertialInitializer.cpp
         src/static/StaticInitializer.cpp
 )
+file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
+add_library(ov_init_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(ov_init_lib ${thirdparty_libraries})
-target_include_directories(ov_init_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(ov_init_lib PUBLIC src/)
 install(TARGETS ov_init_lib
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(DIRECTORY src/
+        DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
 )
 
 

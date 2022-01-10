@@ -7,11 +7,14 @@
     <description>
         Implementation of a type-based error-state Kalman filter.
     </description>
-    <url>https://docs.openvins.com/</url>
+    <url type="website">https://docs.openvins.com/</url>
+    <url type="bugtracker">https://github.com/rpng/open_vins/issues</url>
+    <url type="repository">https://github.com/rpng/open_vins</url>
 
     <!-- Code Authors -->
     <author email="pgeneva@udel.edu">Patrick Geneva</author>
     <author email="keck@udel.edu">Kevin Eckenhoff</author>
+    <author email="ghuang@udel.edu">Guoquan Huang</author>
     <maintainer email="pgeneva@udel.edu">Patrick Geneva</maintainer>
 
     <!-- Licensing -->
@@ -21,6 +24,7 @@
     <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
     <depend condition="$ROS_VERSION == 1">cmake_modules</depend>
     <depend condition="$ROS_VERSION == 1">roscpp</depend>
+    <depend condition="$ROS_VERSION == 1">rosbag</depend>
     <depend condition="$ROS_VERSION == 1">tf</depend>
     <depend condition="$ROS_VERSION == 1">std_msgs</depend>
     <depend condition="$ROS_VERSION == 1">sensor_msgs</depend>
@@ -35,7 +39,6 @@
     <!-- ROS2: Dependencies needed to compile this package. -->
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
     <depend condition="$ROS_VERSION == 2">rclcpp</depend>
-    <depend condition="$ROS_VERSION == 2">rosbag</depend>
     <depend condition="$ROS_VERSION == 2">tf2_ros</depend>
     <depend condition="$ROS_VERSION == 2">std_msgs</depend>
     <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
@@ -46,10 +49,17 @@
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
     <depend condition="$ROS_VERSION == 2">ov_init</depend>
 
+    <!-- System dependencies for both versions -->
+    <depend>eigen</depend>
+    <depend>libopencv-dev</depend>
+    <depend>libopencv-contrib-dev</depend>
+    <depend>boost</depend>
+
     <!-- Note the export is required to expose the executables -->
     <export>
         <build_type condition="$ROS_VERSION == 1">catkin</build_type>
         <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
+        <rosdoc config="rosdoc.yaml" />
     </export>
 
     <!-- These are really "soft" dependencies, and are just required if you need them for launch... -->

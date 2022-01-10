@@ -3,11 +3,13 @@
 
     <!-- Package Information -->
     <name>ov_data</name>
-    <version>2.4.0</version>
+    <version>2.5.0</version>
     <description>
         Data for the OpenVINS project, mostly just groundtruth files...
     </description>
-    <url>https://github.com/rpng/open_vins</url>
+    <url type="website">https://docs.openvins.com/</url>
+    <url type="bugtracker">https://github.com/rpng/open_vins/issues</url>
+    <url type="repository">https://github.com/rpng/open_vins</url>
 
     <!-- Code Authors -->
     <author email="pgeneva@udel.edu">Patrick Geneva</author>

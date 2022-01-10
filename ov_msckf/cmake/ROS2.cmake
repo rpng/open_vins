@@ -49,7 +49,8 @@ list(APPEND ament_libraries
 # Make the shared library
 ##################################################
 
-list(APPEND library_source_files
+list(APPEND LIBRARY_SOURCES
+        src/dummy.cpp
         src/sim/Simulator.cpp
         src/state/State.cpp
         src/state/StateHelper.cpp
@@ -60,19 +61,22 @@ list(APPEND library_source_files
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
 )
-list(APPEND library_source_files
-        src/ros/ROS2Visualizer.cpp
-)
-add_library(ov_msckf_lib SHARED ${library_source_files})
+list(APPEND LIBRARY_SOURCES src/ros/ROS2Visualizer.cpp)
+file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
+add_library(ov_msckf_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 ament_target_dependencies(ov_msckf_lib ${ament_libraries})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
-target_include_directories(ov_msckf_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(ov_msckf_lib PUBLIC src/)
 install(TARGETS ov_msckf_lib
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        LIBRARY DESTINATION lib
+        RUNTIME DESTINATION bin
+        PUBLIC_HEADER DESTINATION include
 )
-ament_export_include_directories(${CMAKE_CURRENT_SOURCE_DIR}/src/)
+install(DIRECTORY src/
+        DESTINATION include
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+ament_export_include_directories(include)
 ament_export_libraries(ov_msckf_lib)
 
 ##################################################
@@ -104,8 +108,8 @@ target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS test_sim_repeat DESTINATION lib/${PROJECT_NAME})
 
 # Install launch and config directories
-install(DIRECTORY launch DESTINATION share/${PROJECT_NAME}/)
-install(DIRECTORY ../config/ DESTINATION share/${PROJECT_NAME}/)
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch/)
+install(DIRECTORY ../config/ DESTINATION share/${PROJECT_NAME}/config/)
 
 # finally define this as the package
 ament_package()

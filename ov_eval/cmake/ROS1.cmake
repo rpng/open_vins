@@ -9,12 +9,16 @@ if (catkin_FOUND AND ENABLE_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
             CATKIN_DEPENDS roscpp rospy geometry_msgs nav_msgs sensor_msgs ov_core
-            INCLUDE_DIRS ${CMAKE_CURRENT_SOURCE_DIR}/src/
+            INCLUDE_DIRS src/
             LIBRARIES ov_eval_lib
     )
 else ()
     add_definitions(-DROS_AVAILABLE=0)
     message(WARNING "BUILDING WITHOUT ROS!")
+    include(GNUInstallDirs)
+    set(CATKIN_PACKAGE_LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
+    set(CATKIN_PACKAGE_BIN_DESTINATION "${CMAKE_INSTALL_BINDIR}")
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
 endif ()
 
 # Include our header files
@@ -36,16 +40,23 @@ list(APPEND thirdparty_libraries
 # This isn't that elegant of a way, but this at least allows for building without ROS
 # See this stackoverflow answer: https://stackoverflow.com/a/11217008/7718197
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
-    message(WARNING "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${ov_core_SOURCE_DIR}/src/)
-    list(APPEND thirdparty_libraries ov_core_lib)
+
+    message(STATUS "MANUALLY LINKING TO OV_CORE LIBRARY....")
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
+    file(GLOB_RECURSE OVCORE_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_core/src/*.cpp")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_webcam\\.cpp$")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_tracking\\.cpp$")
+    list(APPEND LIBRARY_SOURCES ${OVCORE_LIBRARY_SOURCES})
+    file(GLOB_RECURSE OVCORE_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_core/src/*.h")
+    list(APPEND LIBRARY_HEADERS ${OVCORE_LIBRARY_HEADERS})
+
 endif ()
 
 ##################################################
 # Make the shared library
 ##################################################
 
-add_library(ov_eval_lib SHARED
+list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/alignment/AlignTrajectory.cpp
         src/alignment/AlignUtils.cpp
@@ -53,12 +64,18 @@ add_library(ov_eval_lib SHARED
         src/calc/ResultSimulation.cpp
         src/utils/Loader.cpp
 )
+file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
+add_library(ov_eval_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(ov_eval_lib ${thirdparty_libraries})
-target_include_directories(ov_eval_lib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src/)
+target_include_directories(ov_eval_lib PUBLIC src/)
 install(TARGETS ov_eval_lib
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+install(DIRECTORY src/
+        DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
 )
 
 ##################################################
@@ -69,82 +86,92 @@ if (catkin_FOUND AND ENABLE_ROS)
 
     add_executable(pose_to_file src/pose_to_file.cpp)
     target_link_libraries(pose_to_file ov_eval_lib ${thirdparty_libraries})
+    install(TARGETS pose_to_file
+            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
 
     add_executable(live_align_trajectory src/live_align_trajectory.cpp)
     target_link_libraries(live_align_trajectory ov_eval_lib ${thirdparty_libraries})
+    install(TARGETS live_align_trajectory
+            ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+            LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+            RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+    )
 
 endif ()
 
 add_executable(format_converter src/format_converter.cpp)
 target_link_libraries(format_converter ov_eval_lib ${thirdparty_libraries})
 install(TARGETS format_converter
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(error_comparison src/error_comparison.cpp)
 target_link_libraries(error_comparison ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_comparison
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(error_dataset src/error_dataset.cpp)
 target_link_libraries(error_dataset ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_dataset
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(error_singlerun src/error_singlerun.cpp)
 target_link_libraries(error_singlerun ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_singlerun
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(error_simulation src/error_simulation.cpp)
 target_link_libraries(error_simulation ov_eval_lib ${thirdparty_libraries})
 install(TARGETS error_simulation
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(timing_flamegraph src/timing_flamegraph.cpp)
 target_link_libraries(timing_flamegraph ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_flamegraph
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(timing_comparison src/timing_comparison.cpp)
 target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_comparison
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 add_executable(timing_percentages src/timing_percentages.cpp)
 target_link_libraries(timing_percentages ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_percentages
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
-        )
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 add_executable(plot_trajectories src/plot_trajectories.cpp)
 target_link_libraries(plot_trajectories ov_eval_lib ${thirdparty_libraries})
 install(TARGETS plot_trajectories
-        LIBRARY         DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        RUNTIME         DESTINATION ${CMAKE_INSTALL_BINDIR}
-        PUBLIC_HEADER   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
 
@@ -158,3 +185,13 @@ if (catkin_FOUND AND ENABLE_ROS)
     catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 endif ()
+
+
+##################################################
+# Launch files!
+##################################################
+
+install(DIRECTORY launch/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+)
+
