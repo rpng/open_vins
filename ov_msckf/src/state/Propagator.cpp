@@ -398,6 +398,8 @@ void Propagator::predict_and_compute(std::shared_ptr<State> state, const ov_core
     compute_F_and_G_discrete(state, dt, w_hat_avg, a_hat_avg, w_uncorrected, a_uncorrected, new_q, new_v, new_p, F, G);
   }
 
+
+
   // Construct our discrete noise covariance matrix
   // Note that we need to convert our continuous time noises to discrete
   // Equations (129) amd (130) of Trawny tech report
