@@ -23,7 +23,7 @@ endif ()
 # check if we have our python libs files (will search for python3 then python2 installs)
 # sudo apt-get install python-matplotlib python-numpy python-dev
 # https://cmake.org/cmake/help/v3.10/module/FindPythonLibs.html
-find_package(PythonLibs)
+find_package(PythonLibs QUIET)
 option(DISABLE_MATPLOTLIB "Disable or enable matplotlib plot scripts in ov_eval" OFF)
 if (PYTHONLIBS_FOUND AND NOT DISABLE_MATPLOTLIB)
     add_definitions(-DHAVE_PYTHONLIBS=1)
