@@ -213,15 +213,15 @@ void Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   }
 
   // Now record what the predicted state should be
-  // TODO: apply IMU intrinsics here to correct the returned angular velocity
+  // We apply IMU intrinsics here to get the corrected angular velocity
   state_plus = Eigen::Matrix<double, 13, 1>::Zero();
   state_plus.block(0, 0, 4, 1) = state->_imu->quat();
   state_plus.block(4, 0, 3, 1) = state->_imu->pos();
   state_plus.block(7, 0, 3, 1) = state->_imu->vel();
-  if (prop_data.size() > 1) {
-    state_plus.block(10, 0, 3, 1) = prop_data.at(prop_data.size() - 2).wm - state->_imu->bias_g();
-  } else if (!prop_data.empty()) {
-    state_plus.block(10, 0, 3, 1) = prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g();
+  if (!prop_data.empty()) {
+    Eigen::Vector3d last_a = state->_calib_imu_ACCtoIMU->Rot() * Da * (prop_data.at(prop_data.size() - 1).am - state->_imu->bias_a());
+    Eigen::Vector3d last_w = state->_calib_imu_GYROtoIMU->Rot() * Dw * (prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g() - Tg * last_a);
+    state_plus.block(10, 0, 3, 1) = last_w;
   }
 
   // Finally replace the imu with the original state we had

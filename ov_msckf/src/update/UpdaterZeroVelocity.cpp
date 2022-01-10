@@ -92,7 +92,13 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   Eigen::VectorXd res = Eigen::VectorXd::Zero(m_size);
   Eigen::MatrixXd R = Eigen::MatrixXd::Identity(m_size, m_size);
 
+  // IMU intrinsic calibration estimates (static)
+  Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+  Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+  Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
+
   // Loop through all our IMU and construct the residual and Jacobian
+  // TODO: should add jacobians here in respect to IMU intrinsics!!
   // State order is: [q_GtoI, bg, ba, v_IinG]
   // Measurement order is: [w_true = 0, a_true = 0 or v_k+1 = 0]
   // w_true = w_m - bw - nw
@@ -103,10 +109,11 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
     // Precomputed values
     double dt = imu_recent.at(i + 1).timestamp - imu_recent.at(i).timestamp;
-    Eigen::Vector3d a_hat = imu_recent.at(i).am - state->_imu->bias_a();
+    Eigen::Vector3d a_hat = state->_calib_imu_ACCtoIMU->Rot() * Da * (imu_recent.at(i).am - state->_imu->bias_a());
+    Eigen::Vector3d w_hat = state->_calib_imu_GYROtoIMU->Rot() * Dw * (imu_recent.at(i).wm - state->_imu->bias_g() - Tg * a_hat);
 
     // Measurement residual (true value is zero)
-    res.block(6 * i + 0, 0, 3, 1) = -(imu_recent.at(i).wm - state->_imu->bias_g());
+    res.block(6 * i + 0, 0, 3, 1) = -w_hat;
     if (!integrated_accel_constraint) {
       res.block(6 * i + 3, 0, 3, 1) = -(a_hat - state->_imu->Rot() * _gravity);
     } else {
