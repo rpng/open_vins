@@ -161,6 +161,72 @@ public:
     return data;
   }
 
+  /**
+   * @brief compute the Jacobians for Dw
+   *
+   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
+   * For kalibr model
+   * \f{align*}{
+   * \mathbf{H}_{Dw} & =
+   *   \begin{bmatrix}
+   *   {}^w\hat{w}_1 \mathbf{I}_3  & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_2\mathbf{e}_3 & {}^w\hat{w}_2\mathbf{e}_3
+   *   \end{bmatrix}
+   * \f}
+   *
+   * For rpng model:
+   * \f{align*}{
+   *   \mathbf{H}_{Dw} & =
+   *   \begin{bmatrix}
+   *   {}^w\hat{w}_1\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_3 \mathbf{I}_3
+   *   \end{bmatrix}
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param w_uncorrected Angular velocity in a frame with bias and gravity sensitivity removed
+   */
+  static Eigen::MatrixXd compute_H_Dw(std::shared_ptr<State> state, const Eigen::Vector3d &w_uncorrected);
+
+  /**
+   * @brief compute the Jacobians for Da
+   *
+   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
+   * For kalibr model
+   * \f{align*}{
+   * \mathbf{H}_{Da} & =
+   * \begin{bmatrix}
+   *   {}^a\hat{a}_1\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_3 \mathbf{I}_3
+   * \end{bmatrix}
+   * \f}
+   *
+   * For rpng:
+   * \f{align*}{
+   * \mathbf{H}_{Da} & =
+   * \begin{bmatrix}
+   *   {}^a\hat{a}_1 \mathbf{I}_3 &  & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_2\mathbf{e}_3 & {}^a\hat{a}_3\mathbf{e}_3
+   * \end{bmatrix}
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param a_uncorrected Linear acceleration in gyro frame with bias removed
+   */
+  static Eigen::MatrixXd compute_H_Da(std::shared_ptr<State> state, const Eigen::Vector3d &a_uncorrected);
+
+  /**
+   * @brief compute the Jacobians for Tg
+   *
+   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
+   * \f{align*}{
+   * \mathbf{H}_{Tg} & =
+   *  \begin{bmatrix}
+   *  {}^I\hat{a}_1 \mathbf{I}_3 & {}^I\hat{a}_2 \mathbf{I}_3 & {}^I\hat{a}_3 \mathbf{I}_3
+   *  \end{bmatrix}
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param a_inI Linear acceleration with bias removed
+   */
+  static Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
+
 protected:
   /// Estimate for time offset at last propagation time
   double last_prop_time_offset = 0.0;
@@ -380,71 +446,6 @@ protected:
                                 const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q,
                                 const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G);
 
-  /**
-   * @brief compute the Jacobians for Dw
-   *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   * For kalibr model
-   * \f{align*}{
-   * \mathbf{H}_{Dw} & =
-   *   \begin{bmatrix}
-   *   {}^w\hat{w}_1 \mathbf{I}_3  & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_2\mathbf{e}_3 & {}^w\hat{w}_2\mathbf{e}_3
-   *   \end{bmatrix}
-   * \f}
-   *
-   * For rpng model:
-   * \f{align*}{
-   *   \mathbf{H}_{Dw} & =
-   *   \begin{bmatrix}
-   *   {}^w\hat{w}_1\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_3 \mathbf{I}_3
-   *   \end{bmatrix}
-   * \f}
-   *
-   * @param state Pointer to state
-   * @param w_uncorrected Angular velocity in a frame with bias and gravity sensitivity removed
-   */
-  Eigen::MatrixXd compute_H_Dw(std::shared_ptr<State> state, const Eigen::Vector3d &w_uncorrected);
-
-  /**
-   * @brief compute the Jacobians for Da
-   *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   * For kalibr model
-   * \f{align*}{
-   * \mathbf{H}_{Da} & =
-   * \begin{bmatrix}
-   *   {}^a\hat{a}_1\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_3 \mathbf{I}_3
-   * \end{bmatrix}
-   * \f}
-   *
-   * For rpng:
-   * \f{align*}{
-   * \mathbf{H}_{Da} & =
-   * \begin{bmatrix}
-   *   {}^a\hat{a}_1 \mathbf{I}_3 &  & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_2\mathbf{e}_3 & {}^a\hat{a}_3\mathbf{e}_3
-   * \end{bmatrix}
-   * \f}
-   *
-   * @param state Pointer to state
-   * @param a_uncorrected Linear acceleration in gyro frame with bias removed
-   */
-  Eigen::MatrixXd compute_H_Da(std::shared_ptr<State> state, const Eigen::Vector3d &a_uncorrected);
-
-  /**
-   * @brief compute the Jacobians for Tg
-   *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   * \f{align*}{
-   * \mathbf{H}_{Tg} & =
-   *  \begin{bmatrix}
-   *  {}^I\hat{a}_1 \mathbf{I}_3 & {}^I\hat{a}_2 \mathbf{I}_3 & {}^I\hat{a}_3 \mathbf{I}_3
-   *  \end{bmatrix}
-   * \f}
-   *
-   * @param state Pointer to state
-   * @param a_inI Linear acceleration with bias removed
-   */
-  Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
 
   /// Container for the noise values
   NoiseManager _noises;
