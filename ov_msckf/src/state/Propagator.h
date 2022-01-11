@@ -275,7 +275,7 @@ protected:
    * @param new_v The resulting new velocity after integration
    * @param new_p The resulting new position after integration
    */
-  void predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &w_hat,
+  void predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                              Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);
 
   /**

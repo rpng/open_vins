@@ -100,7 +100,7 @@ public:
    * @param doplotting True if you want to display the plots
    * @param max_time Max number of second we want to plot
    */
-  void plot_imu_intrinsics(bool doploting, double max_time = INFINITY);
+  void plot_imu_intrinsics(bool doplotting, double max_time = INFINITY);
 
 protected:
   // Trajectory data (loaded from file and timestamp intersected)
