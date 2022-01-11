@@ -492,10 +492,10 @@ inline Eigen::Matrix<double, 4, 1> quatnorm(Eigen::Matrix<double, 4, 1> q_t) {
  * @brief Computes left Jacobian of SO(3)
  *
  * The left Jacobian of SO(3) is defined equation (7.77b) in [State Estimation for
- * Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot. Specifically it is the following (with
- * \f$\theta=|\boldsymbol\theta|\f$ and \f$\mathbf a=\boldsymbol\theta/|\boldsymbol\theta|\f$): \f{align*}{ J_l(\boldsymbol\theta) =
- * \frac{\sin\theta}{\theta}\mathbf I + \Big(1-\frac{\sin\theta}{\theta}\Big)\mathbf a \mathbf a^\top + \frac{1-\cos\theta}{\theta}\lfloor
- * \mathbf a \times\rfloor \f}
+ * Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot @cite Barfoot2017. Specifically it is the
+ * following (with \f$\theta=|\boldsymbol\theta|\f$ and \f$\mathbf a=\boldsymbol\theta/|\boldsymbol\theta|\f$): \f{align*}{
+ * J_l(\boldsymbol\theta) = \frac{\sin\theta}{\theta}\mathbf I + \Big(1-\frac{\sin\theta}{\theta}\Big)\mathbf a \mathbf a^\top +
+ * \frac{1-\cos\theta}{\theta}\lfloor \mathbf a \times\rfloor \f}
  *
  * @param w axis-angle
  * @return The left Jacobian of SO(3)
@@ -516,8 +516,8 @@ inline Eigen::Matrix<double, 3, 3> Jl_so3(const Eigen::Matrix<double, 3, 1> &w) 
  * @brief Computes right Jacobian of SO(3)
  *
  * The right Jacobian of SO(3) is related to the left by Jl(-w)=Jr(w).
- * See equation (7.87) in [State Estimation for Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot.
- * See @ref Jl_so3() for the definition of the left Jacobian of SO(3).
+ * See equation (7.87) in [State Estimation for Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot
+ * @cite Barfoot2017. See @ref Jl_so3() for the definition of the left Jacobian of SO(3).
  *
  * @param w axis-angle
  * @return The right Jacobian of SO(3)

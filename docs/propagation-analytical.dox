@@ -3,6 +3,26 @@
 @page propagation_analytical Analytical Propagation
 @tableofcontents
 
+The state definition and general propagation equations are covered in the @ref propagation page.
+Here we will cover the continuos-time integration of the state dynamics and inclusion of IMU intrinsic parameters.
+First we will cover how we can propagate our mean forward,
+afterwhich we cover how to derive the linearized error-state system propagation and approximations used.
+Key references for analytical inertial integration include:
+
+- Indirect Kalman Filter for 3D Attitude Estimation @cite Trawny2005TR
+- Consistency Analysis and Improvement of Vision-aided Inertial Navigation @cite Hesch2013TRO
+- Closed-form preintegration methods for graph-based visual-inertial navigation @cite Eckenhoff2019IJRR @cite Eckenhoff2018TR
+- Analytic Combined IMU Integration (ACI^2) for Visual-Inertial Navigation @cite Yang2020ICRA @cite Yang2019TR_ACI
+
+
+
+@section analytical_prop Analytical IMU Propagation
+
+Consider the following
+
+
+
+
 
 
 */

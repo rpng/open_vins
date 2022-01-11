@@ -1764,7 +1764,7 @@ LATEX_BIB_STYLE        = plainnat
 # The default value is: NO.
 # This tag requires that the tag GENERATE_LATEX is set to YES.
 
-LATEX_TIMESTAMP        = NO
+LATEX_TIMESTAMP        = YES
 
 #---------------------------------------------------------------------------
 # Configuration options related to the RTF output
