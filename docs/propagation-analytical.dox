@@ -15,8 +15,111 @@ Key references for analytical inertial integration include:
 - Analytic Combined IMU Integration (ACI^2) for Visual-Inertial Navigation @cite Yang2020ICRA @cite Yang2019TR_ACI
 
 
+@section imu_intrinsic_models IMU Intrinsic Models
 
-@section analytical_prop Analytical IMU Propagation
+First we can re-write our IMU measurement models to find the the true (or corrected)
+angular velocity \f${}^I\boldsymbol{\omega}(t)\f$ and linear acceleration \f${}^I\mathbf{a}(t)\f$.
+This is how we will relate incoming measurements to IMU dynamics (see @ref imu_kinematic).
+
+\f{align*}{
+{}^I\boldsymbol{\omega}(t)
+    & = {}^I_{w}\mathbf{R} \mathbf{D}_w
+    \left(
+    {}^w\boldsymbol{\omega}_{m}(t) - \mathbf{T}_{g} {}^I\mathbf{a}(t) - \mathbf{b}_g(t) - \mathbf{n}_g(t)
+    \right) \\
+{}^I\mathbf{a}(t)
+    & = {}^I_a\mathbf{R} \mathbf{D}_a
+    \left(
+    {}^a\mathbf{a}_{m}(t) - \mathbf{b}_a(t) - \mathbf{n}_a(t)
+    \right)
+    - {}^I_G\mathbf{R}(t) {^G\mathbf{g}}
+\f}
+
+
+where \f$\mathbf{D}_w = \mathbf{T}^{-1}_w\f$ and \f$\mathbf{D}_a = \mathbf{T}^{-1}_a\f$.
+In practice, we calibrate \f$\mathbf{D}_a\f$, \f$\mathbf{D}_w\f$, \f${}^I_a\mathbf{R}\f$ (or \f${}^I_w\mathbf{R}\f$) and \f$\mathbf{T}_g\f$
+to prevent the need to have an unneeded matrix inversion / transposes in the measurement equation.
+
+We only calibrate either \f${}^I_w\mathbf{R}\f$ or \f${}^I_a\mathbf{R}\f$ since the base ``inertial''
+frame must coincide with one frame arbitrarily (would otherwise introduce too many degrees of freedom).
+If both \f${}^I_w\mathbf{R}\f$ and \f${}^I_a\mathbf{R}\f$ are calibrated,
+it will make the rotation between the IMU and camera unobservable due to over parameterization @cite Yang2020RSS.
+We define two different models of interested:
+
+- *KALIBR*: Contains \f$\mathbf{D}'_{w6}\f$, \f$\mathbf{D}'_{a6}\f$, \f${}^I_w\mathbf{R}\f$ and gravity sensitivity \f$\mathbf{T}_{g9}\f$.
+    This model follows IMU intrinsic calibration presented in @cite Rehder2017Sensors and the
+    output used in the open-source calibration toolbox Kalibr @cite Furgale2013IROS.
+
+- *RPNG*: Contains \f$\mathbf{D}_{w6}\f$, \f$\mathbf{D}_{a6}\f$, the rotation \f${}^I_a\mathbf{R}\f$, and gravity sensitivity \f$\mathbf{T}_{g9}\f$.
+    \f$\mathbf{D}_{a6}\f$ and \f$\mathbf{D}_{w6}\f$ are uptriangular matrices, and follows *imu2* analysed in @cite Yang2020RSS.
+
+where we can define \f$\mathbf{D}_{*6} = {\mathbf{D}'_{*6}}^\top\f$  and the following matrices:
+
+\f{align*}{
+\mathbf{D}_{*6} &= \begin{bmatrix}
+    d_{*1} & d_{*2} & d_{*4} \\
+    0 & d_{*3} & d_{*5} \\
+    0 & 0 & d_{*6}
+    \end{bmatrix} \\
+\mathbf{T}_{g9} &= \begin{bmatrix}
+    t_{g1} & t_{g4} & t_{g7} \\
+    t_{g2} & t_{g5} & t_{g8} \\
+    t_{g3} & t_{g6} & t_{g9}
+    \end{bmatrix}
+\f}
+
+
+
+
+@section analytical_state Full State with Calibration
+
+In the following derivations, we will compute the Jacobians for all the variables that might appear
+in the IMU models, including scale/axis correction for gyroscope \f$\mathbf{D}_w\f$ (6 parameters),
+scale/axis correction for accelerometer \f$\mathbf{D}_a\f$ (6 parameters), rotation from gyroscope to
+IMU frame \f${}^I_w\mathbf{R}\f$, rotation from accelerometer to IMU frame \f${}^I_a\mathbf{R}\f$ and
+gravity sensitivity \f$\mathbf{T}_g\f$ (9 parameters).
+The state vector \f$\mathbf{x}\f$ contains the IMU state \f$\mathbf{x}_{I}\f$ and its intrinsics
+\f$\mathbf{x}_{in}\f$:
+
+\f{align*}{
+\mathbf{x}_I & =
+    \begin{bmatrix}
+    \mathbf{x}^{\top}_n & | & \mathbf{x}^{\top}_b & | & \mathbf{x}^{\top}_{in}
+    \end{bmatrix}^{\top}
+    \\
+& = \begin{bmatrix}
+    {}^I_G\bar{q}^{\top} &
+    {}^G\mathbf{p}^{\top}_{I} &
+    {}^G\mathbf{v}^{\top}_{I} &
+    | &
+    \mathbf{b}^{\top}_{g} &
+    \mathbf{b}^{\top}_{a} &
+    | & \mathbf{x}^{\top}_{in}
+    \end{bmatrix}^{\top} \\
+\mathbf{x}_{in} & =
+	\begin{bmatrix}
+	\mathbf{x}^{\top}_{Dw} & \mathbf{x}^{\top}_{Da} & {}^I_w\bar{q}^{\top} & {}^I_a\bar{q}^{\top} & \mathbf{x}^{\top}_{Tg}
+	\end{bmatrix}^{\top}
+\f}
+
+where \f${}^I_G\bar{q}\f$ denotes the rotation matrix \f${}^I_G\mathbf{R}\f$ from \f$\{G\}\f$ to \f$\{I\}\f$.
+\f${}^G\mathbf{p}_{I}\f$ and \f${}^G\mathbf{v}_I\f$ denote the IMU position and velocity in \f$\{G\}\f$.
+\f$\mathbf{x}_n\f$ denotes the IMU navigation states and \f$\mathbf{x}_b\f$ denotes the IMU biases.
+IMU intrinsics, \f$\mathbf{x}_{in}\f$, contains the non-zero elements stored column-wise:
+
+\f{align*}{
+\mathbf{x}_{D*} & =
+    \begin{bmatrix}
+    d_{*1} & d_{*2} & d_{*3} &  d_{*4} &  d_{*5} & d_{*6}
+    \end{bmatrix}^{\top} \\
+\mathbf{x}_{Tg} & =
+    \begin{bmatrix}
+    t_{g1} & t_{g2} & t_{g3} & t_{g4} & t_{g5} & t_{g6} & t_{g7} & t_{g8} & t_{g9}
+    \end{bmatrix}^{\top}
+\f}
+
+
+@section analytical_prop Analytical State Integration
 
 Consider the following
 

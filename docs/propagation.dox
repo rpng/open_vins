@@ -11,8 +11,8 @@ which provides measurements of the local rotational velocity (angular rate) \f$\
 local translational acceleration \f$\mathbf{a}_m\f$:
 
 \f{align*}{
-    \boldsymbol{\omega}_m(t) &= {}^I\boldsymbol{\omega}(t) + \mathbf{b}_{g}(t) + \mathbf{n}_{{g}}(t)\\
-     \mathbf{a}_m(t) &= {}^I\mathbf{a}(t) + {}^I_G\mathbf{R}(t) {^G\mathbf{g}} + \mathbf{b}_{a}(t) + \mathbf{n}_{{a}}(t)
+    {}^I\boldsymbol{\omega}_m(t) &= {}^I\boldsymbol{\omega}(t) + \mathbf{b}_{g}(t) + \mathbf{n}_{{g}}(t)\\
+    {}^I\mathbf{a}_m(t) &= {}^I\mathbf{a}(t) + {}^I_G\mathbf{R}(t) {^G\mathbf{g}} + \mathbf{b}_{a}(t) + \mathbf{n}_{{a}}(t)
 \f}
 
 where \f${}^I\boldsymbol{\omega}\f$ and \f${}^I\mathbf{a}\f$ are the true rotational velocity and translational
@@ -32,8 +32,9 @@ Thus we can define the following:
 {}^w\boldsymbol{\omega}_{m}(t) & =
     \mathbf{T}_{w} {}^w_I\mathbf{R} {}^I\boldsymbol{\omega}(t) +
     \mathbf{T}_{g} {}^I\mathbf{a}(t) + \mathbf{b}_g(t) + \mathbf{n}_g(t)  \\
-{}^a\mathbf{a}_{m}(t) & = \mathbf{T}_a {}^a_I\mathbf{R} {}^I\mathbf{a}(t)
- + {}^I_G\mathbf{R}(t) {^G\mathbf{g}} + \mathbf{b}_a(t) + \mathbf{n}_a(t)
+{}^a\mathbf{a}_{m}(t) & = \mathbf{T}_a {}^a_I\mathbf{R}
+    ({}^I\mathbf{a}(t) + {}^I_G\mathbf{R}(t) {^G\mathbf{g}})
+    + \mathbf{b}_a(t) + \mathbf{n}_a(t)
 \f}
 
 where \f$\mathbf{T}_{w}\f$ and \f$\mathbf{T}_a\f$ are invertible \f$3\times3\f$ matrices which represent the
@@ -113,7 +114,7 @@ The IMU state evolves over time as follows
     &= \frac{1}{2} \begin{bmatrix} -\lfloor {}^{I}\boldsymbol{\omega}(t) \times \rfloor
     && {}^{I}\boldsymbol{\omega}(t) \\
     -{}^{I}\boldsymbol{\omega}(t)^\top && 0 \end{bmatrix}   \text{}^{I_{t}}_{G}\bar{q}\\
-    &=: \frac{1}{2} \boldsymbol{\Omega}({}^{I}\boldsymbol{\omega}(t))  \text{}^{I_{t}}_{G}\bar{q}\\
+    &\triangleq \frac{1}{2} \boldsymbol{\Omega}({}^{I}\boldsymbol{\omega}(t))  \text{}^{I_{t}}_{G}\bar{q}\\
     ^G\dot{\mathbf{p}}_I(t) &=\text{} ^G\mathbf{v}_I(t)\\
     ^G\dot{\mathbf{v}}_I(t) &=\text{} ^{I_{t}}_G\mathbf{R}^\top {}^{I}\mathbf{a}(t) \\
      \dot{\mathbf{b}}_{\mathbf{g}}(t) &= \mathbf{n}_{wg}(t) \\
