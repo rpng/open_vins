@@ -164,18 +164,13 @@ public:
   /**
    * @brief compute the Jacobians for Dw
    *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   * For kalibr model
+   * See @ref analytical_linearization_imu for details.
    * \f{align*}{
-   * \mathbf{H}_{Dw} & =
+   * \mathbf{H}_{Dw,kalibr} & =
    *   \begin{bmatrix}
-   *   {}^w\hat{w}_1 \mathbf{I}_3  & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_2\mathbf{e}_3 & {}^w\hat{w}_2\mathbf{e}_3
-   *   \end{bmatrix}
-   * \f}
-   *
-   * For rpng model:
-   * \f{align*}{
-   *   \mathbf{H}_{Dw} & =
+   *   {}^w\hat{w}_1 \mathbf{I}_3  & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_2\mathbf{e}_3 & {}^w\hat{w}_3 \mathbf{e}_3
+   *   \end{bmatrix} \\
+   *   \mathbf{H}_{Dw,rpng} & =
    *   \begin{bmatrix}
    *   {}^w\hat{w}_1\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_3 \mathbf{I}_3
    *   \end{bmatrix}
@@ -189,18 +184,13 @@ public:
   /**
    * @brief compute the Jacobians for Da
    *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   * For kalibr model
+   * See @ref analytical_linearization_imu for details.
    * \f{align*}{
-   * \mathbf{H}_{Da} & =
+   * \mathbf{H}_{Da,kalibr} & =
    * \begin{bmatrix}
    *   {}^a\hat{a}_1\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_3 \mathbf{I}_3
-   * \end{bmatrix}
-   * \f}
-   *
-   * For rpng:
-   * \f{align*}{
-   * \mathbf{H}_{Da} & =
+   * \end{bmatrix} \\
+   * \mathbf{H}_{Da,rpng} & =
    * \begin{bmatrix}
    *   {}^a\hat{a}_1 \mathbf{I}_3 &  & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_2\mathbf{e}_3 & {}^a\hat{a}_3\mathbf{e}_3
    * \end{bmatrix}
@@ -214,7 +204,7 @@ public:
   /**
    * @brief compute the Jacobians for Tg
    *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
+   * See @ref analytical_linearization_imu for details.
    * \f{align*}{
    * \mathbf{H}_{Tg} & =
    *  \begin{bmatrix}
@@ -239,8 +229,8 @@ protected:
    * This function can be replaced with analytical/numerical integration or when using a different state representation.
    * This contains our state transition matrix along with how our noise evolves in time.
    * If you have other state variables besides the IMU that evolve you would add them here.
-   * See the @ref error_prop page for details on how discrete model was derived.
-   * See the @ref imu_intrinsic page for details on how analytic model was derived.
+   * See the @ref propagation_discrete page for details on how discrete model was derived.
+   * See the @ref propagation_analytical page for details on how analytic model was derived.
    *
    * @param state Pointer to state
    * @param data_minus imu readings at beginning of interval
@@ -254,7 +244,7 @@ protected:
   /**
    * @brief Discrete imu mean propagation.
    *
-   * See @ref propagation for details on these equations.
+   * See @ref disc_prop for details on these equations.
    * \f{align*}{
    * \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
    * &= \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}\big({\boldsymbol{\omega}}_{m,k}-\hat{\mathbf{b}}_{g,k}\big)\Delta t\bigg)
@@ -284,7 +274,7 @@ protected:
    * See this wikipedia page on [Runge-Kutta Methods](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods).
    * We are doing a RK4 method, [this wolfram page](http://mathworld.wolfram.com/Runge-KuttaMethod.html) has the forth order equation
    * defined below. We define function \f$ f(t,y) \f$ where y is a function of time t, see @ref imu_kinematic for the definition of the
-   * continous-time functions.
+   * continuous-time functions.
    *
    * \f{align*}{
    * {k_1} &= f({t_0}, y_0) \Delta t  \\
@@ -311,17 +301,16 @@ protected:
   /**
    * @brief Analytically compute the integration components based on ACI^2
    *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf), [ICRA20](https://yangyulin.net/papers/2020_icra_aci.pdf)
+   * See the @ref analytical_prop page and @ref analytical_integration_components for details.
+   * For computing Xi_1, Xi_2, Xi_3 and Xi_4 we have:
    *
-   * For computing Xi_1, Xi_2, Xi_3 and Xi_4, you can refer to @ref imu_intrinsics or the following equations:
    * \f{align*}{
    * \boldsymbol{\Xi}_1 & = \mathbf{I}_3 \delta t + \frac{1 - \cos (\hat{\omega} \delta t)}{\hat{\omega}} \lfloor \hat{\mathbf{k}} \rfloor
-   * + \left(\delta t  - \frac{\sin (\hat{\omega} \delta t)}{\hat{\omega}}\right) \lfloor \hat{\mathbf{k}} \rfloor^2
+   * + \left(\delta t  - \frac{\sin (\hat{\omega} \delta t)}{\hat{\omega}}\right) \lfloor \hat{\mathbf{k}} \rfloor^2 \\
    * \boldsymbol{\Xi}_2 & = \frac{1}{2} \delta t^2 \mathbf{I}_3 +
    * \frac{\hat{\omega} \delta t - \sin (\hat{\omega} \delta t)}{\hat{\omega}^2}\lfloor \hat{\mathbf{k}} \rfloor
    * + \left( \frac{1}{2} \delta t^2 - \frac{1  - \cos (\hat{\omega} \delta t)}{\hat{\omega}^2} \right) \lfloor \hat{\mathbf{k}} \rfloor ^2
-   * \boldsymbol{\Xi}_3  &=
-   * \frac{1}{2}\delta t^2  \lfloor \hat{\mathbf{a}} \rfloor
+   * \\ \boldsymbol{\Xi}_3  &= \frac{1}{2}\delta t^2  \lfloor \hat{\mathbf{a}} \rfloor
    * + \frac{\sin (\hat{\omega} \delta t_i) - \hat{\omega} \delta t }{\hat{\omega}^2} \lfloor\hat{\mathbf{a}} \rfloor \lfloor
    * \hat{\mathbf{k}} \rfloor
    * + \frac{\sin (\hat{\omega} \delta t) - \hat{\omega} \delta t \cos (\hat{\omega} \delta t)  }{\hat{\omega}^2}
@@ -336,7 +325,8 @@ protected:
    *  \frac{1}{2} \delta t^2 + \frac{1 - \cos (\hat{\omega} \delta t) - \hat{\omega} \delta t \sin (\hat{\omega} \delta t) }{\hat{\omega}^2}
    *  \right)  \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor
    *  - \frac{ 3 \sin (\hat{\omega} \delta t) - 2 \hat{\omega} \delta t - \hat{\omega} \delta t \cos (\hat{\omega} \delta t)
-   * }{\hat{\omega}^2} \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor ^2 \boldsymbol{\Xi}_4 & = \frac{1}{6}\delta
+   * }{\hat{\omega}^2} \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor ^2  \\
+   * \boldsymbol{\Xi}_4 & = \frac{1}{6}\delta
    * t^3 \lfloor\hat{\mathbf{a}} \rfloor
    * + \frac{2(1 - \cos (\hat{\omega} \delta t)) - (\hat{\omega}^2 \delta t^2)}{2 \hat{\omega}^3}
    *  \lfloor\hat{\mathbf{a}} \rfloor \lfloor \hat{\mathbf{k}} \rfloor
@@ -365,7 +355,7 @@ protected:
    * @param dt Time we should integrate over
    * @param w_hat Angular velocity with bias removed
    * @param a_hat Linear acceleration with bias removed
-   * @param Xi_sum All the needed integration components, including R, Xi_1, Xi_2, Jr, Xi_3, Xi_4 in order
+   * @param Xi_sum All the needed integration components, including R_k, Xi_1, Xi_2, Jr, Xi_3, Xi_4 in order
    */
   void compute_Xi_sum(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                       Eigen::Matrix<double, 3, 18> &Xi_sum);
@@ -373,10 +363,10 @@ protected:
   /**
    * @brief Analytically predict IMU mean based on ACI^2
    *
-   * See the paper link: [RSS2020](https://yangyulin.net/papers/2020_rss.pdf), [ICRA2020](https://yangyulin.net/papers/2020_icra_aci.pdf)
+   * See the @ref analytical_prop page for details.
    *
    * \f{align*}{
-   * {}^{I_{k+1}}_G\hat{\mathbf{R}} & \simeq  \Delta \mathbf{R}^{\top}_k {}^{I_k}_G\hat{\mathbf{R}}  \\
+   * {}^{I_{k+1}}_G\hat{\mathbf{R}} & \simeq  \Delta \mathbf{R}_k {}^{I_k}_G\hat{\mathbf{R}}  \\
    * {}^G\hat{\mathbf{p}}_{I_{k+1}} & \simeq {}^{G}\hat{\mathbf{p}}_{I_k} + {}^G\hat{\mathbf{v}}_{I_k}\delta t_k  +
    * {}^{I_k}_G\hat{\mathbf{R}}^\top  \Delta \hat{\mathbf{p}}_k - \frac{1}{2}{}^G\mathbf{g}\delta t^2_k \\
    * {}^G\hat{\mathbf{v}}_{I_{k+1}} & \simeq  {}^{G}\hat{\mathbf{v}}_{I_k} + {}^{I_k}_G\hat{\mathbf{R}}^\top + \Delta \hat{\mathbf{v}}_k -
@@ -390,7 +380,7 @@ protected:
    * @param new_q The resulting new orientation after integration
    * @param new_v The resulting new velocity after integration
    * @param new_p The resulting new position after integration
-   * @param Xi_sum All the needed integration components, including R, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   * @param Xi_sum All the needed integration components, including R_k, Xi_1, Xi_2, Jr, Xi_3, Xi_4
    */
   void predict_mean_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                              Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p, Eigen::Matrix<double, 3, 18> &Xi_sum);
@@ -398,13 +388,10 @@ protected:
   /**
    * @brief Analytically compute state transition matrix F and noise Jacobian G based on ACI^2
    *
-   * See the paper link: [RSS20](https://yangyulin.net/papers/2020_rss.pdf)
-   * See the paper link: [ICRA20](https://yangyulin.net/papers/2020_icra_aci.pdf)
-   *
-   * This function is for analytical integration or when using a different state representation.
+   * This function is for analytical integration of the linearized error-state.
    * This contains our state transition matrix and noise Jacobians.
    * If you have other state variables besides the IMU that evolve you would add them here.
-   * See the @ref imu_intrinsics page for details on how this was derived.
+   * See the @ref analytical_linearization page for details on how this was derived.
    *
    * @param state Pointer to state
    * @param dt Time we should integrate over
@@ -414,7 +401,7 @@ protected:
    * @param new_q The resulting new orientation after integration
    * @param new_v The resulting new velocity after integration
    * @param new_p The resulting new position after integration
-   * @param Xi_sum All the needed integration components, including R, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   * @param Xi_sum All the needed integration components, including R_k, Xi_1, Xi_2, Jr, Xi_3, Xi_4
    * @param F State transition matrix
    * @param G Noise Jacobian
    */
@@ -429,7 +416,7 @@ protected:
    * This function is for analytical integration or when using a different state representation.
    * This contains our state transition matrix and noise Jacobians.
    * If you have other state variables besides the IMU that evolve you would add them here.
-   * See the @ref imu_intrinsics page for details on how this was derived.
+   * See the @ref error_prop page for details on how this was derived.
    *
    * @param state Pointer to state
    * @param dt Time we should integrate over
@@ -445,7 +432,6 @@ protected:
   void compute_F_and_G_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
                                 const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q,
                                 const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G);
-
 
   /// Container for the noise values
   NoiseManager _noises;

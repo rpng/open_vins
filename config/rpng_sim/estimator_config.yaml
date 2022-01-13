@@ -3,7 +3,7 @@
 verbosity: "INFO" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
 
 use_fej: true # if we should use first-estimate Jacobians (enable for good consistency)
-integration: "analytical" # discrete, rk4, analytical (if rk4 or analytical used then analytical covariance propagation is used)
+integration: "rk4" # discrete, rk4, analytical (if rk4 or analytical used then analytical covariance propagation is used)
 use_stereo: true # if we have more than 1 camera, if we should try to track stereo constraints
 max_cameras: 2
 
