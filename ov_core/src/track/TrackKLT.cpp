@@ -43,11 +43,24 @@ void TrackKLT::feed_new_camera(const CameraData &message) {
   } else if (num_images == 2 && use_stereo) {
     feed_stereo(message, 0, 1);
   } else if (!use_stereo) {
-    parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
-                    for (int i = range.start; i < range.end; i++) {
-                      feed_monocular(message, i);
-                    }
-                  }));
+    if(pts_last.size() < num_images) {
+      for(size_t cam_idx = 0; cam_idx < num_images; cam_idx++) {
+        int cam_id = message.sensor_ids.at(cam_idx);
+        pts_last[cam_id];
+        ids_last[cam_id];
+        img_last[cam_id];
+        img_pyramid_last[cam_id];
+        img_mask_last[cam_id];
+      }
+    }
+//    parallel_for_(cv::Range(0, (int)num_images), LambdaBody([&](const cv::Range &range) {
+//                    for (int i = range.start; i < range.end; i++) {
+//                      feed_monocular(message, i);
+//                    }
+//                  }));
+    for(size_t i = 0; i < num_images; i++) {
+      feed_monocular(message, i);
+    }
   } else {
     PRINT_ERROR(RED "[ERROR]: invalid number of images passed %zu, we only support mono or stereo tracking", num_images);
     std::exit(EXIT_FAILURE);
