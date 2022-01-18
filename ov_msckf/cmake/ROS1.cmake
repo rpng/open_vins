@@ -151,6 +151,8 @@ install(DIRECTORY launch/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
 )
 
+add_executable(run_serial_msckf_euroc src/run_serial_msckf_euroc.cpp)
+target_link_libraries(run_serial_msckf_euroc ov_msckf_lib ${thirdparty_libraries})
 
 
 
