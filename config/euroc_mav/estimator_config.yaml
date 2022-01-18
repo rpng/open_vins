@@ -8,6 +8,7 @@ use_rk4int: true # if rk4 integration should be used (overrides imu averaging)
 
 use_stereo: true # if we have more than 1 camera, if we should try to track stereo constraints between pairs
 max_cameras: 2 # how many cameras we have 1 = mono, 2 = stereo, >2 = binocular (all mono tracking)
+num_unique_cameras: 1 # how many unique cameras we have (a stereo pair is not consider unique since both images occur at the same pose timestamp). if set to -1, we will set it automatically
 
 calib_cam_extrinsics: true # if the transform between camera and IMU should be optimized R_ItoC, p_CinI
 calib_cam_intrinsics: true # if camera intrinsics should be optimized (focal, center, distortion)

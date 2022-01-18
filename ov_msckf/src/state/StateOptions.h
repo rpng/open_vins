@@ -71,6 +71,9 @@ struct StateOptions {
   /// Number of distinct cameras that we will observe features in
   int num_cameras = 1;
 
+  /// Number of cameras (a stereo pair is not consider unique since both images occur at the same pose timestamp)
+  int num_unique_cameras = -1;
+
   /// What representation our features are in (msckf features)
   ov_type::LandmarkRepresentation::Representation feat_rep_msckf = ov_type::LandmarkRepresentation::Representation::GLOBAL_3D;
 
@@ -95,6 +98,7 @@ struct StateOptions {
       parser->parse_config("max_msckf_in_update", max_msckf_in_update);
       parser->parse_config("num_aruco", max_aruco_features);
       parser->parse_config("max_cameras", num_cameras);
+      parser->parse_config("num_unique_cameras", num_unique_cameras);
       std::string rep1 = ov_type::LandmarkRepresentation::as_string(feat_rep_msckf);
       parser->parse_config("feat_rep_msckf", rep1);
       feat_rep_msckf = ov_type::LandmarkRepresentation::from_string(rep1);
@@ -117,6 +121,7 @@ struct StateOptions {
     PRINT_DEBUG("  - max_msckf_in_update: %d\n", max_msckf_in_update);
     PRINT_DEBUG("  - max_aruco: %d\n", max_aruco_features);
     PRINT_DEBUG("  - max_cameras: %d\n", num_cameras);
+    PRINT_DEBUG("  - num_unique_cameras: %d\n", num_unique_cameras);
     PRINT_DEBUG("  - feat_rep_msckf: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_msckf).c_str());
     PRINT_DEBUG("  - feat_rep_slam: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_slam).c_str());
     PRINT_DEBUG("  - feat_rep_aruco: %s\n", ov_type::LandmarkRepresentation::as_string(feat_rep_aruco).c_str());
