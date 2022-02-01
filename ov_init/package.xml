@@ -35,6 +35,7 @@
     <!-- System dependencies for both versions -->
     <depend>eigen</depend>
     <depend>boost</depend>
+    <depend>libceres-dev</depend>
 
     <!-- Note the export is required to expose the executables -->
     <export>

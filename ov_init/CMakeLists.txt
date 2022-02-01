@@ -4,6 +4,7 @@ project(ov_init)
 # Include libraries
 find_package(Eigen3 REQUIRED)
 find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
+find_package(Ceres REQUIRED)
 
 # check if we have our python libs files (will search for python3 then python2 installs)
 # sudo apt-get install python-matplotlib python-numpy python-dev

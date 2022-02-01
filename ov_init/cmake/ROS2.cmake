@@ -17,11 +17,13 @@ add_definitions(-DROS_AVAILABLE=2)
 include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
+        ${CERES_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
 )
 
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
+        ${CERES_LIBRARIES}
         ${Boost_LIBRARIES}
 )
 
@@ -33,6 +35,7 @@ list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/init/InertialInitializer.cpp
         src/static/StaticInitializer.cpp
+        src/sim/Simulator.cpp
 )
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_init_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
@@ -51,6 +54,22 @@ install(DIRECTORY src/
 ament_export_include_directories(include)
 ament_export_libraries(ov_init_lib)
 
+##################################################
+# Make binary files!
+##################################################
+
+add_executable(test_simulation src/test_simulation.cpp)
+ament_target_dependencies(test_simulation ${ament_libraries})
+target_link_libraries(test_simulation ov_init_lib ${thirdparty_libraries})
+install(TARGETS test_simulation DESTINATION lib/${PROJECT_NAME})
+
+add_executable(test_dynamic_mle src/test_dynamic_mle.cpp)
+ament_target_dependencies(test_dynamic_mle ${ament_libraries})
+target_link_libraries(test_dynamic_mle ov_init_lib ${thirdparty_libraries})
+install(TARGETS test_dynamic_mle DESTINATION lib/${PROJECT_NAME})
+
+# Install launch and config directories
+install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch/)
 
 # finally define this as the package
 ament_package()
