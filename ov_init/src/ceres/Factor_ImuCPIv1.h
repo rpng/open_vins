@@ -82,7 +82,6 @@ public:
 
     // Check that we have a valid covariance matrix that we can get the information of
     Eigen::MatrixXd I = Eigen::MatrixXd::Identity(covariance.rows(), covariance.rows());
-    covariance.setIdentity(); // todo: remove this!!!
     Eigen::MatrixXd information = covariance.llt().solve(I);
     if (std::isnan(information.norm())) {
       std::cerr << "P - " << std::endl << covariance << std::endl << std::endl;

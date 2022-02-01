@@ -141,10 +141,12 @@ int main(int argc, char **argv) {
   // NOTE: http://ceres-solver.org/solving_faqs.html#solving
   ceres::Solver::Options options;
   // options.linear_solver_type = ceres::DENSE_SCHUR;
-  options.linear_solver_type = ceres::SPARSE_SCHUR;
+  // options.linear_solver_type = ceres::SPARSE_SCHUR;
   // options.linear_solver_type = ceres::ITERATIVE_SCHUR;
   // options.trust_region_strategy_type = ceres::DOGLEG;
-  options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+  // options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
+  options.preconditioner_type = ceres::SCHUR_JACOBI;
+  options.linear_solver_type = ceres::ITERATIVE_SCHUR;
   options.num_threads = 6;
   options.max_solver_time_in_seconds = 10.0;
   options.max_num_iterations = 5;
