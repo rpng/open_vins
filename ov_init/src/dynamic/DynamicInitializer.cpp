@@ -26,7 +26,7 @@ using namespace ov_type;
 using namespace ov_init;
 
 bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
-                                    std::shared_ptr<ov_type::IMU> _imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
+                                    std::shared_ptr<ov_type::IMU> &_imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
                                     std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM,
                                     std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> &_calib_IMUtoCAM,
                                     std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> &_cam_intrinsics) {
@@ -864,8 +864,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::VectorXd imu_state = get_pose(newest_cam_time);
   _imu->set_value(imu_state);
   _imu->set_fej(imu_state);
-  PRINT_DEBUG("[init]: bias_g = %.3f,%.3f,%.3f\n", imu_state(10), imu_state(11), imu_state(12));
-  PRINT_DEBUG("[init]: bias_a = %.3f,%.3f,%.3f\n", imu_state(13), imu_state(14), imu_state(15));
 
   // Append our IMU clones (includes most recent)
   for (auto const &statepair : map_states) {

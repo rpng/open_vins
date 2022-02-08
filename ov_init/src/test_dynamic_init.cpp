@@ -180,15 +180,42 @@ int main(int argc, char **argv) {
       double time = (rT2 - rT1).total_microseconds() * 1e-6;
       if (success) {
 
-        // debug that we finished!
-        // TODO: do some evaulation here?
+        // Debug that we finished!
         PRINT_INFO(GREEN "success! got initialized state information (%.4f seconds)\n" RESET, time);
 
-        // print true biases
+        // First lets align the groundtruth state with the IMU state
+        // NOTE: imu biases do not have to be corrected with the pos yaw alignment here...
         Eigen::Matrix<double, 17, 1> gt_imu;
         assert(sim.get_state(timestamp + sim.get_true_parameters().calib_camimu_dt, gt_imu));
-        PRINT_DEBUG("[gt]: bias_g = %.3f,%.3f,%.3f\n", gt_imu(11), gt_imu(12), gt_imu(13));
-        PRINT_DEBUG("[gt]: bias_a = %.3f,%.3f,%.3f\n", gt_imu(14), gt_imu(15), gt_imu(16));
+        Eigen::Matrix3d R_ESTtoGT_imu;
+        Eigen::Vector3d t_ESTinGT_imu;
+        align_posyaw_single(_imu->quat(), _imu->pos(), gt_imu.block(1, 0, 4, 1), gt_imu.block(5, 0, 3, 1), R_ESTtoGT_imu, t_ESTinGT_imu);
+        gt_imu.block(1, 0, 4, 1) = ov_core::quat_multiply(gt_imu.block(1, 0, 4, 1), ov_core::rot_2_quat(R_ESTtoGT_imu));
+        gt_imu.block(5, 0, 3, 1) = R_ESTtoGT_imu.transpose() * (gt_imu.block(5, 0, 3, 1) - t_ESTinGT_imu);
+        gt_imu.block(8, 0, 3, 1) = R_ESTtoGT_imu.transpose() * gt_imu.block(8, 0, 3, 1);
+
+        // Finally compute the error
+        Eigen::Matrix<double, 15, 1> err = Eigen::Matrix<double, 15, 1>::Zero();
+        Eigen::Matrix3d R_GtoI_gt = ov_core::quat_2_Rot(gt_imu.block(1, 0, 4, 1));
+        Eigen::Matrix3d R_GtoI_hat = _imu->Rot();
+        err.block(0, 0, 3, 1) = -180.0 / M_PI * ov_core::log_so3(R_GtoI_gt * R_GtoI_hat.transpose());
+        err.block(3, 0, 3, 1) = gt_imu.block(5, 0, 3, 1) - _imu->pos();
+        err.block(6, 0, 3, 1) = gt_imu.block(8, 0, 3, 1) - _imu->vel();
+        err.block(9, 0, 3, 1) = gt_imu.block(11, 0, 3, 1) - _imu->bias_g();
+        err.block(12, 0, 3, 1) = gt_imu.block(14, 0, 3, 1) - _imu->bias_a();
+
+        // debug print the error of the recovered IMU state
+        PRINT_INFO(REDPURPLE "e_ori = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f,%.3f (est)\n" RESET, err(0 + 0),
+                   err(0 + 1), err(0 + 2), gt_imu(1), gt_imu(2), gt_imu(3), gt_imu(4), _imu->quat()(0), _imu->quat()(1), _imu->quat()(2),
+                   _imu->quat()(3));
+        PRINT_INFO(REDPURPLE "e_pos = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(3 + 0), err(3 + 1),
+                   err(3 + 2), gt_imu(5), gt_imu(6), gt_imu(7), _imu->pos()(0), _imu->pos()(1), _imu->pos()(2));
+        PRINT_INFO(REDPURPLE "e_vel = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(6 + 0), err(6 + 1),
+                   err(6 + 2), gt_imu(8), gt_imu(9), gt_imu(10), _imu->vel()(0), _imu->vel()(1), _imu->vel()(2));
+        PRINT_INFO(REDPURPLE "e_bias_g = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(9 + 0), err(9 + 1),
+                   err(9 + 2), gt_imu(11), gt_imu(12), gt_imu(13), _imu->bias_g()(0), _imu->bias_g()(1), _imu->bias_g()(2));
+        PRINT_INFO(REDPURPLE "e_bias_a = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(12 + 0), err(12 + 1),
+                   err(12 + 2), gt_imu(14), gt_imu(15), gt_imu(16), _imu->bias_a()(0), _imu->bias_a()(1), _imu->bias_a()(2));
 
 #if ROS_AVAILABLE == 1
         // Align the groundtruth to the current estimate yaw
@@ -233,7 +260,7 @@ int main(int argc, char **argv) {
           poseEST.pose.position.z = _pose.second->pos()(2, 0);
           Eigen::Matrix<double, 17, 1> gt_imustate;
           assert(sim.get_state(_pose.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate));
-          gt_imustate.block(1, 0, 4, 1) = ov_core::quat_multiply(ov_core::rot_2_quat(R_ESTtoGT.transpose()), gt_imustate.block(1, 0, 4, 1));
+          gt_imustate.block(1, 0, 4, 1) = ov_core::quat_multiply(gt_imustate.block(1, 0, 4, 1), ov_core::rot_2_quat(R_ESTtoGT));
           gt_imustate.block(5, 0, 3, 1) = R_ESTtoGT.transpose() * (gt_imustate.block(5, 0, 3, 1) - t_ESTinGT);
           poseGT.header.stamp = ros::Time(_pose.first);
           poseGT.header.frame_id = "global";

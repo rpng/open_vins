@@ -86,7 +86,7 @@ public:
    * @return True if we have successfully initialized our system
    */
   bool initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
-                  std::shared_ptr<ov_type::IMU> _imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
+                  std::shared_ptr<ov_type::IMU> &_imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
                   std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM,
                   std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> &_calib_IMUtoCAM,
                   std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> &_cam_intrinsics);
