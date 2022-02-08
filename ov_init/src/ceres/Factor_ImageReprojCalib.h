@@ -50,6 +50,9 @@ public:
   // If distortion model is fisheye or radtan
   bool is_fisheye = false;
 
+  // If value of 1 then this residual adds to the problem, otherwise if zero it is "gated"
+  double gate = 1.0;
+
   /**
    * @brief Default constructor
    */
@@ -95,6 +98,9 @@ public:
     Eigen::Vector2d uv_norm;
     uv_norm << p_FinCi(0) / p_FinCi(2), p_FinCi(1) / p_FinCi(2);
 
+    // Square-root information and gate
+    Eigen::Matrix<double, 2, 2> sqrtQ_gate = gate * sqrtQ;
+
     // Get the distorted raw image coordinate using the camera model
     // Also if jacobians are requested, then compute derivatives
     Eigen::Vector2d uv_dist;
@@ -105,8 +111,8 @@ public:
       uv_dist = cam.distort_d(uv_norm);
       if (jacobians) {
         cam.compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
-        H_dz_dzn = sqrtQ * H_dz_dzn;
-        H_dz_dzeta = sqrtQ * H_dz_dzeta;
+        H_dz_dzn = sqrtQ_gate * H_dz_dzn;
+        H_dz_dzeta = sqrtQ_gate * H_dz_dzeta;
       }
     } else {
       ov_core::CamRadtan cam(0, 0);
@@ -114,8 +120,8 @@ public:
       uv_dist = cam.distort_d(uv_norm);
       if (jacobians) {
         cam.compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
-        H_dz_dzn = sqrtQ * H_dz_dzn;
-        H_dz_dzeta = sqrtQ * H_dz_dzeta;
+        H_dz_dzn = sqrtQ_gate * H_dz_dzn;
+        H_dz_dzeta = sqrtQ_gate * H_dz_dzeta;
       }
     }
 
@@ -125,7 +131,7 @@ public:
     // NOTE: we need to reformulate into a zero error constraint 0 = f(x) + n - uv_meas
     // NOTE: if it was the other way (0 = uv_meas - f(x) - n) all the Jacobians would need to be flipped
     Eigen::Vector2d res = uv_dist - uv_meas;
-    res = sqrtQ * res;
+    res = sqrtQ_gate * res;
     residuals[0] = res(0);
     residuals[1] = res(1);
 

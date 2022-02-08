@@ -149,28 +149,32 @@ public:
     for (size_t i = 0; i < x_type.size(); i++) {
       if (x_type[i] == "quat") {
         Eigen::Vector4d q_i = Eigen::Map<const Eigen::Vector4d>(parameters[i]);
-        Eigen::Vector4d quat_err = ov_core::quat_multiply(q_i, ov_core::Inv(x_lin.block(global_it, 0, 4, 1)));
-        res.block(local_it, 0, 3, 1) = 2 * quat_err.block(0, 0, 3, 1);
+        Eigen::Matrix3d R_i = ov_core::quat_2_Rot(q_i);
+        Eigen::Matrix3d R_lin = ov_core::quat_2_Rot(x_lin.block(global_it, 0, 4, 1));
+        Eigen::Vector3d theta_err = ov_core::log_so3(R_i.transpose() * R_lin);
+        res.block(local_it, 0, 3, 1) = -theta_err;
         if (jacobians && jacobians[i]) {
           Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> jacobian(jacobians[i], num_residuals(), 4);
           jacobian.setZero();
-          jacobian.block(0, 0, num_residuals(), 3) =
-              sqrtI.block(0, local_it, num_residuals(), 3) *
-              (quat_err(3, 0) * Eigen::Matrix3d::Identity() + ov_core::skew_x(quat_err.block(0, 0, 3, 1)));
+          Eigen::Matrix3d Jr_inv = ov_core::Jr_so3(theta_err).inverse();
+          Eigen::Matrix3d H_theta = -Jr_inv * R_lin.transpose();
+          jacobian.block(0, 0, num_residuals(), 3) = sqrtI.block(0, local_it, num_residuals(), 3) * H_theta;
         }
         global_it += 4;
         local_it += 3;
       } else if (x_type[i] == "quat_yaw") {
         Eigen::Vector3d ez = Eigen::Vector3d(0.0, 0.0, 1.0);
         Eigen::Vector4d q_i = Eigen::Map<const Eigen::Vector4d>(parameters[i]);
-        Eigen::Vector4d quat_err = ov_core::quat_multiply(q_i, ov_core::Inv(x_lin.block(global_it, 0, 4, 1)));
-        res(local_it, 0) = (2 * ez.transpose() * quat_err.block(0, 0, 3, 1))(0, 0);
+        Eigen::Matrix3d R_i = ov_core::quat_2_Rot(q_i);
+        Eigen::Matrix3d R_lin = ov_core::quat_2_Rot(x_lin.block(global_it, 0, 4, 1));
+        Eigen::Vector3d theta_err = ov_core::log_so3(R_i.transpose() * R_lin);
+        res(local_it, 0) = -(ez.transpose() * theta_err)(0, 0);
         if (jacobians && jacobians[i]) {
           Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> jacobian(jacobians[i], num_residuals(), 4);
           jacobian.setZero();
-          double yaw_err_jacob =
-              (ez.transpose() * (quat_err(3, 0) * Eigen::Matrix3d::Identity() + ov_core::skew_x(quat_err.block(0, 0, 3, 1))))(0, 0);
-          jacobian.block(0, 2, num_residuals(), 1) = sqrtI.block(0, local_it, num_residuals(), 1) * yaw_err_jacob;
+          Eigen::Matrix3d Jr_inv = ov_core::Jr_so3(theta_err).inverse();
+          Eigen::Matrix<double, 1, 3> H_theta = -ez.transpose() * (Jr_inv * R_lin.transpose());
+          jacobian.block(0, 0, num_residuals(), 3) = sqrtI.block(0, local_it, num_residuals(), 1) * H_theta;
         }
         global_it += 4;
         local_it += 1;
@@ -199,6 +203,7 @@ public:
     }
 
     // Now that we have done x - x_lin we need to multiply by sqrtI and add b to get full cost
+    // Jacobians will already have sqrtI applied to them...
     res = sqrtI * res;
     res += b;
 

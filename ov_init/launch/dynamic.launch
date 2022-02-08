@@ -12,7 +12,7 @@
     <arg name="seed"        default="3" />
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
-    <arg name="dataset"     default="euroc_V1_01_easy.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood, euroc_V1_01_easy -->
+    <arg name="dataset"     default="tum_corridor1_512_16_okvis.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood, euroc_V1_01_easy -->
 
     <!-- if we should perturb the initial state values (i.e. calibration) -->
     <arg name="sim_do_perturbation" default="false" />
@@ -23,8 +23,8 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="test_dynamic_mle" pkg="ov_init" type="test_dynamic_mle" output="screen" clear_params="true" required="true">
-<!--    <node name="test_dynamic_mle" pkg="ov_init" type="test_dynamic_mle" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true">
+<!--    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
         <param name="sim_traj_path"          type="string" value="$(find ov_data)/sim/$(arg dataset)" />
         <param name="sim_seed_state_init"    type="int"    value="0" />

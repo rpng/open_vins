@@ -72,6 +72,27 @@ struct InertialInitializerOptions {
   /// Number of features we should try to track
   int init_max_features = 20;
 
+  /// If we should optimize and recover the calibration in our MLE
+  bool init_dyn_mle_opt_calib = false;
+
+  /// Max number of MLE iterations for dynamic initialization
+  int init_dyn_mle_max_iterations = 20;
+
+  /// Max number of MLE threads for dynamic initialization
+  int init_dyn_mle_max_threads = 20;
+
+  /// Max time for MLE optimization (seconds)
+  double init_dyn_mle_max_time = 5.0;
+
+  /// Amount of time we will allow to try to init, should be around cam freq (seconds)
+  double init_dyn_window_thresh = 0.1;
+
+  /// Initial IMU gyroscope bias values for dynamic initialization (will be optimized)
+  Eigen::Vector3d init_dyn_bias_g = Eigen::Vector3d::Zero();
+
+  /// Initial IMU accelerometer bias values for dynamic initialization (will be optimized)
+  Eigen::Vector3d init_dyn_bias_a = Eigen::Vector3d::Zero();
+
   /**
    * @brief This function will load print out all initializer settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -85,6 +106,17 @@ struct InertialInitializerOptions {
       parser->parse_config("init_imu_thresh", init_imu_thresh);
       parser->parse_config("init_max_disparity", init_max_disparity);
       parser->parse_config("init_max_features", init_max_features);
+      parser->parse_config("init_dyn_mle_opt_calib", init_dyn_mle_opt_calib);
+      parser->parse_config("init_dyn_mle_max_iterations", init_dyn_mle_max_iterations);
+      parser->parse_config("init_dyn_mle_max_threads", init_dyn_mle_max_threads);
+      parser->parse_config("init_dyn_mle_max_time", init_dyn_mle_max_time);
+      parser->parse_config("init_dyn_window_thresh", init_dyn_window_thresh);
+      std::vector<double> bias_g = {0, 0, 0};
+      std::vector<double> bias_a = {0, 0, 0};
+      parser->parse_config("init_dyn_bias_g", bias_g);
+      parser->parse_config("init_dyn_bias_a", bias_a);
+      init_dyn_bias_g << bias_g.at(0), bias_g.at(1), bias_g.at(2);
+      init_dyn_bias_a << bias_a.at(0), bias_a.at(1), bias_a.at(2);
     }
     PRINT_DEBUG("  - init_window_time: %.2f\n", init_window_time);
     PRINT_DEBUG("  - init_imu_thresh: %.2f\n", init_imu_thresh);

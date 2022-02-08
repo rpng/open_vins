@@ -157,6 +157,7 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
     return false;
   }
 
+  // TODO: replace this with the one in helper.h!!!
   // Get z axis, which aligns with -g (z_in_G=0,0,1)
   Eigen::Vector3d z_axis = a_avg_2to1 / a_avg_2to1.norm();
 

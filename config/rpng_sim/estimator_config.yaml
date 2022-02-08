@@ -37,10 +37,19 @@ zupt_only_at_beginning: true
 # ==================================================================
 # ==================================================================
 
-init_window_time: 0.75
+init_window_time: 2.5
 init_imu_thresh: 1.0
 init_max_disparity: 1.5
-init_max_features: 50
+init_max_features: 25
+
+init_dyn_mle_opt_calib: false
+init_dyn_mle_max_iterations: 20
+init_dyn_mle_max_time: 1.0
+init_dyn_mle_max_threads: 4
+init_dyn_window_thresh: 0.1
+
+init_dyn_bias_g: [0.0, 0.0, 0.0]
+init_dyn_bias_a: [0.0, 0.0, 0.0]
 
 # ==================================================================
 # ==================================================================

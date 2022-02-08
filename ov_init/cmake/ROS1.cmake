@@ -60,6 +60,7 @@ endif ()
 list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/init/InertialInitializer.cpp
+        src/dynamic/DynamicInitializer.cpp
         src/static/StaticInitializer.cpp
         src/sim/Simulator.cpp
 )
@@ -98,5 +99,12 @@ install(TARGETS test_dynamic_mle
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+add_executable(test_dynamic_init src/test_dynamic_init.cpp)
+target_link_libraries(test_dynamic_init ov_init_lib ${thirdparty_libraries})
+install(TARGETS test_dynamic_init
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 

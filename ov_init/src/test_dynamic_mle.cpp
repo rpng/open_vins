@@ -124,6 +124,7 @@ int main(int argc, char **argv) {
 
   // Feature states (3dof p_FinG)
   std::map<size_t, int> map_features;
+  std::map<size_t, std::vector<Factor_ImageReprojCalib *>> map_features_loss; // only valid as long as problem is
   std::map<size_t, int> map_features_num_meas;
   std::vector<double *> ceres_vars_feat;
 
@@ -141,17 +142,19 @@ int main(int argc, char **argv) {
   // NOTE: http://ceres-solver.org/solving_faqs.html#solving
   ceres::Solver::Options options;
   // options.linear_solver_type = ceres::DENSE_SCHUR;
-  // options.linear_solver_type = ceres::SPARSE_SCHUR;
-  // options.linear_solver_type = ceres::ITERATIVE_SCHUR;
   // options.trust_region_strategy_type = ceres::DOGLEG;
+  // options.linear_solver_type = ceres::SPARSE_SCHUR;
   // options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
   options.preconditioner_type = ceres::SCHUR_JACOBI;
   options.linear_solver_type = ceres::ITERATIVE_SCHUR;
   options.num_threads = 6;
-  options.max_solver_time_in_seconds = 10.0;
-  options.max_num_iterations = 5;
+  options.max_solver_time_in_seconds = 9999;
+  options.max_num_iterations = 20;
   options.minimizer_progress_to_stdout = true;
+  // options.use_nonmonotonic_steps = true;
   // options.linear_solver_ordering = ordering;
+  options.function_tolerance = 1e-4;
+  options.gradient_tolerance = 1e-4 * options.function_tolerance;
 
   // DEBUG: check analytical jacobians using ceres finite differences
   // options.check_gradients = true;
@@ -299,7 +302,7 @@ int main(int argc, char **argv) {
           }
           Eigen::MatrixXd prior_grad = Eigen::MatrixXd::Zero(10, 1);
           Eigen::MatrixXd prior_Info = Eigen::MatrixXd::Identity(10, 10);
-          prior_Info.block(0, 0, 4, 4) *= 1.0 / std::pow(1e-4, 2); // 4dof unobservable yaw and position
+          prior_Info.block(0, 0, 4, 4) *= 1.0 / std::pow(1e-8, 2); // 4dof unobservable yaw and position
           prior_Info.block(4, 4, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_g prior
           prior_Info.block(7, 7, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_a prior
 
@@ -455,10 +458,11 @@ int main(int argc, char **argv) {
               ordering->AddElementToGroup(var_feat, 0);
               map_features.insert({featid, (int)ceres_vars_feat.size()});
               map_features_num_meas.insert({featid, 0});
+              map_features_loss.insert({featid, std::vector<Factor_ImageReprojCalib *>()});
               ceres_vars_feat.push_back(var_feat);
               // By default, we won't have enough measurements
               // Thus fix the feature and un-fix after we have enough constraints
-              problem.SetParameterBlockConstant(var_feat);
+              // problem.SetParameterBlockConstant(var_feat);
             }
 
             // Then lets add the factors
@@ -472,10 +476,12 @@ int main(int argc, char **argv) {
             factor_params.push_back(ceres_vars_calib_cam2imu_pos.at(map_calib_cam2imu.at(cam_id)));
             factor_params.push_back(ceres_vars_calib_cam_intrinsics.at(map_calib_cam.at(cam_id)));
             auto *factor_pinhole = new Factor_ImageReprojCalib(uv_raw, params.sigma_pix, is_fisheye);
+            factor_pinhole->gate = 0.0;
             ceres::LossFunction *loss_function = nullptr;
             // ceres::LossFunction *loss_function = new ceres::CauchyLoss(1.0);
             problem.AddResidualBlock(factor_pinhole, loss_function, factor_params);
             map_features_num_meas.at(featid)++;
+            map_features_loss.at(featid).push_back(factor_pinhole);
           }
         }
       }
@@ -487,10 +493,15 @@ int main(int argc, char **argv) {
       // These features are not constrained, thus shouldn't be optimized
       // NOTE: we need to re-add the ordering as ceres seems to remove fixed variables from the ordering
       // TODO: should we just not optimize if measurements are too small? what value should we use?
+      int min_num_meas_to_optimize = 3;
       for (auto &feat : map_features) {
-        if (map_features_num_meas.at(feat.first) >= 5 && problem.IsParameterBlockConstant(ceres_vars_feat[feat.second])) {
-          problem.SetParameterBlockVariable(ceres_vars_feat.at(feat.second));
-          ordering->AddElementToGroup(ceres_vars_feat.at(feat.second), 0);
+        if (map_features_num_meas.at(feat.first) >= min_num_meas_to_optimize) {
+          //&& problem.IsParameterBlockConstant(ceres_vars_feat[feat.second])) {
+          // problem.SetParameterBlockVariable(ceres_vars_feat.at(feat.second));
+          // ordering->AddElementToGroup(ceres_vars_feat.at(feat.second), 0);
+          for (auto &res : map_features_loss.at(feat.first)) {
+            res->gate = 1.0;
+          }
         }
       }
 
@@ -498,49 +509,54 @@ int main(int argc, char **argv) {
       //  PERFORM ACTUAL OPTIMIZATION!
       // ================================================================
 
-      // COMPUTE: error before optimization
-      double error_before = 0.0;
-      if (!map_features.empty()) {
-        for (auto &feat : map_features) {
-          Eigen::Vector3d pos1, pos2;
-          pos1 << ceres_vars_feat.at(feat.second)[0], ceres_vars_feat.at(feat.second)[1], ceres_vars_feat.at(feat.second)[2];
-          pos2 = sim.get_map().at(feat.first);
-          error_before += (pos2 - pos1).norm();
+      // We can try to optimize every few frames, but this can cause the IMU to drift
+      // Thus this can't be too large, nor too small to reduce the computation
+      if (map_states.size() % 10 == 0) {
+
+        // COMPUTE: error before optimization
+        double error_before = 0.0;
+        if (!map_features.empty()) {
+          for (auto &feat : map_features) {
+            Eigen::Vector3d pos1, pos2;
+            pos1 << ceres_vars_feat.at(feat.second)[0], ceres_vars_feat.at(feat.second)[1], ceres_vars_feat.at(feat.second)[2];
+            pos2 = sim.get_map().at(feat.first);
+            error_before += (pos2 - pos1).norm();
+          }
+          error_before /= (double)map_features.size();
         }
-        error_before /= (double)map_features.size();
-      }
 
-      // Optimize the ceres graph
-      ceres::Solver::Summary summary;
-      ceres::Solve(options, &problem, &summary);
-      PRINT_INFO("[CERES]: %s\n", summary.message.c_str());
-      PRINT_INFO("[CERES]: %d iterations | %zu states, %zu features | %d parameters and %d residuals | cost %.4e => %.4e\n",
-                 (int)summary.iterations.size(), map_states.size(), map_features.size(), summary.num_parameters, summary.num_residuals,
-                 summary.initial_cost, summary.final_cost);
+        // Optimize the ceres graph
+        ceres::Solver::Summary summary;
+        ceres::Solve(options, &problem, &summary);
+        PRINT_INFO("[CERES]: %s\n", summary.message.c_str());
+        PRINT_INFO("[CERES]: %d iterations | %zu states, %zu features | %d parameters and %d residuals | cost %.4e => %.4e\n",
+                   (int)summary.iterations.size(), map_states.size(), map_features.size(), summary.num_parameters, summary.num_residuals,
+                   summary.initial_cost, summary.final_cost);
 
-      // COMPUTE: error after optimization
-      double error_after = 0.0;
-      if (!map_features.empty()) {
-        for (auto &feat : map_features) {
-          Eigen::Vector3d pos1, pos2;
-          pos1 << ceres_vars_feat.at(feat.second)[0], ceres_vars_feat.at(feat.second)[1], ceres_vars_feat.at(feat.second)[2];
-          pos2 = sim.get_map().at(feat.first);
-          error_after += (pos2 - pos1).norm();
+        // COMPUTE: error after optimization
+        double error_after = 0.0;
+        if (!map_features.empty()) {
+          for (auto &feat : map_features) {
+            Eigen::Vector3d pos1, pos2;
+            pos1 << ceres_vars_feat.at(feat.second)[0], ceres_vars_feat.at(feat.second)[1], ceres_vars_feat.at(feat.second)[2];
+            pos2 = sim.get_map().at(feat.first);
+            error_after += (pos2 - pos1).norm();
+          }
+          error_after /= (double)map_features.size();
         }
-        error_after /= (double)map_features.size();
-      }
-      PRINT_INFO("[CERES]: map error %.4f => %.4f (meters) for %zu features\n", error_before, error_after, map_features.size());
+        PRINT_INFO("[CERES]: map error %.4f => %.4f (meters) for %zu features\n", error_before, error_after, map_features.size());
 
-      // Print feature positions to console
-      // https://gist.github.com/goldbattle/177a6b2cccb4b4208e687b0abae4bc9f
-      //      for (auto &feat : map_features) {
-      //        size_t featid = feat.first;
-      //        std::cout << featid << ",";
-      //        std::cout << ceres_vars_feat[map_features[featid]][0] << "," << ceres_vars_feat[map_features[featid]][1] << ","
-      //                  << ceres_vars_feat[map_features[featid]][2] << ",";
-      //        std::cout << sim.get_map().at(featid)[0] << "," << sim.get_map().at(featid)[1] << "," << sim.get_map().at(featid)[2] <<
-      //        ","; std::cout << map_features_num_meas[feat.first] << ";" << std::endl;
-      //      }
+        // Print feature positions to console
+        // https://gist.github.com/goldbattle/177a6b2cccb4b4208e687b0abae4bc9f
+        //      for (auto &feat : map_features) {
+        //        size_t featid = feat.first;
+        //        std::cout << featid << ",";
+        //        std::cout << ceres_vars_feat[map_features[featid]][0] << "," << ceres_vars_feat[map_features[featid]][1] << ","
+        //                  << ceres_vars_feat[map_features[featid]][2] << ",";
+        //        std::cout << sim.get_map().at(featid)[0] << "," << sim.get_map().at(featid)[1] << "," << sim.get_map().at(featid)[2] <<
+        //        ","; std::cout << map_features_num_meas[feat.first] << ";" << std::endl;
+        //      }
+      }
 
 #if ROS_AVAILABLE == 1
       // Visualize in RVIZ our current estimates and
@@ -585,11 +601,13 @@ int main(int argc, char **argv) {
         point_cloud.header.frame_id = "global";
         point_cloud.header.stamp = ros::Time::now();
         for (auto &featpair : map_features) {
-          geometry_msgs::Point32 p;
-          p.x = (float)ceres_vars_feat[map_features[featpair.first]][0];
-          p.y = (float)ceres_vars_feat[map_features[featpair.first]][1];
-          p.z = (float)ceres_vars_feat[map_features[featpair.first]][2];
-          point_cloud.points.push_back(p);
+          if (map_features_num_meas.at(featpair.first) >= min_num_meas_to_optimize) {
+            geometry_msgs::Point32 p;
+            p.x = (float)ceres_vars_feat[map_features[featpair.first]][0];
+            p.y = (float)ceres_vars_feat[map_features[featpair.first]][1];
+            p.z = (float)ceres_vars_feat[map_features[featpair.first]][2];
+            point_cloud.points.push_back(p);
+          }
         }
         pub_loop_point.publish(point_cloud);
 
@@ -608,11 +626,11 @@ int main(int argc, char **argv) {
         sensor_msgs::PointCloud2Iterator<float> out_y(cloud, "y");
         sensor_msgs::PointCloud2Iterator<float> out_z(cloud, "z");
         for (auto &featpair : map_features) {
-          *out_x = (float)sim.get_map().at(featpair.first)(0);
+          *out_x = (float)sim.get_map().at(featpair.first - 1)(0);
           ++out_x;
-          *out_y = (float)sim.get_map().at(featpair.first)(1);
+          *out_y = (float)sim.get_map().at(featpair.first - 1)(1);
           ++out_y;
-          *out_z = (float)sim.get_map().at(featpair.first)(2);
+          *out_z = (float)sim.get_map().at(featpair.first - 1)(2);
           ++out_z;
         }
         pub_points_sim.publish(cloud);
