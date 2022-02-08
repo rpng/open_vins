@@ -235,7 +235,7 @@ int main(int argc, char **argv) {
           // TODO: estimate the timeoffset? don't use the true?
           double time0 = timestamp_k + sim.get_true_parameters().calib_camimu_dt;
           double time1 = timestamp_k1 + sim.get_true_parameters().calib_camimu_dt;
-          auto readings = select_imu_readings(*imu_readings, time0, time1);
+          auto readings = InitializerHelper::select_imu_readings(*imu_readings, time0, time1);
           cpi = std::make_shared<ov_core::CpiV1>(params.sigma_w, params.sigma_wb, params.sigma_a, params.sigma_ab, false);
           cpi->setLinearizationPoints(bias_g_k, bias_a_k, quat_k, gravity);
           for (size_t k = 0; k < readings.size() - 1; k++) {

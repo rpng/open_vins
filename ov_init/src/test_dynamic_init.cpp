@@ -184,6 +184,12 @@ int main(int argc, char **argv) {
         // TODO: do some evaulation here?
         PRINT_INFO(GREEN "success! got initialized state information (%.4f seconds)\n" RESET, time);
 
+        // print true biases
+        Eigen::Matrix<double, 17, 1> gt_imu;
+        assert(sim.get_state(timestamp + sim.get_true_parameters().calib_camimu_dt, gt_imu));
+        PRINT_DEBUG("[gt]: bias_g = %.3f,%.3f,%.3f\n", gt_imu(11), gt_imu(12), gt_imu(13));
+        PRINT_DEBUG("[gt]: bias_a = %.3f,%.3f,%.3f\n", gt_imu(14), gt_imu(15), gt_imu(16));
+
 #if ROS_AVAILABLE == 1
         // Align the groundtruth to the current estimate yaw
         // Only use the first frame so we can see the drift

@@ -160,7 +160,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     double cpiI0toIi1_time1_in_imu = current_time + params.calib_camimu_dt;
     auto cpiI0toIi1 = std::make_shared<ov_core::CpiV1>(params.sigma_w, params.sigma_wb, params.sigma_a, params.sigma_ab, false);
     cpiI0toIi1->setLinearizationPoints(gyroscope_bias, accelerometer_bias);
-    std::vector<ov_core::ImuData> cpiI0toIi1_readings = select_imu_readings(*imu_data, cpiI0toIi1_time0_in_imu, cpiI0toIi1_time1_in_imu);
+    std::vector<ov_core::ImuData> cpiI0toIi1_readings =
+        InitializerHelper::select_imu_readings(*imu_data, cpiI0toIi1_time0_in_imu, cpiI0toIi1_time1_in_imu);
     if (cpiI0toIi1_readings.size() < 2) {
       PRINT_DEBUG(YELLOW "[init]: camera %.2f in has %zu IMU readings!\n" RESET, (cpiI0toIi1_time1_in_imu - cpiI0toIi1_time0_in_imu),
                   cpiI0toIi1_readings.size());
@@ -183,7 +184,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     double cpiIitoIi1_time1_in_imu = current_time + params.calib_camimu_dt;
     auto cpiIitoIi1 = std::make_shared<ov_core::CpiV1>(params.sigma_w, params.sigma_wb, params.sigma_a, params.sigma_ab, false);
     cpiIitoIi1->setLinearizationPoints(gyroscope_bias, accelerometer_bias);
-    std::vector<ov_core::ImuData> cpiIitoIi1_readings = select_imu_readings(*imu_data, cpiIitoIi1_time0_in_imu, cpiIitoIi1_time1_in_imu);
+    std::vector<ov_core::ImuData> cpiIitoIi1_readings =
+        InitializerHelper::select_imu_readings(*imu_data, cpiIitoIi1_time0_in_imu, cpiIitoIi1_time1_in_imu);
     if (cpiIitoIi1_readings.size() < 2) {
       PRINT_DEBUG(YELLOW "[init]: camera %.2f in has %zu IMU readings!\n" RESET, (cpiIitoIi1_time1_in_imu - cpiIitoIi1_time0_in_imu),
                   cpiIitoIi1_readings.size());
@@ -267,14 +269,14 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
         // Uncertainty of the measurement is the feature pixel noise and and preintegration
         // We propagate the raw pixel uncertainty to the normalized and the preintegration error to the measurement
         // TODO: fix this logic, why doesn't this work??
-        Eigen::MatrixXd H_dz_dzn, H_dz_dzeta;
-        params.camera_intrinsics.at(cam_id)->compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
-        Eigen::MatrixXd R = std::pow(params.sigma_pix, 2) * H_dz_dzn * H_dz_dzn.transpose();
-        Eigen::MatrixXd H_cpi = H_proj * R_ItoC * R_I0toIk;
-        R += H_cpi * P_alpha * H_cpi.transpose();
-        Eigen::MatrixXd Info = R.llt().solve(Eigen::MatrixXd::Identity(R.rows(), R.rows()));
-        Eigen::LLT<Eigen::MatrixXd> lltOfI(Info);
-        Eigen::MatrixXd Info_sqrt = lltOfI.matrixL().transpose();
+        // Eigen::MatrixXd H_dz_dzn, H_dz_dzeta;
+        // params.camera_intrinsics.at(cam_id)->compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
+        // Eigen::MatrixXd R = std::pow(params.sigma_pix, 2) * H_dz_dzn * H_dz_dzn.transpose();
+        // Eigen::MatrixXd H_cpi = H_proj * R_ItoC * R_I0toIk;
+        // R += H_cpi * P_alpha * H_cpi.transpose();
+        // Eigen::MatrixXd Info = R.llt().solve(Eigen::MatrixXd::Identity(R.rows(), R.rows()));
+        // Eigen::LLT<Eigen::MatrixXd> lltOfI(Info);
+        // Eigen::MatrixXd Info_sqrt = lltOfI.matrixL().transpose();
 
         // Else lets append this to our system!
         A.block(index_meas, 0, 2, A.cols()) = H; // Info_sqrt * H;
@@ -300,7 +302,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::MatrixXd Temp = A2.transpose() * (Eigen::MatrixXd::Identity(A1.rows(), A1.rows()) - A1 * A1A1_inv * A1.transpose());
   Eigen::MatrixXd D = Temp * A2;
   Eigen::MatrixXd d = Temp * b;
-  Eigen::VectorXd coeff = compute_dongsi_coeff(D, d, params.gravity_mag);
+  Eigen::VectorXd coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
 
   // Get statistics of this problem
   Eigen::JacobiSVD<Eigen::MatrixXd> svd1((A1.transpose() * A1), Eigen::ComputeThinU | Eigen::ComputeThinV);
@@ -454,6 +456,69 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return false;
   }
 
+  // Convert our states to be a gravity aligned global frame of reference
+  // Here we say that the I0 frame is at 0,0,0 and shared the global origin
+  Eigen::Matrix3d R_GtoI0;
+  InitializerHelper::gram_schmidt(gravity_inI0, R_GtoI0);
+  Eigen::Vector4d q_GtoI0 = rot_2_quat(R_GtoI0);
+  Eigen::Vector3d gravity;
+  gravity << 0.0, 0.0, params.gravity_mag;
+  std::map<double, Eigen::VectorXd> ori_GtoIi, pos_IiinG, vel_IiinG;
+  std::map<size_t, Eigen::Vector3d> features_inG;
+  for (auto const &timepair : map_camera_times) {
+    ori_GtoIi[timepair.first] = quat_multiply(ori_I0toIi.at(timepair.first), q_GtoI0);
+    pos_IiinG[timepair.first] = R_GtoI0.transpose() * pos_IiinI0.at(timepair.first);
+    vel_IiinG[timepair.first] = R_GtoI0.transpose() * vel_IiinI0.at(timepair.first);
+  }
+  for (auto const &feat : features_inI0) {
+    features_inG[feat.first] = R_GtoI0.transpose() * feat.second;
+  }
+
+  // ======================================================
+  // ======================================================
+
+  // Now that we have the pose in the global gravity aligned frame
+  // We can check if we have constant local acceleration which causes scale issues!
+  double a_inI_norm = 0.0;
+  double a_inI_norm_var = 0.0;
+  std::vector<double> a_inI_norm_vec;
+  double time0_in_imu = oldest_camera_time + params.calib_camimu_dt;
+  double time1_in_imu = newest_cam_time + params.calib_camimu_dt;
+  std::vector<ov_core::ImuData> readings = InitializerHelper::select_imu_readings(*imu_data, time0_in_imu, time1_in_imu);
+  assert(readings.size() > 2);
+  Eigen::Matrix3d R_GtoIi = quat_2_Rot(ori_GtoIi.at(oldest_camera_time).block(0, 0, 4, 1));
+  for (size_t k = 0; k < readings.size() - 1; k++) {
+    auto imu0 = readings.at(k);
+    auto imu1 = readings.at(k + 1);
+    double dt = imu1.timestamp - imu0.timestamp;
+    Eigen::Vector3d am = 0.5 * (imu0.am + imu1.am) - accelerometer_bias;
+    Eigen::Vector3d wm = 0.5 * (imu0.wm + imu1.wm) - gyroscope_bias;
+    Eigen::Vector3d a_inI_nograv = am - R_GtoIi * gravity;
+    R_GtoIi = exp_so3(-wm * dt) * R_GtoIi;
+    a_inI_norm += a_inI_nograv.norm();
+    a_inI_norm_vec.push_back(a_inI_nograv.norm());
+  }
+  a_inI_norm /= (double)(readings.size() - 1);
+  for (size_t k = 0; k < readings.size() - 1; k++) {
+    a_inI_norm_var += std::pow(a_inI_norm_vec.at(k) - a_inI_norm, 2);
+  }
+  a_inI_norm_var /= (double)(readings.size() - 2);
+  a_inI_norm_var = std::sqrt(a_inI_norm_var);
+  PRINT_DEBUG("[init]: |a_I| = %.4f +- %.3f\n", a_inI_norm, a_inI_norm_var);
+
+  // Check if we have 2-axis motion also!
+  auto middle = ori_GtoIi.begin();
+  std::advance(middle, (int)(ori_GtoIi.size() / 2));
+  Eigen::Matrix3d R_G_to_I0 = quat_2_Rot(ori_GtoIi.at(oldest_camera_time).block(0, 0, 4, 1));
+  Eigen::Matrix3d R_G_to_I1 = quat_2_Rot(ori_GtoIi.at(middle->first).block(0, 0, 4, 1));
+  Eigen::Matrix3d R_G_to_I2 = quat_2_Rot(ori_GtoIi.at(newest_cam_time).block(0, 0, 4, 1));
+  Eigen::Matrix3d R_I0_to_I1 = R_G_to_I1 * R_G_to_I0.transpose();
+  Eigen::Matrix3d R_I0_to_I2 = R_G_to_I2 * R_G_to_I0.transpose();
+  Eigen::Vector3d th_I0_to_I1 = ov_core::log_so3(R_I0_to_I1);
+  Eigen::Vector3d th_I0_to_I2 = ov_core::log_so3(R_I0_to_I2);
+  Eigen::Vector3d res = skew_x(th_I0_to_I1) * th_I0_to_I2;
+  PRINT_DEBUG("[init]: 1axis = %.6f | residual of %.3f,%.3f,%.3f\n", res.norm(), res(0), res(1), res(2));
+
   // ======================================================
   // ======================================================
 
@@ -506,24 +571,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // options.linear_solver_ordering = ordering;
   options.function_tolerance = 1e-5;
   options.gradient_tolerance = 1e-4 * options.function_tolerance;
-
-  // Convert our states to be a gravity aligned global frame of reference
-  // Here we say that the I0 frame is at 0,0,0 and shared the global origin
-  Eigen::Matrix3d R_GtoI0;
-  gram_schmidt(gravity_inI0, R_GtoI0);
-  Eigen::Vector4d q_GtoI0 = rot_2_quat(R_GtoI0);
-  Eigen::Vector3d gravity;
-  gravity << 0.0, 0.0, params.gravity_mag;
-  std::map<double, Eigen::VectorXd> ori_GtoIi, pos_IiinG, vel_IiinG;
-  std::map<size_t, Eigen::Vector3d> features_inG;
-  for (auto const &timepair : map_camera_times) {
-    ori_GtoIi[timepair.first] = quat_multiply(ori_I0toIi.at(timepair.first), q_GtoI0);
-    pos_IiinG[timepair.first] = R_GtoI0.transpose() * pos_IiinI0.at(timepair.first);
-    vel_IiinG[timepair.first] = R_GtoI0.transpose() * vel_IiinI0.at(timepair.first);
-  }
-  for (auto const &feat : features_inI0) {
-    features_inG[feat.first] = R_GtoI0.transpose() * feat.second;
-  }
 
   // Loop through each CPI integration and add its measurement to the problem
   double timestamp_k = -1;
@@ -588,8 +635,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
       Eigen::MatrixXd prior_grad = Eigen::MatrixXd::Zero(10, 1);
       Eigen::MatrixXd prior_Info = Eigen::MatrixXd::Identity(10, 10);
       prior_Info.block(0, 0, 4, 4) *= 1.0 / std::pow(1e-8, 2); // 4dof unobservable yaw and position
-      prior_Info.block(4, 4, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_g prior
-      prior_Info.block(7, 7, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_a prior
+      prior_Info.block(4, 4, 3, 3) *= 1.0 / std::pow(0.01, 2); // bias_g prior
+      prior_Info.block(7, 7, 3, 3) *= 1.0 / std::pow(0.08, 2); // bias_a prior
 
       // Construct state type and ceres parameter pointers
       std::vector<std::string> x_types;
@@ -771,7 +818,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
         factor_params.push_back(ceres_vars_calib_cam2imu_pos.at(map_calib_cam2imu.at(cam_id)));
         factor_params.push_back(ceres_vars_calib_cam_intrinsics.at(map_calib_cam.at(cam_id)));
         auto *factor_pinhole = new Factor_ImageReprojCalib(uv_raw, params.sigma_pix, is_fisheye);
-        factor_pinhole->gate = 0.0;
         // ceres::LossFunction *loss_function = nullptr;
         ceres::LossFunction *loss_function = new ceres::CauchyLoss(1.0);
         problem.AddResidualBlock(factor_pinhole, loss_function, factor_params);
@@ -818,6 +864,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::VectorXd imu_state = get_pose(newest_cam_time);
   _imu->set_value(imu_state);
   _imu->set_fej(imu_state);
+  PRINT_DEBUG("[init]: bias_g = %.3f,%.3f,%.3f\n", imu_state(10), imu_state(11), imu_state(12));
+  PRINT_DEBUG("[init]: bias_a = %.3f,%.3f,%.3f\n", imu_state(13), imu_state(14), imu_state(15));
 
   // Append our IMU clones (includes most recent)
   for (auto const &statepair : map_states) {

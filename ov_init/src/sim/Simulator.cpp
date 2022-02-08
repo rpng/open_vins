@@ -201,12 +201,12 @@ void Simulator::perturb_parameters(InertialInitializerOptions &params_) {
   true_bias_accel(0) = 0.08 * w(gen_state_perturb);
   true_bias_accel(1) = 0.08 * w(gen_state_perturb);
   true_bias_accel(2) = 0.08 * w(gen_state_perturb);
-  true_bias_gyro(0) = 0.05 * w(gen_state_perturb);
-  true_bias_gyro(1) = 0.05 * w(gen_state_perturb);
-  true_bias_gyro(2) = 0.05 * w(gen_state_perturb);
+  true_bias_gyro(0) = 0.01 * w(gen_state_perturb);
+  true_bias_gyro(1) = 0.01 * w(gen_state_perturb);
+  true_bias_gyro(2) = 0.01 * w(gen_state_perturb);
 
   // Camera IMU offset
-  params_.calib_camimu_dt = 0.005 * w(gen_state_perturb) + params.calib_camimu_dt;
+  // params_.calib_camimu_dt = 0.005 * w(gen_state_perturb) + params.calib_camimu_dt;
 
   // Camera intrinsics and extrinsics
   for (int i = 0; i < params_.num_cameras; i++) {
@@ -222,15 +222,15 @@ void Simulator::perturb_parameters(InertialInitializerOptions &params_) {
     // params_.camera_intrinsics.at(i)->set_value(intrinsics);
 
     // Our camera extrinsics transform (orientation)
-    Eigen::Vector3d w_vec;
-    w_vec << 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb);
-    params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
-        rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params.camera_extrinsics.at(i).block(0, 0, 4, 1)));
+    // Eigen::Vector3d w_vec;
+    // w_vec << 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb), 0.001 * w(gen_state_perturb);
+    // params_.camera_extrinsics.at(i).block(0, 0, 4, 1) =
+    //    rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params.camera_extrinsics.at(i).block(0, 0, 4, 1)));
 
     // Our camera extrinsics transform (position)
-    for (int r = 4; r < 7; r++) {
-      params_.camera_extrinsics.at(i)(r) = 0.005 * w(gen_state_perturb) + params.camera_extrinsics.at(i)(r);
-    }
+    // for (int r = 4; r < 7; r++) {
+    //  params_.camera_extrinsics.at(i)(r) = 0.005 * w(gen_state_perturb) + params.camera_extrinsics.at(i)(r);
+    // }
   }
 }
 
