@@ -97,6 +97,10 @@ int main(int argc, char **argv) {
   InertialInitializerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
+  if (!parser->successful()) {
+    PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
+    std::exit(EXIT_FAILURE);
+  }
   Simulator sim(params);
 
   //===================================================================================

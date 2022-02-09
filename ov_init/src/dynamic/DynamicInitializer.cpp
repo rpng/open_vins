@@ -57,6 +57,76 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return false;
   }
 
+  // ======================================================
+  // ======================================================
+
+  // Settings
+  const int min_num_meas_to_optimize = 3;
+  const int min_valid_features = 8;
+
+  // Validation information for features we can use
+  bool have_stereo = false;
+  int count_valid_features = 0;
+  std::map<size_t, int> map_features_num_meas;
+  int num_measurements = 0;
+  double oldest_camera_time = INFINITY;
+  std::map<double, bool> map_camera_times;
+  map_camera_times[newest_cam_time] = true; // always insert final pose
+  std::map<size_t, bool> map_camera_ids;
+  double pose_dt_avg = params.init_window_time / (double)(params.init_dyn_num_pose + 1);
+  for (auto const &feat : features) {
+
+    // Loop through each timestamp and make sure it is a valid pose
+    std::vector<double> times;
+    std::map<size_t, bool> camids;
+    for (auto const &camtime : feat.second->timestamps) {
+      for (double time : camtime.second) {
+        double time_dt = INFINITY;
+        for (auto const &tmp : map_camera_times) {
+          time_dt = std::min(time_dt, std::abs(time - tmp.first));
+        }
+        for (auto const &tmp : times) {
+          time_dt = std::min(time_dt, std::abs(time - tmp));
+        }
+        // either this pose is a new one at the desired frequency
+        // or it is a timestamp that we already have, thus can use for free
+        if (time_dt >= pose_dt_avg || time_dt == 0.0) {
+          times.push_back(time);
+          camids[camtime.first] = true;
+        }
+      }
+    }
+
+    // This isn't a feature we should use if there are not enough measurements
+    map_features_num_meas[feat.first] = (int)times.size();
+    if (map_features_num_meas[feat.first] < min_num_meas_to_optimize)
+      continue;
+
+    // If we have enough measurements we should append this feature!
+    for (auto const &tmp : times) {
+      map_camera_times[tmp] = true;
+      oldest_camera_time = std::min(oldest_camera_time, tmp);
+      num_measurements += 2;
+    }
+    for (auto const &tmp : camids) {
+      map_camera_ids[tmp.first] = true;
+    }
+    if (camids.size() > 1) {
+      have_stereo = true;
+    }
+    count_valid_features++;
+  }
+
+  // Return if we do not have our full window or not enough measurements
+  // Also check that we have enough features to initialize with
+  if ((int)map_camera_times.size() < params.init_dyn_num_pose) {
+    return false;
+  }
+  if (count_valid_features < min_valid_features) {
+    PRINT_ERROR(RED "[init]: only %zu valid features of required %d!!\n" RESET, count_valid_features, min_valid_features);
+    return false;
+  }
+
   //  // Create feature bearing vector in the first frame
   //  // This gives us: p_FinI0 = depth * bearing
   //  Eigen::Vector4d q_ItoC = data_ori.camera_q_ItoC.at(cam_id);
@@ -64,7 +134,9 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   //  Eigen::Matrix3d R_ItoC = quat_2_Rot(q_ItoC);
   //  std::map<size_t, Eigen::Vector3d> features_bearings;
   //  std::map<size_t, int> features_index;
-  //  for (auto const &feat : features.at(cam_id)) {
+  //  for (auto const &feat : features) {
+  //  if (map_features_num_meas[feat.first] < min_num_meas_to_optimize)
+  //    continue;
   //    assert(feat->timestamps.find(cam_id) != feat->timestamps.end());
   //    double timestamp = data_ori.timestamps_cam.at(cam_id).at(0);
   //    auto it0 = std::find(feat->timestamps.at(cam_id).begin(), feat->timestamps.at(cam_id).end(), timestamp);
@@ -79,24 +151,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   //    features_index.insert({feat->featid, (int)features_index.size()});
   //  }
 
-  // Make sure we have enough features as optimization variables to constrain our poses
-  std::map<size_t, int> map_features_num_meas;
-  int min_num_meas_to_optimize = 3;
-  int min_valid_features = 8;
-  int count_valid_features = 0;
-  for (auto const &feat : features) {
-    for (auto const &camtime : feat.second->timestamps) {
-      map_features_num_meas[feat.first] += (int)camtime.second.size();
-    }
-    if (map_features_num_meas[feat.first] >= min_num_meas_to_optimize) {
-      count_valid_features++;
-    }
-  }
-  if (count_valid_features < min_valid_features) {
-    PRINT_ERROR(YELLOW "[init]: not enough features for our linsys (%zu < %d)!\n" RESET, count_valid_features, min_valid_features);
-    return false;
-  }
-
   // ======================================================
   // ======================================================
 
@@ -104,31 +158,12 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // Based on Equation (14) in the following paper:
   // https://ieeexplore.ieee.org/abstract/document/6386235
   // Feature size of 1 will use the first ever bearing of the feature as true (depth only..)
-  bool use_single_depth = false;
+  const bool use_single_depth = false;
   int size_feature = (use_single_depth) ? 1 : 3;
   int num_features = count_valid_features;
   int system_size = size_feature * num_features + 3 + 3;
-  int num_measurements = 0;
-  double oldest_camera_time = INFINITY;
-  std::map<double, bool> map_camera_times;
-  std::map<size_t, bool> map_camera_ids;
-  for (auto const &feat : features) {
-    if (map_features_num_meas[feat.first] < min_num_meas_to_optimize)
-      continue;
-    for (auto const &camtime : feat.second->timestamps) {
-      map_camera_ids[camtime.first] = true;
-      for (double time : camtime.second) {
-        map_camera_times[time] = true;
-        oldest_camera_time = std::min(oldest_camera_time, time);
-        num_measurements += 2;
-      }
-    }
-  }
 
-  // Return if we do not have our full window or not enough measurements
-  if (newest_cam_time - oldest_camera_time < params.init_window_time - params.init_dyn_window_thresh) {
-    return false;
-  }
+  // Make sure we have enough measurements to fully constrain the system
   if (num_measurements < system_size) {
     PRINT_ERROR(YELLOW "[init]: not enough feature measurements (%d meas vs %d state size)!\n" RESET, num_measurements, system_size);
     return false;
@@ -234,8 +269,12 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
       // Loop through each observation
       for (size_t i = 0; i < camtime.second.size(); i++) {
 
-        // Our timestamp and measurement
+        // Skip measurements we don't have poses for
         double time = feat.second->timestamps.at(cam_id).at(i);
+        if (map_camera_times.find(time) == map_camera_times.end())
+          continue;
+
+        // Our measurement
         Eigen::Vector2d uv_norm;
         uv_norm << (double)feat.second->uvs_norm.at(cam_id).at(i)(0), (double)feat.second->uvs_norm.at(cam_id).at(i)(1);
 
@@ -504,7 +543,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   }
   a_inI_norm_var /= (double)(readings.size() - 2);
   a_inI_norm_var = std::sqrt(a_inI_norm_var);
-  PRINT_DEBUG("[init]: |a_I| = %.4f +- %.3f\n", a_inI_norm, a_inI_norm_var);
+  PRINT_DEBUG("[init]: |a_I| = %.4f +- %.3f (%s)\n", a_inI_norm, a_inI_norm_var, (have_stereo) ? "stereo" : "mono");
 
   // Check if we have 2-axis motion also!
   auto middle = ori_GtoIi.begin();
@@ -790,8 +829,12 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
       // Loop through each observation
       for (size_t i = 0; i < camtime.second.size(); i++) {
 
-        // Our timestamp and measurement
+        // Skip measurements we don't have poses for
         double time = feat.second->timestamps.at(cam_id).at(i);
+        if (map_camera_times.find(time) == map_camera_times.end())
+          continue;
+
+        // Our measurement
         Eigen::Vector2d uv_raw = feat.second->uvs.at(cam_id).at(i).block(0, 0, 2, 1).cast<double>();
 
         // If we don't have the feature state we should create that parameter block
