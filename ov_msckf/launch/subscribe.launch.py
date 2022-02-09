@@ -21,6 +21,11 @@ launch_args = [
         description="euroc_mav, tum_vi, rpng_aruco...",
     ),
     DeclareLaunchArgument(
+        name="config_path",
+        default_value="",
+        description="path to estimator_config.yaml. If not given, determined based on provided 'config' above",
+    ),
+    DeclareLaunchArgument(
         name="verbosity",
         default_value="INFO",
         description="ALL, DEBUG, INFO, WARNING, ERROR, SILENT",
@@ -39,23 +44,32 @@ launch_args = [
 
 
 def launch_setup(context):
-    configs_dir = os.path.join(get_package_share_directory("ov_msckf"), "config")
-    available_configs = os.listdir(configs_dir)
-    config = LaunchConfiguration("config").perform(context)
-    if not config in available_configs:
-        return [
-            LogInfo(
-                msg="ERROR: unknown config: '{}' - Available configs are: {} - not starting OpenVINS".format(
-                    config, ", ".join(available_configs)
+    config_path = LaunchConfiguration("config_path").perform(context)
+    if not config_path:
+        configs_dir = os.path.join(get_package_share_directory("ov_msckf"), "config")
+        available_configs = os.listdir(configs_dir)
+        config = LaunchConfiguration("config").perform(context)
+        if config in available_configs:
+            config_path = os.path.join(
+                            get_package_share_directory("ov_msckf"),
+                            "config",config,"estimator_config.yaml"
+                        )
+        else:
+            return [
+                LogInfo(
+                    msg="ERROR: unknown config: '{}' - Available configs are: {} - not starting OpenVINS".format(
+                        config, ", ".join(available_configs)
+                    )
                 )
-            )
-        ]
-    config_path = os.path.join(
-        get_package_share_directory("ov_msckf"),
-        "config",
-        config,
-        "estimator_config.yaml",
-    )
+            ]
+    else:
+        if not os.path.isfile(config_path):
+            return [
+                LogInfo(
+                    msg="ERROR: config_path file: '{}' - does not exist. - not starting OpenVINS".format(
+                        config_path)
+                    )
+            ]
     node1 = Node(
         package="ov_msckf",
         executable="run_subscribe_msckf",
