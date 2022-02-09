@@ -123,7 +123,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return false;
   }
   if (count_valid_features < min_valid_features) {
-    PRINT_ERROR(RED "[init]: only %zu valid features of required %d!!\n" RESET, count_valid_features, min_valid_features);
+    PRINT_ERROR(RED "[init-d]: only %zu valid features of required %d!!\n" RESET, count_valid_features, min_valid_features);
     return false;
   }
 
@@ -165,7 +165,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
 
   // Make sure we have enough measurements to fully constrain the system
   if (num_measurements < system_size) {
-    PRINT_ERROR(YELLOW "[init]: not enough feature measurements (%d meas vs %d state size)!\n" RESET, num_measurements, system_size);
+    PRINT_ERROR(YELLOW "[init-d]: not enough feature measurements (%d meas vs %d state size)!\n" RESET, num_measurements, system_size);
     return false;
   }
 
@@ -198,13 +198,13 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     std::vector<ov_core::ImuData> cpiI0toIi1_readings =
         InitializerHelper::select_imu_readings(*imu_data, cpiI0toIi1_time0_in_imu, cpiI0toIi1_time1_in_imu);
     if (cpiI0toIi1_readings.size() < 2) {
-      PRINT_DEBUG(YELLOW "[init]: camera %.2f in has %zu IMU readings!\n" RESET, (cpiI0toIi1_time1_in_imu - cpiI0toIi1_time0_in_imu),
+      PRINT_DEBUG(YELLOW "[init-d]: camera %.2f in has %zu IMU readings!\n" RESET, (cpiI0toIi1_time1_in_imu - cpiI0toIi1_time0_in_imu),
                   cpiI0toIi1_readings.size());
       return false;
     }
     double cpiI0toIi1_dt_imu = cpiI0toIi1_readings.at(cpiI0toIi1_readings.size() - 1).timestamp - cpiI0toIi1_readings.at(0).timestamp;
     if (std::abs(cpiI0toIi1_dt_imu - (cpiI0toIi1_time1_in_imu - cpiI0toIi1_time0_in_imu)) > 0.01) {
-      PRINT_DEBUG(YELLOW "[init]: camera IMU was only propagated %.3f of %.3f\n" RESET, cpiI0toIi1_dt_imu,
+      PRINT_DEBUG(YELLOW "[init-d]: camera IMU was only propagated %.3f of %.3f\n" RESET, cpiI0toIi1_dt_imu,
                   (cpiI0toIi1_time1_in_imu - cpiI0toIi1_time0_in_imu));
       return false;
     }
@@ -222,13 +222,13 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     std::vector<ov_core::ImuData> cpiIitoIi1_readings =
         InitializerHelper::select_imu_readings(*imu_data, cpiIitoIi1_time0_in_imu, cpiIitoIi1_time1_in_imu);
     if (cpiIitoIi1_readings.size() < 2) {
-      PRINT_DEBUG(YELLOW "[init]: camera %.2f in has %zu IMU readings!\n" RESET, (cpiIitoIi1_time1_in_imu - cpiIitoIi1_time0_in_imu),
+      PRINT_DEBUG(YELLOW "[init-d]: camera %.2f in has %zu IMU readings!\n" RESET, (cpiIitoIi1_time1_in_imu - cpiIitoIi1_time0_in_imu),
                   cpiIitoIi1_readings.size());
       return false;
     }
     double cpiIitoIi1_dt_imu = cpiIitoIi1_readings.at(cpiIitoIi1_readings.size() - 1).timestamp - cpiIitoIi1_readings.at(0).timestamp;
     if (std::abs(cpiIitoIi1_dt_imu - (cpiIitoIi1_time1_in_imu - cpiIitoIi1_time0_in_imu)) > 0.01) {
-      PRINT_DEBUG(YELLOW "[init]: camera IMU was only propagated %.3f of %.3f\n" RESET, cpiIitoIi1_dt_imu,
+      PRINT_DEBUG(YELLOW "[init-d]: camera IMU was only propagated %.3f of %.3f\n" RESET, cpiIitoIi1_dt_imu,
                   (cpiIitoIi1_time1_in_imu - cpiIitoIi1_time0_in_imu));
       return false;
     }
@@ -247,7 +247,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // Loop through each feature observation and append it!
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(num_measurements, system_size);
   Eigen::VectorXd b = Eigen::VectorXd::Zero(num_measurements);
-  PRINT_DEBUG("[init]: system of %d measurement x %d states created (%d features)\n", num_measurements, system_size, num_features);
+  PRINT_DEBUG("[init-d]: system of %d measurement x %d states created (%d features)\n", num_measurements, system_size, num_features);
   int index_meas = 0;
   int idx_feat = 0;
   std::map<size_t, int> A_index_features;
@@ -347,7 +347,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::JacobiSVD<Eigen::MatrixXd> svd1((A1.transpose() * A1), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd singularValues1 = svd1.singularValues();
   double cond1 = singularValues1(0) / singularValues1(singularValues1.rows() - 1);
-  PRINT_DEBUG("[init]: A1A1 cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond1, (int)svd1.rank(), (int)A1.cols(), svd1.threshold());
+  PRINT_DEBUG("[init-d]: A1A1 cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond1, (int)svd1.rank(), (int)A1.cols(), svd1.threshold());
 
   // Create companion matrix of our polynomial
   // https://en.wikipedia.org/wiki/Companion_matrix
@@ -358,13 +358,13 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::JacobiSVD<Eigen::MatrixXd> svd0(companion_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd singularValues0 = svd0.singularValues();
   double cond0 = singularValues0(0) / singularValues0(singularValues0.rows() - 1);
-  PRINT_DEBUG("[init]: CM cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond0, (int)svd0.rank(), (int)companion_matrix.cols(),
+  PRINT_DEBUG("[init-d]: CM cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond0, (int)svd0.rank(), (int)companion_matrix.cols(),
               svd0.threshold());
 
   // Find its eigenvalues (can be complex)
   Eigen::EigenSolver<Eigen::MatrixXd> solver(companion_matrix, false);
   if (solver.info() != Eigen::Success) {
-    PRINT_ERROR(RED "[init]: failed to compute the eigenvalue decomposition!!", RESET);
+    PRINT_ERROR(RED "[init-d]: failed to compute the eigenvalue decomposition!!", RESET);
     return false;
   }
 
@@ -395,7 +395,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     }
   }
   if (!lambda_found) {
-    PRINT_ERROR(RED "[init]: failed to find a real eigenvalue!!!", RESET);
+    PRINT_ERROR(RED "[init-d]: failed to find a real eigenvalue!!!", RESET);
     return false;
   }
 
@@ -403,8 +403,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::JacobiSVD<Eigen::MatrixXd> svd2((D - lambda_min * I_dd), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd singularValues2 = svd2.singularValues();
   double cond2 = singularValues2(0) / singularValues2(singularValues2.rows() - 1);
-  PRINT_DEBUG("[init]: (D-lI) cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond2, (int)svd2.rank(), (int)D.rows(), svd2.threshold());
-  PRINT_DEBUG("[init]: smallest real eigenvalue = %.5f (cost of %f)\n", lambda_min, cost_min);
+  PRINT_DEBUG("[init-d]: (D-lI) cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond2, (int)svd2.rank(), (int)D.rows(), svd2.threshold());
+  PRINT_DEBUG("[init-d]: smallest real eigenvalue = %.5f (cost of %f)\n", lambda_min, cost_min);
 
   // Recover our gravity from the constraint!
   // Eigen::MatrixXd D_lambdaI_inv = (D - lambda_min * I_dd).inverse();
@@ -417,17 +417,17 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   x_hat.block(0, 0, size_feature * num_features + 3, 1) = state_feat_vel;
   x_hat.block(size_feature * num_features + 3, 0, 3, 1) = state_grav;
   Eigen::Vector3d v_I0inI0 = x_hat.block(size_feature * num_features + 0, 0, 3, 1);
-  PRINT_INFO("[init]: velocity in I0 was %.3f,%.3f,%.3f and |v| = %.4f\n", v_I0inI0(0), v_I0inI0(1), v_I0inI0(2), v_I0inI0.norm());
+  PRINT_INFO("[init-d]: velocity in I0 was %.3f,%.3f,%.3f and |v| = %.4f\n", v_I0inI0(0), v_I0inI0(1), v_I0inI0(2), v_I0inI0.norm());
 
   // Check gravity magnitude to see if converged
   Eigen::Vector3d gravity_inI0 = x_hat.block(size_feature * num_features + 3, 0, 3, 1);
   double init_max_grav_difference = 1e-3;
   if (std::abs(gravity_inI0.norm() - params.gravity_mag) > init_max_grav_difference) {
-    PRINT_DEBUG(YELLOW "[init]: gravity did not converge (%.3f > %.3f)\n" RESET, std::abs(gravity_inI0.norm() - params.gravity_mag),
+    PRINT_DEBUG(YELLOW "[init-d]: gravity did not converge (%.3f > %.3f)\n" RESET, std::abs(gravity_inI0.norm() - params.gravity_mag),
                 init_max_grav_difference);
     return false;
   }
-  PRINT_INFO("[init]: gravity in I0 was %.3f,%.3f,%.3f and |g| = %.4f\n", gravity_inI0(0), gravity_inI0(1), gravity_inI0(2),
+  PRINT_INFO("[init-d]: gravity in I0 was %.3f,%.3f,%.3f and |g| = %.4f\n", gravity_inI0(0), gravity_inI0(1), gravity_inI0(2),
              gravity_inI0.norm());
 
   // ======================================================
@@ -491,7 +491,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     }
   }
   if (count_valid_features < min_valid_features) {
-    PRINT_ERROR(YELLOW "[init]: not enough features for our mle (%zu < %d)!\n" RESET, count_valid_features, min_valid_features);
+    PRINT_ERROR(YELLOW "[init-d]: not enough features for our mle (%zu < %d)!\n" RESET, count_valid_features, min_valid_features);
     return false;
   }
 
@@ -543,7 +543,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   }
   a_inI_norm_var /= (double)(readings.size() - 2);
   a_inI_norm_var = std::sqrt(a_inI_norm_var);
-  PRINT_DEBUG("[init]: |a_I| = %.4f +- %.3f (%s)\n", a_inI_norm, a_inI_norm_var, (have_stereo) ? "stereo" : "mono");
+  PRINT_DEBUG("[init-d]: |a_I| = %.4f +- %.3f (%s)\n", a_inI_norm, a_inI_norm_var, (have_stereo) ? "stereo" : "mono");
 
   // Check if we have 2-axis motion also!
   auto middle = ori_GtoIi.begin();
@@ -556,7 +556,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::Vector3d th_I0_to_I1 = ov_core::log_so3(R_I0_to_I1);
   Eigen::Vector3d th_I0_to_I2 = ov_core::log_so3(R_I0_to_I2);
   Eigen::Vector3d res = skew_x(th_I0_to_I1) * th_I0_to_I2;
-  PRINT_DEBUG("[init]: 1axis = %.6f | residual of %.3f,%.3f,%.3f\n", res.norm(), res(0), res(1), res(2));
+  PRINT_DEBUG("[init-d]: 1axis = %.6f | residual of %.3f,%.3f,%.3f\n", res.norm(), res(0), res(1), res(2));
 
   // ======================================================
   // ======================================================
@@ -871,8 +871,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // Optimize the ceres graph
   ceres::Solver::Summary summary;
   ceres::Solve(options, &problem, &summary);
-  PRINT_DEBUG("[init]: %s\n", summary.message.c_str());
-  PRINT_INFO("[init]: %d iterations | %zu states, %zu features (%zu valid) | %d parameters and %d residuals | cost %.4e => %.4e\n",
+  PRINT_DEBUG("[init-d]: %s\n", summary.message.c_str());
+  PRINT_INFO("[init-d]: %d iterations | %zu states, %zu features (%zu valid) | %d parameters and %d residuals | cost %.4e => %.4e\n",
              (int)summary.iterations.size(), map_states.size(), map_features.size(), count_valid_features, summary.num_parameters,
              summary.num_residuals, summary.initial_cost, summary.final_cost);
 
@@ -988,7 +988,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   //  ceres::Covariance problem_cov(options_cov);
   //  bool success = problem_cov.Compute(covariance_blocks, &problem);
   //  if (!success) {
-  //    PRINT_INFO(RED "[init]: covariance recovery failed...\n" RESET);
+  //    PRINT_INFO(RED "[init-d]: covariance recovery failed...\n" RESET);
   //    return false;
   //  }
   //

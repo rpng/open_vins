@@ -48,18 +48,23 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
       }
     }
   }
-  double oldest_time = newest_cam_time - params.init_window_time;
+  double oldest_time = newest_cam_time - params.init_window_time - 0.01;
   if (newest_cam_time < 0 || oldest_time < 0) {
     return false;
   }
-  double oldest_camera_time = INFINITY;
+  double oldest_camera_time_diff = INFINITY;
+  double oldest_camera_time = -1;
   for (auto const &feat : _db->get_internal_data()) {
     for (auto const &camtimepair : feat.second->timestamps) {
       for (auto const &time : camtimepair.second) {
-        oldest_camera_time = std::min(oldest_camera_time, time);
+        if (oldest_camera_time == -1 || std::abs(time - oldest_time) < oldest_camera_time_diff) {
+          oldest_camera_time = time;
+          oldest_camera_time_diff = std::abs(time - oldest_time);
+        }
       }
     }
   }
+  assert(oldest_camera_time != -1);
 
   // Remove all measurements that are older then our initialization window
   // Then we will try to use all features that are in the feature database!
@@ -87,7 +92,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
     }
 
     // Check if it passed our check!
-    PRINT_DEBUG(YELLOW "[init]: disparity says the platform is moving %.4f < %.4f\n" RESET, average_disparity, params.init_max_disparity);
+    PRINT_DEBUG(YELLOW "[init]: disparity of the platform is %.4f (%.4f threshold)\n" RESET, average_disparity, params.init_max_disparity);
     disparity_detected_moving = (average_disparity > params.init_max_disparity);
   }
 
