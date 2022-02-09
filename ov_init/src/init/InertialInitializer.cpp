@@ -98,10 +98,10 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
 
   // Use our static initializer!
   if (!disparity_detected_moving) {
-    PRINT_DEBUG(GREEN "[init]: USING STATIC INITIALIZER METHOD!\n");
+    PRINT_DEBUG(GREEN "[init]: USING STATIC INITIALIZER METHOD!\n" RESET);
     return init_static->initialize(timestamp, covariance, order, t_imu, wait_for_jerk);
   } else {
-    PRINT_DEBUG(GREEN "[init]: USING DYNAMIC INITIALIZER METHOD!\n");
+    PRINT_DEBUG(GREEN "[init]: USING DYNAMIC INITIALIZER METHOD!\n" RESET);
     std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
     std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;
     std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> _calib_IMUtoCAM;
