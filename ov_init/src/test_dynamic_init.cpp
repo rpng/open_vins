@@ -198,16 +198,16 @@ int main(int argc, char **argv) {
         Eigen::Matrix<double, 15, 1> err = Eigen::Matrix<double, 15, 1>::Zero();
         Eigen::Matrix3d R_GtoI_gt = ov_core::quat_2_Rot(gt_imu.block(1, 0, 4, 1));
         Eigen::Matrix3d R_GtoI_hat = _imu->Rot();
-        err.block(0, 0, 3, 1) = -180.0 / M_PI * ov_core::log_so3(R_GtoI_gt * R_GtoI_hat.transpose());
+        err.block(0, 0, 3, 1) = -ov_core::log_so3(R_GtoI_gt * R_GtoI_hat.transpose());
         err.block(3, 0, 3, 1) = gt_imu.block(5, 0, 3, 1) - _imu->pos();
         err.block(6, 0, 3, 1) = gt_imu.block(8, 0, 3, 1) - _imu->vel();
         err.block(9, 0, 3, 1) = gt_imu.block(11, 0, 3, 1) - _imu->bias_g();
         err.block(12, 0, 3, 1) = gt_imu.block(14, 0, 3, 1) - _imu->bias_a();
 
         // debug print the error of the recovered IMU state
-        PRINT_INFO(REDPURPLE "e_ori = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f,%.3f (est)\n" RESET, err(0 + 0),
-                   err(0 + 1), err(0 + 2), gt_imu(1), gt_imu(2), gt_imu(3), gt_imu(4), _imu->quat()(0), _imu->quat()(1), _imu->quat()(2),
-                   _imu->quat()(3));
+        PRINT_INFO(REDPURPLE "e_ori = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f,%.3f (est)\n" RESET,
+                   180.0 / M_PI * err(0 + 0), 180.0 / M_PI * err(0 + 1), 180.0 / M_PI * err(0 + 2), gt_imu(1), gt_imu(2), gt_imu(3),
+                   gt_imu(4), _imu->quat()(0), _imu->quat()(1), _imu->quat()(2), _imu->quat()(3));
         PRINT_INFO(REDPURPLE "e_pos = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(3 + 0), err(3 + 1),
                    err(3 + 2), gt_imu(5), gt_imu(6), gt_imu(7), _imu->pos()(0), _imu->pos()(1), _imu->pos()(2));
         PRINT_INFO(REDPURPLE "e_vel = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(6 + 0), err(6 + 1),
@@ -216,6 +216,18 @@ int main(int argc, char **argv) {
                    err(9 + 2), gt_imu(11), gt_imu(12), gt_imu(13), _imu->bias_g()(0), _imu->bias_g()(1), _imu->bias_g()(2));
         PRINT_INFO(REDPURPLE "e_bias_a = %.3f,%.3f,%.3f | %.3f,%.3f,%.3f (true) | %.3f,%.3f,%.3f (est)\n" RESET, err(12 + 0), err(12 + 1),
                    err(12 + 2), gt_imu(14), gt_imu(15), gt_imu(16), _imu->bias_a()(0), _imu->bias_a()(1), _imu->bias_a()(2));
+
+        // calculate normalized estimation error squared
+        // the recovered error should be on the order of the state size (15 or 3 for marginals)
+        Eigen::MatrixXd information = covariance.inverse();
+        double nees_total = (err.transpose() * information * err)(0, 0);
+        double nees_ori = (err.block(0, 0, 3, 1).transpose() * information.block(0, 0, 3, 3) * err.block(0, 0, 3, 1))(0, 0);
+        double nees_pos = (err.block(3, 0, 3, 1).transpose() * information.block(3, 3, 3, 3) * err.block(3, 0, 3, 1))(0, 0);
+        double nees_vel = (err.block(6, 0, 3, 1).transpose() * information.block(6, 6, 3, 3) * err.block(6, 0, 3, 1))(0, 0);
+        double nees_bg = (err.block(9, 0, 3, 1).transpose() * information.block(9, 9, 3, 3) * err.block(9, 0, 3, 1))(0, 0);
+        double nees_ba = (err.block(12, 0, 3, 1).transpose() * information.block(12, 12, 3, 3) * err.block(12, 0, 3, 1))(0, 0);
+        PRINT_INFO(REDPURPLE "nees total = %.3f | ori = %.3f | pos = %.3f (ideal is 15 and 3)\n" RESET, nees_total, nees_ori, nees_pos);
+        PRINT_INFO(REDPURPLE "nees vel = %.3f | bg = %.3f | ba = %.3f (ideal 3)\n" RESET, nees_vel, nees_bg, nees_ba);
 
 #if ROS_AVAILABLE == 1
         // Align the groundtruth to the current estimate yaw

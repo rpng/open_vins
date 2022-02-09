@@ -72,11 +72,14 @@ struct InertialInitializerOptions {
   /// Number of features we should try to track
   int init_max_features = 20;
 
+  /// Rate we should use as our poses (max should be cam freq)
+  double init_dyn_pose_rate = 5.0;
+
   /// If we should optimize and recover the calibration in our MLE
   bool init_dyn_mle_opt_calib = false;
 
   /// Max number of MLE iterations for dynamic initialization
-  int init_dyn_mle_max_iterations = 20;
+  int init_dyn_mle_max_iter = 20;
 
   /// Max number of MLE threads for dynamic initialization
   int init_dyn_mle_max_threads = 20;
@@ -106,8 +109,9 @@ struct InertialInitializerOptions {
       parser->parse_config("init_imu_thresh", init_imu_thresh);
       parser->parse_config("init_max_disparity", init_max_disparity);
       parser->parse_config("init_max_features", init_max_features);
+      parser->parse_config("init_dyn_pose_rate", init_dyn_pose_rate);
       parser->parse_config("init_dyn_mle_opt_calib", init_dyn_mle_opt_calib);
-      parser->parse_config("init_dyn_mle_max_iterations", init_dyn_mle_max_iterations);
+      parser->parse_config("init_dyn_mle_max_iter", init_dyn_mle_max_iter);
       parser->parse_config("init_dyn_mle_max_threads", init_dyn_mle_max_threads);
       parser->parse_config("init_dyn_mle_max_time", init_dyn_mle_max_time);
       parser->parse_config("init_dyn_window_thresh", init_dyn_window_thresh);
@@ -127,6 +131,23 @@ struct InertialInitializerOptions {
       PRINT_ERROR(RED "  init_max_features = %d\n" RESET, init_max_features);
       std::exit(EXIT_FAILURE);
     }
+    PRINT_DEBUG("  - init_dyn_pose_rate: %.2f\n", init_dyn_pose_rate);
+    double dt = 1.0 / init_dyn_pose_rate;
+    int num_frames = std::floor(init_window_time / dt);
+    if (num_frames < 4) {
+      PRINT_ERROR(RED "number of requested frames to init not enough!!\n" RESET);
+      PRINT_ERROR(RED "  init_dyn_pose_rate = %.2f (%.2f seconds)\n" RESET, init_dyn_pose_rate, dt);
+      PRINT_ERROR(RED "  init_window_time = %.2f seconds\n" RESET, init_window_time);
+      PRINT_ERROR(RED "  num init frames = %d\n" RESET, num_frames);
+      std::exit(EXIT_FAILURE);
+    }
+    PRINT_DEBUG("  - init_dyn_mle_opt_calib: %d\n", init_dyn_mle_opt_calib);
+    PRINT_DEBUG("  - init_dyn_mle_max_iter: %d\n", init_dyn_mle_max_iter);
+    PRINT_DEBUG("  - init_dyn_mle_max_threads: %d\n", init_dyn_mle_max_threads);
+    PRINT_DEBUG("  - init_dyn_mle_max_time: %.2f\n", init_dyn_mle_max_time);
+    PRINT_DEBUG("  - init_dyn_window_thresh: %.2f\n", init_dyn_window_thresh);
+    PRINT_DEBUG("  - init_dyn_bias_g: %.2f, %.2f, %.2f\n", init_dyn_bias_g(0), init_dyn_bias_g(1), init_dyn_bias_g(2));
+    PRINT_DEBUG("  - init_dyn_bias_a: %.2f, %.2f, %.2f\n", init_dyn_bias_a(0), init_dyn_bias_a(1), init_dyn_bias_a(2));
   }
 
   // NOISE / CHI2 ============================
