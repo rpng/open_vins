@@ -24,6 +24,7 @@
 
 #include "init/InertialInitializerOptions.h"
 #include "static/StaticInitializer.h"
+#include "dynamic/DynamicInitializer.h"
 
 #include "types/Type.h"
 #include "utils/colors.h"
@@ -101,6 +102,9 @@ protected:
 
   /// Static initialization helper class
   std::shared_ptr<StaticInitializer> init_static;
+
+  /// Dynamic initialization helper class
+  std::shared_ptr<DynamicInitializer> init_dynamic;
 };
 
 } // namespace ov_init

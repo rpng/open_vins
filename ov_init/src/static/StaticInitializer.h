@@ -23,6 +23,7 @@
 #define OV_INIT_STATICINITIALIZER_H
 
 #include "init/InertialInitializerOptions.h"
+#include "utils/helper.h"
 
 #include "feat/FeatureHelper.h"
 #include "types/IMU.h"

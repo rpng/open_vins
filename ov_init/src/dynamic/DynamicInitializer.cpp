@@ -951,107 +951,129 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     // TODO: std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> &_cam_intrinsics
   }
 
-  // Recover the covariance here of the optimized states
-  // NOTE: for now just the IMU state is recovered, but we should be able to do everything
-  // NOTE: maybe having features / clones will make it more stable?
-  std::vector<std::pair<const double *, const double *>> covariance_blocks;
-  int state_index = map_states[newest_cam_time];
-  // diagonals
-  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_ori[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_pos[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_vel[state_index], ceres_vars_vel[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index]));
-  // orientation
-  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_pos[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_vel[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index]));
-  // position
-  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_vel[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index]));
-  // velocity
-  covariance_blocks.push_back(std::make_pair(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index]));
-  covariance_blocks.push_back(std::make_pair(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index]));
-  // bias_g
-  covariance_blocks.push_back(std::make_pair(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index]));
+  //  // Recover the covariance here of the optimized states
+  //  // NOTE: for now just the IMU state is recovered, but we should be able to do everything
+  //  // NOTE: maybe having features / clones will make it more stable?
+  //  std::vector<std::pair<const double *, const double *>> covariance_blocks;
+  //  int state_index = map_states[newest_cam_time];
+  //  // diagonals
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_ori[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_pos[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_vel[state_index], ceres_vars_vel[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index]));
+  //  // orientation
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_pos[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_vel[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index]));
+  //  // position
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_vel[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index]));
+  //  // velocity
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index]));
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index]));
+  //  // bias_g
+  //  covariance_blocks.push_back(std::make_pair(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index]));
+  //
+  //  // Finally compute the covariance
+  //  ceres::Covariance::Options options_cov;
+  //  options_cov.null_space_rank = -1; // due to over-param quat (but we will use tangent below?)
+  //  options_cov.min_reciprocal_condition_number = 1e-15;
+  //  options_cov.algorithm_type = ceres::CovarianceAlgorithmType::DENSE_SVD; // SPARSE_QR, DENSE_SVD
+  //  options_cov.apply_loss_function = false;
+  //  options_cov.num_threads = params.init_dyn_mle_max_threads;
+  //  options_cov.sparse_linear_algebra_library_type = ceres::SparseLinearAlgebraLibraryType::SUITE_SPARSE;
+  //  ceres::Covariance problem_cov(options_cov);
+  //  bool success = problem_cov.Compute(covariance_blocks, &problem);
+  //  if (!success) {
+  //    PRINT_INFO(RED "[init]: covariance recovery failed...\n" RESET);
+  //    return false;
+  //  }
+  //
+  //  // construct the covariance we will return
+  //  order.clear();
+  //  order.push_back(_imu);
+  //  covariance = Eigen::MatrixXd::Zero(_imu->size(), _imu->size());
+  //  Eigen::Matrix<double, 3, 3, Eigen::RowMajor> covtmp = Eigen::Matrix<double, 3, 3, Eigen::RowMajor>::Zero();
+  //
+  //  // block diagonal
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_ori[state_index], covtmp.data()));
+  //  covariance.block(0, 0, 3, 3) = covtmp.eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_pos[state_index], covtmp.data()));
+  //  covariance.block(3, 3, 3, 3) = covtmp.eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  //  covariance.block(6, 6, 3, 3) = covtmp.eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  //  covariance.block(9, 9, 3, 3) = covtmp.eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  //  covariance.block(12, 12, 3, 3) = covtmp.eval();
+  //
+  //  // orientation
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_pos[state_index], covtmp.data()));
+  //  covariance.block(0, 3, 3, 3) = covtmp.eval();
+  //  covariance.block(3, 0, 3, 3) = covtmp.transpose();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  //  covariance.block(0, 6, 3, 3) = covtmp.eval();
+  //  covariance.block(6, 0, 3, 3) = covtmp.transpose().eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  //  covariance.block(0, 9, 3, 3) = covtmp.eval();
+  //  covariance.block(9, 0, 3, 3) = covtmp.transpose().eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  //  covariance.block(0, 12, 3, 3) = covtmp.eval();
+  //  covariance.block(12, 0, 3, 3) = covtmp.transpose().eval();
+  //
+  //  // position
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  //  covariance.block(3, 6, 3, 3) = covtmp.eval();
+  //  covariance.block(6, 3, 3, 3) = covtmp.transpose().eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  //  covariance.block(3, 9, 3, 3) = covtmp.eval();
+  //  covariance.block(9, 3, 3, 3) = covtmp.transpose().eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  //  covariance.block(3, 12, 3, 3) = covtmp.eval();
+  //  covariance.block(12, 3, 3, 3) = covtmp.transpose().eval();
+  //
+  //  // velocity
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  //  covariance.block(6, 9, 3, 3) = covtmp.eval();
+  //  covariance.block(9, 6, 3, 3) = covtmp.transpose().eval();
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  //  covariance.block(6, 12, 3, 3) = covtmp.eval();
+  //  covariance.block(12, 6, 3, 3) = covtmp.transpose().eval();
+  //
+  //  // bias_g
+  //  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  //  covariance.block(9, 12, 3, 3) = covtmp.eval();
+  //  covariance.block(12, 9, 3, 3) = covtmp.transpose().eval();
+  //
+  //  // we are done >:D
+  //  covariance = 0.5 * (covariance + covariance.transpose());
+  //  std::cout << "vel - " << covariance.block(6, 6, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
+  //  std::cout << "bg - " << covariance.block(9, 9, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
+  //  std::cout << "ba - " << covariance.block(12, 12, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
 
-  // Finally compute the covariance
-  ceres::Covariance::Options options_cov;
-  options_cov.null_space_rank = -1; // due to over-param quat (but we will use tangent below?)
-  options_cov.min_reciprocal_condition_number = 1e-15;
-  options_cov.algorithm_type = ceres::CovarianceAlgorithmType::DENSE_SVD; // SPARSE_QR, DENSE_SVD
-  options_cov.apply_loss_function = false;
-  options_cov.num_threads = params.init_dyn_mle_max_threads;
-  options_cov.sparse_linear_algebra_library_type = ceres::SparseLinearAlgebraLibraryType::SUITE_SPARSE;
-  ceres::Covariance problem_cov(options_cov);
-  bool success = problem_cov.Compute(covariance_blocks, &problem);
-  if (!success) {
-    PRINT_INFO(RED "[init]: covariance recovery failed...\n" RESET);
-    return false;
-  }
+  // Set our position to be zero
+  Eigen::MatrixXd x = _imu->value();
+  x.block(4, 0, 3, 1).setZero();
+  _imu->set_value(x);
+  _imu->set_fej(x);
 
-  // construct the covariance we will return
-  order.clear();
-  order.push_back(_imu);
-  covariance = Eigen::MatrixXd::Zero(_imu->size(), _imu->size());
-  Eigen::Matrix<double, 3, 3, Eigen::RowMajor> covtmp = Eigen::Matrix<double, 3, 3, Eigen::RowMajor>::Zero();
+  // For now just overwrite the covariance since it is inconsistent
+  covariance = 1e-3 * Eigen::MatrixXd::Identity(15, 15);
+  covariance.block(6, 6, 3, 3) = 0.2 * Eigen::Matrix3d::Identity();
+  covariance.block(9, 9, 3, 3) = 2e-2 * Eigen::Matrix3d::Identity();
+  covariance.block(12, 12, 3, 3) = 1e-1 * Eigen::Matrix3d::Identity();
 
-  // block diagonal
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_ori[state_index], covtmp.data()));
-  covariance.block(0, 0, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_pos[state_index], covtmp.data()));
-  covariance.block(3, 3, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_vel[state_index], covtmp.data()));
-  covariance.block(6, 6, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
-  covariance.block(9, 9, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
-  covariance.block(12, 12, 3, 3) = covtmp.eval();
-
-  // orientation
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_pos[state_index], covtmp.data()));
-  covariance.block(0, 3, 3, 3) = covtmp.eval();
-  covariance.block(3, 0, 3, 3) = covtmp.transpose();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_vel[state_index], covtmp.data()));
-  covariance.block(0, 6, 3, 3) = covtmp.eval();
-  covariance.block(6, 0, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
-  covariance.block(0, 9, 3, 3) = covtmp.eval();
-  covariance.block(9, 0, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
-  covariance.block(0, 12, 3, 3) = covtmp.eval();
-  covariance.block(12, 0, 3, 3) = covtmp.transpose().eval();
-
-  // position
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_vel[state_index], covtmp.data()));
-  covariance.block(3, 6, 3, 3) = covtmp.eval();
-  covariance.block(6, 3, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
-  covariance.block(3, 9, 3, 3) = covtmp.eval();
-  covariance.block(9, 3, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
-  covariance.block(3, 12, 3, 3) = covtmp.eval();
-  covariance.block(12, 3, 3, 3) = covtmp.transpose().eval();
-
-  // velocity
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
-  covariance.block(6, 9, 3, 3) = covtmp.eval();
-  covariance.block(9, 6, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
-  covariance.block(6, 12, 3, 3) = covtmp.eval();
-  covariance.block(12, 6, 3, 3) = covtmp.transpose().eval();
-
-  // bias_g
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
-  covariance.block(9, 12, 3, 3) = covtmp.eval();
-  covariance.block(12, 9, 3, 3) = covtmp.transpose().eval();
-
-  // we are done >:D
-  covariance = 0.5 * (covariance + covariance.transpose());
-  std::cout << "vel - " << covariance.block(6, 6, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
-  std::cout << "bg - " << covariance.block(9, 9, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
-  std::cout << "ba - " << covariance.block(12, 12, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
+  // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
+  // This means that on startup, we can fix the yaw and position to be 100 percent known.
+  // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
+  // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
+  covariance(0, 0) = 1e-2;
+  covariance(1, 1) = 1e-2;
+  covariance(2, 2) = 1e-5;
+  covariance.block(0, 0, 3, 3) = _imu->Rot() * covariance.block(0, 0, 3, 3) * _imu->Rot().transpose();
+  covariance.block(3, 3, 3, 3) = 1e-5 * Eigen::Matrix3d::Identity();
   return true;
 }
