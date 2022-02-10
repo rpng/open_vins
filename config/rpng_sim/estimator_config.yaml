@@ -75,7 +75,7 @@ grid_y: 20
 min_px_dist: 15
 knn_ratio: 0.70
 downsample_cameras: false
-multi_threading: true
+multi_threading: false
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
 # aruco tag tracker for the system

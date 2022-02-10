@@ -70,7 +70,7 @@ struct InertialInitializerOptions {
   double init_max_disparity = 1.0;
 
   /// Number of features we should try to track
-  int init_max_features = 20;
+  int init_max_features = 50;
 
   /// If we should optimize and recover the calibration in our MLE
   bool init_dyn_mle_opt_calib = false;
@@ -86,6 +86,9 @@ struct InertialInitializerOptions {
 
   /// Number of poses to use during initialization (max should be cam freq * window)
   int init_dyn_num_pose = 5;
+
+  /// Minimum degrees we need to rotate before we try to init (sum of norm)
+  double init_dyn_min_deg = 45.0;
 
   /// Initial IMU gyroscope bias values for dynamic initialization (will be optimized)
   Eigen::Vector3d init_dyn_bias_g = Eigen::Vector3d::Zero();
@@ -111,6 +114,7 @@ struct InertialInitializerOptions {
       parser->parse_config("init_dyn_mle_max_threads", init_dyn_mle_max_threads);
       parser->parse_config("init_dyn_mle_max_time", init_dyn_mle_max_time);
       parser->parse_config("init_dyn_num_pose", init_dyn_num_pose);
+      parser->parse_config("init_dyn_min_deg", init_dyn_min_deg);
       std::vector<double> bias_g = {0, 0, 0};
       std::vector<double> bias_a = {0, 0, 0};
       parser->parse_config("init_dyn_bias_g", bias_g);
@@ -131,7 +135,8 @@ struct InertialInitializerOptions {
     PRINT_DEBUG("  - init_dyn_mle_max_iter: %d\n", init_dyn_mle_max_iter);
     PRINT_DEBUG("  - init_dyn_mle_max_threads: %d\n", init_dyn_mle_max_threads);
     PRINT_DEBUG("  - init_dyn_mle_max_time: %.2f\n", init_dyn_mle_max_time);
-    PRINT_DEBUG("  - init_dyn_num_pose: %.2f\n", init_dyn_num_pose);
+    PRINT_DEBUG("  - init_dyn_num_pose: %d\n", init_dyn_num_pose);
+    PRINT_DEBUG("  - init_dyn_min_deg: %.2f\n", init_dyn_min_deg);
     if (init_dyn_num_pose < 4) {
       PRINT_ERROR(RED "number of requested frames to init not enough!!\n" RESET);
       PRINT_ERROR(RED "  init_dyn_num_pose = %d (4 min)\n" RESET, init_dyn_num_pose);

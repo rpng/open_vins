@@ -105,6 +105,12 @@ int main(int argc, char **argv) {
     std::exit(EXIT_FAILURE);
   }
 
+  // Ensure we do not have multi threading enabled since we want to call things in serial
+  if (params.use_multi_threading) {
+    PRINT_ERROR(RED "serial reader called without disabling multi threading!\n" RESET);
+    return EXIT_FAILURE;
+  }
+
   //===================================================================================
   //===================================================================================
   //===================================================================================
@@ -135,12 +141,12 @@ int main(int argc, char **argv) {
   std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> buffer_feats;
 
   // Step through the rosbag
-  signal(SIGINT, signal_callback_handler);
 #if ROS_AVAILABLE == 1
   while (sim->ok() && ros::ok()) {
 #elif ROS_AVAILABLE == 2
   while (sim->ok() && rclcpp::ok()) {
 #else
+  signal(SIGINT, signal_callback_handler);
   while (sim->ok()) {
 #endif
 

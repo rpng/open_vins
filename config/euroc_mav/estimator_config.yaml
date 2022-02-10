@@ -17,7 +17,7 @@ max_clones: 11 # how many clones in the sliding window
 max_slam: 50 # number of features in our state vector
 max_slam_in_update: 25 # update can be split into sequential updates of batches, how many in a batch
 max_msckf_in_update: 40 # how many MSCKF features to use in the update
-dt_slam_delay: 2 # delay before initializing (helps with stability from bad initialization...)
+dt_slam_delay: 1 # delay before initializing (helps with stability from bad initialization...)
 
 gravity_mag: 9.81 # magnitude of gravity in this location
 
@@ -37,17 +37,17 @@ zupt_only_at_beginning: true
 # ==================================================================
 # ==================================================================
 
-#init_window_time: 0.75 # how many seconds to collect initialization information
-init_window_time: 2.0 # how many seconds to collect initialization information
+init_window_time: 2.5 # how many seconds to collect initialization information
 init_imu_thresh: 1.5 # threshold for variance of the accelerometer to detect a "jerk" in motion
 init_max_disparity: 1.5 # max disparity to consider the platform stationary (dependent on resolution)
 init_max_features: 50 # how many features to track during initialization (saves on computation)
 
 init_dyn_mle_opt_calib: false
-init_dyn_mle_max_iter: 999
+init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.25
 init_dyn_mle_max_threads: 6
-init_dyn_num_pose: 4
+init_dyn_num_pose: 6
+init_dyn_min_deg: 25.0
 
 init_dyn_bias_g: [0.0, 0.0, 0.0]
 init_dyn_bias_a: [0.0, 0.0, 0.0]

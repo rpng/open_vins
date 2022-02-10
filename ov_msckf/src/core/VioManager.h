@@ -72,18 +72,75 @@ public:
   VioManager(VioManagerOptions &params_);
 
   /**
+   * @brief This function will try to do an update given measurements
+   * @param timestamp Time we want to update to (IMU clock frame)
+   */
+  void try_to_do_update(double timestamp);
+
+  /**
    * @brief Feed function for inertial data
+   * @warning This function needs to be thread safe
    * @param message Contains our timestamp and inertial information
    */
-  void feed_measurement_imu(const ov_core::ImuData &message);
+  void feed_measurement_imu(const ov_core::ImuData &message) {
+
+    // Get the oldest camera timestamp that we can remove IMU measurements before
+    // Then push back to our propagator and pass the IMU time we can delete up to
+    double oldest_time = -1;
+    for (auto const &feat : trackFEATS->get_feature_database()->get_internal_data()) {
+      for (auto const &camtimepair : feat.second->timestamps) {
+        if (!camtimepair.second.empty() && (oldest_time == -1 || oldest_time < camtimepair.second.at(0))) {
+          oldest_time = camtimepair.second.at(0);
+        }
+      }
+    }
+    if (oldest_time != -1) {
+      oldest_time += params.calib_camimu_dt;
+    }
+    propagator->feed_imu(message, oldest_time);
+
+    // Push back to our initializer
+    if (!is_initialized_vio) {
+      initializer->feed_imu(message);
+    }
+
+    // Push back to the zero velocity updater if we have it
+    if (is_initialized_vio && updaterZUPT != nullptr) {
+      updaterZUPT->feed_imu(message);
+    }
+  }
 
   /**
    * @brief Feed function for camera measurements
+   * @warning This function needs to be thread safe
    * @param message Contains our timestamp, images, and camera ids
    */
   void feed_measurement_camera(const ov_core::CameraData &message) {
-    camera_queue.push_back(message);
-    std::sort(camera_queue.begin(), camera_queue.end());
+
+    // Count how many images we have queues for each unique image stream
+    std::map<int, int> num_in_queue;
+    for (const auto &cam_msg : camera_queue) {
+      num_in_queue[cam_msg.sensor_ids.at(0)]++;
+      assert(num_in_queue[cam_msg.sensor_ids.at(0)] <= 2);
+    }
+
+    // If we have two images for a specific camera already in the queue
+    // We will **replace** the most recent one with a MORE recent one
+    // Loop through the queue and find the same sensor id, then replace the last one (assumes sorted)
+    // This is to ensure we remain realtime and drop the minimum amount of measurements
+    int cam_id = message.sensor_ids.at(0);
+    if (num_in_queue.find(cam_id) != num_in_queue.end() && num_in_queue.at(cam_id) == 2) {
+      size_t index = 0;
+      for (size_t i = 0; i < camera_queue.size(); i++) {
+        if (camera_queue.at(i).sensor_ids.at(0) == cam_id) {
+          index = std::max(index, i);
+        }
+      }
+      camera_queue.at(index) = message;
+    } else {
+      camera_queue.push_back(message);
+      std::sort(camera_queue.begin(), camera_queue.end());
+    }
   }
 
   /**
@@ -270,9 +327,10 @@ protected:
    * In the future we should call the structure-from-motion code from here.
    * This function could also be repurposed to re-initialize the system after failure.
    *
+   * @param message Contains our timestamp, images, and camera ids
    * @return True if we have successfully initialized
    */
-  bool try_to_initialize();
+  bool try_to_initialize(const ov_core::CameraData &message);
 
   /**
    * @brief This function will will re-triangulate all features in the current frame
@@ -324,6 +382,10 @@ protected:
   /// a nice feature to have for general robustness to bad camera drivers.
   std::deque<ov_core::CameraData> camera_queue;
 
+  /// This is the queue of measurement times that have come in since we starting doing initialization
+  /// After we initialize, we will want to prop & update to the latest timestamp quickly
+  std::vector<double> camera_queue_init;
+
   // Timing statistic file and variables
   std::ofstream of_statistics;
   boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
@@ -334,6 +396,9 @@ protected:
 
   // Startup time of the filter
   double startup_time = -1;
+
+  // Threads and their atomics
+  std::atomic<bool> thread_init_running, thread_init_success;
 
   // If we did a zero velocity update
   bool did_zupt_update = false;

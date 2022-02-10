@@ -100,7 +100,7 @@ int main(int argc, char **argv) {
   // Spin off to ROS
   // TODO: maybe should use multi-thread spinner
   // TODO: but need to support multi-threaded calls to viomanager
-  PRINT_DEBUG("done...spinning to ros");
+  PRINT_DEBUG("done...spinning to ros\n");
 #if ROS_AVAILABLE == 1
   ros::spin();
 #elif ROS_AVAILABLE == 2

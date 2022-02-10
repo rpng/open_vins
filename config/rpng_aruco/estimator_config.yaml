@@ -44,7 +44,7 @@ init_max_disparity: 1.5
 init_max_features: 50
 
 init_dyn_mle_opt_calib: false
-init_dyn_mle_max_iter: 999
+init_dyn_mle_max_iter: 30
 init_dyn_mle_max_time: 0.25
 init_dyn_mle_max_threads: 6
 init_dyn_num_pose: 4

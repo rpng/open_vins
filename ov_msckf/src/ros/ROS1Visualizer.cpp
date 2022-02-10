@@ -26,7 +26,7 @@ using namespace ov_type;
 using namespace ov_msckf;
 
 ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
-    : _nh(nh), _app(app), _sim(sim) {
+    : _nh(nh), _app(app), _sim(sim), thread_update_running(false) {
 
   // Setup our transform broadcaster
   mTfBr = std::make_shared<tf::TransformBroadcaster>();
@@ -345,8 +345,27 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
   // send it to our VIO system
   _app->feed_measurement_imu(message);
-  visualize();
-  visualize_odometry(message.timestamp);
+  // visualize_odometry(message.timestamp);
+
+  // If the processing queue is currently active / running just return so we can keep getting measurements
+  // Otherwise create a second thread to do our update in an async manor
+  // The visualization of the state, images, and features will be synchronous with the update!
+  if (thread_update_running)
+    return;
+  thread_update_running = true;
+  std::thread thread([&] {
+    _app->try_to_do_update(message.timestamp);
+    visualize();
+    thread_update_running = false;
+  });
+
+  // If we are single threaded, then run single threaded
+  // Otherwise detach this thread so it runs in the background!
+  if (!_app->get_params().use_multi_threading) {
+    thread.join();
+  } else {
+    thread.detach();
+  }
 }
 
 void ROS1Visualizer::callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {

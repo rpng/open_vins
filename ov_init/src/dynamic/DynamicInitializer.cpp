@@ -45,16 +45,31 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return false;
   }
 
-  // Remove all measurements that are older then our initialization window
+  // Remove all measurements that are older than our initialization window
   // Then we will try to use all features that are in the feature database!
   _db->cleanup_measurements(oldest_time);
   auto it_imu = imu_data->begin();
   while (it_imu != imu_data->end() && it_imu->timestamp < oldest_time + params.calib_camimu_dt) {
     it_imu = imu_data->erase(it_imu);
   }
-  auto features = _db->get_internal_data();
-  if (features.size() < 15) {
+  if (_db->get_internal_data().size() < 0.75 * params.init_max_features) {
+    PRINT_WARNING(RED "[init-d]: only %zu valid features of required (0.75 * max = %d)!!\n" RESET, _db->get_internal_data().size(),
+                  0.75 * params.init_max_features);
     return false;
+  }
+
+  // Now we will make a copy of our features here
+  // We do this to ensure that the feature database can continue to have new
+  // measurements appended to it in an async-manor so this initialization
+  // can be performed in a secondary thread while feature tracking is still performed.
+  std::unordered_map<size_t, std::shared_ptr<Feature>> features;
+  for (const auto &feat : _db->get_internal_data()) {
+    auto feat_new = std::make_shared<Feature>();
+    feat_new->featid = feat.second->featid;
+    feat_new->uvs = feat.second->uvs;
+    feat_new->uvs_norm = feat.second->uvs_norm;
+    feat_new->timestamps = feat.second->timestamps;
+    features.insert({feat.first, feat_new});
   }
 
   // ======================================================
@@ -123,9 +138,35 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return false;
   }
   if (count_valid_features < min_valid_features) {
-    PRINT_ERROR(RED "[init-d]: only %zu valid features of required %d!!\n" RESET, count_valid_features, min_valid_features);
+    PRINT_WARNING(RED "[init-d]: only %zu valid features of required %d!!\n" RESET, count_valid_features, min_valid_features);
     return false;
   }
+
+  // Bias initial guesses specified by the launch file
+  // We don't go through the effort to recover the biases right now since they should be
+  // Semi-well known before launching or can be considered to be near zero...
+  Eigen::Vector3d gyroscope_bias = params.init_dyn_bias_g;
+  Eigen::Vector3d accelerometer_bias = params.init_dyn_bias_a;
+
+  // Check that we have some angular velocity / orientation change
+  double theta_inI_norm = 0.0;
+  double time0_in_imu = oldest_camera_time + params.calib_camimu_dt;
+  double time1_in_imu = newest_cam_time + params.calib_camimu_dt;
+  std::vector<ov_core::ImuData> readings = InitializerHelper::select_imu_readings(*imu_data, time0_in_imu, time1_in_imu);
+  assert(readings.size() > 2);
+  for (size_t k = 0; k < readings.size() - 1; k++) {
+    auto imu0 = readings.at(k);
+    auto imu1 = readings.at(k + 1);
+    double dt = imu1.timestamp - imu0.timestamp;
+    Eigen::Vector3d wm = 0.5 * (imu0.wm + imu1.wm) - gyroscope_bias;
+    theta_inI_norm += (-wm * dt).norm();
+  }
+  if (180.0 / M_PI * theta_inI_norm < params.init_dyn_min_deg) {
+    PRINT_WARNING(YELLOW "[init-d]: gyroscope only %.2f degree change (%.2f thresh)\n" RESET, 180.0 / M_PI * theta_inI_norm,
+                  params.init_dyn_min_deg);
+    return false;
+  }
+  PRINT_DEBUG("[init-d]: |theta_I| = %.4f degrees\n", 180.0 / M_PI * theta_inI_norm);
 
   //  // Create feature bearing vector in the first frame
   //  // This gives us: p_FinI0 = depth * bearing
@@ -165,15 +206,9 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
 
   // Make sure we have enough measurements to fully constrain the system
   if (num_measurements < system_size) {
-    PRINT_ERROR(YELLOW "[init-d]: not enough feature measurements (%d meas vs %d state size)!\n" RESET, num_measurements, system_size);
+    PRINT_WARNING(YELLOW "[init-d]: not enough feature measurements (%d meas vs %d state size)!\n" RESET, num_measurements, system_size);
     return false;
   }
-
-  // Bias initial guesses specified by the launch file
-  // We don't go through the effort to recover the biases right now since they should be
-  // Semi-well known before launching or can be considered to be near zero...
-  Eigen::Vector3d gyroscope_bias = params.init_dyn_bias_g;
-  Eigen::Vector3d accelerometer_bias = params.init_dyn_bias_a;
 
   // Now lets pre-integrate from the first time to the last
   assert(oldest_camera_time < newest_cam_time);
@@ -347,7 +382,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::JacobiSVD<Eigen::MatrixXd> svd1((A1.transpose() * A1), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd singularValues1 = svd1.singularValues();
   double cond1 = singularValues1(0) / singularValues1(singularValues1.rows() - 1);
-  PRINT_DEBUG("[init-d]: A1A1 cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond1, (int)svd1.rank(), (int)A1.cols(), svd1.threshold());
+  PRINT_DEBUG("[init-d]: A1A1 cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond1, (int)svd1.rank(), (int)A1.cols(),
+              svd1.threshold());
 
   // Create companion matrix of our polynomial
   // https://en.wikipedia.org/wiki/Companion_matrix
@@ -403,7 +439,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::JacobiSVD<Eigen::MatrixXd> svd2((D - lambda_min * I_dd), Eigen::ComputeThinU | Eigen::ComputeThinV);
   Eigen::MatrixXd singularValues2 = svd2.singularValues();
   double cond2 = singularValues2(0) / singularValues2(singularValues2.rows() - 1);
-  PRINT_DEBUG("[init-d]: (D-lI) cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond2, (int)svd2.rank(), (int)D.rows(), svd2.threshold());
+  PRINT_DEBUG("[init-d]: (D-lI) cond = %.3f | rank = %d of %d (%4.3e threshold)\n", cond2, (int)svd2.rank(), (int)D.rows(),
+              svd2.threshold());
   PRINT_DEBUG("[init-d]: smallest real eigenvalue = %.5f (cost of %f)\n", lambda_min, cost_min);
 
   // Recover our gravity from the constraint!
@@ -423,8 +460,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::Vector3d gravity_inI0 = x_hat.block(size_feature * num_features + 3, 0, 3, 1);
   double init_max_grav_difference = 1e-3;
   if (std::abs(gravity_inI0.norm() - params.gravity_mag) > init_max_grav_difference) {
-    PRINT_DEBUG(YELLOW "[init-d]: gravity did not converge (%.3f > %.3f)\n" RESET, std::abs(gravity_inI0.norm() - params.gravity_mag),
-                init_max_grav_difference);
+    PRINT_WARNING(YELLOW "[init-d]: gravity did not converge (%.3f > %.3f)\n" RESET, std::abs(gravity_inI0.norm() - params.gravity_mag),
+                  init_max_grav_difference);
     return false;
   }
   PRINT_INFO("[init-d]: gravity in I0 was %.3f,%.3f,%.3f and |g| = %.4f\n", gravity_inI0(0), gravity_inI0(1), gravity_inI0(2),
@@ -521,10 +558,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   double a_inI_norm = 0.0;
   double a_inI_norm_var = 0.0;
   std::vector<double> a_inI_norm_vec;
-  double time0_in_imu = oldest_camera_time + params.calib_camimu_dt;
-  double time1_in_imu = newest_cam_time + params.calib_camimu_dt;
-  std::vector<ov_core::ImuData> readings = InitializerHelper::select_imu_readings(*imu_data, time0_in_imu, time1_in_imu);
-  assert(readings.size() > 2);
   Eigen::Matrix3d R_GtoIi = quat_2_Rot(ori_GtoIi.at(oldest_camera_time).block(0, 0, 4, 1));
   for (size_t k = 0; k < readings.size() - 1; k++) {
     auto imu0 = readings.at(k);
@@ -545,7 +578,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   a_inI_norm_var = std::sqrt(a_inI_norm_var);
   PRINT_DEBUG("[init-d]: |a_I| = %.4f +- %.3f (%s)\n", a_inI_norm, a_inI_norm_var, (have_stereo) ? "stereo" : "mono");
 
-  // Check if we have 2-axis motion also!
+  // Check if we have 2-axis motion by comparing changes in theta
   auto middle = ori_GtoIi.begin();
   std::advance(middle, (int)(ori_GtoIi.size() / 2));
   Eigen::Matrix3d R_G_to_I0 = quat_2_Rot(ori_GtoIi.at(oldest_camera_time).block(0, 0, 4, 1));

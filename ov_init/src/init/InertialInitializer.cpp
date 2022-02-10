@@ -52,19 +52,6 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
   if (newest_cam_time < 0 || oldest_time < 0) {
     return false;
   }
-  double oldest_camera_time_diff = INFINITY;
-  double oldest_camera_time = -1;
-  for (auto const &feat : _db->get_internal_data()) {
-    for (auto const &camtimepair : feat.second->timestamps) {
-      for (auto const &time : camtimepair.second) {
-        if (oldest_camera_time == -1 || std::abs(time - oldest_time) < oldest_camera_time_diff) {
-          oldest_camera_time = time;
-          oldest_camera_time_diff = std::abs(time - oldest_time);
-        }
-      }
-    }
-  }
-  assert(oldest_camera_time != -1);
 
   // Remove all measurements that are older then our initialization window
   // Then we will try to use all features that are in the feature database!
@@ -83,7 +70,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
     int num_features = 0;
     double average_disparity = 0.0;
     double variance_disparity = 0.0;
-    FeatureHelper::compute_disparity(_db, newest_cam_time, oldest_camera_time, average_disparity, variance_disparity, num_features);
+    FeatureHelper::compute_disparity(_db, average_disparity, variance_disparity, num_features);
 
     // Return if we can't compute the disparity
     if (num_features < 10) {

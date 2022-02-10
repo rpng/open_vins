@@ -161,6 +161,10 @@ protected:
   bool start_time_set = false;
   boost::posix_time::ptime rT1, rT2;
 
+  // Threads and their atomics
+  std::shared_ptr<std::thread> thread_update;
+  std::atomic<bool> thread_update_running;
+
   // Last timestamp we visualized at
   double last_visualization_timestamp = 0;
 
