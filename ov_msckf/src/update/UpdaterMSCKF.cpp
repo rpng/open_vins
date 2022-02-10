@@ -32,7 +32,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     return;
 
   // Start timing
-  boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+  boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5;
   rT0 = boost::posix_time::microsec_clock::local_time();
 
   // 0. Get all timestamps our clones are at (and thus valid measurement times)
