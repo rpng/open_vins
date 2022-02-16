@@ -2,12 +2,12 @@
 
 
     <!-- what ros bag to play -->
-    <arg name="bag_name"    default="indoor_forward_5_snapdragon_with_gt" />
-    <arg name="bag_path"    default="/media/patrick/RPNG\ FLASH\ 2/uzhfpv_newer" />
+    <arg name="bag_name"    default="uzhfpv_outdoor_45/outdoor_45_1_snapdragon_with_gt" />
+    <arg name="bag_path"    default="/media/patrick/RPNG\ FLASH\ 3/" />
 
 
     <!-- where to save the recorded poses -->
-    <arg name="path_save"   default="/home/patrick/workspace/catkin_ws_ov/gt" />
+    <arg name="path_save"   default="/home/patrick/workspace/catkin_ws_init/src/open_vins/ov_data/" />
 
 
     <!-- record the trajectory -->
