@@ -99,6 +99,7 @@ public:
   void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
 
     // Append it to our vector
+    std::lock_guard<std::mutex> lck(imu_data_mtx);
     imu_data.emplace_back(message);
 
     // Loop through and delete imu messages that are older than our requested time
@@ -124,7 +125,7 @@ public:
    * We clone the current imu pose as a new clone in our state.
    *
    * @param state Pointer to state
-   * @param timestamp Time to propagate to and clone at
+   * @param timestamp Time to propagate to and clone at (CAM clock frame)
    */
   void propagate_and_clone(std::shared_ptr<State> state, double timestamp);
 
@@ -136,10 +137,13 @@ public:
    * This is typically used to provide high frequency pose estimates between updates.
    *
    * @param state Pointer to state
-   * @param timestamp Time to propagate to
-   * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
+   * @param timestamp Time to propagate to (IMU clock frame)
+   * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinI, w_IinI)
+   * @param covariance The propagated covariance (q_GtoI, p_IinG, v_IinI, w_IinI)
+   * @return True if we were able to propagate the state to the current timestep
    */
-  void fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus);
+  bool fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
+                            Eigen::Matrix<double, 12, 12> &covariance);
 
   /**
    * @brief Helper function that given current imu data, will select imu readings between the two times.
@@ -267,6 +271,7 @@ protected:
 
   /// Our history of IMU messages (time, angular, linear)
   std::vector<ov_core::ImuData> imu_data;
+  std::mutex imu_data_mtx;
 
   /// Gravity vector
   Eigen::Vector3d _gravity;

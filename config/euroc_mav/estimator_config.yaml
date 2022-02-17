@@ -71,12 +71,13 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
-num_pts: 250
-fast_threshold: 15
+num_pts: 200
+fast_threshold: 20
 grid_x: 20
 grid_y: 20
 min_px_dist: 15
 knn_ratio: 0.70
+track_frequency: 21.0
 downsample_cameras: false # will downsample image in half if true
 multi_threading: true # if should enable opencv multi threading
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE

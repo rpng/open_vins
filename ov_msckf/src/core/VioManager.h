@@ -72,28 +72,14 @@ public:
   VioManager(VioManagerOptions &params_);
 
   /**
-   * @brief This function will try to do an update given measurements
-   * @param timestamp Time we want to update to (IMU clock frame)
-   */
-  void try_to_do_update(double timestamp);
-
-  /**
    * @brief Feed function for inertial data
-   * @warning This function needs to be thread safe
    * @param message Contains our timestamp and inertial information
    */
   void feed_measurement_imu(const ov_core::ImuData &message) {
 
     // Get the oldest camera timestamp that we can remove IMU measurements before
     // Then push back to our propagator and pass the IMU time we can delete up to
-    double oldest_time = -1;
-    for (auto const &feat : trackFEATS->get_feature_database()->get_internal_data()) {
-      for (auto const &camtimepair : feat.second->timestamps) {
-        if (!camtimepair.second.empty() && (oldest_time == -1 || oldest_time < camtimepair.second.at(0))) {
-          oldest_time = camtimepair.second.at(0);
-        }
-      }
-    }
+    double oldest_time = trackFEATS->get_feature_database()->get_oldest_timestamp();
     if (oldest_time != -1) {
       oldest_time += params.calib_camimu_dt;
     }
@@ -112,36 +98,9 @@ public:
 
   /**
    * @brief Feed function for camera measurements
-   * @warning This function needs to be thread safe
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_measurement_camera(const ov_core::CameraData &message) {
-
-    // Count how many images we have queues for each unique image stream
-    std::map<int, int> num_in_queue;
-    for (const auto &cam_msg : camera_queue) {
-      num_in_queue[cam_msg.sensor_ids.at(0)]++;
-      assert(num_in_queue[cam_msg.sensor_ids.at(0)] <= 2);
-    }
-
-    // If we have two images for a specific camera already in the queue
-    // We will **replace** the most recent one with a MORE recent one
-    // Loop through the queue and find the same sensor id, then replace the last one (assumes sorted)
-    // This is to ensure we remain realtime and drop the minimum amount of measurements
-    int cam_id = message.sensor_ids.at(0);
-    if (num_in_queue.find(cam_id) != num_in_queue.end() && num_in_queue.at(cam_id) == 2) {
-      size_t index = 0;
-      for (size_t i = 0; i < camera_queue.size(); i++) {
-        if (camera_queue.at(i).sensor_ids.at(0) == cam_id) {
-          index = std::max(index, i);
-        }
-      }
-      camera_queue.at(index) = message;
-    } else {
-      camera_queue.push_back(message);
-      std::sort(camera_queue.begin(), camera_queue.end());
-    }
-  }
+  void feed_measurement_camera(const ov_core::CameraData &message) { track_image_and_update(message); }
 
   /**
    * @brief Feed function for a synchronized simulated cameras
@@ -376,15 +335,10 @@ protected:
   /// Our zero velocity tracker
   std::shared_ptr<UpdaterZeroVelocity> updaterZUPT;
 
-  /// Queue up camera measurements sorted by time and trigger once we have
-  /// exactly one IMU measurement with timestamp newer than the camera measurement
-  /// This also handles out-of-order camera measurements, which is rare, but
-  /// a nice feature to have for general robustness to bad camera drivers.
-  std::deque<ov_core::CameraData> camera_queue;
-
   /// This is the queue of measurement times that have come in since we starting doing initialization
   /// After we initialize, we will want to prop & update to the latest timestamp quickly
   std::vector<double> camera_queue_init;
+  std::mutex camera_queue_init_mtx;
 
   // Timing statistic file and variables
   std::ofstream of_statistics;

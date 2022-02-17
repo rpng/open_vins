@@ -89,7 +89,7 @@ int main(int argc, char **argv) {
 
   // Our camera topics (stereo pairs and non-stereo mono)
   std::vector<std::pair<size_t, std::string>> topic_cameras;
-  if (params.state_options.num_cameras == 2 && params.use_stereo) {
+  if (params.state_options.num_cameras == 2) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
     nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
@@ -190,6 +190,9 @@ int main(int argc, char **argv) {
     msg_images_next.emplace_back(view_cameras_iterators.at(i)->instantiate<sensor_msgs::Image>());
   }
 
+  // Last camera message timestamps we have received (mapped by cam id)
+  std::map<int, double> camera_last_timestamp;
+
   //===================================================================================
   //===================================================================================
   //===================================================================================
@@ -228,7 +231,7 @@ int main(int argc, char **argv) {
     }
 
     // If we are stereo, then we should collect both the left and right
-    if (params.state_options.num_cameras == 2 && params.use_stereo) {
+    if (params.state_options.num_cameras == 2) {
 
       // Now lets do some logic to find two images which are next to each other
       // We want to ensure that our stereo pair are very close to occurring at the same time
@@ -287,8 +290,13 @@ int main(int argc, char **argv) {
         sys->initialize_with_gt(imustate);
       }
 
-      // Feed it into our system
-      viz->callback_stereo(msg_images_current.at(0), msg_images_current.at(1), 0, 1);
+      // Check if we should feed this into the system at the specified frequency
+      double timestamp = msg_images_current.at(0)->header.stamp.toSec();
+      double time_delta = 1.0 / params.track_frequency;
+      if(camera_last_timestamp.find(0) == camera_last_timestamp.end() || timestamp >= camera_last_timestamp.at(0) + time_delta) {
+        camera_last_timestamp[0] = timestamp;
+        viz->callback_stereo(msg_images_current.at(0), msg_images_current.at(1), 0, 1);
+      }
 
       // Move forward in time
       msg_images_current.at(0) = msg_images_next.at(0);
@@ -324,8 +332,13 @@ int main(int argc, char **argv) {
         sys->initialize_with_gt(imustate);
       }
 
-      // Feed it into our system
-      viz->callback_monocular(msg_camera, smallest_cam);
+      // Check if we should feed this into the system at the specified frequency
+      double timestamp = msg_camera->header.stamp.toSec();
+      double time_delta = 1.0 / params.track_frequency;
+      if(camera_last_timestamp.find(smallest_cam) == camera_last_timestamp.end() || timestamp >= camera_last_timestamp.at(smallest_cam) + time_delta) {
+        camera_last_timestamp[smallest_cam] = timestamp;
+        viz->callback_monocular(msg_camera, smallest_cam);
+      }
 
       // move forward
       msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);

@@ -355,6 +355,9 @@ struct VioManagerOptions {
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
 
+  /// Frequency we want to track images at (higher freq ones will be dropped)
+  double track_frequency = 20.0;
+
   /// Parameters used by our feature initialize / triangulator
   ov_core::FeatureInitializerOptions featinit_options;
 
@@ -393,6 +396,7 @@ struct VioManagerOptions {
         std::exit(EXIT_FAILURE);
       }
       parser->parse_config("knn_ratio", knn_ratio);
+      parser->parse_config("track_frequency", track_frequency);
     }
     PRINT_DEBUG("FEATURE TRACKING PARAMETERS:\n");
     PRINT_DEBUG("  - use_stereo: %d\n", use_stereo);
@@ -407,6 +411,7 @@ struct VioManagerOptions {
     PRINT_DEBUG("  - min px dist: %d\n", min_px_dist);
     PRINT_DEBUG("  - hist method: %d\n", (int)histogram_method);
     PRINT_DEBUG("  - knn ratio: %.3f\n", knn_ratio);
+    PRINT_DEBUG("  - track frequency: %.1f\n", track_frequency);
     featinit_options.print(parser);
   }
 

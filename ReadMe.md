@@ -80,7 +80,7 @@ details on what the system supports.
 * Visual tracking support
     * Monocular camera
     * Stereo camera
-    * Binocular camera
+    * Binocular (synchronized) cameras
     * KLT or descriptor based
     * Masked tracking
 * Static IMU initialization (sfm will be open sourced later)

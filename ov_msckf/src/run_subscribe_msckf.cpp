@@ -98,13 +98,17 @@ int main(int argc, char **argv) {
   }
 
   // Spin off to ROS
-  // TODO: maybe should use multi-thread spinner
-  // TODO: but need to support multi-threaded calls to viomanager
   PRINT_DEBUG("done...spinning to ros\n");
 #if ROS_AVAILABLE == 1
-  ros::spin();
+  // ros::spin();
+  ros::AsyncSpinner spinner(0);
+  spinner.start();
+  ros::waitForShutdown();
 #elif ROS_AVAILABLE == 2
-  rclcpp::spin(node);
+  // rclcpp::spin(node);
+  rclcpp::executors::MultiThreadedExecutor executor;
+  executor.add_node(node);
+  executor.spin();
 #endif
 
   // Final visualization

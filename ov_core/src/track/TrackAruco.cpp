@@ -58,7 +58,7 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
   rT1 = boost::posix_time::microsec_clock::local_time();
 
   // Lock this data feed for this camera
-  std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
+  std::lock_guard<std::mutex> lck(mtx_feeds.at(cam_id));
 
   // Histogram equalize
   cv::Mat img;
@@ -193,7 +193,7 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
   int index_cam = 0;
   for (auto const &pair : img_last_cache) {
     // Lock this image
-    std::unique_lock<std::mutex> lck(mtx_feeds.at(pair.first));
+    std::lock_guard<std::mutex> lck(mtx_feeds.at(pair.first));
     // select the subset of the image
     cv::Mat img_temp;
     if (image_new)

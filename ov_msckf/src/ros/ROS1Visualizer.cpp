@@ -132,11 +132,11 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   std::string topic_imu;
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
-  sub_imu = _nh->subscribe(topic_imu, 100, &ROS1Visualizer::callback_inertial, this);
+  sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this);
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
-  if (_app->get_params().state_options.num_cameras == 2 && _app->get_params().use_stereo) {
+  if (_app->get_params().state_options.num_cameras == 2) {
     // Read in the topics
     std::string cam_topic0, cam_topic1;
     _nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
@@ -146,7 +146,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
     // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
     auto image_sub0 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic0, 1);
     auto image_sub1 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic1, 1);
-    auto sync = std::make_shared<message_filters::Synchronizer<sync_pol>>(sync_pol(5), *image_sub0, *image_sub1);
+    auto sync = std::make_shared<message_filters::Synchronizer<sync_pol>>(sync_pol(10), *image_sub0, *image_sub1);
     sync->registerCallback(boost::bind(&ROS1Visualizer::callback_stereo, this, _1, _2, 0, 1));
     // Append to our vector of subscribers
     sync_cam.push_back(sync);
@@ -162,7 +162,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
       _nh->param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
       parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
       // create subscriber
-      subs_cam.push_back(_nh->subscribe<sensor_msgs::Image>(cam_topic, 5, boost::bind(&ROS1Visualizer::callback_monocular, this, _1, i)));
+      subs_cam.push_back(_nh->subscribe<sensor_msgs::Image>(cam_topic, 10, boost::bind(&ROS1Visualizer::callback_monocular, this, _1, i)));
       PRINT_DEBUG("subscribing to cam (mono): %s\n", cam_topic.c_str());
     }
   }
@@ -217,71 +217,82 @@ void ROS1Visualizer::visualize() {
 
 void ROS1Visualizer::visualize_odometry(double timestamp) {
 
-  // Check if we have subscribers
-  if (pub_odomimu.getNumSubscribers() == 0)
-    return;
-
-  // Return if we have not inited and a second has passes
-  if (!_app->initialized() || (timestamp - _app->initialized_time()) < 1)
+  // Return if we have not inited
+  if (!_app->initialized())
     return;
 
   // Get fast propagate state at the desired timestamp
   std::shared_ptr<State> state = _app->get_state();
   Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
-  _app->get_propagator()->fast_state_propagate(state, timestamp, state_plus);
+  Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
+  if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
+    return;
 
-  // Our odometry message
-  nav_msgs::Odometry odomIinM;
-  odomIinM.header.stamp = ros::Time(timestamp);
-  odomIinM.header.frame_id = "global";
+  // Publish our odometry message if requested
+  if (pub_odomimu.getNumSubscribers() != 0) {
 
-  // The POSE component (orientation and position)
-  odomIinM.pose.pose.orientation.x = state_plus(0);
-  odomIinM.pose.pose.orientation.y = state_plus(1);
-  odomIinM.pose.pose.orientation.z = state_plus(2);
-  odomIinM.pose.pose.orientation.w = state_plus(3);
-  odomIinM.pose.pose.position.x = state_plus(4);
-  odomIinM.pose.pose.position.y = state_plus(5);
-  odomIinM.pose.pose.position.z = state_plus(6);
+    nav_msgs::Odometry odomIinM;
+    odomIinM.header.stamp = ros::Time(timestamp);
+    odomIinM.header.frame_id = "global";
 
-  // Finally set the covariance in the message (in the order position then orientation as per ros convention)
-  // TODO: this currently is an approximation since this should actually evolve over our propagation period
-  // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
-  std::vector<std::shared_ptr<Type>> statevars;
-  statevars.push_back(state->_imu->pose()->p());
-  statevars.push_back(state->_imu->pose()->q());
-  Eigen::Matrix<double, 6, 6> covariance_posori = StateHelper::get_marginal_covariance(_app->get_state(), statevars);
-  for (int r = 0; r < 6; r++) {
-    for (int c = 0; c < 6; c++) {
-      odomIinM.pose.covariance[6 * r + c] = covariance_posori(r, c);
+    // The POSE component (orientation and position)
+    odomIinM.pose.pose.orientation.x = state_plus(0);
+    odomIinM.pose.pose.orientation.y = state_plus(1);
+    odomIinM.pose.pose.orientation.z = state_plus(2);
+    odomIinM.pose.pose.orientation.w = state_plus(3);
+    odomIinM.pose.pose.position.x = state_plus(4);
+    odomIinM.pose.pose.position.y = state_plus(5);
+    odomIinM.pose.pose.position.z = state_plus(6);
+
+    // The TWIST component (angular and linear velocities)
+    odomIinM.child_frame_id = "imu";
+    odomIinM.twist.twist.linear.x = state_plus(7);   // vel in local frame
+    odomIinM.twist.twist.linear.y = state_plus(8);   // vel in local frame
+    odomIinM.twist.twist.linear.z = state_plus(9);   // vel in local frame
+    odomIinM.twist.twist.angular.x = state_plus(10); // we do not estimate this...
+    odomIinM.twist.twist.angular.y = state_plus(11); // we do not estimate this...
+    odomIinM.twist.twist.angular.z = state_plus(12); // we do not estimate this...
+
+    // Finally set the covariance in the message (in the order position then orientation as per ros convention)
+    Eigen::Matrix<double, 12, 12> Phi = Eigen::Matrix<double, 12, 12>::Zero();
+    Phi.block(0, 3, 3, 3).setIdentity();
+    Phi.block(3, 0, 3, 3).setIdentity();
+    Phi.block(6, 6, 6, 6).setIdentity();
+    cov_plus = Phi * cov_plus * Phi.transpose();
+    for (int r = 0; r < 6; r++) {
+      for (int c = 0; c < 6; c++) {
+        odomIinM.pose.covariance[6 * r + c] = cov_plus(r, c);
+      }
     }
+    for (int r = 0; r < 6; r++) {
+      for (int c = 0; c < 6; c++) {
+        odomIinM.twist.covariance[6 * r + c] = cov_plus(r + 6, c + 6);
+      }
+    }
+    pub_odomimu.publish(odomIinM);
   }
 
-  // The TWIST component (angular and linear velocities)
-  odomIinM.child_frame_id = "imu";
-  odomIinM.twist.twist.linear.x = state_plus(7);
-  odomIinM.twist.twist.linear.y = state_plus(8);
-  odomIinM.twist.twist.linear.z = state_plus(9);
-  odomIinM.twist.twist.angular.x = state_plus(10); // we do not estimate this...
-  odomIinM.twist.twist.angular.y = state_plus(11); // we do not estimate this...
-  odomIinM.twist.twist.angular.z = state_plus(12); // we do not estimate this...
-
-  // Velocity covariance (linear then angular)
-  // TODO: this currently is an approximation since this should actually evolve over our propagation period
-  // TODO: but to save time we only propagate the mean and not the uncertainty, but maybe we should try to prop the covariance?
-  // TODO: can we come up with an approx covariance for the omega based on the w_hat = w_m - b_w ??
-  statevars.clear();
-  statevars.push_back(state->_imu->v());
-  Eigen::Matrix<double, 6, 6> covariance_linang = INFINITY * Eigen::Matrix<double, 6, 6>::Identity();
-  covariance_linang.block(0, 0, 3, 3) = StateHelper::get_marginal_covariance(_app->get_state(), statevars);
-  for (int r = 0; r < 6; r++) {
-    for (int c = 0; c < 6; c++) {
-      odomIinM.twist.covariance[6 * r + c] = (std::isnan(covariance_linang(r, c))) ? 0 : covariance_linang(r, c);
-    }
+  // Publish our transform on TF
+  // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
+  // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
+  auto odom_pose = std::make_shared<ov_type::PoseJPL>();
+  odom_pose->set_value(state_plus.block(0, 0, 7, 1));
+  tf::StampedTransform trans = RosVisualizerHelper::get_stamped_transform_from_pose(odom_pose, false);
+  trans.frame_id_ = "global";
+  trans.child_frame_id_ = "imu";
+  if (publish_global2imu_tf) {
+    mTfBr->sendTransform(trans);
   }
 
-  // Finally, publish the resulting odometry message
-  pub_odomimu.publish(odomIinM);
+  // Loop through each camera calibration and publish it
+  for (const auto &calib : state->_calib_IMUtoCAM) {
+    tf::StampedTransform trans_calib = RosVisualizerHelper::get_stamped_transform_from_pose(calib.second, true);
+    trans_calib.frame_id_ = "imu";
+    trans_calib.child_frame_id_ = "cam" + std::to_string(calib.first);
+    if (publish_calibration_tf) {
+      mTfBr->sendTransform(trans_calib);
+    }
+  }
 }
 
 void ROS1Visualizer::visualize_final() {
@@ -345,7 +356,7 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
   // send it to our VIO system
   _app->feed_measurement_imu(message);
-  // visualize_odometry(message.timestamp);
+  visualize_odometry(message.timestamp);
 
   // If the processing queue is currently active / running just return so we can keep getting measurements
   // Otherwise create a second thread to do our update in an async manor
@@ -354,8 +365,34 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
     return;
   thread_update_running = true;
   std::thread thread([&] {
-    _app->try_to_do_update(message.timestamp);
-    visualize();
+    // Lock on the queue (prevents new images from appending)
+    std::lock_guard<std::mutex> lck(camera_queue_mtx);
+
+    // Count how many unique image streams
+    std::map<int, bool> unique_cam_ids;
+    for (const auto &cam_msg : camera_queue) {
+      unique_cam_ids[cam_msg.sensor_ids.at(0)] = true;
+    }
+
+    // If we do not have enough unique cameras then we need to wait
+    // We should wait till we have one of each camera to ensure we propagate in the correct order
+    auto params = _app->get_params();
+    size_t num_unique_cameras = (params.state_options.num_cameras == 2) ? 1 : params.state_options.num_cameras;
+    if (unique_cam_ids.size() == num_unique_cameras) {
+
+      // Loop through our queue and see if we are able to process any of our camera measurements
+      // We are able to process if we have at least one IMU measurement greater than the camera time
+      double timestamp_imu_inC = message.timestamp - _app->get_state()->_calib_dt_CAMtoIMU->value()(0);
+      while (!camera_queue.empty() && camera_queue.at(0).timestamp < timestamp_imu_inC) {
+        auto rT0_1 = boost::posix_time::microsec_clock::local_time();
+        _app->feed_measurement_camera(camera_queue.at(0));
+        visualize();
+        camera_queue.pop_front();
+        auto rT0_2 = boost::posix_time::microsec_clock::local_time();
+        double time_total = (rT0_2 - rT0_1).total_microseconds() * 1e-6;
+        PRINT_INFO(BLUE "[TIME]: %.4f seconds total (%.1f hz)\n" RESET, time_total, 1.0 / time_total);
+      }
+    }
     thread_update_running = false;
   });
 
@@ -369,6 +406,14 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 }
 
 void ROS1Visualizer::callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {
+
+  // Check if we should drop this image
+  double timestamp = msg0->header.stamp.toSec();
+  double time_delta = 1.0 / _app->get_params().track_frequency;
+  if (camera_last_timestamp.find(cam_id0) != camera_last_timestamp.end() && timestamp < camera_last_timestamp.at(cam_id0) + time_delta) {
+    return;
+  }
+  camera_last_timestamp[cam_id0] = timestamp;
 
   // Get the image
   cv_bridge::CvImageConstPtr cv_ptr;
@@ -393,12 +438,22 @@ void ROS1Visualizer::callback_monocular(const sensor_msgs::ImageConstPtr &msg0, 
     message.masks.push_back(cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1));
   }
 
-  // send it to our VIO system
-  _app->feed_measurement_camera(message);
+  // append it to our queue of images
+  std::lock_guard<std::mutex> lck(camera_queue_mtx);
+  camera_queue.push_back(message);
+  std::sort(camera_queue.begin(), camera_queue.end());
 }
 
 void ROS1Visualizer::callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0,
                                      int cam_id1) {
+
+  // Check if we should drop this image
+  double timestamp = msg0->header.stamp.toSec();
+  double time_delta = 1.0 / _app->get_params().track_frequency;
+  if (camera_last_timestamp.find(cam_id0) != camera_last_timestamp.end() && timestamp < camera_last_timestamp.at(cam_id0) + time_delta) {
+    return;
+  }
+  camera_last_timestamp[cam_id0] = timestamp;
 
   // Get the image
   cv_bridge::CvImageConstPtr cv_ptr0;
@@ -437,8 +492,10 @@ void ROS1Visualizer::callback_stereo(const sensor_msgs::ImageConstPtr &msg0, con
     message.masks.push_back(cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1));
   }
 
-  // send it to our VIO system
-  _app->feed_measurement_camera(message);
+  // append it to our queue of images
+  std::lock_guard<std::mutex> lck(camera_queue_mtx);
+  camera_queue.push_back(message);
+  std::sort(camera_queue.begin(), camera_queue.end());
 }
 
 void ROS1Visualizer::publish_state() {
@@ -499,26 +556,6 @@ void ROS1Visualizer::publish_state() {
 
   // Move them forward in time
   poses_seq_imu++;
-
-  // Publish our transform on TF
-  // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
-  // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
-  tf::StampedTransform trans = RosVisualizerHelper::get_stamped_transform_from_pose(state->_imu->pose(), false);
-  trans.frame_id_ = "global";
-  trans.child_frame_id_ = "imu";
-  if (publish_global2imu_tf) {
-    mTfBr->sendTransform(trans);
-  }
-
-  // Loop through each camera calibration and publish it
-  for (const auto &calib : state->_calib_IMUtoCAM) {
-    tf::StampedTransform trans_calib = RosVisualizerHelper::get_stamped_transform_from_pose(calib.second, true);
-    trans_calib.frame_id_ = "imu";
-    trans_calib.child_frame_id_ = "cam" + std::to_string(calib.first);
-    if (publish_calibration_tf) {
-      mTfBr->sendTransform(trans_calib);
-    }
-  }
 }
 
 void ROS1Visualizer::publish_images() {
@@ -709,6 +746,8 @@ void ROS1Visualizer::publish_loopclosure_information() {
     return;
   if (_app->get_state()->_clones_IMU.find(active_tracks_time1) == _app->get_state()->_clones_IMU.end())
     return;
+  Eigen::Vector4d quat = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat();
+  Eigen::Vector3d pos = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos();
   if (active_tracks_time1 != active_tracks_time2)
     return;
 
@@ -725,13 +764,13 @@ void ROS1Visualizer::publish_loopclosure_information() {
     nav_msgs::Odometry odometry_pose;
     odometry_pose.header = header;
     odometry_pose.header.frame_id = "global";
-    odometry_pose.pose.pose.position.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(0);
-    odometry_pose.pose.pose.position.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(1);
-    odometry_pose.pose.pose.position.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->pos()(2);
-    odometry_pose.pose.pose.orientation.x = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(0);
-    odometry_pose.pose.pose.orientation.y = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(1);
-    odometry_pose.pose.pose.orientation.z = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(2);
-    odometry_pose.pose.pose.orientation.w = _app->get_state()->_clones_IMU.at(active_tracks_time1)->quat()(3);
+    odometry_pose.pose.pose.position.x = pos(0);
+    odometry_pose.pose.pose.position.y = pos(1);
+    odometry_pose.pose.pose.position.z = pos(2);
+    odometry_pose.pose.pose.orientation.x = quat(0);
+    odometry_pose.pose.pose.orientation.y = quat(1);
+    odometry_pose.pose.pose.orientation.z = quat(2);
+    odometry_pose.pose.pose.orientation.w = quat(3);
     pub_loop_pose.publish(odometry_pose);
 
     // PUBLISH IMU TO CAMERA0 EXTRINSIC

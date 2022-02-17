@@ -84,7 +84,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
   }
 
   // Use our static initializer!
-  if (!disparity_detected_moving) {
+  if (!disparity_detected_moving && params.init_imu_thresh > 0.0) {
     PRINT_DEBUG(GREEN "[init]: USING STATIC INITIALIZER METHOD!\n" RESET);
     return init_static->initialize(timestamp, covariance, order, t_imu, wait_for_jerk);
   } else {

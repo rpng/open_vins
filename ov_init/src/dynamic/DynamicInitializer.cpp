@@ -53,7 +53,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     it_imu = imu_data->erase(it_imu);
   }
   if (_db->get_internal_data().size() < 0.75 * params.init_max_features) {
-    PRINT_WARNING(RED "[init-d]: only %zu valid features of required (0.75 * max = %d)!!\n" RESET, _db->get_internal_data().size(),
+    PRINT_WARNING(RED "[init-d]: only %zu valid features of required (0.75 * max = %.0f)!!\n" RESET, _db->get_internal_data().size(),
                   0.75 * params.init_max_features);
     return false;
   }
@@ -1095,16 +1095,16 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
 
   // For now just overwrite the covariance since it is inconsistent
   covariance = 1e-3 * Eigen::MatrixXd::Identity(15, 15);
-  covariance.block(6, 6, 3, 3) = 0.2 * Eigen::Matrix3d::Identity();
-  covariance.block(9, 9, 3, 3) = 2e-2 * Eigen::Matrix3d::Identity();
-  covariance.block(12, 12, 3, 3) = 1e-1 * Eigen::Matrix3d::Identity();
+  covariance.block(6, 6, 3, 3) = 0.1 * Eigen::Matrix3d::Identity();
+  covariance.block(9, 9, 3, 3) = 2e-3 * Eigen::Matrix3d::Identity();
+  covariance.block(12, 12, 3, 3) = 1e-2 * Eigen::Matrix3d::Identity();
 
   // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
   // This means that on startup, we can fix the yaw and position to be 100 percent known.
   // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
   // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
-  covariance(0, 0) = 1e-2;
-  covariance(1, 1) = 1e-2;
+  covariance(0, 0) = 1e-3;
+  covariance(1, 1) = 1e-3;
   covariance(2, 2) = 1e-5;
   covariance.block(0, 0, 3, 3) = _imu->Rot() * covariance.block(0, 0, 3, 3) * _imu->Rot().transpose();
   covariance.block(3, 3, 3, 3) = 1e-5 * Eigen::Matrix3d::Identity();

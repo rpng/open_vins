@@ -131,31 +131,6 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
   active_tracks_initializer = std::make_shared<FeatureInitializer>(params.featinit_options);
 }
 
-void VioManager::try_to_do_update(double timestamp) {
-
-  // Count how many unique image streams
-  std::vector<int> unique_cam_ids;
-  for (const auto &cam_msg : camera_queue) {
-    if (std::find(unique_cam_ids.begin(), unique_cam_ids.end(), cam_msg.sensor_ids.at(0)) != unique_cam_ids.end())
-      continue;
-    unique_cam_ids.push_back(cam_msg.sensor_ids.at(0));
-  }
-
-  // If we do not have enough unique cameras then we need to wait
-  // We should wait till we have one of each camera to ensure we propagate in the correct order
-  size_t num_unique_cameras = (params.state_options.num_cameras == 2 && params.use_stereo) ? 1 : params.state_options.num_cameras;
-  if (unique_cam_ids.size() != num_unique_cameras)
-    return;
-
-  // Loop through our queue and see if we are able to process any of our camera measurements
-  // We are able to process if we have at least one IMU measurement greater than the camera time
-  double timestamp_inC = timestamp - state->_calib_dt_CAMtoIMU->value()(0);
-  while (!camera_queue.empty() && camera_queue.at(0).timestamp < timestamp_inC) {
-    track_image_and_update(camera_queue.at(0));
-    camera_queue.pop_front();
-  }
-}
-
 void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
                                              const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
 
@@ -632,7 +607,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     ss << " " << id;
   }
   ss << ")" << std::endl;
-  PRINT_INFO(BLUE "%s" RESET, ss.str().c_str());
+  PRINT_DEBUG(BLUE "%s" RESET, ss.str().c_str());
 
   // Finally if we are saving stats to file, lets save it to file
   if (params.record_timing_information && of_statistics.is_open()) {
@@ -691,7 +666,10 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
 bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
 
   // Directly return if the initialization thread is running
+  // Note that we lock on the queue since we could have finished an update
+  // And are using this queue to propagate the state forward. We should wait in this case
   if (thread_init_running) {
+    std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
     camera_queue_init.push_back(message.timestamp);
     return false;
   }
@@ -752,26 +730,37 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
                  state->_imu->bias_a()(2));
       PRINT_INFO(GREEN "[init]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
 
+      // Remove any camera times that are order then the initialized time
+      // This can happen if the initialization has taken a while to perform
+      std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
+      std::vector<double> camera_timestamps_to_init;
+      for (size_t i = 0; i < camera_queue_init.size(); i++) {
+        if (camera_queue_init.at(i) > timestamp) {
+          camera_timestamps_to_init.push_back(camera_queue_init.at(i));
+        }
+      }
+
       // Now we have initialized we will propagate the state to the current timestep
       // In general this should be ok as long as the initialization didn't take too long to perform
       // Propagating over multiple seconds will become an issue if the initial biases are bad
-      size_t clone_rate = (size_t)((double)camera_queue_init.size() / (double)params.state_options.max_clone_size) + 1;
-      for (size_t i = 0; i < camera_queue_init.size(); i += clone_rate) {
-        assert(camera_queue_init.at(i) > timestamp);
-        propagator->propagate_and_clone(state, camera_queue_init.at(i));
+      size_t clone_rate = (size_t)((double)camera_timestamps_to_init.size() / (double)params.state_options.max_clone_size) + 1;
+      for (size_t i = 0; i < camera_timestamps_to_init.size(); i += clone_rate) {
+        propagator->propagate_and_clone(state, camera_timestamps_to_init.at(i));
         StateHelper::marginalize_old_clone(state);
       }
       PRINT_DEBUG(YELLOW "[init]: moved the state forward %.2f seconds\n" RESET, state->_timestamp - timestamp);
       thread_init_success = true;
+      camera_queue_init.clear();
 
     } else {
       auto init_rT2 = boost::posix_time::microsec_clock::local_time();
       PRINT_DEBUG(YELLOW "[init]: failed initialization in %.4f seconds\n" RESET, (init_rT2 - init_rT1).total_microseconds() * 1e-6);
       thread_init_success = false;
+      std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
+      camera_queue_init.clear();
     }
 
     // Finally, mark that the thread has finished running
-    camera_queue_init.clear();
     thread_init_running = false;
   });
 
