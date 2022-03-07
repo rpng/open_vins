@@ -90,6 +90,18 @@ struct InertialInitializerOptions {
   /// Minimum degrees we need to rotate before we try to init (sum of norm)
   double init_dyn_min_deg = 45.0;
 
+  /// Magnitude we will inflate initial covariance of velocity
+  double init_dyn_inflation_velocity = 10.0;
+
+  /// Magnitude we will inflate initial covariance of gyroscope bias
+  double init_dyn_inflation_bias_gyro = 100.0;
+
+  /// Magnitude we will inflate initial covariance of accelerometer bias
+  double init_dyn_inflation_bias_accel = 100.0;
+
+  /// Minimum reciprocal condition number acceptable for our covariance recovery (min_sigma / max_sigma < sqrt(min_reciprocal_condition_number))
+  double init_dyn_min_rec_cond = 1e-15;
+
   /// Initial IMU gyroscope bias values for dynamic initialization (will be optimized)
   Eigen::Vector3d init_dyn_bias_g = Eigen::Vector3d::Zero();
 
@@ -115,6 +127,10 @@ struct InertialInitializerOptions {
       parser->parse_config("init_dyn_mle_max_time", init_dyn_mle_max_time);
       parser->parse_config("init_dyn_num_pose", init_dyn_num_pose);
       parser->parse_config("init_dyn_min_deg", init_dyn_min_deg);
+      parser->parse_config("init_dyn_inflation_vel", init_dyn_inflation_velocity);
+      parser->parse_config("init_dyn_inflation_bg", init_dyn_inflation_bias_gyro);
+      parser->parse_config("init_dyn_inflation_ba", init_dyn_inflation_bias_accel);
+      parser->parse_config("init_dyn_min_rec_cond", init_dyn_min_rec_cond);
       std::vector<double> bias_g = {0, 0, 0};
       std::vector<double> bias_a = {0, 0, 0};
       parser->parse_config("init_dyn_bias_g", bias_g);
@@ -137,6 +153,10 @@ struct InertialInitializerOptions {
     PRINT_DEBUG("  - init_dyn_mle_max_time: %.2f\n", init_dyn_mle_max_time);
     PRINT_DEBUG("  - init_dyn_num_pose: %d\n", init_dyn_num_pose);
     PRINT_DEBUG("  - init_dyn_min_deg: %.2f\n", init_dyn_min_deg);
+    PRINT_DEBUG("  - init_dyn_inflation_vel: %.2e\n", init_dyn_inflation_velocity);
+    PRINT_DEBUG("  - init_dyn_inflation_bg: %.2e\n", init_dyn_inflation_bias_gyro);
+    PRINT_DEBUG("  - init_dyn_inflation_ba: %.2e\n", init_dyn_inflation_bias_accel);
+    PRINT_DEBUG("  - init_dyn_min_rec_cond: %.2e\n", init_dyn_min_rec_cond);
     if (init_dyn_num_pose < 4) {
       PRINT_ERROR(RED "number of requested frames to init not enough!!\n" RESET);
       PRINT_ERROR(RED "  init_dyn_num_pose = %d (4 min)\n" RESET, init_dyn_num_pose);

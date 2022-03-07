@@ -157,7 +157,7 @@ int main(int argc, char **argv) {
   options.minimizer_progress_to_stdout = true;
   // options.use_nonmonotonic_steps = true;
   // options.linear_solver_ordering = ordering;
-  options.function_tolerance = 1e-4;
+  options.function_tolerance = 1e-5;
   options.gradient_tolerance = 1e-4 * options.function_tolerance;
 
   // DEBUG: check analytical jacobians using ceres finite differences
@@ -470,8 +470,6 @@ int main(int argc, char **argv) {
             }
 
             // Then lets add the factors
-            // TODO: fix the calibration if we are not calibrating using "SubsetParameterization"
-            // TODO: http://ceres-solver.org/nnls_modeling.html#subsetparameterization
             std::vector<double *> factor_params;
             factor_params.push_back(ceres_vars_ori.at(map_states.at(timestamp_k1)));
             factor_params.push_back(ceres_vars_pos.at(map_states.at(timestamp_k1)));
@@ -605,13 +603,13 @@ int main(int argc, char **argv) {
         point_cloud.header.frame_id = "global";
         point_cloud.header.stamp = ros::Time::now();
         for (auto &featpair : map_features) {
-          if (map_features_num_meas.at(featpair.first) >= min_num_meas_to_optimize) {
-            geometry_msgs::Point32 p;
-            p.x = (float)ceres_vars_feat[map_features[featpair.first]][0];
-            p.y = (float)ceres_vars_feat[map_features[featpair.first]][1];
-            p.z = (float)ceres_vars_feat[map_features[featpair.first]][2];
-            point_cloud.points.push_back(p);
-          }
+          if (map_features_num_meas.at(featpair.first) < min_num_meas_to_optimize)
+            continue;
+          geometry_msgs::Point32 p;
+          p.x = (float)ceres_vars_feat[map_features[featpair.first]][0];
+          p.y = (float)ceres_vars_feat[map_features[featpair.first]][1];
+          p.z = (float)ceres_vars_feat[map_features[featpair.first]][2];
+          point_cloud.points.push_back(p);
         }
         pub_loop_point.publish(point_cloud);
 
@@ -630,11 +628,13 @@ int main(int argc, char **argv) {
         sensor_msgs::PointCloud2Iterator<float> out_y(cloud, "y");
         sensor_msgs::PointCloud2Iterator<float> out_z(cloud, "z");
         for (auto &featpair : map_features) {
-          *out_x = (float)sim.get_map().at(featpair.first - 1)(0);
+          if (map_features_num_meas.at(featpair.first) < min_num_meas_to_optimize)
+            continue;
+          *out_x = (float)sim.get_map().at(featpair.first)(0); // no change in id since no track is used
           ++out_x;
-          *out_y = (float)sim.get_map().at(featpair.first - 1)(1);
+          *out_y = (float)sim.get_map().at(featpair.first)(1); // no change in id since no track is used
           ++out_y;
-          *out_z = (float)sim.get_map().at(featpair.first - 1)(2);
+          *out_z = (float)sim.get_map().at(featpair.first)(2); // no change in id since no track is used
           ++out_z;
         }
         pub_points_sim.publish(cloud);
