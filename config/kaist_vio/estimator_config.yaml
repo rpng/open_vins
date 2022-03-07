@@ -49,6 +49,7 @@ init_dyn_mle_max_threads: 6
 init_dyn_num_pose: 6
 init_dyn_min_deg: 5.0
 
+init_dyn_inflation_ori: 10
 init_dyn_inflation_vel: 100
 init_dyn_inflation_bg: 10
 init_dyn_inflation_ba: 100

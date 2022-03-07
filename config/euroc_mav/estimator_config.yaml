@@ -49,10 +49,11 @@ init_dyn_mle_max_threads: 6
 init_dyn_num_pose: 6
 init_dyn_min_deg: 10.0
 
+init_dyn_inflation_ori: 10
 init_dyn_inflation_vel: 100
 init_dyn_inflation_bg: 10
 init_dyn_inflation_ba: 100
-init_dyn_min_rec_cond: 1e-15
+init_dyn_min_rec_cond: 1e-12
 
 init_dyn_bias_g: [0.0, 0.0, 0.0]
 init_dyn_bias_a: [0.0, 0.0, 0.0]

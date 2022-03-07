@@ -330,16 +330,18 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
         double DT = 0.0;
         Eigen::MatrixXd R_I0toIk = Eigen::MatrixXd::Identity(3, 3);
         Eigen::MatrixXd alpha_I0toIk = Eigen::MatrixXd::Zero(3, 1);
-        Eigen::MatrixXd P_alpha = Eigen::MatrixXd::Zero(3, 3);
         if (map_camera_cpi_I0toIi.find(time) != map_camera_cpi_I0toIi.end() && map_camera_cpi_I0toIi.at(time) != nullptr) {
-          auto cpi = map_camera_cpi_I0toIi.at(time);
-          DT = cpi->DT;
-          R_I0toIk = cpi->R_k2tau;
-          alpha_I0toIk = cpi->alpha_tau;
-          P_alpha = cpi->P_meas.block(12, 12, 3, 3);
+          DT = map_camera_cpi_I0toIi.at(time)->DT;
+          R_I0toIk = map_camera_cpi_I0toIi.at(time)->R_k2tau;
+          alpha_I0toIk = map_camera_cpi_I0toIi.at(time)->alpha_tau;
         }
 
-        // Create the linear system
+        // Create the linear system based on the feature reprojection
+        // [ 1 0 -u ] p_FinCi = [ 0 ]
+        // [ 0 1 -v ]           [ 0 ]
+        // where
+        // p_FinCi = R_C0toCi * R_ItoC * (p_FinI0 - p_IiinI0) + p_IinC
+        //         = R_C0toCi * R_ItoC * (p_FinI0 - v_I0inI0 * dt - 0.5 * grav_inI0 * dt^2 - alpha) + p_IinC
         Eigen::MatrixXd H_proj = Eigen::MatrixXd::Zero(2, 3);
         H_proj << 1, 0, -uv_norm(0), 0, 1, -uv_norm(1);
         Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2, system_size);
@@ -354,20 +356,23 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
         Eigen::MatrixXd b_i = H_proj * (R_ItoC * R_I0toIk * alpha_I0toIk - p_IinC);
 
         // Uncertainty of the measurement is the feature pixel noise and and preintegration
-        // We propagate the raw pixel uncertainty to the normalized and the preintegration error to the measurement
-        // TODO: fix this logic, why doesn't this work??
-        // Eigen::MatrixXd H_dz_dzn, H_dz_dzeta;
-        // params.camera_intrinsics.at(cam_id)->compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
-        // Eigen::MatrixXd R = std::pow(params.sigma_pix, 2) * H_dz_dzn * H_dz_dzn.transpose();
-        // Eigen::MatrixXd H_cpi = H_proj * R_ItoC * R_I0toIk;
-        // R += H_cpi * P_alpha * H_cpi.transpose();
-        // Eigen::MatrixXd Info = R.llt().solve(Eigen::MatrixXd::Identity(R.rows(), R.rows()));
-        // Eigen::LLT<Eigen::MatrixXd> lltOfI(Info);
-        // Eigen::MatrixXd Info_sqrt = lltOfI.matrixL().transpose();
+        // TODO: We should propagate the raw pixel uncertainty to the normalized and the preintegration error to the measurement
+        // TODO: fix this logic since this uses a unique H_proj matrix stucture...
+        // Eigen::MatrixXd R_sqrtinv = 1e4 * Eigen::MatrixXd::Identity(2, 2);
+        // if (map_camera_cpi_I0toIi.find(time) != map_camera_cpi_I0toIi.end() && map_camera_cpi_I0toIi.at(time) != nullptr) {
+        //   Eigen::MatrixXd H_cpi = H_proj * R_ItoC * R_I0toIk;
+        //   Eigen::MatrixXd P_alpha = map_camera_cpi_I0toIi.at(time)->P_meas.block(12, 12, 3, 3);
+        //   Eigen::MatrixXd R = H_cpi * P_alpha * H_cpi.transpose();
+        //   R_sqrtinv = R.llt().matrixL();
+        //   R_sqrtinv = R_sqrtinv.colPivHouseholderQr().solve(Eigen::MatrixXd::Identity(R.rows(), R.rows()));
+        // }
+        //  Eigen::MatrixXd H_dz_dzn, H_dz_dzeta;
+        //  params.camera_intrinsics.at(cam_id)->compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
+        //  Eigen::MatrixXd R_pixel = std::pow(params.sigma_pix, 2) * H_dz_dzn * H_dz_dzn.transpose();
 
         // Else lets append this to our system!
-        A.block(index_meas, 0, 2, A.cols()) = H; // Info_sqrt * H;
-        b.block(index_meas, 0, 2, 1) = b_i;      // Info_sqrt * b_i;
+        A.block(index_meas, 0, 2, A.cols()) = H; // R_sqrtinv * H;
+        b.block(index_meas, 0, 2, 1) = b_i;      // R_sqrtinv * b_i;
         index_meas += 2;
       }
     }
@@ -393,10 +398,11 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::VectorXd coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
 
   // Get statistics of this problem
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd1((A1.transpose() * A1), Eigen::ComputeThinU | Eigen::ComputeThinV);
-  Eigen::MatrixXd singularValues1 = svd1.singularValues();
-  double cond1 = singularValues1(0) / singularValues1(singularValues1.rows() - 1);
-  PRINT_DEBUG("[init-d]: A1A1 cond = %.3f | rank = %d of %d (%4.3e thresh)\n", cond1, (int)svd1.rank(), (int)A1.cols(), svd1.threshold());
+  // Eigen::JacobiSVD<Eigen::MatrixXd> svd1((A1.transpose() * A1), Eigen::ComputeThinU | Eigen::ComputeThinV);
+  // Eigen::MatrixXd singularValues1 = svd1.singularValues();
+  // double cond1 = singularValues1(0) / singularValues1(singularValues1.rows() - 1);
+  // PRINT_DEBUG("[init-d]: A1A1 cond = %.3f | rank = %d of %d (%4.3e thresh)\n", cond1, (int)svd1.rank(), (int)A1.cols(),
+  // svd1.threshold());
 
   // Create companion matrix of our polynomial
   // https://en.wikipedia.org/wiki/Companion_matrix
@@ -409,11 +415,15 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   double cond0 = singularValues0(0) / singularValues0(singularValues0.rows() - 1);
   PRINT_DEBUG("[init-d]: CM cond = %.3f | rank = %d of %d (%4.3e thresh)\n", cond0, (int)svd0.rank(), (int)companion_matrix.cols(),
               svd0.threshold());
+  if (svd0.rank() != companion_matrix.rows()) {
+    PRINT_ERROR(RED "[init-d]: eigenvalue decomposition not full rank!!\n" RESET);
+    return false;
+  }
 
   // Find its eigenvalues (can be complex)
   Eigen::EigenSolver<Eigen::MatrixXd> solver(companion_matrix, false);
   if (solver.info() != Eigen::Success) {
-    PRINT_ERROR(RED "[init-d]: failed to compute the eigenvalue decomposition!!", RESET);
+    PRINT_ERROR(RED "[init-d]: failed to compute the eigenvalue decomposition!!\n" RESET);
     return false;
   }
 
@@ -444,7 +454,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     }
   }
   if (!lambda_found) {
-    PRINT_ERROR(RED "[init-d]: failed to find a real eigenvalue!!!", RESET);
+    PRINT_ERROR(RED "[init-d]: failed to find a real eigenvalue!!!\n" RESET);
     return false;
   }
   PRINT_DEBUG("[init-d]: smallest real eigenvalue = %.5f (cost of %f)\n", lambda_min, cost_min);
@@ -1041,15 +1051,19 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   covariance.block(12, 9, 3, 3) = covtmp.transpose().eval();
 
   // inflate as needed
+  covariance.block(0, 0, 3, 3) *= params.init_dyn_inflation_orientation;
   covariance.block(6, 6, 3, 3) *= params.init_dyn_inflation_velocity;
   covariance.block(9, 9, 3, 3) *= params.init_dyn_inflation_bias_gyro;
   covariance.block(12, 12, 3, 3) *= params.init_dyn_inflation_bias_accel;
 
   // we are done >:D
   covariance = 0.5 * (covariance + covariance.transpose());
-  std::cout << "vel - " << covariance.block(6, 6, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
-  std::cout << "bg - " << covariance.block(9, 9, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
-  std::cout << "ba - " << covariance.block(12, 12, 3, 3).diagonal().transpose().cwiseSqrt() << std::endl;
+  Eigen::Vector3d sigmas_vel = covariance.block(6, 6, 3, 3).diagonal().transpose().cwiseSqrt();
+  Eigen::Vector3d sigmas_bg = covariance.block(9, 9, 3, 3).diagonal().transpose().cwiseSqrt();
+  Eigen::Vector3d sigmas_ba = covariance.block(12, 12, 3, 3).diagonal().transpose().cwiseSqrt();
+  PRINT_DEBUG("[init-d]: vel priors = %.3f, %.3f, %.3f\n", sigmas_vel(0), sigmas_vel(1), sigmas_vel(2));
+  PRINT_DEBUG("[init-d]: bg priors = %.3f, %.3f, %.3f\n", sigmas_bg(0), sigmas_bg(1), sigmas_bg(2));
+  PRINT_DEBUG("[init-d]: ba priors = %.3f, %.3f, %.3f\n", sigmas_ba(0), sigmas_ba(1), sigmas_ba(2));
 
   // Set our position to be zero
   Eigen::MatrixXd x = _imu->value();
@@ -1057,7 +1071,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   _imu->set_value(x);
   _imu->set_fej(x);
 
-  //  // For now just overwrite the covariance since it is inconsistent
+  //  // Setting a static covariance (might not be valid, but we can guess)
   //  covariance = 1e-3 * Eigen::MatrixXd::Identity(15, 15);
   //  covariance.block(6, 6, 3, 3) = 0.1 * Eigen::Matrix3d::Identity();
   //  covariance.block(9, 9, 3, 3) = 2e-3 * Eigen::Matrix3d::Identity();

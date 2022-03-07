@@ -90,6 +90,9 @@ struct InertialInitializerOptions {
   /// Minimum degrees we need to rotate before we try to init (sum of norm)
   double init_dyn_min_deg = 45.0;
 
+  /// Magnitude we will inflate initial covariance of orientation
+  double init_dyn_inflation_orientation = 10.0;
+
   /// Magnitude we will inflate initial covariance of velocity
   double init_dyn_inflation_velocity = 10.0;
 
@@ -127,6 +130,7 @@ struct InertialInitializerOptions {
       parser->parse_config("init_dyn_mle_max_time", init_dyn_mle_max_time);
       parser->parse_config("init_dyn_num_pose", init_dyn_num_pose);
       parser->parse_config("init_dyn_min_deg", init_dyn_min_deg);
+      parser->parse_config("init_dyn_inflation_ori", init_dyn_inflation_orientation);
       parser->parse_config("init_dyn_inflation_vel", init_dyn_inflation_velocity);
       parser->parse_config("init_dyn_inflation_bg", init_dyn_inflation_bias_gyro);
       parser->parse_config("init_dyn_inflation_ba", init_dyn_inflation_bias_accel);
@@ -153,6 +157,7 @@ struct InertialInitializerOptions {
     PRINT_DEBUG("  - init_dyn_mle_max_time: %.2f\n", init_dyn_mle_max_time);
     PRINT_DEBUG("  - init_dyn_num_pose: %d\n", init_dyn_num_pose);
     PRINT_DEBUG("  - init_dyn_min_deg: %.2f\n", init_dyn_min_deg);
+    PRINT_DEBUG("  - init_dyn_inflation_ori: %.2e\n", init_dyn_inflation_orientation);
     PRINT_DEBUG("  - init_dyn_inflation_vel: %.2e\n", init_dyn_inflation_velocity);
     PRINT_DEBUG("  - init_dyn_inflation_bg: %.2e\n", init_dyn_inflation_bias_gyro);
     PRINT_DEBUG("  - init_dyn_inflation_ba: %.2e\n", init_dyn_inflation_bias_accel);

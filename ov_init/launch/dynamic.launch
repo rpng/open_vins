@@ -23,8 +23,8 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true">
 <!--    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true">
 
         <param name="sim_traj_path"          type="string" value="$(find ov_data)/sim/$(arg dataset)" />
         <param name="sim_seed_state_init"    type="int"    value="0" />
