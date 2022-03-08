@@ -40,6 +40,7 @@
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
     <depend condition="$ROS_VERSION == 2">rclcpp</depend>
     <depend condition="$ROS_VERSION == 2">tf2_ros</depend>
+    <depend condition="$ROS_VERSION == 2">tf2_geometry_msgs</depend>
     <depend condition="$ROS_VERSION == 2">std_msgs</depend>
     <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
     <depend condition="$ROS_VERSION == 2">sensor_msgs</depend>
@@ -48,7 +49,7 @@
     <depend condition="$ROS_VERSION == 2">image_transport</depend>
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
     <depend condition="$ROS_VERSION == 2">ov_init</depend>
-    <depend condition="$ROS_VERSION == 2">tf2_geometry_msgs</depend>
+
     <!-- System dependencies for both versions -->
     <depend>eigen</depend>
     <depend>libopencv-dev</depend>
