@@ -35,6 +35,7 @@ list(APPEND thirdparty_libraries
 list(APPEND ament_libraries
         rclcpp
         tf2_ros
+	tf2_geometry_msgs
         std_msgs
         geometry_msgs
         sensor_msgs
@@ -43,7 +44,6 @@ list(APPEND ament_libraries
         image_transport
         ov_core
         ov_init
-	tf2_geometry_msgs
 )
 
 ##################################################
