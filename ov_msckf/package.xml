@@ -48,7 +48,7 @@
     <depend condition="$ROS_VERSION == 2">image_transport</depend>
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
     <depend condition="$ROS_VERSION == 2">ov_init</depend>
-
+    <depend condition="$ROS_VERSION == 2">tf2_geometry_msgs</depend>
     <!-- System dependencies for both versions -->
     <depend>eigen</depend>
     <depend>libopencv-dev</depend>
