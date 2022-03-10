@@ -16,7 +16,7 @@ calib_cam_timeoffset: true
 max_clones: 12
 max_slam: 50
 max_slam_in_update: 25
-max_msckf_in_update: 40
+max_msckf_in_update: 50
 dt_slam_delay: 1
 
 gravity_mag: 9.80114

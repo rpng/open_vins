@@ -357,7 +357,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
 
         // Uncertainty of the measurement is the feature pixel noise and and preintegration
         // TODO: We should propagate the raw pixel uncertainty to the normalized and the preintegration error to the measurement
-        // TODO: fix this logic since this uses a unique H_proj matrix stucture...
+        // TODO: Fix this logic since this uses a unique H_proj matrix structure...
         // Eigen::MatrixXd R_sqrtinv = 1e4 * Eigen::MatrixXd::Identity(2, 2);
         // if (map_camera_cpi_I0toIi.find(time) != map_camera_cpi_I0toIi.end() && map_camera_cpi_I0toIi.at(time) != nullptr) {
         //   Eigen::MatrixXd H_cpi = H_proj * R_ItoC * R_I0toIk;
@@ -396,13 +396,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::MatrixXd D = Temp * A2;
   Eigen::MatrixXd d = Temp * b;
   Eigen::VectorXd coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
-
-  // Get statistics of this problem
-  // Eigen::JacobiSVD<Eigen::MatrixXd> svd1((A1.transpose() * A1), Eigen::ComputeThinU | Eigen::ComputeThinV);
-  // Eigen::MatrixXd singularValues1 = svd1.singularValues();
-  // double cond1 = singularValues1(0) / singularValues1(singularValues1.rows() - 1);
-  // PRINT_DEBUG("[init-d]: A1A1 cond = %.3f | rank = %d of %d (%4.3e thresh)\n", cond1, (int)svd1.rank(), (int)A1.cols(),
-  // svd1.threshold());
 
   // Create companion matrix of our polynomial
   // https://en.wikipedia.org/wiki/Companion_matrix

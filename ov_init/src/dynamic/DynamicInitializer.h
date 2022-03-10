@@ -56,8 +56,9 @@ namespace ov_init {
  * > Dong-Si, Tue-Cuong, and Anastasios I. Mourikis.
  * > "Estimator initialization in vision-aided inertial navigation with unknown camera-IMU calibration."
  * > 2012 IEEE/RSJ International Conference on Intelligent Robots and Systems. IEEE, 2012.
- * https://ieeexplore.ieee.org/abstract/document/6386235
- * https://tdongsi.github.io/download/pubs/2011_VIO_Init_TR.pdf
+ *
+ * - https://ieeexplore.ieee.org/abstract/document/6386235
+ * - https://tdongsi.github.io/download/pubs/2011_VIO_Init_TR.pdf
  *
  */
 class DynamicInitializer {

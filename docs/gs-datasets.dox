@@ -97,6 +97,14 @@ Here are the specifics of the sensors that each dataset uses:
     - GPS fixes at 5 Hz (/reach01/tcpfix has corrections from [NYSNet](https://cors.dot.ny.gov/sbc))
     - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1bhn0GrIYNEeAabQAbWoP8l_514cJ0KrZ/view?usp=sharing)
 
+
+@m_class{m-block m-warning}
+
+@par Monocular Camera
+    Currently there are issues with running with a monocular camera on the Ironside Neighborhood car datasets.
+    This is likely due to the near-constant velocity and "smoothness" of the trajectory.
+    Please refer to @cite Lee2020IROS and @cite Wu2017ICRA for details.
+
 Most of these datasets do not have perfect calibration parameters, and some are not time synchronised.
 Thus, please ensure that you have enabled online calibration of these parameters.
 Additionally, there is no groundtruth for these datasets, but some do include GPS messages if you wish to compare relative to something.
@@ -172,16 +180,23 @@ A groundtruth "baseline" trajectory is also provided which is the resulting outp
     In the most of the KAIST datasets the majority of the scene can be taken up by other moving vehicles, thus the performance can suffer.
     Please be aware of this fact.
 
+We recommend converting the KAIST file format into a ROS bag format.
+If you are using ROS2 then you should first convert into a ROS1 then convert following the @ref dev-ros1-to-ros2 .
+Follow the instructions on the [kaist2bag](https://github.com/rpng/kaist2bag) repository:
 
 @code{.shell-session}
-git clone https://github.com/rpng/file_player.git
 git clone https://github.com/irapkaist/irp_sen_msgs.git
-catkin build
-rosrun file_player file_player
+git clone https://github.com/rpng/kaist2bag.git
 @endcode
 
-To use the dataset, the dataset's file player can be used to publish the sensor information on to ROS.
-See the above commands on what packages you need to clone into your ROS workspace.
+@m_class{m-block m-warning}
+
+@par Monocular Camera
+    Currently there are issues with running with a monocular camera on this dataset.
+    This is likely due to the near-constant velocity and "smoothness" of the trajectory.
+    Please refer to @cite Lee2020IROS and @cite Wu2017ICRA for details.
+
+You can also try to use the [file_player](https://github.com/irapkaist/file_player) to publish live.
 It is important to *disable* the "skip stop section" to ensure that we have continuous sensor feeds.
 Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and the datasets can be processed in a more efficient manor.
 

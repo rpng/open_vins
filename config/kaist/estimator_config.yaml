@@ -13,34 +13,52 @@ calib_cam_extrinsics: false
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true
 
-max_clones: 25
-max_slam: 10
+max_clones: 12
+max_slam: 50
 max_slam_in_update: 25
-max_msckf_in_update: 100
+max_msckf_in_update: 50
 dt_slam_delay: 1
 
 gravity_mag: 9.79858
+#gravity_mag: 9.81
 
-feat_rep_msckf: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_msckf: "GLOBAL_3D"
 feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
 try_zupt: true
-zupt_chi2_multipler: 0 # set to 0 for only disp-based
+zupt_chi2_multipler: 1 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
-zupt_noise_multiplier: 1
-zupt_max_disparity: 0.3 # set to 0 for only imu-based
+zupt_noise_multiplier: 5
+zupt_max_disparity: 0.4 # set to 0 for only imu-based
 zupt_only_at_beginning: false
 
 # ==================================================================
 # ==================================================================
 
-init_window_time: 1.0
-init_imu_thresh: 0.5
+init_window_time: 2.0
+init_imu_thresh: 0.5 #0.5
 init_max_disparity: 1.5
-init_max_features: 50
+init_max_features: 25
+
+init_dyn_mle_opt_calib: false
+init_dyn_mle_max_iter: 50
+init_dyn_mle_max_time: 0.05
+init_dyn_mle_max_threads: 6
+init_dyn_num_pose: 6
+init_dyn_min_deg: 0.0 # traj is mostly straight line motion
+
+init_dyn_inflation_ori: 10
+init_dyn_inflation_vel: 100
+init_dyn_inflation_bg: 10
+init_dyn_inflation_ba: 100
+init_dyn_min_rec_cond: 1e-20 # traj is mostly straight line motion
+
+init_dyn_bias_g: [0.0, 0.0, 0.0]
+init_dyn_bias_a: [0.0, 0.0, 0.0]
+
 
 # ==================================================================
 # ==================================================================
@@ -59,18 +77,18 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
-num_pts: 300
-fast_threshold: 10
+num_pts: 200
+fast_threshold: 50
 grid_x: 20
-grid_y: 20
-min_px_dist: 20
+grid_y: 15
+min_px_dist: 30
 knn_ratio: 0.65
 track_frequency: 21.0
 downsample_cameras: false
 multi_threading: true
-histogram_method: "CLAHE" # NONE, HISTOGRAM, CLAHE
+histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
-fi_max_dist: 150
+fi_max_dist: 250
 fi_max_baseline: 200
 fi_max_cond_number: 20000
 fi_triangulate_1d: false
