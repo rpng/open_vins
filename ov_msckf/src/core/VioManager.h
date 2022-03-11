@@ -173,24 +173,22 @@ public:
   /// Get a nice visualization image of what tracks we have
   cv::Mat get_historical_viz_image() {
 
-    // Get our image of history tracks
+    // Build an id-list of what features we should highlight (i.e. SLAM)
+    std::vector<size_t> highlighted_ids;
+    for (const auto &feat : state->_features_SLAM) {
+      highlighted_ids.push_back(feat.first);
+    }
+
+    // Text we will overlay if needed
+    std::string overlay = (did_zupt_update) ? "zvupt" : "";
+    overlay = (!is_initialized_vio) ? "init" : overlay;
+
+    // Get the current active tracks
     cv::Mat img_history;
-    if (did_zupt_update) {
-      img_history = zupt_image;
-    } else {
-
-      // Build an id-list of what features we should highlight (i.e. SLAM)
-      std::vector<size_t> highlighted_ids;
-      for (const auto &feat : state->_features_SLAM) {
-        highlighted_ids.push_back(feat.first);
-      }
-
-      // Get the current active tracks
-      trackFEATS->display_history(img_history, 255, 255, 0, 255, 255, 255, highlighted_ids);
-      if (trackARUCO != nullptr) {
-        trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
-        trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
-      }
+    trackFEATS->display_history(img_history, 255, 255, 0, 255, 255, 255, highlighted_ids, overlay);
+    if (trackARUCO != nullptr) {
+      trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255, highlighted_ids, overlay);
+      // trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255, overlay);
     }
 
     // Finally return the image
@@ -356,8 +354,6 @@ protected:
 
   // If we did a zero velocity update
   bool did_zupt_update = false;
-  cv::Mat zupt_image;
-  std::map<size_t, cv::Mat> zupt_img_last;
   bool has_moved_since_zupt = false;
 
   // Good features that where used in the last update (used in visualization)

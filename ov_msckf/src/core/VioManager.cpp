@@ -162,29 +162,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     if (state->_timestamp != timestamp) {
       did_zupt_update = updaterZUPT->try_update(state, timestamp);
     }
-    // If we did do an update, then nice display and return since we have no need to process
     if (did_zupt_update) {
-      int max_width = -1;
-      int max_height = -1;
-      for (int n = 0; n < params.state_options.num_cameras; n++) {
-        int width = state->_cam_intrinsics_cameras.at(n)->w();
-        int height = state->_cam_intrinsics_cameras.at(n)->h();
-        if (max_width < width)
-          max_width = width;
-        if (max_height < height)
-          max_height = height;
-      }
-      for (int n = 0; n < params.state_options.num_cameras; n++) {
-        cv::Mat img_outtemp0 = cv::Mat::zeros(cv::Size(max_width, max_height), CV_8UC3);
-        bool is_small = (std::min(img_outtemp0.cols, img_outtemp0.rows) < 400);
-        auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
-        cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.0 : 2.0, cv::Scalar(0, 0, 255), 3);
-        if (n == 0) {
-          zupt_image = img_outtemp0.clone();
-        } else {
-          cv::hconcat(zupt_image, img_outtemp0, zupt_image);
-        }
-      }
       return;
     }
   }
@@ -234,11 +212,6 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     message.masks.at(i) = mask_temp;
   }
 
-  // Record our latest image for displaying out zero velocity update
-  for (size_t i = 0; i < message.sensor_ids.size(); i++) {
-    zupt_img_last[message.sensor_ids.at(i)] = message.images.at(i).clone();
-  }
-
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
   if (is_initialized_vio) {
@@ -262,32 +235,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     if (state->_timestamp != message.timestamp) {
       did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
     }
-    // If we did do an update, then nice display and return since we have no need to process
     if (did_zupt_update) {
-      // Get the largest width and height
-      int max_width = -1;
-      int max_height = -1;
-      for (auto const &pair : zupt_img_last) {
-        if (max_width < pair.second.cols)
-          max_width = pair.second.cols;
-        if (max_height < pair.second.rows)
-          max_height = pair.second.rows;
-      }
-      zupt_image = cv::Mat(max_height, (int)zupt_img_last.size() * max_width, CV_8UC3, cv::Scalar(0, 0, 0));
-      // Loop through each image, and draw
-      int index_cam = 0;
-      for (auto const &pair : zupt_img_last) {
-        // Select the subset of the image
-        cv::Mat img_temp;
-        cv::cvtColor(zupt_img_last[pair.first], img_temp, cv::COLOR_GRAY2RGB);
-        // Display text telling user that we are doing a zupt
-        bool is_small = (std::min(img_temp.cols, img_temp.rows) < 400);
-        auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
-        cv::putText(img_temp, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.0 : 2.0, cv::Scalar(0, 0, 255), 3);
-        // Replace the output image
-        img_temp.copyTo(zupt_image(cv::Rect(max_width * index_cam, 0, zupt_img_last[pair.first].cols, zupt_img_last[pair.first].rows)));
-        index_cam++;
-      }
       return;
     }
   }
@@ -714,7 +662,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
       }
 
       // If we are moving then don't do zero velocity update4
-      if (state->_imu->vel().norm() > 0.0) {
+      if (state->_imu->vel().norm() > params.zupt_max_velocity) {
         has_moved_since_zupt = true;
       }
 

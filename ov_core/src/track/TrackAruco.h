@@ -78,8 +78,9 @@ public:
    * @param img_out image to which we will overlayed features on
    * @param r1,g1,b1 first color to draw in
    * @param r2,g2,b2 second color to draw in
+   * @param overlay Text overlay to replace to normal "cam0" in the top left of screen
    */
-  void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
+  void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::string overlay = "") override;
 #endif
 
 protected:
