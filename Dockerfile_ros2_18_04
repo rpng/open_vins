@@ -27,7 +27,7 @@ RUN git clone https://ceres-solver.googlesource.com/ceres-solver && \
     rm -rf ../../ceres-solver
 
 # Seems this has Python 3.6 installed on it...
-RUN sudo apt-get install -y python3-dev python3-matplotlib python3-numpy python3-psutil python3-tk
+RUN apt-get update && apt-get install -y python3-dev python3-matplotlib python3-numpy python3-psutil python3-tk
 
 # Install deps needed for clion remote debugging
 # https://blog.jetbrains.com/clion/2020/01/using-docker-with-clion/

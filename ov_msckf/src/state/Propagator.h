@@ -22,6 +22,8 @@
 #ifndef OV_MSCKF_STATE_PROPAGATOR_H
 #define OV_MSCKF_STATE_PROPAGATOR_H
 
+#include <mutex>
+
 #include "state/StateHelper.h"
 #include "utils/print.h"
 #include "utils/quat_ops.h"

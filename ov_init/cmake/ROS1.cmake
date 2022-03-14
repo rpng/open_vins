@@ -8,7 +8,7 @@ option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (catkin_FOUND AND ENABLE_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
-            CATKIN_DEPENDS roscpp ov_core
+            CATKIN_DEPENDS roscpp cv_bridge ov_core
             INCLUDE_DIRS src/
             LIBRARIES ov_init_lib
     )
@@ -33,6 +33,7 @@ include_directories(
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
+        ${OpenCV_LIBRARIES}
         ${CERES_LIBRARIES}
         ${catkin_LIBRARIES}
 )

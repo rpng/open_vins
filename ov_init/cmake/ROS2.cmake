@@ -3,8 +3,8 @@ cmake_minimum_required(VERSION 3.3)
 # Find ros dependencies
 find_package(ament_cmake REQUIRED)
 find_package(rclcpp REQUIRED)
-find_package(ov_core REQUIRED)
 find_package(cv_bridge REQUIRED)
+find_package(ov_core REQUIRED)
 
 # Describe ROS project
 option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
@@ -17,14 +17,15 @@ add_definitions(-DROS_AVAILABLE=2)
 include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
-        ${CERES_INCLUDE_DIRS}
         ${Boost_INCLUDE_DIRS}
+        ${CERES_INCLUDE_DIRS}
 )
 
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
         ${CERES_LIBRARIES}
         ${Boost_LIBRARIES}
+        ${OpenCV_LIBRARIES}
 )
 
 ##################################################

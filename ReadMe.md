@@ -21,6 +21,7 @@ details on what the system supports.
 
 ## News / Events
 
+* **March 14, 2022** - Initial dynamic initialization open sourcing, asynchronous subscription to inertial readings and publishing of odometry, support for lower frequency feature tracking. See v2.6 [PR#232](https://github.com/rpng/open_vins/pull/232) for details.
 * **December 13, 2021** - New YAML configuration system, ROS2 support, Docker images, robust static initialization based on disparity, internal logging system to reduce verbosity, image transport publishers, dynamic number of features support, and other small fixes. See
   v2.5 [PR#209](https://github.com/rpng/open_vins/pull/209) for details.
 * **July 19, 2021** - Camera classes, masking support, alignment utility, and other small fixes. See
@@ -83,7 +84,7 @@ details on what the system supports.
     * Binocular (synchronized) cameras
     * KLT or descriptor based
     * Masked tracking
-* Static IMU initialization (sfm will be open sourced later)
+* Static and dynamic state initialization
 * Zero velocity detection and updates
 * Out of the box evaluation on EurocMav, TUM-VI, UZH-FPV, KAIST Urban and VIO datasets
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)

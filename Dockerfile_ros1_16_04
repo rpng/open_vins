@@ -17,18 +17,21 @@ RUN apt-get update && apt-get install -y libeigen3-dev nano git
 RUN sudo apt-get install -y python-catkin-tools
 
 # Ceres solver install and setup
+# NOTE: need to use an older version as eigen is very outdated here!!!
+# NOTE: https://github.com/ceres-solver/ceres-solver/issues/541
 RUN sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev
 ENV CERES_VERSION="2.0.0"
 RUN git clone https://ceres-solver.googlesource.com/ceres-solver && \
     cd ceres-solver && \
     git checkout tags/${CERES_VERSION} && \
+    git reset --hard e51e9b46f6 && \
     mkdir build && cd build && \
     cmake .. && \
     make -j$(nproc) install && \
     rm -rf ../../ceres-solver
 
 # Seems this has Python 2.7 installed on it...
-RUN sudo apt-get install -y python2.7-dev python-matplotlib python-numpy python-psutil python-tk
+RUN apt-get update && apt-get install -y python2.7-dev python-matplotlib python-numpy python-psutil python-tk
 
 # Install deps needed for clion remote debugging
 # https://blog.jetbrains.com/clion/2020/01/using-docker-with-clion/
