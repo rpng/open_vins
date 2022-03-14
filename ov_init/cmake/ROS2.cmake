@@ -69,7 +69,7 @@ ament_target_dependencies(test_dynamic_mle ${ament_libraries})
 target_link_libraries(test_dynamic_mle ov_init_lib ${thirdparty_libraries})
 install(TARGETS test_dynamic_mle DESTINATION lib/${PROJECT_NAME})
 
-add_executable(test_dynamic_mle src/test_dynamic_init.cpp)
+add_executable(test_dynamic_init src/test_dynamic_init.cpp)
 ament_target_dependencies(test_dynamic_init ${ament_libraries})
 target_link_libraries(test_dynamic_init ov_init_lib ${thirdparty_libraries})
 install(TARGETS test_dynamic_init DESTINATION lib/${PROJECT_NAME})

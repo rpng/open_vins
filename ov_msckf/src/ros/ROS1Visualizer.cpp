@@ -329,16 +329,16 @@ void ROS1Visualizer::visualize_final() {
 
   // Publish RMSE if we have it
   if (!gt_states.empty()) {
-    PRINT_INFO(REDPURPLE "RMSE average: %.3f (deg) orientation\n" RESET, summed_rmse_ori / summed_number);
-    PRINT_INFO(REDPURPLE "RMSE average: %.3f (m) position\n\n" RESET, summed_rmse_pos / summed_number);
+    PRINT_INFO(REDPURPLE "RMSE: %.3f (deg) orientation\n" RESET, std::sqrt(summed_mse_ori / summed_number));
+    PRINT_INFO(REDPURPLE "RMSE: %.3f (m) position\n\n" RESET, std::sqrt(summed_mse_pos / summed_number));
   }
 
   // Publish RMSE and NEES if doing simulation
   if (_sim != nullptr) {
-    PRINT_INFO(REDPURPLE "RMSE average: %.3f (deg) orientation\n" RESET, summed_rmse_ori / summed_number);
-    PRINT_INFO(REDPURPLE "RMSE average: %.3f (m) position\n\n" RESET, summed_rmse_pos / summed_number);
-    PRINT_INFO(REDPURPLE "NEES average: %.3f (deg) orientation\n" RESET, summed_nees_ori / summed_number);
-    PRINT_INFO(REDPURPLE "NEES average: %.3f (m) position\n\n" RESET, summed_nees_pos / summed_number);
+    PRINT_INFO(REDPURPLE "RMSE: %.3f (deg) orientation\n" RESET, std::sqrt(summed_mse_ori / summed_number));
+    PRINT_INFO(REDPURPLE "RMSE: %.3f (m) position\n\n" RESET, std::sqrt(summed_mse_pos / summed_number));
+    PRINT_INFO(REDPURPLE "NEES: %.3f (deg) orientation\n" RESET, summed_nees_ori / summed_number);
+    PRINT_INFO(REDPURPLE "NEES: %.3f (m) position\n\n" RESET, summed_nees_pos / summed_number);
   }
 
   // Print the total time
@@ -687,14 +687,14 @@ void ROS1Visualizer::publish_groundtruth() {
   double dx = state_ekf(4, 0) - state_gt(5, 0);
   double dy = state_ekf(5, 0) - state_gt(6, 0);
   double dz = state_ekf(6, 0) - state_gt(7, 0);
-  double rmse_pos = std::sqrt(dx * dx + dy * dy + dz * dz);
+  double err_pos = std::sqrt(dx * dx + dy * dy + dz * dz);
 
   // Quaternion error
   Eigen::Matrix<double, 4, 1> quat_gt, quat_st, quat_diff;
   quat_gt << state_gt(1, 0), state_gt(2, 0), state_gt(3, 0), state_gt(4, 0);
   quat_st << state_ekf(0, 0), state_ekf(1, 0), state_ekf(2, 0), state_ekf(3, 0);
   quat_diff = quat_multiply(quat_st, Inv(quat_gt));
-  double rmse_ori = (180 / M_PI) * 2 * quat_diff.block(0, 0, 3, 1).norm();
+  double err_ori = (180 / M_PI) * 2 * quat_diff.block(0, 0, 3, 1).norm();
 
   //==========================================================================
   //==========================================================================
@@ -715,17 +715,17 @@ void ROS1Visualizer::publish_groundtruth() {
 
   // Update our average variables
   if (!std::isnan(ori_nees) && !std::isnan(pos_nees)) {
-    summed_rmse_ori += rmse_ori;
-    summed_rmse_pos += rmse_pos;
+    summed_mse_ori += err_ori * err_ori;
+    summed_mse_pos += err_pos * err_pos;
     summed_nees_ori += ori_nees;
     summed_nees_pos += pos_nees;
     summed_number++;
   }
 
   // Nice display for the user
-  PRINT_INFO(REDPURPLE "error to gt => %.3f, %.3f (deg,m) | average error => %.3f, %.3f (deg,m) | called %d times\n" RESET, rmse_ori,
-             rmse_pos, summed_rmse_ori / summed_number, summed_rmse_pos / summed_number, (int)summed_number);
-  PRINT_INFO(REDPURPLE "nees => %.1f, %.1f (ori,pos) | average nees = %.1f, %.1f (ori,pos)\n" RESET, ori_nees, pos_nees,
+  PRINT_INFO(REDPURPLE "error to gt => %.3f, %.3f (deg,m) | rmse => %.3f, %.3f (deg,m) | called %d times\n" RESET, err_ori, err_pos,
+             std::sqrt(summed_mse_ori / summed_number), std::sqrt(summed_mse_pos / summed_number), (int)summed_number);
+  PRINT_INFO(REDPURPLE "nees => %.1f, %.1f (ori,pos) | avg nees = %.1f, %.1f (ori,pos)\n" RESET, ori_nees, pos_nees,
              summed_nees_ori / summed_number, summed_nees_pos / summed_number);
 
   //==========================================================================

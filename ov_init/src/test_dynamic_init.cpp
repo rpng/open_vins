@@ -51,7 +51,6 @@ using namespace ov_init;
 // Define the function to be called when ctrl-c (SIGINT) is sent to process
 void signal_callback_handler(int signum) { std::exit(signum); }
 
-#if ROS_AVAILABLE == 1
 // taken from ov_eval/src/alignment/AlignUtils.h
 static inline double get_best_yaw(const Eigen::Matrix<double, 3, 3> &C) {
   double A = C(0, 1) - C(1, 0);
@@ -69,7 +68,6 @@ void align_posyaw_single(const Eigen::Vector4d &q_es_0, const Eigen::Vector3d &p
   R = ov_core::rot_z(theta);
   t.noalias() = p_gt_0 - R * p_es_0;
 }
-#endif
 
 // Main function
 int main(int argc, char **argv) {
@@ -332,12 +330,12 @@ int main(int argc, char **argv) {
           ++out_z;
         }
         pub_points_sim.publish(cloud);
+#endif
 
-        // wait for user approval
+        // Wait for user approval
         do {
           cout << '\n' << "Press a key to continue...";
         } while (cin.get() != '\n');
-#endif
 
         // Reset our tracker and simulator so we can try to init again
         if (params.sim_do_perturbation) {

@@ -22,10 +22,32 @@ Please see the official instructions to install ROS:
 
 
 We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
-You will need to ensure you have installed OpenCV and Eigen3 which are the only dependencies.
+You will need to ensure you have installed OpenCV 3 or 4, Eigen3, and Ceres which are the only dependencies.
 If ROS is not found on the system, one can use command line options to run the simulation without any visualization or `cmake -DENABLE_ROS=OFF ..`.
 If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
-The simulator can give you and example on how to do this.
+The simulator binary `run_simulation` can give you and example on how to do this.
+
+
+@subsection gs-install-ceres Ceres Solver
+
+Ceres solver @cite ceres-solver is required for dynamic initialization and backend optimization.
+Please refer to their [documentation](http://ceres-solver.org/installation.html#linux) for specifics to your platform.
+It should be able to build on most platforms (including ARM android devices).
+To install we can perform the following:
+
+@code{.shell-session}
+sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev
+CERES_VERSION="2.0.0"
+git clone https://ceres-solver.googlesource.com/ceres-solver
+cd ceres-solver
+git checkout tags/${CERES_VERSION}
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+@endcode
+
+
 
 @subsection gs-install-ros-1 ROS1 Install
 
