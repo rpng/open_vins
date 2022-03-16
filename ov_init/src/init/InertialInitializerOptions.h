@@ -102,7 +102,8 @@ struct InertialInitializerOptions {
   /// Magnitude we will inflate initial covariance of accelerometer bias
   double init_dyn_inflation_bias_accel = 100.0;
 
-  /// Minimum reciprocal condition number acceptable for our covariance recovery (min_sigma / max_sigma < sqrt(min_reciprocal_condition_number))
+  /// Minimum reciprocal condition number acceptable for our covariance recovery (min_sigma / max_sigma <
+  /// sqrt(min_reciprocal_condition_number))
   double init_dyn_min_rec_cond = 1e-15;
 
   /// Initial IMU gyroscope bias values for dynamic initialization (will be optimized)

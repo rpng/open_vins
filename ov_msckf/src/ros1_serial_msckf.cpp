@@ -263,14 +263,14 @@ int main(int argc, char **argv) {
           // PRINT_WARNING("skipping cam1 (%.4f >= %.4f)",std::abs(time1-time0), std::abs(time1_next-time0));
           msg_images_current.at(1) = msg_images_next.at(1);
           view_cameras_iterators.at(1)++;
-          if(view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
+          if (view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
             msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
           }
         } else {
           // PRINT_WARNING("skipping cam0 (%.4f >= %.4f)",std::abs(time0-time1), std::abs(time0_next-time1));
           msg_images_current.at(0) = msg_images_next.at(0);
           view_cameras_iterators.at(0)++;
-          if(view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
+          if (view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
             msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
           }
         }
@@ -293,7 +293,7 @@ int main(int argc, char **argv) {
       // Check if we should feed this into the system at the specified frequency
       double timestamp = msg_images_current.at(0)->header.stamp.toSec();
       double time_delta = 1.0 / params.track_frequency;
-      if(camera_last_timestamp.find(0) == camera_last_timestamp.end() || timestamp >= camera_last_timestamp.at(0) + time_delta) {
+      if (camera_last_timestamp.find(0) == camera_last_timestamp.end() || timestamp >= camera_last_timestamp.at(0) + time_delta) {
         camera_last_timestamp[0] = timestamp;
         viz->callback_stereo(msg_images_current.at(0), msg_images_current.at(1), 0, 1);
       }
@@ -301,12 +301,12 @@ int main(int argc, char **argv) {
       // Move forward in time
       msg_images_current.at(0) = msg_images_next.at(0);
       view_cameras_iterators.at(0)++;
-      if(view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
+      if (view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
         msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
       }
       msg_images_current.at(1) = msg_images_next.at(1);
       view_cameras_iterators.at(1)++;
-      if(view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
+      if (view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
         msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
       }
 
@@ -335,7 +335,8 @@ int main(int argc, char **argv) {
       // Check if we should feed this into the system at the specified frequency
       double timestamp = msg_camera->header.stamp.toSec();
       double time_delta = 1.0 / params.track_frequency;
-      if(camera_last_timestamp.find(smallest_cam) == camera_last_timestamp.end() || timestamp >= camera_last_timestamp.at(smallest_cam) + time_delta) {
+      if (camera_last_timestamp.find(smallest_cam) == camera_last_timestamp.end() ||
+          timestamp >= camera_last_timestamp.at(smallest_cam) + time_delta) {
         camera_last_timestamp[smallest_cam] = timestamp;
         viz->callback_monocular(msg_camera, smallest_cam);
       }
@@ -343,7 +344,7 @@ int main(int argc, char **argv) {
       // move forward
       msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
       view_cameras_iterators.at(smallest_cam)++;
-      if(view_cameras_iterators.at(smallest_cam) != view_cameras.at(smallest_cam)->end()) {
+      if (view_cameras_iterators.at(smallest_cam) != view_cameras.at(smallest_cam)->end()) {
         msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
       }
     }

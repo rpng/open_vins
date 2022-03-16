@@ -19,10 +19,10 @@ max_slam_in_update: 25
 max_msckf_in_update: 50
 dt_slam_delay: 1
 
-gravity_mag: 9.79858
-#gravity_mag: 9.81
+#gravity_mag: 9.79858
+gravity_mag: 9.81
 
-feat_rep_msckf: "GLOBAL_3D"
+feat_rep_msckf: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
@@ -88,8 +88,8 @@ downsample_cameras: false
 multi_threading: true
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
-fi_max_dist: 250
-fi_max_baseline: 200
+fi_max_dist: 500
+fi_max_baseline: 800
 fi_max_cond_number: 20000
 fi_triangulate_1d: false
 
