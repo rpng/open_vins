@@ -979,7 +979,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   options_cov.algorithm_type = ceres::CovarianceAlgorithmType::DENSE_SVD; // SPARSE_QR, DENSE_SVD
   options_cov.apply_loss_function = false;
   options_cov.num_threads = params.init_dyn_mle_max_threads;
-  options_cov.sparse_linear_algebra_library_type = ceres::SparseLinearAlgebraLibraryType::SUITE_SPARSE;
   ceres::Covariance problem_cov(options_cov);
   bool success = problem_cov.Compute(covariance_blocks, &problem);
   if (!success) {
