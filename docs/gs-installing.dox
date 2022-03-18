@@ -200,6 +200,8 @@ It should be able to build on most platforms (including ARM android devices).
 To install we can perform the following:
 
 
+@m_class{m-block m-warning}
+
 @par Ceres Source Installation
     Try to first build with your system with `sudo apt-get install libceres-dev`.
     Only fall back onto this if it does not allow you to compile, or want a newer version!
