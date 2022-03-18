@@ -23,8 +23,8 @@ include_directories(
 
 # Set link libraries used by all binaries
 list(APPEND thirdparty_libraries
-        ${CERES_LIBRARIES}
         ${Boost_LIBRARIES}
+        ${CERES_LIBRARIES}
         ${OpenCV_LIBRARIES}
 )
 

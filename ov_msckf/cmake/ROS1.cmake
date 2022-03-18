@@ -27,6 +27,7 @@ include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
+        ${CERES_INCLUDE_DIRS}
         ${catkin_INCLUDE_DIRS}
 )
 
@@ -34,6 +35,7 @@ include_directories(
 list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
+        ${CERES_LIBRARIES}
         ${catkin_LIBRARIES}
 )
 
@@ -55,10 +57,10 @@ if (NOT catkin_FOUND OR NOT ENABLE_ROS)
     message(STATUS "MANUALLY LINKING TO OV_INIT LIBRARY....")
     include_directories(${CMAKE_SOURCE_DIR}/../ov_init/src/)
     file(GLOB_RECURSE OVINIT_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_init/src/*.cpp")
-    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_dynamic_init\\.cpp$")
-    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_dynamic_mle\\.cpp$")
-    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_simulation\\.cpp$")
-    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*Simulator\\.cpp$")
+    list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*test_dynamic_init\\.cpp$")
+    list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*test_dynamic_mle\\.cpp$")
+    list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*test_simulation\\.cpp$")
+    list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*Simulator\\.cpp$")
     list(APPEND LIBRARY_SOURCES ${OVINIT_LIBRARY_SOURCES})
     file(GLOB_RECURSE OVINIT_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_init/src/*.h")
     list(FILTER OVINIT_LIBRARY_HEADERS EXCLUDE REGEX ".*Simulator\\.h$")

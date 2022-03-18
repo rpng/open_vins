@@ -54,6 +54,7 @@
     <depend>libopencv-dev</depend>
     <depend>libopencv-contrib-dev</depend>
     <depend>boost</depend>
+    <depend>libceres-dev</depend>
 
     <!-- Note the export is required to expose the executables -->
     <export>

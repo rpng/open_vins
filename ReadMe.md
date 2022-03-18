@@ -128,6 +128,9 @@ details on what the system supports.
 <a href="http://www.youtube.com/watch?v=MCzTF9ye2zw">
    <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/MCzTF9ye2zw.jpg"  width="120" height="90"/>
 </a>
+<a href="http://www.youtube.com/watch?v=eSQLWcNrx_I">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/eSQLWcNrx_I.jpg" width="120" height="90" />
+</a>
 <br/>
 
 <a href="http://www.youtube.com/watch?v=187AXuuGNNw">
@@ -139,6 +142,10 @@ details on what the system supports.
 <a href="http://www.youtube.com/watch?v=ExPIGwORm4E">
    <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/ExPIGwORm4E.jpg" width="120" height="90" />
 </a>
+<a href="http://www.youtube.com/watch?v=lXHl-qgLGl">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/lXHl-qgLGl.jpg" width="120" height="90" />
+</a>
+
 
 
 ## Credit / Licensing
