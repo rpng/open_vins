@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
