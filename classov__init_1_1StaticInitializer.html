@@ -64,7 +64,7 @@
             </li>
           </ul>
         </div>
-<p>This implementation that assumes that the imu starts from standing still.</p><p>To initialize from standstill:</p><ol><li>Collect all inertial measurements</li><li>See if within the last window there was a jump in acceleration</li><li>If the jump is past our threshold we should init (i.e. we have started moving)</li><li>Use the <em>previous</em> window, which should have been stationary to initialize orientation</li><li>Return a roll and pitch aligned with gravity and biases.</li></ol>
+<p>This implementation that assumes that the imu starts from standing still. To initialize from standstill:</p><ol><li>Collect all inertial measurements</li><li>See if within the last window there was a jump in acceleration</li><li>If the jump is past our threshold we should init (i.e. we have started moving)</li><li>Use the <em>previous</em> window, which should have been stationary to initialize orientation</li><li>Return a roll and pitch aligned with gravity and biases.</li></ol>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">

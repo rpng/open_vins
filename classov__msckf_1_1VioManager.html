@@ -80,7 +80,7 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a5e7dde1c28eb800c663fb2e238cc60ea" class="m-doc">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a52323b851526c316c30738aa83e98b0b" class="m-doc">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
             </dt>
             <dd>Feed function for inertial data.</dd>
             <dt>
@@ -158,7 +158,7 @@
             </dt>
             <dd>This will do the propagation and feature updates to the state.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a479d6dffdfd052ac56f71efc7b70ad62" class="m-doc">try_to_initialize</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#adc329d2be4fad2addd93e01e5318c102" class="m-doc">try_to_initialize</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message) -&gt; bool</span>
             </dt>
             <dd>This function will try to initialize the state.</dd>
             <dt>
@@ -215,7 +215,7 @@
             </dt>
             <dd>Our zero velocity tracker.</dd>
             <dt>
-              std::deque&lt;<a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&gt; <a href="#a2528640f861ba622a29f326093ae39cf" class="m-doc">camera_queue</a>
+              std::vector&lt;double&gt; <a href="#a3d64db49753d6ae3ae946257c1a8e184" class="m-doc">camera_queue_init</a>
             </dt>
             <dd></dd>
             <dt id="a7a541d7d6baedd02147a851436f897c0">
@@ -243,9 +243,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a5e7dde1c28eb800c663fb2e238cc60ea"><div>
+          <section class="m-doc-details" id="a52323b851526c316c30738aa83e98b0b"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5e7dde1c28eb800c663fb2e238cc60ea" class="m-doc-self">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a52323b851526c316c30738aa83e98b0b" class="m-doc-self">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
             </h3>
             <p>Feed function for inertial data.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -356,15 +356,24 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a479d6dffdfd052ac56f71efc7b70ad62"><div>
+          <section class="m-doc-details" id="adc329d2be4fad2addd93e01e5318c102"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a479d6dffdfd052ac56f71efc7b70ad62" class="m-doc-self">try_to_initialize</a>(</span><span class="m-doc-wrap">) <span class="m-label m-warning">protected</span></span></span>
+              <span class="m-doc-wrap-bumper">bool ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adc329d2be4fad2addd93e01e5318c102" class="m-doc-self">try_to_initialize</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&amp; message) <span class="m-label m-warning">protected</span></span></span>
             </h3>
             <p>This function will try to initialize the state.</p>
             <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">message</td>
+                  <td>Contains our timestamp, images, and camera ids</td>
+                </tr>
+              </tbody>
               <tfoot>
                 <tr>
-                  <th style="width: 1%">Returns</th>
+                  <th>Returns</th>
                   <td>True if we have successfully initialized</td>
                 </tr>
               </tfoot>
@@ -392,11 +401,11 @@
         </section>
         <section>
           <h2>Variable documentation</h2>
-          <section class="m-doc-details" id="a2528640f861ba622a29f326093ae39cf"><div>
+          <section class="m-doc-details" id="a3d64db49753d6ae3ae946257c1a8e184"><div>
             <h3>
-              std::deque&lt;<a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&gt; ov_msckf::<wbr />VioManager::<wbr /><a href="#a2528640f861ba622a29f326093ae39cf" class="m-doc-self">camera_queue</a> <span class="m-label m-warning">protected</span>
+              std::vector&lt;double&gt; ov_msckf::<wbr />VioManager::<wbr /><a href="#a3d64db49753d6ae3ae946257c1a8e184" class="m-doc-self">camera_queue_init</a> <span class="m-label m-warning">protected</span>
             </h3>
-<p>Queue up camera measurements sorted by time and trigger once we have exactly one IMU measurement with timestamp newer than the camera measurement This also handles out-of-order camera measurements, which is rare, but a nice feature to have for general robustness to bad camera drivers.</p>
+<p>This is the queue of measurement times that have come in since we starting doing initialization After we initialize, we will want to prop &amp; update to the latest timestamp quickly</p>
           </div></section>
         </section>
       </div>

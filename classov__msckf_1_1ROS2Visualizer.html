@@ -155,6 +155,10 @@
               std::shared_ptr&lt;<a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a>&gt; <a href="#af343bba4d35f89ebe2d28943bc82cced" class="m-doc-self">_sim</a>
             </dt>
             <dd><a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> (is nullptr if we are not sim&#x27;ing)</dd>
+            <dt>
+              std::deque&lt;<a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&gt; <a href="#a7235b339b34c7207b2cffb94d4518a25" class="m-doc">camera_queue</a>
+            </dt>
+            <dd></dd>
           </dl>
         </section>
         <section>
@@ -202,6 +206,15 @@
                 </tr>
               </tbody>
             </table>
+          </div></section>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a7235b339b34c7207b2cffb94d4518a25"><div>
+            <h3>
+              std::deque&lt;<a href="structov__core_1_1CameraData.html" class="m-doc">ov_core::<wbr />CameraData</a>&gt; ov_msckf::<wbr />ROS2Visualizer::<wbr /><a href="#a7235b339b34c7207b2cffb94d4518a25" class="m-doc-self">camera_queue</a> <span class="m-label m-warning">protected</span>
+            </h3>
+<p>Queue up camera measurements sorted by time and trigger once we have exactly one IMU measurement with timestamp newer than the camera measurement This also handles out-of-order camera measurements, which is rare, but a nice feature to have for general robustness to bad camera drivers.</p>
           </div></section>
         </section>
       </div>

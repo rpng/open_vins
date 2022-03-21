@@ -76,6 +76,13 @@
               int&amp; total_feats)</span>
             </dt>
             <dd>This functions will compute the disparity between common features in the two frames.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static void <a href="#a0431fd7a297205bcbd3983c0f62319bf" class="m-doc">compute_disparity</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">ov_core::<wbr />FeatureDatabase</a>&gt; db,
+              double&amp; disp_mean,
+              double&amp; disp_var,
+              int&amp; total_feats)</span>
+            </dt>
+            <dd>This functions will compute the disparity over all features we have.</dd>
           </dl>
         </section>
         <section>
@@ -122,6 +129,39 @@
               </tbody>
             </table>
 <p>First we find all features in the first frame. Then we loop through each and find the uv of it in the next requested frame. Features are skipped if no tracked feature is found (it was lost). NOTE: this is on the RAW coordinates of the feature not the normalized ones. NOTE: This computes the disparity over all cameras!</p>
+          </div></section>
+          <section class="m-doc-details" id="a0431fd7a297205bcbd3983c0f62319bf"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static void ov_core::<wbr />FeatureHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a0431fd7a297205bcbd3983c0f62319bf" class="m-doc-self">compute_disparity</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">ov_core::<wbr />FeatureDatabase</a>&gt; db,
+              double&amp; disp_mean,
+              double&amp; disp_var,
+              int&amp; total_feats)</span></span>
+            </h3>
+            <p>This functions will compute the disparity over all features we have.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">db</td>
+                  <td><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a> database pointer</td>
+                </tr>
+                <tr>
+                  <td>disp_mean</td>
+                  <td>Average raw disparity</td>
+                </tr>
+                <tr>
+                  <td>disp_var</td>
+                  <td>Variance of the disparities</td>
+                </tr>
+                <tr>
+                  <td>total_feats</td>
+                  <td>Total number of common features</td>
+                </tr>
+              </tbody>
+            </table>
+<p>NOTE: this is on the RAW coordinates of the feature not the normalized ones. NOTE: This computes the disparity over all cameras!</p>
           </div></section>
         </section>
       </div>

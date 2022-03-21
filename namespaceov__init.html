@@ -63,10 +63,26 @@
             </li>
           </ul>
         </div>
-<p>Right now this contains static initialization code for a visual-inertial system. It will wait for the platform to stationary, and then initialize its orientation in the gravity frame.</p>
+<p>Right now this contains static and dynamic initialization code for a visual-inertial system. It will wait for the platform to stationary, and then initialize its orientation in the gravity frame.</p><p>If the platform is not stationary then we leverage dynamic initialization to try to recover the initial state. This is an implementation of the work <a href="https://ieeexplore.ieee.org/document/6386235">Estimator initialization in vision-aided inertial navigation with unknown camera-IMU calibration</a> <a href="citelist.html#CITEREF_Dong2012IROS" class="m-doc">[5]</a> which solves the initialization problem by first creating a linear system for recovering tthe velocity, gravity, and feature positions. After the initial recovery, a full optimization is performed to allow for covariance recovery.</p>
         <section id="nested-classes">
           <h2><a href="#nested-classes">Classes</a></h2>
           <dl class="m-doc">
+            <dt>
+              class <a href="classov__init_1_1DynamicInitializer.html" class="m-doc">DynamicInitializer</a>
+            </dt>
+            <dd>Initializer for a dynamic visual-inertial system.</dd>
+            <dt>
+              class <a href="classov__init_1_1Factor__GenericPrior.html" class="m-doc">Factor_GenericPrior</a>
+            </dt>
+            <dd>Factor for generic state priors for specific types.</dd>
+            <dt>
+              class <a href="classov__init_1_1Factor__ImageReprojCalib.html" class="m-doc">Factor_ImageReprojCalib</a>
+            </dt>
+            <dd>Factor of feature bearing observation (raw) with calibration.</dd>
+            <dt>
+              class <a href="classov__init_1_1Factor__ImuCPIv1.html" class="m-doc">Factor_ImuCPIv1</a>
+            </dt>
+            <dd>Factor for IMU continuous preintegration version 1.</dd>
             <dt>
               class <a href="classov__init_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a>
             </dt>
@@ -75,6 +91,18 @@
               struct <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>
             </dt>
             <dd>Struct which stores all options needed for state estimation.</dd>
+            <dt>
+              class <a href="classov__init_1_1InitializerHelper.html" class="m-doc">InitializerHelper</a>
+            </dt>
+            <dd>Has a bunch of helper functions for dynamic initialization (should all be static)</dd>
+            <dt>
+              class <a href="classov__init_1_1Simulator.html" class="m-doc">Simulator</a>
+            </dt>
+            <dd>Master simulator class that generated visual-inertial measurements.</dd>
+            <dt>
+              class <a href="classov__init_1_1State__JPLQuatLocal.html" class="m-doc">State_JPLQuatLocal</a>
+            </dt>
+            <dd>JPL quaternion CERES state parameterization.</dd>
             <dt>
               class <a href="classov__init_1_1StaticInitializer.html" class="m-doc">StaticInitializer</a>
             </dt>

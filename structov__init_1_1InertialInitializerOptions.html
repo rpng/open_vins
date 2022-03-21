@@ -77,9 +77,17 @@
             </dt>
             <dd>This function will load print out all initializer settings loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a4d5ee1a5eb1b3bb35d040e59df7d6541" class="m-doc">print_and_load_noise</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
+            </dt>
+            <dd>This function will load print out all noise parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">void <a href="#a4bbf49110ccf3f02b36d90f2504a0196" class="m-doc">print_and_load_state</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
             </dt>
             <dd>This function will load and print all state parameters (e.g. sensor extrinsics) This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a2dd58d205af3a419aa090f1f5291d0e2" class="m-doc">print_and_load_simulation</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span>
+            </dt>
+            <dd>This function will load print out all simulated parameters. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</dd>
           </dl>
         </section>
         <section id="pub-attribs">
@@ -101,6 +109,78 @@
               int <a href="#a442ed53391151e45582a365c057ac492" class="m-doc-self">init_max_features</a>
             </dt>
             <dd>Number of features we should try to track.</dd>
+            <dt id="a48813c0831ff72ec1a9bb984fbed5bc4">
+              bool <a href="#a48813c0831ff72ec1a9bb984fbed5bc4" class="m-doc-self">init_dyn_mle_opt_calib</a>
+            </dt>
+            <dd>If we should optimize and recover the calibration in our MLE.</dd>
+            <dt id="a8e235cd4275b5f1673e915ddf2e5a4e3">
+              int <a href="#a8e235cd4275b5f1673e915ddf2e5a4e3" class="m-doc-self">init_dyn_mle_max_iter</a>
+            </dt>
+            <dd>Max number of MLE iterations for dynamic initialization.</dd>
+            <dt id="a285d660986d879699bf0b10bf806c769">
+              int <a href="#a285d660986d879699bf0b10bf806c769" class="m-doc-self">init_dyn_mle_max_threads</a>
+            </dt>
+            <dd>Max number of MLE threads for dynamic initialization.</dd>
+            <dt id="ade879e2b38eb03ebe50bbd4cbd5a1ba6">
+              double <a href="#ade879e2b38eb03ebe50bbd4cbd5a1ba6" class="m-doc-self">init_dyn_mle_max_time</a>
+            </dt>
+            <dd>Max time for MLE optimization (seconds)</dd>
+            <dt id="a77d404c5b0dd4a9957f7e857e759f538">
+              int <a href="#a77d404c5b0dd4a9957f7e857e759f538" class="m-doc-self">init_dyn_num_pose</a>
+            </dt>
+            <dd>Number of poses to use during initialization (max should be cam freq * window)</dd>
+            <dt id="a3f6fb9d845f5fb69bb5e38ba1776d98a">
+              double <a href="#a3f6fb9d845f5fb69bb5e38ba1776d98a" class="m-doc-self">init_dyn_min_deg</a>
+            </dt>
+            <dd>Minimum degrees we need to rotate before we try to init (sum of norm)</dd>
+            <dt id="ac18caae89ce58c128ddb0c9afdcb65fd">
+              double <a href="#ac18caae89ce58c128ddb0c9afdcb65fd" class="m-doc-self">init_dyn_inflation_orientation</a>
+            </dt>
+            <dd>Magnitude we will inflate initial covariance of orientation.</dd>
+            <dt id="aafab6a5eca4819a84137bd93452ba30a">
+              double <a href="#aafab6a5eca4819a84137bd93452ba30a" class="m-doc-self">init_dyn_inflation_velocity</a>
+            </dt>
+            <dd>Magnitude we will inflate initial covariance of velocity.</dd>
+            <dt id="a185fc9aa3073561ac95e3bf9d421e083">
+              double <a href="#a185fc9aa3073561ac95e3bf9d421e083" class="m-doc-self">init_dyn_inflation_bias_gyro</a>
+            </dt>
+            <dd>Magnitude we will inflate initial covariance of gyroscope bias.</dd>
+            <dt id="a4a3e85e21af048ba7922a97098c3f7ab">
+              double <a href="#a4a3e85e21af048ba7922a97098c3f7ab" class="m-doc-self">init_dyn_inflation_bias_accel</a>
+            </dt>
+            <dd>Magnitude we will inflate initial covariance of accelerometer bias.</dd>
+            <dt>
+              double <a href="#a202ca41d108ae2da322f246f246d0c2a" class="m-doc">init_dyn_min_rec_cond</a>
+            </dt>
+            <dd></dd>
+            <dt id="ac89f312b0f4ed57a1d7b97ca319b6ee6">
+              Eigen::Vector3d <a href="#ac89f312b0f4ed57a1d7b97ca319b6ee6" class="m-doc-self">init_dyn_bias_g</a>
+            </dt>
+            <dd>Initial IMU gyroscope bias values for dynamic initialization (will be optimized)</dd>
+            <dt id="ab810afe7877d06a6154fa4f28d23051d">
+              Eigen::Vector3d <a href="#ab810afe7877d06a6154fa4f28d23051d" class="m-doc-self">init_dyn_bias_a</a>
+            </dt>
+            <dd>Initial IMU accelerometer bias values for dynamic initialization (will be optimized)</dd>
+            <dt id="ab0e1f45c83f23902d5060d233b2c322b">
+              double <a href="#ab0e1f45c83f23902d5060d233b2c322b" class="m-doc-self">sigma_w</a>
+            </dt>
+            <dd>Gyroscope white noise (rad/s/sqrt(hz))</dd>
+            <dt id="a3a7ed5c1ae5ca754dcc11feecc478bb7">
+              double <a href="#a3a7ed5c1ae5ca754dcc11feecc478bb7" class="m-doc-self">sigma_wb</a>
+            </dt>
+            <dd>Gyroscope random walk (rad/s^2/sqrt(hz))</dd>
+            <dt id="a1ee315c6230a76c677e879bf4b0b2115">
+              double <a href="#a1ee315c6230a76c677e879bf4b0b2115" class="m-doc-self">sigma_a</a>
+            </dt>
+            <dd>Accelerometer white noise (m/s^2/sqrt(hz))</dd>
+            <dt id="ae096e5a68f56d98e738383add8b42526">
+              double <a href="#ae096e5a68f56d98e738383add8b42526" class="m-doc-self">sigma_ab</a>
+            </dt>
+            <dd>Accelerometer random walk (m/s^3/sqrt(hz))</dd>
+            <dt id="ac10140226c97ac5b92f6f72a1f2134df">
+              double <a href="#ac10140226c97ac5b92f6f72a1f2134df" class="m-doc-self">sigma_pix</a>
+            </dt>
+            <dd>Noise sigma for our raw pixel measurements.</dd>
             <dt id="a94b223e0b714d700d3b489b3918b002d">
               double <a href="#a94b223e0b714d700d3b489b3918b002d" class="m-doc-self">gravity_mag</a>
             </dt>
@@ -109,6 +189,66 @@
               int <a href="#a6525a195b4ba524597a0031fa23f65af" class="m-doc-self">num_cameras</a>
             </dt>
             <dd>Number of distinct cameras that we will observe features in.</dd>
+            <dt id="ac0e008a72e6fb14ac129fae7ae62e05b">
+              bool <a href="#ac0e008a72e6fb14ac129fae7ae62e05b" class="m-doc-self">use_stereo</a>
+            </dt>
+            <dd>If we should process two cameras are being stereo or binocular. If binocular, we do monocular feature tracking on each image.</dd>
+            <dt id="a7bae4984f5ae2416c12a4aa4895018a4">
+              bool <a href="#a7bae4984f5ae2416c12a4aa4895018a4" class="m-doc-self">downsample_cameras</a>
+            </dt>
+            <dd>Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)</dd>
+            <dt id="ac592989c94e0bd68ff372ff29d917018">
+              double <a href="#ac592989c94e0bd68ff372ff29d917018" class="m-doc-self">calib_camimu_dt</a>
+            </dt>
+            <dd>Time offset between camera and IMU (t_imu = t_cam + t_off)</dd>
+            <dt id="a29e872f770bce934c99712d1bbf7cc21">
+              std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">ov_core::<wbr />CamBase</a>&gt;&gt; <a href="#a29e872f770bce934c99712d1bbf7cc21" class="m-doc-self">camera_intrinsics</a>
+            </dt>
+            <dd>Map between camid and camera intrinsics (fx, fy, cx, cy, d1...d4, cam_w, cam_h)</dd>
+            <dt id="a031126dec2e7db46ae2b0233aa0d9554">
+              std::map&lt;size_t, Eigen::VectorXd&gt; <a href="#a031126dec2e7db46ae2b0233aa0d9554" class="m-doc-self">camera_extrinsics</a>
+            </dt>
+            <dd>Map between camid and camera extrinsics (q_ItoC, p_IinC).</dd>
+            <dt id="a1737eab55d27c05b3663a6b4c908aa6f">
+              int <a href="#a1737eab55d27c05b3663a6b4c908aa6f" class="m-doc-self">sim_seed_state_init</a>
+            </dt>
+            <dd>Seed for initial states (i.e. random feature 3d positions in the generated map)</dd>
+            <dt id="aed93d59d66bf7d2f0778a09fb58a0a92">
+              int <a href="#aed93d59d66bf7d2f0778a09fb58a0a92" class="m-doc-self">sim_seed_preturb</a>
+            </dt>
+            <dd>Seed for calibration perturbations. Change this to perturb by different random values if perturbations are enabled.</dd>
+            <dt>
+              int <a href="#a4974c2a72613c396477eb322bca919ea" class="m-doc">sim_seed_measurements</a>
+            </dt>
+            <dd></dd>
+            <dt id="af8d57aa321db8dc0a6ae5b5b99bfbd46">
+              bool <a href="#af8d57aa321db8dc0a6ae5b5b99bfbd46" class="m-doc-self">sim_do_perturbation</a>
+            </dt>
+            <dd>If we should perturb the calibration that the estimator starts with.</dd>
+            <dt id="aa8e988485f1a07e879d7a01e8e5b5ca3">
+              std::string <a href="#aa8e988485f1a07e879d7a01e8e5b5ca3" class="m-doc-self">sim_traj_path</a>
+            </dt>
+            <dd>Path to the trajectory we will b-spline and simulate on. Should be time(s),pos(xyz),ori(xyzw) format.</dd>
+            <dt>
+              double <a href="#aa21a87a289051ef5ae66b315a53de75e" class="m-doc">sim_distance_threshold</a>
+            </dt>
+            <dd></dd>
+            <dt id="aad85b7e3154b976099a927066259e19b">
+              double <a href="#aad85b7e3154b976099a927066259e19b" class="m-doc-self">sim_freq_cam</a>
+            </dt>
+            <dd>Frequency (Hz) that we will simulate our cameras.</dd>
+            <dt id="ad5469977d726e6281781746dbf527c1e">
+              double <a href="#ad5469977d726e6281781746dbf527c1e" class="m-doc-self">sim_freq_imu</a>
+            </dt>
+            <dd>Frequency (Hz) that we will simulate our inertial measurement unit.</dd>
+            <dt id="a5dcebf9e0a5f13dde042ba43db83cf37">
+              double <a href="#a5dcebf9e0a5f13dde042ba43db83cf37" class="m-doc-self">sim_min_feature_gen_distance</a>
+            </dt>
+            <dd>Feature distance we generate features from (minimum)</dd>
+            <dt id="a0408c41382b9a69d976e27e977884765">
+              double <a href="#a0408c41382b9a69d976e27e977884765" class="m-doc-self">sim_max_feature_gen_distance</a>
+            </dt>
+            <dd>Feature distance we generate features from (maximum)</dd>
           </dl>
         </section>
         <section>
@@ -147,6 +287,23 @@
               </tbody>
             </table>
           </div></section>
+          <section class="m-doc-details" id="a4d5ee1a5eb1b3bb35d040e59df7d6541"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />InertialInitializerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4d5ee1a5eb1b3bb35d040e59df7d6541" class="m-doc-self">print_and_load_noise</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all noise parameters loaded. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
           <section class="m-doc-details" id="a4bbf49110ccf3f02b36d90f2504a0196"><div>
             <h3>
               <span class="m-doc-wrap-bumper">void ov_init::<wbr />InertialInitializerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4bbf49110ccf3f02b36d90f2504a0196" class="m-doc-self">print_and_load_state</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
@@ -163,6 +320,44 @@
                 </tr>
               </tbody>
             </table>
+          </div></section>
+          <section class="m-doc-details" id="a2dd58d205af3a419aa090f1f5291d0e2"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />InertialInitializerOptions::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2dd58d205af3a419aa090f1f5291d0e2" class="m-doc-self">print_and_load_simulation</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1YamlParser.html" class="m-doc">ov_core::<wbr />YamlParser</a>&gt;&amp; parser = nullptr)</span></span>
+            </h3>
+            <p>This function will load print out all simulated parameters. This allows for visual checking that everything was loaded properly from ROS/CMD parsers.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">parser</td>
+                  <td>If not null, this parser will be used to load our parameters</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+        </section>
+        <section>
+          <h2>Variable documentation</h2>
+          <section class="m-doc-details" id="a202ca41d108ae2da322f246f246d0c2a"><div>
+            <h3>
+              double ov_init::<wbr />InertialInitializerOptions::<wbr /><a href="#a202ca41d108ae2da322f246f246d0c2a" class="m-doc-self">init_dyn_min_rec_cond</a>
+            </h3>
+<p>Minimum reciprocal condition number acceptable for our covariance recovery (min_sigma / max_sigma &lt; sqrt(min_reciprocal_condition_number))</p>
+          </div></section>
+          <section class="m-doc-details" id="a4974c2a72613c396477eb322bca919ea"><div>
+            <h3>
+              int ov_init::<wbr />InertialInitializerOptions::<wbr /><a href="#a4974c2a72613c396477eb322bca919ea" class="m-doc-self">sim_seed_measurements</a>
+            </h3>
+<p>Measurement noise seed. This should be incremented for each run in the Monte-Carlo simulation to generate the same true measurements, but diffferent noise values.</p>
+          </div></section>
+          <section class="m-doc-details" id="aa21a87a289051ef5ae66b315a53de75e"><div>
+            <h3>
+              double ov_init::<wbr />InertialInitializerOptions::<wbr /><a href="#aa21a87a289051ef5ae66b315a53de75e" class="m-doc-self">sim_distance_threshold</a>
+            </h3>
+<p>We will start simulating after we have moved this much along the b-spline. This prevents static starts as we init from groundtruth in simulation.</p>
           </div></section>
         </section>
       </div>

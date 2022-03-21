@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Developer and Internals &raquo; Future Roadmap | OpenVINS</title>
+  <title>ov_init::Factor_ImuCPIv1 class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -49,10 +49,65 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dev-welcome.html">Developer and Internals</a> &raquo;</span>
-          Future Roadmap
+          <span class="m-breadcrumb"><a href="namespaceov__init.html">ov_init</a>::<wbr/></span>Factor_ImuCPIv1 <span class="m-thin">class</span>
         </h1>
-<p>The initial release provides the library foundation which contains a filter-based visual-inertial localization solution. This can be used in a wide range of scenarios and the type-based index system allows for others to easily add new features and develop on top of this system. Here is a list of future directions, although nothing is set in stone, that we are interested in taking:</p><ul><li>Creation of a secondary graph-based thread that loosely introduces loop closures (akin to the second thread of VINS-Mono and others) which should allow for drift free long-term localization.</li><li>Large scale offline batch graph optimization which leverages the trajectory of the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> as its initial guess and then optimizes both the map and trajectory.</li><li>Incorporate our prior work in preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[6]</a> into the same framework structure to allow for easy extensibility. Focus on sparsification and marginalization to allow for realtime computation.</li><li>Leverage this sliding-window batch method to perform SFM initialization of all methods.</li><li>Support for arbitrary Schmidt&#x27;ing of state elements allowing for modeling of their prior uncertainties but without optimizing their values online.</li><li>More advance imu integration schemes, quantification of the integration noises to handle low frequency readings, and modeling of the imu intrinsics.</li></ul>
+        <p>Factor for IMU continuous preintegration version 1.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt id="a8571f651843034809cfe630a371b68ef">
+              <span class="m-doc-wrap-bumper"><a href="#a8571f651843034809cfe630a371b68ef" class="m-doc-self">Factor_ImuCPIv1</a>(</span><span class="m-doc-wrap">double deltatime,
+              Eigen::Vector3d&amp; grav,
+              Eigen::Vector3d&amp; alpha,
+              Eigen::Vector3d&amp; beta,
+              Eigen::Vector4d&amp; q_KtoK1,
+              Eigen::Vector3d&amp; ba_lin,
+              Eigen::Vector3d&amp; bg_lin,
+              Eigen::Matrix3d&amp; J_q,
+              Eigen::Matrix3d&amp; J_beta,
+              Eigen::Matrix3d&amp; J_alpha,
+              Eigen::Matrix3d&amp; H_beta,
+              Eigen::Matrix3d&amp; H_alpha,
+              Eigen::Matrix&lt;double, 15, 15&gt;&amp; covariance)</span>
+            </dt>
+            <dd>Default constructor.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#aac5c524db6738afb86c91570ef726c6e" class="m-doc">Evaluate</a>(</span><span class="m-doc-wrap">double const*const* parameters,
+              double* residuals,
+              double** jacobians) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Error residual and Jacobian calculation.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="aac5c524db6738afb86c91570ef726c6e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />Factor_ImuCPIv1::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aac5c524db6738afb86c91570ef726c6e" class="m-doc-self">Evaluate</a>(</span><span class="m-doc-wrap">double const*const* parameters,
+              double* residuals,
+              double** jacobians) const <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Error residual and Jacobian calculation.</p>
+<p>This computes the error between the integrated preintegrated measurement and the current state estimate. This also takes into account the bias linearization point changes.</p>
+          </div></section>
+        </section>
       </div>
     </div>
   </div>

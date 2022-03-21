@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Developer and Internals &raquo; Future Roadmap | OpenVINS</title>
+  <title>ReadMe | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -49,10 +49,9 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dev-welcome.html">Developer and Internals</a> &raquo;</span>
-          Future Roadmap
+          ReadMe
         </h1>
-<p>The initial release provides the library foundation which contains a filter-based visual-inertial localization solution. This can be used in a wide range of scenarios and the type-based index system allows for others to easily add new features and develop on top of this system. Here is a list of future directions, although nothing is set in stone, that we are interested in taking:</p><ul><li>Creation of a secondary graph-based thread that loosely introduces loop closures (akin to the second thread of VINS-Mono and others) which should allow for drift free long-term localization.</li><li>Large scale offline batch graph optimization which leverages the trajectory of the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> as its initial guess and then optimizes both the map and trajectory.</li><li>Incorporate our prior work in preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[6]</a> into the same framework structure to allow for easy extensibility. Focus on sparsification and marginalization to allow for realtime computation.</li><li>Leverage this sliding-window batch method to perform SFM initialization of all methods.</li><li>Support for arbitrary Schmidt&#x27;ing of state elements allowing for modeling of their prior uncertainties but without optimizing their values online.</li><li>More advance imu integration schemes, quantification of the integration noises to handle low frequency readings, and modeling of the imu intrinsics.</li></ul>
+<p>These trajectories are from the RTK GPS. Ideally, would need to be transformed to the IMU frame. Additionally, there is no timeoffset taken into account which will cause errors too.</p><p><strong>Don&#x27;t use these to evaluate error, just use theses to visualize!! If you do compare, you should only use the ATE and say that you are comparing agaist a non-perfect groundtruth. Additionally you should filter the poses based on the positionally accuracy (see the last columns in each text file).</strong></p><p>If you are looking at these groundtruth files, you might be interested in:</p><ul><li><a href="https://github.com/rpng/gps_path_pub">https://github.com/rpng/gps_<wbr />path_<wbr />pub</a></li></ul>
       </div>
     </div>
   </div>

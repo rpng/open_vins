@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Developer and Internals &raquo; Future Roadmap | OpenVINS</title>
+  <title>ov_init::Factor_ImageReprojCalib class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -49,10 +49,82 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="dev-welcome.html">Developer and Internals</a> &raquo;</span>
-          Future Roadmap
+          <span class="m-breadcrumb"><a href="namespaceov__init.html">ov_init</a>::<wbr/></span>Factor_ImageReprojCalib <span class="m-thin">class</span>
         </h1>
-<p>The initial release provides the library foundation which contains a filter-based visual-inertial localization solution. This can be used in a wide range of scenarios and the type-based index system allows for others to easily add new features and develop on top of this system. Here is a list of future directions, although nothing is set in stone, that we are interested in taking:</p><ul><li>Creation of a secondary graph-based thread that loosely introduces loop closures (akin to the second thread of VINS-Mono and others) which should allow for drift free long-term localization.</li><li>Large scale offline batch graph optimization which leverages the trajectory of the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> as its initial guess and then optimizes both the map and trajectory.</li><li>Incorporate our prior work in preintegration <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[6]</a> into the same framework structure to allow for easy extensibility. Focus on sparsification and marginalization to allow for realtime computation.</li><li>Leverage this sliding-window batch method to perform SFM initialization of all methods.</li><li>Support for arbitrary Schmidt&#x27;ing of state elements allowing for modeling of their prior uncertainties but without optimizing their values online.</li><li>More advance imu integration schemes, quantification of the integration noises to handle low frequency readings, and modeling of the imu intrinsics.</li></ul>
+        <p>Factor of feature bearing observation (raw) with calibration.</p>
+        <div class="m-block m-default">
+          <h3>Contents</h3>
+          <ul>
+            <li>
+              Reference
+              <ul>
+                <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+        <section id="typeless-methods">
+          <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper"><a href="#a22667a0b35f94d35525a524909d45288" class="m-doc">Factor_ImageReprojCalib</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_meas_,
+              double pix_sigma_,
+              bool is_fisheye_)</span>
+            </dt>
+            <dd>Default constructor.</dd>
+          </dl>
+        </section>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#a937df2754898e58f81c7fa0d56062664" class="m-doc">Evaluate</a>(</span><span class="m-doc-wrap">double const*const* parameters,
+              double* residuals,
+              double** jacobians) const -&gt; bool <span class="m-label m-flat m-warning">override</span></span>
+            </dt>
+            <dd>Error residual and Jacobian calculation.</dd>
+          </dl>
+        </section>
+        <section>
+          <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a22667a0b35f94d35525a524909d45288"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper"> ov_init::<wbr />Factor_ImageReprojCalib::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a22667a0b35f94d35525a524909d45288" class="m-doc-self">Factor_ImageReprojCalib</a>(</span><span class="m-doc-wrap">const Eigen::Vector2d&amp; uv_meas_,
+              double pix_sigma_,
+              bool is_fisheye_)</span></span>
+            </h3>
+            <p>Default constructor.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">uv_meas_</td>
+                  <td>Raw pixel uv measurement of a environmental feature</td>
+                </tr>
+                <tr>
+                  <td>pix_sigma_</td>
+                  <td>Raw pixel measurement uncertainty (typically 1)</td>
+                </tr>
+                <tr>
+                  <td>is_fisheye_</td>
+                  <td>If this raw pixel camera uses fisheye distortion</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a937df2754898e58f81c7fa0d56062664"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />Factor_ImageReprojCalib::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a937df2754898e58f81c7fa0d56062664" class="m-doc-self">Evaluate</a>(</span><span class="m-doc-wrap">double const*const* parameters,
+              double* residuals,
+              double** jacobians) const <span class="m-label m-warning">override</span></span></span>
+            </h3>
+            <p>Error residual and Jacobian calculation.</p>
+<p>This computes the Jacobians and residual of the feature projection model. This is a function of the observing pose, feature in global, and calibration parameters. The normalized pixel coordinates are found and then distorted using the camera distortion model. See the <a href="update-feat.html" class="m-doc">Camera Measurement Update</a> page for more details.</p>
+          </div></section>
+        </section>
       </div>
     </div>
   </div>

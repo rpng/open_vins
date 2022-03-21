@@ -121,24 +121,26 @@
             </dt>
             <dd>Process a new image.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a384a0736f1d62da3261a84be7b5430b3" class="m-doc">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
-              int r1,
-              int g1,
-              int b1,
-              int r2,
-              int g2,
-              int b2) <span class="m-label m-flat m-warning">virtual</span></span>
-            </dt>
-            <dd>Shows features extracted in the last image.</dd>
-            <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a994ec3f3271cea43ff3d40d42e39fb5b" class="m-doc">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
+              <span class="m-doc-wrap-bumper">void <a href="#a01c002a52290030fb86955ed6706f658" class="m-doc">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
               int r1,
               int g1,
               int b1,
               int r2,
               int g2,
               int b2,
-              std::vector&lt;size_t&gt; highlighted = {}) <span class="m-label m-flat m-warning">virtual</span></span>
+              std::string overlay = &quot;&quot;) <span class="m-label m-flat m-warning">virtual</span></span>
+            </dt>
+            <dd>Shows features extracted in the last image.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#ae90a40ff97cf87e1fe58e278d49c2f5b" class="m-doc">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
+              int r1,
+              int g1,
+              int b1,
+              int r2,
+              int g2,
+              int b2,
+              std::vector&lt;size_t&gt; highlighted = {},
+              std::string overlay = &quot;&quot;) <span class="m-label m-flat m-warning">virtual</span></span>
             </dt>
             <dd>Shows a &quot;trail&quot; for each feature (i.e. its history)</dd>
             <dt>
@@ -269,15 +271,16 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a384a0736f1d62da3261a84be7b5430b3"><div>
+          <section class="m-doc-details" id="a01c002a52290030fb86955ed6706f658"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a384a0736f1d62da3261a84be7b5430b3" class="m-doc-self">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a01c002a52290030fb86955ed6706f658" class="m-doc-self">display_active</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
               int r1,
               int g1,
               int b1,
               int r2,
               int g2,
-              int b2) <span class="m-label m-warning">virtual</span></span></span>
+              int b2,
+              std::string overlay = &quot;&quot;) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Shows features extracted in the last image.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -313,19 +316,24 @@
                   <td>b2</td>
                   <td>second color to draw in</td>
                 </tr>
+                <tr>
+                  <td>overlay</td>
+                  <td>Text overlay to replace to normal &quot;cam0&quot; in the top left of screen</td>
+                </tr>
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a994ec3f3271cea43ff3d40d42e39fb5b"><div>
+          <section class="m-doc-details" id="ae90a40ff97cf87e1fe58e278d49c2f5b"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a994ec3f3271cea43ff3d40d42e39fb5b" class="m-doc-self">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae90a40ff97cf87e1fe58e278d49c2f5b" class="m-doc-self">display_history</a>(</span><span class="m-doc-wrap">cv::Mat&amp; img_out,
               int r1,
               int g1,
               int b1,
               int r2,
               int g2,
               int b2,
-              std::vector&lt;size_t&gt; highlighted = {}) <span class="m-label m-warning">virtual</span></span></span>
+              std::vector&lt;size_t&gt; highlighted = {},
+              std::string overlay = &quot;&quot;) <span class="m-label m-warning">virtual</span></span></span>
             </h3>
             <p>Shows a &quot;trail&quot; for each feature (i.e. its history)</p>
             <table class="m-table m-fullwidth m-flat">
@@ -364,6 +372,10 @@
                 <tr>
                   <td>highlighted</td>
                   <td>unique ids which we wish to highlight (e.g. slam feats)</td>
+                </tr>
+                <tr>
+                  <td>overlay</td>
+                  <td>Text overlay to replace to normal &quot;cam0&quot; in the top left of screen</td>
                 </tr>
               </tbody>
             </table>

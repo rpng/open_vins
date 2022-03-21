@@ -86,7 +86,8 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ad411162db09d79cdde712c3160798589" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a85e0ca4c3728853d6e12ae4ec9bf691d" class="m-doc">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message,
+              double oldest_time = -1)</span>
             </dt>
             <dd>Feed function for inertial data.</dd>
             <dt>
@@ -203,9 +204,10 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ad411162db09d79cdde712c3160798589"><div>
+          <section class="m-doc-details" id="a85e0ca4c3728853d6e12ae4ec9bf691d"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad411162db09d79cdde712c3160798589" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a85e0ca4c3728853d6e12ae4ec9bf691d" class="m-doc-self">feed_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message,
+              double oldest_time = -1)</span></span>
             </h3>
             <p>Feed function for inertial data.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -216,6 +218,10 @@
                 <tr>
                   <td style="width: 1%">message</td>
                   <td>Contains our timestamp and inertial information</td>
+                </tr>
+                <tr>
+                  <td>oldest_time</td>
+                  <td>Time that we can discard measurements before</td>
                 </tr>
               </tbody>
             </table>
