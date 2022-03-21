@@ -85,10 +85,6 @@ ament_export_libraries(ov_msckf_lib)
 # Make binary files!
 ##################################################
 
-# TODO: UPGRADE THIS TO ROS2 AS ANOTHER FILE!!
-#add_executable(ros2_serial_msckf src/ros2_serial_msckf.cpp)
-#target_link_libraries(ros2_serial_msckf ov_msckf_lib ${thirdparty_libraries})
-
 add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
 ament_target_dependencies(run_subscribe_msckf ${ament_libraries})
 target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})

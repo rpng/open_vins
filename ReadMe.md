@@ -91,14 +91,11 @@ details on what the system supports.
 
 ## Codebase Extensions
 
-* **[ov_secondary](https://github.com/rpng/ov_secondary)** - This is an example secondary thread which provides loop
-  closure in a loosely coupled manner for [OpenVINS](https://github.com/rpng/open_vins). This is a modification of the
-  code originally developed by the HKUST aerial robotics group and can be found in
-  their [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion) repository. Here we stress that this is a
-  loosely coupled method, thus no information is returned to the estimator to improve the underlying OpenVINS odometry.
-  This codebase has been modified in a few key areas including: exposing more loop closure parameters, subscribing to
-  camera intrinsics, simplifying configuration such that only topics need to be supplied, and some tweaks to the loop
-  closure detection to improve frequency.
+* **[vicon2gt](https://github.com/rpng/vicon2gt)** - This utility was created to generate groundtruth trajectories using
+  a motion capture system (e.g. Vicon or OptiTrack) for use in evaluating visual-inertial estimation systems.
+  Specifically we calculate the inertial IMU state (full 15 dof) at camera frequency rate and generate a groundtruth
+  trajectory similar to those provided by the EurocMav datasets. Performs fusion of inertial and motion capture
+  information and estimates all unknown spacial-temporal calibrations between the two sensors.
 
 * **[ov_maplab](https://github.com/rpng/ov_maplab)** - This codebase contains the interface wrapper for exporting
   visual-inertial runs from [OpenVINS](https://github.com/rpng/open_vins) into the ViMap structure taken
@@ -108,11 +105,15 @@ details on what the system supports.
   running the data through OpenVINS. Some example have been provided along with a helper script to export trajectories
   into the standard groundtruth format.
 
-* **[vicon2gt](https://github.com/rpng/vicon2gt)** - This utility was created to generate groundtruth trajectories using
-  a motion capture system (e.g. Vicon or OptiTrack) for use in evaluating visual-inertial estimation systems.
-  Specifically we calculate the inertial IMU state (full 15 dof) at camera frequency rate and generate a groundtruth
-  trajectory similar to those provided by the EurocMav datasets. Performs fusion of inertial and motion capture
-  information and estimates all unknown spacial-temporal calibrations between the two sensors.
+* **[ov_secondary](https://github.com/rpng/ov_secondary)** - This is an example secondary thread which provides loop
+  closure in a loosely coupled manner for [OpenVINS](https://github.com/rpng/open_vins). This is a modification of the
+  code originally developed by the HKUST aerial robotics group and can be found in
+  their [VINS-Fusion](https://github.com/HKUST-Aerial-Robotics/VINS-Fusion) repository. Here we stress that this is a
+  loosely coupled method, thus no information is returned to the estimator to improve the underlying OpenVINS odometry.
+  This codebase has been modified in a few key areas including: exposing more loop closure parameters, subscribing to
+  camera intrinsics, simplifying configuration such that only topics need to be supplied, and some tweaks to the loop
+  closure detection to improve frequency.
+
 
 ## Demo Videos
 

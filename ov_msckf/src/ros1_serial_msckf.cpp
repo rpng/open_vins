@@ -63,6 +63,7 @@ int main(int argc, char **argv) {
   // Create our VIO system
   VioManagerOptions params;
   params.print_and_load(parser);
+  params.use_multi_threading = false;
   sys = std::make_shared<VioManager>(params);
   viz = std::make_shared<ROS1Visualizer>(nh, sys);
 
@@ -70,12 +71,6 @@ int main(int argc, char **argv) {
   if (!parser->successful()) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
-  }
-
-  // Ensure we do not have multi threading enabled since we want to call things in serial
-  if (params.use_multi_threading) {
-    PRINT_ERROR(RED "serial reader called without disabling multi threading!\n" RESET);
-    return EXIT_FAILURE;
   }
 
   //===================================================================================

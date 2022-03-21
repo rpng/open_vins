@@ -87,12 +87,12 @@ public:
 
     // Push back to our initializer
     if (!is_initialized_vio) {
-      initializer->feed_imu(message);
+      initializer->feed_imu(message, oldest_time);
     }
 
     // Push back to the zero velocity updater if we have it
     if (is_initialized_vio && updaterZUPT != nullptr) {
-      updaterZUPT->feed_imu(message);
+      updaterZUPT->feed_imu(message, oldest_time);
     }
   }
 

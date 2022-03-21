@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
+  params.use_multi_threading = false;
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
 #if ROS_AVAILABLE == 1
@@ -103,12 +104,6 @@ int main(int argc, char **argv) {
   if (!parser->successful()) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
-  }
-
-  // Ensure we do not have multi threading enabled since we want to call things in serial
-  if (params.use_multi_threading) {
-    PRINT_ERROR(RED "serial reader called without disabling multi threading!\n" RESET);
-    return EXIT_FAILURE;
   }
 
   //===================================================================================

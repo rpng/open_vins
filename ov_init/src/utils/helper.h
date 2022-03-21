@@ -56,7 +56,7 @@ public:
    * @brief Helper function that given current imu data, will select imu readings between the two times.
    *
    * This will create measurements that we will integrate with, and an extra measurement at the end.
-   * We use the @ref interpolate_data() function to "cut" the imu readings at the begining and end of the integration.
+   * We use the @ref interpolate_data() function to "cut" the imu readings at the beginning and end of the integration.
    * The timestamps passed should already take into account the time offset values.
    *
    * @param imu_data_tmp IMU data we will select measurements from
@@ -178,6 +178,7 @@ public:
    *
    * @param D Gravity in our sensor frame
    * @param d Rotation from the arbitrary inertial reference frame to this gravity vector
+   * @param gravity_mag Scalar size of gravity (normally is 9.81)
    * @return Coefficents from highest to the constant
    */
   static Eigen::VectorXd compute_dongsi_coeff(Eigen::MatrixXd &D, const Eigen::MatrixXd &d, double gravity_mag) {

@@ -17,6 +17,9 @@
     <!-- if we should perturb the initial state values (i.e. calibration) -->
     <arg name="sim_do_perturbation" default="false" />
 
+    <!-- if we should optimize the calibration -->
+    <arg name="mle_opt_calib"       default="false" />
+
 
     <!-- ================================================================ -->
     <!-- ================================================================ -->
@@ -40,6 +43,8 @@
 
         <!-- world/filter parameters -->
         <param name="max_cameras"            type="int"    value="1" />
+        <param name="init_dyn_mle_opt_calib" type="bool"   value="$(arg mle_opt_calib)" />
+        <param name="init_max_features"      type="int"    value="30" />
 
     </node>
 

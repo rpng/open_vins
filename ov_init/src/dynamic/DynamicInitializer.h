@@ -45,12 +45,10 @@ namespace ov_init {
  *
  * This implementation that will try to recover the initial conditions of the system.
  * Additionally, we will try to recover the covariance of the system.
- *
  * To initialize with arbitrary motion:
  * 1. Preintegrate our system to get the relative rotation change (biases assumed known)
- * 2. Recover the IMU gyroscope bias, time offset, and refine R_CtoI with a MLE (optional)
- * 3. Construct linear system with features to recover velocity (solve with |g| constraint)
- * 4. Perform a large MLE with all calibration and recover the covariance.
+ * 2. Construct linear system with features to recover velocity (solve with |g| constraint)
+ * 3. Perform a large MLE with all calibration and recover the covariance.
  *
  * Method is based on this work:
  * > Dong-Si, Tue-Cuong, and Anastasios I. Mourikis.

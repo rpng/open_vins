@@ -111,13 +111,6 @@ int main(int argc, char **argv) {
   // NOTE: By default the problem takes ownership of the memory
   ceres::Problem problem;
 
-  // Let ceres know the best elimination ordering.
-  // That is, we can use an efficient schur complement decomposition
-  // On the features, whose block hessian is block diagonal since no features are adjacent in the graph.
-  // This is based on the g2o paper, that shows that we can quickly get rid of the sparse features
-  // https://www.cct.lsu.edu/~kzhang/papers/g2o.pdf
-  std::shared_ptr<ceres::ParameterBlockOrdering> ordering(new ceres::ParameterBlockOrdering());
-
   // Our system states (map from time to index)
   std::map<double, int> map_states;
   std::vector<double *> ceres_vars_ori;
@@ -128,9 +121,9 @@ int main(int argc, char **argv) {
 
   // Feature states (3dof p_FinG)
   std::map<size_t, int> map_features;
-  std::map<size_t, std::vector<Factor_ImageReprojCalib *>> map_features_loss; // only valid as long as problem is
-  std::map<size_t, int> map_features_num_meas;
   std::vector<double *> ceres_vars_feat;
+  typedef std::vector<std::pair<Factor_ImageReprojCalib *, std::vector<double *>>> factpair;
+  std::map<size_t, factpair> map_features_delayed; // only valid as long as problem is
 
   // Setup extrinsic calibration q_ItoC, p_IinC (map from camera id to index)
   std::map<size_t, int> map_calib_cam2imu;
@@ -145,20 +138,17 @@ int main(int argc, char **argv) {
   // NOTE: We use dense schur since after eliminating features we have a dense problem
   // NOTE: http://ceres-solver.org/solving_faqs.html#solving
   ceres::Solver::Options options;
-  // options.linear_solver_type = ceres::DENSE_SCHUR;
-  // options.trust_region_strategy_type = ceres::DOGLEG;
+  options.linear_solver_type = ceres::DENSE_SCHUR;
+  options.trust_region_strategy_type = ceres::DOGLEG;
   // options.linear_solver_type = ceres::SPARSE_SCHUR;
   // options.trust_region_strategy_type = ceres::LEVENBERG_MARQUARDT;
-  options.preconditioner_type = ceres::SCHUR_JACOBI;
-  options.linear_solver_type = ceres::ITERATIVE_SCHUR;
   options.num_threads = 6;
   options.max_solver_time_in_seconds = 9999;
   options.max_num_iterations = 20;
   options.minimizer_progress_to_stdout = true;
   // options.use_nonmonotonic_steps = true;
-  // options.linear_solver_ordering = ordering;
-  options.function_tolerance = 1e-5;
-  options.gradient_tolerance = 1e-4 * options.function_tolerance;
+  // options.function_tolerance = 1e-5;
+  // options.gradient_tolerance = 1e-4 * options.function_tolerance;
 
   // DEBUG: check analytical jacobians using ceres finite differences
   // options.check_gradients = true;
@@ -281,34 +271,32 @@ int main(int argc, char **argv) {
         // Now actually create the parameter block in the ceres problem
         auto ceres_jplquat = new State_JPLQuatLocal();
         problem.AddParameterBlock(var_ori, 4, ceres_jplquat);
-        ordering->AddElementToGroup(var_ori, 1);
         problem.AddParameterBlock(var_pos, 3);
-        ordering->AddElementToGroup(var_pos, 1);
         problem.AddParameterBlock(var_vel, 3);
-        ordering->AddElementToGroup(var_vel, 1);
         problem.AddParameterBlock(var_bias_g, 3);
-        ordering->AddElementToGroup(var_bias_g, 1);
         problem.AddParameterBlock(var_bias_a, 3);
-        ordering->AddElementToGroup(var_bias_a, 1);
 
         // Fix this first ever pose to constrain the problem
+        // On the Comparison of Gauge Freedom Handling in Optimization-Based Visual-Inertial State Estimation
+        // Zichao Zhang; Guillermo Gallego; Davide Scaramuzza
+        // https://ieeexplore.ieee.org/document/8354808
         if (map_states.empty()) {
 
           // Construct state and prior
-          Eigen::MatrixXd x_lin = Eigen::MatrixXd::Zero(13, 1);
+          Eigen::MatrixXd x_lin = Eigen::MatrixXd::Zero(7, 1);
           for (int i = 0; i < 4; i++) {
             x_lin(0 + i) = var_ori[i];
           }
           for (int i = 0; i < 3; i++) {
             x_lin(4 + i) = var_pos[i];
-            x_lin(7 + i) = var_bias_g[i];
-            x_lin(10 + i) = var_bias_a[i];
+            // x_lin(7 + i) = var_bias_g[i];
+            // x_lin(10 + i) = var_bias_a[i];
           }
-          Eigen::MatrixXd prior_grad = Eigen::MatrixXd::Zero(10, 1);
-          Eigen::MatrixXd prior_Info = Eigen::MatrixXd::Identity(10, 10);
+          Eigen::MatrixXd prior_grad = Eigen::MatrixXd::Zero(4, 1);
+          Eigen::MatrixXd prior_Info = Eigen::MatrixXd::Identity(4, 4);
           prior_Info.block(0, 0, 4, 4) *= 1.0 / std::pow(1e-8, 2); // 4dof unobservable yaw and position
-          prior_Info.block(4, 4, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_g prior
-          prior_Info.block(7, 7, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_a prior
+          // prior_Info.block(4, 4, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_g prior
+          // prior_Info.block(7, 7, 3, 3) *= 1.0 / std::pow(1e-1, 2); // bias_a prior
 
           // Construct state type and ceres parameter pointers
           std::vector<std::string> x_types;
@@ -317,10 +305,10 @@ int main(int argc, char **argv) {
           x_types.emplace_back("quat_yaw");
           factor_params.push_back(var_pos);
           x_types.emplace_back("vec3");
-          factor_params.push_back(var_bias_g);
-          x_types.emplace_back("vec3");
-          factor_params.push_back(var_bias_a);
-          x_types.emplace_back("vec3");
+          // factor_params.push_back(var_bias_g);
+          // x_types.emplace_back("vec3");
+          // factor_params.push_back(var_bias_a);
+          // x_types.emplace_back("vec3");
 
           // Append it to the problem
           auto *factor_prior = new Factor_GenericPrior(x_lin, x_types, prior_Info, prior_grad);
@@ -379,9 +367,7 @@ int main(int argc, char **argv) {
             }
             auto ceres_calib_jplquat = new State_JPLQuatLocal();
             problem.AddParameterBlock(var_calib_ori, 4, ceres_calib_jplquat);
-            ordering->AddElementToGroup(var_calib_ori, 2);
             problem.AddParameterBlock(var_calib_pos, 3);
-            ordering->AddElementToGroup(var_calib_pos, 2);
             map_calib_cam2imu.insert({cam_id, (int)ceres_vars_calib_cam2imu_ori.size()});
             ceres_vars_calib_cam2imu_ori.push_back(var_calib_ori);
             ceres_vars_calib_cam2imu_pos.push_back(var_calib_pos);
@@ -406,10 +392,13 @@ int main(int argc, char **argv) {
             x_types.emplace_back("quat");
             factor_params.push_back(var_calib_pos);
             x_types.emplace_back("vec3");
-            auto *factor_prior = new Factor_GenericPrior(x_lin, x_types, prior_Info, prior_grad);
-            problem.AddResidualBlock(factor_prior, nullptr, factor_params);
-            // problem.SetParameterBlockConstant(var_calib_ori);
-            // problem.SetParameterBlockConstant(var_calib_pos);
+            if (!params.init_dyn_mle_opt_calib) {
+              problem.SetParameterBlockConstant(var_calib_ori);
+              problem.SetParameterBlockConstant(var_calib_pos);
+            } else {
+              auto *factor_prior = new Factor_GenericPrior(x_lin, x_types, prior_Info, prior_grad);
+              problem.AddResidualBlock(factor_prior, nullptr, factor_params);
+            }
           }
           bool is_fisheye = (std::dynamic_pointer_cast<ov_core::CamEqui>(params.camera_intrinsics.at(cam_id)) != nullptr);
           if (map_calib_cam.find(cam_id) == map_calib_cam.end()) {
@@ -418,7 +407,6 @@ int main(int argc, char **argv) {
               var_calib_cam[i] = params.camera_intrinsics.at(cam_id)->get_value()(i, 0);
             }
             problem.AddParameterBlock(var_calib_cam, 8);
-            ordering->AddElementToGroup(var_calib_cam, 2);
             map_calib_cam.insert({cam_id, (int)ceres_vars_calib_cam_intrinsics.size()});
             ceres_vars_calib_cam_intrinsics.push_back(var_calib_cam);
 
@@ -437,9 +425,12 @@ int main(int argc, char **argv) {
             std::vector<double *> factor_params;
             factor_params.push_back(var_calib_cam);
             x_types.emplace_back("vec8");
-            auto *factor_prior = new Factor_GenericPrior(x_lin, x_types, prior_Info, prior_grad);
-            problem.AddResidualBlock(factor_prior, nullptr, factor_params);
-            // problem.SetParameterBlockConstant(var_calib_cam);
+            if (!params.init_dyn_mle_opt_calib) {
+              problem.SetParameterBlockConstant(var_calib_cam);
+            } else {
+              auto *factor_prior = new Factor_GenericPrior(x_lin, x_types, prior_Info, prior_grad);
+              problem.AddResidualBlock(factor_prior, nullptr, factor_params);
+            }
           }
 
           // Now loop through each feature observed at this k+1 timestamp
@@ -452,24 +443,19 @@ int main(int argc, char **argv) {
             // Normally, we should need to triangulate this once we have enough measurements
             // TODO: do not initialize features from the groundtruth map
             if (map_features.find(featid) == map_features.end()) {
+              assert(params.use_stereo);
               Eigen::Vector3d p_FinG = sim.get_map().at(featid);
               auto *var_feat = new double[3];
               for (int i = 0; i < 3; i++) {
                 std::normal_distribution<double> w(0, 1);
                 var_feat[i] = p_FinG(i) + feat_noise * w(gen_state_perturb);
               }
-              problem.AddParameterBlock(var_feat, 3);
-              ordering->AddElementToGroup(var_feat, 0);
               map_features.insert({featid, (int)ceres_vars_feat.size()});
-              map_features_num_meas.insert({featid, 0});
-              map_features_loss.insert({featid, std::vector<Factor_ImageReprojCalib *>()});
+              map_features_delayed.insert({featid, factpair()});
               ceres_vars_feat.push_back(var_feat);
-              // By default, we won't have enough measurements
-              // Thus fix the feature and un-fix after we have enough constraints
-              // problem.SetParameterBlockConstant(var_feat);
             }
 
-            // Then lets add the factors
+            // Factor parameters it is a function of
             std::vector<double *> factor_params;
             factor_params.push_back(ceres_vars_ori.at(map_states.at(timestamp_k1)));
             factor_params.push_back(ceres_vars_pos.at(map_states.at(timestamp_k1)));
@@ -478,12 +464,13 @@ int main(int argc, char **argv) {
             factor_params.push_back(ceres_vars_calib_cam2imu_pos.at(map_calib_cam2imu.at(cam_id)));
             factor_params.push_back(ceres_vars_calib_cam_intrinsics.at(map_calib_cam.at(cam_id)));
             auto *factor_pinhole = new Factor_ImageReprojCalib(uv_raw, params.sigma_pix, is_fisheye);
-            factor_pinhole->gate = 0.0;
-            ceres::LossFunction *loss_function = nullptr;
-            // ceres::LossFunction *loss_function = new ceres::CauchyLoss(1.0);
-            problem.AddResidualBlock(factor_pinhole, loss_function, factor_params);
-            map_features_num_meas.at(featid)++;
-            map_features_loss.at(featid).push_back(factor_pinhole);
+            if (map_features_delayed.find(featid) != map_features_delayed.end()) {
+              map_features_delayed.at(featid).push_back({factor_pinhole, factor_params});
+            } else {
+              ceres::LossFunction *loss_function = nullptr;
+              // ceres::LossFunction *loss_function = new ceres::CauchyLoss(1.0);
+              problem.AddResidualBlock(factor_pinhole, loss_function, factor_params);
+            }
           }
         }
       }
@@ -491,19 +478,26 @@ int main(int argc, char **argv) {
       buffer_camids = camids;
       buffer_feats = feats;
 
-      // Fix features that only have one measurement
-      // These features are not constrained, thus shouldn't be optimized
-      // NOTE: we need to re-add the ordering as ceres seems to remove fixed variables from the ordering
-      // TODO: should we just not optimize if measurements are too small? what value should we use?
-      int min_num_meas_to_optimize = 3;
-      for (auto &feat : map_features) {
-        if (map_features_num_meas.at(feat.first) >= min_num_meas_to_optimize) {
-          //&& problem.IsParameterBlockConstant(ceres_vars_feat[feat.second])) {
-          // problem.SetParameterBlockVariable(ceres_vars_feat.at(feat.second));
-          // ordering->AddElementToGroup(ceres_vars_feat.at(feat.second), 0);
-          for (auto &res : map_features_loss.at(feat.first)) {
-            res->gate = 1.0;
+      // If a delayed feature has enough measurements we can add it to the problem!
+      // We will wait for enough observations before adding the parameter
+      // This should make it much more stable since the parameter / optimization is more constrained
+      size_t min_num_meas_to_optimize = 10;
+      auto it0 = map_features_delayed.begin();
+      while (it0 != map_features_delayed.end()) {
+        size_t featid = (*it0).first;
+        auto factors = (*it0).second;
+        if (factors.size() >= min_num_meas_to_optimize) {
+          problem.AddParameterBlock(ceres_vars_feat.at(map_features.at(featid)), 3);
+          for (auto const &factorpair : factors) {
+            auto factor_pinhole = factorpair.first;
+            auto factor_params = factorpair.second;
+            ceres::LossFunction *loss_function = nullptr;
+            // ceres::LossFunction *loss_function = new ceres::CauchyLoss(1.0);
+            problem.AddResidualBlock(factor_pinhole, loss_function, factor_params);
           }
+          it0 = map_features_delayed.erase(it0);
+        } else {
+          it0++;
         }
       }
 
@@ -513,7 +507,7 @@ int main(int argc, char **argv) {
 
       // We can try to optimize every few frames, but this can cause the IMU to drift
       // Thus this can't be too large, nor too small to reduce the computation
-      if (map_states.size() % 10 == 0) {
+      if (map_states.size() % 10 == 0 && map_states.size() > min_num_meas_to_optimize) {
 
         // COMPUTE: error before optimization
         double error_before = 0.0;
@@ -603,7 +597,7 @@ int main(int argc, char **argv) {
         point_cloud.header.frame_id = "global";
         point_cloud.header.stamp = ros::Time::now();
         for (auto &featpair : map_features) {
-          if (map_features_num_meas.at(featpair.first) < min_num_meas_to_optimize)
+          if (map_features_delayed.find(featpair.first) != map_features_delayed.end())
             continue;
           geometry_msgs::Point32 p;
           p.x = (float)ceres_vars_feat[map_features[featpair.first]][0];
@@ -628,13 +622,13 @@ int main(int argc, char **argv) {
         sensor_msgs::PointCloud2Iterator<float> out_y(cloud, "y");
         sensor_msgs::PointCloud2Iterator<float> out_z(cloud, "z");
         for (auto &featpair : map_features) {
-          if (map_features_num_meas.at(featpair.first) < min_num_meas_to_optimize)
+          if (map_features_delayed.find(featpair.first) != map_features_delayed.end())
             continue;
-          *out_x = (float)sim.get_map().at(featpair.first)(0); // no change in id since no track is used
+          *out_x = (float)sim.get_map().at(featpair.first)(0); // no change in id since no tracker is used
           ++out_x;
-          *out_y = (float)sim.get_map().at(featpair.first)(1); // no change in id since no track is used
+          *out_y = (float)sim.get_map().at(featpair.first)(1); // no change in id since no tracker is used
           ++out_y;
-          *out_z = (float)sim.get_map().at(featpair.first)(2); // no change in id since no track is used
+          *out_z = (float)sim.get_map().at(featpair.first)(2); // no change in id since no tracker is used
           ++out_z;
         }
         pub_points_sim.publish(cloud);

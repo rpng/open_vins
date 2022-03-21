@@ -38,7 +38,6 @@ namespace ov_init {
  * @brief Initializer for a static visual-inertial system.
  *
  * This implementation that assumes that the imu starts from standing still.
- *
  * To initialize from standstill:
  * 1. Collect all inertial measurements
  * 2. See if within the last window there was a jump in acceleration

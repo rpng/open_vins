@@ -109,6 +109,13 @@ public:
 
   virtual ~Factor_ImuCPIv1() {}
 
+  /**
+   * @brief Error residual and Jacobian calculation
+   *
+   * This computes the error between the integrated preintegrated measurement
+   * and the current state estimate. This also takes into account the
+   * bias linearization point changes.
+   */
   bool Evaluate(double const *const *parameters, double *residuals, double **jacobians) const override {
 
     // Get the local variables (these would be different if we relinearized)

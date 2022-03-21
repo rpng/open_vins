@@ -33,6 +33,16 @@ namespace ov_init {
  */
 class State_JPLQuatLocal : public ceres::LocalParameterization {
 public:
+  /**
+   * @brief State update function for a JPL quaternion representation.
+   *
+   * Implements update operation by left-multiplying the current
+   * quaternion with a quaternion built from a small axis-angle perturbation.
+   *
+   * @f[
+   * \bar{q}=norm\Big(\begin{bmatrix} 0.5*\mathbf{\theta_{dx}} \\ 1 \end{bmatrix}\Big) \hat{\bar{q}}
+   * @f]
+   */
   bool Plus(const double *x, const double *delta, double *x_plus_delta) const override {
 
     // Apply the standard JPL update: q <-- [d_th/2; 1] (x) q
@@ -56,10 +66,18 @@ public:
     return true;
   }
 
+  /**
+   * @brief Computes the jacobian in respect to the local parameterization
+   *
+   * This essentially "tricks" ceres.
+   * Instead of doing what ceres wants:
+   * dr/dlocal= dr/dglobal * dglobal/dlocal
+   *
+   * We instead directly do:
+   * dr/dlocal= [ dr/dlocal, 0] * [I; 0]= dr/dlocal.
+   * Therefore we here define dglobal/dlocal= [I; 0]
+   */
   bool ComputeJacobian(const double *x, double *jacobian) const override {
-    // This essentially "tricks" ceres.
-    // Instead of doing what ceres wants, dr/dlocal= dr/dglobal * dglobal/dlocal, we instead directly do:
-    // dr/dlocal= [ dr/dlocal, 0] * [I; 0]= dr/dlocal. Therefore we here define dglobal/dlocal= [I; 0]
     Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> j(jacobian);
     j.topRows<3>().setIdentity();
     j.bottomRows<1>().setZero();
