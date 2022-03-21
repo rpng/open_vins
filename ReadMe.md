@@ -143,8 +143,8 @@ details on what the system supports.
 <a href="http://www.youtube.com/watch?v=ExPIGwORm4E">
    <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/ExPIGwORm4E.jpg" width="120" height="90" />
 </a>
-<a href="http://www.youtube.com/watch?v=lXHl-qgLGl">
-   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/lXHl-qgLGl.jpg" width="120" height="90" />
+<a href="http://www.youtube.com/watch?v=lXHl-qgLGl8">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/lXHl-qgLGl8.jpg" width="120" height="90" />
 </a>
 
 
