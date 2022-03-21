@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -25,7 +25,7 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
 
-VioManager::VioManager(VioManagerOptions &params_) {
+VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false), thread_init_success(false) {
 
   // Nice startup message
   PRINT_DEBUG("=======================================\n");
@@ -131,44 +131,6 @@ VioManager::VioManager(VioManagerOptions &params_) {
   active_tracks_initializer = std::make_shared<FeatureInitializer>(params.featinit_options);
 }
 
-void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
-
-  // Push back to our propagator
-  propagator->feed_imu(message);
-
-  // Push back to our initializer
-  if (!is_initialized_vio) {
-    initializer->feed_imu(message);
-  }
-
-  // Push back to the zero velocity updater if we have it
-  if (updaterZUPT != nullptr) {
-    updaterZUPT->feed_imu(message);
-  }
-
-  // Count how many unique image streams
-  std::vector<int> unique_cam_ids;
-  for (const auto &cam_msg : camera_queue) {
-    if (std::find(unique_cam_ids.begin(), unique_cam_ids.end(), cam_msg.sensor_ids.at(0)) != unique_cam_ids.end())
-      continue;
-    unique_cam_ids.push_back(cam_msg.sensor_ids.at(0));
-  }
-
-  // If we do not have enough unique cameras then we need to wait
-  // We should wait till we have one of each camera to ensure we propagate in the correct order
-  size_t num_unique_cameras = (params.state_options.num_cameras == 2 && params.use_stereo) ? 1 : params.state_options.num_cameras;
-  if (unique_cam_ids.size() != num_unique_cameras)
-    return;
-
-  // Loop through our queue and see if we are able to process any of our camera measurements
-  // We are able to process if we have at least one IMU measurement greater then the camera time
-  double timestamp_inC = message.timestamp - state->_calib_dt_CAMtoIMU->value()(0);
-  while (!camera_queue.empty() && camera_queue.at(0).timestamp < timestamp_inC) {
-    track_image_and_update(camera_queue.at(0));
-    camera_queue.pop_front();
-  }
-}
-
 void VioManager::feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
                                              const std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
 
@@ -200,29 +162,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     if (state->_timestamp != timestamp) {
       did_zupt_update = updaterZUPT->try_update(state, timestamp);
     }
-    // If we did do an update, then nice display and return since we have no need to process
     if (did_zupt_update) {
-      int max_width = -1;
-      int max_height = -1;
-      for (int n = 0; n < params.state_options.num_cameras; n++) {
-        int width = state->_cam_intrinsics_cameras.at(n)->w();
-        int height = state->_cam_intrinsics_cameras.at(n)->h();
-        if (max_width < width)
-          max_width = width;
-        if (max_height < height)
-          max_height = height;
-      }
-      for (int n = 0; n < params.state_options.num_cameras; n++) {
-        cv::Mat img_outtemp0 = cv::Mat::zeros(cv::Size(max_width, max_height), CV_8UC3);
-        bool is_small = (std::min(img_outtemp0.cols, img_outtemp0.rows) < 400);
-        auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
-        cv::putText(img_outtemp0, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.0 : 2.0, cv::Scalar(0, 0, 255), 3);
-        if (n == 0) {
-          zupt_image = img_outtemp0.clone();
-        } else {
-          cv::hconcat(zupt_image, img_outtemp0, zupt_image);
-        }
-      }
       return;
     }
   }
@@ -272,11 +212,6 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     message.masks.at(i) = mask_temp;
   }
 
-  // Record our latest image for displaying out zero velocity update
-  for (size_t i = 0; i < message.sensor_ids.size(); i++) {
-    zupt_img_last[message.sensor_ids.at(i)] = message.images.at(i).clone();
-  }
-
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
   if (is_initialized_vio) {
@@ -300,32 +235,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     if (state->_timestamp != message.timestamp) {
       did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
     }
-    // If we did do an update, then nice display and return since we have no need to process
     if (did_zupt_update) {
-      // Get the largest width and height
-      int max_width = -1;
-      int max_height = -1;
-      for (auto const &pair : zupt_img_last) {
-        if (max_width < pair.second.cols)
-          max_width = pair.second.cols;
-        if (max_height < pair.second.rows)
-          max_height = pair.second.rows;
-      }
-      zupt_image = cv::Mat(max_height, (int)zupt_img_last.size() * max_width, CV_8UC3, cv::Scalar(0, 0, 0));
-      // Loop through each image, and draw
-      int index_cam = 0;
-      for (auto const &pair : zupt_img_last) {
-        // Select the subset of the image
-        cv::Mat img_temp;
-        cv::cvtColor(zupt_img_last[pair.first], img_temp, cv::COLOR_GRAY2RGB);
-        // Display text telling user that we are doing a zupt
-        bool is_small = (std::min(img_temp.cols, img_temp.rows) < 400);
-        auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
-        cv::putText(img_temp, "zvup active", txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.0 : 2.0, cv::Scalar(0, 0, 255), 3);
-        // Replace the output image
-        img_temp.copyTo(zupt_image(cv::Rect(max_width * index_cam, 0, zupt_img_last[pair.first].cols, zupt_img_last[pair.first].rows)));
-        index_cam++;
-      }
       return;
     }
   }
@@ -333,26 +243,10 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   // If we do not have VIO initialization, then try to initialize
   // TODO: Or if we are trying to reset the system, then do that here!
   if (!is_initialized_vio) {
-    is_initialized_vio = try_to_initialize();
+    is_initialized_vio = try_to_initialize(message);
     if (!is_initialized_vio) {
-
-      // Get timing statitics information
-      rT3 = boost::posix_time::microsec_clock::local_time();
       double time_track = (rT2 - rT1).total_microseconds() * 1e-6;
-      double time_init = (rT3 - rT2).total_microseconds() * 1e-6;
-      double time_total = (rT3 - rT1).total_microseconds() * 1e-6;
-
-      // Timing information
       PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for tracking\n" RESET, time_track);
-      PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for initialization\n" RESET, time_init);
-      std::stringstream ss;
-      ss << "[TIME]: " << std::setprecision(4) << time_total << " seconds for total (camera";
-      for (const auto &id : message.sensor_ids) {
-        ss << " " << id;
-      }
-      ss << ")" << std::endl;
-      PRINT_INFO(BLUE "%s" RESET, ss.str().c_str());
-
       return;
     }
   }
@@ -661,7 +555,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     ss << " " << id;
   }
   ss << ")" << std::endl;
-  PRINT_INFO(BLUE "%s" RESET, ss.str().c_str());
+  PRINT_DEBUG(BLUE "%s" RESET, ss.str().c_str());
 
   // Finally if we are saving stats to file, lets save it to file
   if (params.record_timing_information && of_statistics.is_open()) {
@@ -717,49 +611,115 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 }
 
-bool VioManager::try_to_initialize() {
+bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
 
-  // Returns from our initializer
-  double timestamp;
-  Eigen::MatrixXd covariance;
-  std::vector<std::shared_ptr<ov_type::Type>> order;
-
-  // Try to initialize the system
-  // We will wait for a jerk if we do not have the zero velocity update enabled
-  // Otherwise we can initialize right away as the zero velocity will handle the stationary case
-  bool wait_for_jerk = (updaterZUPT == nullptr);
-  bool success = initializer->initialize(timestamp, covariance, order, state->_imu, wait_for_jerk);
-
-  // Return if it failed
-  if (!success) {
+  // Directly return if the initialization thread is running
+  // Note that we lock on the queue since we could have finished an update
+  // And are using this queue to propagate the state forward. We should wait in this case
+  if (thread_init_running) {
+    std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
+    camera_queue_init.push_back(message.timestamp);
     return false;
   }
 
-  // Set our covariance (state should already be set in the initializer)
-  StateHelper::set_initial_covariance(state, covariance, order);
-
-  // Set the state time
-  state->_timestamp = timestamp;
-  startup_time = timestamp;
-
-  // Cleanup any features older then the initialization time
-  // Also increase the number of features to the desired amount during estimation
-  trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
-  trackFEATS->set_num_features(params.num_pts);
-  if (trackARUCO != nullptr) {
-    trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
+  // If the thread was a success, then return success!
+  if (thread_init_success) {
+    return true;
   }
 
-  // Else we are good to go, print out our stats
-  PRINT_INFO(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
-             state->_imu->quat()(2), state->_imu->quat()(3));
-  PRINT_INFO(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
-             state->_imu->bias_g()(2));
-  PRINT_INFO(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
-  PRINT_INFO(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
-             state->_imu->bias_a()(2));
-  PRINT_INFO(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
-  return true;
+  // Run the initialization in a second thread so it can go as slow as it desires
+  thread_init_running = true;
+  std::thread thread([&] {
+    // Returns from our initializer
+    double timestamp;
+    Eigen::MatrixXd covariance;
+    std::vector<std::shared_ptr<ov_type::Type>> order;
+    auto init_rT1 = boost::posix_time::microsec_clock::local_time();
+
+    // Try to initialize the system
+    // We will wait for a jerk if we do not have the zero velocity update enabled
+    // Otherwise we can initialize right away as the zero velocity will handle the stationary case
+    bool wait_for_jerk = (updaterZUPT == nullptr);
+    bool success = initializer->initialize(timestamp, covariance, order, state->_imu, wait_for_jerk);
+
+    // If we have initialized successfully we will set the covariance and state elements as needed
+    // TODO: set the clones and SLAM features here so we can start updating right away...
+    if (success) {
+
+      // Set our covariance (state should already be set in the initializer)
+      StateHelper::set_initial_covariance(state, covariance, order);
+
+      // Set the state time
+      state->_timestamp = timestamp;
+      startup_time = timestamp;
+
+      // Cleanup any features older than the initialization time
+      // Also increase the number of features to the desired amount during estimation
+      trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
+      trackFEATS->set_num_features(params.num_pts);
+      if (trackARUCO != nullptr) {
+        trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
+      }
+
+      // If we are moving then don't do zero velocity update4
+      if (state->_imu->vel().norm() > params.zupt_max_velocity) {
+        has_moved_since_zupt = true;
+      }
+
+      // Else we are good to go, print out our stats
+      auto init_rT2 = boost::posix_time::microsec_clock::local_time();
+      PRINT_INFO(GREEN "[init]: successful initialization in %.4f seconds\n" RESET, (init_rT2 - init_rT1).total_microseconds() * 1e-6);
+      PRINT_INFO(GREEN "[init]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
+                 state->_imu->quat()(2), state->_imu->quat()(3));
+      PRINT_INFO(GREEN "[init]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
+                 state->_imu->bias_g()(2));
+      PRINT_INFO(GREEN "[init]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
+      PRINT_INFO(GREEN "[init]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
+                 state->_imu->bias_a()(2));
+      PRINT_INFO(GREEN "[init]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
+
+      // Remove any camera times that are order then the initialized time
+      // This can happen if the initialization has taken a while to perform
+      std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
+      std::vector<double> camera_timestamps_to_init;
+      for (size_t i = 0; i < camera_queue_init.size(); i++) {
+        if (camera_queue_init.at(i) > timestamp) {
+          camera_timestamps_to_init.push_back(camera_queue_init.at(i));
+        }
+      }
+
+      // Now we have initialized we will propagate the state to the current timestep
+      // In general this should be ok as long as the initialization didn't take too long to perform
+      // Propagating over multiple seconds will become an issue if the initial biases are bad
+      size_t clone_rate = (size_t)((double)camera_timestamps_to_init.size() / (double)params.state_options.max_clone_size) + 1;
+      for (size_t i = 0; i < camera_timestamps_to_init.size(); i += clone_rate) {
+        propagator->propagate_and_clone(state, camera_timestamps_to_init.at(i));
+        StateHelper::marginalize_old_clone(state);
+      }
+      PRINT_DEBUG(YELLOW "[init]: moved the state forward %.2f seconds\n" RESET, state->_timestamp - timestamp);
+      thread_init_success = true;
+      camera_queue_init.clear();
+
+    } else {
+      auto init_rT2 = boost::posix_time::microsec_clock::local_time();
+      PRINT_DEBUG(YELLOW "[init]: failed initialization in %.4f seconds\n" RESET, (init_rT2 - init_rT1).total_microseconds() * 1e-6);
+      thread_init_success = false;
+      std::lock_guard<std::mutex> lck(camera_queue_init_mtx);
+      camera_queue_init.clear();
+    }
+
+    // Finally, mark that the thread has finished running
+    thread_init_running = false;
+  });
+
+  // If we are single threaded, then run single threaded
+  // Otherwise detach this thread so it runs in the background!
+  if (!params.use_multi_threading) {
+    thread.join();
+  } else {
+    thread.detach();
+  }
+  return false;
 }
 
 void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message) {

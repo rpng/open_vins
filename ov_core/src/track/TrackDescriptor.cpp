@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ void TrackDescriptor::feed_monocular(const CameraData &message, size_t msg_id) {
 
   // Lock this data feed for this camera
   size_t cam_id = message.sensor_ids.at(msg_id);
-  std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
+  std::lock_guard<std::mutex> lck(mtx_feeds.at(cam_id));
 
   // Histogram equalize
   cv::Mat img, mask;
@@ -168,8 +168,8 @@ void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left,
   // Lock this data feed for this camera
   size_t cam_id_left = message.sensor_ids.at(msg_id_left);
   size_t cam_id_right = message.sensor_ids.at(msg_id_right);
-  std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
-  std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
+  std::lock_guard<std::mutex> lck1(mtx_feeds.at(cam_id_left));
+  std::lock_guard<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
   // Histogram equalize images
   cv::Mat img_left, img_right, mask_left, mask_right;

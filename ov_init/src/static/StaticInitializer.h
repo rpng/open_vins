@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -23,6 +23,7 @@
 #define OV_INIT_STATICINITIALIZER_H
 
 #include "init/InertialInitializerOptions.h"
+#include "utils/helper.h"
 
 #include "feat/FeatureHelper.h"
 #include "types/IMU.h"
@@ -37,7 +38,6 @@ namespace ov_init {
  * @brief Initializer for a static visual-inertial system.
  *
  * This implementation that assumes that the imu starts from standing still.
- *
  * To initialize from standstill:
  * 1. Collect all inertial measurements
  * 2. See if within the last window there was a jump in acceleration

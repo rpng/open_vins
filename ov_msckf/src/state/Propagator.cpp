@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -57,7 +57,11 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   // First lets construct an IMU vector of measurements we need
   double time0 = state->_timestamp + last_prop_time_offset;
   double time1 = timestamp + t_off_new;
-  std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data, time0, time1);
+  std::vector<ov_core::ImuData> prop_data;
+  {
+    std::lock_guard<std::mutex> lck(imu_data_mtx);
+    prop_data = Propagator::select_imu_readings(imu_data, time0, time1);
+  }
 
   // We are going to sum up all the state transition matrices, so we can do a single large multiplication at the end
   // Phi_summed = Phi_i*Phi_summed
@@ -111,72 +115,102 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   StateHelper::augment_clone(state, last_w);
 }
 
-void Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus) {
+bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
+                                      Eigen::Matrix<double, 12, 12> &covariance) {
 
-  // Set the last time offset value if we have just started the system up
-  if (!have_last_prop_time_offset) {
-    last_prop_time_offset = state->_calib_dt_CAMtoIMU->value()(0);
-    have_last_prop_time_offset = true;
-  }
-
-  // Get what our IMU-camera offset should be (t_imu = t_cam + calib_dt)
-  double t_off_new = state->_calib_dt_CAMtoIMU->value()(0);
+  // First we will store the current calibration / estimates of the state
+  double state_time = state->_timestamp;
+  Eigen::MatrixXd state_est = state->_imu->value();
+  Eigen::MatrixXd state_covariance = StateHelper::get_marginal_covariance(state, {state->_imu});
+  double t_off = state->_calib_dt_CAMtoIMU->value()(0);
 
   // First lets construct an IMU vector of measurements we need
-  double time0 = state->_timestamp + last_prop_time_offset;
-  double time1 = timestamp + t_off_new;
-  std::vector<ov_core::ImuData> prop_data = Propagator::select_imu_readings(imu_data, time0, time1, false);
+  double time0 = state_time + t_off;
+  double time1 = timestamp + t_off;
+  std::vector<ov_core::ImuData> prop_data;
+  {
+    std::lock_guard<std::mutex> lck(imu_data_mtx);
+    prop_data = Propagator::select_imu_readings(imu_data, time0, time1, false);
+  }
+  if (prop_data.size() < 2)
+    return false;
 
-  // Save the original IMU state
-  Eigen::VectorXd orig_val = state->_imu->value();
-  Eigen::VectorXd orig_fej = state->_imu->fej();
+  // Biases
+  Eigen::Vector3d bias_g = state_est.block(10, 0, 3, 1);
+  Eigen::Vector3d bias_a = state_est.block(13, 0, 3, 1);
 
   // Loop through all IMU messages, and use them to move the state forward in time
   // This uses the zero'th order quat, and then constant acceleration discrete
-  if (prop_data.size() > 1) {
-    for (size_t i = 0; i < prop_data.size() - 1; i++) {
+  for (size_t i = 0; i < prop_data.size() - 1; i++) {
 
-      // Time elapsed over interval
-      double dt = prop_data.at(i + 1).timestamp - prop_data.at(i).timestamp;
-      // assert(data_plus.timestamp>data_minus.timestamp);
+    // Corrected imu measurements
+    double dt = prop_data.at(i + 1).timestamp - prop_data.at(i).timestamp;
+    Eigen::Vector3d w_hat = 0.5 * (prop_data.at(i + 1).wm + prop_data.at(i).wm) - bias_g;
+    Eigen::Vector3d a_hat = 0.5 * (prop_data.at(i + 1).am + prop_data.at(i).am) - bias_a;
+    Eigen::Matrix3d R_Gtoi = quat_2_Rot(state_est.block(0, 0, 4, 1));
+    Eigen::Vector3d v_iinG = state_est.block(7, 0, 3, 1);
+    Eigen::Vector3d p_iinG = state_est.block(4, 0, 3, 1);
 
-      // Corrected imu measurements
-      Eigen::Matrix<double, 3, 1> w_hat = prop_data.at(i).wm - state->_imu->bias_g();
-      Eigen::Matrix<double, 3, 1> a_hat = prop_data.at(i).am - state->_imu->bias_a();
-      Eigen::Matrix<double, 3, 1> w_hat2 = prop_data.at(i + 1).wm - state->_imu->bias_g();
-      Eigen::Matrix<double, 3, 1> a_hat2 = prop_data.at(i + 1).am - state->_imu->bias_a();
+    // State transition and noise matrix
+    Eigen::Matrix<double, 15, 15> F = Eigen::Matrix<double, 15, 15>::Zero();
+    Eigen::Matrix<double, 15, 15> Qd = Eigen::Matrix<double, 15, 15>::Zero();
+    F.block(0, 0, 3, 3) = exp_so3(-w_hat * dt);
+    F.block(0, 9, 3, 3).noalias() = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
+    F.block(9, 9, 3, 3).setIdentity();
+    F.block(6, 0, 3, 3).noalias() = -R_Gtoi.transpose() * skew_x(a_hat * dt);
+    F.block(6, 6, 3, 3).setIdentity();
+    F.block(6, 12, 3, 3) = -R_Gtoi.transpose() * dt;
+    F.block(12, 12, 3, 3).setIdentity();
+    F.block(3, 0, 3, 3).noalias() = -0.5 * R_Gtoi.transpose() * skew_x(a_hat * dt * dt);
+    F.block(3, 6, 3, 3) = Eigen::Matrix3d::Identity() * dt;
+    F.block(3, 12, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
+    F.block(3, 3, 3, 3).setIdentity();
+    Eigen::Matrix<double, 15, 12> G = Eigen::Matrix<double, 15, 12>::Zero();
+    G.block(0, 0, 3, 3) = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
+    G.block(6, 3, 3, 3) = -R_Gtoi.transpose() * dt;
+    G.block(3, 3, 3, 3) = -0.5 * R_Gtoi.transpose() * dt * dt;
+    G.block(9, 6, 3, 3).setIdentity();
+    G.block(12, 9, 3, 3).setIdentity();
 
-      // Compute the new state mean value
-      Eigen::Vector4d new_q;
-      Eigen::Vector3d new_v, new_p;
-      if (state->_options.use_rk4_integration)
-        predict_mean_rk4(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
-      else
-        predict_mean_discrete(state, dt, w_hat, a_hat, w_hat2, a_hat2, new_q, new_v, new_p);
+    // Construct our discrete noise covariance matrix
+    // Note that we need to convert our continuous time noises to discrete
+    // Equations (129) amd (130) of Trawny tech report
+    Eigen::Matrix<double, 12, 12> Qc = Eigen::Matrix<double, 12, 12>::Zero();
+    Qc.block(0, 0, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix3d::Identity();
+    Qc.block(3, 3, 3, 3) = _noises.sigma_a_2 / dt * Eigen::Matrix3d::Identity();
+    Qc.block(6, 6, 3, 3) = _noises.sigma_wb_2 * dt * Eigen::Matrix3d::Identity();
+    Qc.block(9, 9, 3, 3) = _noises.sigma_ab_2 * dt * Eigen::Matrix3d::Identity();
+    Qd = G * Qc * G.transpose();
+    Qd = 0.5 * (Qd + Qd.transpose());
+    state_covariance = F * state_covariance * F.transpose() + Qd;
 
-      // Now replace imu estimate and fej with propagated values
-      Eigen::Matrix<double, 16, 1> imu_x = state->_imu->value();
-      imu_x.block(0, 0, 4, 1) = new_q;
-      imu_x.block(4, 0, 3, 1) = new_p;
-      imu_x.block(7, 0, 3, 1) = new_v;
-      state->_imu->set_value(imu_x);
-      state->_imu->set_fej(imu_x);
-    }
+    // Propagate the mean forward
+    state_est.block(0, 0, 4, 1) = rot_2_quat(exp_so3(-w_hat * dt) * R_Gtoi);
+    state_est.block(4, 0, 3, 1) = p_iinG + v_iinG * dt + 0.5 * R_Gtoi.transpose() * a_hat * dt * dt - 0.5 * _gravity * dt * dt;
+    state_est.block(7, 0, 3, 1) = v_iinG + R_Gtoi.transpose() * a_hat * dt - _gravity * dt;
   }
 
   // Now record what the predicted state should be
-  state_plus = Eigen::Matrix<double, 13, 1>::Zero();
-  state_plus.block(0, 0, 4, 1) = state->_imu->quat();
-  state_plus.block(4, 0, 3, 1) = state->_imu->pos();
-  state_plus.block(7, 0, 3, 1) = state->_imu->vel();
-  if (prop_data.size() > 1)
-    state_plus.block(10, 0, 3, 1) = prop_data.at(prop_data.size() - 2).wm - state->_imu->bias_g();
-  else if (!prop_data.empty())
-    state_plus.block(10, 0, 3, 1) = prop_data.at(prop_data.size() - 1).wm - state->_imu->bias_g();
+  Eigen::Vector4d q_Gtoi = state_est.block(0, 0, 4, 1);
+  Eigen::Vector3d v_iinG = state_est.block(7, 0, 3, 1);
+  Eigen::Vector3d p_iinG = state_est.block(4, 0, 3, 1);
+  state_plus.setZero();
+  state_plus.block(0, 0, 4, 1) = q_Gtoi;
+  state_plus.block(4, 0, 3, 1) = p_iinG;
+  state_plus.block(7, 0, 3, 1) = quat_2_Rot(q_Gtoi) * v_iinG;
+  state_plus.block(10, 0, 3, 1) = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
 
-  // Finally replace the imu with the original state we had
-  state->_imu->set_value(orig_val);
-  state->_imu->set_fej(orig_fej);
+  // Do a covariance propagation for our velocity
+  // TODO: more properly do the covariance of the angular velocity here...
+  // TODO: it should be dependent on the state bias, thus correlated with the pose
+  covariance.setZero();
+  Eigen::Matrix<double, 15, 15> Phi = Eigen::Matrix<double, 15, 15>::Identity();
+  Phi.block(6, 6, 3, 3) = quat_2_Rot(q_Gtoi);
+  state_covariance = Phi * state_covariance * Phi.transpose();
+  covariance.block(0, 0, 9, 9) = state_covariance.block(0, 0, 9, 9);
+  double dt = prop_data.at(prop_data.size() - 1).timestamp + prop_data.at(prop_data.size() - 2).timestamp;
+  covariance.block(9, 9, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix3d::Identity();
+  return true;
 }
 
 std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<ov_core::ImuData> &imu_data, double time0, double time1,

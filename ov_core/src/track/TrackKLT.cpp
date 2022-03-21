@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -61,7 +61,7 @@ void TrackKLT::feed_monocular(const CameraData &message, size_t msg_id) {
 
   // Lock this data feed for this camera
   size_t cam_id = message.sensor_ids.at(msg_id);
-  std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
+  std::lock_guard<std::mutex> lck(mtx_feeds.at(cam_id));
 
   // Histogram equalize
   cv::Mat img, mask;
@@ -155,11 +155,12 @@ void TrackKLT::feed_monocular(const CameraData &message, size_t msg_id) {
   rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Timing information
-  // PRINT_DEBUG("[TIME-KLT]: %.4f seconds for pyramid\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // PRINT_DEBUG("[TIME-KLT]: %.4f seconds for detection\n",(rT3-rT2).total_microseconds() * 1e-6);
-  // PRINT_DEBUG("[TIME-KLT]: %.4f seconds for temporal klt\n",(rT4-rT3).total_microseconds() * 1e-6);
-  // PRINT_DEBUG("[TIME-KLT]: %.4f seconds for feature DB update (%d features)\n",(rT5-rT4).total_microseconds() * 1e-6,
-  // (int)good_left.size()); PRINT_DEBUG("[TIME-KLT]: %.4f seconds for total\n",(rT5-rT1).total_microseconds() * 1e-6);
+  //  PRINT_DEBUG("[TIME-KLT]: %.4f seconds for pyramid\n", (rT2 - rT1).total_microseconds() * 1e-6);
+  //  PRINT_DEBUG("[TIME-KLT]: %.4f seconds for detection\n", (rT3 - rT2).total_microseconds() * 1e-6);
+  //  PRINT_DEBUG("[TIME-KLT]: %.4f seconds for temporal klt\n", (rT4 - rT3).total_microseconds() * 1e-6);
+  //  PRINT_DEBUG("[TIME-KLT]: %.4f seconds for feature DB update (%d features)\n", (rT5 - rT4).total_microseconds() * 1e-6,
+  //              (int)good_left.size());
+  //  PRINT_DEBUG("[TIME-KLT]: %.4f seconds for total\n", (rT5 - rT1).total_microseconds() * 1e-6);
 }
 
 void TrackKLT::feed_stereo(const CameraData &message, size_t msg_id_left, size_t msg_id_right) {
@@ -170,8 +171,8 @@ void TrackKLT::feed_stereo(const CameraData &message, size_t msg_id_left, size_t
   // Lock this data feed for this camera
   size_t cam_id_left = message.sensor_ids.at(msg_id_left);
   size_t cam_id_right = message.sensor_ids.at(msg_id_right);
-  std::unique_lock<std::mutex> lck1(mtx_feeds.at(cam_id_left));
-  std::unique_lock<std::mutex> lck2(mtx_feeds.at(cam_id_right));
+  std::lock_guard<std::mutex> lck1(mtx_feeds.at(cam_id_left));
+  std::lock_guard<std::mutex> lck2(mtx_feeds.at(cam_id_right));
 
   // Histogram equalize images
   cv::Mat img_left, img_right, mask_left, mask_right;
@@ -367,6 +368,7 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
   // This means that we will reject points that less then grid_px_size points away then existing features
   cv::Size size((int)((float)img0pyr.at(0).cols / (float)min_px_dist), (int)((float)img0pyr.at(0).rows / (float)min_px_dist));
   cv::Mat grid_2d = cv::Mat::zeros(size, CV_8UC1);
+  cv::Mat mask0_updated = mask0.clone();
   auto it0 = pts0.begin();
   auto it1 = ids0.begin();
   while (it0 != pts0.end()) {
@@ -397,6 +399,12 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     }
     // Else we are good, move forward to the next point
     grid_2d.at<uint8_t>(y_grid, x_grid) = 255;
+    // Append this to the local mask of the image
+    if (x - min_px_dist >= 0 && x + min_px_dist < img0pyr.at(0).cols && y - min_px_dist >= 0 && y + min_px_dist < img0pyr.at(0).rows) {
+      cv::Point pt1(x - min_px_dist, y - min_px_dist);
+      cv::Point pt2(x + min_px_dist, y + min_px_dist);
+      cv::rectangle(mask0_updated, pt1, pt2, cv::Scalar(255));
+    }
     it0++;
     it1++;
   }
@@ -410,7 +418,7 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
 
   // Extract our features (use fast with griding)
   std::vector<cv::KeyPoint> pts0_ext;
-  Grider_FAST::perform_griding(img0pyr.at(0), mask0, pts0_ext, num_features, grid_x, grid_y, threshold, true);
+  Grider_FAST::perform_griding(img0pyr.at(0), mask0_updated, pts0_ext, num_features, grid_x, grid_y, threshold, true);
 
   // Now, reject features that are close a current feature
   std::vector<cv::KeyPoint> kpts0_new;
@@ -455,6 +463,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
   // This means that we will reject points that less then grid_px_size points away then existing features
   cv::Size size0((int)((float)img0pyr.at(0).cols / (float)min_px_dist), (int)((float)img0pyr.at(0).rows / (float)min_px_dist));
   cv::Mat grid_2d_0 = cv::Mat::zeros(size0, CV_8UC1);
+  cv::Mat mask0_updated = mask0.clone();
   auto it0 = pts0.begin();
   auto it1 = ids0.begin();
   while (it0 != pts0.end()) {
@@ -485,6 +494,12 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
     }
     // Else we are good, move forward to the next point
     grid_2d_0.at<uint8_t>(y_grid, x_grid) = 255;
+    // Append this to the local mask of the image
+    if (x - min_px_dist >= 0 && x + min_px_dist < img0pyr.at(0).cols && y - min_px_dist >= 0 && y + min_px_dist < img0pyr.at(0).rows) {
+      cv::Point pt1(x - min_px_dist, y - min_px_dist);
+      cv::Point pt2(x + min_px_dist, y + min_px_dist);
+      cv::rectangle(mask0_updated, pt1, pt2, cv::Scalar(255));
+    }
     it0++;
     it1++;
   }
@@ -499,7 +514,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
 
     // Extract our features (use fast with griding)
     std::vector<cv::KeyPoint> pts0_ext;
-    Grider_FAST::perform_griding(img0pyr.at(0), mask0, pts0_ext, num_features, grid_x, grid_y, threshold, true);
+    Grider_FAST::perform_griding(img0pyr.at(0), mask0_updated, pts0_ext, num_features, grid_x, grid_y, threshold, true);
 
     // Now, reject features that are close a current feature
     std::vector<cv::KeyPoint> kpts0_new;

@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -89,8 +89,9 @@ public:
   /**
    * @brief Feed function for inertial data
    * @param message Contains our timestamp and inertial information
+   * @param oldest_time Time that we can discard measurements before
    */
-  void feed_imu(const ov_core::ImuData &message) {
+  void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
 
     // Append it to our vector
     imu_data.emplace_back(message);
@@ -100,15 +101,15 @@ public:
     //    return i.timestamp < j.timestamp;
     //});
 
-    // Loop through and delete imu messages that are older then 10 seconds
-    // TODO: we should probably have more elegant logic then this
-    // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
-    auto it0 = imu_data.begin();
-    while (it0 != imu_data.end()) {
-      if (message.timestamp - (*it0).timestamp > 10) {
-        it0 = imu_data.erase(it0);
-      } else {
-        it0++;
+    // Loop through and delete imu messages that are older than our requested time
+    if (oldest_time != -1) {
+      auto it0 = imu_data.begin();
+      while (it0 != imu_data.end()) {
+        if (message.timestamp < oldest_time) {
+          it0 = imu_data.erase(it0);
+        } else {
+          it0++;
+        }
       }
     }
   }

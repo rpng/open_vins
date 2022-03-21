@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -21,6 +21,8 @@
 
 #ifndef OV_MSCKF_STATE_PROPAGATOR_H
 #define OV_MSCKF_STATE_PROPAGATOR_H
+
+#include <mutex>
 
 #include "state/StateHelper.h"
 #include "utils/print.h"
@@ -94,21 +96,23 @@ public:
   /**
    * @brief Stores incoming inertial readings
    * @param message Contains our timestamp and inertial information
+   * @param oldest_time Time that we can discard measurements before
    */
-  void feed_imu(const ov_core::ImuData &message) {
+  void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
 
     // Append it to our vector
+    std::lock_guard<std::mutex> lck(imu_data_mtx);
     imu_data.emplace_back(message);
 
-    // Loop through and delete imu messages that are older then 10 seconds
-    // TODO: we should probably have more elegant logic then this
-    // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
-    auto it0 = imu_data.begin();
-    while (it0 != imu_data.end()) {
-      if (message.timestamp - (*it0).timestamp > 10) {
-        it0 = imu_data.erase(it0);
-      } else {
-        it0++;
+    // Loop through and delete imu messages that are older than our requested time
+    if (oldest_time != -1) {
+      auto it0 = imu_data.begin();
+      while (it0 != imu_data.end()) {
+        if (message.timestamp < oldest_time) {
+          it0 = imu_data.erase(it0);
+        } else {
+          it0++;
+        }
       }
     }
   }
@@ -123,7 +127,7 @@ public:
    * We clone the current imu pose as a new clone in our state.
    *
    * @param state Pointer to state
-   * @param timestamp Time to propagate to and clone at
+   * @param timestamp Time to propagate to and clone at (CAM clock frame)
    */
   void propagate_and_clone(std::shared_ptr<State> state, double timestamp);
 
@@ -135,10 +139,13 @@ public:
    * This is typically used to provide high frequency pose estimates between updates.
    *
    * @param state Pointer to state
-   * @param timestamp Time to propagate to
-   * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
+   * @param timestamp Time to propagate to (IMU clock frame)
+   * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinI, w_IinI)
+   * @param covariance The propagated covariance (q_GtoI, p_IinG, v_IinI, w_IinI)
+   * @return True if we were able to propagate the state to the current timestep
    */
-  void fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus);
+  bool fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
+                            Eigen::Matrix<double, 12, 12> &covariance);
 
   /**
    * @brief Helper function that given current imu data, will select imu readings between the two times.
@@ -266,6 +273,7 @@ protected:
 
   /// Our history of IMU messages (time, angular, linear)
   std::vector<ov_core::ImuData> imu_data;
+  std::mutex imu_data_mtx;
 
   /// Gravity vector
   Eigen::Vector3d _gravity;

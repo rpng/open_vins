@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -160,8 +160,8 @@ protected:
   // Groundtruth infomation
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_pathgt;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_posegt;
-  double summed_rmse_ori = 0.0;
-  double summed_rmse_pos = 0.0;
+  double summed_mse_ori = 0.0;
+  double summed_mse_pos = 0.0;
   double summed_nees_ori = 0.0;
   double summed_nees_pos = 0.0;
   size_t summed_number = 0;
@@ -169,6 +169,19 @@ protected:
   // Start and end timestamps
   bool start_time_set = false;
   boost::posix_time::ptime rT1, rT2;
+
+  // Thread atomics
+  std::atomic<bool> thread_update_running;
+
+  /// Queue up camera measurements sorted by time and trigger once we have
+  /// exactly one IMU measurement with timestamp newer than the camera measurement
+  /// This also handles out-of-order camera measurements, which is rare, but
+  /// a nice feature to have for general robustness to bad camera drivers.
+  std::deque<ov_core::CameraData> camera_queue;
+  std::mutex camera_queue_mtx;
+
+  // Last camera message timestamps we have received (mapped by cam id)
+  std::map<int, double> camera_last_timestamp;
 
   // Last timestamp we visualized at
   double last_visualization_timestamp = 0;

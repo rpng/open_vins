@@ -37,10 +37,26 @@ zupt_only_at_beginning: true
 # ==================================================================
 # ==================================================================
 
-init_window_time: 0.75
+init_window_time: 2.0
 init_imu_thresh: 1.0
 init_max_disparity: 1.5
-init_max_features: 50
+init_max_features: 15
+
+init_dyn_mle_opt_calib: false # if we should optimize calibration during intialization (not recommended)
+init_dyn_mle_max_iter: 50 # how many iterations the MLE refinement should use (zero to skip the MLE)
+init_dyn_mle_max_time: 0.5 # how many seconds the MLE should be completed in
+init_dyn_mle_max_threads: 6 # how many threads the MLE should use
+init_dyn_num_pose: 6 # number of poses to use within our window time (evenly spaced)
+init_dyn_min_deg: 15.0 # orientation change needed to try to init
+
+init_dyn_inflation_ori: 10 # what to inflate the recovered q_GtoI covariance by
+init_dyn_inflation_vel: 100 # what to inflate the recovered v_IinG covariance by
+init_dyn_inflation_bg: 10 # what to inflate the recovered bias_g covariance by
+init_dyn_inflation_ba: 100 # what to inflate the recovered bias_a covariance by
+init_dyn_min_rec_cond: 1e-15 # reciprocal condition number thresh for info inversion
+
+init_dyn_bias_g: [0.0, 0.0, 0.0] # initial gyroscope bias guess
+init_dyn_bias_a: [0.0, 0.0, 0.0] # initial accelerometer bias guess
 
 # ==================================================================
 # ==================================================================
@@ -65,8 +81,9 @@ grid_x: 20
 grid_y: 20
 min_px_dist: 15
 knn_ratio: 0.70
+track_frequency: 21.0
 downsample_cameras: false
-multi_threading: true
+multi_threading: false
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
 # aruco tag tracker for the system

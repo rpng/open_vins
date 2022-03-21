@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -75,16 +75,32 @@ public:
    * @brief Feed function for inertial data
    * @param message Contains our timestamp and inertial information
    */
-  void feed_measurement_imu(const ov_core::ImuData &message);
+  void feed_measurement_imu(const ov_core::ImuData &message) {
+
+    // Get the oldest camera timestamp that we can remove IMU measurements before
+    // Then push back to our propagator and pass the IMU time we can delete up to
+    double oldest_time = trackFEATS->get_feature_database()->get_oldest_timestamp();
+    if (oldest_time != -1) {
+      oldest_time += params.calib_camimu_dt;
+    }
+    propagator->feed_imu(message, oldest_time);
+
+    // Push back to our initializer
+    if (!is_initialized_vio) {
+      initializer->feed_imu(message, oldest_time);
+    }
+
+    // Push back to the zero velocity updater if we have it
+    if (is_initialized_vio && updaterZUPT != nullptr) {
+      updaterZUPT->feed_imu(message, oldest_time);
+    }
+  }
 
   /**
    * @brief Feed function for camera measurements
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_measurement_camera(const ov_core::CameraData &message) {
-    camera_queue.push_back(message);
-    std::sort(camera_queue.begin(), camera_queue.end());
-  }
+  void feed_measurement_camera(const ov_core::CameraData &message) { track_image_and_update(message); }
 
   /**
    * @brief Feed function for a synchronized simulated cameras
@@ -157,24 +173,22 @@ public:
   /// Get a nice visualization image of what tracks we have
   cv::Mat get_historical_viz_image() {
 
-    // Get our image of history tracks
+    // Build an id-list of what features we should highlight (i.e. SLAM)
+    std::vector<size_t> highlighted_ids;
+    for (const auto &feat : state->_features_SLAM) {
+      highlighted_ids.push_back(feat.first);
+    }
+
+    // Text we will overlay if needed
+    std::string overlay = (did_zupt_update) ? "zvupt" : "";
+    overlay = (!is_initialized_vio) ? "init" : overlay;
+
+    // Get the current active tracks
     cv::Mat img_history;
-    if (did_zupt_update) {
-      img_history = zupt_image;
-    } else {
-
-      // Build an id-list of what features we should highlight (i.e. SLAM)
-      std::vector<size_t> highlighted_ids;
-      for (const auto &feat : state->_features_SLAM) {
-        highlighted_ids.push_back(feat.first);
-      }
-
-      // Get the current active tracks
-      trackFEATS->display_history(img_history, 255, 255, 0, 255, 255, 255, highlighted_ids);
-      if (trackARUCO != nullptr) {
-        trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255);
-        trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255);
-      }
+    trackFEATS->display_history(img_history, 255, 255, 0, 255, 255, 255, highlighted_ids, overlay);
+    if (trackARUCO != nullptr) {
+      trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255, highlighted_ids, overlay);
+      // trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255, overlay);
     }
 
     // Finally return the image
@@ -270,9 +284,10 @@ protected:
    * In the future we should call the structure-from-motion code from here.
    * This function could also be repurposed to re-initialize the system after failure.
    *
+   * @param message Contains our timestamp, images, and camera ids
    * @return True if we have successfully initialized
    */
-  bool try_to_initialize();
+  bool try_to_initialize(const ov_core::CameraData &message);
 
   /**
    * @brief This function will will re-triangulate all features in the current frame
@@ -318,11 +333,10 @@ protected:
   /// Our zero velocity tracker
   std::shared_ptr<UpdaterZeroVelocity> updaterZUPT;
 
-  /// Queue up camera measurements sorted by time and trigger once we have
-  /// exactly one IMU measurement with timestamp newer than the camera measurement
-  /// This also handles out-of-order camera measurements, which is rare, but
-  /// a nice feature to have for general robustness to bad camera drivers.
-  std::deque<ov_core::CameraData> camera_queue;
+  /// This is the queue of measurement times that have come in since we starting doing initialization
+  /// After we initialize, we will want to prop & update to the latest timestamp quickly
+  std::vector<double> camera_queue_init;
+  std::mutex camera_queue_init_mtx;
 
   // Timing statistic file and variables
   std::ofstream of_statistics;
@@ -335,10 +349,11 @@ protected:
   // Startup time of the filter
   double startup_time = -1;
 
+  // Threads and their atomics
+  std::atomic<bool> thread_init_running, thread_init_success;
+
   // If we did a zero velocity update
   bool did_zupt_update = false;
-  cv::Mat zupt_image;
-  std::map<size_t, cv::Mat> zupt_img_last;
   bool has_moved_since_zupt = false;
 
   // Good features that where used in the last update (used in visualization)

@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -91,6 +91,7 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
+  params.use_multi_threading = false;
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
 #if ROS_AVAILABLE == 1
@@ -135,12 +136,12 @@ int main(int argc, char **argv) {
   std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> buffer_feats;
 
   // Step through the rosbag
-  signal(SIGINT, signal_callback_handler);
 #if ROS_AVAILABLE == 1
   while (sim->ok() && ros::ok()) {
 #elif ROS_AVAILABLE == 2
   while (sim->ok() && rclcpp::ok()) {
 #else
+  signal(SIGINT, signal_callback_handler);
   while (sim->ok()) {
 #endif
 

@@ -2,7 +2,7 @@ name: ROS Free Workflow
 
 on:
   push:
-    branches: [ master]
+    branches: [ master ]
   pull_request:
 
 jobs:
@@ -12,9 +12,25 @@ jobs:
     steps:
       - name: Code Checkout
         uses: actions/checkout@v2
+      - name: Installing Ceres Solver
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libceres-dev
+#          cd ..
+#          git clone https://ceres-solver.googlesource.com/ceres-solver
+#          cd ceres-solver
+#          git checkout tags/2.0.0
+#          mkdir build
+#          cd build
+#          cmake ..
+#          sudo make install
+#          cd ../../
       - name: Configure and Build
         run: |
-          sudo apt-get update && sudo apt-get install -y libeigen3-dev libopencv-dev libboost-all-dev &&
-          mkdir build && cd build &&
-          cmake ../ov_msckf/ && make
+          sudo apt-get update
+          sudo apt-get install -y libeigen3-dev libopencv-dev libboost-all-dev
+          mkdir build
+          cd build
+          cmake ../ov_msckf/
+          make
 

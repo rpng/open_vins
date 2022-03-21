@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 #ifndef OV_INIT_INERTIALINITIALIZER_H
 #define OV_INIT_INERTIALINITIALIZER_H
 
+#include "dynamic/DynamicInitializer.h"
 #include "init/InertialInitializerOptions.h"
 #include "static/StaticInitializer.h"
 
@@ -39,7 +40,6 @@ namespace ov_init {
  * This will try to do both dynamic and state initialization of the state.
  * The user can request to wait for a jump in our IMU readings (i.e. device is picked up) or to initialize as soon as possible.
  * For state initialization, the user needs to specify the calibration beforehand, otherwise dynamic is always used.
- *
  * The logic is as follows:
  * 1. Try to perform dynamic initialization of state elements.
  * 2. If this fails and we have calibration then we can try to do static initialization
@@ -49,6 +49,9 @@ namespace ov_init {
  * with unknown camera-IMU calibration](https://ieeexplore.ieee.org/document/6386235) @cite Dong2012IROS which solves the initialization
  * problem by first creating a linear system for recovering the camera to IMU rotation, then for velocity, gravity, and feature positions,
  * and finally a full optimization to allow for covariance recovery.
+ * Another paper which might be of interest to the reader is [An Analytical Solution to the IMU Initialization
+ * Problem for Visual-Inertial Systems](https://ieeexplore.ieee.org/abstract/document/9462400) which has some detailed
+ * experiments on scale recovery and the accelerometer bias.
  */
 class InertialInitializer {
 
@@ -63,21 +66,43 @@ public:
   /**
    * @brief Feed function for inertial data
    * @param message Contains our timestamp and inertial information
+   * @param oldest_time Time that we can discard measurements before
    */
-  void feed_imu(const ov_core::ImuData &message) {
+  void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
 
     // Append it to our vector
-    imu_data->push_back(message);
+    imu_data->emplace_back(message);
 
-    // Delete all measurements older than three of our initialization windows
-    auto it0 = imu_data->begin();
-    while (it0 != imu_data->end() && it0->timestamp < message.timestamp - 3 * params.init_window_time) {
-      it0 = imu_data->erase(it0);
+    // Sort our imu data (handles any out of order measurements)
+    // std::sort(imu_data->begin(), imu_data->end(), [](const IMUDATA i, const IMUDATA j) {
+    //    return i.timestamp < j.timestamp;
+    //});
+
+    // Loop through and delete imu messages that are older than our requested time
+    if (oldest_time != -1) {
+      auto it0 = imu_data->begin();
+      while (it0 != imu_data->end()) {
+        if (message.timestamp < oldest_time) {
+          it0 = imu_data->erase(it0);
+        } else {
+          it0++;
+        }
+      }
     }
   }
 
   /**
    * @brief Try to get the initialized system
+   *
+   *
+   * @m_class{m-note m-warning}
+   *
+   * @par Processing Cost
+   * This is a serial process that can take on orders of seconds to complete.
+   * If you are a real-time application then you will likely want to call this from
+   * a async thread which allows for this to process in the background.
+   * The features used are cloned from the feature database thus should be thread-safe
+   * to continue to append new feature tracks to the database.
    *
    * @param[out] timestamp Timestamp we have initialized the state at
    * @param[out] covariance Calculated covariance of the returned state
@@ -101,6 +126,9 @@ protected:
 
   /// Static initialization helper class
   std::shared_ptr<StaticInitializer> init_static;
+
+  /// Dynamic initialization helper class
+  std::shared_ptr<DynamicInitializer> init_dynamic;
 };
 
 } // namespace ov_init

@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
+ * Copyright (C) 2022 Patrick Geneva
+ * Copyright (C) 2022 Guoquan Huang
+ * Copyright (C) 2022 OpenVINS Contributors
  * Copyright (C) 2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -66,7 +66,7 @@ public:
    * @return Either a feature object, or null if it is not in the database.
    */
   std::shared_ptr<Feature> get_feature(size_t id, bool remove = false) {
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     if (features_idlookup.find(id) != features_idlookup.end()) {
       std::shared_ptr<Feature> temp = features_idlookup.at(id);
       if (remove)
@@ -93,7 +93,7 @@ public:
   void update_feature(size_t id, double timestamp, size_t cam_id, float u, float v, float u_n, float v_n) {
 
     // Find this feature using the ID lookup
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     if (features_idlookup.find(id) != features_idlookup.end()) {
       // Get our feature
       std::shared_ptr<Feature> feat = features_idlookup.at(id);
@@ -131,7 +131,7 @@ public:
     std::vector<std::shared_ptr<Feature>> feats_old;
 
     // Now lets loop through all features, and just make sure they are not old
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // Skip if already deleted
       if (skip_deleted && (*it).second->to_delete) {
@@ -178,7 +178,7 @@ public:
     std::vector<std::shared_ptr<Feature>> feats_old;
 
     // Now lets loop through all features, and just make sure they are not old
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // Skip if already deleted
       if (skip_deleted && (*it).second->to_delete) {
@@ -225,7 +225,7 @@ public:
     std::vector<std::shared_ptr<Feature>> feats_has_timestamp;
 
     // Now lets loop through all features, and just make sure they are not
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // Skip if already deleted
       if (skip_deleted && (*it).second->to_delete) {
@@ -269,7 +269,7 @@ public:
   void cleanup() {
     // Loop through all features
     // int sizebefore = (int)features_idlookup.size();
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // If delete flag is set, then delete it
       if ((*it).second->to_delete) {
@@ -285,7 +285,7 @@ public:
    * @brief This function will delete all feature measurements that are older then the specified timestamp
    */
   void cleanup_measurements(double timestamp) {
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // Remove the older measurements
       (*it).second->clean_older_measurements(timestamp);
@@ -307,7 +307,7 @@ public:
    * @brief This function will delete all feature measurements that are at the specified timestamp
    */
   void cleanup_measurements_exact(double timestamp) {
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     std::vector<double> timestamps = {timestamp};
     for (auto it = features_idlookup.begin(); it != features_idlookup.end();) {
       // Remove the older measurements
@@ -330,7 +330,7 @@ public:
    * @brief Returns the size of the feature database
    */
   size_t size() {
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     return features_idlookup.size();
   }
 
@@ -338,15 +338,31 @@ public:
    * @brief Returns the internal data (should not normally be used)
    */
   std::unordered_map<size_t, std::shared_ptr<Feature>> get_internal_data() {
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
     return features_idlookup;
+  }
+
+  /**
+   * @brief Gets the oldest time in the database
+   */
+  double get_oldest_timestamp() {
+    std::lock_guard<std::mutex> lck(mtx);
+    double oldest_time = -1;
+    for (auto const &feat : features_idlookup) {
+      for (auto const &camtimepair : feat.second->timestamps) {
+        if (!camtimepair.second.empty() && (oldest_time == -1 || oldest_time < camtimepair.second.at(0))) {
+          oldest_time = camtimepair.second.at(0);
+        }
+      }
+    }
+    return oldest_time;
   }
 
   /**
    * @brief Will update the passed database with this database's latest feature information.
    */
   void append_new_measurements(const std::shared_ptr<FeatureDatabase> &database) {
-    std::unique_lock<std::mutex> lck(mtx);
+    std::lock_guard<std::mutex> lck(mtx);
 
     // Loop through the other database's internal database
     // int sizebefore = (int)features_idlookup.size();
