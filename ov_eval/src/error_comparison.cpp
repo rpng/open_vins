@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     ov_eval::Loader::load_data(path_groundtruths.at(i).string(), times, poses, cov_ori, cov_pos);
     // Print its length and stats
     double length = ov_eval::Loader::get_total_length(poses);
-    PRINT_DEBUG("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_groundtruths.at(i).filename().c_str(), length);
+    PRINT_INFO("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_groundtruths.at(i).filename().c_str(), length);
   }
 
   // Get the algorithms we will process
@@ -233,7 +233,7 @@ int main(int argc, char **argv) {
       }
     }
   }
-  PRINT_INFO("\n\n");
+  PRINT_DEBUG("\n\n");
 
   //===============================================================================
   //===============================================================================
