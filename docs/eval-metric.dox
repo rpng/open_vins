@@ -30,7 +30,7 @@ We can define the relative error for a trajectory split into \f$D_i\f$ segments 
 
 \f{align*}{
     \tilde{\mathbf{x}}_{r} &= \mathbf{x}_{k} \boxminus \mathbf{x}_{k+d_i} \\
-    e_{rpe,d_i} &= \frac{1}{D_i} \sum_{k=1}^{D_i} ||\tilde{\mathbf{x}}_{r} \boxminus \hat{\tilde{\mathbf{x}}}_{r}||^2_{2}
+    e_{rpe,d_i} &= \frac{1}{D_i} \sum_{k=1}^{D_i} ||\tilde{\mathbf{x}}_{r} \boxminus \hat{\tilde{\mathbf{x}}}_{r}||_{2}
 \f}
 
 

@@ -233,6 +233,7 @@ int main(int argc, char **argv) {
       }
     }
   }
+  PRINT_INFO("\n\n");
 
   //===============================================================================
   //===============================================================================
@@ -259,9 +260,11 @@ int main(int argc, char **argv) {
       if (seg.first.values.empty() || seg.second.values.empty()) {
         PRINT_INFO(" & - / -");
       } else {
-        PRINT_INFO(" & %.3f / %.3f", seg.first.rmse, seg.second.rmse);
-        sum_ori += seg.first.rmse;
-        sum_pos += seg.second.rmse;
+        seg.first.calculate();
+        seg.second.calculate();
+        PRINT_INFO(" & %.3f / %.3f", seg.first.mean, seg.second.mean);
+        sum_ori += seg.first.mean;
+        sum_pos += seg.second.mean;
         sum_ct++;
       }
     }
@@ -284,7 +287,7 @@ int main(int argc, char **argv) {
     for (auto &seg : algo.second) {
       seg.second.first.calculate();
       seg.second.second.calculate();
-      PRINT_INFO(" & %.3f / %.3f", seg.second.first.median, seg.second.second.median);
+      PRINT_INFO(" & %.3f / %.3f", seg.second.first.mean, seg.second.second.mean);
     }
     PRINT_INFO(" \\\\\n");
   }
