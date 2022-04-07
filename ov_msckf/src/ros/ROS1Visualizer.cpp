@@ -706,7 +706,13 @@ void ROS1Visualizer::publish_groundtruth() {
   Eigen::Matrix<double, 6, 6> covariance = StateHelper::get_marginal_covariance(_app->get_state(), statevars);
 
   // Calculate NEES values
-  double ori_nees = 2 * quat_diff.block(0, 0, 3, 1).dot(covariance.block(0, 0, 3, 3).inverse() * 2 * quat_diff.block(0, 0, 3, 1));
+  // NOTE: need to manually multiply things out to make static asserts work
+  // NOTE: https://github.com/rpng/open_vins/pull/226
+  // NOTE: https://github.com/rpng/open_vins/issues/236
+  // NOTE: https://gitlab.com/libeigen/eigen/-/issues/1664
+  Eigen::Vector3d quat_diff_vec = quat_diff.block(0, 0, 3, 1);
+  Eigen::Vector3d cov_vec = covariance.block(0, 0, 3, 3).inverse() * 2 * quat_diff.block(0, 0, 3, 1);
+  double ori_nees = 2 * quat_diff_vec.dot(cov_vec);
   Eigen::Vector3d errpos = state_ekf.block(4, 0, 3, 1) - state_gt.block(5, 0, 3, 1);
   double pos_nees = errpos.transpose() * covariance.block(3, 3, 3, 3).inverse() * errpos;
 
