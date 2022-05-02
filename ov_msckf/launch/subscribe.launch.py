@@ -40,8 +40,12 @@ launch_args = [
         default_value="2",
         description="how many cameras we have 1 = mono, 2 = stereo, >2 = binocular (all mono tracking)",
     ),
+    DeclareLaunchArgument(
+        name="save_total_state",
+        default_value="false",
+        description="record the total state with calibration and features to a txt file",
+    )
 ]
-
 
 def launch_setup(context):
     config_path = LaunchConfiguration("config_path").perform(context)
@@ -75,10 +79,12 @@ def launch_setup(context):
         executable="run_subscribe_msckf",
         condition=IfCondition(LaunchConfiguration("ov_enable")),
         namespace=LaunchConfiguration("namespace"),
+        output='screen',
         parameters=[
             {"verbosity": LaunchConfiguration("verbosity")},
             {"use_stereo": LaunchConfiguration("use_stereo")},
             {"max_cameras": LaunchConfiguration("max_cameras")},
+            {"save_total_state": LaunchConfiguration("save_total_state")},
             {"config_path": config_path},
         ],
     )
