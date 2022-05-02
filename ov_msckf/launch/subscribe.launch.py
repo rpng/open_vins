@@ -43,7 +43,7 @@ launch_args = [
     DeclareLaunchArgument(
         name="save_total_state",
         default_value="false",
-        description="",
+        description="record the total state with calibration and features to a txt file",
     )
 ]
 
