@@ -24,12 +24,13 @@
 
 #include <unordered_map>
 
-#include "Feature.h"
 #include "FeatureInitializerOptions.h"
 #include "utils/print.h"
 #include "utils/quat_ops.h"
 
 namespace ov_core {
+
+class Feature;
 
 /**
  * @brief Class that triangulates feature

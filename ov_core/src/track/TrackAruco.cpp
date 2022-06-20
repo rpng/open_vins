@@ -20,7 +20,11 @@
  */
 
 #include "TrackAruco.h"
-#include "utils/print.h"
+
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+#include "utils/opencv_lambda_body.h"
 
 using namespace ov_core;
 

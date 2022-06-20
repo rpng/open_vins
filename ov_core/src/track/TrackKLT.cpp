@@ -20,6 +20,12 @@
  */
 
 #include "TrackKLT.h"
+
+#include "Grider_FAST.h"
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+#include "utils/opencv_lambda_body.h"
 #include "utils/print.h"
 
 using namespace ov_core;

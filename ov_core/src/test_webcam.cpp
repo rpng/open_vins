@@ -20,6 +20,7 @@
  */
 
 #include <cmath>
+#include <csignal>
 #include <deque>
 #include <fstream>
 #include <iomanip>
@@ -34,6 +35,8 @@
 #include <boost/filesystem.hpp>
 
 #include "cam/CamRadtan.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
@@ -48,6 +51,9 @@ using namespace ov_core;
 
 // Our feature extractor
 TrackBase *extractor;
+
+// Define the function to be called when ctrl-c (SIGINT) is sent to process
+void signal_callback_handler(int signum) { std::exit(signum); }
 
 // Main function
 int main(int argc, char **argv) {
@@ -158,7 +164,12 @@ int main(int argc, char **argv) {
   // Loop forever until we break out
   double current_time = 0.0;
   std::deque<double> clonetimes;
+  signal(SIGINT, signal_callback_handler);
+#if ROS_AVAILABLE == 1
+  while (ros::ok()) {
+#else
   while (true) {
+#endif
 
     // Get the next frame (and fake advance time forward)
     cv::Mat frame;

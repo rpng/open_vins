@@ -21,7 +21,24 @@
 
 #include "TrackBase.h"
 
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+
 using namespace ov_core;
+
+TrackBase::TrackBase(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool stereo,
+                     HistogramMethod histmethod)
+    : camera_calib(cameras), database(new FeatureDatabase()), num_features(numfeats), use_stereo(stereo), histogram_method(histmethod) {
+  // Our current feature ID should be larger then the number of aruco tags we have (each has 4 corners)
+  currid = 4 * (size_t)numaruco + 1;
+  // Create our mutex array based on the number of cameras we have
+  // See https://stackoverflow.com/a/24170141/7718197
+  if (mtx_feeds.empty() || mtx_feeds.size() != camera_calib.size()) {
+    std::vector<std::mutex> list(camera_calib.size());
+    mtx_feeds.swap(list);
+  }
+}
 
 void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::string overlay) {
 
@@ -206,5 +223,25 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
     // Replace the output image
     img_temp.copyTo(img_out(cv::Rect(max_width * index_cam, 0, img_last_cache[pair.first].cols, img_last_cache[pair.first].rows)));
     index_cam++;
+  }
+}
+
+void TrackBase::change_feat_id(size_t id_old, size_t id_new) {
+
+  // If found in db then replace
+  if (database->get_internal_data().find(id_old) != database->get_internal_data().end()) {
+    std::shared_ptr<Feature> feat = database->get_internal_data().at(id_old);
+    database->get_internal_data().erase(id_old);
+    feat->featid = id_new;
+    database->get_internal_data().insert({id_new, feat});
+  }
+
+  // Update current track IDs
+  for (auto &cam_ids_pair : ids_last) {
+    for (size_t i = 0; i < cam_ids_pair.second.size(); i++) {
+      if (cam_ids_pair.second.at(i) == id_old) {
+        ids_last.at(cam_ids_pair.first).at(i) = id_new;
+      }
+    }
   }
 }

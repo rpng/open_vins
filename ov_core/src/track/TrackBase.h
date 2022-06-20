@@ -33,14 +33,15 @@
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/opencv.hpp>
 
-#include "Grider_FAST.h"
-#include "cam/CamBase.h"
-#include "feat/FeatureDatabase.h"
 #include "utils/colors.h"
-#include "utils/opencv_lambda_body.h"
+#include "utils/print.h"
 #include "utils/sensor_data.h"
 
 namespace ov_core {
+
+class Feature;
+class CamBase;
+class FeatureDatabase;
 
 /**
  * @brief Visual feature tracking base class
@@ -85,17 +86,7 @@ public:
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    */
   TrackBase(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool stereo,
-            HistogramMethod histmethod)
-      : camera_calib(cameras), database(new FeatureDatabase()), num_features(numfeats), use_stereo(stereo), histogram_method(histmethod) {
-    // Our current feature ID should be larger then the number of aruco tags we have (each has 4 corners)
-    currid = 4 * (size_t)numaruco + 1;
-    // Create our mutex array based on the number of cameras we have
-    // See https://stackoverflow.com/a/24170141/7718197
-    if (mtx_feeds.empty() || mtx_feeds.size() != camera_calib.size()) {
-      std::vector<std::mutex> list(camera_calib.size());
-      mtx_feeds.swap(list);
-    }
-  }
+            HistogramMethod histmethod);
 
   virtual ~TrackBase() {}
 
@@ -140,25 +131,7 @@ public:
    * @param id_old Old id we want to change
    * @param id_new Id we want to change the old id to
    */
-  void change_feat_id(size_t id_old, size_t id_new) {
-
-    // If found in db then replace
-    if (database->get_internal_data().find(id_old) != database->get_internal_data().end()) {
-      std::shared_ptr<Feature> feat = database->get_internal_data().at(id_old);
-      database->get_internal_data().erase(id_old);
-      feat->featid = id_new;
-      database->get_internal_data().insert({id_new, feat});
-    }
-
-    // Update current track IDs
-    for (auto &cam_ids_pair : ids_last) {
-      for (size_t i = 0; i < cam_ids_pair.second.size(); i++) {
-        if (cam_ids_pair.second.at(i) == id_old) {
-          ids_last.at(cam_ids_pair.first).at(i) = id_new;
-        }
-      }
-    }
-  }
+  void change_feat_id(size_t id_old, size_t id_new);
 
   /// Getter method for number of active features
   int get_num_features() { return num_features; }

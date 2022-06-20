@@ -21,6 +21,10 @@
 
 #include "TrackSIM.h"
 
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+
 using namespace ov_core;
 
 void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<int> &camids,

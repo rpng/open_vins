@@ -35,6 +35,8 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "cam/CamRadtan.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"

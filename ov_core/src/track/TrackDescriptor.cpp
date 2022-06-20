@@ -20,7 +20,13 @@
  */
 
 #include "TrackDescriptor.h"
-#include "utils/print.h"
+
+#include <opencv2/features2d.hpp>
+
+#include "Grider_FAST.h"
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
 
 using namespace ov_core;
 

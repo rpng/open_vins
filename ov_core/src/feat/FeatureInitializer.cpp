@@ -21,6 +21,8 @@
 
 #include "FeatureInitializer.h"
 
+#include "Feature.h"
+
 using namespace ov_core;
 
 bool FeatureInitializer::single_triangulation(Feature *feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM) {
