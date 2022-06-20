@@ -21,6 +21,15 @@
 
 #include "StaticInitializer.h"
 
+#include "utils/helper.h"
+
+#include "feat/FeatureHelper.h"
+#include "types/IMU.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
+#include "utils/sensor_data.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_init;

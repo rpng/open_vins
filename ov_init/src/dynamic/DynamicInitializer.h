@@ -22,21 +22,19 @@
 #ifndef OV_INIT_DYNAMICINITIALIZER_H
 #define OV_INIT_DYNAMICINITIALIZER_H
 
-#include "ceres/Factor_GenericPrior.h"
-#include "ceres/Factor_ImageReprojCalib.h"
-#include "ceres/Factor_ImuCPIv1.h"
-#include "ceres/State_JPLQuatLocal.h"
 #include "init/InertialInitializerOptions.h"
-#include "utils/helper.h"
 
-#include "cpi/CpiV1.h"
-#include "feat/FeatureHelper.h"
-#include "types/IMU.h"
-#include "types/Landmark.h"
-#include "utils/colors.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
-#include "utils/sensor_data.h"
+namespace ov_core {
+class FeatureDatabase;
+struct ImuData;
+} // namespace ov_core
+namespace ov_type {
+class Type;
+class IMU;
+class PoseJPL;
+class Landmark;
+class Vec;
+} // namespace ov_type
 
 namespace ov_init {
 
@@ -80,15 +78,11 @@ public:
    * @param _imu Pointer to the "active" IMU state (q_GtoI, p_IinG, v_IinG, bg, ba)
    * @param _clones_IMU Map between imaging times and clone poses (q_GtoIi, p_IiinG)
    * @param _features_SLAM Our current set of SLAM features (3d positions)
-   * @param _calib_IMUtoCAM Calibration poses for each camera (R_ItoC, p_IinC)
-   * @param _cam_intrinsics Camera intrinsics
    * @return True if we have successfully initialized our system
    */
   bool initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
                   std::shared_ptr<ov_type::IMU> &_imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
-                  std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM,
-                  std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> &_calib_IMUtoCAM,
-                  std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> &_cam_intrinsics);
+                  std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM);
 
 private:
   /// Initialization parameters

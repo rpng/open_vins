@@ -21,6 +21,16 @@
 
 #include "InertialInitializer.h"
 
+#include "dynamic/DynamicInitializer.h"
+#include "static/StaticInitializer.h"
+
+#include "feat/FeatureHelper.h"
+#include "types/Type.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
+#include "utils/sensor_data.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_init;
@@ -34,6 +44,29 @@ InertialInitializer::InertialInitializer(InertialInitializerOptions &params_, st
   // Create initializers
   init_static = std::make_shared<StaticInitializer>(params, _db, imu_data);
   init_dynamic = std::make_shared<DynamicInitializer>(params, _db, imu_data);
+}
+
+void InertialInitializer::feed_imu(const ov_core::ImuData &message, double oldest_time) {
+
+  // Append it to our vector
+  imu_data->emplace_back(message);
+
+  // Sort our imu data (handles any out of order measurements)
+  // std::sort(imu_data->begin(), imu_data->end(), [](const IMUDATA i, const IMUDATA j) {
+  //    return i.timestamp < j.timestamp;
+  //});
+
+  // Loop through and delete imu messages that are older than our requested time
+  if (oldest_time != -1) {
+    auto it0 = imu_data->begin();
+    while (it0 != imu_data->end()) {
+      if (message.timestamp < oldest_time) {
+        it0 = imu_data->erase(it0);
+      } else {
+        it0++;
+      }
+    }
+  }
 }
 
 bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
@@ -91,8 +124,6 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
     PRINT_DEBUG(GREEN "[init]: USING DYNAMIC INITIALIZER METHOD!\n" RESET);
     std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
     std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;
-    std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> _calib_IMUtoCAM;
-    std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> _cam_intrinsics;
-    return init_dynamic->initialize(timestamp, covariance, order, t_imu, _clones_IMU, _features_SLAM, _calib_IMUtoCAM, _cam_intrinsics);
+    return init_dynamic->initialize(timestamp, covariance, order, t_imu, _clones_IMU, _features_SLAM);
   }
 }

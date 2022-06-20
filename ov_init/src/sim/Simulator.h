@@ -30,14 +30,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "cam/CamBase.h"
-#include "cam/CamEqui.h"
-#include "cam/CamRadtan.h"
-#include "sim/BsplineSE3.h"
-#include "utils/colors.h"
-#include "utils/dataset_reader.h"
-
 #include "init/InertialInitializerOptions.h"
+
+namespace ov_core {
+class BsplineSE3;
+} // namespace ov_core
 
 namespace ov_init {
 
@@ -108,14 +105,6 @@ public:
   /// Returns the true 3d map of features
   std::unordered_map<size_t, Eigen::Vector3d> get_map() { return featmap; }
 
-  /// Returns the true 3d map of features
-  std::vector<Eigen::Vector3d> get_map_vec() {
-    std::vector<Eigen::Vector3d> feats;
-    for (auto const &feat : featmap)
-      feats.push_back(feat.second);
-    return feats;
-  }
-
   /// Access function to get the true parameters (i.e. calibration and settings)
   InertialInitializerOptions get_true_parameters() { return params; }
 
@@ -157,7 +146,7 @@ protected:
   std::vector<Eigen::VectorXd> traj_data;
 
   /// Our b-spline trajectory
-  ov_core::BsplineSE3 spline;
+  std::shared_ptr<ov_core::BsplineSE3> spline;
 
   /// Our map of 3d features
   size_t id_map = 0;

@@ -40,9 +40,6 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #endif
 
-#include "utils/colors.h"
-#include "utils/sensor_data.h"
-
 #include "ceres/Factor_GenericPrior.h"
 #include "ceres/Factor_ImageReprojCalib.h"
 #include "ceres/Factor_ImuCPIv1.h"
@@ -50,6 +47,11 @@
 #include "init/InertialInitializerOptions.h"
 #include "sim/Simulator.h"
 #include "utils/helper.h"
+
+#include "types/IMU.h"
+#include "types/PoseJPL.h"
+#include "utils/colors.h"
+#include "utils/sensor_data.h"
 
 using namespace ov_init;
 

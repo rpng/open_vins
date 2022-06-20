@@ -43,6 +43,9 @@
 #include "sim/Simulator.h"
 
 #include "track/TrackSIM.h"
+#include "types/IMU.h"
+#include "types/Landmark.h"
+#include "types/PoseJPL.h"
 #include "utils/colors.h"
 #include "utils/sensor_data.h"
 
@@ -334,8 +337,8 @@ int main(int argc, char **argv) {
 
         // Wait for user approval
         do {
-          cout << '\n' << "Press a key to continue...";
-        } while (cin.get() != '\n');
+          std::cout << '\n' << "Press a key to continue...";
+        } while (std::cin.get() != '\n');
 
         // Reset our tracker and simulator so we can try to init again
         if (params.sim_do_perturbation) {

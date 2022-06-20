@@ -23,7 +23,6 @@
 #define OV_INIT_HELPER
 
 #include "cpi/CpiV1.h"
-#include "feat/FeatureHelper.h"
 #include "types/IMU.h"
 
 namespace ov_init {
