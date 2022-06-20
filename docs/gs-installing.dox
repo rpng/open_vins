@@ -145,6 +145,16 @@ cmake ..
 make -j4
 @endcode
 
+If you wish to debug and run with assert statements, you can configure your workspace as follows:
+
+
+@code{.shell-session}
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug
+catkin build --cmake-args -DCMAKE_BUILD_TYPE=Debug
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Debug
+@endcode
+
+
 
 @section gs-install-oveval Additional Evaluation Requirements
 

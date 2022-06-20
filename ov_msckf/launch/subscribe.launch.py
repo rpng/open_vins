@@ -13,7 +13,7 @@ launch_args = [
         name="ov_enable", default_value="true", description="enable OpenVINS node"
     ),
     DeclareLaunchArgument(
-        name="rviz_enable", default_value="true", description="enable rviz node"
+        name="rviz_enable", default_value="false", description="enable rviz node"
     ),
     DeclareLaunchArgument(
         name="config",
