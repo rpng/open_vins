@@ -30,14 +30,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "cam/CamBase.h"
-#include "cam/CamEqui.h"
-#include "cam/CamRadtan.h"
-#include "sim/BsplineSE3.h"
-#include "utils/colors.h"
-#include "utils/dataset_reader.h"
-
 #include "core/VioManagerOptions.h"
+
+namespace ov_core {
+class BsplineSE3;
+} // namespace ov_core
 
 namespace ov_msckf {
 
@@ -158,7 +155,7 @@ protected:
   std::vector<Eigen::VectorXd> traj_data;
 
   /// Our b-spline trajectory
-  ov_core::BsplineSE3 spline;
+  std::shared_ptr<ov_core::BsplineSE3> spline;
 
   /// Our map of 3d features
   size_t id_map = 0;

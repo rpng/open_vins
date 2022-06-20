@@ -21,6 +21,14 @@
 
 #include "StateHelper.h"
 
+#include "state/State.h"
+
+#include "types/Landmark.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+
+#include <boost/math/distributions/chi_squared.hpp>
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
@@ -595,9 +603,35 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
     dnc_dt.block(0, 0, 3, 1) = last_w;
     dnc_dt.block(3, 0, 3, 1) = state->_imu->vel();
     // Augment covariance with time offset Jacobian
+    // TODO: replace this with a call to the EKFPropagate function instead....
     state->_Cov.block(0, pose->id(), state->_Cov.rows(), 6) +=
         state->_Cov.block(0, state->_calib_dt_CAMtoIMU->id(), state->_Cov.rows(), 1) * dnc_dt.transpose();
     state->_Cov.block(pose->id(), 0, 6, state->_Cov.rows()) +=
         dnc_dt * state->_Cov.block(state->_calib_dt_CAMtoIMU->id(), 0, 1, state->_Cov.rows());
+  }
+}
+
+void StateHelper::marginalize_old_clone(std::shared_ptr<State> state) {
+  if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
+    double marginal_time = state->margtimestep();
+    assert(marginal_time != INFINITY);
+    StateHelper::marginalize(state, state->_clones_IMU.at(marginal_time));
+    // Note that the marginalizer should have already deleted the clone
+    // Thus we just need to remove the pointer to it from our state
+    state->_clones_IMU.erase(marginal_time);
+  }
+}
+
+void StateHelper::marginalize_slam(std::shared_ptr<State> state) {
+  // Remove SLAM features that have their marginalization flag set
+  // We also check that we do not remove any aruoctag landmarks
+  auto it0 = state->_features_SLAM.begin();
+  while (it0 != state->_features_SLAM.end()) {
+    if ((*it0).second->should_marg && (int)(*it0).first > 4 * state->_options.max_aruco_features) {
+      StateHelper::marginalize(state, (*it0).second);
+      it0 = state->_features_SLAM.erase(it0);
+    } else {
+      it0++;
+    }
   }
 }

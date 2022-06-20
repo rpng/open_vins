@@ -21,6 +21,10 @@
 
 #include "UpdaterHelper.h"
 
+#include "state/State.h"
+
+#include "utils/quat_ops.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
@@ -301,7 +305,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
 
   // Assert that all the ones in our order are already in our local jacobian mapping
   for (auto &type : dpfg_dx_order) {
-    assert(map_hx.find(type) != map_hx.end());
+    assert_r(map_hx.find(type) != map_hx.end());
   }
 
   // Loop through each camera for this feature

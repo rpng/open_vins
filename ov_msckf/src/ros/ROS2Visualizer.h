@@ -45,17 +45,20 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <Eigen/Eigen>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-#include "core/VioManager.h"
-#include "ros/RosVisualizerHelper.h"
-#include "sim/Simulator.h"
-#include "utils/dataset_reader.h"
-#include "utils/print.h"
-#include "utils/sensor_data.h"
+namespace ov_core {
+class YamlParser;
+struct CameraData;
+} // namespace ov_core
 
 namespace ov_msckf {
+
+class VioManager;
+class Simulator;
 
 /**
  * @brief Helper class that will publish results onto the ROS framework.

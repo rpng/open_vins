@@ -28,9 +28,9 @@
 #include <string>
 #include <vector>
 
-#include "state/Propagator.h"
 #include "state/StateOptions.h"
 #include "update/UpdaterOptions.h"
+#include "utils/NoiseManager.h"
 
 #include "init/InertialInitializerOptions.h"
 
@@ -130,7 +130,7 @@ struct VioManagerOptions {
   // NOISE / CHI2 ============================
 
   /// IMU noise (gyroscope and accelerometer)
-  Propagator::NoiseManager imu_noises;
+  NoiseManager imu_noises;
 
   /// Update options for MSCKF features (pixel noise and chi2 multiplier)
   UpdaterOptions msckf_options;

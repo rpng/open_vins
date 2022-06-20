@@ -21,6 +21,10 @@
 
 #include "Propagator.h"
 
+#include "state/State.h"
+#include "state/StateHelper.h"
+#include "utils/quat_ops.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;

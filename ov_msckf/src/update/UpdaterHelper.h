@@ -23,15 +23,18 @@
 #define OV_MSCKF_UPDATER_HELPER_H
 
 #include <Eigen/Eigen>
+#include <memory>
+#include <unordered_map>
 
-#include "feat/Feature.h"
-#include "state/State.h"
-#include "state/StateOptions.h"
 #include "types/LandmarkRepresentation.h"
-#include "utils/colors.h"
-#include "utils/quat_ops.h"
+
+namespace ov_type {
+class Type;
+} // namespace ov_type
 
 namespace ov_msckf {
+
+class State;
 
 /**
  * @brief Class that has helper functions for our updaters.

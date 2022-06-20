@@ -21,6 +21,16 @@
 
 #include "ROS1Visualizer.h"
 
+#include "core/VioManager.h"
+#include "ros/ROSVisualizerHelper.h"
+#include "sim/Simulator.h"
+#include "state/Propagator.h"
+#include "state/State.h"
+#include "state/StateHelper.h"
+#include "utils/dataset_reader.h"
+#include "utils/print.h"
+#include "utils/sensor_data.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
@@ -205,7 +215,7 @@ void ROS1Visualizer::visualize() {
 
   // Save total state
   if (save_total_state) {
-    RosVisualizerHelper::sim_save_total_state_to_file(_app->get_state(), _sim, of_state_est, of_state_std, of_state_gt);
+    ROSVisualizerHelper::sim_save_total_state_to_file(_app->get_state(), _sim, of_state_est, of_state_std, of_state_gt);
   }
 
   // Print how much time it took to publish / displaying things
@@ -276,7 +286,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
   auto odom_pose = std::make_shared<ov_type::PoseJPL>();
   odom_pose->set_value(state_plus.block(0, 0, 7, 1));
-  tf::StampedTransform trans = RosVisualizerHelper::get_stamped_transform_from_pose(odom_pose, false);
+  tf::StampedTransform trans = ROSVisualizerHelper::get_stamped_transform_from_pose(odom_pose, false);
   trans.frame_id_ = "global";
   trans.child_frame_id_ = "imu";
   if (publish_global2imu_tf) {
@@ -285,7 +295,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
   // Loop through each camera calibration and publish it
   for (const auto &calib : state->_calib_IMUtoCAM) {
-    tf::StampedTransform trans_calib = RosVisualizerHelper::get_stamped_transform_from_pose(calib.second, true);
+    tf::StampedTransform trans_calib = ROSVisualizerHelper::get_stamped_transform_from_pose(calib.second, true);
     trans_calib.frame_id_ = "imu";
     trans_calib.child_frame_id_ = "cam" + std::to_string(calib.first);
     if (publish_calibration_tf) {
@@ -585,17 +595,17 @@ void ROS1Visualizer::publish_features() {
 
   // Get our good MSCKF features
   std::vector<Eigen::Vector3d> feats_msckf = _app->get_good_features_MSCKF();
-  sensor_msgs::PointCloud2 cloud = RosVisualizerHelper::get_ros_pointcloud(feats_msckf);
+  sensor_msgs::PointCloud2 cloud = ROSVisualizerHelper::get_ros_pointcloud(feats_msckf);
   pub_points_msckf.publish(cloud);
 
   // Get our good SLAM features
   std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
-  sensor_msgs::PointCloud2 cloud_SLAM = RosVisualizerHelper::get_ros_pointcloud(feats_slam);
+  sensor_msgs::PointCloud2 cloud_SLAM = ROSVisualizerHelper::get_ros_pointcloud(feats_slam);
   pub_points_slam.publish(cloud_SLAM);
 
   // Get our good ARUCO features
   std::vector<Eigen::Vector3d> feats_aruco = _app->get_features_ARUCO();
-  sensor_msgs::PointCloud2 cloud_ARUCO = RosVisualizerHelper::get_ros_pointcloud(feats_aruco);
+  sensor_msgs::PointCloud2 cloud_ARUCO = ROSVisualizerHelper::get_ros_pointcloud(feats_aruco);
   pub_points_aruco.publish(cloud_ARUCO);
 
   // Skip the rest of we are not doing simulation
@@ -604,7 +614,7 @@ void ROS1Visualizer::publish_features() {
 
   // Get our good SIMULATION features
   std::vector<Eigen::Vector3d> feats_sim = _sim->get_map_vec();
-  sensor_msgs::PointCloud2 cloud_SIM = RosVisualizerHelper::get_ros_pointcloud(feats_sim);
+  sensor_msgs::PointCloud2 cloud_SIM = ROSVisualizerHelper::get_ros_pointcloud(feats_sim);
   pub_points_sim.publish(cloud_SIM);
 }
 

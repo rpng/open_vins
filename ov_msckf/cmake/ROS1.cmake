@@ -37,7 +37,7 @@ list(APPEND thirdparty_libraries
         ${OpenCV_LIBRARIES}
         ${CERES_LIBRARIES}
         ${catkin_LIBRARIES}
-)
+        )
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
@@ -79,13 +79,14 @@ list(APPEND LIBRARY_SOURCES
         src/state/StateHelper.cpp
         src/state/Propagator.cpp
         src/core/VioManager.cpp
+        src/core/VioManagerHelper.cpp
         src/update/UpdaterHelper.cpp
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
-)
+        )
 if (catkin_FOUND AND ENABLE_ROS)
-    list(APPEND LIBRARY_SOURCES src/ros/ROS1Visualizer.cpp)
+    list(APPEND LIBRARY_SOURCES src/ros/ROS1Visualizer.cpp src/ros/ROSVisualizerHelper.cpp)
 endif ()
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_msckf_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
@@ -95,11 +96,11 @@ install(TARGETS ov_msckf_lib
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        )
 install(DIRECTORY src/
         DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+        )
 
 ##################################################
 # Make binary files!
@@ -113,7 +114,7 @@ if (catkin_FOUND AND ENABLE_ROS)
             ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+            )
 
     add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
     target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
@@ -121,7 +122,7 @@ if (catkin_FOUND AND ENABLE_ROS)
             ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+            )
 
 endif ()
 
@@ -131,7 +132,7 @@ install(TARGETS run_simulation
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        )
 
 add_executable(test_sim_meas src/test_sim_meas.cpp)
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
@@ -139,7 +140,7 @@ install(TARGETS test_sim_meas
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        )
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
@@ -147,7 +148,7 @@ install(TARGETS test_sim_repeat
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        )
 
 
 ##################################################
@@ -156,7 +157,7 @@ install(TARGETS test_sim_repeat
 
 install(DIRECTORY launch/
         DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-)
+        )
 
 
 
