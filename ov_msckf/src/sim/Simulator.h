@@ -199,6 +199,7 @@ protected:
   Eigen::Vector3d true_bias_gyro = Eigen::Vector3d::Zero();
 
   // Our history of true biases
+  bool has_skipped_first_bias = false;
   std::vector<double> hist_true_bias_time;
   std::vector<Eigen::Vector3d> hist_true_bias_accel;
   std::vector<Eigen::Vector3d> hist_true_bias_gyro;
