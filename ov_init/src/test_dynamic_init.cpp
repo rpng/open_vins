@@ -174,13 +174,10 @@ int main(int argc, char **argv) {
       std::shared_ptr<ov_type::IMU> _imu;
       std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
       std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;
-      std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> _calib_IMUtoCAM;
-      std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> _cam_intrinsics;
 
       // First we will try to make sure we have all the data required for our initialization
       boost::posix_time::ptime rT1 = boost::posix_time::microsec_clock::local_time();
-      bool success =
-          initializer->initialize(timestamp, covariance, order, _imu, _clones_IMU, _features_SLAM, _calib_IMUtoCAM, _cam_intrinsics);
+      bool success = initializer->initialize(timestamp, covariance, order, _imu, _clones_IMU, _features_SLAM);
       boost::posix_time::ptime rT2 = boost::posix_time::microsec_clock::local_time();
       double time = (rT2 - rT1).total_microseconds() * 1e-6;
       if (success) {

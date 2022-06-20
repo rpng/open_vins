@@ -69,7 +69,7 @@ public:
    * @brief Process a new image
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_new_camera(const CameraData &message);
+  void feed_new_camera(const CameraData &message) override;
 
 #if ENABLE_ARUCO_TAGS
   /**

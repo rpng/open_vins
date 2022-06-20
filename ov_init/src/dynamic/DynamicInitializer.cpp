@@ -409,15 +409,15 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::MatrixXd Temp = A2.transpose() * (Eigen::MatrixXd::Identity(A1.rows(), A1.rows()) - A1 * A1A1_inv * A1.transpose());
   Eigen::MatrixXd D = Temp * A2;
   Eigen::MatrixXd d = Temp * b;
-  Eigen::VectorXd coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
+  Eigen::Matrix<double, 5, 1> coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
 
   // Create companion matrix of our polynomial
   // https://en.wikipedia.org/wiki/Companion_matrix
   assert(coeff(0) == 1);
-  Eigen::MatrixXd companion_matrix = Eigen::MatrixXd::Zero(coeff.rows() - 1, coeff.rows() - 1);
+  Eigen::Matrix<double, 4, 4> companion_matrix = Eigen::Matrix<double, 4, 4>::Zero(coeff.rows() - 1, coeff.rows() - 1);
   companion_matrix.diagonal(-1).setOnes();
   companion_matrix.col(companion_matrix.cols() - 1) = -coeff.reverse().head(coeff.rows() - 1);
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd0(companion_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::JacobiSVD<Eigen::Matrix<double, 4, 4>> svd0(companion_matrix);
   Eigen::MatrixXd singularValues0 = svd0.singularValues();
   double cond0 = singularValues0(0) / singularValues0(singularValues0.rows() - 1);
   PRINT_DEBUG("[init-d]: CM cond = %.3f | rank = %d of %d (%4.3e thresh)\n", cond0, (int)svd0.rank(), (int)companion_matrix.cols(),

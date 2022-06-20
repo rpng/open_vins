@@ -34,7 +34,7 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
         ${catkin_LIBRARIES}
-)
+        )
 
 ##################################################
 # Make the core library
@@ -42,6 +42,8 @@ list(APPEND thirdparty_libraries
 
 list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
+        src/cpi/CpiV1.cpp
+        src/cpi/CpiV2.cpp
         src/sim/BsplineSE3.cpp
         src/track/TrackBase.cpp
         src/track/TrackAruco.cpp
@@ -53,7 +55,7 @@ list(APPEND LIBRARY_SOURCES
         src/feat/FeatureDatabase.cpp
         src/feat/FeatureInitializer.cpp
         src/utils/print.cpp
-)
+        )
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_core_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(ov_core_lib ${thirdparty_libraries})
@@ -62,11 +64,11 @@ install(TARGETS ov_core_lib
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        )
 install(DIRECTORY src/
         DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+        )
 
 ##################################################
 # Make binary files!
@@ -80,7 +82,7 @@ if (catkin_FOUND AND ENABLE_ROS)
             ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-    )
+            )
 
 endif ()
 
@@ -90,7 +92,7 @@ install(TARGETS test_webcam
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-)
+        )
 
 
 

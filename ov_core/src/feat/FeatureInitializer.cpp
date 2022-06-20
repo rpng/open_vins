@@ -22,10 +22,13 @@
 #include "FeatureInitializer.h"
 
 #include "Feature.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
 
 using namespace ov_core;
 
-bool FeatureInitializer::single_triangulation(Feature *feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM) {
+bool FeatureInitializer::single_triangulation(std::shared_ptr<Feature> feat,
+                                              std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM) {
 
   // Total number of measurements
   // Also set the first measurement to be the anchor frame
@@ -85,7 +88,7 @@ bool FeatureInitializer::single_triangulation(Feature *feat, std::unordered_map<
   Eigen::MatrixXd p_f = A.colPivHouseholderQr().solve(b);
 
   // Check A and p_f
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd(A, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::JacobiSVD<Eigen::Matrix3d> svd(A);
   Eigen::MatrixXd singularValues;
   singularValues.resize(svd.singularValues().rows(), 1);
   singularValues = svd.singularValues();
@@ -108,7 +111,7 @@ bool FeatureInitializer::single_triangulation(Feature *feat, std::unordered_map<
   return true;
 }
 
-bool FeatureInitializer::single_triangulation_1d(Feature *feat,
+bool FeatureInitializer::single_triangulation_1d(std::shared_ptr<Feature> feat,
                                                  std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM) {
 
   // Total number of measurements
@@ -191,7 +194,8 @@ bool FeatureInitializer::single_triangulation_1d(Feature *feat,
   return true;
 }
 
-bool FeatureInitializer::single_gaussnewton(Feature *feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM) {
+bool FeatureInitializer::single_gaussnewton(std::shared_ptr<Feature> feat,
+                                            std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM) {
 
   // Get into inverse depth
   double rho = 1 / feat->p_FinA(2);
@@ -370,8 +374,8 @@ bool FeatureInitializer::single_gaussnewton(Feature *feat, std::unordered_map<si
   return true;
 }
 
-double FeatureInitializer::compute_error(std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM, Feature *feat,
-                                         double alpha, double beta, double rho) {
+double FeatureInitializer::compute_error(std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM,
+                                         std::shared_ptr<Feature> feat, double alpha, double beta, double rho) {
 
   // Total error
   double err = 0;

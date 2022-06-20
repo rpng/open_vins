@@ -23,7 +23,7 @@ include_directories(
 list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${OpenCV_LIBRARIES}
-)
+        )
 
 ##################################################
 # Make the core library
@@ -31,6 +31,8 @@ list(APPEND thirdparty_libraries
 
 list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
+        src/cpi/CpiV1.cpp
+        src/cpi/CpiV2.cpp
         src/sim/BsplineSE3.cpp
         src/track/TrackBase.cpp
         src/track/TrackAruco.cpp
@@ -42,7 +44,7 @@ list(APPEND LIBRARY_SOURCES
         src/feat/FeatureDatabase.cpp
         src/feat/FeatureInitializer.cpp
         src/utils/print.cpp
-)
+        )
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_core_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 ament_target_dependencies(ov_core_lib rclcpp cv_bridge)
@@ -52,11 +54,11 @@ install(TARGETS ov_core_lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
         PUBLIC_HEADER DESTINATION include
-)
+        )
 install(DIRECTORY src/
         DESTINATION include
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+        )
 ament_export_include_directories(include)
 ament_export_libraries(ov_core_lib)
 
