@@ -71,10 +71,12 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   it_pub_loop_img_depth_color = it.advertise("/ov_msckf/loop_depth_colored", 2);
 
   // option to enable publishing of global to IMU transformation
-  node->declare_parameter<bool>("publish_global_to_imu_tf", true);
-  node->get_parameter("publish_global_to_imu_tf", publish_global2imu_tf);
-  node->declare_parameter<bool>("publish_calibration_tf", true);
-  node->get_parameter("publish_calibration_tf", publish_calibration_tf);
+  if (node->has_parameter("publish_global_to_imu_tf")) {
+    node->get_parameter<bool>("publish_global_to_imu_tf", publish_global2imu_tf);
+  }
+  if (node->has_parameter("publish_calibration_tf")) {
+    node->get_parameter<bool>("publish_calibration_tf", publish_calibration_tf);
+  }
 
   // Load groundtruth if we have it and are not doing simulation
   std::string path_to_gt;
@@ -85,26 +87,35 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   }
 
   // Load if we should save the total state to file
-  node->declare_parameter<bool>("save_total_state", false);
-  node->get_parameter("save_total_state", save_total_state);
-
-  // If the file is not open, then open the file
+  // If so, then open the file and create folders as needed
+  if (node->has_parameter("save_total_state")) {
+    node->get_parameter<bool>("save_total_state", save_total_state);
+  }
   if (save_total_state) {
 
     // files we will open
-    std::string filepath_est, filepath_std, filepath_gt;
-    node->declare_parameter<std::string>("filepath_est", "state_estimate.txt");
-    node->declare_parameter<std::string>("filepath_std", "state_deviation.txt");
-    node->declare_parameter<std::string>("filepath_gt", "state_groundtruth.txt");
-    node->get_parameter<std::string>("filepath_est", filepath_est);
-    node->get_parameter<std::string>("filepath_std", filepath_std);
-    node->get_parameter<std::string>("filepath_gt", filepath_gt);
+    std::string filepath_est = "state_estimate.txt";
+    std::string filepath_std = "state_deviation.txt";
+    std::string filepath_gt = "state_groundtruth.txt";
+    if (node->has_parameter("filepath_est")) {
+      node->get_parameter<std::string>("filepath_est", filepath_est);
+    }
+    if (node->has_parameter("filepath_std")) {
+      node->get_parameter<std::string>("filepath_std", filepath_std);
+    }
+    if (node->has_parameter("filepath_gt")) {
+      node->get_parameter<std::string>("filepath_gt", filepath_gt);
+    }
 
     // If it exists, then delete it
     if (boost::filesystem::exists(filepath_est))
       boost::filesystem::remove(filepath_est);
     if (boost::filesystem::exists(filepath_std))
       boost::filesystem::remove(filepath_std);
+
+    // Create folder path to this location if not exists
+    boost::filesystem::create_directories(boost::filesystem::path(filepath_est.c_str()).parent_path());
+    boost::filesystem::create_directories(boost::filesystem::path(filepath_std.c_str()).parent_path());
 
     // Open the files
     of_state_est.open(filepath_est.c_str());
@@ -116,6 +127,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
     if (_sim != nullptr) {
       if (boost::filesystem::exists(filepath_gt))
         boost::filesystem::remove(filepath_gt);
+      boost::filesystem::create_directories(boost::filesystem::path(filepath_gt.c_str()).parent_path());
       of_state_gt.open(filepath_gt.c_str());
       of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
     }

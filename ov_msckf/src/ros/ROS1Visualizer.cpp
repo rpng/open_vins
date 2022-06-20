@@ -85,9 +85,8 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   }
 
   // Load if we should save the total state to file
+  // If so, then open the file and create folders as needed
   nh->param<bool>("save_total_state", save_total_state, false);
-
-  // If the file is not open, then open the file
   if (save_total_state) {
 
     // files we will open
@@ -105,7 +104,6 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
     // Create folder path to this location if not exists
     boost::filesystem::create_directories(boost::filesystem::path(filepath_est.c_str()).parent_path());
     boost::filesystem::create_directories(boost::filesystem::path(filepath_std.c_str()).parent_path());
-    boost::filesystem::create_directories(boost::filesystem::path(filepath_gt.c_str()).parent_path());
 
     // Open the files
     of_state_est.open(filepath_est.c_str());
@@ -117,6 +115,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
     if (_sim != nullptr) {
       if (boost::filesystem::exists(filepath_gt))
         boost::filesystem::remove(filepath_gt);
+      boost::filesystem::create_directories(boost::filesystem::path(filepath_gt.c_str()).parent_path());
       of_state_gt.open(filepath_gt.c_str());
       of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
     }
