@@ -42,6 +42,7 @@ init_imu_thresh: 1.5 # threshold for variance of the accelerometer to detect a "
 init_max_disparity: 0.20 # max disparity to consider the platform stationary (dependent on resolution)
 init_max_features: 25 # how many features to track during initialization (saves on computation)
 
+init_dyn_use: true
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05

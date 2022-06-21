@@ -97,7 +97,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
   // Compute the disparity of the system at the current timestep
   // If disparity is zero or negative we will always use the static initializer
   bool disparity_detected_moving = false;
-  if (params.init_max_disparity > 0) {
+  if (params.init_max_disparity > 0 && params.init_dyn_use) {
 
     // Get the disparity statistics from this image to the previous
     int num_features = 0;
@@ -117,13 +117,14 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
   }
 
   // Use our static initializer!
-  if (!disparity_detected_moving && params.init_imu_thresh > 0.0) {
+  if ((!disparity_detected_moving && params.init_imu_thresh > 0.0) || !params.init_dyn_use) {
     PRINT_DEBUG(GREEN "[init]: USING STATIC INITIALIZER METHOD!\n" RESET);
     return init_static->initialize(timestamp, covariance, order, t_imu, wait_for_jerk);
-  } else {
+  } else if(params.init_dyn_use) {
     PRINT_DEBUG(GREEN "[init]: USING DYNAMIC INITIALIZER METHOD!\n" RESET);
     std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
     std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;
     return init_dynamic->initialize(timestamp, covariance, order, t_imu, _clones_IMU, _features_SLAM);
   }
+  return false;
 }

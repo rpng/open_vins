@@ -180,7 +180,7 @@ public:
    * @param gravity_mag Scalar size of gravity (normally is 9.81)
    * @return Coefficents from highest to the constant
    */
-  static Eigen::Matrix<double, 5, 1> compute_dongsi_coeff(Eigen::MatrixXd &D, const Eigen::MatrixXd &d, double gravity_mag) {
+  static Eigen::Matrix<double, 7, 1> compute_dongsi_coeff(Eigen::MatrixXd &D, const Eigen::MatrixXd &d, double gravity_mag) {
 
     // matlab constants
     assert(D.rows() == 3);
@@ -200,7 +200,7 @@ public:
     double g_sq = g * g;
 
     // Compute the coefficients
-    Eigen::Matrix<double, 5, 1> coeff = Eigen::Matrix<double, 5, 1>::Zero();
+    Eigen::Matrix<double, 7, 1> coeff = Eigen::Matrix<double, 7, 1>::Zero();
     coeff(6) =
         -(-D1_1_sq * D2_2_sq * D3_3_sq * g_sq + D1_1_sq * D2_2_sq * d3_sq + 2 * D1_1_sq * D2_2 * D2_3 * D3_2 * D3_3 * g_sq -
           D1_1_sq * D2_2 * D2_3 * d2 * d3 - D1_1_sq * D2_2 * D3_2 * d2 * d3 - D1_1_sq * D2_3_sq * D3_2_sq * g_sq +

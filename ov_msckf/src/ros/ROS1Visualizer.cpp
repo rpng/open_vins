@@ -407,7 +407,7 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
   // If we are single threaded, then run single threaded
   // Otherwise detach this thread so it runs in the background!
-  if (!_app->get_params().use_multi_threading) {
+  if (!_app->get_params().use_multi_threading_subs) {
     thread.join();
   } else {
     thread.detach();

@@ -43,6 +43,7 @@ init_imu_thresh: 0.5
 init_max_disparity: 1.5
 init_max_features: 25
 
+init_dyn_use: true
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05

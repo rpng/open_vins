@@ -19,7 +19,7 @@ max_slam_in_update: 25
 max_msckf_in_update: 30
 dt_slam_delay: 2
 
-gravity_mag: 9.81
+gravity_mag: 9.8065 # kalibr calibration
 
 feat_rep_msckf: "GLOBAL_3D"
 feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
@@ -27,7 +27,7 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
-try_zupt: true
+try_zupt: false
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
 zupt_max_velocity: 0.5
 zupt_noise_multiplier: 20
@@ -38,10 +38,11 @@ zupt_only_at_beginning: false
 # ==================================================================
 
 init_window_time: 2.0
-init_imu_thresh: 0.0
+init_imu_thresh: 0.3
 init_max_disparity: 1.5
 init_max_features: 25
 
+init_dyn_use: false
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05
@@ -75,10 +76,10 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
-num_pts: 100
-fast_threshold: 65
-grid_x: 20
-grid_y: 20
+num_pts: 150
+fast_threshold: 25
+grid_x: 9
+grid_y: 5
 min_px_dist: 15
 knn_ratio: 0.70
 track_frequency: 31.0

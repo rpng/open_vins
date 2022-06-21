@@ -99,22 +99,22 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
 
   // If it is below the threshold and we want to wait till we detect a jerk
   if (a_var_1to0 < params.init_imu_thresh && wait_for_jerk) {
-    PRINT_DEBUG(YELLOW "[init-s]: no IMU excitation, below threshold %.4f < %.4f\n" RESET, a_var_1to0, params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: no IMU excitation, below threshold %.4f < %.4f\n" RESET, a_var_1to0, params.init_imu_thresh);
     return false;
   }
 
   // We should also check that the old state was below the threshold!
   // This is the case when we have started up moving, and thus we need to wait for a period of stationary motion
   if (a_var_2to1 > params.init_imu_thresh && wait_for_jerk) {
-    PRINT_DEBUG(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f > %.4f\n" RESET, a_var_2to1, params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f > %.4f\n" RESET, a_var_2to1, params.init_imu_thresh);
     return false;
   }
 
   // If it is above the threshold and we are not waiting for a jerk
   // Then we are not stationary (i.e. moving) so we should wait till we are
   if ((a_var_1to0 > params.init_imu_thresh || a_var_2to1 > params.init_imu_thresh) && !wait_for_jerk) {
-    PRINT_DEBUG(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET, a_var_1to0, a_var_2to1,
-                params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET, a_var_1to0, a_var_2to1,
+               params.init_imu_thresh);
     return false;
   }
 
@@ -143,17 +143,14 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
   // Create base covariance and its covariance ordering
   order.clear();
   order.push_back(t_imu);
-  covariance = 1e-3 * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
-
-  // Make velocity uncertainty a bit bigger
-  covariance.block(t_imu->v()->id(), t_imu->v()->id(), 3, 3) *= 2;
+  covariance = std::pow(1e-3, 2) * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
 
   // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
   // This means that on startup, we can fix the yaw and position to be 100 percent known.
   // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
   // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
-  covariance(t_imu->q()->id() + 2, t_imu->q()->id() + 2) = 0.0;
-  covariance.block(t_imu->p()->id(), t_imu->p()->id(), 3, 3).setZero();
+  covariance(t_imu->q()->id() + 2, t_imu->q()->id() + 2) = std::pow(1e-4, 2);
+  covariance.block(t_imu->p()->id(), t_imu->p()->id(), 3, 3) = std::pow(1e-4, 2) * Eigen::Matrix3d::Identity();
 
   // Propagate into the current local IMU frame
   // R_GtoI = R_GtoI*R_GtoG -> H = R_GtoI

@@ -27,7 +27,7 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
-try_zupt: true
+try_zupt: false
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
 zupt_noise_multiplier: 50
@@ -38,10 +38,11 @@ zupt_only_at_beginning: true
 # ==================================================================
 
 init_window_time: 2.0 # how many seconds to collect initialization information
-init_imu_thresh: 1.5 # threshold for variance of the accelerometer to detect a "jerk" in motion
+init_imu_thresh: 1.0 # threshold for variance of the accelerometer to detect a "jerk" in motion
 init_max_disparity: 1.5 # max disparity to consider the platform stationary (dependent on resolution)
-init_max_features: 25 # how many features to track during initialization (saves on computation)
+init_max_features: 50 # how many features to track during initialization (saves on computation)
 
+init_dyn_use: false
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05

@@ -408,9 +408,12 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     double chi2_multipler =
         ((int)feat.featid < state->_options.max_aruco_features) ? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
     if (chi2 > chi2_multipler * chi2_check) {
-      if ((int)feat.featid < state->_options.max_aruco_features)
+      if ((int)feat.featid < state->_options.max_aruco_features) {
         PRINT_WARNING(YELLOW "[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)\n" RESET, (int)feat.featid, chi2,
                       chi2_multipler * chi2_check);
+      } else {
+        landmark->should_marg = true;
+      }
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
       continue;

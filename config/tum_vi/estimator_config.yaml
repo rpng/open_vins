@@ -38,10 +38,11 @@ zupt_only_at_beginning: true
 # ==================================================================
 
 init_window_time: 2.0
-init_imu_thresh: 0.45 # room1-5:0.45, room6:0.25
+init_imu_thresh: 0.60 # room1-5:0.60, room6:0.45
 init_max_disparity: 5.0
-init_max_features: 25
+init_max_features: 50
 
+init_dyn_use: false
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05
@@ -77,8 +78,8 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 use_klt: true
 num_pts: 150
 fast_threshold: 20
-grid_x: 20
-grid_y: 20
+grid_x: 5
+grid_y: 5
 min_px_dist: 15
 knn_ratio: 0.65
 track_frequency: 21.0
