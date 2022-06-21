@@ -93,7 +93,7 @@ int main(int argc, char **argv) {
 
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
-  nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
+  nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/euroc_mav/V1_01_easy.bag");
   // nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
   PRINT_INFO("ros bag path is: %s\n", path_to_bag.c_str());
 
@@ -110,9 +110,9 @@ int main(int argc, char **argv) {
   // Parameters for our extractor
   int num_pts = 400;
   int num_aruco = 1024;
-  int fast_threshold = 15;
-  int grid_x = 9;
-  int grid_y = 7;
+  int fast_threshold = 20;
+  int grid_x = 10;
+  int grid_y = 10;
   int min_px_dist = 10;
   double knn_ratio = 0.70;
   bool do_downsizing = false;
@@ -295,11 +295,11 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
   ov_core::CameraData message;
   message.timestamp = time0;
   message.sensor_ids.push_back(0);
-  message.sensor_ids.push_back(1);
   message.images.push_back(img0);
-  message.images.push_back(img1);
   message.masks.push_back(mask);
-  message.masks.push_back(mask);
+  // message.sensor_ids.push_back(1);
+  // message.images.push_back(img1);
+  // message.masks.push_back(mask);
   extractor->feed_new_camera(message);
 
   // Display the resulting tracks

@@ -55,8 +55,8 @@ init_dyn_inflation_bg: 10
 init_dyn_inflation_ba: 100
 init_dyn_min_rec_cond: 1e-12
 
-init_dyn_bias_g: [0.0, 0.0, 0.0]
-init_dyn_bias_a: [0.0, 0.0, 0.0]
+init_dyn_bias_g: [ 0.0, 0.0, 0.0 ]
+init_dyn_bias_a: [ 0.0, 0.0, 0.0 ]
 
 # ==================================================================
 # ==================================================================
@@ -79,9 +79,9 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 use_klt: true
 num_pts: 200
 fast_threshold: 20
-grid_x: 20
-grid_y: 20
-min_px_dist: 15
+grid_x: 5
+grid_y: 3
+min_px_dist: 10
 knn_ratio: 0.70
 track_frequency: 21.0
 downsample_cameras: false # will downsample image in half if true
