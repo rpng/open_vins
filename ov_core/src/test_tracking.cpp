@@ -59,6 +59,7 @@ std::deque<double> clonetimes;
 ros::Time time_start;
 
 // Our master function for tracking
+int max_cameras = 2;
 void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
 
 // Main function
@@ -107,6 +108,10 @@ int main(int argc, char **argv) {
   //===================================================================================
   //===================================================================================
 
+  // This will globally set the thread count we will use
+  // -1 will reset to the system default threading (usually the num of cores)
+  cv::setNumThreads(4);
+
   // Parameters for our extractor
   int num_pts = 200;
   int num_aruco = 1024;
@@ -117,6 +122,7 @@ int main(int argc, char **argv) {
   double knn_ratio = 0.70;
   bool do_downsizing = false;
   bool use_stereo = false;
+  parser->parse_config("max_cameras", max_cameras, false);
   parser->parse_config("num_pts", num_pts, false);
   parser->parse_config("num_aruco", num_aruco, false);
   parser->parse_config("clone_states", clone_states, false);
@@ -147,6 +153,7 @@ int main(int argc, char **argv) {
   }
 
   // Debug print!
+  PRINT_DEBUG("max cameras: %d\n", max_cameras);
   PRINT_DEBUG("max features: %d\n", num_pts);
   PRINT_DEBUG("max aruco: %d\n", num_aruco);
   PRINT_DEBUG("clone states: %d\n", clone_states);
@@ -298,9 +305,11 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
   message.sensor_ids.push_back(0);
   message.images.push_back(img0);
   message.masks.push_back(mask);
-  message.sensor_ids.push_back(1);
-  message.images.push_back(img1);
-  message.masks.push_back(mask);
+  if (max_cameras == 2) {
+    message.sensor_ids.push_back(1);
+    message.images.push_back(img1);
+    message.masks.push_back(mask);
+  }
   extractor->feed_new_camera(message);
 
   // Display the resulting tracks

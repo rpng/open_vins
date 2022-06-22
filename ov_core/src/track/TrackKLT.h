@@ -145,6 +145,8 @@ protected:
 
   // Last set of image pyramids
   std::map<size_t, std::vector<cv::Mat>> img_pyramid_last;
+  std::map<size_t, cv::Mat> img_curr;
+  std::map<size_t, std::vector<cv::Mat>> img_pyramid_curr;
 };
 
 } // namespace ov_core
