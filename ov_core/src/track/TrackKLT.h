@@ -44,16 +44,16 @@ public:
    * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
-   * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
+   * @param stereo if we should do stereo feature tracking or binocular
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    * @param fast_threshold FAST detection threshold
    * @param gridx size of grid in the x-direction / u-direction
    * @param gridy size of grid in the y-direction / v-direction
    * @param minpxdist features need to be at least this number pixels away from each other
    */
-  explicit TrackKLT(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool binocular,
+  explicit TrackKLT(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool stereo,
                     HistogramMethod histmethod, int fast_threshold, int gridx, int gridy, int minpxdist)
-      : TrackBase(cameras, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
+      : TrackBase(cameras, numfeats, numaruco, stereo, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
         min_px_dist(minpxdist) {}
 
   /**

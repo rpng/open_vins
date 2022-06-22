@@ -80,7 +80,7 @@ int main(int argc, char **argv) {
   parser->set_node_handler(nh);
 
   // Verbosity
-  std::string verbosity = "INFO";
+  std::string verbosity = "DEBUG";
   parser->parse_config("verbosity", verbosity);
   ov_core::Printer::setPrintLevel(verbosity);
 
@@ -108,11 +108,11 @@ int main(int argc, char **argv) {
   //===================================================================================
 
   // Parameters for our extractor
-  int num_pts = 400;
+  int num_pts = 200;
   int num_aruco = 1024;
   int fast_threshold = 20;
-  int grid_x = 10;
-  int grid_y = 10;
+  int grid_x = 5;
+  int grid_y = 3;
   int min_px_dist = 10;
   double knn_ratio = 0.70;
   bool do_downsizing = false;
@@ -154,6 +154,7 @@ int main(int argc, char **argv) {
   PRINT_DEBUG("fast threshold: %d\n", fast_threshold);
   PRINT_DEBUG("min pixel distance: %d\n", min_px_dist);
   PRINT_DEBUG("downsize aruco image: %d\n", do_downsizing);
+  PRINT_DEBUG("stereo tracking: %d\n", use_stereo);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
   std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
@@ -166,10 +167,10 @@ int main(int argc, char **argv) {
   }
 
   // Lets make a feature extractor
-  extractor = new TrackKLT(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
-  // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist,
+  extractor = new TrackKLT(cameras, num_pts, num_aruco, use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
+  // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist,
   // knn_ratio);
-  // extractor = new TrackAruco(cameras, num_aruco, !use_stereo, method, do_downsizing);
+  // extractor = new TrackAruco(cameras, num_aruco, use_stereo, method, do_downsizing);
 
   //===================================================================================
   //===================================================================================
@@ -297,9 +298,9 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
   message.sensor_ids.push_back(0);
   message.images.push_back(img0);
   message.masks.push_back(mask);
-  // message.sensor_ids.push_back(1);
-  // message.images.push_back(img1);
-  // message.masks.push_back(mask);
+  message.sensor_ids.push_back(1);
+  message.images.push_back(img1);
+  message.masks.push_back(mask);
   extractor->feed_new_camera(message);
 
   // Display the resulting tracks
