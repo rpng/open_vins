@@ -143,26 +143,26 @@ public:
     Eigen::Vector3d z_axis = gravity_inI / gravity_inI.norm();
     Eigen::Vector3d x_axis, y_axis;
     Eigen::Vector3d e_1(1.0, 0.0, 0.0);
-    // Eigen::Vector3d e_2(0.0, 1.0, 0.0);
-    // double inner1 = e_1.dot(z_axis) / z_axis.norm();
-    // double inner2 = e_2.dot(z_axis) / z_axis.norm();
-    // if (fabs(inner1) >= fabs(inner2)) {
-    //   x_axis = z_axis.cross(e_1);
-    //   x_axis = x_axis / x_axis.norm();
-    //   y_axis = z_axis.cross(x_axis);
-    //   y_axis = y_axis / y_axis.norm();
-    // } else {
-    //   x_axis = z_axis.cross(e_2);
-    //   x_axis = x_axis / x_axis.norm();
-    //   y_axis = z_axis.cross(x_axis);
-    //   y_axis = y_axis / y_axis.norm();
-    // }
+    Eigen::Vector3d e_2(0.0, 1.0, 0.0);
+    double inner1 = e_1.dot(z_axis) / z_axis.norm();
+    double inner2 = e_2.dot(z_axis) / z_axis.norm();
+    if (fabs(inner1) >= fabs(inner2)) {
+      x_axis = z_axis.cross(e_1);
+      x_axis = x_axis / x_axis.norm();
+      y_axis = z_axis.cross(x_axis);
+      y_axis = y_axis / y_axis.norm();
+    } else {
+      x_axis = z_axis.cross(e_2);
+      x_axis = x_axis / x_axis.norm();
+      y_axis = z_axis.cross(x_axis);
+      y_axis = y_axis / y_axis.norm();
+    }
 
     // Original method
-    x_axis = e_1 - z_axis * z_axis.transpose() * e_1;
-    x_axis = x_axis / x_axis.norm();
-    y_axis = ov_core::skew_x(z_axis) * x_axis;
-    y_axis = y_axis / y_axis.norm();
+    // x_axis = e_1 - z_axis * z_axis.transpose() * e_1;
+    // x_axis = x_axis / x_axis.norm();
+    // y_axis = ov_core::skew_x(z_axis) * x_axis;
+    // y_axis = y_axis / y_axis.norm();
 
     // Rotation from our global (where gravity is only along the z-axis) to the local one
     R_GtoI.block(0, 0, 3, 1) = x_axis;

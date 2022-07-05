@@ -85,6 +85,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   nh->param<bool>("publish_calibration_tf", publish_calibration_tf, true);
 
   // Load groundtruth if we have it and are not doing simulation
+  // NOTE: needs to be a csv ASL format file
   if (nh->hasParam("path_gt") && _sim == nullptr) {
     std::string path_to_gt;
     nh->param<std::string>("path_gt", path_to_gt, "");

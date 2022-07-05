@@ -70,7 +70,7 @@ int main(int argc, char **argv) {
 
   // Ensure we read in all parameters required
   if (!parser->successful()) {
-    PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
+    PRINT_ERROR(RED "[SERIAL]: unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
@@ -82,44 +82,32 @@ int main(int argc, char **argv) {
   std::string topic_imu;
   nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
+  PRINT_DEBUG("[SERIAL]: imu: %s\n", topic_imu.c_str());
 
-  // Our camera topics (stereo pairs and non-stereo mono)
-  std::vector<std::pair<size_t, std::string>> topic_cameras;
-  if (params.state_options.num_cameras == 2) {
-    // Read in the topics
-    std::string cam_topic0, cam_topic1;
-    nh->param<std::string>("topic_camera" + std::to_string(0), cam_topic0, "/cam" + std::to_string(0) + "/image_raw");
-    nh->param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
-    parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
-    parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
-    topic_cameras.emplace_back(0, cam_topic0);
-    topic_cameras.emplace_back(1, cam_topic1);
-    PRINT_DEBUG("serial cam (stereo): %s\n", cam_topic0.c_str());
-    PRINT_DEBUG("serial cam (stereo): %s\n", cam_topic1.c_str());
-  } else {
-    for (int i = 0; i < params.state_options.num_cameras; i++) {
-      // read in the topic
-      std::string cam_topic;
-      nh->param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
-      parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
-      topic_cameras.emplace_back(i, cam_topic);
-      PRINT_DEBUG("serial cam (mono): %s\n", cam_topic.c_str());
-    }
+  // Our camera topics
+  std::vector<std::string> topic_cameras;
+  for (int i = 0; i < params.state_options.num_cameras; i++) {
+    std::string cam_topic;
+    nh->param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+    parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
+    topic_cameras.emplace_back(cam_topic);
+    PRINT_DEBUG("[SERIAL]: cam: %s\n", cam_topic.c_str());
   }
 
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
   nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
-  PRINT_DEBUG("ros bag path is: %s\n", path_to_bag.c_str());
+  PRINT_DEBUG("[SERIAL]: ros bag path is: %s\n", path_to_bag.c_str());
 
   // Load groundtruth if we have it
+  // NOTE: needs to be a csv ASL format file
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
   if (nh->hasParam("path_gt")) {
     std::string path_to_gt;
     nh->param<std::string>("path_gt", path_to_gt, "");
     if (!path_to_gt.empty()) {
       ov_core::DatasetReader::load_gt_file(path_to_gt, gt_states);
-      PRINT_DEBUG("gt file path is: %s\n", path_to_gt.c_str());
+      PRINT_DEBUG("[SERIAL]: gt file path is: %s\n", path_to_gt.c_str());
     }
   }
 
@@ -128,8 +116,8 @@ int main(int argc, char **argv) {
   double bag_start, bag_durr;
   nh->param<double>("bag_start", bag_start, 0);
   nh->param<double>("bag_durr", bag_durr, -1);
-  PRINT_DEBUG("bag start: %.1f\n", bag_start);
-  PRINT_DEBUG("bag duration: %.1f\n", bag_durr);
+  PRINT_DEBUG("[SERIAL]: bag start: %.1f\n", bag_start);
+  PRINT_DEBUG("[SERIAL]: bag duration: %.1f\n", bag_durr);
 
   //===================================================================================
   //===================================================================================
@@ -156,193 +144,131 @@ int main(int argc, char **argv) {
 
   // Check to make sure we have data to play
   if (view.size() == 0) {
-    PRINT_ERROR(RED "No messages to play on specified topics.  Exiting.\n" RESET);
+    PRINT_ERROR(RED "[SERIAL]: No messages to play on specified topics.  Exiting.\n" RESET);
     ros::shutdown();
     return EXIT_FAILURE;
   }
 
-  // Open our iterators
-  auto view_imu = std::make_shared<rosbag::View>(bag, rosbag::TopicQuery(topic_imu), time_init, time_finish);
-  auto view_imu_iter = view_imu->begin();
-  std::vector<std::shared_ptr<rosbag::View>> view_cameras;
-  std::vector<rosbag::View::iterator> view_cameras_iterators;
-  for (const auto &topic : topic_cameras) {
-    auto view_tmp = std::make_shared<rosbag::View>(bag, rosbag::TopicQuery(topic.second), time_init, time_finish);
-    view_cameras.push_back(view_tmp);
-    view_cameras_iterators.push_back(view_tmp->begin());
-  }
-
-  // Record the current measurement timestamps
-  sensor_msgs::Imu::ConstPtr msg_imu_current;
-  sensor_msgs::Imu::ConstPtr msg_imu_next;
-  std::vector<sensor_msgs::Image::ConstPtr> msg_images_current;
-  std::vector<sensor_msgs::Image::ConstPtr> msg_images_next;
-  msg_imu_current = view_imu_iter->instantiate<sensor_msgs::Imu>();
-  view_imu_iter++;
-  msg_imu_next = view_imu_iter->instantiate<sensor_msgs::Imu>();
-  for (int i = 0; i < params.state_options.num_cameras; i++) {
-    msg_images_current.emplace_back(view_cameras_iterators.at(i)->instantiate<sensor_msgs::Image>());
-    view_cameras_iterators.at(i)++;
-    msg_images_next.emplace_back(view_cameras_iterators.at(i)->instantiate<sensor_msgs::Image>());
-  }
-
-  // Last camera message timestamps we have received (mapped by cam id)
-  std::map<int, double> camera_last_timestamp;
-
-  //===================================================================================
-  //===================================================================================
-  //===================================================================================
-
-  while (ros::ok()) {
-
-    // Check if we should end since we have run out of measurements
-    bool should_stop = false;
-    if (view_imu_iter == view_imu->end()) {
-      should_stop = true;
-    }
-    for (int i = 0; i < params.state_options.num_cameras; i++) {
-      if (view_cameras_iterators.at(i) == view_cameras.at(i)->end()) {
-        should_stop = true;
-      }
-    }
-    if (should_stop) {
+  // We going to loop through and collect a list of all messages
+  // This is done so we can access arbitrary points in the bag
+  std::vector<rosbag::MessageInstance> msgs;
+  for (const rosbag::MessageInstance &msg : view) {
+    if (!ros::ok())
       break;
+    if (msg.getTopic() == topic_imu) {
+      if (msg.instantiate<sensor_msgs::Imu>() == nullptr) {
+        PRINT_ERROR(RED "[SERIAL]: IMU topic has unmatched message types!!\n" RESET);
+        PRINT_ERROR(RED "[SERIAL]: Supports: sensor_msgs::Imu\n" RESET);
+        return EXIT_FAILURE;
+      }
+      msgs.push_back(msg);
     }
-
-    // We should process the IMU if all the current cameras are greater then its time
-    bool should_process_imu = false;
     for (int i = 0; i < params.state_options.num_cameras; i++) {
-      double time_imu = msg_imu_current->header.stamp.toSec();
-      double time_cam = msg_images_current.at(i)->header.stamp.toSec();
-      if (time_imu <= time_cam) {
-        should_process_imu = true;
+      if (msg.getTopic() == topic_cameras.at(i)) {
+        sensor_msgs::CompressedImage::ConstPtr img_c = msg.instantiate<sensor_msgs::CompressedImage>();
+        sensor_msgs::Image::ConstPtr img_i = msg.instantiate<sensor_msgs::Image>();
+        if (img_c == nullptr && img_i == nullptr) {
+          PRINT_ERROR(RED "[SERIAL]: Image topic has unmatched message types!!\n" RESET);
+          PRINT_ERROR(RED "[SERIAL]: Supports: sensor_msgs::Image and sensor_msgs::CompressedImage\n" RESET);
+          return EXIT_FAILURE;
+        }
+        msgs.push_back(msg);
       }
     }
-    if (should_process_imu) {
-      viz->callback_inertial(msg_imu_current);
-      msg_imu_current = msg_imu_next;
-      view_imu_iter++;
-      msg_imu_next = view_imu_iter->instantiate<sensor_msgs::Imu>();
+  }
+  PRINT_DEBUG("[SERIAL]: total of %zu messages!\n", msgs.size());
+
+  //===================================================================================
+  //===================================================================================
+  //===================================================================================
+
+  // Loop through our message array, and lets process them
+  std::set<int> used_index;
+  for (int m = 0; m < (int)msgs.size(); m++) {
+
+    // End once we reach the last time, or skip if before beginning time (shouldn't happen)
+    if (!ros::ok() || msgs.at(m).getTime() > time_finish)
+      break;
+    if (msgs.at(m).getTime() < time_init)
+      continue;
+
+    // Skip messages that we have already used
+    if (used_index.find(m) != used_index.end()) {
+      used_index.erase(m);
       continue;
     }
 
-    // If we are stereo, then we should collect both the left and right
-    if (params.state_options.num_cameras == 2) {
+    // IMU processing
+    if (msgs.at(m).getTopic() == topic_imu) {
+      // PRINT_DEBUG("processing imu = %.3f sec\n", msgs.at(m).getTime().toSec() - time_init.toSec());
+      viz->callback_inertial(msgs.at(m).instantiate<sensor_msgs::Imu>());
+    }
 
-      // Now lets do some logic to find two images which are next to each other
-      // We want to ensure that our stereo pair are very close to occurring at the same time
-      bool have_found_pair = false;
-      while (!have_found_pair && view_cameras_iterators.at(0) != view_cameras.at(0)->end() &&
-             view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
+    // Camera processing
+    for (int cam_id = 0; cam_id < params.state_options.num_cameras; cam_id++) {
 
-        // Get left and right cameras
-        auto msg_cam0 = msg_images_current.at(0);
-        auto msg_cam1 = msg_images_current.at(1);
-        auto msg_cam0_next = msg_images_next.at(0);
-        auto msg_cam1_next = msg_images_next.at(1);
+      // Skip if this message is not a camera topic
+      if (msgs.at(m).getTopic() != topic_cameras.at(cam_id))
+        continue;
 
-        // timestamps
-        double time0 = msg_cam0->header.stamp.toSec();
-        double time1 = msg_cam1->header.stamp.toSec();
-        double time0_next = msg_cam0_next->header.stamp.toSec();
-        double time1_next = msg_cam1_next->header.stamp.toSec();
-
-        // We will have a match if the current left and right images are closer then the next one
-        // Consider the case that we drop an image:
-        //    (L1) L2 (R2) R3 <- current pointers are at L1 and R2
-        //    In this case, we dropped the R1 image, thus we should skip the L1 image
-        //    We can check to see that L1 is further away compared to L2 from R2
-        //    Thus we should skip the L1 frame (advance the bag forward) and check this logic again!
-        if (std::abs(time1 - time0) < std::abs(time1_next - time0) && std::abs(time0 - time1) < std::abs(time0_next - time1)) {
-          have_found_pair = true;
-        } else if (std::abs(time1 - time0) >= std::abs(time1_next - time0)) {
-          // PRINT_WARNING("skipping cam1 (%.4f >= %.4f)",std::abs(time1-time0), std::abs(time1_next-time0));
-          msg_images_current.at(1) = msg_images_next.at(1);
-          view_cameras_iterators.at(1)++;
-          if (view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
-            msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
-          }
-        } else {
-          // PRINT_WARNING("skipping cam0 (%.4f >= %.4f)",std::abs(time0-time1), std::abs(time0_next-time1));
-          msg_images_current.at(0) = msg_images_next.at(0);
-          view_cameras_iterators.at(0)++;
-          if (view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
-            msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
+      // We have a matching camera topic here
+      // Lets now find the other cameras for this time
+      bool has_invalid = false;
+      std::map<int, int> closest_other_cam_idx;
+      closest_other_cam_idx.insert({cam_id, m});
+      double meas_t = msgs.at(m).getTime().toSec();
+      for (int n = 0; n < params.state_options.num_cameras; n++) {
+        if (n == cam_id)
+          continue;
+        int pair_idx = -1;
+        for (int mt = m; mt < (int)msgs.size(); mt++) {
+          if (msgs.at(mt).getTopic() != topic_cameras.at(n))
+            continue;
+          // std::cout << m << "-" << mt << " -> " << std::abs(msgs.at(mt).getTime().toSec() - meas_t) << " (cam" << cam_id << " to cam" <<
+          // n << ") " << std::endl;
+          if (std::abs(msgs.at(mt).getTime().toSec() - meas_t) < 0.02) {
+            // std::cout << m << "-" << mt << " -> " << std::abs(msgs.at(mt).getTime().toSec() - meas_t) << " (cam" << cam_id << " to cam"
+            // << n << ") (SUCCESS)"<< std::endl;
+            pair_idx = mt;
+            break;
           }
         }
+        if (pair_idx == -1)
+          has_invalid = true;
+        closest_other_cam_idx.insert({n, pair_idx});
       }
 
-      // Break out if we have ended
-      if (view_cameras_iterators.at(0) == view_cameras.at(0)->end() || view_cameras_iterators.at(1) == view_cameras.at(1)->end()) {
-        break;
-      }
-
-      // Check if we should initialize using the groundtruth (always use left)
-      Eigen::Matrix<double, 17, 1> imustate;
-      if (!gt_states.empty() && !sys->initialized() &&
-          ov_core::DatasetReader::get_gt_state(msg_images_current.at(0)->header.stamp.toSec(), imustate, gt_states)) {
-        // biases are pretty bad normally, so zero them
-        // imustate.block(11,0,6,1).setZero();
-        sys->initialize_with_gt(imustate);
-      }
-
-      // Check if we should feed this into the system at the specified frequency
-      double timestamp = msg_images_current.at(0)->header.stamp.toSec();
-      double time_delta = 1.0 / params.track_frequency;
-      if (camera_last_timestamp.find(0) == camera_last_timestamp.end() || timestamp >= camera_last_timestamp.at(0) + time_delta) {
-        camera_last_timestamp[0] = timestamp;
-        viz->callback_stereo(msg_images_current.at(0), msg_images_current.at(1), 0, 1);
-      }
-
-      // Move forward in time
-      msg_images_current.at(0) = msg_images_next.at(0);
-      view_cameras_iterators.at(0)++;
-      if (view_cameras_iterators.at(0) != view_cameras.at(0)->end()) {
-        msg_images_next.at(0) = view_cameras_iterators.at(0)->instantiate<sensor_msgs::Image>();
-      }
-      msg_images_current.at(1) = msg_images_next.at(1);
-      view_cameras_iterators.at(1)++;
-      if (view_cameras_iterators.at(1) != view_cameras.at(1)->end()) {
-        msg_images_next.at(1) = view_cameras_iterators.at(1)->instantiate<sensor_msgs::Image>();
-      }
-
-    } else {
-
-      // Find the camera which should be processed (smallest time)
-      int smallest_cam = 0;
-      for (int i = 0; i < params.state_options.num_cameras; i++) {
-        double time_cam0 = msg_images_current.at(smallest_cam)->header.stamp.toSec();
-        double time_cam1 = msg_images_current.at(i)->header.stamp.toSec();
-        if (time_cam1 < time_cam0) {
-          smallest_cam = i;
-        }
+      // Skip processing if we were unable to find any messages
+      if (has_invalid) {
+        PRINT_DEBUG(YELLOW "[SERIAL]: Unable to find stereo pair for message %d at %.2f into bag (will skip!)\n" RESET, m,
+                    meas_t - time_init.toSec());
+        continue;
       }
 
       // Check if we should initialize using the groundtruth
-      auto msg_camera = msg_images_current.at(smallest_cam);
       Eigen::Matrix<double, 17, 1> imustate;
-      if (!gt_states.empty() && !sys->initialized() &&
-          ov_core::DatasetReader::get_gt_state(msg_camera->header.stamp.toSec(), imustate, gt_states)) {
+      if (!gt_states.empty() && !sys->initialized() && ov_core::DatasetReader::get_gt_state(meas_t, imustate, gt_states)) {
         // biases are pretty bad normally, so zero them
         // imustate.block(11,0,6,1).setZero();
         sys->initialize_with_gt(imustate);
       }
 
-      // Check if we should feed this into the system at the specified frequency
-      double timestamp = msg_camera->header.stamp.toSec();
-      double time_delta = 1.0 / params.track_frequency;
-      if (camera_last_timestamp.find(smallest_cam) == camera_last_timestamp.end() ||
-          timestamp >= camera_last_timestamp.at(smallest_cam) + time_delta) {
-        camera_last_timestamp[smallest_cam] = timestamp;
-        viz->callback_monocular(msg_camera, smallest_cam);
+      // Pass our data into our visualizer callbacks!
+      assert((int)closest_other_cam_idx.size() == params.state_options.num_cameras);
+      if (params.state_options.num_cameras == 1) {
+        viz->callback_monocular(msgs.at(closest_other_cam_idx.at(0)).instantiate<sensor_msgs::Image>(), 0);
+      } else if (params.state_options.num_cameras == 2) {
+        auto msg0 = msgs.at(closest_other_cam_idx.at(0));
+        auto msg1 = msgs.at(closest_other_cam_idx.at(1));
+        used_index.insert(closest_other_cam_idx.at(0)); // skip this message
+        used_index.insert(closest_other_cam_idx.at(1)); // skip this message
+        viz->callback_stereo(msg0.instantiate<sensor_msgs::Image>(), msg1.instantiate<sensor_msgs::Image>(), 0, 1);
+      } else {
+        PRINT_ERROR(RED "[SERIAL]: We currently only support 1 or 2 camera serial input....\n" RESET);
+        return EXIT_FAILURE;
       }
 
-      // move forward
-      msg_images_current.at(smallest_cam) = msg_images_next.at(smallest_cam);
-      view_cameras_iterators.at(smallest_cam)++;
-      if (view_cameras_iterators.at(smallest_cam) != view_cameras.at(smallest_cam)->end()) {
-        msg_images_next.at(smallest_cam) = view_cameras_iterators.at(smallest_cam)->instantiate<sensor_msgs::Image>();
-      }
+      break;
     }
   }
 

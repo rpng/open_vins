@@ -89,6 +89,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   }
 
   // Load groundtruth if we have it and are not doing simulation
+  // NOTE: needs to be a csv ASL format file
   std::string path_to_gt;
   bool has_gt = node->get_parameter("path_gt", path_to_gt);
   if (has_gt && _sim == nullptr && !path_to_gt.empty()) {
