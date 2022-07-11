@@ -40,7 +40,7 @@
 
 #include "dynamic/DynamicInitializer.h"
 #include "init/InertialInitializerOptions.h"
-#include "sim/Simulator.h"
+#include "sim/SimulatorInit.h"
 
 #include "track/TrackSIM.h"
 #include "types/IMU.h"
@@ -117,7 +117,7 @@ int main(int argc, char **argv) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }
-  Simulator sim(params);
+  SimulatorInit sim(params);
 
   // Our initialization class objects
   auto imu_readings = std::make_shared<std::vector<ov_core::ImuData>>();

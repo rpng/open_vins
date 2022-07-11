@@ -45,7 +45,7 @@
 #include "ceres/Factor_ImuCPIv1.h"
 #include "ceres/State_JPLQuatLocal.h"
 #include "init/InertialInitializerOptions.h"
-#include "sim/Simulator.h"
+#include "sim/SimulatorInit.h"
 #include "utils/helper.h"
 
 #include "types/IMU.h"
@@ -103,7 +103,7 @@ int main(int argc, char **argv) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }
-  Simulator sim(params);
+  SimulatorInit sim(params);
 
   //===================================================================================
   //===================================================================================

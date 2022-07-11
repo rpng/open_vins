@@ -72,7 +72,7 @@ public:
     if (oldest_time != -1) {
       auto it0 = imu_data.begin();
       while (it0 != imu_data.end()) {
-        if (it0->timestamp < oldest_time) {
+        if (it0->timestamp < oldest_time - 0.10) {
           it0 = imu_data.erase(it0);
         } else {
           it0++;

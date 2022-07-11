@@ -157,11 +157,11 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
 
 void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
 
-  // Get the oldest camera timestamp that we can remove IMU measurements before
-  // Then push back to our propagator and pass the IMU time we can delete up to
-  double oldest_time = trackFEATS->get_feature_database()->get_oldest_timestamp();
-  if (oldest_time != -1) {
-    oldest_time += params.calib_camimu_dt;
+  // The oldest time we need IMU with is the last clone
+  // We shouldn't really need the whole window, but if we go backwards in time we will
+  double oldest_time = state->margtimestep();
+  if (oldest_time > state->_timestamp) {
+    oldest_time = -1;
   }
   propagator->feed_imu(message, oldest_time);
 

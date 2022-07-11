@@ -67,7 +67,7 @@ list(APPEND LIBRARY_SOURCES
         src/init/InertialInitializer.cpp
         src/dynamic/DynamicInitializer.cpp
         src/static/StaticInitializer.cpp
-        src/sim/Simulator.cpp
+        src/sim/SimulatorInit.cpp
         )
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_init_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})

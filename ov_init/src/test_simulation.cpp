@@ -35,7 +35,7 @@
 #endif
 
 #include "init/InertialInitializerOptions.h"
-#include "sim/Simulator.h"
+#include "sim/SimulatorInit.h"
 
 using namespace ov_init;
 
@@ -73,7 +73,7 @@ int main(int argc, char **argv) {
   InertialInitializerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
-  Simulator sim(params);
+  SimulatorInit sim(params);
 
   // Continue to simulate until we have processed all the measurements
   signal(SIGINT, signal_callback_handler);

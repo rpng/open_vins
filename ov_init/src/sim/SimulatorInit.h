@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OV_INIT_SIMULATOR_H
-#define OV_INIT_SIMULATOR_H
+#ifndef OV_INIT_SIMULATORINIT_H
+#define OV_INIT_SIMULATORINIT_H
 
 #include <Eigen/Eigen>
 #include <fstream>
@@ -49,14 +49,14 @@ namespace ov_init {
  * The user should specify the sensor rates that they desire along with the seeds of the random number generators.
  *
  */
-class Simulator {
+class SimulatorInit {
 
 public:
   /**
    * @brief Default constructor, will load all configuration variables
    * @param params_ InertialInitializer parameters. Should have already been loaded from cmd.
    */
-  Simulator(InertialInitializerOptions &params_);
+  SimulatorInit(InertialInitializerOptions &params_);
 
   /**
    * @brief Will get a set of perturbed parameters
@@ -194,4 +194,4 @@ protected:
 
 } // namespace ov_init
 
-#endif // OV_INIT_SIMULATOR_H
+#endif // OV_INIT_SIMULATORINIT_H

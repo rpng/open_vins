@@ -19,7 +19,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "Simulator.h"
+#include "SimulatorInit.h"
 
 #include "cam/CamBase.h"
 #include "cam/CamEqui.h"
@@ -31,7 +31,7 @@
 using namespace ov_core;
 using namespace ov_init;
 
-Simulator::Simulator(InertialInitializerOptions &params_) {
+SimulatorInit::SimulatorInit(InertialInitializerOptions &params_) {
 
   //===============================================================
   //===============================================================
@@ -200,7 +200,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
   sleep(1);
 }
 
-void Simulator::perturb_parameters(InertialInitializerOptions &params_) {
+void SimulatorInit::perturb_parameters(InertialInitializerOptions &params_) {
 
   // One std generator
   std::normal_distribution<double> w(0, 1);
@@ -242,7 +242,7 @@ void Simulator::perturb_parameters(InertialInitializerOptions &params_) {
   }
 }
 
-bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
+bool SimulatorInit::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
 
   // Set to default state
   imustate.setZero();
@@ -286,7 +286,7 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imu
   return true;
 }
 
-bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vector3d &am) {
+bool SimulatorInit::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vector3d &am) {
 
   // Return if the camera measurement should go before us
   if (timestamp_last_cam + 1.0 / params.sim_freq_cam < timestamp_last_imu + 1.0 / params.sim_freq_imu)
@@ -347,7 +347,7 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   return true;
 }
 
-bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
+bool SimulatorInit::get_next_cam(double &time_cam, std::vector<int> &camids,
                              std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
 
   // Return if the imu measurement should go before us
@@ -409,7 +409,8 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
   return true;
 }
 
-std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
+std::vector<std::pair<size_t, Eigen::VectorXf>>
+SimulatorInit::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
                                                                               int camid,
                                                                               const std::unordered_map<size_t, Eigen::Vector3d> &feats) {
 
@@ -458,7 +459,7 @@ std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(co
   return uvs;
 }
 
-void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
+void SimulatorInit::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
                                 std::unordered_map<size_t, Eigen::Vector3d> &feats, int numpts) {
 
   // Assert we have good camera
