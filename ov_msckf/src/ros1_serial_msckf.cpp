@@ -211,57 +211,53 @@ int main(int argc, char **argv) {
       if (msgs.at(m).getTopic() != topic_cameras.at(cam_id))
         continue;
 
-      // We have a matching camera topic here
-      // Lets now find the other cameras for this time
-      bool has_invalid = false;
-      std::map<int, int> closest_other_cam_idx;
-      closest_other_cam_idx.insert({cam_id, m});
-      double meas_t = msgs.at(m).getTime().toSec();
-      for (int n = 0; n < params.state_options.num_cameras; n++) {
-        if (n == cam_id)
+      // We have a matching camera topic here, now find the other cameras for this time
+      // For each camera, we will find the nearest timestamp (within 0.02sec) that is greater than the current
+      // If we are unable, then this message should just be skipped since it isn't a sync'ed pair!
+      std::map<int, int> camid_to_msg_index;
+      double meas_time = msgs.at(m).getTime().toSec();
+      for (int cam_idt = 0; cam_idt < params.state_options.num_cameras; cam_idt++) {
+        if (cam_idt == cam_id) {
+          camid_to_msg_index.insert({cam_id, m});
           continue;
-        int pair_idx = -1;
-        for (int mt = m; mt < (int)msgs.size(); mt++) {
-          if (msgs.at(mt).getTopic() != topic_cameras.at(n))
-            continue;
-          // std::cout << m << "-" << mt << " -> " << std::abs(msgs.at(mt).getTime().toSec() - meas_t) << " (cam" << cam_id << " to cam" <<
-          // n << ") " << std::endl;
-          if (std::abs(msgs.at(mt).getTime().toSec() - meas_t) < 0.02) {
-            // std::cout << m << "-" << mt << " -> " << std::abs(msgs.at(mt).getTime().toSec() - meas_t) << " (cam" << cam_id << " to cam"
-            // << n << ") (SUCCESS)"<< std::endl;
-            pair_idx = mt;
-            break;
-          }
         }
-        if (pair_idx == -1)
-          has_invalid = true;
-        closest_other_cam_idx.insert({n, pair_idx});
+        int cam_idt_idx = -1;
+        for (int mt = m; mt < (int)msgs.size(); mt++) {
+          if (msgs.at(mt).getTopic() != topic_cameras.at(cam_idt))
+            continue;
+          if (std::abs(msgs.at(mt).getTime().toSec() - meas_time) < 0.02)
+            cam_idt_idx = mt;
+          break;
+        }
+        if (cam_idt_idx != -1) {
+          camid_to_msg_index.insert({cam_idt, cam_idt_idx});
+        }
       }
 
       // Skip processing if we were unable to find any messages
-      if (has_invalid) {
+      if ((int)camid_to_msg_index.size() != params.state_options.num_cameras) {
         PRINT_DEBUG(YELLOW "[SERIAL]: Unable to find stereo pair for message %d at %.2f into bag (will skip!)\n" RESET, m,
-                    meas_t - time_init.toSec());
+                    meas_time - time_init.toSec());
         continue;
       }
 
       // Check if we should initialize using the groundtruth
       Eigen::Matrix<double, 17, 1> imustate;
-      if (!gt_states.empty() && !sys->initialized() && ov_core::DatasetReader::get_gt_state(meas_t, imustate, gt_states)) {
+      if (!gt_states.empty() && !sys->initialized() && ov_core::DatasetReader::get_gt_state(meas_time, imustate, gt_states)) {
         // biases are pretty bad normally, so zero them
         // imustate.block(11,0,6,1).setZero();
         sys->initialize_with_gt(imustate);
       }
 
       // Pass our data into our visualizer callbacks!
-      assert((int)closest_other_cam_idx.size() == params.state_options.num_cameras);
+      // PRINT_DEBUG("processing cam = %.3f sec\n", msgs.at(m).getTime().toSec() - time_init.toSec());
       if (params.state_options.num_cameras == 1) {
-        viz->callback_monocular(msgs.at(closest_other_cam_idx.at(0)).instantiate<sensor_msgs::Image>(), 0);
+        viz->callback_monocular(msgs.at(camid_to_msg_index.at(0)).instantiate<sensor_msgs::Image>(), 0);
       } else if (params.state_options.num_cameras == 2) {
-        auto msg0 = msgs.at(closest_other_cam_idx.at(0));
-        auto msg1 = msgs.at(closest_other_cam_idx.at(1));
-        used_index.insert(closest_other_cam_idx.at(0)); // skip this message
-        used_index.insert(closest_other_cam_idx.at(1)); // skip this message
+        auto msg0 = msgs.at(camid_to_msg_index.at(0));
+        auto msg1 = msgs.at(camid_to_msg_index.at(1));
+        used_index.insert(camid_to_msg_index.at(0)); // skip this message
+        used_index.insert(camid_to_msg_index.at(1)); // skip this message
         viz->callback_stereo(msg0.instantiate<sensor_msgs::Image>(), msg1.instantiate<sensor_msgs::Image>(), 0, 1);
       } else {
         PRINT_ERROR(RED "[SERIAL]: We currently only support 1 or 2 camera serial input....\n" RESET);

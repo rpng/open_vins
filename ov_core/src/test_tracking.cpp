@@ -58,8 +58,10 @@ int clone_states = 10;
 std::deque<double> clonetimes;
 ros::Time time_start;
 
-// Our master function for tracking
+// How many cameras we will do visual tracking on (mono=1, stereo=2)
 int max_cameras = 2;
+
+// Our master function for tracking
 void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
 
 // Main function

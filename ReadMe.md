@@ -17,7 +17,7 @@ details on what the system supports.
 * Github project page - https://github.com/rpng/open_vins
 * Documentation - https://docs.openvins.com/
 * Getting started guide - https://docs.openvins.com/getting-started.html
-* Publication reference - http://udel.edu/~pgeneva/downloads/papers/c10.pdf
+* Publication reference - https://pgeneva.com/downloads/papers/Geneva2020ICRA.pdf
 
 ## News / Events
 

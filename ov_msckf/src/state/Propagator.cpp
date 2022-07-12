@@ -213,7 +213,7 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   Phi.block(6, 6, 3, 3) = quat_2_Rot(q_Gtoi);
   state_covariance = Phi * state_covariance * Phi.transpose();
   covariance.block(0, 0, 9, 9) = state_covariance.block(0, 0, 9, 9);
-  double dt = prop_data.at(prop_data.size() - 1).timestamp + prop_data.at(prop_data.size() - 2).timestamp;
+  double dt = prop_data.at(prop_data.size() - 1).timestamp - prop_data.at(prop_data.size() - 2).timestamp;
   covariance.block(9, 9, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix3d::Identity();
   return true;
 }

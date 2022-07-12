@@ -348,7 +348,7 @@ bool SimulatorInit::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::V
 }
 
 bool SimulatorInit::get_next_cam(double &time_cam, std::vector<int> &camids,
-                             std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
+                                 std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
 
   // Return if the imu measurement should go before us
   if (timestamp_last_imu + 1.0 / params.sim_freq_imu < timestamp_last_cam + 1.0 / params.sim_freq_cam)
@@ -410,9 +410,8 @@ bool SimulatorInit::get_next_cam(double &time_cam, std::vector<int> &camids,
 }
 
 std::vector<std::pair<size_t, Eigen::VectorXf>>
-SimulatorInit::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
-                                                                              int camid,
-                                                                              const std::unordered_map<size_t, Eigen::Vector3d> &feats) {
+SimulatorInit::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
+                                  const std::unordered_map<size_t, Eigen::Vector3d> &feats) {
 
   // Assert we have good camera
   assert(camid < params.num_cameras);
@@ -460,7 +459,7 @@ SimulatorInit::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Ve
 }
 
 void SimulatorInit::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
-                                std::unordered_map<size_t, Eigen::Vector3d> &feats, int numpts) {
+                                    std::unordered_map<size_t, Eigen::Vector3d> &feats, int numpts) {
 
   // Assert we have good camera
   assert(camid < params.num_cameras);

@@ -101,11 +101,11 @@ private:
 
 // Assert that will always be here in release builds also
 // TODO: place this in a better header, just putting here for now...
-# define assert_r(EX) (void)((EX) || (__assert (#EX, __FILE__, __LINE__),0))
+#define assert_r(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void __assert (const char *msg, const char *file, int line);
+extern void __assert(const char *msg, const char *file, int line);
 #ifdef __cplusplus
 };
 #endif

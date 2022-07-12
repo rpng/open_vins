@@ -365,6 +365,10 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
 
 cv::Mat VioManager::get_historical_viz_image() {
 
+  // Return if not ready yet
+  if (state == nullptr || trackFEATS == nullptr)
+    return cv::Mat();
+
   // Build an id-list of what features we should highlight (i.e. SLAM)
   std::vector<size_t> highlighted_ids;
   for (const auto &feat : state->_features_SLAM) {

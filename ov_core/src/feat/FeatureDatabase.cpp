@@ -38,6 +38,24 @@ std::shared_ptr<Feature> FeatureDatabase::get_feature(size_t id, bool remove) {
   }
 }
 
+bool FeatureDatabase::get_feature_clone(size_t id, Feature &feat) {
+  std::lock_guard<std::mutex> lck(mtx);
+  if (features_idlookup.find(id) == features_idlookup.end())
+    return false;
+  // TODO: should probably have a copy constructor function in feature class
+  std::shared_ptr<Feature> temp = features_idlookup.at(id);
+  feat.featid = temp->featid;
+  feat.to_delete = temp->to_delete;
+  feat.uvs = temp->uvs;
+  feat.uvs_norm = temp->uvs_norm;
+  feat.timestamps = temp->timestamps;
+  feat.anchor_cam_id = temp->anchor_cam_id;
+  feat.anchor_clone_timestamp = temp->anchor_clone_timestamp;
+  feat.p_FinA = temp->p_FinA;
+  feat.p_FinG = temp->p_FinG;
+  return true;
+}
+
 void FeatureDatabase::update_feature(size_t id, double timestamp, size_t cam_id, float u, float v, float u_n, float v_n) {
 
   // Find this feature using the ID lookup

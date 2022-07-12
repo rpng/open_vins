@@ -378,7 +378,7 @@ struct VioManagerOptions {
       parser->parse_config("downsize_aruco", downsize_aruco);
       parser->parse_config("downsample_cameras", downsample_cameras);
       parser->parse_config("multi_threading", use_multi_threading);
-      parser->parse_config("use_multi_threading_subs", use_multi_threading_subs, false);
+      parser->parse_config("multi_threading_subs", use_multi_threading_subs, false);
       parser->parse_config("num_pts", num_pts);
       parser->parse_config("fast_threshold", fast_threshold);
       parser->parse_config("grid_x", grid_x);
@@ -409,7 +409,7 @@ struct VioManagerOptions {
     PRINT_DEBUG("  - downsize aruco: %d\n", downsize_aruco);
     PRINT_DEBUG("  - downsize cameras: %d\n", downsample_cameras);
     PRINT_DEBUG("  - use multi-threading: %d\n", use_multi_threading);
-    PRINT_DEBUG("  - use threaded sub: %d\n", use_multi_threading_subs);
+    PRINT_DEBUG("  - use multi-threading subs: %d\n", use_multi_threading_subs);
     PRINT_DEBUG("  - num_pts: %d\n", num_pts);
     PRINT_DEBUG("  - fast threshold: %d\n", fast_threshold);
     PRINT_DEBUG("  - grid X by Y: %d by %d\n", grid_x, grid_y);

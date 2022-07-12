@@ -132,8 +132,8 @@ protected:
    * Original code is from the "RobustMatcher" in the opencv examples, and seems to give very good results in the matches.
    * https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
    */
-  void robust_match(std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> pts1, cv::Mat &desc0, cv::Mat &desc1, size_t id0, size_t id1,
-                    std::vector<cv::DMatch> &matches);
+  void robust_match(const std::vector<cv::KeyPoint> &pts0, const std::vector<cv::KeyPoint> &pts1, const cv::Mat &desc0,
+                    const cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches);
 
   // Helper functions for the robust_match function
   // Original code is from the "RobustMatcher" in the opencv examples

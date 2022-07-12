@@ -131,6 +131,18 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
       of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
     }
   }
+
+  // Start thread for the image publishing
+  if (_app->get_params().use_multi_threading) {
+    std::thread thread([&] {
+      ros::Rate loop_rate(20);
+      while (ros::ok()) {
+        publish_images();
+        loop_rate.sleep();
+      }
+    });
+    thread.detach();
+  }
 }
 
 void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser) {
@@ -186,11 +198,12 @@ void ROS1Visualizer::visualize() {
   last_visualization_timestamp = _app->get_state()->_timestamp;
 
   // Start timing
-  boost::posix_time::ptime rT0_1, rT0_2;
-  rT0_1 = boost::posix_time::microsec_clock::local_time();
+  // boost::posix_time::ptime rT0_1, rT0_2;
+  // rT0_1 = boost::posix_time::microsec_clock::local_time();
 
-  // publish current image
-  publish_images();
+  // publish current image (only if not multi-threaded)
+  if (!_app->get_params().use_multi_threading)
+    publish_images();
 
   // Return if we have not inited
   if (!_app->initialized())
@@ -220,9 +233,9 @@ void ROS1Visualizer::visualize() {
   }
 
   // Print how much time it took to publish / displaying things
-  rT0_2 = boost::posix_time::microsec_clock::local_time();
-  double time_total = (rT0_2 - rT0_1).total_microseconds() * 1e-6;
-  PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for visualization\n" RESET, time_total);
+  // rT0_2 = boost::posix_time::microsec_clock::local_time();
+  // double time_total = (rT0_2 - rT0_1).total_microseconds() * 1e-6;
+  // PRINT_DEBUG(BLUE "[TIME]: %.4f seconds for visualization\n" RESET, time_total);
 }
 
 void ROS1Visualizer::visualize_odometry(double timestamp) {
@@ -395,7 +408,7 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
       double timestamp_imu_inC = message.timestamp - _app->get_state()->_calib_dt_CAMtoIMU->value()(0);
       while (!camera_queue.empty() && camera_queue.at(0).timestamp < timestamp_imu_inC) {
         auto rT0_1 = boost::posix_time::microsec_clock::local_time();
-        double update_dt =  100.0 * (timestamp_imu_inC - camera_queue.at(0).timestamp);
+        double update_dt = 100.0 * (timestamp_imu_inC - camera_queue.at(0).timestamp);
         _app->feed_measurement_camera(camera_queue.at(0));
         visualize();
         camera_queue.pop_front();
@@ -571,12 +584,21 @@ void ROS1Visualizer::publish_state() {
 
 void ROS1Visualizer::publish_images() {
 
+  // Return if we have already visualized
+  if (_app->get_state() == nullptr)
+    return;
+  if (last_visualization_timestamp_image == _app->get_state()->_timestamp && _app->initialized())
+    return;
+  last_visualization_timestamp_image = _app->get_state()->_timestamp;
+
   // Check if we have subscribers
   if (it_pub_tracks.getNumSubscribers() == 0)
     return;
 
   // Get our image of history tracks
   cv::Mat img_history = _app->get_historical_viz_image();
+  if (img_history.empty())
+    return;
 
   // Create our message
   std_msgs::Header header;

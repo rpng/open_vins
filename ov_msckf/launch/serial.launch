@@ -37,7 +37,6 @@
         <!-- master configuration object -->
         <param name="verbosity"                 type="str"    value="$(arg verbosity)" />
         <param name="config_path"               type="str"    value="$(arg config_path)" />
-        <param name="multi_threading"           type="bool"   value="false" />
 
         <!-- world/filter parameters -->
         <param name="use_stereo"                type="bool"   value="$(arg use_stereo)" />

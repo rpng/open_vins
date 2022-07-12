@@ -161,6 +161,9 @@ protected:
   /// Mutexs for our last set of image storage (img_last, pts_last, and ids_last)
   std::vector<std::mutex> mtx_feeds;
 
+  /// Mutex for editing the *_last variables
+  std::mutex mtx_last_vars;
+
   /// Last set of images (use map so all trackers render in the same order)
   std::map<size_t, cv::Mat> img_last;
 

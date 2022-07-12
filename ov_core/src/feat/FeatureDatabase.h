@@ -68,6 +68,14 @@ public:
   std::shared_ptr<Feature> get_feature(size_t id, bool remove = false);
 
   /**
+   * @brief Get a specified feature clone (pointer is thread safe)
+   * @param id What feature we want to get
+   * @param feat Feature with data in it
+   * @return True if the feature was found
+   */
+  bool get_feature_clone(size_t id, Feature &feat);
+
+  /**
    * @brief Update a feature object
    * @param id ID of the feature we will update
    * @param timestamp time that this measurement occured at
