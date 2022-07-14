@@ -96,28 +96,39 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
 
   // Compute the disparity of the system at the current timestep
   // If disparity is zero or negative we will always use the static initializer
-  bool disparity_detected_moving = false;
-  if (params.init_max_disparity > 0 && params.init_dyn_use) {
+  bool disparity_detected_moving_1to0 = false;
+  bool disparity_detected_moving_2to1 = false;
+  if (params.init_max_disparity > 0) {
 
     // Get the disparity statistics from this image to the previous
-    int num_features = 0;
-    double average_disparity = 0.0;
-    double variance_disparity = 0.0;
-    FeatureHelper::compute_disparity(_db, average_disparity, variance_disparity, num_features);
+    // Only compute the disparity for the oldest half of the initialization period
+    double newest_time_allowed = newest_cam_time - 0.5 * params.init_window_time;
+    int num_features0 = 0;
+    int num_features1 = 0;
+    double avg_disp0, avg_disp1;
+    double var_disp0, var_disp1;
+    FeatureHelper::compute_disparity(_db, avg_disp0, var_disp0, num_features0, newest_time_allowed);
+    FeatureHelper::compute_disparity(_db, avg_disp1, var_disp1, num_features1, newest_cam_time, newest_time_allowed);
 
     // Return if we can't compute the disparity
-    if (num_features < 10) {
-      PRINT_DEBUG(YELLOW "[init]: not enough features to compute disparity %d < 10\n" RESET, num_features);
+    int feat_thresh = 15;
+    if (num_features0 < feat_thresh || num_features1 < feat_thresh) {
+      PRINT_WARNING(YELLOW "[init]: not enough feats to compute disp: %d,%d < %d\n" RESET, num_features0, num_features1, feat_thresh);
       return false;
     }
 
     // Check if it passed our check!
-    PRINT_DEBUG(YELLOW "[init]: disparity of the platform is %.4f (%.4f threshold)\n" RESET, average_disparity, params.init_max_disparity);
-    disparity_detected_moving = (average_disparity > params.init_max_disparity);
+    PRINT_INFO(YELLOW "[init]: disparity is %.3f,%.3f (%.2f thresh)\n" RESET, avg_disp0, avg_disp1, params.init_max_disparity);
+    disparity_detected_moving_1to0 = (avg_disp0 > params.init_max_disparity);
+    disparity_detected_moving_2to1 = (avg_disp1 > params.init_max_disparity);
   }
 
   // Use our static initializer!
-  if ((!disparity_detected_moving && params.init_imu_thresh > 0.0) || !params.init_dyn_use) {
+  // CASE1: if our disparity says we were static in last window and have moved in the newest, we have a jerk
+  // CASE2: if both disparities are below the threshold, then the platform has been stationary during both periods
+  bool has_jerk = (!disparity_detected_moving_1to0 && disparity_detected_moving_2to1);
+  bool is_still = (!disparity_detected_moving_1to0 && !disparity_detected_moving_2to1);
+  if (((has_jerk && wait_for_jerk) || (is_still && !wait_for_jerk)) && params.init_imu_thresh > 0.0) {
     PRINT_DEBUG(GREEN "[init]: USING STATIC INITIALIZER METHOD!\n" RESET);
     return init_static->initialize(timestamp, covariance, order, t_imu, wait_for_jerk);
   } else if (params.init_dyn_use) {

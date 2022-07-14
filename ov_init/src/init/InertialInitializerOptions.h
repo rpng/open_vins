@@ -156,6 +156,18 @@ struct InertialInitializerOptions {
       PRINT_ERROR(RED "  init_max_features = %d\n" RESET, init_max_features);
       std::exit(EXIT_FAILURE);
     }
+    if (init_imu_thresh <= 0.0 && !init_dyn_use) {
+      PRINT_ERROR(RED "need to have an IMU threshold for static initialization!\n" RESET);
+      PRINT_ERROR(RED "  init_imu_thresh = %.3f\n" RESET, init_imu_thresh);
+      PRINT_ERROR(RED "  init_dyn_use = %d\n" RESET, init_dyn_use);
+      std::exit(EXIT_FAILURE);
+    }
+    if (init_max_disparity <= 0.0 && !init_dyn_use) {
+      PRINT_ERROR(RED "need to have an DISPARITY threshold for static initialization!\n" RESET);
+      PRINT_ERROR(RED "  init_max_disparity = %.3f\n" RESET, init_max_disparity);
+      PRINT_ERROR(RED "  init_dyn_use = %d\n" RESET, init_dyn_use);
+      std::exit(EXIT_FAILURE);
+    }
     PRINT_DEBUG("  - init_dyn_use: %d\n", init_dyn_use);
     PRINT_DEBUG("  - init_dyn_mle_opt_calib: %d\n", init_dyn_mle_opt_calib);
     PRINT_DEBUG("  - init_dyn_mle_max_iter: %d\n", init_dyn_mle_max_iter);

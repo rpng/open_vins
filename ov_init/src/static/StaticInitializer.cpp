@@ -95,25 +95,25 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
     a_var_2to1 += (data.am - a_avg_2to1).dot(data.am - a_avg_2to1);
   }
   a_var_2to1 = std::sqrt(a_var_2to1 / ((int)window_2to1.size() - 1));
-  // PRINT_DEBUG(BOLDGREEN "[init-s]: IMU excitation, %.4f,%.4f\n" RESET, a_var_1to0, a_var_2to1);
+  PRINT_DEBUG(YELLOW "[init-s]: IMU excitation stats: %.3f,%.3f\n" RESET, a_var_2to1, a_var_1to0);
 
   // If it is below the threshold and we want to wait till we detect a jerk
   if (a_var_1to0 < params.init_imu_thresh && wait_for_jerk) {
-    PRINT_INFO(YELLOW "[init-s]: no IMU excitation, below threshold %.4f < %.4f\n" RESET, a_var_1to0, params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: no IMU excitation, below threshold %.3f < %.3f\n" RESET, a_var_1to0, params.init_imu_thresh);
     return false;
   }
 
   // We should also check that the old state was below the threshold!
   // This is the case when we have started up moving, and thus we need to wait for a period of stationary motion
   if (a_var_2to1 > params.init_imu_thresh && wait_for_jerk) {
-    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f > %.4f\n" RESET, a_var_2to1, params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.3f > %.3f\n" RESET, a_var_2to1, params.init_imu_thresh);
     return false;
   }
 
   // If it is above the threshold and we are not waiting for a jerk
   // Then we are not stationary (i.e. moving) so we should wait till we are
   if ((a_var_1to0 > params.init_imu_thresh || a_var_2to1 > params.init_imu_thresh) && !wait_for_jerk) {
-    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET, a_var_1to0, a_var_2to1,
+    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.3f,%.3f > %.3f\n" RESET, a_var_2to1, a_var_1to0,
                params.init_imu_thresh);
     return false;
   }
