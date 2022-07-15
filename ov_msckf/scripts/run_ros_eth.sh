@@ -8,7 +8,6 @@ source ${SCRIPT_DIR}/../../../../devel/setup.bash
 #=============================================================
 #=============================================================
 
-
 # estimator configurations
 modes=(
   "mono"
@@ -40,36 +39,39 @@ bagstarttimes=(
   "0"
   "0"
   "0"
-  "40"
-  "35"
-  "10"
-  "17"
-  "18"
+  "40" # 40
+  "35" # 35
+  "5" # 10
+  "15" # 17
+  "5" # 18
 )
 
 
 # location to save log files into
-save_path1="/home/chuchu/test_ov/openvins_pra/exp_euroc/algorithms"
-save_path2="/home/chuchu/test_ov/openvins_pra/exp_euroc/timings"
-bag_path="/home/chuchu/datasets/euroc_mav/"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_euroc/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_euroc/timings"
+bag_path="/media/patrick/RPNG FLASH 3/euroc_mav/"
+ov_ver="2.6.1"
+
+
 
 #=============================================================
 #=============================================================
 #=============================================================
 
-# Loop through all modes
-for h in "${!modes[@]}"; do
 # Loop through all datasets
 for i in "${!bagnames[@]}"; do
+# Loop through all modes
+for h in "${!modes[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..04}; do
+for j in {00..00}; do
 
 # start timing
 start_time="$(date -u +%s)"
-filename_est="$save_path1/ov_2.4_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
-filename_time="$save_path2/ov_2.4_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
+filename_est="$save_path1/ov_${ov_ver}_${modes[h]}/${bagnames[i]}/${j}_estimate.txt"
+filename_time="$save_path2/ov_${ov_ver}_${modes[h]}/${bagnames[i]}/${j}_timing.txt"
 
 # number of cameras
 if [ "${modes[h]}" == "mono" ]
@@ -89,12 +91,15 @@ then
 fi
 
 # run our ROS launch file (note we send console output to terminator)
+# subscribe=live pub, serial=read from bag (fast)
 roslaunch ov_msckf serial.launch \
   max_cameras:="$temp1" \
   use_stereo:="$temp2" \
   config:="euroc_mav" \
+  dataset:="${bagnames[i]}" \
   bag:="$bag_path/${bagnames[i]}.bag" \
   bag_start:="${bagstarttimes[i]}" \
+  dobag:="true" \
   dosave:="true" \
   path_est:="$filename_est" \
   dotime:="true" \

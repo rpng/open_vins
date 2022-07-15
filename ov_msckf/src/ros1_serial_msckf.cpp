@@ -151,28 +151,33 @@ int main(int argc, char **argv) {
 
   // We going to loop through and collect a list of all messages
   // This is done so we can access arbitrary points in the bag
+  // NOTE: if we instantiate messages here, this requires the whole bag to be read
+  // NOTE: thus we just check the topic which allows us to quickly loop through the index
+  // NOTE: see this PR https://github.com/ros/ros_comm/issues/117
+  double max_camera_time = -1;
   std::vector<rosbag::MessageInstance> msgs;
   for (const rosbag::MessageInstance &msg : view) {
     if (!ros::ok())
       break;
     if (msg.getTopic() == topic_imu) {
-      if (msg.instantiate<sensor_msgs::Imu>() == nullptr) {
-        PRINT_ERROR(RED "[SERIAL]: IMU topic has unmatched message types!!\n" RESET);
-        PRINT_ERROR(RED "[SERIAL]: Supports: sensor_msgs::Imu\n" RESET);
-        return EXIT_FAILURE;
-      }
+      // if (msg.instantiate<sensor_msgs::Imu>() == nullptr) {
+      //   PRINT_ERROR(RED "[SERIAL]: IMU topic has unmatched message types!!\n" RESET);
+      //   PRINT_ERROR(RED "[SERIAL]: Supports: sensor_msgs::Imu\n" RESET);
+      //   return EXIT_FAILURE;
+      // }
       msgs.push_back(msg);
     }
     for (int i = 0; i < params.state_options.num_cameras; i++) {
       if (msg.getTopic() == topic_cameras.at(i)) {
-        sensor_msgs::CompressedImage::ConstPtr img_c = msg.instantiate<sensor_msgs::CompressedImage>();
-        sensor_msgs::Image::ConstPtr img_i = msg.instantiate<sensor_msgs::Image>();
-        if (img_c == nullptr && img_i == nullptr) {
-          PRINT_ERROR(RED "[SERIAL]: Image topic has unmatched message types!!\n" RESET);
-          PRINT_ERROR(RED "[SERIAL]: Supports: sensor_msgs::Image and sensor_msgs::CompressedImage\n" RESET);
-          return EXIT_FAILURE;
-        }
+        // sensor_msgs::CompressedImage::ConstPtr img_c = msg.instantiate<sensor_msgs::CompressedImage>();
+        // sensor_msgs::Image::ConstPtr img_i = msg.instantiate<sensor_msgs::Image>();
+        // if (img_c == nullptr && img_i == nullptr) {
+        //   PRINT_ERROR(RED "[SERIAL]: Image topic has unmatched message types!!\n" RESET);
+        //   PRINT_ERROR(RED "[SERIAL]: Supports: sensor_msgs::Image and sensor_msgs::CompressedImage\n" RESET);
+        //   return EXIT_FAILURE;
+        // }
         msgs.push_back(msg);
+        max_camera_time = std::max(max_camera_time, msg.getTime().toSec());
       }
     }
   }
@@ -187,7 +192,7 @@ int main(int argc, char **argv) {
   for (int m = 0; m < (int)msgs.size(); m++) {
 
     // End once we reach the last time, or skip if before beginning time (shouldn't happen)
-    if (!ros::ok() || msgs.at(m).getTime() > time_finish)
+    if (!ros::ok() || msgs.at(m).getTime() > time_finish || msgs.at(m).getTime().toSec() > max_camera_time)
       break;
     if (msgs.at(m).getTime() < time_init)
       continue;

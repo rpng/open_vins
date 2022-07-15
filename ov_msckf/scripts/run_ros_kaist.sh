@@ -10,79 +10,34 @@ source ${SCRIPT_DIR}/../../../../devel/setup.bash
 
 # estimator configurations
 modes=(
-    "mono"
-    "binocular"
-    "stereo"
+#  "mono" # doesn't work...
+#  "binocular" # doesn't work...
+  "stereo"
 )
 
 # dataset locations
 bagnames=(
-    "indoor_forward_3_snapdragon_with_gt" # bag needs to end early as there is a hard landing....
-    "indoor_forward_5_snapdragon_with_gt"
-    "indoor_forward_6_snapdragon_with_gt"
-    "indoor_forward_7_snapdragon_with_gt"
-    "indoor_forward_9_snapdragon_with_gt"
-    "indoor_forward_10_snapdragon_with_gt"
-    "indoor_45_2_snapdragon_with_gt"
-    "indoor_45_4_snapdragon_with_gt"
-#    "indoor_45_9_snapdragon_with_gt" # problem one, seems to fail part way in due to freefalling?
-    "indoor_45_12_snapdragon_with_gt"
-    "indoor_45_13_snapdragon_with_gt"
-    "indoor_45_14_snapdragon_with_gt"
-    "outdoor_forward_1_snapdragon_with_gt"
-    "outdoor_forward_3_snapdragon_with_gt"
-    "outdoor_forward_5_snapdragon_with_gt"
-    "outdoor_45_1_snapdragon_with_gt"
-)
-
-# what sensor configuration each dataset has
-config=(
-    "uzhfpv_indoor" # bag needs to end early as there is a hard landing....
-    "uzhfpv_indoor"
-    "uzhfpv_indoor"
-    "uzhfpv_indoor"
-    "uzhfpv_indoor"
-    "uzhfpv_indoor"
-    "uzhfpv_indoor_45"
-    "uzhfpv_indoor_45"
-#    "uzhfpv_indoor_45" # problem one, seems to fail part way in due to freefalling?
-    "uzhfpv_indoor_45"
-    "uzhfpv_indoor_45"
-    "uzhfpv_indoor_45"
-    "uzhfpv_outdoor"
-    "uzhfpv_outdoor"
-    "uzhfpv_outdoor"
-    "uzhfpv_outdoor_45"
+  "urban28"
+  "urban32"
+#  "urban34" # too strong of sun...
+  "urban38"
+  "urban39"
 )
 
 # how far we should start into the dataset
 # this can be used to skip the initial sections
 bagstarttimes=(
-# indoor forward
-    "0" # bag needs to end early as there is a hard landing....
-    "0"
-    "0"
-    "0"
-    "0"
-    "0"
-# indoor 45 degree
-    "0"
-    "0"
-#    "0" # problem one, seems to fail part way in due to freefalling?
-    "0"
-    "0"
-    "0"
-# outdoor forward and 45
-    "0"
-    "0"
-    "0"
-    "0"
+  "0"
+  "0"
+#  "0"
+  "0"
+  "0"
 )
 
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_uzhfpv/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_uzhfpv/timings"
-bag_path="/media/patrick/RPNG FLASH 3/"
+save_path1="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_kaist/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_kaist/timings"
+bag_path="/media/patrick/RPNG FLASH 3/kaist/"
 ov_ver="2.6.1"
 
 
@@ -127,9 +82,9 @@ fi
 roslaunch ov_msckf serial.launch \
   max_cameras:="$temp1" \
   use_stereo:="$temp2" \
-  config:="${config[i]}" \
+  config:="kaist" \
   dataset:="${bagnames[i]}" \
-  bag:="$bag_path/${config[i]}/${bagnames[i]}.bag" \
+  bag:="$bag_path/${bagnames[i]}.bag" \
   bag_start:="${bagstarttimes[i]}" \
   dobag:="true" \
   dosave:="true" \
