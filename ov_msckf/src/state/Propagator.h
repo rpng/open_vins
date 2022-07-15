@@ -22,6 +22,7 @@
 #ifndef OV_MSCKF_STATE_PROPAGATOR_H
 #define OV_MSCKF_STATE_PROPAGATOR_H
 
+#include <memory>
 #include <mutex>
 
 #include "utils/NoiseManager.h"

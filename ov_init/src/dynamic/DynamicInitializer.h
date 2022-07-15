@@ -48,7 +48,9 @@ namespace ov_init {
  * 2. Construct linear system with features to recover velocity (solve with |g| constraint)
  * 3. Perform a large MLE with all calibration and recover the covariance.
  *
- * Method is based on this work (see this [tech report](https://pgeneva.com/downloads/reports/tr_init.pdf) for a high level walk through): * > Dong-Si, Tue-Cuong, and Anastasios I. Mourikis.
+ * Method is based on this work (see this [tech report](https://pgeneva.com/downloads/reports/tr_init.pdf) for a high level walk through):
+ *
+ * > Dong-Si, Tue-Cuong, and Anastasios I. Mourikis.
  * > "Estimator initialization in vision-aided inertial navigation with unknown camera-IMU calibration."
  * > 2012 IEEE/RSJ International Conference on Intelligent Robots and Systems. IEEE, 2012.
  *

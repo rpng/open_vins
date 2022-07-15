@@ -22,6 +22,8 @@
 #ifndef OV_MSCKF_UPDATER_ZEROVELOCITY_H
 #define OV_MSCKF_UPDATER_ZEROVELOCITY_H
 
+#include <memory>
+
 #include "utils/sensor_data.h"
 
 #include "UpdaterOptions.h"
