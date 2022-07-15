@@ -13,6 +13,7 @@ cam0:
   intrinsics: [8.1690378992770002e+02,8.1156803828490001e+02,6.0850726281690004e+02,2.6347599764440002e+02]
   resolution: [1280, 560]
   rostopic: /stereo/left/image_raw
+
 cam1:
   T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
     - [-0.00768,-0.01509,0.99986,1.73376]

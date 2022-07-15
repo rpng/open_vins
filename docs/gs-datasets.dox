@@ -204,6 +204,7 @@ Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and
 | Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
 | Urban 28 | 11.47 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
+| Urban 32 | 7.30 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
 | Urban 38 | 11.42 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
 | Urban 39 | 11.06 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
 @m_enddiv
