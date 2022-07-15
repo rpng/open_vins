@@ -24,9 +24,11 @@
 
 #include <Eigen/StdVector>
 #include <algorithm>
+#include <atomic>
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <string>
 
 #include "VioManagerOptions.h"

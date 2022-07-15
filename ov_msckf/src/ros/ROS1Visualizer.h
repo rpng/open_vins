@@ -41,6 +41,11 @@
 #include <std_msgs/Float64.h>
 #include <tf/transform_broadcaster.h>
 
+#include <atomic>
+#include <fstream>
+#include <memory>
+#include <mutex>
+
 #include <Eigen/Eigen>
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
