@@ -9,10 +9,11 @@
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
-    <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
+    <arg name="bag_rate"    default="1" />
+    <arg name="dataset"     default="V1_01_easy" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
     <arg name="dobag"       default="false" /> <!-- if we should play back the bag -->
-<!--    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 3/$(arg config)/$(arg dataset).bag" />-->
-    <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />
+    <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 3/$(arg config)/$(arg dataset).bag" />
+<!--    <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />-->
 <!--    <arg name="bag"         default="/datasets/$(arg config)/$(arg dataset).bag" />-->
 
     <!-- saving trajectory path and timing information -->
@@ -46,7 +47,7 @@
 
     <!-- play the dataset -->
     <group if="$(arg dobag)">
-        <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -s $(arg bag_start) $(arg bag)" required="true"/>
+        <node pkg="rosbag" type="play" name="rosbag" args="-d 1 -r $(arg bag_rate) -s $(arg bag_start) $(arg bag)" required="true"/>
     </group>
 
     <!-- record the trajectory if enabled -->
