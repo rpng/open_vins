@@ -143,20 +143,22 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
   // Create base covariance and its covariance ordering
   order.clear();
   order.push_back(t_imu);
-  covariance = std::pow(1e-2, 2) * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
+  covariance = std::pow(0.02, 2) * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
+  covariance.block(3, 3, 3, 3) = std::pow(0.017, 2) * Eigen::Matrix3d::Identity(); // q
+  covariance.block(3, 3, 3, 3) = std::pow(0.05, 2) * Eigen::Matrix3d::Identity();  // p
+  covariance.block(6, 6, 3, 3) = std::pow(0.01, 2) * Eigen::Matrix3d::Identity();  // v (static)
 
-  // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
+  // A VIO system has 4dof unobservable directions which can be arbitrarily picked.
   // This means that on startup, we can fix the yaw and position to be 100 percent known.
+  // TODO: why can't we set these to zero and get a good NEES realworld result?
   // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
   // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
-  covariance(t_imu->q()->id() + 2, t_imu->q()->id() + 2) = std::pow(1e-4, 2);
-  covariance.block(t_imu->p()->id(), t_imu->p()->id(), 3, 3) = std::pow(1e-4, 2) * Eigen::Matrix3d::Identity();
-
-  // Propagate into the current local IMU frame
+  // We propagate the global orientation into the current local IMU frame
   // R_GtoI = R_GtoI*R_GtoG -> H = R_GtoI
-  Eigen::Matrix3d R_GtoI = quat_2_Rot(q_GtoI);
-  covariance.block(t_imu->q()->id(), t_imu->q()->id(), 3, 3) =
-      R_GtoI * covariance.block(t_imu->q()->id(), t_imu->q()->id(), 3, 3) * R_GtoI.transpose();
+  // Eigen::Matrix3d R_GtoI = quat_2_Rot(q_GtoI);
+  // covariance(2, 2) = std::pow(1e-4, 2);
+  // covariance.block(0, 0, 3, 3) = R_GtoI * covariance.block(0, 0, 3, 3) * R_GtoI.transpose();
+  // covariance.block(3, 3, 3, 3) = std::pow(1e-3, 2) * Eigen::Matrix3d::Identity();
 
   // Return :D
   return true;

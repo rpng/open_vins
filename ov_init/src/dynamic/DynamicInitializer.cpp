@@ -1077,22 +1077,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   _imu->set_value(x);
   _imu->set_fej(x);
 
-  //  // Setting a static covariance (might not be valid, but we can guess)
-  //  covariance = 1e-3 * Eigen::MatrixXd::Identity(15, 15);
-  //  covariance.block(6, 6, 3, 3) = 0.1 * Eigen::Matrix3d::Identity();
-  //  covariance.block(9, 9, 3, 3) = 2e-3 * Eigen::Matrix3d::Identity();
-  //  covariance.block(12, 12, 3, 3) = 1e-2 * Eigen::Matrix3d::Identity();
-  //
-  //  // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
-  //  // This means that on startup, we can fix the yaw and position to be 100 percent known.
-  //  // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
-  //  // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
-  //  covariance(0, 0) = 1e-3;
-  //  covariance(1, 1) = 1e-3;
-  //  covariance(2, 2) = 1e-5;
-  //  covariance.block(0, 0, 3, 3) = _imu->Rot() * covariance.block(0, 0, 3, 3) * _imu->Rot().transpose();
-  //  covariance.block(3, 3, 3, 3) = 1e-5 * Eigen::Matrix3d::Identity();
-
   // Debug timing information about how long it took to initialize!!
   auto rT7 = boost::posix_time::microsec_clock::local_time();
   PRINT_DEBUG("[TIME]: %.4f sec for prelim tests\n", (rT2 - rT1).total_microseconds() * 1e-6);

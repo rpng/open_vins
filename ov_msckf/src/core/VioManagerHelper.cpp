@@ -46,12 +46,10 @@ void VioManager::initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
   // Fix the global yaw and position gauge freedoms
   // TODO: Why does this break out simulation consistency metrics?
   std::vector<std::shared_ptr<ov_type::Type>> order = {state->_imu};
-  Eigen::MatrixXd Cov = 1e-4 * Eigen::MatrixXd::Identity(state->_imu->size(), state->_imu->size());
-  // Cov.block(state->_imu->v()->id(), state->_imu->v()->id(), 3, 3) *= 10;
-  // Cov(state->_imu->q()->id() + 2, state->_imu->q()->id() + 2) = 0.0;
-  // Cov.block(state->_imu->p()->id(), state->_imu->p()->id(), 3, 3).setZero();
-  // Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) =
-  //     state->_imu->Rot() * Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) * state->_imu->Rot().transpose();
+  Eigen::MatrixXd Cov = std::pow(0.02, 2) * Eigen::MatrixXd::Identity(state->_imu->size(), state->_imu->size());
+  Cov.block(3, 3, 3, 3) = std::pow(0.017, 2) * Eigen::Matrix3d::Identity(); // q
+  Cov.block(3, 3, 3, 3) = std::pow(0.05, 2) * Eigen::Matrix3d::Identity();  // p
+  Cov.block(6, 6, 3, 3) = std::pow(0.01, 2) * Eigen::Matrix3d::Identity();  // v (static)
   StateHelper::set_initial_covariance(state, Cov, order);
 
   // Set the state time

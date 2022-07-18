@@ -461,7 +461,7 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
 
   // First compute how many more features we need to extract from this image
   // If we don't need any features, just return
-  double min_feat_percent = 0.25;
+  double min_feat_percent = 0.50;
   int num_featsneeded = num_features - (int)pts0.size();
   if (num_featsneeded < std::min(20, (int)(min_feat_percent * num_features)))
     return;
@@ -596,7 +596,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
   }
 
   // First compute how many more features we need to extract from this image
-  double min_feat_percent = 0.25;
+  double min_feat_percent = 0.50;
   int num_featsneeded_0 = num_features - (int)pts0.size();
 
   // LEFT: if we need features we should extract them in the current frame
