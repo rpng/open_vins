@@ -21,6 +21,13 @@
 
 #include "Simulator.h"
 
+#include "cam/CamBase.h"
+#include "cam/CamEqui.h"
+#include "cam/CamRadtan.h"
+#include "sim/BsplineSE3.h"
+#include "utils/colors.h"
+#include "utils/dataset_reader.h"
+
 using namespace ov_core;
 using namespace ov_msckf;
 
@@ -52,17 +59,18 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
   // Load the groundtruth trajectory and its spline
   DatasetReader::load_simulated_trajectory(params.sim_traj_path, traj_data);
-  spline.feed_trajectory(traj_data);
+  spline = std::make_shared<ov_core::BsplineSE3>();
+  spline->feed_trajectory(traj_data);
 
   // Set all our timestamps as starting from the minimum spline time
-  timestamp = spline.get_start_time();
-  timestamp_last_imu = spline.get_start_time();
-  timestamp_last_cam = spline.get_start_time();
+  timestamp = spline->get_start_time();
+  timestamp_last_imu = spline->get_start_time();
+  timestamp_last_cam = spline->get_start_time();
 
   // Get the pose at the current timestep
   Eigen::Matrix3d R_GtoI_init;
   Eigen::Vector3d p_IinG_init;
-  bool success_pose_init = spline.get_pose(timestamp, R_GtoI_init, p_IinG_init);
+  bool success_pose_init = spline->get_pose(timestamp, R_GtoI_init, p_IinG_init);
   if (!success_pose_init) {
     PRINT_ERROR(RED "[SIM]: unable to find the first pose in the spline...\n" RESET);
     std::exit(EXIT_FAILURE);
@@ -76,7 +84,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
     // Get the pose at the current timestep
     Eigen::Matrix3d R_GtoI;
     Eigen::Vector3d p_IinG;
-    bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
+    bool success_pose = spline->get_pose(timestamp, R_GtoI, p_IinG);
 
     // Check if it fails
     if (!success_pose) {
@@ -97,13 +105,16 @@ Simulator::Simulator(VioManagerOptions &params_) {
       timestamp_last_cam += 1.0 / params.sim_freq_cam;
     }
   }
-  PRINT_DEBUG("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline.get_start_time());
+  PRINT_DEBUG("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline->get_start_time());
 
   // Append the current true bias to our history
   hist_true_bias_time.push_back(timestamp_last_imu - 1.0 / params.sim_freq_imu);
   hist_true_bias_accel.push_back(true_bias_accel);
   hist_true_bias_gyro.push_back(true_bias_gyro);
   hist_true_bias_time.push_back(timestamp_last_imu);
+  hist_true_bias_accel.push_back(true_bias_accel);
+  hist_true_bias_gyro.push_back(true_bias_gyro);
+  hist_true_bias_time.push_back(timestamp_last_imu + 1.0 / params.sim_freq_imu);
   hist_true_bias_accel.push_back(true_bias_accel);
   hist_true_bias_gyro.push_back(true_bias_gyro);
 
@@ -159,7 +170,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
   for (int i = 0; i < params.state_options.num_cameras; i++) {
 
     // Reset the start time
-    double time_synth = spline.get_start_time();
+    double time_synth = spline->get_start_time();
 
     // Loop through each pose and generate our feature map in them!!!!
     while (true) {
@@ -167,7 +178,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
       // Get the pose at the current timestep
       Eigen::Matrix3d R_GtoI;
       Eigen::Vector3d p_IinG;
-      bool success_pose = spline.get_pose(time_synth, R_GtoI, p_IinG);
+      bool success_pose = spline->get_pose(time_synth, R_GtoI, p_IinG);
 
       // We have finished generating features
       if (!success_pose)
@@ -186,7 +197,7 @@ Simulator::Simulator(VioManagerOptions &params_) {
 
     // Debug print
     PRINT_DEBUG("[SIM]: Generated %d map features in total over %d frames (camera %d)\n", (int)(featmap.size() - mapsize),
-                (int)((time_synth - spline.get_start_time()) / dt), i);
+                (int)((time_synth - spline->get_start_time()) / dt), i);
     mapsize = featmap.size();
   }
 
@@ -239,7 +250,7 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imu
   Eigen::Vector3d p_IinG, w_IinI, v_IinG;
 
   // Get the pose, velocity, and acceleration
-  bool success_vel = spline.get_velocity(desired_time, R_GtoI, p_IinG, w_IinI, v_IinG);
+  bool success_vel = spline->get_velocity(desired_time, R_GtoI, p_IinG, w_IinI, v_IinG);
 
   // Find the bounding bias values
   bool success_bias = false;
@@ -290,8 +301,8 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   // Get the pose, velocity, and acceleration
   // NOTE: we get the acceleration between our two IMU
   // NOTE: this is because we are using a constant measurement model for integration
-  // bool success_accel = spline.get_acceleration(timestamp+0.5/freq_imu, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
-  bool success_accel = spline.get_acceleration(timestamp, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
+  // bool success_accel = spline->get_acceleration(timestamp+0.5/freq_imu, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
+  bool success_accel = spline->get_acceleration(timestamp, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
 
   // If failed, then that means we don't have any more spline
   // Thus we should stop the simulation
@@ -306,28 +317,34 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   gravity << 0.0, 0.0, params.gravity_mag;
   Eigen::Vector3d accel_inI = R_GtoI * (a_IinG + gravity);
 
-  // Now add noise to these measurements
+  // Calculate the bias values for this IMU reading
+  // NOTE: we skip the first ever bias since we have already appended it
   double dt = 1.0 / params.sim_freq_imu;
   std::normal_distribution<double> w(0, 1);
+  if (has_skipped_first_bias) {
+
+    // Move the biases forward in time
+    true_bias_gyro(0) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
+    true_bias_gyro(1) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
+    true_bias_gyro(2) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
+    true_bias_accel(0) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
+    true_bias_accel(1) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
+    true_bias_accel(2) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
+
+    // Append the current true bias to our history
+    hist_true_bias_time.push_back(timestamp_last_imu);
+    hist_true_bias_gyro.push_back(true_bias_gyro);
+    hist_true_bias_accel.push_back(true_bias_accel);
+  }
+  has_skipped_first_bias = true;
+
+  // Now add noise to these measurements
   wm(0) = omega_inI(0) + true_bias_gyro(0) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
   wm(1) = omega_inI(1) + true_bias_gyro(1) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
   wm(2) = omega_inI(2) + true_bias_gyro(2) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
   am(0) = accel_inI(0) + true_bias_accel(0) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
   am(1) = accel_inI(1) + true_bias_accel(1) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
   am(2) = accel_inI(2) + true_bias_accel(2) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-
-  // Move the biases forward in time
-  true_bias_gyro(0) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_gyro(1) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_gyro(2) += params.imu_noises.sigma_wb * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_accel(0) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_accel(1) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
-  true_bias_accel(2) += params.imu_noises.sigma_ab * std::sqrt(dt) * w(gen_meas_imu);
-
-  // Append the current true bias to our history
-  hist_true_bias_time.push_back(timestamp_last_imu);
-  hist_true_bias_gyro.push_back(true_bias_gyro);
-  hist_true_bias_accel.push_back(true_bias_accel);
 
   // Return success
   return true;
@@ -348,7 +365,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
   // Get the pose at the current timestep
   Eigen::Matrix3d R_GtoI;
   Eigen::Vector3d p_IinG;
-  bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
+  bool success_pose = spline->get_pose(timestamp, R_GtoI, p_IinG);
 
   // We have finished generating measurements
   if (!success_pose) {

@@ -24,8 +24,6 @@
 
 #include <ceres/ceres.h>
 
-#include "utils/quat_ops.h"
-
 namespace ov_init {
 
 /**
@@ -43,28 +41,7 @@ public:
    * \bar{q}=norm\Big(\begin{bmatrix} 0.5*\mathbf{\theta_{dx}} \\ 1 \end{bmatrix}\Big) \hat{\bar{q}}
    * @f]
    */
-  bool Plus(const double *x, const double *delta, double *x_plus_delta) const override {
-
-    // Apply the standard JPL update: q <-- [d_th/2; 1] (x) q
-    Eigen::Map<const Eigen::Vector4d> q(x);
-
-    // Get delta into eigen
-    Eigen::Map<const Eigen::Vector3d> d_th(delta);
-    Eigen::Matrix<double, 4, 1> d_q;
-    double theta = d_th.norm();
-    if (theta < 1e-8) {
-      d_q << .5 * d_th, 1.0;
-    } else {
-      d_q.block(0, 0, 3, 1) = (d_th / theta) * std::sin(theta / 2);
-      d_q(3, 0) = std::cos(theta / 2);
-    }
-    d_q = ov_core::quatnorm(d_q);
-
-    // Do the update
-    Eigen::Map<Eigen::Vector4d> q_plus(x_plus_delta);
-    q_plus = ov_core::quat_multiply(d_q, q);
-    return true;
-  }
+  bool Plus(const double *x, const double *delta, double *x_plus_delta) const override;
 
   /**
    * @brief Computes the jacobian in respect to the local parameterization
@@ -77,12 +54,7 @@ public:
    * dr/dlocal= [ dr/dlocal, 0] * [I; 0]= dr/dlocal.
    * Therefore we here define dglobal/dlocal= [I; 0]
    */
-  bool ComputeJacobian(const double *x, double *jacobian) const override {
-    Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> j(jacobian);
-    j.topRows<3>().setIdentity();
-    j.bottomRows<1>().setZero();
-    return true;
-  }
+  bool ComputeJacobian(const double *x, double *jacobian) const override;
 
   int GlobalSize() const override { return 4; };
 

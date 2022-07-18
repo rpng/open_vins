@@ -23,14 +23,15 @@
 #define OV_INIT_STATICINITIALIZER_H
 
 #include "init/InertialInitializerOptions.h"
-#include "utils/helper.h"
 
-#include "feat/FeatureHelper.h"
-#include "types/IMU.h"
-#include "utils/colors.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
-#include "utils/sensor_data.h"
+namespace ov_core {
+class FeatureDatabase;
+struct ImuData;
+} // namespace ov_core
+namespace ov_type {
+class Type;
+class IMU;
+} // namespace ov_type
 
 namespace ov_init {
 

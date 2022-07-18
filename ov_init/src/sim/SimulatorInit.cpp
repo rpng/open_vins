@@ -19,12 +19,19 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "Simulator.h"
+#include "SimulatorInit.h"
+
+#include "cam/CamBase.h"
+#include "cam/CamEqui.h"
+#include "cam/CamRadtan.h"
+#include "sim/BsplineSE3.h"
+#include "utils/colors.h"
+#include "utils/dataset_reader.h"
 
 using namespace ov_core;
 using namespace ov_init;
 
-Simulator::Simulator(InertialInitializerOptions &params_) {
+SimulatorInit::SimulatorInit(InertialInitializerOptions &params_) {
 
   //===============================================================
   //===============================================================
@@ -52,17 +59,18 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
 
   // Load the groundtruth trajectory and its spline
   DatasetReader::load_simulated_trajectory(params.sim_traj_path, traj_data);
-  spline.feed_trajectory(traj_data);
+  spline = std::make_shared<ov_core::BsplineSE3>();
+  spline->feed_trajectory(traj_data);
 
   // Set all our timestamps as starting from the minimum spline time
-  timestamp = spline.get_start_time();
-  timestamp_last_imu = spline.get_start_time();
-  timestamp_last_cam = spline.get_start_time();
+  timestamp = spline->get_start_time();
+  timestamp_last_imu = spline->get_start_time();
+  timestamp_last_cam = spline->get_start_time();
 
   // Get the pose at the current timestep
   Eigen::Matrix3d R_GtoI_init;
   Eigen::Vector3d p_IinG_init;
-  bool success_pose_init = spline.get_pose(timestamp, R_GtoI_init, p_IinG_init);
+  bool success_pose_init = spline->get_pose(timestamp, R_GtoI_init, p_IinG_init);
   if (!success_pose_init) {
     PRINT_ERROR(RED "[SIM]: unable to find the first pose in the spline...\n" RESET);
     std::exit(EXIT_FAILURE);
@@ -76,7 +84,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
     // Get the pose at the current timestep
     Eigen::Matrix3d R_GtoI;
     Eigen::Vector3d p_IinG;
-    bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
+    bool success_pose = spline->get_pose(timestamp, R_GtoI, p_IinG);
 
     // Check if it fails
     if (!success_pose) {
@@ -97,7 +105,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
       timestamp_last_cam += 1.0 / params.sim_freq_cam;
     }
   }
-  PRINT_DEBUG("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline.get_start_time());
+  PRINT_DEBUG("[SIM]: moved %.3f seconds into the dataset where it starts moving\n", timestamp - spline->get_start_time());
 
   // Append the current true bias to our history
   hist_true_bias_time.push_back(timestamp_last_imu - 1.0 / params.sim_freq_imu);
@@ -157,7 +165,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
   for (int i = 0; i < params.num_cameras; i++) {
 
     // Reset the start time
-    double time_synth = spline.get_start_time();
+    double time_synth = spline->get_start_time();
 
     // Loop through each pose and generate our feature map in them!!!!
     while (true) {
@@ -165,7 +173,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
       // Get the pose at the current timestep
       Eigen::Matrix3d R_GtoI;
       Eigen::Vector3d p_IinG;
-      bool success_pose = spline.get_pose(time_synth, R_GtoI, p_IinG);
+      bool success_pose = spline->get_pose(time_synth, R_GtoI, p_IinG);
 
       // We have finished generating features
       if (!success_pose)
@@ -184,7 +192,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
 
     // Debug print
     PRINT_DEBUG("[SIM]: Generated %d map features in total over %d frames (camera %d)\n", (int)(featmap.size() - mapsize),
-                (int)((time_synth - spline.get_start_time()) / dt), i);
+                (int)((time_synth - spline->get_start_time()) / dt), i);
     mapsize = featmap.size();
   }
 
@@ -192,7 +200,7 @@ Simulator::Simulator(InertialInitializerOptions &params_) {
   sleep(1);
 }
 
-void Simulator::perturb_parameters(InertialInitializerOptions &params_) {
+void SimulatorInit::perturb_parameters(InertialInitializerOptions &params_) {
 
   // One std generator
   std::normal_distribution<double> w(0, 1);
@@ -234,7 +242,7 @@ void Simulator::perturb_parameters(InertialInitializerOptions &params_) {
   }
 }
 
-bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
+bool SimulatorInit::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
 
   // Set to default state
   imustate.setZero();
@@ -245,7 +253,7 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imu
   Eigen::Vector3d p_IinG, w_IinI, v_IinG;
 
   // Get the pose, velocity, and acceleration
-  bool success_vel = spline.get_velocity(desired_time, R_GtoI, p_IinG, w_IinI, v_IinG);
+  bool success_vel = spline->get_velocity(desired_time, R_GtoI, p_IinG, w_IinI, v_IinG);
 
   // Find the bounding bias values
   bool success_bias = false;
@@ -278,7 +286,7 @@ bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imu
   return true;
 }
 
-bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vector3d &am) {
+bool SimulatorInit::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vector3d &am) {
 
   // Return if the camera measurement should go before us
   if (timestamp_last_cam + 1.0 / params.sim_freq_cam < timestamp_last_imu + 1.0 / params.sim_freq_imu)
@@ -296,8 +304,8 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   // Get the pose, velocity, and acceleration
   // NOTE: we get the acceleration between our two IMU
   // NOTE: this is because we are using a constant measurement model for integration
-  // bool success_accel = spline.get_acceleration(timestamp+0.5/freq_imu, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
-  bool success_accel = spline.get_acceleration(timestamp, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
+  // bool success_accel = spline->get_acceleration(timestamp+0.5/freq_imu, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
+  bool success_accel = spline->get_acceleration(timestamp, R_GtoI, p_IinG, w_IinI, v_IinG, alpha_IinI, a_IinG);
 
   // If failed, then that means we don't have any more spline
   // Thus we should stop the simulation
@@ -339,8 +347,8 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   return true;
 }
 
-bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
-                             std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
+bool SimulatorInit::get_next_cam(double &time_cam, std::vector<int> &camids,
+                                 std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> &feats) {
 
   // Return if the imu measurement should go before us
   if (timestamp_last_imu + 1.0 / params.sim_freq_imu < timestamp_last_cam + 1.0 / params.sim_freq_cam)
@@ -354,7 +362,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
   // Get the pose at the current timestep
   Eigen::Matrix3d R_GtoI;
   Eigen::Vector3d p_IinG;
-  bool success_pose = spline.get_pose(timestamp, R_GtoI, p_IinG);
+  bool success_pose = spline->get_pose(timestamp, R_GtoI, p_IinG);
 
   // We have finished generating measurements
   if (!success_pose) {
@@ -401,9 +409,9 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
   return true;
 }
 
-std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG,
-                                                                              int camid,
-                                                                              const std::unordered_map<size_t, Eigen::Vector3d> &feats) {
+std::vector<std::pair<size_t, Eigen::VectorXf>>
+SimulatorInit::project_pointcloud(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
+                                  const std::unordered_map<size_t, Eigen::Vector3d> &feats) {
 
   // Assert we have good camera
   assert(camid < params.num_cameras);
@@ -450,8 +458,8 @@ std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(co
   return uvs;
 }
 
-void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
-                                std::unordered_map<size_t, Eigen::Vector3d> &feats, int numpts) {
+void SimulatorInit::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vector3d &p_IinG, int camid,
+                                    std::unordered_map<size_t, Eigen::Vector3d> &feats, int numpts) {
 
   // Assert we have good camera
   assert(camid < params.num_cameras);

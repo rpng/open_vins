@@ -74,7 +74,7 @@ State::State(StateOptions &options) {
   }
 
   // Finally initialize our covariance to small value
-  _Cov = 1e-3 * Eigen::MatrixXd::Identity(current_id, current_id);
+  _Cov = std::pow(1e-3, 2) * Eigen::MatrixXd::Identity(current_id, current_id);
 
   // Finally, set some of our priors for our calibration parameters
   if (_options.do_calib_camera_timeoffset) {
@@ -82,7 +82,7 @@ State::State(StateOptions &options) {
   }
   if (_options.do_calib_camera_pose) {
     for (int i = 0; i < _options.num_cameras; i++) {
-      _Cov.block(_calib_IMUtoCAM.at(i)->id(), _calib_IMUtoCAM.at(i)->id(), 3, 3) = std::pow(0.001, 2) * Eigen::MatrixXd::Identity(3, 3);
+      _Cov.block(_calib_IMUtoCAM.at(i)->id(), _calib_IMUtoCAM.at(i)->id(), 3, 3) = std::pow(0.005, 2) * Eigen::MatrixXd::Identity(3, 3);
       _Cov.block(_calib_IMUtoCAM.at(i)->id() + 3, _calib_IMUtoCAM.at(i)->id() + 3, 3, 3) =
           std::pow(0.01, 2) * Eigen::MatrixXd::Identity(3, 3);
     }

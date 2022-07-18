@@ -22,23 +22,25 @@
 #ifndef OV_MSCKF_UPDATER_ZEROVELOCITY_H
 #define OV_MSCKF_UPDATER_ZEROVELOCITY_H
 
-#include "feat/FeatureDatabase.h"
-#include "feat/FeatureHelper.h"
-#include "state/Propagator.h"
-#include "state/State.h"
-#include "state/StateHelper.h"
-#include "utils/colors.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
+#include <memory>
+
 #include "utils/sensor_data.h"
 
-#include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
+#include "utils/NoiseManager.h"
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/math/distributions/chi_squared.hpp>
+namespace ov_core {
+class Feature;
+class FeatureDatabase;
+} // namespace ov_core
+namespace ov_type {
+class Landmark;
+} // namespace ov_type
 
 namespace ov_msckf {
+
+class State;
+class Propagator;
 
 /**
  * @brief Will try to *detect* and then update using zero velocity assumption.
@@ -63,28 +65,9 @@ public:
    * @param zupt_noise_multiplier Multiplier of our IMU noise matrix (default should be 1.0)
    * @param zupt_max_disparity Max disparity we should consider to do a update with
    */
-  UpdaterZeroVelocity(UpdaterOptions &options, Propagator::NoiseManager &noises, std::shared_ptr<ov_core::FeatureDatabase> db,
+  UpdaterZeroVelocity(UpdaterOptions &options, NoiseManager &noises, std::shared_ptr<ov_core::FeatureDatabase> db,
                       std::shared_ptr<Propagator> prop, double gravity_mag, double zupt_max_velocity, double zupt_noise_multiplier,
-                      double zupt_max_disparity)
-      : _options(options), _noises(noises), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
-        _zupt_noise_multiplier(zupt_noise_multiplier), _zupt_max_disparity(zupt_max_disparity) {
-
-    // Gravity
-    _gravity << 0.0, 0.0, gravity_mag;
-
-    // Save our raw pixel noise squared
-    _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
-    _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
-    _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
-    _noises.sigma_ab_2 = std::pow(_noises.sigma_ab, 2);
-
-    // Initialize the chi squared test table with confidence level 0.95
-    // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
-    for (int i = 1; i < 1000; i++) {
-      boost::math::chi_squared chi_squared_dist(i);
-      chi_squared_table[i] = boost::math::quantile(chi_squared_dist, 0.95);
-    }
-  }
+                      double zupt_max_disparity);
 
   /**
    * @brief Feed function for inertial data
@@ -105,7 +88,7 @@ public:
     if (oldest_time != -1) {
       auto it0 = imu_data.begin();
       while (it0 != imu_data.end()) {
-        if (message.timestamp < oldest_time) {
+        if (it0->timestamp < oldest_time - 0.10) {
           it0 = imu_data.erase(it0);
         } else {
           it0++;
@@ -127,7 +110,7 @@ protected:
   UpdaterOptions _options;
 
   /// Container for the imu noise values
-  Propagator::NoiseManager _noises;
+  NoiseManager _noises;
 
   /// Feature tracker database with all features in it
   std::shared_ptr<ov_core::FeatureDatabase> _db;

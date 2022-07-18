@@ -21,6 +21,10 @@
 
 #include "Propagator.h"
 
+#include "state/State.h"
+#include "state/StateHelper.h"
+#include "utils/quat_ops.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
@@ -94,6 +98,7 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
       dt_summed += prop_data.at(i + 1).timestamp - prop_data.at(i).timestamp;
     }
   }
+  assert(std::abs((time1 - time0) - dt_summed) < 1e-4);
 
   // Last angular velocity (used for cloning when estimating time offset)
   Eigen::Matrix<double, 3, 1> last_w = Eigen::Matrix<double, 3, 1>::Zero();
@@ -208,7 +213,7 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   Phi.block(6, 6, 3, 3) = quat_2_Rot(q_Gtoi);
   state_covariance = Phi * state_covariance * Phi.transpose();
   covariance.block(0, 0, 9, 9) = state_covariance.block(0, 0, 9, 9);
-  double dt = prop_data.at(prop_data.size() - 1).timestamp + prop_data.at(prop_data.size() - 2).timestamp;
+  double dt = prop_data.at(prop_data.size() - 1).timestamp - prop_data.at(prop_data.size() - 2).timestamp;
   covariance.block(9, 9, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix3d::Identity();
   return true;
 }
@@ -237,8 +242,8 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
     if (imu_data.at(i + 1).timestamp > time0 && imu_data.at(i).timestamp < time0) {
       ov_core::ImuData data = Propagator::interpolate_data(imu_data.at(i), imu_data.at(i + 1), time0);
       prop_data.push_back(data);
-      // PRINT_DEBUG("propagation #%d = CASE 1 = %.3f => %.3f\n",
-      // (int)i,data.timestamp-prop_data.at(0).timestamp,time0-prop_data.at(0).timestamp);
+      // PRINT_DEBUG("propagation #%d = CASE 1 = %.3f => %.3f\n", (int)i, data.timestamp - prop_data.at(0).timestamp,
+      //             time0 - prop_data.at(0).timestamp);
       continue;
     }
 
@@ -247,7 +252,7 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
     // Then we should just append the whole measurement time to our propagation vector
     if (imu_data.at(i).timestamp >= time0 && imu_data.at(i + 1).timestamp <= time1) {
       prop_data.push_back(imu_data.at(i));
-      // PRINT_DEBUG("propagation #%d = CASE 2 = %.3f\n",(int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp);
+      // PRINT_DEBUG("propagation #%d = CASE 2 = %.3f\n", (int)i, imu_data.at(i).timestamp - prop_data.at(0).timestamp);
       continue;
     }
 

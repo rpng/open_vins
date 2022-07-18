@@ -24,36 +24,33 @@
 
 #include <Eigen/StdVector>
 #include <algorithm>
+#include <atomic>
 #include <boost/filesystem.hpp>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <string>
-
-#include "cam/CamBase.h"
-#include "cam/CamEqui.h"
-#include "cam/CamRadtan.h"
-#include "track/TrackAruco.h"
-#include "track/TrackDescriptor.h"
-#include "track/TrackKLT.h"
-#include "track/TrackSIM.h"
-#include "types/Landmark.h"
-#include "types/LandmarkRepresentation.h"
-#include "utils/opencv_lambda_body.h"
-#include "utils/print.h"
-#include "utils/sensor_data.h"
-
-#include "init/InertialInitializer.h"
-
-#include "state/Propagator.h"
-#include "state/State.h"
-#include "state/StateHelper.h"
-#include "update/UpdaterMSCKF.h"
-#include "update/UpdaterSLAM.h"
-#include "update/UpdaterZeroVelocity.h"
 
 #include "VioManagerOptions.h"
 
+namespace ov_core {
+struct ImuData;
+struct CameraData;
+class TrackBase;
+class FeatureInitializer;
+} // namespace ov_core
+namespace ov_init {
+class InertialInitializer;
+} // namespace ov_init
+
 namespace ov_msckf {
+
+class State;
+class StateHelper;
+class UpdaterMSCKF;
+class UpdaterSLAM;
+class UpdaterZeroVelocity;
+class Propagator;
 
 /**
  * @brief Core class that manages the entire system
@@ -75,26 +72,7 @@ public:
    * @brief Feed function for inertial data
    * @param message Contains our timestamp and inertial information
    */
-  void feed_measurement_imu(const ov_core::ImuData &message) {
-
-    // Get the oldest camera timestamp that we can remove IMU measurements before
-    // Then push back to our propagator and pass the IMU time we can delete up to
-    double oldest_time = trackFEATS->get_feature_database()->get_oldest_timestamp();
-    if (oldest_time != -1) {
-      oldest_time += params.calib_camimu_dt;
-    }
-    propagator->feed_imu(message, oldest_time);
-
-    // Push back to our initializer
-    if (!is_initialized_vio) {
-      initializer->feed_imu(message, oldest_time);
-    }
-
-    // Push back to the zero velocity updater if we have it
-    if (is_initialized_vio && updaterZUPT != nullptr) {
-      updaterZUPT->feed_imu(message, oldest_time);
-    }
-  }
+  void feed_measurement_imu(const ov_core::ImuData &message);
 
   /**
    * @brief Feed function for camera measurements
@@ -115,45 +93,7 @@ public:
    * @brief Given a state, this will initialize our IMU state.
    * @param imustate State in the MSCKF ordering: [time(sec),q_GtoI,p_IinG,v_IinG,b_gyro,b_accel]
    */
-  void initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
-
-    // Initialize the system
-    state->_imu->set_value(imustate.block(1, 0, 16, 1));
-    state->_imu->set_fej(imustate.block(1, 0, 16, 1));
-
-    // Fix the global yaw and position gauge freedoms
-    // TODO: Why does this break out simulation consistency metrics?
-    std::vector<std::shared_ptr<ov_type::Type>> order = {state->_imu};
-    Eigen::MatrixXd Cov = 1e-4 * Eigen::MatrixXd::Identity(state->_imu->size(), state->_imu->size());
-    // Cov.block(state->_imu->v()->id(), state->_imu->v()->id(), 3, 3) *= 10;
-    // Cov(state->_imu->q()->id() + 2, state->_imu->q()->id() + 2) = 0.0;
-    // Cov.block(state->_imu->p()->id(), state->_imu->p()->id(), 3, 3).setZero();
-    // Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) =
-    //     state->_imu->Rot() * Cov.block(state->_imu->q()->id(), state->_imu->q()->id(), 3, 3) * state->_imu->Rot().transpose();
-    StateHelper::set_initial_covariance(state, Cov, order);
-
-    // Set the state time
-    state->_timestamp = imustate(0, 0);
-    startup_time = imustate(0, 0);
-    is_initialized_vio = true;
-
-    // Cleanup any features older then the initialization time
-    trackFEATS->get_feature_database()->cleanup_measurements(state->_timestamp);
-    if (trackARUCO != nullptr) {
-      trackARUCO->get_feature_database()->cleanup_measurements(state->_timestamp);
-    }
-
-    // Print what we init'ed with
-    PRINT_DEBUG(GREEN "[INIT]: INITIALIZED FROM GROUNDTRUTH FILE!!!!!\n" RESET);
-    PRINT_DEBUG(GREEN "[INIT]: orientation = %.4f, %.4f, %.4f, %.4f\n" RESET, state->_imu->quat()(0), state->_imu->quat()(1),
-                state->_imu->quat()(2), state->_imu->quat()(3));
-    PRINT_DEBUG(GREEN "[INIT]: bias gyro = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_g()(0), state->_imu->bias_g()(1),
-                state->_imu->bias_g()(2));
-    PRINT_DEBUG(GREEN "[INIT]: velocity = %.4f, %.4f, %.4f\n" RESET, state->_imu->vel()(0), state->_imu->vel()(1), state->_imu->vel()(2));
-    PRINT_DEBUG(GREEN "[INIT]: bias accel = %.4f, %.4f, %.4f\n" RESET, state->_imu->bias_a()(0), state->_imu->bias_a()(1),
-                state->_imu->bias_a()(2));
-    PRINT_DEBUG(GREEN "[INIT]: position = %.4f, %.4f, %.4f\n" RESET, state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2));
-  }
+  void initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate);
 
   /// If we are initialized or not
   bool initialized() { return is_initialized_vio; }
@@ -171,80 +111,16 @@ public:
   std::shared_ptr<Propagator> get_propagator() { return propagator; }
 
   /// Get a nice visualization image of what tracks we have
-  cv::Mat get_historical_viz_image() {
+  cv::Mat get_historical_viz_image();
 
-    // Build an id-list of what features we should highlight (i.e. SLAM)
-    std::vector<size_t> highlighted_ids;
-    for (const auto &feat : state->_features_SLAM) {
-      highlighted_ids.push_back(feat.first);
-    }
+  /// Returns 3d SLAM features in the global frame
+  std::vector<Eigen::Vector3d> get_features_SLAM();
 
-    // Text we will overlay if needed
-    std::string overlay = (did_zupt_update) ? "zvupt" : "";
-    overlay = (!is_initialized_vio) ? "init" : overlay;
-
-    // Get the current active tracks
-    cv::Mat img_history;
-    trackFEATS->display_history(img_history, 255, 255, 0, 255, 255, 255, highlighted_ids, overlay);
-    if (trackARUCO != nullptr) {
-      trackARUCO->display_history(img_history, 0, 255, 255, 255, 255, 255, highlighted_ids, overlay);
-      // trackARUCO->display_active(img_history, 0, 255, 255, 255, 255, 255, overlay);
-    }
-
-    // Finally return the image
-    return img_history;
-  }
+  /// Returns 3d ARUCO features in the global frame
+  std::vector<Eigen::Vector3d> get_features_ARUCO();
 
   /// Returns 3d features used in the last update in global frame
   std::vector<Eigen::Vector3d> get_good_features_MSCKF() { return good_features_MSCKF; }
-
-  /// Returns 3d SLAM features in the global frame
-  std::vector<Eigen::Vector3d> get_features_SLAM() {
-    std::vector<Eigen::Vector3d> slam_feats;
-    for (auto &f : state->_features_SLAM) {
-      if ((int)f.first <= 4 * state->_options.max_aruco_features)
-        continue;
-      if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
-        // Assert that we have an anchor pose for this feature
-        assert(f.second->_anchor_cam_id != -1);
-        // Get calibration for our anchor camera
-        Eigen::Matrix<double, 3, 3> R_ItoC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->Rot();
-        Eigen::Matrix<double, 3, 1> p_IinC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->pos();
-        // Anchor pose orientation and position
-        Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->Rot();
-        Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->pos();
-        // Feature in the global frame
-        slam_feats.push_back(R_GtoI.transpose() * R_ItoC.transpose() * (f.second->get_xyz(false) - p_IinC) + p_IinG);
-      } else {
-        slam_feats.push_back(f.second->get_xyz(false));
-      }
-    }
-    return slam_feats;
-  }
-
-  /// Returns 3d ARUCO features in the global frame
-  std::vector<Eigen::Vector3d> get_features_ARUCO() {
-    std::vector<Eigen::Vector3d> aruco_feats;
-    for (auto &f : state->_features_SLAM) {
-      if ((int)f.first > 4 * state->_options.max_aruco_features)
-        continue;
-      if (ov_type::LandmarkRepresentation::is_relative_representation(f.second->_feat_representation)) {
-        // Assert that we have an anchor pose for this feature
-        assert(f.second->_anchor_cam_id != -1);
-        // Get calibration for our anchor camera
-        Eigen::Matrix<double, 3, 3> R_ItoC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->Rot();
-        Eigen::Matrix<double, 3, 1> p_IinC = state->_calib_IMUtoCAM.at(f.second->_anchor_cam_id)->pos();
-        // Anchor pose orientation and position
-        Eigen::Matrix<double, 3, 3> R_GtoI = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->Rot();
-        Eigen::Matrix<double, 3, 1> p_IinG = state->_clones_IMU.at(f.second->_anchor_clone_timestamp)->pos();
-        // Feature in the global frame
-        aruco_feats.push_back(R_GtoI.transpose() * R_ItoC.transpose() * (f.second->get_xyz(false) - p_IinC) + p_IinG);
-      } else {
-        aruco_feats.push_back(f.second->get_xyz(false));
-      }
-    }
-    return aruco_feats;
-  }
 
   /// Return the image used when projecting the active tracks
   void get_active_image(double &timestamp, cv::Mat &image) {

@@ -42,6 +42,7 @@ init_imu_thresh: 1.0
 init_max_disparity: 1.5
 init_max_features: 15
 
+init_dyn_use: true # if dynamic initialization should be used
 init_dyn_mle_opt_calib: false # if we should optimize calibration during intialization (not recommended)
 init_dyn_mle_max_iter: 50 # how many iterations the MLE refinement should use (zero to skip the MLE)
 init_dyn_mle_max_time: 0.5 # how many seconds the MLE should be completed in

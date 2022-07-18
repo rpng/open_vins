@@ -20,7 +20,13 @@
  */
 
 #include "TrackDescriptor.h"
-#include "utils/print.h"
+
+#include <opencv2/features2d.hpp>
+
+#include "Grider_FAST.h"
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
 
 using namespace ov_core;
 
@@ -79,9 +85,16 @@ void TrackDescriptor::feed_monocular(const CameraData &message, size_t msg_id) {
 
   // If we are the first frame (or have lost tracking), initialize our descriptors
   if (pts_last.find(cam_id) == pts_last.end() || pts_last[cam_id].empty()) {
-    perform_detection_monocular(img, mask, pts_last[cam_id], desc_last[cam_id], ids_last[cam_id]);
+    std::vector<cv::KeyPoint> good_left;
+    std::vector<size_t> good_ids_left;
+    cv::Mat good_desc_left;
+    perform_detection_monocular(img, mask, good_left, good_desc_left, good_ids_left);
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
     img_last[cam_id] = img;
     img_mask_last[cam_id] = mask;
+    pts_last[cam_id] = good_left;
+    ids_last[cam_id] = good_ids_left;
+    desc_last[cam_id] = good_desc_left;
     return;
   }
 
@@ -145,11 +158,14 @@ void TrackDescriptor::feed_monocular(const CameraData &message, size_t msg_id) {
   // PRINT_DEBUG("LtoL = %d | good = %d | fromlast = %d\n",(int)matches_ll.size(),(int)good_left.size(),num_tracklast);
 
   // Move forward in time
-  img_last[cam_id] = img;
-  img_mask_last[cam_id] = mask;
-  pts_last[cam_id] = good_left;
-  ids_last[cam_id] = good_ids_left;
-  desc_last[cam_id] = good_desc_left;
+  {
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
+    img_last[cam_id] = img;
+    img_mask_last[cam_id] = mask;
+    pts_last[cam_id] = good_left;
+    ids_last[cam_id] = good_ids_left;
+    desc_last[cam_id] = good_desc_left;
+  }
   rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Our timing information
@@ -191,13 +207,22 @@ void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left,
 
   // If we are the first frame (or have lost tracking), initialize our descriptors
   if (pts_last[cam_id_left].empty() || pts_last[cam_id_right].empty()) {
-    perform_detection_stereo(img_left, img_right, mask_left, mask_right, pts_last[cam_id_left], pts_last[cam_id_right],
-                             desc_last[cam_id_left], desc_last[cam_id_right], cam_id_left, cam_id_right, ids_last[cam_id_left],
-                             ids_last[cam_id_right]);
+    std::vector<cv::KeyPoint> good_left, good_right;
+    std::vector<size_t> good_ids_left, good_ids_right;
+    cv::Mat good_desc_left, good_desc_right;
+    perform_detection_stereo(img_left, img_right, mask_left, mask_right, good_left, good_right, good_desc_left, good_desc_right,
+                             cam_id_left, cam_id_right, good_ids_left, good_ids_right);
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
     img_last[cam_id_left] = img_left;
     img_last[cam_id_right] = img_right;
     img_mask_last[cam_id_left] = mask_left;
     img_mask_last[cam_id_right] = mask_right;
+    pts_last[cam_id_left] = good_left;
+    pts_last[cam_id_right] = good_right;
+    ids_last[cam_id_left] = good_ids_left;
+    ids_last[cam_id_right] = good_ids_right;
+    desc_last[cam_id_left] = good_desc_left;
+    desc_last[cam_id_right] = good_desc_right;
     return;
   }
 
@@ -302,16 +327,19 @@ void TrackDescriptor::feed_stereo(const CameraData &message, size_t msg_id_left,
   //       (int)matches_rr.size(),(int)ids_left_new.size(),(int)good_left.size(),num_tracklast);
 
   // Move forward in time
-  img_last[cam_id_left] = img_left;
-  img_last[cam_id_right] = img_right;
-  img_mask_last[cam_id_left] = mask_left;
-  img_mask_last[cam_id_right] = mask_right;
-  pts_last[cam_id_left] = good_left;
-  pts_last[cam_id_right] = good_right;
-  ids_last[cam_id_left] = good_ids_left;
-  ids_last[cam_id_right] = good_ids_right;
-  desc_last[cam_id_left] = good_desc_left;
-  desc_last[cam_id_right] = good_desc_right;
+  {
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
+    img_last[cam_id_left] = img_left;
+    img_last[cam_id_right] = img_right;
+    img_mask_last[cam_id_left] = mask_left;
+    img_mask_last[cam_id_right] = mask_right;
+    pts_last[cam_id_left] = good_left;
+    pts_last[cam_id_right] = good_right;
+    ids_last[cam_id_left] = good_ids_left;
+    ids_last[cam_id_right] = good_ids_right;
+    desc_last[cam_id_left] = good_desc_left;
+    desc_last[cam_id_right] = good_desc_right;
+  }
   rT5 = boost::posix_time::microsec_clock::local_time();
 
   // Our timing information
@@ -447,8 +475,8 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
   }
 }
 
-void TrackDescriptor::robust_match(std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> pts1, cv::Mat &desc0, cv::Mat &desc1,
-                                   size_t id0, size_t id1, std::vector<cv::DMatch> &matches) {
+void TrackDescriptor::robust_match(const std::vector<cv::KeyPoint> &pts0, const std::vector<cv::KeyPoint> &pts1, const cv::Mat &desc0,
+                                   const cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches) {
 
   // Our 1to2 and 2to1 match vectors
   std::vector<std::vector<cv::DMatch>> matches0to1, matches1to0;

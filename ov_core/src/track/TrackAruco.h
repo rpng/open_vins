@@ -27,7 +27,6 @@
 #endif
 
 #include "TrackBase.h"
-#include "utils/print.h"
 
 namespace ov_core {
 
@@ -48,13 +47,13 @@ public:
    * @brief Public constructor with configuration variables
    * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
-   * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
+   * @param stereo if we should do stereo feature tracking or binocular
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    * @param downsize we can scale the image by 1/2 to increase Aruco tag extraction speed
    */
-  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool binocular,
-                      HistogramMethod histmethod, bool downsize)
-      : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
+  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool stereo, HistogramMethod histmethod,
+                      bool downsize)
+      : TrackBase(cameras, 0, numaruco, stereo, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
 #if ENABLE_ARUCO_TAGS
     aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_1000);
     aruco_params = cv::aruco::DetectorParameters::create();
@@ -70,7 +69,7 @@ public:
    * @brief Process a new image
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_new_camera(const CameraData &message);
+  void feed_new_camera(const CameraData &message) override;
 
 #if ENABLE_ARUCO_TAGS
   /**

@@ -22,17 +22,21 @@
 #ifndef OV_INIT_INERTIALINITIALIZER_H
 #define OV_INIT_INERTIALINITIALIZER_H
 
-#include "dynamic/DynamicInitializer.h"
 #include "init/InertialInitializerOptions.h"
-#include "static/StaticInitializer.h"
 
-#include "types/Type.h"
-#include "utils/colors.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
-#include "utils/sensor_data.h"
+namespace ov_core {
+class FeatureDatabase;
+struct ImuData;
+} // namespace ov_core
+namespace ov_type {
+class Type;
+class IMU;
+} // namespace ov_type
 
 namespace ov_init {
+
+class StaticInitializer;
+class DynamicInitializer;
 
 /**
  * @brief Initializer for visual-inertial system.
@@ -68,28 +72,7 @@ public:
    * @param message Contains our timestamp and inertial information
    * @param oldest_time Time that we can discard measurements before
    */
-  void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
-
-    // Append it to our vector
-    imu_data->emplace_back(message);
-
-    // Sort our imu data (handles any out of order measurements)
-    // std::sort(imu_data->begin(), imu_data->end(), [](const IMUDATA i, const IMUDATA j) {
-    //    return i.timestamp < j.timestamp;
-    //});
-
-    // Loop through and delete imu messages that are older than our requested time
-    if (oldest_time != -1) {
-      auto it0 = imu_data->begin();
-      while (it0 != imu_data->end()) {
-        if (message.timestamp < oldest_time) {
-          it0 = imu_data->erase(it0);
-        } else {
-          it0++;
-        }
-      }
-    }
-  }
+  void feed_imu(const ov_core::ImuData &message, double oldest_time = -1);
 
   /**
    * @brief Try to get the initialized system

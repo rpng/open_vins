@@ -117,8 +117,11 @@ public:
    * @param disp_mean Average raw disparity
    * @param disp_var Variance of the disparities
    * @param total_feats Total number of common features
+   * @param newest_time Only compute disparity for ones older (-1 to disable)
+   * @param oldest_time Only compute disparity for ones newer (-1 to disable)
    */
-  static void compute_disparity(std::shared_ptr<ov_core::FeatureDatabase> db, double &disp_mean, double &disp_var, int &total_feats) {
+  static void compute_disparity(std::shared_ptr<ov_core::FeatureDatabase> db, double &disp_mean, double &disp_var, int &total_feats,
+                                double newest_time = 1, double oldest_time = 1) {
 
     // Compute the disparity
     std::vector<double> disparities;
@@ -129,10 +132,29 @@ public:
         if (campairs.second.size() < 2)
           continue;
 
-        // Now lets calculate the disparity
+        // Now lets calculate the disparity (assumes time array is monotonic)
         size_t camid = campairs.first;
-        Eigen::Vector2f uv0 = feat.second->uvs.at(camid).at(0).block(0, 0, 2, 1);
-        Eigen::Vector2f uv1 = feat.second->uvs.at(camid).at(campairs.second.size() - 1).block(0, 0, 2, 1);
+        bool found0 = false;
+        bool found1 = false;
+        Eigen::Vector2f uv0 = Eigen::Vector2f::Zero();
+        Eigen::Vector2f uv1 = Eigen::Vector2f::Zero();
+        for (size_t idx = 0; idx < feat.second->timestamps.at(camid).size(); idx++) {
+          double time = feat.second->timestamps.at(camid).at(idx);
+          if ((oldest_time == -1 || time > oldest_time) && !found0) {
+            uv0 = feat.second->uvs.at(camid).at(idx).block(0, 0, 2, 1);
+            found0 = true;
+            continue;
+          }
+          if ((newest_time == -1 || time < newest_time) && found0) {
+            uv1 = feat.second->uvs.at(camid).at(idx).block(0, 0, 2, 1);
+            found1 = true;
+            continue;
+          }
+        }
+
+        // If we found both an old and a new time, then we are good!
+        if (!found0 || !found1)
+          continue;
         disparities.push_back((uv1 - uv0).norm());
       }
     }

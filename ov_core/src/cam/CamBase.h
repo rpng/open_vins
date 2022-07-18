@@ -49,6 +49,8 @@ public:
    */
   CamBase(int width, int height) : _width(width), _height(height) {}
 
+  virtual ~CamBase() {}
+
   /**
    * @brief This will set and update the camera calibration values.
    * This should be called on startup for each camera and after update!

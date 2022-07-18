@@ -21,6 +21,10 @@
 
 #include "TrackSIM.h"
 
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+
 using namespace ov_core;
 
 void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<int> &camids,
@@ -64,9 +68,12 @@ void TrackSIM::feed_measurement_simulation(double timestamp, const std::vector<i
     int height = camera_calib.at(cam_id)->h();
 
     // Move forward in time
-    img_last[cam_id] = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
-    img_mask_last[cam_id] = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
-    pts_last[cam_id] = good_left;
-    ids_last[cam_id] = good_ids_left;
+    {
+      std::lock_guard<std::mutex> lckv(mtx_last_vars);
+      img_last[cam_id] = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
+      img_mask_last[cam_id] = cv::Mat::zeros(cv::Size(width, height), CV_8UC1);
+      pts_last[cam_id] = good_left;
+      ids_last[cam_id] = good_ids_left;
+    }
   }
 }

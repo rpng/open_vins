@@ -22,8 +22,6 @@
 #ifndef OV_CORE_TRACK_DESC_H
 #define OV_CORE_TRACK_DESC_H
 
-#include <opencv2/features2d.hpp>
-
 #include "TrackBase.h"
 
 namespace ov_core {
@@ -44,7 +42,7 @@ public:
    * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numfeats number of features we want want to track (i.e. track 200 points from frame to frame)
    * @param numaruco the max id of the arucotags, so we ensure that we start our non-auroc features above this value
-   * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
+   * @param stereo if we should do stereo feature tracking or binocular
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    * @param fast_threshold FAST detection threshold
    * @param gridx size of grid in the x-direction / u-direction
@@ -52,16 +50,16 @@ public:
    * @param minpxdist features need to be at least this number pixels away from each other
    * @param knnratio matching ratio needed (smaller value forces top two descriptors during match to be more different)
    */
-  explicit TrackDescriptor(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool binocular,
+  explicit TrackDescriptor(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numfeats, int numaruco, bool stereo,
                            HistogramMethod histmethod, int fast_threshold, int gridx, int gridy, int minpxdist, double knnratio)
-      : TrackBase(cameras, numfeats, numaruco, binocular, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
+      : TrackBase(cameras, numfeats, numaruco, stereo, histmethod), threshold(fast_threshold), grid_x(gridx), grid_y(gridy),
         min_px_dist(minpxdist), knn_ratio(knnratio) {}
 
   /**
    * @brief Process a new image
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_new_camera(const CameraData &message);
+  void feed_new_camera(const CameraData &message) override;
 
 protected:
   /**
@@ -134,8 +132,8 @@ protected:
    * Original code is from the "RobustMatcher" in the opencv examples, and seems to give very good results in the matches.
    * https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
    */
-  void robust_match(std::vector<cv::KeyPoint> &pts0, std::vector<cv::KeyPoint> pts1, cv::Mat &desc0, cv::Mat &desc1, size_t id0, size_t id1,
-                    std::vector<cv::DMatch> &matches);
+  void robust_match(const std::vector<cv::KeyPoint> &pts0, const std::vector<cv::KeyPoint> &pts1, const cv::Mat &desc0,
+                    const cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches);
 
   // Helper functions for the robust_match function
   // Original code is from the "RobustMatcher" in the opencv examples

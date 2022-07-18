@@ -27,7 +27,7 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
-try_zupt: true
+try_zupt: false
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
 zupt_noise_multiplier: 50
@@ -39,24 +39,25 @@ zupt_only_at_beginning: true
 
 init_window_time: 2.0 # how many seconds to collect initialization information
 init_imu_thresh: 1.5 # threshold for variance of the accelerometer to detect a "jerk" in motion
-init_max_disparity: 1.5 # max disparity to consider the platform stationary (dependent on resolution)
-init_max_features: 25 # how many features to track during initialization (saves on computation)
+init_max_disparity: 10.0 # max disparity to consider the platform stationary (dependent on resolution)
+init_max_features: 75 # how many features to track during initialization (saves on computation)
 
-init_dyn_mle_opt_calib: false
-init_dyn_mle_max_iter: 50
-init_dyn_mle_max_time: 0.05
-init_dyn_mle_max_threads: 6
-init_dyn_num_pose: 6
-init_dyn_min_deg: 10.0
+init_dyn_use: false # if dynamic initialization should be used
+init_dyn_mle_opt_calib: false # if we should optimize calibration during intialization (not recommended)
+init_dyn_mle_max_iter: 50 # how many iterations the MLE refinement should use (zero to skip the MLE)
+init_dyn_mle_max_time: 0.05 # how many seconds the MLE should be completed in
+init_dyn_mle_max_threads: 6 # how many threads the MLE should use
+init_dyn_num_pose: 6 # number of poses to use within our window time (evenly spaced)
+init_dyn_min_deg: 10.0 # orientation change needed to try to init
 
-init_dyn_inflation_ori: 10
-init_dyn_inflation_vel: 100
-init_dyn_inflation_bg: 10
-init_dyn_inflation_ba: 100
-init_dyn_min_rec_cond: 1e-12
+init_dyn_inflation_ori: 10 # what to inflate the recovered q_GtoI covariance by
+init_dyn_inflation_vel: 100 # what to inflate the recovered v_IinG covariance by
+init_dyn_inflation_bg: 10 # what to inflate the recovered bias_g covariance by
+init_dyn_inflation_ba: 100 # what to inflate the recovered bias_a covariance by
+init_dyn_min_rec_cond: 1e-12 # reciprocal condition number thresh for info inversion
 
-init_dyn_bias_g: [0.0, 0.0, 0.0]
-init_dyn_bias_a: [0.0, 0.0, 0.0]
+init_dyn_bias_g: [ 0.0, 0.0, 0.0 ] # initial gyroscope bias guess
+init_dyn_bias_a: [ 0.0, 0.0, 0.0 ] # initial accelerometer bias guess
 
 # ==================================================================
 # ==================================================================
@@ -76,14 +77,14 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
-use_klt: true
-num_pts: 200
-fast_threshold: 20
-grid_x: 20
-grid_y: 20
-min_px_dist: 15
-knn_ratio: 0.70
-track_frequency: 21.0
+use_klt: true # if true we will use KLT, otherwise use a ORB descriptor + robust matching
+num_pts: 200 # number of points (per camera) we will extract and try to track
+fast_threshold: 20 # threshold for fast extraction (warning: lower threshs can be expensive)
+grid_x: 5 # extraction sub-grid count for horizontal direction (uniform tracking)
+grid_y: 5 # extraction sub-grid count for vertical direction (uniform tracking)
+min_px_dist: 10 # distance between features (features near each other provide less information)
+knn_ratio: 0.70 # descriptor knn threshold for the top two descriptor matches
+track_frequency: 21.0 # frequency we will perform feature tracking at (in frames per second / hertz)
 downsample_cameras: false # will downsample image in half if true
 multi_threading: true # if should enable opencv multi threading
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE

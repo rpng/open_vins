@@ -35,6 +35,8 @@
 #include <opencv2/highgui/highgui.hpp>
 
 #include "cam/CamRadtan.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
 #include "track/TrackAruco.h"
 #include "track/TrackDescriptor.h"
 #include "track/TrackKLT.h"
@@ -55,6 +57,9 @@ int featslengths = 0;
 int clone_states = 10;
 std::deque<double> clonetimes;
 ros::Time time_start;
+
+// How many cameras we will do visual tracking on (mono=1, stereo=2)
+int max_cameras = 2;
 
 // Our master function for tracking
 void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1);
@@ -78,7 +83,7 @@ int main(int argc, char **argv) {
   parser->set_node_handler(nh);
 
   // Verbosity
-  std::string verbosity = "INFO";
+  std::string verbosity = "DEBUG";
   parser->parse_config("verbosity", verbosity);
   ov_core::Printer::setPrintLevel(verbosity);
 
@@ -91,7 +96,7 @@ int main(int argc, char **argv) {
 
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
-  nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/eth/V1_01_easy.bag");
+  nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/euroc_mav/V1_01_easy.bag");
   // nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
   PRINT_INFO("ros bag path is: %s\n", path_to_bag.c_str());
 
@@ -105,16 +110,21 @@ int main(int argc, char **argv) {
   //===================================================================================
   //===================================================================================
 
+  // This will globally set the thread count we will use
+  // -1 will reset to the system default threading (usually the num of cores)
+  cv::setNumThreads(4);
+
   // Parameters for our extractor
-  int num_pts = 400;
+  int num_pts = 200;
   int num_aruco = 1024;
-  int fast_threshold = 15;
-  int grid_x = 9;
-  int grid_y = 7;
+  int fast_threshold = 20;
+  int grid_x = 5;
+  int grid_y = 3;
   int min_px_dist = 10;
   double knn_ratio = 0.70;
   bool do_downsizing = false;
   bool use_stereo = false;
+  parser->parse_config("max_cameras", max_cameras, false);
   parser->parse_config("num_pts", num_pts, false);
   parser->parse_config("num_aruco", num_aruco, false);
   parser->parse_config("clone_states", clone_states, false);
@@ -145,6 +155,7 @@ int main(int argc, char **argv) {
   }
 
   // Debug print!
+  PRINT_DEBUG("max cameras: %d\n", max_cameras);
   PRINT_DEBUG("max features: %d\n", num_pts);
   PRINT_DEBUG("max aruco: %d\n", num_aruco);
   PRINT_DEBUG("clone states: %d\n", clone_states);
@@ -152,6 +163,7 @@ int main(int argc, char **argv) {
   PRINT_DEBUG("fast threshold: %d\n", fast_threshold);
   PRINT_DEBUG("min pixel distance: %d\n", min_px_dist);
   PRINT_DEBUG("downsize aruco image: %d\n", do_downsizing);
+  PRINT_DEBUG("stereo tracking: %d\n", use_stereo);
 
   // Fake camera info (we don't need this, as we are not using the normalized coordinates for anything)
   std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras;
@@ -164,10 +176,10 @@ int main(int argc, char **argv) {
   }
 
   // Lets make a feature extractor
-  extractor = new TrackKLT(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
-  // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, !use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist,
+  extractor = new TrackKLT(cameras, num_pts, num_aruco, use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist);
+  // extractor = new TrackDescriptor(cameras, num_pts, num_aruco, use_stereo, method, fast_threshold, grid_x, grid_y, min_px_dist,
   // knn_ratio);
-  // extractor = new TrackAruco(cameras, num_aruco, !use_stereo, method, do_downsizing);
+  // extractor = new TrackAruco(cameras, num_aruco, use_stereo, method, do_downsizing);
 
   //===================================================================================
   //===================================================================================
@@ -293,11 +305,13 @@ void handle_stereo(double time0, double time1, cv::Mat img0, cv::Mat img1) {
   ov_core::CameraData message;
   message.timestamp = time0;
   message.sensor_ids.push_back(0);
-  message.sensor_ids.push_back(1);
   message.images.push_back(img0);
-  message.images.push_back(img1);
   message.masks.push_back(mask);
-  message.masks.push_back(mask);
+  if (max_cameras == 2) {
+    message.sensor_ids.push_back(1);
+    message.images.push_back(img1);
+    message.masks.push_back(mask);
+  }
   extractor->feed_new_camera(message);
 
   // Display the resulting tracks

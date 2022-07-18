@@ -45,17 +45,25 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <atomic>
+#include <fstream>
+#include <memory>
+#include <mutex>
+
+#include <Eigen/Eigen>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-#include "core/VioManager.h"
-#include "ros/RosVisualizerHelper.h"
-#include "sim/Simulator.h"
-#include "utils/dataset_reader.h"
-#include "utils/print.h"
-#include "utils/sensor_data.h"
+namespace ov_core {
+class YamlParser;
+struct CameraData;
+} // namespace ov_core
 
 namespace ov_msckf {
+
+class VioManager;
+class Simulator;
 
 /**
  * @brief Helper class that will publish results onto the ROS framework.
@@ -185,6 +193,7 @@ protected:
 
   // Last timestamp we visualized at
   double last_visualization_timestamp = 0;
+  double last_visualization_timestamp_image = 0;
 
   // Our groundtruth states
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
@@ -195,7 +204,7 @@ protected:
   bool publish_calibration_tf = true;
 
   // Files and if we should save total state
-  bool save_total_state;
+  bool save_total_state = false;
   std::ofstream of_state_est, of_state_std, of_state_gt;
 };
 

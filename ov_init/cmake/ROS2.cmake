@@ -26,7 +26,7 @@ list(APPEND thirdparty_libraries
         ${Boost_LIBRARIES}
         ${CERES_LIBRARIES}
         ${OpenCV_LIBRARIES}
-)
+        )
 
 ##################################################
 # Make the shared library
@@ -34,11 +34,15 @@ list(APPEND thirdparty_libraries
 
 list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
+        src/ceres/Factor_GenericPrior.cpp
+        src/ceres/Factor_ImageReprojCalib.cpp
+        src/ceres/Factor_ImuCPIv1.cpp
+        src/ceres/State_JPLQuatLocal.cpp
         src/init/InertialInitializer.cpp
         src/dynamic/DynamicInitializer.cpp
         src/static/StaticInitializer.cpp
-        src/sim/Simulator.cpp
-)
+        src/sim/SimulatorInit.cpp
+        )
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_init_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 ament_target_dependencies(ov_init_lib rclcpp ov_core cv_bridge)
@@ -48,11 +52,11 @@ install(TARGETS ov_init_lib
         LIBRARY DESTINATION lib
         RUNTIME DESTINATION bin
         PUBLIC_HEADER DESTINATION include
-)
+        )
 install(DIRECTORY src/
         DESTINATION include
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
+        )
 ament_export_include_directories(include)
 ament_export_libraries(ov_init_lib)
 

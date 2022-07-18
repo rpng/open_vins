@@ -21,15 +21,29 @@
 
 #include "DynamicInitializer.h"
 
+#include "ceres/Factor_GenericPrior.h"
+#include "ceres/Factor_ImageReprojCalib.h"
+#include "ceres/Factor_ImuCPIv1.h"
+#include "ceres/State_JPLQuatLocal.h"
+#include "utils/helper.h"
+
+#include "cpi/CpiV1.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+#include "types/IMU.h"
+#include "types/Landmark.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
+#include "utils/sensor_data.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_init;
 
 bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
                                     std::shared_ptr<ov_type::IMU> &_imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
-                                    std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM,
-                                    std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> &_calib_IMUtoCAM,
-                                    std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> &_cam_intrinsics) {
+                                    std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM) {
 
   // Get the newest and oldest timestamps we will try to initialize between!
   auto rT1 = boost::posix_time::microsec_clock::local_time();
@@ -395,15 +409,15 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::MatrixXd Temp = A2.transpose() * (Eigen::MatrixXd::Identity(A1.rows(), A1.rows()) - A1 * A1A1_inv * A1.transpose());
   Eigen::MatrixXd D = Temp * A2;
   Eigen::MatrixXd d = Temp * b;
-  Eigen::VectorXd coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
+  Eigen::Matrix<double, 7, 1> coeff = InitializerHelper::compute_dongsi_coeff(D, d, params.gravity_mag);
 
   // Create companion matrix of our polynomial
   // https://en.wikipedia.org/wiki/Companion_matrix
   assert(coeff(0) == 1);
-  Eigen::MatrixXd companion_matrix = Eigen::MatrixXd::Zero(coeff.rows() - 1, coeff.rows() - 1);
+  Eigen::Matrix<double, 6, 6> companion_matrix = Eigen::Matrix<double, 6, 6>::Zero(coeff.rows() - 1, coeff.rows() - 1);
   companion_matrix.diagonal(-1).setOnes();
   companion_matrix.col(companion_matrix.cols() - 1) = -coeff.reverse().head(coeff.rows() - 1);
-  Eigen::JacobiSVD<Eigen::MatrixXd> svd0(companion_matrix, Eigen::ComputeThinU | Eigen::ComputeThinV);
+  Eigen::JacobiSVD<Eigen::Matrix<double, 6, 6>> svd0(companion_matrix);
   Eigen::MatrixXd singularValues0 = svd0.singularValues();
   double cond0 = singularValues0(0) / singularValues0(singularValues0.rows() - 1);
   PRINT_DEBUG("[init-d]: CM cond = %.3f | rank = %d of %d (%4.3e thresh)\n", cond0, (int)svd0.rank(), (int)companion_matrix.cols(),
@@ -414,7 +428,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   }
 
   // Find its eigenvalues (can be complex)
-  Eigen::EigenSolver<Eigen::MatrixXd> solver(companion_matrix, false);
+  Eigen::EigenSolver<Eigen::Matrix<double, 6, 6>> solver(companion_matrix, false);
   if (solver.info() != Eigen::Success) {
     PRINT_ERROR(RED "[init-d]: failed to compute the eigenvalue decomposition!!\n" RESET);
     return false;
@@ -518,7 +532,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
       continue;
     Eigen::Vector3d p_FinI0;
     if (size_feature == 1) {
-      assert(false);
+      assert_r(false);
       // p_FinI0 = x_hat(size_feature * map_features.at(feat.first) + 6, 0) * features_bearings.at(feat->featid);
     } else {
       p_FinI0 = x_hat.block(size_feature * A_index_features.at(feat.first) + 6, 0, 3, 1);
@@ -993,52 +1007,52 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::Matrix<double, 3, 3, Eigen::RowMajor> covtmp = Eigen::Matrix<double, 3, 3, Eigen::RowMajor>::Zero();
 
   // block diagonal
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_ori[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_ori[state_index], covtmp.data()));
   covariance.block(0, 0, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_pos[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_pos[state_index], covtmp.data()));
   covariance.block(3, 3, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_vel[state_index], covtmp.data()));
   covariance.block(6, 6, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(9, 9, 3, 3) = covtmp.eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(12, 12, 3, 3) = covtmp.eval();
 
   // orientation
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_pos[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_pos[state_index], covtmp.data()));
   covariance.block(0, 3, 3, 3) = covtmp.eval();
   covariance.block(3, 0, 3, 3) = covtmp.transpose();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_vel[state_index], covtmp.data()));
   covariance.block(0, 6, 3, 3) = covtmp.eval();
   covariance.block(6, 0, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(0, 9, 3, 3) = covtmp.eval();
   covariance.block(9, 0, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(0, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 0, 3, 3) = covtmp.transpose().eval();
 
   // position
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_vel[state_index], covtmp.data()));
   covariance.block(3, 6, 3, 3) = covtmp.eval();
   covariance.block(6, 3, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(3, 9, 3, 3) = covtmp.eval();
   covariance.block(9, 3, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(3, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 3, 3, 3) = covtmp.transpose().eval();
 
   // velocity
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(6, 9, 3, 3) = covtmp.eval();
   covariance.block(9, 6, 3, 3) = covtmp.transpose().eval();
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(6, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 6, 3, 3) = covtmp.transpose().eval();
 
   // bias_g
-  assert(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(9, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 9, 3, 3) = covtmp.transpose().eval();
 
@@ -1062,22 +1076,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   x.block(4, 0, 3, 1).setZero();
   _imu->set_value(x);
   _imu->set_fej(x);
-
-  //  // Setting a static covariance (might not be valid, but we can guess)
-  //  covariance = 1e-3 * Eigen::MatrixXd::Identity(15, 15);
-  //  covariance.block(6, 6, 3, 3) = 0.1 * Eigen::Matrix3d::Identity();
-  //  covariance.block(9, 9, 3, 3) = 2e-3 * Eigen::Matrix3d::Identity();
-  //  covariance.block(12, 12, 3, 3) = 1e-2 * Eigen::Matrix3d::Identity();
-  //
-  //  // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
-  //  // This means that on startup, we can fix the yaw and position to be 100 percent known.
-  //  // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
-  //  // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
-  //  covariance(0, 0) = 1e-3;
-  //  covariance(1, 1) = 1e-3;
-  //  covariance(2, 2) = 1e-5;
-  //  covariance.block(0, 0, 3, 3) = _imu->Rot() * covariance.block(0, 0, 3, 3) * _imu->Rot().transpose();
-  //  covariance.block(3, 3, 3, 3) = 1e-5 * Eigen::Matrix3d::Identity();
 
   // Debug timing information about how long it took to initialize!!
   auto rT7 = boost::posix_time::microsec_clock::local_time();

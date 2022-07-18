@@ -40,16 +40,18 @@
 #include <sensor_msgs/point_cloud2_iterator.h>
 #endif
 
-#include "utils/colors.h"
-#include "utils/sensor_data.h"
-
 #include "ceres/Factor_GenericPrior.h"
 #include "ceres/Factor_ImageReprojCalib.h"
 #include "ceres/Factor_ImuCPIv1.h"
 #include "ceres/State_JPLQuatLocal.h"
 #include "init/InertialInitializerOptions.h"
-#include "sim/Simulator.h"
+#include "sim/SimulatorInit.h"
 #include "utils/helper.h"
+
+#include "types/IMU.h"
+#include "types/PoseJPL.h"
+#include "utils/colors.h"
+#include "utils/sensor_data.h"
 
 using namespace ov_init;
 
@@ -101,7 +103,7 @@ int main(int argc, char **argv) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }
-  Simulator sim(params);
+  SimulatorInit sim(params);
 
   //===================================================================================
   //===================================================================================
@@ -202,14 +204,13 @@ int main(int argc, char **argv) {
           // TODO: do not initialize from the groundtruth pose
           double time1 = timestamp_k1 + sim.get_true_parameters().calib_camimu_dt;
           Eigen::Matrix<double, 17, 1> gt_imustate;
-          assert(sim.get_state(time1, gt_imustate));
+          assert_r(sim.get_state(time1, gt_imustate));
           state_k1 = gt_imustate.block(1, 0, 16, 1);
 
         } else {
 
           // Get our previous state timestamp (newest time) and biases to integrate with
           assert(timestamp_k != -1);
-          // timestamp_k = map_states.rbegin()->first;
           Eigen::Vector4d quat_k;
           for (int i = 0; i < 4; i++) {
             quat_k(i) = ceres_vars_ori.at(map_states.at(timestamp_k))[i];
@@ -576,7 +577,7 @@ int main(int argc, char **argv) {
           poseEST.pose.position.y = ceres_vars_pos[statepair.second][1];
           poseEST.pose.position.z = ceres_vars_pos[statepair.second][2];
           Eigen::Matrix<double, 17, 1> gt_imustate;
-          assert(sim.get_state(statepair.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate));
+          assert_r(sim.get_state(statepair.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate));
           poseGT.header.stamp = ros::Time(statepair.first);
           poseGT.header.frame_id = "global";
           poseGT.pose.orientation.x = gt_imustate(1);

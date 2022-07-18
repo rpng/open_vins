@@ -17,10 +17,11 @@ details on what the system supports.
 * Github project page - https://github.com/rpng/open_vins
 * Documentation - https://docs.openvins.com/
 * Getting started guide - https://docs.openvins.com/getting-started.html
-* Publication reference - http://udel.edu/~pgeneva/downloads/papers/c10.pdf
+* Publication reference - https://pgeneva.com/downloads/papers/Geneva2020ICRA.pdf
 
 ## News / Events
 
+* **July 14, 2022** - Improved feature extraction logic for >100hz tracking, some bug fixes and updated scripts. See v2.6.1 [PR#259](https://github.com/rpng/open_vins/pull/259).
 * **March 14, 2022** - Initial dynamic initialization open sourcing, asynchronous subscription to inertial readings and publishing of odometry, support for lower frequency feature tracking. See v2.6 [PR#232](https://github.com/rpng/open_vins/pull/232) for details.
 * **December 13, 2021** - New YAML configuration system, ROS2 support, Docker images, robust static initialization based on disparity, internal logging system to reduce verbosity, image transport publishers, dynamic number of features support, and other small fixes. See
   v2.5 [PR#209](https://github.com/rpng/open_vins/pull/209) for details.

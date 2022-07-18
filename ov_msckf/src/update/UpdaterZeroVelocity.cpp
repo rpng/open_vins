@@ -21,9 +21,44 @@
 
 #include "UpdaterZeroVelocity.h"
 
+#include "feat/FeatureDatabase.h"
+#include "feat/FeatureHelper.h"
+#include "state/Propagator.h"
+#include "state/State.h"
+#include "state/StateHelper.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
+
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/math/distributions/chi_squared.hpp>
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
+
+UpdaterZeroVelocity::UpdaterZeroVelocity(UpdaterOptions &options, NoiseManager &noises, std::shared_ptr<ov_core::FeatureDatabase> db,
+                                         std::shared_ptr<Propagator> prop, double gravity_mag, double zupt_max_velocity,
+                                         double zupt_noise_multiplier, double zupt_max_disparity)
+    : _options(options), _noises(noises), _db(db), _prop(prop), _zupt_max_velocity(zupt_max_velocity),
+      _zupt_noise_multiplier(zupt_noise_multiplier), _zupt_max_disparity(zupt_max_disparity) {
+
+  // Gravity
+  _gravity << 0.0, 0.0, gravity_mag;
+
+  // Save our raw pixel noise squared
+  _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
+  _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
+  _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
+  _noises.sigma_ab_2 = std::pow(_noises.sigma_ab, 2);
+
+  // Initialize the chi squared test table with confidence level 0.95
+  // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
+  for (int i = 1; i < 1000; i++) {
+    boost::math::chi_squared chi_squared_dist(i);
+    chi_squared_table[i] = boost::math::quantile(chi_squared_dist, 0.95);
+  }
+}
 
 bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timestamp) {
 

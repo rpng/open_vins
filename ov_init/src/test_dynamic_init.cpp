@@ -40,9 +40,12 @@
 
 #include "dynamic/DynamicInitializer.h"
 #include "init/InertialInitializerOptions.h"
-#include "sim/Simulator.h"
+#include "sim/SimulatorInit.h"
 
 #include "track/TrackSIM.h"
+#include "types/IMU.h"
+#include "types/Landmark.h"
+#include "types/PoseJPL.h"
 #include "utils/colors.h"
 #include "utils/sensor_data.h"
 
@@ -114,7 +117,7 @@ int main(int argc, char **argv) {
     PRINT_ERROR(RED "unable to parse all parameters, please fix\n" RESET);
     std::exit(EXIT_FAILURE);
   }
-  Simulator sim(params);
+  SimulatorInit sim(params);
 
   // Our initialization class objects
   auto imu_readings = std::make_shared<std::vector<ov_core::ImuData>>();
@@ -171,13 +174,10 @@ int main(int argc, char **argv) {
       std::shared_ptr<ov_type::IMU> _imu;
       std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
       std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;
-      std::unordered_map<size_t, std::shared_ptr<ov_type::PoseJPL>> _calib_IMUtoCAM;
-      std::unordered_map<size_t, std::shared_ptr<ov_type::Vec>> _cam_intrinsics;
 
       // First we will try to make sure we have all the data required for our initialization
       boost::posix_time::ptime rT1 = boost::posix_time::microsec_clock::local_time();
-      bool success =
-          initializer->initialize(timestamp, covariance, order, _imu, _clones_IMU, _features_SLAM, _calib_IMUtoCAM, _cam_intrinsics);
+      bool success = initializer->initialize(timestamp, covariance, order, _imu, _clones_IMU, _features_SLAM);
       boost::posix_time::ptime rT2 = boost::posix_time::microsec_clock::local_time();
       double time = (rT2 - rT1).total_microseconds() * 1e-6;
       if (success) {
@@ -188,7 +188,7 @@ int main(int argc, char **argv) {
         // First lets align the groundtruth state with the IMU state
         // NOTE: imu biases do not have to be corrected with the pos yaw alignment here...
         Eigen::Matrix<double, 17, 1> gt_imu;
-        assert(sim.get_state(timestamp + sim.get_true_parameters().calib_camimu_dt, gt_imu));
+        assert_r(sim.get_state(timestamp + sim.get_true_parameters().calib_camimu_dt, gt_imu));
         Eigen::Matrix3d R_ESTtoGT_imu;
         Eigen::Vector3d t_ESTinGT_imu;
         align_posyaw_single(_imu->quat(), _imu->pos(), gt_imu.block(1, 0, 4, 1), gt_imu.block(5, 0, 3, 1), R_ESTtoGT_imu, t_ESTinGT_imu);
@@ -248,7 +248,7 @@ int main(int argc, char **argv) {
         q_es_0 = oldestpose->quat();
         p_es_0 = oldestpose->pos();
         Eigen::Matrix<double, 17, 1> gt_imustate_0;
-        assert(sim.get_state(oldestpose_time + sim.get_true_parameters().calib_camimu_dt, gt_imustate_0));
+        assert_r(sim.get_state(oldestpose_time + sim.get_true_parameters().calib_camimu_dt, gt_imustate_0));
         q_gt_0 = gt_imustate_0.block(1, 0, 4, 1);
         p_gt_0 = gt_imustate_0.block(5, 0, 3, 1);
         Eigen::Matrix3d R_ESTtoGT;
@@ -273,7 +273,7 @@ int main(int argc, char **argv) {
           poseEST.pose.position.y = _pose.second->pos()(1, 0);
           poseEST.pose.position.z = _pose.second->pos()(2, 0);
           Eigen::Matrix<double, 17, 1> gt_imustate;
-          assert(sim.get_state(_pose.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate));
+          assert_r(sim.get_state(_pose.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate));
           gt_imustate.block(1, 0, 4, 1) = ov_core::quat_multiply(gt_imustate.block(1, 0, 4, 1), ov_core::rot_2_quat(R_ESTtoGT));
           gt_imustate.block(5, 0, 3, 1) = R_ESTtoGT.transpose() * (gt_imustate.block(5, 0, 3, 1) - t_ESTinGT);
           poseGT.header.stamp = ros::Time(_pose.first);
@@ -334,8 +334,8 @@ int main(int argc, char **argv) {
 
         // Wait for user approval
         do {
-          cout << '\n' << "Press a key to continue...";
-        } while (cin.get() != '\n');
+          std::cout << '\n' << "Press a key to continue...";
+        } while (std::cin.get() != '\n');
 
         // Reset our tracker and simulator so we can try to init again
         if (params.sim_do_perturbation) {

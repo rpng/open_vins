@@ -23,7 +23,6 @@
 #define OV_INIT_HELPER
 
 #include "cpi/CpiV1.h"
-#include "feat/FeatureHelper.h"
 #include "types/IMU.h"
 
 namespace ov_init {
@@ -144,26 +143,26 @@ public:
     Eigen::Vector3d z_axis = gravity_inI / gravity_inI.norm();
     Eigen::Vector3d x_axis, y_axis;
     Eigen::Vector3d e_1(1.0, 0.0, 0.0);
-    // Eigen::Vector3d e_2(0.0, 1.0, 0.0);
-    // double inner1 = e_1.dot(z_axis) / z_axis.norm();
-    // double inner2 = e_2.dot(z_axis) / z_axis.norm();
-    // if (fabs(inner1) >= fabs(inner2)) {
-    //   x_axis = z_axis.cross(e_1);
-    //   x_axis = x_axis / x_axis.norm();
-    //   y_axis = z_axis.cross(x_axis);
-    //   y_axis = y_axis / y_axis.norm();
-    // } else {
-    //   x_axis = z_axis.cross(e_2);
-    //   x_axis = x_axis / x_axis.norm();
-    //   y_axis = z_axis.cross(x_axis);
-    //   y_axis = y_axis / y_axis.norm();
-    // }
+    Eigen::Vector3d e_2(0.0, 1.0, 0.0);
+    double inner1 = e_1.dot(z_axis) / z_axis.norm();
+    double inner2 = e_2.dot(z_axis) / z_axis.norm();
+    if (fabs(inner1) >= fabs(inner2)) {
+      x_axis = z_axis.cross(e_1);
+      x_axis = x_axis / x_axis.norm();
+      y_axis = z_axis.cross(x_axis);
+      y_axis = y_axis / y_axis.norm();
+    } else {
+      x_axis = z_axis.cross(e_2);
+      x_axis = x_axis / x_axis.norm();
+      y_axis = z_axis.cross(x_axis);
+      y_axis = y_axis / y_axis.norm();
+    }
 
     // Original method
-    x_axis = e_1 - z_axis * z_axis.transpose() * e_1;
-    x_axis = x_axis / x_axis.norm();
-    y_axis = ov_core::skew_x(z_axis) * x_axis;
-    y_axis = y_axis / y_axis.norm();
+    // x_axis = e_1 - z_axis * z_axis.transpose() * e_1;
+    // x_axis = x_axis / x_axis.norm();
+    // y_axis = ov_core::skew_x(z_axis) * x_axis;
+    // y_axis = y_axis / y_axis.norm();
 
     // Rotation from our global (where gravity is only along the z-axis) to the local one
     R_GtoI.block(0, 0, 3, 1) = x_axis;
@@ -181,7 +180,7 @@ public:
    * @param gravity_mag Scalar size of gravity (normally is 9.81)
    * @return Coefficents from highest to the constant
    */
-  static Eigen::VectorXd compute_dongsi_coeff(Eigen::MatrixXd &D, const Eigen::MatrixXd &d, double gravity_mag) {
+  static Eigen::Matrix<double, 7, 1> compute_dongsi_coeff(Eigen::MatrixXd &D, const Eigen::MatrixXd &d, double gravity_mag) {
 
     // matlab constants
     assert(D.rows() == 3);
@@ -201,7 +200,7 @@ public:
     double g_sq = g * g;
 
     // Compute the coefficients
-    Eigen::VectorXd coeff = Eigen::VectorXd::Zero(7);
+    Eigen::Matrix<double, 7, 1> coeff = Eigen::Matrix<double, 7, 1>::Zero();
     coeff(6) =
         -(-D1_1_sq * D2_2_sq * D3_3_sq * g_sq + D1_1_sq * D2_2_sq * d3_sq + 2 * D1_1_sq * D2_2 * D2_3 * D3_2 * D3_3 * g_sq -
           D1_1_sq * D2_2 * D2_3 * d2 * d3 - D1_1_sq * D2_2 * D3_2 * d2 * d3 - D1_1_sq * D2_3_sq * D3_2_sq * g_sq +

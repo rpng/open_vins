@@ -22,14 +22,16 @@
 #ifndef OV_MSCKF_STATE_HELPER_H
 #define OV_MSCKF_STATE_HELPER_H
 
-#include "State.h"
-#include "types/Landmark.h"
-#include "utils/colors.h"
-#include "utils/print.h"
+#include <Eigen/Eigen>
+#include <memory>
 
-#include <boost/math/distributions/chi_squared.hpp>
+namespace ov_type {
+class Type;
+} // namespace ov_type
 
 namespace ov_msckf {
+
+class State;
 
 /**
  * @brief Helper which manipulates the State and its covariance.
@@ -218,34 +220,13 @@ public:
    *
    * @param state Pointer to state
    */
-  static void marginalize_old_clone(std::shared_ptr<State> state) {
-    if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
-      double marginal_time = state->margtimestep();
-      assert(marginal_time != INFINITY);
-      StateHelper::marginalize(state, state->_clones_IMU.at(marginal_time));
-      // Note that the marginalizer should have already deleted the clone
-      // Thus we just need to remove the pointer to it from our state
-      state->_clones_IMU.erase(marginal_time);
-    }
-  }
+  static void marginalize_old_clone(std::shared_ptr<State> state);
 
   /**
    * @brief Marginalize bad SLAM features
    * @param state Pointer to state
    */
-  static void marginalize_slam(std::shared_ptr<State> state) {
-    // Remove SLAM features that have their marginalization flag set
-    // We also check that we do not remove any aruoctag landmarks
-    auto it0 = state->_features_SLAM.begin();
-    while (it0 != state->_features_SLAM.end()) {
-      if ((*it0).second->should_marg && (int)(*it0).first > 4 * state->_options.max_aruco_features) {
-        StateHelper::marginalize(state, (*it0).second);
-        it0 = state->_features_SLAM.erase(it0);
-      } else {
-        it0++;
-      }
-    }
-  }
+  static void marginalize_slam(std::shared_ptr<State> state);
 
 private:
   /**

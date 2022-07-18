@@ -21,6 +21,15 @@
 
 #include "StaticInitializer.h"
 
+#include "utils/helper.h"
+
+#include "feat/FeatureHelper.h"
+#include "types/IMU.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
+#include "utils/sensor_data.h"
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_init;
@@ -86,26 +95,26 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
     a_var_2to1 += (data.am - a_avg_2to1).dot(data.am - a_avg_2to1);
   }
   a_var_2to1 = std::sqrt(a_var_2to1 / ((int)window_2to1.size() - 1));
-  // PRINT_DEBUG(BOLDGREEN "[init-s]: IMU excitation, %.4f,%.4f\n" RESET, a_var_1to0, a_var_2to1);
+  PRINT_DEBUG(YELLOW "[init-s]: IMU excitation stats: %.3f,%.3f\n" RESET, a_var_2to1, a_var_1to0);
 
   // If it is below the threshold and we want to wait till we detect a jerk
   if (a_var_1to0 < params.init_imu_thresh && wait_for_jerk) {
-    PRINT_DEBUG(YELLOW "[init-s]: no IMU excitation, below threshold %.4f < %.4f\n" RESET, a_var_1to0, params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: no IMU excitation, below threshold %.3f < %.3f\n" RESET, a_var_1to0, params.init_imu_thresh);
     return false;
   }
 
   // We should also check that the old state was below the threshold!
   // This is the case when we have started up moving, and thus we need to wait for a period of stationary motion
   if (a_var_2to1 > params.init_imu_thresh && wait_for_jerk) {
-    PRINT_DEBUG(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f > %.4f\n" RESET, a_var_2to1, params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.3f > %.3f\n" RESET, a_var_2to1, params.init_imu_thresh);
     return false;
   }
 
   // If it is above the threshold and we are not waiting for a jerk
   // Then we are not stationary (i.e. moving) so we should wait till we are
   if ((a_var_1to0 > params.init_imu_thresh || a_var_2to1 > params.init_imu_thresh) && !wait_for_jerk) {
-    PRINT_DEBUG(YELLOW "[init-s]: to much IMU excitation, above threshold %.4f,%.4f > %.4f\n" RESET, a_var_1to0, a_var_2to1,
-                params.init_imu_thresh);
+    PRINT_INFO(YELLOW "[init-s]: to much IMU excitation, above threshold %.3f,%.3f > %.3f\n" RESET, a_var_2to1, a_var_1to0,
+               params.init_imu_thresh);
     return false;
   }
 
@@ -134,23 +143,22 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
   // Create base covariance and its covariance ordering
   order.clear();
   order.push_back(t_imu);
-  covariance = 1e-3 * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
+  covariance = std::pow(0.02, 2) * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
+  covariance.block(3, 3, 3, 3) = std::pow(0.017, 2) * Eigen::Matrix3d::Identity(); // q
+  covariance.block(3, 3, 3, 3) = std::pow(0.05, 2) * Eigen::Matrix3d::Identity();  // p
+  covariance.block(6, 6, 3, 3) = std::pow(0.01, 2) * Eigen::Matrix3d::Identity();  // v (static)
 
-  // Make velocity uncertainty a bit bigger
-  covariance.block(t_imu->v()->id(), t_imu->v()->id(), 3, 3) *= 2;
-
-  // A VIO system has 4dof unobservabile directions which can be arbitrarily picked.
+  // A VIO system has 4dof unobservable directions which can be arbitrarily picked.
   // This means that on startup, we can fix the yaw and position to be 100 percent known.
+  // TODO: why can't we set these to zero and get a good NEES realworld result?
   // Thus, after determining the global to current IMU orientation after initialization, we can propagate the global error
   // into the new IMU pose. In this case the position is directly equivalent, but the orientation needs to be propagated.
-  covariance(t_imu->q()->id() + 2, t_imu->q()->id() + 2) = 0.0;
-  covariance.block(t_imu->p()->id(), t_imu->p()->id(), 3, 3).setZero();
-
-  // Propagate into the current local IMU frame
+  // We propagate the global orientation into the current local IMU frame
   // R_GtoI = R_GtoI*R_GtoG -> H = R_GtoI
-  Eigen::Matrix3d R_GtoI = quat_2_Rot(q_GtoI);
-  covariance.block(t_imu->q()->id(), t_imu->q()->id(), 3, 3) =
-      R_GtoI * covariance.block(t_imu->q()->id(), t_imu->q()->id(), 3, 3) * R_GtoI.transpose();
+  // Eigen::Matrix3d R_GtoI = quat_2_Rot(q_GtoI);
+  // covariance(2, 2) = std::pow(1e-4, 2);
+  // covariance.block(0, 0, 3, 3) = R_GtoI * covariance.block(0, 0, 3, 3) * R_GtoI.transpose();
+  // covariance.block(3, 3, 3, 3) = std::pow(1e-3, 2) * Eigen::Matrix3d::Identity();
 
   // Return :D
   return true;

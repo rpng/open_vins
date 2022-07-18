@@ -145,6 +145,16 @@ cmake ..
 make -j4
 @endcode
 
+If you wish to debug and run with assert statements, you can configure your workspace as follows:
+
+
+@code{.shell-session}
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug
+catkin build --cmake-args -DCMAKE_BUILD_TYPE=Debug
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Debug
+@endcode
+
+
 
 @section gs-install-oveval Additional Evaluation Requirements
 
@@ -192,7 +202,7 @@ You can disable this with `catkin build -DENABLE_ARUCO_TAGS=OFF` or `cmake -DENA
 
 
 
-@subsection gs-install-ceres Ceres Solver
+@section gs-install-ceres Ceres Solver
 
 Ceres solver @cite ceres-solver is required for dynamic initialization and backend optimization.
 Please refer to their [documentation](http://ceres-solver.org/installation.html#linux) for specifics to your platform.
@@ -205,6 +215,8 @@ To install we can perform the following:
 @par Ceres Source Installation
     Try to first build with your system with `sudo apt-get install libceres-dev`.
     Only fall back onto this if it does not allow you to compile, or want a newer version!
+    You will need to build from source if there is an Eigen miss-match:
+    "Failed to find Ceres - Found Eigen dependency, but the version of Eigen found (3.3.7) does not exactly match the version of Eigen Ceres was compiled with (3.3.4)."
 
 @code{.shell-session}
 sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev

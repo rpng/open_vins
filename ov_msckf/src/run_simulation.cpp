@@ -91,7 +91,8 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
-  params.use_multi_threading = false;
+  params.use_multi_threading = false; // for repeatability
+  params.use_multi_threading_subs = false;
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
 #if ROS_AVAILABLE == 1
@@ -111,8 +112,10 @@ int main(int argc, char **argv) {
   //===================================================================================
 
   // Get initial state
+  // NOTE: we are getting it at the *next* timestep so we get the first IMU message
+  double next_imu_time = sim->current_timestamp() + 1.0 / params.sim_freq_imu;
   Eigen::Matrix<double, 17, 1> imustate;
-  bool success = sim->get_state(sim->current_timestamp(), imustate);
+  bool success = sim->get_state(next_imu_time, imustate);
   if (!success) {
     PRINT_ERROR(RED "[SIM]: Could not initialize the filter to the first state\n" RESET);
     PRINT_ERROR(RED "[SIM]: Did the simulator load properly???\n" RESET);

@@ -204,6 +204,7 @@ Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and
 | Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
 |-------------:|--------|--------------|------------------|------------------|
 | Urban 28 | 11.47 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
+| Urban 32 | 7.30 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
 | Urban 38 | 11.42 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
 | Urban 39 | 11.06 | [download](https://sites.google.com/view/complex-urban-dataset/download-lidar-stereo?authuser=0) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/kaist) | [config](https://github.com/rpng/open_vins/blob/master/config/kaist) |
 @m_enddiv
@@ -211,7 +212,7 @@ Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and
 
 @section gs-data-kaist-vio KAIST VIO Dataset
 
-The [KAIST VIO dataset](https://github.com/zinuok/kaistviodataset) @cite Jeon2021RAL is a dataset of a MAV in an indoor 3.15 x 3.60 x 2.50 meter environment which undergoes various trajectory motions.
+The [KAIST VIO dataset](https://github.com/url-kaist/kaistviodataset) @cite Jeon2021RAL is a dataset of a MAV in an indoor 3.15 x 3.60 x 2.50 meter environment which undergoes various trajectory motions.
 The camera is intel realsense D435i 25 Hz, while the IMU is 100 Hz sensing rate from the pixelhawk 4 unit.
 A groundtruth "baseline" trajectory is also provided from a OptiTrack Mocap system at 50 Hz, the bag files have the marker body frame to IMU frame already applied.
 This topic has been provided in ov_data for convinces sake.

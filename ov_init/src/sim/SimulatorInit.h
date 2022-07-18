@@ -19,8 +19,8 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#ifndef OV_INIT_SIMULATOR_H
-#define OV_INIT_SIMULATOR_H
+#ifndef OV_INIT_SIMULATORINIT_H
+#define OV_INIT_SIMULATORINIT_H
 
 #include <Eigen/Eigen>
 #include <fstream>
@@ -30,14 +30,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "cam/CamBase.h"
-#include "cam/CamEqui.h"
-#include "cam/CamRadtan.h"
-#include "sim/BsplineSE3.h"
-#include "utils/colors.h"
-#include "utils/dataset_reader.h"
-
 #include "init/InertialInitializerOptions.h"
+
+namespace ov_core {
+class BsplineSE3;
+} // namespace ov_core
 
 namespace ov_init {
 
@@ -52,14 +49,14 @@ namespace ov_init {
  * The user should specify the sensor rates that they desire along with the seeds of the random number generators.
  *
  */
-class Simulator {
+class SimulatorInit {
 
 public:
   /**
    * @brief Default constructor, will load all configuration variables
    * @param params_ InertialInitializer parameters. Should have already been loaded from cmd.
    */
-  Simulator(InertialInitializerOptions &params_);
+  SimulatorInit(InertialInitializerOptions &params_);
 
   /**
    * @brief Will get a set of perturbed parameters
@@ -108,14 +105,6 @@ public:
   /// Returns the true 3d map of features
   std::unordered_map<size_t, Eigen::Vector3d> get_map() { return featmap; }
 
-  /// Returns the true 3d map of features
-  std::vector<Eigen::Vector3d> get_map_vec() {
-    std::vector<Eigen::Vector3d> feats;
-    for (auto const &feat : featmap)
-      feats.push_back(feat.second);
-    return feats;
-  }
-
   /// Access function to get the true parameters (i.e. calibration and settings)
   InertialInitializerOptions get_true_parameters() { return params; }
 
@@ -157,7 +146,7 @@ protected:
   std::vector<Eigen::VectorXd> traj_data;
 
   /// Our b-spline trajectory
-  ov_core::BsplineSE3 spline;
+  std::shared_ptr<ov_core::BsplineSE3> spline;
 
   /// Our map of 3d features
   size_t id_map = 0;
@@ -205,4 +194,4 @@ protected:
 
 } // namespace ov_init
 
-#endif // OV_INIT_SIMULATOR_H
+#endif // OV_INIT_SIMULATORINIT_H
