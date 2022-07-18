@@ -73,6 +73,7 @@
               </li>
               <li>struct <a href="structov__core_1_1FeatureInitializerOptions.html" class="m-doc">FeatureInitializerOptions</a> <span class="m-doc">Struct which stores all our feature initializer options.</span></li>
               <li>class <a href="classov__core_1_1Grider__FAST.html" class="m-doc">Grider_FAST</a> <span class="m-doc">Extracts FAST features in a grid pattern.</span></li>
+              <li>class <a href="classov__core_1_1Grider__GRID.html" class="m-doc">Grider_GRID</a> <span class="m-doc">Extracts FAST features in a grid pattern.</span></li>
               <li>struct <a href="structov__core_1_1ImuData.html" class="m-doc">ImuData</a> <span class="m-doc">Struct for a single imu measurement (time, wm, am)</span></li>
               <li>class <a href="classov__core_1_1LambdaBody.html" class="m-doc">LambdaBody</a> <span class="m-doc">Helper class to do OpenCV parallelization.</span></li>
               <li>class <a href="classov__core_1_1Printer.html" class="m-doc">Printer</a> <span class="m-doc"><a href="classov__core_1_1Printer.html" class="m-doc">Printer</a> for open_vins that allows for various levels of printing to be done.</span></li>
@@ -106,7 +107,7 @@
               <li>class <a href="classov__init_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a> <span class="m-doc">Initializer for visual-inertial system.</span></li>
               <li>struct <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a> <span class="m-doc">Struct which stores all options needed for state estimation.</span></li>
               <li>class <a href="classov__init_1_1InitializerHelper.html" class="m-doc">InitializerHelper</a> <span class="m-doc">Has a bunch of helper functions for dynamic initialization (should all be static)</span></li>
-              <li>class <a href="classov__init_1_1Simulator.html" class="m-doc">Simulator</a> <span class="m-doc">Master simulator class that generated visual-inertial measurements.</span></li>
+              <li>class <a href="classov__init_1_1SimulatorInit.html" class="m-doc">SimulatorInit</a> <span class="m-doc">Master simulator class that generated visual-inertial measurements.</span></li>
               <li>class <a href="classov__init_1_1State__JPLQuatLocal.html" class="m-doc">State_JPLQuatLocal</a> <span class="m-doc">JPL quaternion CERES state parameterization.</span></li>
               <li>class <a href="classov__init_1_1StaticInitializer.html" class="m-doc">StaticInitializer</a> <span class="m-doc">Initializer for a static visual-inertial system.</span></li>
             </ul>
@@ -114,15 +115,11 @@
           <li class="m-doc-collapsible">
             <a href="#" onclick="return toggle(this)">namespace</a> <a href="namespaceov__msckf.html" class="m-doc">ov_msckf</a> <span class="m-doc">Extended Kalman Filter estimator.</span>
             <ul class="m-doc">
-              <li class="m-doc-collapsible collapsed">
-                <a href="#" onclick="return toggle(this)">class</a> <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> <span class="m-doc">Performs the state covariance and mean propagation using imu measurements.</span>
-                <ul class="m-doc">
-                  <li>struct <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">NoiseManager</a> <span class="m-doc">Struct of our imu noise parameters.</span></li>
-                </ul>
-              </li>
+              <li>struct <a href="structov__msckf_1_1NoiseManager.html" class="m-doc">NoiseManager</a> <span class="m-doc">Struct of our imu noise parameters.</span></li>
+              <li>class <a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a> <span class="m-doc">Performs the state covariance and mean propagation using imu measurements.</span></li>
               <li>class <a href="classov__msckf_1_1ROS1Visualizer.html" class="m-doc">ROS1Visualizer</a> <span class="m-doc">Helper class that will publish results onto the ROS framework.</span></li>
               <li>class <a href="classov__msckf_1_1ROS2Visualizer.html" class="m-doc">ROS2Visualizer</a> <span class="m-doc">Helper class that will publish results onto the ROS framework.</span></li>
-              <li>class <a href="classov__msckf_1_1RosVisualizerHelper.html" class="m-doc">RosVisualizerHelper</a> <span class="m-doc">Helper class that handles some common versions into and out of ROS formats.</span></li>
+              <li>class <a href="classov__msckf_1_1ROSVisualizerHelper.html" class="m-doc">ROSVisualizerHelper</a> <span class="m-doc">Helper class that handles some common versions into and out of ROS formats.</span></li>
               <li>class <a href="classov__msckf_1_1Simulator.html" class="m-doc">Simulator</a> <span class="m-doc">Master simulator class that generated visual-inertial measurements.</span></li>
               <li>class <a href="classov__msckf_1_1State.html" class="m-doc">State</a> <span class="m-doc"><a href="classov__msckf_1_1State.html" class="m-doc">State</a> of our filter.</span></li>
               <li>class <a href="classov__msckf_1_1StateHelper.html" class="m-doc">StateHelper</a> <span class="m-doc">Helper which manipulates the <a href="classov__msckf_1_1State.html" class="m-doc">State</a> and its covariance.</span></li>

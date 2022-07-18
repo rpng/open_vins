@@ -66,7 +66,7 @@
             </li>
           </ul>
         </div>
-<p>This model is the &quot;piecewise constant local acceleration assumption.&quot; Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[6]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiV2.html#ae2be6b7617c08c934214d118b9938cb8" class="m-doc">feed_<wbr />IMU()</a> will all IMU measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
+<p>This model is the &quot;piecewise constant local acceleration assumption.&quot; Please see the following publication for details on the theory <a href="citelist.html#CITEREF_Eckenhoff2019IJRR" class="m-doc">[6]</a> :</p><blockquote><p>Continuous Preintegration Theory for Graph-based Visual-Inertial Navigation Authors: Kevin Eckenhoff, Patrick Geneva, and Guoquan Huang <a href="http://udel.edu/~ghuang/papers/tr_cpi.pdf">http://udel.edu/~ghuang/papers/tr_<wbr />cpi.pdf</a></p></blockquote><p>The steps to use this preintegration class are as follows:</p><ol><li>call <a href="classov__core_1_1CpiBase.html#a32c11e3e61dc8a524bf48a18504b5417" class="m-doc">setLinearizationPoints()</a> to set the bias/orientation linearization point</li><li>call <a href="classov__core_1_1CpiV2.html#a2e526d34b80061293a922fefa3a858a1" class="m-doc">feed_<wbr />IMU()</a> will all IMU measurements you want to precompound over</li><li>access public varibles, to get means, Jacobians, and measurement covariance</li></ol>
         <section id="base-classes">
           <h2><a href="#base-classes">Base classes</a></h2>
           <dl class="m-doc">
@@ -93,7 +93,7 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ae2be6b7617c08c934214d118b9938cb8" class="m-doc">feed_IMU</a>(</span><span class="m-doc-wrap">double t_0,
+              <span class="m-doc-wrap-bumper">void <a href="#a2e526d34b80061293a922fefa3a858a1" class="m-doc">feed_IMU</a>(</span><span class="m-doc-wrap">double t_0,
               double t_1,
               Eigen::Matrix&lt;double, 3, 1&gt; w_m_0,
               Eigen::Matrix&lt;double, 3, 1&gt; a_m_0,
@@ -151,9 +151,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ae2be6b7617c08c934214d118b9938cb8"><div>
+          <section class="m-doc-details" id="a2e526d34b80061293a922fefa3a858a1"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />CpiV2::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae2be6b7617c08c934214d118b9938cb8" class="m-doc-self">feed_IMU</a>(</span><span class="m-doc-wrap">double t_0,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />CpiV2::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2e526d34b80061293a922fefa3a858a1" class="m-doc-self">feed_IMU</a>(</span><span class="m-doc-wrap">double t_0,
               double t_1,
               Eigen::Matrix&lt;double, 3, 1&gt; w_m_0,
               Eigen::Matrix&lt;double, 3, 1&gt; a_m_0,

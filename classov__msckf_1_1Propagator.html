@@ -58,7 +58,6 @@
             <li>
               Reference
               <ul>
-                <li><a href="#pub-types">Public types</a></li>
                 <li><a href="#pub-static-methods">Public static functions</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
@@ -69,15 +68,6 @@
           </ul>
         </div>
 <p>We will first select what measurements we need to propagate with. We then compute the state transition matrix at each step and update the state and covariance. For derivations look at <a href="propagation.html" class="m-doc">IMU Propagation Derivations</a> page which has detailed equations.</p>
-        <section id="pub-types">
-          <h2><a href="#pub-types">Public types</a></h2>
-          <dl class="m-doc">
-            <dt>
-              struct <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">NoiseManager</a>
-            </dt>
-            <dd>Struct of our imu noise parameters.</dd>
-          </dl>
-        </section>
         <section id="pub-static-methods">
           <h2><a href="#pub-static-methods">Public static functions</a></h2>
           <dl class="m-doc">
@@ -100,7 +90,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a041751e94b04af4134c31a5f32c58d47" class="m-doc">Propagator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">NoiseManager</a> noises,
+              <span class="m-doc-wrap-bumper"><a href="#a041751e94b04af4134c31a5f32c58d47" class="m-doc">Propagator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1NoiseManager.html" class="m-doc">NoiseManager</a> noises,
               double gravity_mag)</span>
             </dt>
             <dd>Default constructor.</dd>
@@ -173,7 +163,7 @@
             </dt>
             <dd>Estimate for time offset at last propagation time.</dd>
             <dt id="a3f19a5f9fdb86733cfb0dcc040313f38">
-              <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">NoiseManager</a> <a href="#a3f19a5f9fdb86733cfb0dcc040313f38" class="m-doc-self">_noises</a>
+              <a href="structov__msckf_1_1NoiseManager.html" class="m-doc">NoiseManager</a> <a href="#a3f19a5f9fdb86733cfb0dcc040313f38" class="m-doc-self">_noises</a>
             </dt>
             <dd>Container for the noise values.</dd>
             <dt id="aa1639a14dc1149d2e47be177bf33b572">
@@ -257,7 +247,7 @@
           </div></section>
           <section class="m-doc-details" id="a041751e94b04af4134c31a5f32c58d47"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />Propagator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a041751e94b04af4134c31a5f32c58d47" class="m-doc-self">Propagator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">NoiseManager</a> noises,
+              <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />Propagator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a041751e94b04af4134c31a5f32c58d47" class="m-doc-self">Propagator</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1NoiseManager.html" class="m-doc">NoiseManager</a> noises,
               double gravity_mag)</span></span>
             </h3>
             <p>Default constructor.</p>

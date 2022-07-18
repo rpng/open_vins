@@ -84,9 +84,9 @@
             </dt>
             <dd>Given a gravity vector, compute the rotation from the inertial reference frame to this vector.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">static auto <a href="#ac24207c4a022fa80ed15a7d70050cb76" class="m-doc">compute_dongsi_coeff</a>(</span><span class="m-doc-wrap">Eigen::MatrixXd&amp; D,
+              <span class="m-doc-wrap-bumper">static auto <a href="#acf91adc24386b43a62ff8d354bde0924" class="m-doc">compute_dongsi_coeff</a>(</span><span class="m-doc-wrap">Eigen::MatrixXd&amp; D,
               const Eigen::MatrixXd&amp; d,
-              double gravity_mag) -&gt; Eigen::VectorXd</span>
+              double gravity_mag) -&gt; Eigen::Matrix&lt;double, 7, 1&gt;</span>
             </dt>
             <dd>Compute coefficients for the constrained optimization quadratic problem.</dd>
           </dl>
@@ -178,9 +178,9 @@
             </table>
 <p>The key assumption here is that our gravity is along the vertical direction in the inertial frame. We can take this vector (z_in_G=0,0,1) and find two arbitrary tangent directions to it. <a href="https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process">https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_<wbr />process</a></p>
           </div></section>
-          <section class="m-doc-details" id="ac24207c4a022fa80ed15a7d70050cb76"><div>
+          <section class="m-doc-details" id="acf91adc24386b43a62ff8d354bde0924"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">static Eigen::VectorXd ov_init::<wbr />InitializerHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac24207c4a022fa80ed15a7d70050cb76" class="m-doc-self">compute_dongsi_coeff</a>(</span><span class="m-doc-wrap">Eigen::MatrixXd&amp; D,
+              <span class="m-doc-wrap-bumper">static Eigen::Matrix&lt;double, 7, 1&gt; ov_init::<wbr />InitializerHelper::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#acf91adc24386b43a62ff8d354bde0924" class="m-doc-self">compute_dongsi_coeff</a>(</span><span class="m-doc-wrap">Eigen::MatrixXd&amp; D,
               const Eigen::MatrixXd&amp; d,
               double gravity_mag)</span></span>
             </h3>

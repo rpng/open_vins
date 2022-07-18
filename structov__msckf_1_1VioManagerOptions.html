@@ -137,8 +137,8 @@
               std::string <a href="#a3cd20d912a15dc8cbe4b71a5bb9daf89" class="m-doc-self">record_timing_filepath</a>
             </dt>
             <dd>The path to the file we will record the timing information into.</dd>
-            <dt id="a5140dc57ac5ecef5c7eb5d215d7d10b3">
-              <a href="structov__msckf_1_1Propagator_1_1NoiseManager.html" class="m-doc">Propagator::<wbr />NoiseManager</a> <a href="#a5140dc57ac5ecef5c7eb5d215d7d10b3" class="m-doc-self">imu_noises</a>
+            <dt id="a5c6a088515a0b5440e8ae7987ea70593">
+              <a href="structov__msckf_1_1NoiseManager.html" class="m-doc">NoiseManager</a> <a href="#a5c6a088515a0b5440e8ae7987ea70593" class="m-doc-self">imu_noises</a>
             </dt>
             <dd>IMU noise (gyroscope and accelerometer)</dd>
             <dt id="a8e9f183d26954a03cd2da0511d96b0f3">
@@ -205,6 +205,10 @@
               bool <a href="#af76c6a235ac9c9a5cf30ffced7bff15d" class="m-doc-self">use_multi_threading</a>
             </dt>
             <dd>If our front-end should try to use some multi-threading for stereo matching.</dd>
+            <dt id="a63e5226f519e51f29210e3d29f757eba">
+              bool <a href="#a63e5226f519e51f29210e3d29f757eba" class="m-doc-self">use_multi_threading_subs</a>
+            </dt>
+            <dd>If our ROS subscriber callbacks should be async (if sim and serial then this should be no!)</dd>
             <dt id="a1bde650ec917e7a3df221a1524e33429">
               int <a href="#a1bde650ec917e7a3df221a1524e33429" class="m-doc-self">num_pts</a>
             </dt>

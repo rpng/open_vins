@@ -67,7 +67,7 @@
             </li>
           </ul>
         </div>
-<p>This class has the functions needed to triangulate and then refine a given 3D feature. As in the standard MSCKF, we know the clones of the camera from propagation and past updates. Thus, we just need to triangulate a feature in 3D with the known poses and then refine it. One should first call the <a href="classov__core_1_1FeatureInitializer.html#ab35bcab4875dfb998fb9e776d284777a" class="m-doc">single_<wbr />triangulation()</a> function afterwhich <a href="classov__core_1_1FeatureInitializer.html#aaf7ffee2a46df0fb10242fff348b01cb" class="m-doc">single_<wbr />gaussnewton()</a> allows for refinement. Please see the <a href="update-featinit.html" class="m-doc">Feature Triangulation</a> page for detailed derivations.</p>
+<p>This class has the functions needed to triangulate and then refine a given 3D feature. As in the standard MSCKF, we know the clones of the camera from propagation and past updates. Thus, we just need to triangulate a feature in 3D with the known poses and then refine it. One should first call the <a href="classov__core_1_1FeatureInitializer.html#a86e8f87f677689e6588516f8d08086d7" class="m-doc">single_<wbr />triangulation()</a> function afterwhich <a href="classov__core_1_1FeatureInitializer.html#a27eb3af3c4e22473e795966eff800599" class="m-doc">single_<wbr />gaussnewton()</a> allows for refinement. Please see the <a href="update-featinit.html" class="m-doc">Feature Triangulation</a> page for detailed derivations.</p>
         <section id="pub-types">
           <h2><a href="#pub-types">Public types</a></h2>
           <dl class="m-doc">
@@ -90,17 +90,17 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ab35bcab4875dfb998fb9e776d284777a" class="m-doc">single_triangulation</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">auto <a href="#a86e8f87f677689e6588516f8d08086d7" class="m-doc">single_triangulation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM) -&gt; bool</span>
             </dt>
             <dd>Uses a linear triangulation to get initial estimate for the feature.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ac3c1d1e8ecc19c770b663b7bc8d53141" class="m-doc">single_triangulation_1d</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">auto <a href="#a97e8070e331293368ed1fedd62458d5e" class="m-doc">single_triangulation_1d</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM) -&gt; bool</span>
             </dt>
             <dd>Uses a linear triangulation to get initial estimate for the feature, treating the anchor observation as a true bearing.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#aaf7ffee2a46df0fb10242fff348b01cb" class="m-doc">single_gaussnewton</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">auto <a href="#a27eb3af3c4e22473e795966eff800599" class="m-doc">single_gaussnewton</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM) -&gt; bool</span>
             </dt>
             <dd>Uses a nonlinear triangulation to refine initial linear estimate of the feature.</dd>
@@ -114,8 +114,8 @@
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#ab33cc500df7408419ee17e0041c810f6" class="m-doc">compute_error</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM,
-              <a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">auto <a href="#a2b851be642683766f649a751452407bf" class="m-doc">compute_error</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM,
+              std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               double alpha,
               double beta,
               double rho) -&gt; double</span>
@@ -151,9 +151,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ab35bcab4875dfb998fb9e776d284777a"><div>
+          <section class="m-doc-details" id="a86e8f87f677689e6588516f8d08086d7"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab35bcab4875dfb998fb9e776d284777a" class="m-doc-self">single_triangulation</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a86e8f87f677689e6588516f8d08086d7" class="m-doc-self">single_triangulation</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM)</span></span>
             </h3>
             <p>Uses a linear triangulation to get initial estimate for the feature.</p>
@@ -180,9 +180,9 @@
             </table>
 <p>The derivations for this method can be found in the <a href="update-featinit.html#featinit-linear" class="m-doc">3D Cartesian Triangulation</a> documentation page.</p>
           </div></section>
-          <section class="m-doc-details" id="ac3c1d1e8ecc19c770b663b7bc8d53141"><div>
+          <section class="m-doc-details" id="a97e8070e331293368ed1fedd62458d5e"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ac3c1d1e8ecc19c770b663b7bc8d53141" class="m-doc-self">single_triangulation_1d</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a97e8070e331293368ed1fedd62458d5e" class="m-doc-self">single_triangulation_1d</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM)</span></span>
             </h3>
             <p>Uses a linear triangulation to get initial estimate for the feature, treating the anchor observation as a true bearing.</p>
@@ -209,9 +209,9 @@
             </table>
 <p>The derivations for this method can be found in the <a href="update-featinit.html#featinit-linear-1d" class="m-doc">1D Depth Triangulation</a> documentation page. This function should be used if you want speed, or know your anchor bearing is reasonably accurate.</p>
           </div></section>
-          <section class="m-doc-details" id="aaf7ffee2a46df0fb10242fff348b01cb"><div>
+          <section class="m-doc-details" id="a27eb3af3c4e22473e795966eff800599"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aaf7ffee2a46df0fb10242fff348b01cb" class="m-doc-self">single_gaussnewton</a>(</span><span class="m-doc-wrap"><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a27eb3af3c4e22473e795966eff800599" class="m-doc-self">single_gaussnewton</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM)</span></span>
             </h3>
             <p>Uses a nonlinear triangulation to refine initial linear estimate of the feature.</p>
@@ -251,10 +251,10 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ab33cc500df7408419ee17e0041c810f6"><div>
+          <section class="m-doc-details" id="a2b851be642683766f649a751452407bf"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">double ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ab33cc500df7408419ee17e0041c810f6" class="m-doc-self">compute_error</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM,
-              <a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>* feat,
+              <span class="m-doc-wrap-bumper">double ov_core::<wbr />FeatureInitializer::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a2b851be642683766f649a751452407bf" class="m-doc-self">compute_error</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::unordered_map&lt;double, <a href="structov__core_1_1FeatureInitializer_1_1ClonePose.html" class="m-doc">ClonePose</a>&gt;&gt;&amp; clonesCAM,
+              std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; feat,
               double alpha,
               double beta,
               double rho) <span class="m-label m-warning">protected</span></span></span>

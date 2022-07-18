@@ -80,7 +80,7 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a52323b851526c316c30738aa83e98b0b" class="m-doc">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a5e7dde1c28eb800c663fb2e238cc60ea" class="m-doc">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span>
             </dt>
             <dd>Feed function for inertial data.</dd>
             <dt>
@@ -94,7 +94,7 @@
             </dt>
             <dd>Feed function for a synchronized simulated cameras.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a163c357d9ac0fc89061212f6ba19b5c8" class="m-doc">initialize_with_gt</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 17, 1&gt; imustate)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a196e1780d418021e2c41a394747e872b" class="m-doc">initialize_with_gt</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 17, 1&gt; imustate)</span>
             </dt>
             <dd>Given a state, this will initialize our IMU state.</dd>
             <dt id="ae463166d4a27c3576fab416751bea40f">
@@ -117,22 +117,22 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a8b1118aec3492d8d4c4291e00c084e84" class="m-doc-self">get_propagator</a>(</span><span class="m-doc-wrap">) -&gt; std::shared_ptr&lt;<a href="classov__msckf_1_1Propagator.html" class="m-doc">Propagator</a>&gt;</span>
             </dt>
             <dd>Accessor to get the current propagator.</dd>
-            <dt id="add1abee39ecec8939cd514fc24a4db6b">
-              <span class="m-doc-wrap-bumper">auto <a href="#add1abee39ecec8939cd514fc24a4db6b" class="m-doc-self">get_historical_viz_image</a>(</span><span class="m-doc-wrap">) -&gt; cv::Mat</span>
+            <dt id="a52b2da9f2acc6df2b88cf8bf7cacfc32">
+              <span class="m-doc-wrap-bumper">auto <a href="#a52b2da9f2acc6df2b88cf8bf7cacfc32" class="m-doc-self">get_historical_viz_image</a>(</span><span class="m-doc-wrap">) -&gt; cv::Mat</span>
             </dt>
             <dd>Get a nice visualization image of what tracks we have.</dd>
+            <dt id="a32f00c78c24062b4de0b58bcc1bcfe70">
+              <span class="m-doc-wrap-bumper">auto <a href="#a32f00c78c24062b4de0b58bcc1bcfe70" class="m-doc-self">get_features_SLAM</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
+            </dt>
+            <dd>Returns 3d SLAM features in the global frame.</dd>
+            <dt id="ae28e92d6c8c6747108aaebb971d8b4fd">
+              <span class="m-doc-wrap-bumper">auto <a href="#ae28e92d6c8c6747108aaebb971d8b4fd" class="m-doc-self">get_features_ARUCO</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
+            </dt>
+            <dd>Returns 3d ARUCO features in the global frame.</dd>
             <dt id="a6f44315b0084e276598d4ce508574e4b">
               <span class="m-doc-wrap-bumper">auto <a href="#a6f44315b0084e276598d4ce508574e4b" class="m-doc-self">get_good_features_MSCKF</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
             </dt>
             <dd>Returns 3d features used in the last update in global frame.</dd>
-            <dt id="a49a5a2bd6fc45448f88cacf082cc18b6">
-              <span class="m-doc-wrap-bumper">auto <a href="#a49a5a2bd6fc45448f88cacf082cc18b6" class="m-doc-self">get_features_SLAM</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
-            </dt>
-            <dd>Returns 3d SLAM features in the global frame.</dd>
-            <dt id="ab2ba74990cefccbdcadab97aef1c83a1">
-              <span class="m-doc-wrap-bumper">auto <a href="#ab2ba74990cefccbdcadab97aef1c83a1" class="m-doc-self">get_features_ARUCO</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
-            </dt>
-            <dd>Returns 3d ARUCO features in the global frame.</dd>
             <dt id="a6f73eaacca9a468e02d6322e0987c480">
               <span class="m-doc-wrap-bumper">void <a href="#a6f73eaacca9a468e02d6322e0987c480" class="m-doc-self">get_active_image</a>(</span><span class="m-doc-wrap">double&amp; timestamp,
               cv::Mat&amp; image)</span>
@@ -243,9 +243,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a52323b851526c316c30738aa83e98b0b"><div>
+          <section class="m-doc-details" id="a5e7dde1c28eb800c663fb2e238cc60ea"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a52323b851526c316c30738aa83e98b0b" class="m-doc-self">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5e7dde1c28eb800c663fb2e238cc60ea" class="m-doc-self">feed_measurement_imu</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1ImuData.html" class="m-doc">ov_core::<wbr />ImuData</a>&amp; message)</span></span>
             </h3>
             <p>Feed function for inertial data.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -304,9 +304,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a163c357d9ac0fc89061212f6ba19b5c8"><div>
+          <section class="m-doc-details" id="a196e1780d418021e2c41a394747e872b"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a163c357d9ac0fc89061212f6ba19b5c8" class="m-doc-self">initialize_with_gt</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 17, 1&gt; imustate)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />VioManager::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a196e1780d418021e2c41a394747e872b" class="m-doc-self">initialize_with_gt</a>(</span><span class="m-doc-wrap">Eigen::Matrix&lt;double, 17, 1&gt; imustate)</span></span>
             </h3>
             <p>Given a state, this will initialize our IMU state.</p>
             <table class="m-table m-fullwidth m-flat">

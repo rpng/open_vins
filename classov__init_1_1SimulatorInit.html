@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_init::Simulator class | OpenVINS</title>
+  <title>ov_init::SimulatorInit class | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -49,7 +49,7 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          <span class="m-breadcrumb"><a href="namespaceov__init.html">ov_init</a>::<wbr/></span>Simulator <span class="m-thin">class</span>
+          <span class="m-breadcrumb"><a href="namespaceov__init.html">ov_init</a>::<wbr/></span>SimulatorInit <span class="m-thin">class</span>
         </h1>
         <p>Master simulator class that generated visual-inertial measurements.</p>
         <div class="m-block m-default">
@@ -71,7 +71,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a1c58cded9323731f56971aecfa4d5fd6" class="m-doc">Simulator</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span>
+              <span class="m-doc-wrap-bumper"><a href="#a6f8df388f25c2d90411bd51ade48c6e4" class="m-doc">SimulatorInit</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span>
             </dt>
             <dd>Default constructor, will load all configuration variables.</dd>
           </dl>
@@ -80,44 +80,40 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ae4676f4a7f393fa6672e75e3b8fc3a98" class="m-doc">perturb_parameters</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#a34f9e98902032aeb2b695e1f72f56d15" class="m-doc">perturb_parameters</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span>
             </dt>
             <dd>Will get a set of perturbed parameters.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a5e4a0d05337f4938676f45faec6baf7b" class="m-doc">ok</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#a9a251dce8d062f3b152f9fa72a7f5dd1" class="m-doc">ok</a>(</span><span class="m-doc-wrap">) -&gt; bool</span>
             </dt>
             <dd>Returns if we are actively simulating.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a9fb7db8b79d8352edfa7c2250f1e6610" class="m-doc">current_timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+              <span class="m-doc-wrap-bumper">auto <a href="#aca29b02e15f68526724d2dae56d2f756" class="m-doc">current_timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
             </dt>
             <dd>Gets the timestamp we have simulated up too.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a3ccf4a1249f70725edad1f9f4e80f9e9" class="m-doc">get_state</a>(</span><span class="m-doc-wrap">double desired_time,
+              <span class="m-doc-wrap-bumper">auto <a href="#abe1fc7470175ceb0b60a9ba8461a21b3" class="m-doc">get_state</a>(</span><span class="m-doc-wrap">double desired_time,
               Eigen::Matrix&lt;double, 17, 1&gt;&amp; imustate) -&gt; bool</span>
             </dt>
             <dd>Get the simulation state at a specified timestep.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a1a5c6dd7e892a8948d3c2d2a3824fb39" class="m-doc">get_next_imu</a>(</span><span class="m-doc-wrap">double&amp; time_imu,
+              <span class="m-doc-wrap-bumper">auto <a href="#a84a06f52d0de40b6e3ce274a47512e9e" class="m-doc">get_next_imu</a>(</span><span class="m-doc-wrap">double&amp; time_imu,
               Eigen::Vector3d&amp; wm,
               Eigen::Vector3d&amp; am) -&gt; bool</span>
             </dt>
             <dd>Gets the next inertial reading if we have one.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#add03be2fbfa53224369b07411b6a81b7" class="m-doc">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
+              <span class="m-doc-wrap-bumper">auto <a href="#a3101f4237fc14a77d8d4b6de038bd323" class="m-doc">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
               std::vector&lt;int&gt;&amp; camids,
               std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats) -&gt; bool</span>
             </dt>
             <dd>Gets the next inertial reading if we have one.</dd>
-            <dt id="a4f6e02c0b1fc495e147f76cf560f1a1b">
-              <span class="m-doc-wrap-bumper">auto <a href="#a4f6e02c0b1fc495e147f76cf560f1a1b" class="m-doc-self">get_map</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::Vector3d&gt;</span>
+            <dt id="ac7b4f53f1aa8775c636976cb912cad64">
+              <span class="m-doc-wrap-bumper">auto <a href="#ac7b4f53f1aa8775c636976cb912cad64" class="m-doc-self">get_map</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, Eigen::Vector3d&gt;</span>
             </dt>
             <dd>Returns the true 3d map of features.</dd>
-            <dt id="abf2851220d19349427ebe661ad607e57">
-              <span class="m-doc-wrap-bumper">auto <a href="#abf2851220d19349427ebe661ad607e57" class="m-doc-self">get_map_vec</a>(</span><span class="m-doc-wrap">) -&gt; std::vector&lt;Eigen::Vector3d&gt;</span>
-            </dt>
-            <dd>Returns the true 3d map of features.</dd>
-            <dt id="aa238f342959211b86cb622eb3dd859ec">
-              <span class="m-doc-wrap-bumper">auto <a href="#aa238f342959211b86cb622eb3dd859ec" class="m-doc-self">get_true_parameters</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a></span>
+            <dt id="a1c311cdb3c5de359ca6a8080fda13de6">
+              <span class="m-doc-wrap-bumper">auto <a href="#a1c311cdb3c5de359ca6a8080fda13de6" class="m-doc-self">get_true_parameters</a>(</span><span class="m-doc-wrap">) -&gt; <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a></span>
             </dt>
             <dd>Access function to get the true parameters (i.e. calibration and settings)</dd>
           </dl>
@@ -126,14 +122,14 @@
           <h2><a href="#pro-methods">Protected functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
+              <span class="m-doc-wrap-bumper">auto <a href="#a97c74693a9fe77d025d53983c9a147ce" class="m-doc">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
               int camid,
               const std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats) -&gt; std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;</span>
             </dt>
             <dd>Projects the passed map features into the desired camera frame.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a511b2edf20545972ced008fddb0654ae" class="m-doc">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
+              <span class="m-doc-wrap-bumper">void <a href="#a352ee444f38cb6689e37ac83e30c7a68" class="m-doc">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
               int camid,
               std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats,
@@ -145,69 +141,69 @@
         <section id="pro-attribs">
           <h2><a href="#pro-attribs">Protected variables</a></h2>
           <dl class="m-doc">
-            <dt id="ab58e504e58d2da6f3aba9e5a0c1dc5a6">
-              <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a> <a href="#ab58e504e58d2da6f3aba9e5a0c1dc5a6" class="m-doc-self">params</a>
+            <dt id="a372edd6c98642b8aabb583dbf11140f2">
+              <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a> <a href="#a372edd6c98642b8aabb583dbf11140f2" class="m-doc-self">params</a>
             </dt>
             <dd>True params (a copy of the parsed ones)</dd>
-            <dt id="a49204ed0f7472bfb2158bf9e1b9d80aa">
-              std::vector&lt;Eigen::VectorXd&gt; <a href="#a49204ed0f7472bfb2158bf9e1b9d80aa" class="m-doc-self">traj_data</a>
+            <dt id="abf0cb10b2d9ec0e5688071e40490ca01">
+              std::vector&lt;Eigen::VectorXd&gt; <a href="#abf0cb10b2d9ec0e5688071e40490ca01" class="m-doc-self">traj_data</a>
             </dt>
             <dd>Our loaded trajectory data (timestamp(s), q_GtoI, p_IinG)</dd>
-            <dt id="a6a831fbf1f6d08db368607fe8310332f">
-              <a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a> <a href="#a6a831fbf1f6d08db368607fe8310332f" class="m-doc-self">spline</a>
+            <dt id="a40735548035cb62e36f9aac82921d8d3">
+              std::shared_ptr&lt;<a href="classov__core_1_1BsplineSE3.html" class="m-doc">ov_core::<wbr />BsplineSE3</a>&gt; <a href="#a40735548035cb62e36f9aac82921d8d3" class="m-doc-self">spline</a>
             </dt>
             <dd>Our b-spline trajectory.</dd>
-            <dt id="ad2d68abafd4f5dfb91ada3dbb4cc5b48">
-              size_t <a href="#ad2d68abafd4f5dfb91ada3dbb4cc5b48" class="m-doc-self">id_map</a>
+            <dt id="a2fb7a28d93c7b4d38d95bcaf13ecbef8">
+              size_t <a href="#a2fb7a28d93c7b4d38d95bcaf13ecbef8" class="m-doc-self">id_map</a>
             </dt>
             <dd>Our map of 3d features.</dd>
-            <dt id="a7cebb2ccc60af7f77dd9549bb2e9f713">
-              std::mt19937 <a href="#a7cebb2ccc60af7f77dd9549bb2e9f713" class="m-doc-self">gen_meas_imu</a>
+            <dt id="a07a8dcfb65652705d79ccade133cfac5">
+              std::mt19937 <a href="#a07a8dcfb65652705d79ccade133cfac5" class="m-doc-self">gen_meas_imu</a>
             </dt>
             <dd>Mersenne twister PRNG for measurements (IMU)</dd>
-            <dt id="a845a8d2cf38d0764bae21e61f21c0b4a">
-              std::vector&lt;std::mt19937&gt; <a href="#a845a8d2cf38d0764bae21e61f21c0b4a" class="m-doc-self">gen_meas_cams</a>
+            <dt id="a22c0c57b4ddbd9995b42020e1139e3ea">
+              std::vector&lt;std::mt19937&gt; <a href="#a22c0c57b4ddbd9995b42020e1139e3ea" class="m-doc-self">gen_meas_cams</a>
             </dt>
             <dd>Mersenne twister PRNG for measurements (CAMERAS)</dd>
-            <dt id="a3575060beb278166172a11499eb042be">
-              std::mt19937 <a href="#a3575060beb278166172a11499eb042be" class="m-doc-self">gen_state_init</a>
+            <dt id="ad458e97f0d879d4b23fe983dec5df804">
+              std::mt19937 <a href="#ad458e97f0d879d4b23fe983dec5df804" class="m-doc-self">gen_state_init</a>
             </dt>
             <dd>Mersenne twister PRNG for state initialization.</dd>
-            <dt id="abe43387b3f817a0c9398e94e8fecea62">
-              std::mt19937 <a href="#abe43387b3f817a0c9398e94e8fecea62" class="m-doc-self">gen_state_perturb</a>
+            <dt id="ad1183d2053b6618e3ad4f4b3616c74a6">
+              std::mt19937 <a href="#ad1183d2053b6618e3ad4f4b3616c74a6" class="m-doc-self">gen_state_perturb</a>
             </dt>
             <dd>Mersenne twister PRNG for state perturbations.</dd>
-            <dt id="a135ebe8089f0cf747c1b759a31dedeef">
-              bool <a href="#a135ebe8089f0cf747c1b759a31dedeef" class="m-doc-self">is_running</a>
+            <dt id="a8abb917e0f329e5d8602692a5f4c2776">
+              bool <a href="#a8abb917e0f329e5d8602692a5f4c2776" class="m-doc-self">is_running</a>
             </dt>
             <dd>If our simulation is running.</dd>
-            <dt id="a3b5ed3171c15185d6558f42f35ee23f1">
-              double <a href="#a3b5ed3171c15185d6558f42f35ee23f1" class="m-doc-self">timestamp</a>
+            <dt id="a69cfbc8778564611b8b81e5fdb1d5736">
+              double <a href="#a69cfbc8778564611b8b81e5fdb1d5736" class="m-doc-self">timestamp</a>
             </dt>
             <dd>Current timestamp of the system.</dd>
-            <dt id="a42032fde8b9db232811f4e86b4165af3">
-              double <a href="#a42032fde8b9db232811f4e86b4165af3" class="m-doc-self">timestamp_last_imu</a>
+            <dt id="aad6608fa7e7a00ef588ec326c3f03729">
+              double <a href="#aad6608fa7e7a00ef588ec326c3f03729" class="m-doc-self">timestamp_last_imu</a>
             </dt>
             <dd>Last time we had an IMU reading.</dd>
-            <dt id="a0597ca219cf2e7680635bdffacf9f40f">
-              double <a href="#a0597ca219cf2e7680635bdffacf9f40f" class="m-doc-self">timestamp_last_cam</a>
+            <dt id="ad35d52befdec1e430bdd13c49a418fc4">
+              double <a href="#ad35d52befdec1e430bdd13c49a418fc4" class="m-doc-self">timestamp_last_cam</a>
             </dt>
             <dd>Last time we had an CAMERA reading.</dd>
-            <dt id="a78494f48249a5549d2090c85375ff2d9">
-              Eigen::Vector3d <a href="#a78494f48249a5549d2090c85375ff2d9" class="m-doc-self">true_bias_accel</a>
+            <dt id="ab3f60dfbc69a9b510d9278e9d21ef31e">
+              Eigen::Vector3d <a href="#ab3f60dfbc69a9b510d9278e9d21ef31e" class="m-doc-self">true_bias_accel</a>
             </dt>
             <dd>Our running acceleration bias.</dd>
-            <dt id="a2b344bfc6aadc87946650c3589c60cb1">
-              Eigen::Vector3d <a href="#a2b344bfc6aadc87946650c3589c60cb1" class="m-doc-self">true_bias_gyro</a>
+            <dt id="a23a46e6cdbe66968bb6d4174a1aa6861">
+              Eigen::Vector3d <a href="#a23a46e6cdbe66968bb6d4174a1aa6861" class="m-doc-self">true_bias_gyro</a>
             </dt>
             <dd>Our running gyroscope bias.</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a1c58cded9323731f56971aecfa4d5fd6"><div>
+          <section class="m-doc-details" id="a6f8df388f25c2d90411bd51ade48c6e4"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1c58cded9323731f56971aecfa4d5fd6" class="m-doc-self">Simulator</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span></span>
+              <span class="m-doc-wrap-bumper"> ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a6f8df388f25c2d90411bd51ade48c6e4" class="m-doc-self">SimulatorInit</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span></span>
             </h3>
             <p>Default constructor, will load all configuration variables.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -222,9 +218,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="ae4676f4a7f393fa6672e75e3b8fc3a98"><div>
+          <section class="m-doc-details" id="a34f9e98902032aeb2b695e1f72f56d15"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae4676f4a7f393fa6672e75e3b8fc3a98" class="m-doc-self">perturb_parameters</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a34f9e98902032aeb2b695e1f72f56d15" class="m-doc-self">perturb_parameters</a>(</span><span class="m-doc-wrap"><a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>&amp; params_)</span></span>
             </h3>
             <p>Will get a set of perturbed parameters.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -239,9 +235,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a5e4a0d05337f4938676f45faec6baf7b"><div>
+          <section class="m-doc-details" id="a9a251dce8d062f3b152f9fa72a7f5dd1"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5e4a0d05337f4938676f45faec6baf7b" class="m-doc-self">ok</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9a251dce8d062f3b152f9fa72a7f5dd1" class="m-doc-self">ok</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Returns if we are actively simulating.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -253,9 +249,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a9fb7db8b79d8352edfa7c2250f1e6610"><div>
+          <section class="m-doc-details" id="aca29b02e15f68526724d2dae56d2f756"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">double ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a9fb7db8b79d8352edfa7c2250f1e6610" class="m-doc-self">current_timestamp</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">double ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aca29b02e15f68526724d2dae56d2f756" class="m-doc-self">current_timestamp</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>Gets the timestamp we have simulated up too.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -267,9 +263,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a3ccf4a1249f70725edad1f9f4e80f9e9"><div>
+          <section class="m-doc-details" id="abe1fc7470175ceb0b60a9ba8461a21b3"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3ccf4a1249f70725edad1f9f4e80f9e9" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">double desired_time,
+              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abe1fc7470175ceb0b60a9ba8461a21b3" class="m-doc-self">get_state</a>(</span><span class="m-doc-wrap">double desired_time,
               Eigen::Matrix&lt;double, 17, 1&gt;&amp; imustate)</span></span>
             </h3>
             <p>Get the simulation state at a specified timestep.</p>
@@ -295,9 +291,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a1a5c6dd7e892a8948d3c2d2a3824fb39"><div>
+          <section class="m-doc-details" id="a84a06f52d0de40b6e3ce274a47512e9e"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1a5c6dd7e892a8948d3c2d2a3824fb39" class="m-doc-self">get_next_imu</a>(</span><span class="m-doc-wrap">double&amp; time_imu,
+              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a84a06f52d0de40b6e3ce274a47512e9e" class="m-doc-self">get_next_imu</a>(</span><span class="m-doc-wrap">double&amp; time_imu,
               Eigen::Vector3d&amp; wm,
               Eigen::Vector3d&amp; am)</span></span>
             </h3>
@@ -328,9 +324,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="add03be2fbfa53224369b07411b6a81b7"><div>
+          <section class="m-doc-details" id="a3101f4237fc14a77d8d4b6de038bd323"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#add03be2fbfa53224369b07411b6a81b7" class="m-doc-self">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
+              <span class="m-doc-wrap-bumper">bool ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3101f4237fc14a77d8d4b6de038bd323" class="m-doc-self">get_next_cam</a>(</span><span class="m-doc-wrap">double&amp; time_cam,
               std::vector&lt;int&gt;&amp; camids,
               std::vector&lt;std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt;&gt;&amp; feats)</span></span>
             </h3>
@@ -361,9 +357,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a1c6947099892bd64e2bad9b4c9303226"><div>
+          <section class="m-doc-details" id="a97c74693a9fe77d025d53983c9a147ce"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt; ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1c6947099892bd64e2bad9b4c9303226" class="m-doc-self">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
+              <span class="m-doc-wrap-bumper">std::vector&lt;std::pair&lt;size_t, Eigen::VectorXf&gt;&gt; ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a97c74693a9fe77d025d53983c9a147ce" class="m-doc-self">project_pointcloud</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
               int camid,
               const std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats) <span class="m-label m-warning">protected</span></span></span>
@@ -399,9 +395,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a511b2edf20545972ced008fddb0654ae"><div>
+          <section class="m-doc-details" id="a352ee444f38cb6689e37ac83e30c7a68"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_init::<wbr />Simulator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a511b2edf20545972ced008fddb0654ae" class="m-doc-self">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
+              <span class="m-doc-wrap-bumper">void ov_init::<wbr />SimulatorInit::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a352ee444f38cb6689e37ac83e30c7a68" class="m-doc-self">generate_points</a>(</span><span class="m-doc-wrap">const Eigen::Matrix3d&amp; R_GtoI,
               const Eigen::Vector3d&amp; p_IinG,
               int camid,
               std::unordered_map&lt;size_t, Eigen::Vector3d&gt;&amp; feats,

@@ -80,10 +80,10 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a4f252747ef3d4702d888c6503afb046e" class="m-doc">TrackDescriptor</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              <span class="m-doc-wrap-bumper"><a href="#a5f7793abdb80621d2d41e619cd46b9cf" class="m-doc">TrackDescriptor</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
               int numfeats,
               int numaruco,
-              bool binocular,
+              bool stereo,
               <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">HistogramMethod</a> histmethod,
               int fast_threshold,
               int gridx,
@@ -98,7 +98,7 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a68db734a882732b042b7f0d942ef558b" class="m-doc">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-flat m-warning">virtual</span></span>
+              <span class="m-doc-wrap-bumper">void <a href="#afcbf3078992f740582eac24e3164e6f1" class="m-doc">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-flat m-warning">override</span></span>
             </dt>
             <dd>Process a new image.</dd>
           </dl>
@@ -141,10 +141,10 @@
             </dt>
             <dd>Detects new features in the current stereo pair.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#ae9ce4b08e54d7a8a62d69417695a66ef" class="m-doc">robust_match</a>(</span><span class="m-doc-wrap">std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
-              std::vector&lt;cv::KeyPoint&gt; pts1,
-              cv::Mat&amp; desc0,
-              cv::Mat&amp; desc1,
+              <span class="m-doc-wrap-bumper">void <a href="#a328a65890fabf3ba88968acf46561d97" class="m-doc">robust_match</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              const std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
+              const cv::Mat&amp; desc0,
+              const cv::Mat&amp; desc1,
               size_t id0,
               size_t id1,
               std::vector&lt;cv::DMatch&gt;&amp; matches)</span>
@@ -154,12 +154,12 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a4f252747ef3d4702d888c6503afb046e"><div>
+          <section class="m-doc-details" id="a5f7793abdb80621d2d41e619cd46b9cf"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackDescriptor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4f252747ef3d4702d888c6503afb046e" class="m-doc-self">TrackDescriptor</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackDescriptor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5f7793abdb80621d2d41e619cd46b9cf" class="m-doc-self">TrackDescriptor</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
               int numfeats,
               int numaruco,
-              bool binocular,
+              bool stereo,
               <a href="classov__core_1_1TrackBase.html#aa4b34a5dce99b59522d57bf9278c9a1a" class="m-doc">HistogramMethod</a> histmethod,
               int fast_threshold,
               int gridx,
@@ -186,8 +186,8 @@
                   <td>the max id of the arucotags, so we ensure that we start our non-auroc features above this value</td>
                 </tr>
                 <tr>
-                  <td>binocular</td>
-                  <td>if we should do binocular feature tracking or stereo if there are multiple cameras</td>
+                  <td>stereo</td>
+                  <td>if we should do stereo feature tracking or binocular</td>
                 </tr>
                 <tr>
                   <td>histmethod</td>
@@ -216,9 +216,9 @@
               </tbody>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a68db734a882732b042b7f0d942ef558b"><div>
+          <section class="m-doc-details" id="afcbf3078992f740582eac24e3164e6f1"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackDescriptor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a68db734a882732b042b7f0d942ef558b" class="m-doc-self">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-warning">virtual</span></span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackDescriptor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#afcbf3078992f740582eac24e3164e6f1" class="m-doc-self">feed_new_camera</a>(</span><span class="m-doc-wrap">const <a href="structov__core_1_1CameraData.html" class="m-doc">CameraData</a>&amp; message) <span class="m-label m-warning">override</span></span></span>
             </h3>
             <p>Process a new image.</p>
             <table class="m-table m-fullwidth m-flat">
@@ -318,7 +318,7 @@
                 </tr>
               </tbody>
             </table>
-<p>Given a set of images, and their currently extracted features, this will try to add new features. We return all extracted descriptors here since we DO NOT need to do stereo tracking left to right. Our vector of IDs will be later overwritten when we match features temporally to the previous frame&#x27;s features. See <a href="classov__core_1_1TrackDescriptor.html#ae9ce4b08e54d7a8a62d69417695a66ef" class="m-doc">robust_<wbr />match()</a> for the matching.</p>
+<p>Given a set of images, and their currently extracted features, this will try to add new features. We return all extracted descriptors here since we DO NOT need to do stereo tracking left to right. Our vector of IDs will be later overwritten when we match features temporally to the previous frame&#x27;s features. See <a href="classov__core_1_1TrackDescriptor.html#a328a65890fabf3ba88968acf46561d97" class="m-doc">robust_<wbr />match()</a> for the matching.</p>
           </div></section>
           <section class="m-doc-details" id="a0f3bfb96dcfc50ce8ebc1e40171d50c0"><div>
             <h3>
@@ -391,14 +391,14 @@
                 </tr>
               </tbody>
             </table>
-<p>This does the same logic as the <a href="classov__core_1_1TrackDescriptor.html#a5f1db51d0c57dab6ed1da4dc17add0a1" class="m-doc">perform_<wbr />detection_<wbr />monocular()</a> function, but we also enforce stereo contraints. We also do STEREO matching from the left to right, and only return good matches that are found in both the left and right. Our vector of IDs will be later overwritten when we match features temporally to the previous frame&#x27;s features. See <a href="classov__core_1_1TrackDescriptor.html#ae9ce4b08e54d7a8a62d69417695a66ef" class="m-doc">robust_<wbr />match()</a> for the matching.</p>
+<p>This does the same logic as the <a href="classov__core_1_1TrackDescriptor.html#a5f1db51d0c57dab6ed1da4dc17add0a1" class="m-doc">perform_<wbr />detection_<wbr />monocular()</a> function, but we also enforce stereo contraints. We also do STEREO matching from the left to right, and only return good matches that are found in both the left and right. Our vector of IDs will be later overwritten when we match features temporally to the previous frame&#x27;s features. See <a href="classov__core_1_1TrackDescriptor.html#a328a65890fabf3ba88968acf46561d97" class="m-doc">robust_<wbr />match()</a> for the matching.</p>
           </div></section>
-          <section class="m-doc-details" id="ae9ce4b08e54d7a8a62d69417695a66ef"><div>
+          <section class="m-doc-details" id="a328a65890fabf3ba88968acf46561d97"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackDescriptor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae9ce4b08e54d7a8a62d69417695a66ef" class="m-doc-self">robust_match</a>(</span><span class="m-doc-wrap">std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
-              std::vector&lt;cv::KeyPoint&gt; pts1,
-              cv::Mat&amp; desc0,
-              cv::Mat&amp; desc1,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackDescriptor::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a328a65890fabf3ba88968acf46561d97" class="m-doc-self">robust_match</a>(</span><span class="m-doc-wrap">const std::vector&lt;cv::KeyPoint&gt;&amp; pts0,
+              const std::vector&lt;cv::KeyPoint&gt;&amp; pts1,
+              const cv::Mat&amp; desc0,
+              const cv::Mat&amp; desc1,
               size_t id0,
               size_t id1,
               std::vector&lt;cv::DMatch&gt;&amp; matches) <span class="m-label m-warning">protected</span></span></span>

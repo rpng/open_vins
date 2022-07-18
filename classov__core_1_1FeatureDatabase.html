@@ -79,12 +79,17 @@
           <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a1ac4fc05c0638f1b1ad2a8821eb28459" class="m-doc">get_feature</a>(</span><span class="m-doc-wrap">size_t id,
+              <span class="m-doc-wrap-bumper">auto <a href="#a3c7b5ef425c785eb3c160e995c545f87" class="m-doc">get_feature</a>(</span><span class="m-doc-wrap">size_t id,
               bool remove = false) -&gt; std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;</span>
             </dt>
             <dd>Get a specified feature.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a176738d7afc47d36cfcbac68cd07e920" class="m-doc">update_feature</a>(</span><span class="m-doc-wrap">size_t id,
+              <span class="m-doc-wrap-bumper">auto <a href="#a98e2d5320881107343b07f79cac8b541" class="m-doc">get_feature_clone</a>(</span><span class="m-doc-wrap">size_t id,
+              <a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&amp; feat) -&gt; bool</span>
+            </dt>
+            <dd>Get a specified feature clone (pointer is thread safe)</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#adf78008573a5aebe8a89cddbaf4b5b01" class="m-doc">update_feature</a>(</span><span class="m-doc-wrap">size_t id,
               double timestamp,
               size_t cam_id,
               float u,
@@ -94,33 +99,33 @@
             </dt>
             <dd>Update a feature object.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a10e1bb043a10da1fc08425974e9684eb" class="m-doc">features_not_containing_newer</a>(</span><span class="m-doc-wrap">double timestamp,
+              <span class="m-doc-wrap-bumper">auto <a href="#a4f6d8da846e81eac1faa3c7abd7f44a7" class="m-doc">features_not_containing_newer</a>(</span><span class="m-doc-wrap">double timestamp,
               bool remove = false,
               bool skip_deleted = false) -&gt; std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;</span>
             </dt>
             <dd>Get features that do not have newer measurement then the specified time.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a30ad8bcbf9158345ebefc7d5b5efef3a" class="m-doc">features_containing_older</a>(</span><span class="m-doc-wrap">double timestamp,
+              <span class="m-doc-wrap-bumper">auto <a href="#a5cdb62171c42c8787daec984a8cebe15" class="m-doc">features_containing_older</a>(</span><span class="m-doc-wrap">double timestamp,
               bool remove = false,
               bool skip_deleted = false) -&gt; std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;</span>
             </dt>
             <dd>Get features that has measurements older then the specified time.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">auto <a href="#a762b36927e1dd59c4aa779ae7ed1ea01" class="m-doc">features_containing</a>(</span><span class="m-doc-wrap">double timestamp,
+              <span class="m-doc-wrap-bumper">auto <a href="#a144b59272688f0aeea0ecec6028dca04" class="m-doc">features_containing</a>(</span><span class="m-doc-wrap">double timestamp,
               bool remove = false,
               bool skip_deleted = false) -&gt; std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;</span>
             </dt>
             <dd>Get features that has measurements at the specified time.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a81c64036a8e8a8f2dc00a88f55a8579f" class="m-doc">cleanup</a>(</span><span class="m-doc-wrap">)</span>
+              <span class="m-doc-wrap-bumper">void <a href="#abee9d8a5fa7fc4a97911058b6e8d10a0" class="m-doc">cleanup</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
             <dd>This function will delete all features that have been used up.</dd>
-            <dt id="a7d5f2db10740ce19a0a083c19f7656c9">
-              <span class="m-doc-wrap-bumper">void <a href="#a7d5f2db10740ce19a0a083c19f7656c9" class="m-doc-self">cleanup_measurements</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+            <dt id="a690e2279ff954a380036f6e69445fa16">
+              <span class="m-doc-wrap-bumper">void <a href="#a690e2279ff954a380036f6e69445fa16" class="m-doc-self">cleanup_measurements</a>(</span><span class="m-doc-wrap">double timestamp)</span>
             </dt>
             <dd>This function will delete all feature measurements that are older then the specified timestamp.</dd>
-            <dt id="aa8c4f253cb09d24c81fb968b28082235">
-              <span class="m-doc-wrap-bumper">void <a href="#aa8c4f253cb09d24c81fb968b28082235" class="m-doc-self">cleanup_measurements_exact</a>(</span><span class="m-doc-wrap">double timestamp)</span>
+            <dt id="a08484576099480a2fd0b0cc9630c12b6">
+              <span class="m-doc-wrap-bumper">void <a href="#a08484576099480a2fd0b0cc9630c12b6" class="m-doc-self">cleanup_measurements_exact</a>(</span><span class="m-doc-wrap">double timestamp)</span>
             </dt>
             <dd>This function will delete all feature measurements that are at the specified timestamp.</dd>
             <dt id="ab9b243f8a439794e454bfb604061cb4a">
@@ -131,12 +136,12 @@
               <span class="m-doc-wrap-bumper">auto <a href="#ad105b5cacc83eae1a5fb71f05b084294" class="m-doc-self">get_internal_data</a>(</span><span class="m-doc-wrap">) -&gt; std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt;</span>
             </dt>
             <dd>Returns the internal data (should not normally be used)</dd>
-            <dt id="aec0412c7b64443409509d7ad0507cc0c">
-              <span class="m-doc-wrap-bumper">auto <a href="#aec0412c7b64443409509d7ad0507cc0c" class="m-doc-self">get_oldest_timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
+            <dt id="a890b5a9095ebe2a6adbe208865170274">
+              <span class="m-doc-wrap-bumper">auto <a href="#a890b5a9095ebe2a6adbe208865170274" class="m-doc-self">get_oldest_timestamp</a>(</span><span class="m-doc-wrap">) -&gt; double</span>
             </dt>
             <dd>Gets the oldest time in the database.</dd>
-            <dt id="acfd95190fe646e1bc2a45e9bb6704dea">
-              <span class="m-doc-wrap-bumper">void <a href="#acfd95190fe646e1bc2a45e9bb6704dea" class="m-doc-self">append_new_measurements</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt;&amp; database)</span>
+            <dt id="ae4e973b1f5b56efd62ba08df987723bc">
+              <span class="m-doc-wrap-bumper">void <a href="#ae4e973b1f5b56efd62ba08df987723bc" class="m-doc-self">append_new_measurements</a>(</span><span class="m-doc-wrap">const std::shared_ptr&lt;<a href="classov__core_1_1FeatureDatabase.html" class="m-doc">FeatureDatabase</a>&gt;&amp; database)</span>
             </dt>
             <dd>Will update the passed database with this database&#x27;s latest feature information.</dd>
           </dl>
@@ -156,9 +161,9 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a1ac4fc05c0638f1b1ad2a8821eb28459"><div>
+          <section class="m-doc-details" id="a3c7b5ef425c785eb3c160e995c545f87"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a1ac4fc05c0638f1b1ad2a8821eb28459" class="m-doc-self">get_feature</a>(</span><span class="m-doc-wrap">size_t id,
+              <span class="m-doc-wrap-bumper">std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3c7b5ef425c785eb3c160e995c545f87" class="m-doc-self">get_feature</a>(</span><span class="m-doc-wrap">size_t id,
               bool remove = false)</span></span>
             </h3>
             <p>Get a specified feature.</p>
@@ -184,9 +189,37 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a176738d7afc47d36cfcbac68cd07e920"><div>
+          <section class="m-doc-details" id="a98e2d5320881107343b07f79cac8b541"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a176738d7afc47d36cfcbac68cd07e920" class="m-doc-self">update_feature</a>(</span><span class="m-doc-wrap">size_t id,
+              <span class="m-doc-wrap-bumper">bool ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a98e2d5320881107343b07f79cac8b541" class="m-doc-self">get_feature_clone</a>(</span><span class="m-doc-wrap">size_t id,
+              <a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&amp; feat)</span></span>
+            </h3>
+            <p>Get a specified feature clone (pointer is thread safe)</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">id</td>
+                  <td>What feature we want to get</td>
+                </tr>
+                <tr>
+                  <td>feat</td>
+                  <td><a href="classov__core_1_1Feature.html" class="m-doc">Feature</a> with data in it</td>
+                </tr>
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Returns</th>
+                  <td>True if the feature was found</td>
+                </tr>
+              </tfoot>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="adf78008573a5aebe8a89cddbaf4b5b01"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#adf78008573a5aebe8a89cddbaf4b5b01" class="m-doc-self">update_feature</a>(</span><span class="m-doc-wrap">size_t id,
               double timestamp,
               size_t cam_id,
               float u,
@@ -232,36 +265,36 @@
             </table>
 <p>This will update a given feature based on the passed ID it has. It will create a new feature, if it is an ID that we have not seen before.</p>
           </div></section>
-          <section class="m-doc-details" id="a10e1bb043a10da1fc08425974e9684eb"><div>
+          <section class="m-doc-details" id="a4f6d8da846e81eac1faa3c7abd7f44a7"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a10e1bb043a10da1fc08425974e9684eb" class="m-doc-self">features_not_containing_newer</a>(</span><span class="m-doc-wrap">double timestamp,
+              <span class="m-doc-wrap-bumper">std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a4f6d8da846e81eac1faa3c7abd7f44a7" class="m-doc-self">features_not_containing_newer</a>(</span><span class="m-doc-wrap">double timestamp,
               bool remove = false,
               bool skip_deleted = false)</span></span>
             </h3>
             <p>Get features that do not have newer measurement then the specified time.</p>
 <p>This function will return all features that do not a measurement at a time greater than the specified time. For example this could be used to get features that have not been successfully tracked into the newest frame. All features returned will not have any measurements occurring at a time greater then the specified.</p>
           </div></section>
-          <section class="m-doc-details" id="a30ad8bcbf9158345ebefc7d5b5efef3a"><div>
+          <section class="m-doc-details" id="a5cdb62171c42c8787daec984a8cebe15"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a30ad8bcbf9158345ebefc7d5b5efef3a" class="m-doc-self">features_containing_older</a>(</span><span class="m-doc-wrap">double timestamp,
+              <span class="m-doc-wrap-bumper">std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a5cdb62171c42c8787daec984a8cebe15" class="m-doc-self">features_containing_older</a>(</span><span class="m-doc-wrap">double timestamp,
               bool remove = false,
               bool skip_deleted = false)</span></span>
             </h3>
             <p>Get features that has measurements older then the specified time.</p>
 <p>This will collect all features that have measurements occurring before the specified timestamp. For example, we would want to remove all features older then the last clone/state in our sliding window.</p>
           </div></section>
-          <section class="m-doc-details" id="a762b36927e1dd59c4aa779ae7ed1ea01"><div>
+          <section class="m-doc-details" id="a144b59272688f0aeea0ecec6028dca04"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a762b36927e1dd59c4aa779ae7ed1ea01" class="m-doc-self">features_containing</a>(</span><span class="m-doc-wrap">double timestamp,
+              <span class="m-doc-wrap-bumper">std::vector&lt;std::shared_ptr&lt;<a href="classov__core_1_1Feature.html" class="m-doc">Feature</a>&gt;&gt; ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a144b59272688f0aeea0ecec6028dca04" class="m-doc-self">features_containing</a>(</span><span class="m-doc-wrap">double timestamp,
               bool remove = false,
               bool skip_deleted = false)</span></span>
             </h3>
             <p>Get features that has measurements at the specified time.</p>
 <p>This function will return all features that have the specified time in them. This would be used to get all features that occurred at a specific clone/state.</p>
           </div></section>
-          <section class="m-doc-details" id="a81c64036a8e8a8f2dc00a88f55a8579f"><div>
+          <section class="m-doc-details" id="abee9d8a5fa7fc4a97911058b6e8d10a0"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a81c64036a8e8a8f2dc00a88f55a8579f" class="m-doc-self">cleanup</a>(</span><span class="m-doc-wrap">)</span></span>
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />FeatureDatabase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#abee9d8a5fa7fc4a97911058b6e8d10a0" class="m-doc-self">cleanup</a>(</span><span class="m-doc-wrap">)</span></span>
             </h3>
             <p>This function will delete all features that have been used up.</p>
 <p>If a feature was unable to be used, it will still remain since it will not have a delete flag set</p>

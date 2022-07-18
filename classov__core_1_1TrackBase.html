@@ -104,7 +104,7 @@
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
             <dt>
-              <span class="m-doc-wrap-bumper"><a href="#a124abf18112021b9ad4901c6b6b4a144" class="m-doc">TrackBase</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              <span class="m-doc-wrap-bumper"><a href="#a645127d6e03e66b96959ececccb3ffc0" class="m-doc">TrackBase</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
               int numfeats,
               int numaruco,
               bool stereo,
@@ -148,7 +148,7 @@
             </dt>
             <dd>Get the feature database with all the track information.</dd>
             <dt>
-              <span class="m-doc-wrap-bumper">void <a href="#a14c9b34477ca6aa86e7b8f7cca7a4173" class="m-doc">change_feat_id</a>(</span><span class="m-doc-wrap">size_t id_old,
+              <span class="m-doc-wrap-bumper">void <a href="#a8f4f7f1c4de3c33a254c14b1f96af5a0" class="m-doc">change_feat_id</a>(</span><span class="m-doc-wrap">size_t id_old,
               size_t id_new)</span>
             </dt>
             <dd>Changes the ID of an actively tracked feature to another one.</dd>
@@ -193,6 +193,10 @@
               std::vector&lt;std::mutex&gt; <a href="#a8d9a970b148abdee71e1ace835c38c7c" class="m-doc-self">mtx_feeds</a>
             </dt>
             <dd>Mutexs for our last set of image storage (img_last, pts_last, and ids_last)</dd>
+            <dt id="afc70de91df5ec14f4db66414a71f0fbb">
+              std::mutex <a href="#afc70de91df5ec14f4db66414a71f0fbb" class="m-doc-self">mtx_last_vars</a>
+            </dt>
+            <dd>Mutex for editing the *_last variables.</dd>
             <dt id="a84396d08375c2c796fc759de12d28469">
               std::map&lt;size_t, cv::Mat&gt; <a href="#a84396d08375c2c796fc759de12d28469" class="m-doc-self">img_last</a>
             </dt>
@@ -217,9 +221,9 @@
         </section>
         <section>
           <h2>Function documentation</h2>
-          <section class="m-doc-details" id="a124abf18112021b9ad4901c6b6b4a144"><div>
+          <section class="m-doc-details" id="a645127d6e03e66b96959ececccb3ffc0"><div>
             <h3>
-              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a124abf18112021b9ad4901c6b6b4a144" class="m-doc-self">TrackBase</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
+              <span class="m-doc-wrap-bumper"> ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a645127d6e03e66b96959ececccb3ffc0" class="m-doc-self">TrackBase</a>(</span><span class="m-doc-wrap">std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">CamBase</a>&gt;&gt; cameras,
               int numfeats,
               int numaruco,
               bool stereo,
@@ -394,9 +398,9 @@
               </tfoot>
             </table>
           </div></section>
-          <section class="m-doc-details" id="a14c9b34477ca6aa86e7b8f7cca7a4173"><div>
+          <section class="m-doc-details" id="a8f4f7f1c4de3c33a254c14b1f96af5a0"><div>
             <h3>
-              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a14c9b34477ca6aa86e7b8f7cca7a4173" class="m-doc-self">change_feat_id</a>(</span><span class="m-doc-wrap">size_t id_old,
+              <span class="m-doc-wrap-bumper">void ov_core::<wbr />TrackBase::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a8f4f7f1c4de3c33a254c14b1f96af5a0" class="m-doc-self">change_feat_id</a>(</span><span class="m-doc-wrap">size_t id_old,
               size_t id_new)</span></span>
             </h3>
             <p>Changes the ID of an actively tracked feature to another one.</p>

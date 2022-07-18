@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_init namespace | OpenVINS</title>
+  <title>ov_msckf::NoiseManager struct | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -30,7 +30,7 @@
             <li><a href="namespaceov__core.html">ov_core</a></li>
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
-            <li><a href="namespaceov__init.html" id="m-navbar-current">ov_init</a></li>
+            <li><a href="namespaceov__init.html">ov_init</a></li>
             <li><a href="namespaceov__eval.html">ov_eval</a></li>
           </ol>
           <ol class="m-col-t-6 m-col-m-none" start="8">
@@ -49,64 +49,65 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          ov_init <span class="m-thin">namespace</span>
+          <span class="m-breadcrumb"><a href="namespaceov__msckf.html">ov_msckf</a>::<wbr/></span>NoiseManager <span class="m-thin">struct</span>
         </h1>
-        <p>State initialization code.</p>
+        <p>Struct of our imu noise parameters.</p>
         <div class="m-block m-default">
           <h3>Contents</h3>
           <ul>
             <li>
               Reference
               <ul>
-                <li><a href="#nested-classes">Classes</a></li>
+                <li><a href="#pub-methods">Public functions</a></li>
+                <li><a href="#pub-attribs">Public variables</a></li>
               </ul>
             </li>
           </ul>
         </div>
-<p>Right now this contains <a href="classov__init_1_1StaticInitializer.html" class="m-doc">StaticInitializer</a> and <a href="classov__init_1_1DynamicInitializer.html" class="m-doc">DynamicInitializer</a> initialization code for a visual-inertial system. It will wait for the platform to stationary, and then initialize its orientation in the gravity frame.</p><ul><li><a href="https://pgeneva.com/downloads/reports/tr_init.pdf">https://pgeneva.com/downloads/reports/tr_<wbr />init.pdf</a></li><li><a href="https://ieeexplore.ieee.org/abstract/document/6386235">https:/<wbr />/<wbr />ieeexplore.ieee.org/<wbr />abstract/<wbr />document/<wbr />6386235</a></li><li><a href="https://tdongsi.github.io/download/pubs/2011_VIO_Init_TR.pdf">https://tdongsi.github.io/download/pubs/2011_<wbr />VIO_<wbr />Init_<wbr />TR.pdf</a></li></ul><p>If the platform is not stationary then we leverage dynamic initialization to try to recover the initial state. This is an implementation of the work <a href="https://ieeexplore.ieee.org/document/6386235">Estimator initialization in vision-aided inertial navigation with unknown camera-IMU calibration</a> <a href="citelist.html#CITEREF_Dong2012IROS" class="m-doc">[5]</a> which solves the initialization problem by first creating a linear system for recovering tthe velocity, gravity, and feature positions. After the initial recovery, a full optimization is performed to allow for covariance recovery. See this <a href="https://pgeneva.com/downloads/reports/tr_init.pdf">tech report</a> for a high level walk through.</p>
-        <section id="nested-classes">
-          <h2><a href="#nested-classes">Classes</a></h2>
+        <section id="pub-methods">
+          <h2><a href="#pub-methods">Public functions</a></h2>
           <dl class="m-doc">
-            <dt>
-              class <a href="classov__init_1_1DynamicInitializer.html" class="m-doc">DynamicInitializer</a>
+            <dt id="a22f023f5dccac5c08d2785e33ec0eeee">
+              <span class="m-doc-wrap-bumper">void <a href="#a22f023f5dccac5c08d2785e33ec0eeee" class="m-doc-self">print</a>(</span><span class="m-doc-wrap">)</span>
             </dt>
-            <dd>Initializer for a dynamic visual-inertial system.</dd>
-            <dt>
-              class <a href="classov__init_1_1Factor__GenericPrior.html" class="m-doc">Factor_GenericPrior</a>
+            <dd>Nice print function of what parameters we have loaded.</dd>
+          </dl>
+        </section>
+        <section id="pub-attribs">
+          <h2><a href="#pub-attribs">Public variables</a></h2>
+          <dl class="m-doc">
+            <dt id="acff3a71e0eb4b9ea80e814fd65ee94d6">
+              double <a href="#acff3a71e0eb4b9ea80e814fd65ee94d6" class="m-doc-self">sigma_w</a>
             </dt>
-            <dd>Factor for generic state priors for specific types.</dd>
-            <dt>
-              class <a href="classov__init_1_1Factor__ImageReprojCalib.html" class="m-doc">Factor_ImageReprojCalib</a>
+            <dd>Gyroscope white noise (rad/s/sqrt(hz))</dd>
+            <dt id="aa5494d695f164d62fb550bbf41623bda">
+              double <a href="#aa5494d695f164d62fb550bbf41623bda" class="m-doc-self">sigma_w_2</a>
             </dt>
-            <dd>Factor of feature bearing observation (raw) with calibration.</dd>
-            <dt>
-              class <a href="classov__init_1_1Factor__ImuCPIv1.html" class="m-doc">Factor_ImuCPIv1</a>
+            <dd>Gyroscope white noise covariance.</dd>
+            <dt id="ad62b26affd461be9522394f8c0bd1699">
+              double <a href="#ad62b26affd461be9522394f8c0bd1699" class="m-doc-self">sigma_wb</a>
             </dt>
-            <dd>Factor for IMU continuous preintegration version 1.</dd>
-            <dt>
-              class <a href="classov__init_1_1InertialInitializer.html" class="m-doc">InertialInitializer</a>
+            <dd>Gyroscope random walk (rad/s^2/sqrt(hz))</dd>
+            <dt id="aadba5e62145c22ca355457e9ebcc1c51">
+              double <a href="#aadba5e62145c22ca355457e9ebcc1c51" class="m-doc-self">sigma_wb_2</a>
             </dt>
-            <dd>Initializer for visual-inertial system.</dd>
-            <dt>
-              struct <a href="structov__init_1_1InertialInitializerOptions.html" class="m-doc">InertialInitializerOptions</a>
+            <dd>Gyroscope random walk covariance.</dd>
+            <dt id="a6dee9928908bd58d9628176d9088b3b9">
+              double <a href="#a6dee9928908bd58d9628176d9088b3b9" class="m-doc-self">sigma_a</a>
             </dt>
-            <dd>Struct which stores all options needed for state estimation.</dd>
-            <dt>
-              class <a href="classov__init_1_1InitializerHelper.html" class="m-doc">InitializerHelper</a>
+            <dd>Accelerometer white noise (m/s^2/sqrt(hz))</dd>
+            <dt id="ad1997253aae2e7df977d9b752255bda6">
+              double <a href="#ad1997253aae2e7df977d9b752255bda6" class="m-doc-self">sigma_a_2</a>
             </dt>
-            <dd>Has a bunch of helper functions for dynamic initialization (should all be static)</dd>
-            <dt>
-              class <a href="classov__init_1_1SimulatorInit.html" class="m-doc">SimulatorInit</a>
+            <dd>Accelerometer white noise covariance.</dd>
+            <dt id="a31ddf8bc77fedc830ed28a8eac9a49c7">
+              double <a href="#a31ddf8bc77fedc830ed28a8eac9a49c7" class="m-doc-self">sigma_ab</a>
             </dt>
-            <dd>Master simulator class that generated visual-inertial measurements.</dd>
-            <dt>
-              class <a href="classov__init_1_1State__JPLQuatLocal.html" class="m-doc">State_JPLQuatLocal</a>
+            <dd>Accelerometer random walk (m/s^3/sqrt(hz))</dd>
+            <dt id="a568ec4370e05451c73c8d7de250c12e2">
+              double <a href="#a568ec4370e05451c73c8d7de250c12e2" class="m-doc-self">sigma_ab_2</a>
             </dt>
-            <dd>JPL quaternion CERES state parameterization.</dd>
-            <dt>
-              class <a href="classov__init_1_1StaticInitializer.html" class="m-doc">StaticInitializer</a>
-            </dt>
-            <dd>Initializer for a static visual-inertial system.</dd>
+            <dd>Accelerometer random walk covariance.</dd>
           </dl>
         </section>
       </div>
