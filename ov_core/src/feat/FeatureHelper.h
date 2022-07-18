@@ -136,8 +136,8 @@ public:
         size_t camid = campairs.first;
         bool found0 = false;
         bool found1 = false;
-        Eigen::Vector2f uv0;
-        Eigen::Vector2f uv1;
+        Eigen::Vector2f uv0 = Eigen::Vector2f::Zero();
+        Eigen::Vector2f uv1 = Eigen::Vector2f::Zero();
         for (size_t idx = 0; idx < feat.second->timestamps.at(camid).size(); idx++) {
           double time = feat.second->timestamps.at(camid).at(idx);
           if ((oldest_time == -1 || time > oldest_time) && !found0) {
