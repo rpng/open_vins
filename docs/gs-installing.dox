@@ -202,7 +202,7 @@ You can disable this with `catkin build -DENABLE_ARUCO_TAGS=OFF` or `cmake -DENA
 
 
 
-@section gs-install-ceres Ceres Solver
+@section gs-install-ceres Ceres Solver (from source)
 
 Ceres solver @cite ceres-solver is required for dynamic initialization and backend optimization.
 Please refer to their [documentation](http://ceres-solver.org/installation.html#linux) for specifics to your platform.

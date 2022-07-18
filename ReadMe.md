@@ -81,8 +81,8 @@ details on what the system supports.
     * Sparse feature SLAM features
 * Visual tracking support
     * Monocular camera
-    * Stereo camera
-    * Binocular (synchronized) cameras
+    * Stereo camera (synchronized)
+    * Binocular cameras (synchronized)
     * KLT or descriptor based
     * Masked tracking
 * Static and dynamic state initialization
