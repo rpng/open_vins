@@ -45,7 +45,7 @@ start_time="$(date -u +%s)"
 filename_est="$save_path_est/ov_v23_cam${cameras[i]}/${datasets[h]}/estimate_$j.txt"
 filename_gt="$save_path_gt/${datasets[h]}.txt"
 
-# run our ROS launch file (note we send console output to terminator)
+# launch the simulation script
 roslaunch ov_msckf simulation.launch \
   seed:="$((10#$j + 1))" \
   max_cameras:="${cameras[i]}" \

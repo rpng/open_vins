@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,7 +20,11 @@
  */
 
 #include "TrackAruco.h"
-#include "utils/print.h"
+
+#include "cam/CamBase.h"
+#include "feat/Feature.h"
+#include "feat/FeatureDatabase.h"
+#include "utils/opencv_lambda_body.h"
 
 using namespace ov_core;
 
@@ -58,7 +62,7 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
   rT1 = boost::posix_time::microsec_clock::local_time();
 
   // Lock this data feed for this camera
-  std::unique_lock<std::mutex> lck(mtx_feeds.at(cam_id));
+  std::lock_guard<std::mutex> lck(mtx_feeds.at(cam_id));
 
   // Histogram equalize
   cv::Mat img;
@@ -119,6 +123,7 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
 
   // ID vectors, of all currently tracked IDs
   std::vector<size_t> ids_new;
+  std::vector<cv::KeyPoint> pts_new;
 
   // Append to our feature database this new information
   for (size_t i = 0; i < ids_aruco[cam_id].size(); i++) {
@@ -135,16 +140,24 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
       // Try to undistort the point
       cv::Point2f npt_l = camera_calib.at(cam_id)->undistort_cv(corners[cam_id].at(i).at(n));
       // Append to the ids vector and database
-      ids_new.push_back((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id);
-      database->update_feature((size_t)ids_aruco[cam_id].at(i) + n * max_tag_id, timestamp, cam_id, corners[cam_id].at(i).at(n).x,
-                               corners[cam_id].at(i).at(n).y, npt_l.x, npt_l.y);
+      size_t tmp_id = (size_t)ids_aruco[cam_id].at(i) + n * max_tag_id;
+      database->update_feature(tmp_id, timestamp, cam_id, corners[cam_id].at(i).at(n).x, corners[cam_id].at(i).at(n).y, npt_l.x, npt_l.y);
+      // Append to active tracked point list
+      cv::KeyPoint kpt;
+      kpt.pt = corners[cam_id].at(i).at(n);
+      ids_new.push_back(tmp_id);
+      pts_new.push_back(kpt);
     }
   }
 
   // Move forward in time
-  img_last[cam_id] = img;
-  img_mask_last[cam_id] = maskin;
-  ids_last[cam_id] = ids_new;
+  {
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
+    img_last[cam_id] = img;
+    img_mask_last[cam_id] = maskin;
+    ids_last[cam_id] = ids_new;
+    pts_last[cam_id] = pts_new;
+  }
   rT3 = boost::posix_time::microsec_clock::local_time();
 
   // Timing information
@@ -153,16 +166,18 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
   // (int)good_left.size()); PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
 }
 
-void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) {
+void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::string overlay) {
 
   // Cache the images to prevent other threads from editing while we viz (which can be slow)
   std::map<size_t, cv::Mat> img_last_cache, img_mask_last_cache;
-  for (auto const &pair : img_last) {
-    img_last_cache.insert({pair.first, pair.second.clone()});
+  {
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
+    img_last_cache = img_last;
+    img_mask_last_cache = img_mask_last;
   }
-  for (auto const &pair : img_mask_last) {
-    img_mask_last_cache.insert({pair.first, pair.second.clone()});
-  }
+  auto ids_aruco_cache = ids_aruco;
+  auto corners_cache = corners;
+  auto rejects_cache = rejects;
 
   // Get the largest width and height
   int max_width = -1;
@@ -175,7 +190,7 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
   }
 
   // Return if we didn't have a last image
-  if (max_width == -1 || max_height == -1)
+  if (img_last_cache.empty() || max_width == -1 || max_height == -1)
     return;
 
   // If the image is "small" thus we shoudl use smaller display codes
@@ -192,8 +207,6 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
   // Loop through each image, and draw
   int index_cam = 0;
   for (auto const &pair : img_last_cache) {
-    // Lock this image
-    std::unique_lock<std::mutex> lck(mtx_feeds.at(pair.first));
     // select the subset of the image
     cv::Mat img_temp;
     if (image_new)
@@ -201,14 +214,18 @@ void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2
     else
       img_temp = img_out(cv::Rect(max_width * index_cam, 0, max_width, max_height));
     // draw...
-    if (!ids_aruco[pair.first].empty())
-      cv::aruco::drawDetectedMarkers(img_temp, corners[pair.first], ids_aruco[pair.first]);
-    if (!rejects[pair.first].empty())
-      cv::aruco::drawDetectedMarkers(img_temp, rejects[pair.first], cv::noArray(), cv::Scalar(100, 0, 255));
+    if (!ids_aruco_cache[pair.first].empty())
+      cv::aruco::drawDetectedMarkers(img_temp, corners_cache[pair.first], ids_aruco_cache[pair.first]);
+    if (!rejects_cache[pair.first].empty())
+      cv::aruco::drawDetectedMarkers(img_temp, rejects_cache[pair.first], cv::noArray(), cv::Scalar(100, 0, 255));
     // Draw what camera this is
     auto txtpt = (is_small) ? cv::Point(10, 30) : cv::Point(30, 60);
-    cv::putText(img_temp, "CAM:" + std::to_string((int)pair.first), txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0,
-                cv::Scalar(0, 255, 0), 3);
+    if (overlay == "") {
+      cv::putText(img_temp, "CAM:" + std::to_string((int)pair.first), txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0,
+                  cv::Scalar(0, 255, 0), 3);
+    } else {
+      cv::putText(img_temp, overlay, txtpt, cv::FONT_HERSHEY_COMPLEX_SMALL, (is_small) ? 1.5 : 3.0, cv::Scalar(0, 0, 255), 3);
+    }
     // Overlay the mask
     cv::Mat mask = cv::Mat::zeros(img_mask_last_cache[pair.first].rows, img_mask_last_cache[pair.first].cols, CV_8UC3);
     mask.setTo(cv::Scalar(0, 0, 255), img_mask_last_cache[pair.first]);

@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,13 +24,14 @@
 
 #include <Eigen/Eigen>
 #include <iostream>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "state/Propagator.h"
 #include "state/StateOptions.h"
 #include "update/UpdaterOptions.h"
+#include "utils/NoiseManager.h"
 
 #include "init/InertialInitializerOptions.h"
 
@@ -132,7 +133,7 @@ struct VioManagerOptions {
   // NOISE / CHI2 ============================
 
   /// Continuous-time IMU noise (gyroscope and accelerometer)
-  Propagator::NoiseManager imu_noises;
+  NoiseManager imu_noises;
 
   /// Update options for MSCKF features (pixel noise and chi2 multiplier)
   UpdaterOptions msckf_options;
@@ -410,6 +411,9 @@ struct VioManagerOptions {
   /// If our front-end should try to use some multi-threading for stereo matching
   bool use_multi_threading = true;
 
+  /// If our ROS subscriber callbacks should be async (if sim and serial then this should be no!)
+  bool use_multi_threading_subs = false;
+
   /// The number of points we should extract and track in *each* image frame. This highly effects the computation required for tracking.
   int num_pts = 150;
 
@@ -431,6 +435,9 @@ struct VioManagerOptions {
   /// KNN ration between top two descriptor matcher which is required to be a good match
   double knn_ratio = 0.85;
 
+  /// Frequency we want to track images at (higher freq ones will be dropped)
+  double track_frequency = 20.0;
+
   /// Parameters used by our feature initialize / triangulator
   ov_core::FeatureInitializerOptions featinit_options;
 
@@ -448,6 +455,7 @@ struct VioManagerOptions {
       parser->parse_config("downsize_aruco", downsize_aruco);
       parser->parse_config("downsample_cameras", downsample_cameras);
       parser->parse_config("multi_threading", use_multi_threading);
+      parser->parse_config("multi_threading_subs", use_multi_threading_subs, false);
       parser->parse_config("num_pts", num_pts);
       parser->parse_config("fast_threshold", fast_threshold);
       parser->parse_config("grid_x", grid_x);
@@ -469,6 +477,7 @@ struct VioManagerOptions {
         std::exit(EXIT_FAILURE);
       }
       parser->parse_config("knn_ratio", knn_ratio);
+      parser->parse_config("track_frequency", track_frequency);
     }
     PRINT_DEBUG("FEATURE TRACKING PARAMETERS:\n");
     PRINT_DEBUG("  - use_stereo: %d\n", use_stereo);
@@ -477,12 +486,14 @@ struct VioManagerOptions {
     PRINT_DEBUG("  - downsize aruco: %d\n", downsize_aruco);
     PRINT_DEBUG("  - downsize cameras: %d\n", downsample_cameras);
     PRINT_DEBUG("  - use multi-threading: %d\n", use_multi_threading);
+    PRINT_DEBUG("  - use multi-threading subs: %d\n", use_multi_threading_subs);
     PRINT_DEBUG("  - num_pts: %d\n", num_pts);
     PRINT_DEBUG("  - fast threshold: %d\n", fast_threshold);
     PRINT_DEBUG("  - grid X by Y: %d by %d\n", grid_x, grid_y);
     PRINT_DEBUG("  - min px dist: %d\n", min_px_dist);
     PRINT_DEBUG("  - hist method: %d\n", (int)histogram_method);
     PRINT_DEBUG("  - knn ratio: %.3f\n", knn_ratio);
+    PRINT_DEBUG("  - track frequency: %.1f\n", track_frequency);
     featinit_options.print(parser);
   }
 

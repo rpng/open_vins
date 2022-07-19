@@ -17,10 +17,12 @@ details on what the system supports.
 * Github project page - https://github.com/rpng/open_vins
 * Documentation - https://docs.openvins.com/
 * Getting started guide - https://docs.openvins.com/getting-started.html
-* Publication reference - http://udel.edu/~pgeneva/downloads/papers/c10.pdf
+* Publication reference - https://pgeneva.com/downloads/papers/Geneva2020ICRA.pdf
 
 ## News / Events
 
+* **July 14, 2022** - Improved feature extraction logic for >100hz tracking, some bug fixes and updated scripts. See v2.6.1 [PR#259](https://github.com/rpng/open_vins/pull/259).
+* **March 14, 2022** - Initial dynamic initialization open sourcing, asynchronous subscription to inertial readings and publishing of odometry, support for lower frequency feature tracking. See v2.6 [PR#232](https://github.com/rpng/open_vins/pull/232) for details.
 * **December 13, 2021** - New YAML configuration system, ROS2 support, Docker images, robust static initialization based on disparity, internal logging system to reduce verbosity, image transport publishers, dynamic number of features support, and other small fixes. See
   v2.5 [PR#209](https://github.com/rpng/open_vins/pull/209) for details.
 * **July 19, 2021** - Camera classes, masking support, alignment utility, and other small fixes. See
@@ -79,16 +81,30 @@ details on what the system supports.
     * Sparse feature SLAM features
 * Visual tracking support
     * Monocular camera
-    * Stereo camera
-    * Binocular camera
+    * Stereo camera (synchronized)
+    * Binocular cameras (synchronized)
     * KLT or descriptor based
     * Masked tracking
-* Static IMU initialization (sfm will be open sourced later)
+* Static and dynamic state initialization
 * Zero velocity detection and updates
 * Out of the box evaluation on EurocMav, TUM-VI, UZH-FPV, KAIST Urban and VIO datasets
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
 ## Codebase Extensions
+
+* **[vicon2gt](https://github.com/rpng/vicon2gt)** - This utility was created to generate groundtruth trajectories using
+  a motion capture system (e.g. Vicon or OptiTrack) for use in evaluating visual-inertial estimation systems.
+  Specifically we calculate the inertial IMU state (full 15 dof) at camera frequency rate and generate a groundtruth
+  trajectory similar to those provided by the EurocMav datasets. Performs fusion of inertial and motion capture
+  information and estimates all unknown spacial-temporal calibrations between the two sensors.
+
+* **[ov_maplab](https://github.com/rpng/ov_maplab)** - This codebase contains the interface wrapper for exporting
+  visual-inertial runs from [OpenVINS](https://github.com/rpng/open_vins) into the ViMap structure taken
+  by [maplab](https://github.com/ethz-asl/maplab). The state estimates and raw images are appended to the ViMap as
+  OpenVINS runs through a dataset. After completion of the dataset, features are re-extract and triangulate with
+  maplab's feature system. This can be used to merge multi-session maps, or to perform a batch optimization after first
+  running the data through OpenVINS. Some example have been provided along with a helper script to export trajectories
+  into the standard groundtruth format.
 
 * **[ov_secondary](https://github.com/rpng/ov_secondary)** - This is an example secondary thread which provides loop
   closure in a loosely coupled manner for [OpenVINS](https://github.com/rpng/open_vins). This is a modification of the
@@ -99,19 +115,6 @@ details on what the system supports.
   camera intrinsics, simplifying configuration such that only topics need to be supplied, and some tweaks to the loop
   closure detection to improve frequency.
 
-* **[ov_maplab](https://github.com/rpng/ov_maplab)** - This codebase contains the interface wrapper for exporting
-  visual-inertial runs from [OpenVINS](https://github.com/rpng/open_vins) into the ViMap structure taken
-  by [maplab](https://github.com/ethz-asl/maplab). The state estimates and raw images are appended to the ViMap as
-  OpenVINS runs through a dataset. After completion of the dataset, features are re-extract and triangulate with
-  maplab's feature system. This can be used to merge multi-session maps, or to perform a batch optimization after first
-  running the data through OpenVINS. Some example have been provided along with a helper script to export trajectories
-  into the standard groundtruth format.
-
-* **[vicon2gt](https://github.com/rpng/vicon2gt)** - This utility was created to generate groundtruth trajectories using
-  a motion capture system (e.g. Vicon or OptiTrack) for use in evaluating visual-inertial estimation systems.
-  Specifically we calculate the inertial IMU state (full 15 dof) at camera frequency rate and generate a groundtruth
-  trajectory similar to those provided by the EurocMav datasets. Performs fusion of inertial and motion capture
-  information and estimates all unknown spacial-temporal calibrations between the two sensors.
 
 ## Demo Videos
 
@@ -127,6 +130,9 @@ details on what the system supports.
 <a href="http://www.youtube.com/watch?v=MCzTF9ye2zw">
    <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/MCzTF9ye2zw.jpg"  width="120" height="90"/>
 </a>
+<a href="http://www.youtube.com/watch?v=eSQLWcNrx_I">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/eSQLWcNrx_I.jpg" width="120" height="90" />
+</a>
 <br/>
 
 <a href="http://www.youtube.com/watch?v=187AXuuGNNw">
@@ -138,6 +144,10 @@ details on what the system supports.
 <a href="http://www.youtube.com/watch?v=ExPIGwORm4E">
    <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/ExPIGwORm4E.jpg" width="120" height="90" />
 </a>
+<a href="http://www.youtube.com/watch?v=lXHl-qgLGl8">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/lXHl-qgLGl8.jpg" width="120" height="90" />
+</a>
+
 
 
 ## Credit / Licensing
@@ -158,6 +168,7 @@ following:
 }
 ```
 
-The codebase is licensed under the [GNU General Public License v3 (GPL-3)](https://www.gnu.org/licenses/gpl-3.0.txt).
+The codebase and documentation is licensed under the [GNU General Public License v3 (GPL-3)](https://www.gnu.org/licenses/gpl-3.0.txt).
+You must preserve the copyright and license notices in your derivative work and make available the complete source code with modifications under the same license ([see this](https://choosealicense.com/licenses/gpl-3.0/); this is not legal advice).
 
 

@@ -22,10 +22,20 @@ Please see the official instructions to install ROS:
 
 
 We do support ROS-free builds, but don't recommend using this interface as we have limited support for it.
-You will need to ensure you have installed OpenCV and Eigen3 which are the only dependencies.
+You will need to ensure you have installed OpenCV 3 or 4, Eigen3, and Ceres which are the only dependencies.
+For Ubuntu linux-based system the system dependencies are:
+
+@code{.shell-session}
+sudo apt-get install libeigen3-dev libboost-all-dev libceres-dev
+@endcode
+
+
 If ROS is not found on the system, one can use command line options to run the simulation without any visualization or `cmake -DENABLE_ROS=OFF ..`.
 If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
-The simulator can give you and example on how to do this.
+The simulator binary `run_simulation` can give you and example on how to do this.
+
+
+
 
 @subsection gs-install-ros-1 ROS1 Install
 
@@ -37,8 +47,9 @@ sudo apt-key adv --keyserver 'hkp://keyserver.ubuntu.com:80' --recv-key C1CF6E31
 sudo apt-get update
 export ROS1_DISTRO=noetic # kinetic=16.04, melodic=18.04, noetic=20.04
 sudo apt-get install ros-$ROS1_DISTRO-desktop-full
-sudo apt-get install libeigen3-dev python-catkin-tools # ubuntu 16.04, 18.04
-sudo apt-get install libeigen3-dev python3-catkin-tools python3-osrf-pycommon # ubuntu 20.04
+sudo apt-get install python-catkin-tools # ubuntu 16.04, 18.04
+sudo apt-get install python3-catkin-tools python3-osrf-pycommon # ubuntu 20.04
+sudo apt-get install libeigen3-dev libboost-all-dev libceres-dev
 @endcode
 
 If you only have ROS1 on your system and are not cross installing ROS2, then you can run the following to append this to your bashrc file.
@@ -73,6 +84,7 @@ sudo apt-get update
 export ROS2_DISTRO=galactic # dashing=18.04, galactic=20.04
 sudo apt install ros-$ROS2_DISTRO-desktop
 sudo apt-get install ros-$ROS2_DISTRO-ros2bag ros-$ROS2_DISTRO-rosbag2* # rosbag utilities (seems to be separate)
+sudo apt-get install libeigen3-dev libboost-all-dev libceres-dev
 @endcode
 
 If you only have ROS2 on your system and are not cross installing ROS1, then you can run the following to append this to your bashrc file.
@@ -133,6 +145,16 @@ cmake ..
 make -j4
 @endcode
 
+If you wish to debug and run with assert statements, you can configure your workspace as follows:
+
+
+@code{.shell-session}
+catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug
+catkin build --cmake-args -DCMAKE_BUILD_TYPE=Debug
+colcon build --cmake-args -DCMAKE_BUILD_TYPE=Debug
+@endcode
+
+
 
 @section gs-install-oveval Additional Evaluation Requirements
 
@@ -159,7 +181,7 @@ One should make sure you can see some of the "contrib" (e.g. aruco) when you cma
 
 @m_class{m-block m-warning}
 
-@par OpenCV Install
+@par OpenCV Source Installation
     Try to first build with your system / ROS OpenCV.
     Only fall back onto this if it does not allow you to compile, or want a newer version!
 
@@ -178,5 +200,34 @@ The ArucoTag tracker depends on a non-free module in the contrib repository, thu
 You can disable this with `catkin build -DENABLE_ARUCO_TAGS=OFF` or `cmake -DENABLE_ARUCO_TAGS=OFF ..` in your build folder.
 
 
+
+
+@section gs-install-ceres Ceres Solver (from source)
+
+Ceres solver @cite ceres-solver is required for dynamic initialization and backend optimization.
+Please refer to their [documentation](http://ceres-solver.org/installation.html#linux) for specifics to your platform.
+It should be able to build on most platforms (including ARM android devices).
+To install we can perform the following:
+
+
+@m_class{m-block m-warning}
+
+@par Ceres Source Installation
+    Try to first build with your system with `sudo apt-get install libceres-dev`.
+    Only fall back onto this if it does not allow you to compile, or want a newer version!
+    You will need to build from source if there is an Eigen miss-match:
+    "Failed to find Ceres - Found Eigen dependency, but the version of Eigen found (3.3.7) does not exactly match the version of Eigen Ceres was compiled with (3.3.4)."
+
+@code{.shell-session}
+sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev
+CERES_VERSION="2.0.0"
+git clone https://ceres-solver.googlesource.com/ceres-solver
+cd ceres-solver
+git checkout tags/${CERES_VERSION}
+mkdir build && cd build
+cmake ..
+make
+sudo make install
+@endcode
 
 */

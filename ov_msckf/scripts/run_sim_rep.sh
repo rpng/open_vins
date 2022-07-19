@@ -63,7 +63,7 @@ fi
 filename_est="$save_path_est/${representations[i]}$temp/${datasets[m]}/estimate_$j.txt"
 filename_gt="$save_path_gt/${datasets[m]}.txt"
 
-# run our ROS launch file (note we send console output to terminator)
+# launch the simulation script
 roslaunch ov_msckf simulation.launch \
   seed:="$((10#$j + 1))" \
   dataset:="${datasets[m]}.txt" \

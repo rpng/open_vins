@@ -1,7 +1,7 @@
 %YAML:1.0
 
 cam0:
-  T_imu_cam: #rotation from camera to IMU, position of IMU in camera
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
     - [-0.99997806, -0.00600501,  0.0027968,   0.03847796]
     - [0.00601449, -0.99997615,  0.00339343, -0.0045601]
     - [0.00277635,  0.00341018,  0.99999033,  0.00418038]
@@ -14,7 +14,7 @@ cam0:
   resolution: [752, 480]
   rostopic: /cam0/image_raw
 cam1:
-  T_imu_cam: #rotation from camera to IMU, position of IMU in camera
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
     - [-0.99984421, -0.00389232,  0.01721638, -0.07075565]
     - [0.00394176, -0.9999882,   0.0028389,  -0.00418534]
     - [0.01720512,  0.00290632,  0.99984776,  0.00388861]

@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -168,10 +168,10 @@ public:
   /// Gyroscope gravity sensitivity
   std::shared_ptr<ov_type::Vec> _calib_imu_tg;
 
-  /// Rotation from gyroscope frame to the "IMU" accelerometer frame
+  /// Rotation from gyroscope frame to the "IMU" accelerometer frame (kalibr model)
   std::shared_ptr<ov_type::JPLQuat> _calib_imu_GYROtoIMU;
 
-  /// Rotation from accelerometer to the "IMU" gyroscope frame frame
+  /// Rotation from accelerometer to the "IMU" gyroscope frame frame (rpng model)
   std::shared_ptr<ov_type::JPLQuat> _calib_imu_ACCtoIMU;
 
 private:

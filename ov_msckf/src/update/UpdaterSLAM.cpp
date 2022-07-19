@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -21,9 +21,42 @@
 
 #include "UpdaterSLAM.h"
 
+#include "UpdaterHelper.h"
+
+#include "feat/Feature.h"
+#include "feat/FeatureInitializer.h"
+#include "state/State.h"
+#include "state/StateHelper.h"
+#include "types/Landmark.h"
+#include "types/LandmarkRepresentation.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+#include "utils/quat_ops.h"
+
+#include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/math/distributions/chi_squared.hpp>
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
+
+UpdaterSLAM::UpdaterSLAM(UpdaterOptions &options_slam, UpdaterOptions &options_aruco, ov_core::FeatureInitializerOptions &feat_init_options)
+    : _options_slam(options_slam), _options_aruco(options_aruco) {
+
+  // Save our raw pixel noise squared
+  _options_slam.sigma_pix_sq = std::pow(_options_slam.sigma_pix, 2);
+  _options_aruco.sigma_pix_sq = std::pow(_options_aruco.sigma_pix, 2);
+
+  // Save our feature initializer
+  initializer_feat = std::shared_ptr<ov_core::FeatureInitializer>(new ov_core::FeatureInitializer(feat_init_options));
+
+  // Initialize the chi squared test table with confidence level 0.95
+  // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
+  for (int i = 1; i < 500; i++) {
+    boost::math::chi_squared chi_squared_dist(i);
+    chi_squared_table[i] = boost::math::quantile(chi_squared_dist, 0.95);
+  }
+}
 
 void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec) {
 
@@ -32,7 +65,7 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
     return;
 
   // Start timing
-  boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+  boost::posix_time::ptime rT0, rT1, rT2, rT3;
   rT0 = boost::posix_time::microsec_clock::local_time();
 
   // 0. Get all timestamps our clones are at (and thus valid measurement times)
@@ -91,15 +124,15 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
     // Triangulate the feature and remove if it fails
     bool success_tri = true;
     if (initializer_feat->config().triangulate_1d) {
-      success_tri = initializer_feat->single_triangulation_1d(it1->get(), clones_cam);
+      success_tri = initializer_feat->single_triangulation_1d(*it1, clones_cam);
     } else {
-      success_tri = initializer_feat->single_triangulation(it1->get(), clones_cam);
+      success_tri = initializer_feat->single_triangulation(*it1, clones_cam);
     }
 
     // Gauss-newton refine the feature
     bool success_refine = true;
     if (initializer_feat->config().refine_features) {
-      success_refine = initializer_feat->single_gaussnewton(it1->get(), clones_cam);
+      success_refine = initializer_feat->single_gaussnewton(*it1, clones_cam);
     }
 
     // Remove the feature if not a success
@@ -224,7 +257,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     return;
 
   // Start timing
-  boost::posix_time::ptime rT0, rT1, rT2, rT3, rT4, rT5, rT6, rT7;
+  boost::posix_time::ptime rT0, rT1, rT2, rT3;
   rT0 = boost::posix_time::microsec_clock::local_time();
 
   // 0. Get all timestamps our clones are at (and thus valid measurement times)
@@ -375,9 +408,12 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     double chi2_multipler =
         ((int)feat.featid < state->_options.max_aruco_features) ? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
     if (chi2 > chi2_multipler * chi2_check) {
-      if ((int)feat.featid < state->_options.max_aruco_features)
+      if ((int)feat.featid < state->_options.max_aruco_features) {
         PRINT_WARNING(YELLOW "[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)\n" RESET, (int)feat.featid, chi2,
                       chi2_multipler * chi2_check);
+      } else {
+        landmark->should_marg = true;
+      }
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
       continue;

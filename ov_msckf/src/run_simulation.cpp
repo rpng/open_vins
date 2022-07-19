@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -91,6 +91,8 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
+  params.use_multi_threading = false; // for repeatability
+  params.use_multi_threading_subs = false;
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
 #if ROS_AVAILABLE == 1
@@ -110,8 +112,10 @@ int main(int argc, char **argv) {
   //===================================================================================
 
   // Get initial state
+  // NOTE: we are getting it at the *next* timestep so we get the first IMU message
+  double next_imu_time = sim->current_timestamp() + 1.0 / params.sim_freq_imu;
   Eigen::Matrix<double, 17, 1> imustate;
-  bool success = sim->get_state(sim->current_timestamp(), imustate);
+  bool success = sim->get_state(next_imu_time, imustate);
   if (!success) {
     PRINT_ERROR(RED "[SIM]: Could not initialize the filter to the first state\n" RESET);
     PRINT_ERROR(RED "[SIM]: Did the simulator load properly???\n" RESET);
@@ -135,12 +139,12 @@ int main(int argc, char **argv) {
   std::vector<std::vector<std::pair<size_t, Eigen::VectorXf>>> buffer_feats;
 
   // Step through the rosbag
-  signal(SIGINT, signal_callback_handler);
 #if ROS_AVAILABLE == 1
   while (sim->ok() && ros::ok()) {
 #elif ROS_AVAILABLE == 2
   while (sim->ok() && rclcpp::ok()) {
 #else
+  signal(SIGINT, signal_callback_handler);
   while (sim->ok()) {
 #endif
 
@@ -150,7 +154,8 @@ int main(int argc, char **argv) {
     if (hasimu) {
       sys->feed_measurement_imu(message_imu);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
-      viz->visualize_odometry(message_imu.timestamp);
+      // TODO: fix this, can be slow at high frequency...
+      // viz->visualize_odometry(message_imu.timestamp - sim->get_true_parameters().calib_camimu_dt);
 #endif
     }
 
@@ -161,6 +166,9 @@ int main(int argc, char **argv) {
     bool hascam = sim->get_next_cam(time_cam, camids, feats);
     if (hascam) {
       if (buffer_timecam != -1) {
+#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
+        viz->visualize_odometry(buffer_timecam);
+#endif
         sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
         viz->visualize();

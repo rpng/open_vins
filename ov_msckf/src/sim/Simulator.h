@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -30,14 +30,11 @@
 #include <string>
 #include <unordered_map>
 
-#include "cam/CamBase.h"
-#include "cam/CamEqui.h"
-#include "cam/CamRadtan.h"
-#include "sim/BsplineSE3.h"
-#include "utils/colors.h"
-#include "utils/dataset_reader.h"
-
 #include "core/VioManagerOptions.h"
+
+namespace ov_core {
+class BsplineSE3;
+} // namespace ov_core
 
 namespace ov_msckf {
 
@@ -158,7 +155,7 @@ protected:
   std::vector<Eigen::VectorXd> traj_data;
 
   /// Our b-spline trajectory
-  ov_core::BsplineSE3 spline;
+  std::shared_ptr<ov_core::BsplineSE3> spline;
 
   /// Our map of 3d features
   size_t id_map = 0;
@@ -199,6 +196,7 @@ protected:
   Eigen::Vector3d true_bias_gyro = Eigen::Vector3d::Zero();
 
   // Our history of true biases
+  bool has_skipped_first_bias = false;
   std::vector<double> hist_true_bias_time;
   std::vector<Eigen::Vector3d> hist_true_bias_accel;
   std::vector<Eigen::Vector3d> hist_true_bias_gyro;

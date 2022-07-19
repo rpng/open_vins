@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -45,17 +45,25 @@
 #include <tf2_geometry_msgs/tf2_geometry_msgs.h>
 #include <tf2_ros/transform_broadcaster.h>
 
+#include <atomic>
+#include <fstream>
+#include <memory>
+#include <mutex>
+
+#include <Eigen/Eigen>
+#include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 
-#include "core/VioManager.h"
-#include "ros/RosVisualizerHelper.h"
-#include "sim/Simulator.h"
-#include "utils/dataset_reader.h"
-#include "utils/print.h"
-#include "utils/sensor_data.h"
+namespace ov_core {
+class YamlParser;
+struct CameraData;
+} // namespace ov_core
 
 namespace ov_msckf {
+
+class VioManager;
+class Simulator;
 
 /**
  * @brief Helper class that will publish results onto the ROS framework.
@@ -160,8 +168,8 @@ protected:
   // Groundtruth infomation
   rclcpp::Publisher<nav_msgs::msg::Path>::SharedPtr pub_pathgt;
   rclcpp::Publisher<geometry_msgs::msg::PoseStamped>::SharedPtr pub_posegt;
-  double summed_rmse_ori = 0.0;
-  double summed_rmse_pos = 0.0;
+  double summed_mse_ori = 0.0;
+  double summed_mse_pos = 0.0;
   double summed_nees_ori = 0.0;
   double summed_nees_pos = 0.0;
   size_t summed_number = 0;
@@ -170,8 +178,22 @@ protected:
   bool start_time_set = false;
   boost::posix_time::ptime rT1, rT2;
 
+  // Thread atomics
+  std::atomic<bool> thread_update_running;
+
+  /// Queue up camera measurements sorted by time and trigger once we have
+  /// exactly one IMU measurement with timestamp newer than the camera measurement
+  /// This also handles out-of-order camera measurements, which is rare, but
+  /// a nice feature to have for general robustness to bad camera drivers.
+  std::deque<ov_core::CameraData> camera_queue;
+  std::mutex camera_queue_mtx;
+
+  // Last camera message timestamps we have received (mapped by cam id)
+  std::map<int, double> camera_last_timestamp;
+
   // Last timestamp we visualized at
   double last_visualization_timestamp = 0;
+  double last_visualization_timestamp_image = 0;
 
   // Our groundtruth states
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;
@@ -182,7 +204,7 @@ protected:
   bool publish_calibration_tf = true;
 
   // Files and if we should save total state
-  bool save_total_state;
+  bool save_total_state = false;
   std::ofstream of_state_est, of_state_std, of_state_gt;
 };
 

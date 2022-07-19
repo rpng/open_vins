@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -253,8 +253,8 @@ void ResultTrajectory::calculate_nees(Statistics &nees_ori, Statistics &nees_pos
 
     // Calculate orientation error
     // NOTE: we define our error as e_R = -Log(R*Rhat^T)
-    Eigen::Matrix3d e_R =
-        ov_core::quat_2_Rot(gt_poses.at(i).block(3, 0, 4, 1)) * ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose();
+    Eigen::Matrix3d e_R = ov_core::quat_2_Rot(gt_poses_aignedtoEST.at(i).block(3, 0, 4, 1)) *
+                          ov_core::quat_2_Rot(est_poses.at(i).block(3, 0, 4, 1)).transpose();
     Eigen::Vector3d errori = -ov_core::log_so3(e_R);
     // Eigen::Vector4d e_q = Math::quat_multiply(gt_poses_aignedtoEST.at(i).block(3,0,4,1),Math::Inv(est_poses.at(i).block(3,0,4,1)));
     // Eigen::Vector3d errori = 2*e_q.block(0,0,3,1);

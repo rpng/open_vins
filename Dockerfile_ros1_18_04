@@ -16,8 +16,19 @@ FROM osrf/ros:melodic-desktop-full
 RUN apt-get update && apt-get install -y libeigen3-dev nano git
 RUN sudo apt-get install -y python-catkin-tools
 
+# Ceres solver install and setup
+RUN sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libceres-dev
+# ENV CERES_VERSION="2.0.0"
+# RUN git clone https://ceres-solver.googlesource.com/ceres-solver && \
+#     cd ceres-solver && \
+#     git checkout tags/${CERES_VERSION} && \
+#     mkdir build && cd build && \
+#     cmake .. && \
+#     make -j$(nproc) install && \
+#     rm -rf ../../ceres-solver
+
 # Seems this has Python 3.6 installed on it...
-RUN sudo apt-get install -y python3-dev python3-matplotlib python3-numpy python3-psutil python3-tk
+RUN apt-get update && apt-get install -y python3-dev python3-matplotlib python3-numpy python3-psutil python3-tk
 
 # Install deps needed for clion remote debugging
 # https://blog.jetbrains.com/clion/2020/01/using-docker-with-clion/

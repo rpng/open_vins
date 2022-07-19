@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -82,6 +82,79 @@ public:
         // Now lets calculate the disparity
         Eigen::Vector2f uv0 = feat->uvs.at(camid).at(idx0).block(0, 0, 2, 1);
         Eigen::Vector2f uv1 = feat->uvs.at(camid).at(idx1).block(0, 0, 2, 1);
+        disparities.push_back((uv1 - uv0).norm());
+      }
+    }
+
+    // If no disparities, just return
+    if (disparities.size() < 2) {
+      disp_mean = -1;
+      disp_var = -1;
+      total_feats = 0;
+    }
+
+    // Compute mean and standard deviation in respect to it
+    disp_mean = 0;
+    for (double disp_i : disparities) {
+      disp_mean += disp_i;
+    }
+    disp_mean /= (double)disparities.size();
+    disp_var = 0;
+    for (double &disp_i : disparities) {
+      disp_var += std::pow(disp_i - disp_mean, 2);
+    }
+    disp_var = std::sqrt(disp_var / (double)(disparities.size() - 1));
+    total_feats = (int)disparities.size();
+  }
+
+  /**
+   * @brief This functions will compute the disparity over all features we have
+   *
+   * NOTE: this is on the RAW coordinates of the feature not the normalized ones.
+   * NOTE: This computes the disparity over all cameras!
+   *
+   * @param db Feature database pointer
+   * @param disp_mean Average raw disparity
+   * @param disp_var Variance of the disparities
+   * @param total_feats Total number of common features
+   * @param newest_time Only compute disparity for ones older (-1 to disable)
+   * @param oldest_time Only compute disparity for ones newer (-1 to disable)
+   */
+  static void compute_disparity(std::shared_ptr<ov_core::FeatureDatabase> db, double &disp_mean, double &disp_var, int &total_feats,
+                                double newest_time = 1, double oldest_time = 1) {
+
+    // Compute the disparity
+    std::vector<double> disparities;
+    for (auto &feat : db->get_internal_data()) {
+      for (auto &campairs : feat.second->timestamps) {
+
+        // Skip if only one observation
+        if (campairs.second.size() < 2)
+          continue;
+
+        // Now lets calculate the disparity (assumes time array is monotonic)
+        size_t camid = campairs.first;
+        bool found0 = false;
+        bool found1 = false;
+        Eigen::Vector2f uv0 = Eigen::Vector2f::Zero();
+        Eigen::Vector2f uv1 = Eigen::Vector2f::Zero();
+        for (size_t idx = 0; idx < feat.second->timestamps.at(camid).size(); idx++) {
+          double time = feat.second->timestamps.at(camid).at(idx);
+          if ((oldest_time == -1 || time > oldest_time) && !found0) {
+            uv0 = feat.second->uvs.at(camid).at(idx).block(0, 0, 2, 1);
+            found0 = true;
+            continue;
+          }
+          if ((newest_time == -1 || time < newest_time) && found0) {
+            uv1 = feat.second->uvs.at(camid).at(idx).block(0, 0, 2, 1);
+            found1 = true;
+            continue;
+          }
+        }
+
+        // If we found both an old and a new time, then we are good!
+        if (!found0 || !found1)
+          continue;
         disparities.push_back((uv1 - uv0).norm());
       }
     }

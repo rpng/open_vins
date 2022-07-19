@@ -1,7 +1,7 @@
 %YAML:1.0
 
 cam0:
-  T_imu_cam: #rotation from camera to IMU, position of IMU in camera
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
     - [0.99992127, -0.0078594, 0.0097819, -0.05845078]
     - [0.00784873, 0.99996856, 0.00112822, -0.00728728]
     - [-0.00979046, -0.00105136, 0.99995152, 0.0623674]
@@ -16,7 +16,7 @@ cam0:
   timeshift_cam_imu: 0.00621
 
 cam1:
-  T_imu_cam: #rotation from camera to IMU, position of IMU in camera
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
     - [0.99995933, 0.00327998, 0.00840069, 0.00793529]
     - [-0.00328309, 0.99999455, 0.000356, -0.00716413]
     - [-0.00839948, -0.00038357, 0.99996465, 0.06245421]

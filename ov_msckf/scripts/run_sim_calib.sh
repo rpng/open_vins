@@ -45,13 +45,10 @@ for n in "${!sim_do_perturbation[@]}"; do
 # Monte Carlo runs for this dataset
 for j in {00..02}; do
 
-
 filename_est="$save_path_est/calib_${sim_do_calibration[m]}/perturb_${sim_do_perturbation[n]}/${datasets[h]}/estimate_$j.txt"
 filename_gt="$save_path_gt/${datasets[h]}.txt"
 
-#===============================================
-# Start Monte Carlo Simulations
-#===============================================
+# launch the simulation script
 start_time="$(date -u +%s)"
 roslaunch ov_msckf simulation.launch \
   seed:="$((10#$j + 1))" \
@@ -61,11 +58,13 @@ roslaunch ov_msckf simulation.launch \
   dosave_pose:="true" \
   path_est:="$filename_est" \
   path_gt:="$filename_gt" &> /dev/null
+
+
+# print out the time elapsed
 end_time="$(date -u +%s)"
 elapsed="$(($end_time-$start_time))"
-echo "BASH: ${datasets[h]} - calib_${sim_do_calibration[m]} - perturb_${sim_do_perturbation[n]} - run $j took $elapsed seconds";
-#===============================================
-#===============================================
+echo "BASH: ${datasets[m]} - calib_${sim_do_calibration[m]} - perturb_${sim_do_perturbation[n]} - run $j took $elapsed seconds";
+
 
 done
 done

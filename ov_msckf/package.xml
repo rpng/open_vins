@@ -3,7 +3,7 @@
 
     <!-- Package Information -->
     <name>ov_msckf</name>
-    <version>2.5.0</version>
+    <version>2.6.0</version>
     <description>
         Implementation of a type-based error-state Kalman filter.
     </description>
@@ -40,6 +40,7 @@
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
     <depend condition="$ROS_VERSION == 2">rclcpp</depend>
     <depend condition="$ROS_VERSION == 2">tf2_ros</depend>
+    <depend condition="$ROS_VERSION == 2">tf2_geometry_msgs</depend>
     <depend condition="$ROS_VERSION == 2">std_msgs</depend>
     <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
     <depend condition="$ROS_VERSION == 2">sensor_msgs</depend>
@@ -54,6 +55,7 @@
     <depend>libopencv-dev</depend>
     <depend>libopencv-contrib-dev</depend>
     <depend>boost</depend>
+    <depend>libceres-dev</depend>
 
     <!-- Note the export is required to expose the executables -->
     <export>

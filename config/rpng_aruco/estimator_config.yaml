@@ -2,10 +2,10 @@
 
 verbosity: "INFO" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
 
-use_fej: true # if we should use first-estimate Jacobians (enable for good consistency)
+use_fej: true # if first-estimate Jacobians should be used (enable for good consistency)
 integration: "rk4" # discrete, rk4, analytical (if rk4 or analytical used then analytical covariance propagation is used)
 use_stereo: true # if we have more than 1 camera, if we should try to track stereo constraints
-max_cameras: 2
+max_cameras: 2 # how many cameras we have 1 = mono, 2 = stereo, >2 = binocular (all mono tracking)
 
 calib_cam_extrinsics: true
 calib_cam_intrinsics: true
@@ -13,10 +13,10 @@ calib_cam_timeoffset: true
 calib_imu_intrinsics: false
 calib_imu_g_sensitivity: false
 
-max_clones: 15
-max_slam: 75
+max_clones: 11
+max_slam: 50
 max_slam_in_update: 25
-max_msckf_in_update: 40
+max_msckf_in_update: 50
 dt_slam_delay: 2
 
 gravity_mag: 9.81
@@ -27,7 +27,7 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
-try_zupt: true
+try_zupt: false
 zupt_chi2_multipler: 0 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
 zupt_noise_multiplier: 50
@@ -37,10 +37,27 @@ zupt_only_at_beginning: true
 # ==================================================================
 # ==================================================================
 
-init_window_time: 0.5
+init_window_time: 2.0
 init_imu_thresh: 1.2
-init_max_disparity: 1.5
-init_max_features: 50
+init_max_disparity: 2.0
+init_max_features: 75
+
+init_dyn_use: false
+init_dyn_mle_opt_calib: false
+init_dyn_mle_max_iter: 50
+init_dyn_mle_max_time: 0.05
+init_dyn_mle_max_threads: 6
+init_dyn_num_pose: 6
+init_dyn_min_deg: 10.0
+
+init_dyn_inflation_ori: 10
+init_dyn_inflation_vel: 100
+init_dyn_inflation_bg: 10
+init_dyn_inflation_ba: 100
+init_dyn_min_rec_cond: 1e-20
+
+init_dyn_bias_g: [0.0, 0.0, 0.0]
+init_dyn_bias_a: [0.0, 0.0, 0.0]
 
 # ==================================================================
 # ==================================================================
@@ -60,11 +77,12 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
 num_pts: 150
-fast_threshold: 15
-grid_x: 20
-grid_y: 20
+fast_threshold: 30
+grid_x: 5
+grid_y: 5
 min_px_dist: 20
 knn_ratio: 0.85
+track_frequency: 21.0
 downsample_cameras: false
 multi_threading: true
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
@@ -79,12 +97,12 @@ downsize_aruco: true
 # ==================================================================
 
 # camera noises and chi-squared threshold multipliers
-up_msckf_sigma_px: 1
+up_msckf_sigma_px: 1.5
 up_msckf_chi2_multipler: 1
-up_slam_sigma_px: 1
+up_slam_sigma_px: 1.5
 up_slam_chi2_multipler: 1
-up_aruco_sigma_px: 1
-up_aruco_chi2_multipler: 8
+up_aruco_sigma_px: 2.0
+up_aruco_chi2_multipler: 10
 
 # masks for our images
 use_mask: false

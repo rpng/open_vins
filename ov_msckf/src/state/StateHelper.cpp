@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,14 @@
  */
 
 #include "StateHelper.h"
+
+#include "state/State.h"
+
+#include "types/Landmark.h"
+#include "utils/colors.h"
+#include "utils/print.h"
+
+#include <boost/math/distributions/chi_squared.hpp>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -54,10 +62,10 @@ void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector
   }
 
   // Assert that we have correct sizes
-  assert(size_order_NEW == Phi.rows());
-  assert(size_order_OLD == Phi.cols());
-  assert(size_order_NEW == Q.cols());
-  assert(size_order_NEW == Q.rows());
+  assert_r(size_order_NEW == Phi.rows());
+  assert_r(size_order_OLD == Phi.cols());
+  assert_r(size_order_NEW == Q.cols());
+  assert_r(size_order_NEW == Q.rows());
 
   // Get the location in small phi for each measuring variable
   int current_it = 0;
@@ -100,7 +108,7 @@ void StateHelper::EKFPropagation(std::shared_ptr<State> state, const std::vector
       found_neg = true;
     }
   }
-  assert(!found_neg);
+  assert_r(!found_neg);
 }
 
 void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<Type>> &H_order, const Eigen::MatrixXd &H,
@@ -109,8 +117,8 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
   //==========================================================
   //==========================================================
   // Part of the Kalman Gain K = (P*H^T)*S^{-1} = M*S^{-1}
-  assert(res.rows() == R.rows());
-  assert(H.rows() == res.rows());
+  assert_r(res.rows() == R.rows());
+  assert_r(H.rows() == res.rows());
   Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->_Cov.rows(), res.rows());
 
   // Get the location in small jacobian for each measuring variable
@@ -167,7 +175,7 @@ void StateHelper::EKFUpdate(std::shared_ptr<State> state, const std::vector<std:
       found_neg = true;
     }
   }
-  assert(!found_neg);
+  assert_r(!found_neg);
 
   // Calculate our delta and update all our active states
   Eigen::VectorXd dx = K * res;
@@ -300,7 +308,7 @@ void StateHelper::marginalize(std::shared_ptr<State> state, std::shared_ptr<Type
   // state->_Cov.resize(Cov_new.rows(),Cov_new.cols());
   state->_Cov = Cov_new;
   // state->Cov() = 0.5*(Cov_new+Cov_new.transpose());
-  assert(state->_Cov.rows() == Cov_new.rows());
+  assert_r(state->_Cov.rows() == Cov_new.rows());
 
   // Now we keep the remaining variables and update their ordering
   // Note: DOES NOT SUPPORT MARGINALIZING SUBVARIABLES YET!!!!!!!
@@ -391,8 +399,8 @@ bool StateHelper::initialize(std::shared_ptr<State> state, std::shared_ptr<Type>
 
   // Check that we have isotropic noise (i.e. is diagonal and all the same value)
   // TODO: can we simplify this so it doesn't take as much time?
-  assert(R.rows() == R.cols());
-  assert(R.rows() > 0);
+  assert_r(R.rows() == R.cols());
+  assert_r(R.rows() > 0);
   for (int r = 0; r < R.rows(); r++) {
     for (int c = 0; c < R.cols(); c++) {
       if (r == c && R(0, 0) != R(r, c)) {
@@ -412,7 +420,7 @@ bool StateHelper::initialize(std::shared_ptr<State> state, std::shared_ptr<Type>
   // First we perform QR givens to seperate the system
   // The top will be a system that depends on the new state, while the bottom does not
   size_t new_var_size = new_variable->size();
-  assert((int)new_var_size == H_L.cols());
+  assert_r((int)new_var_size == H_L.cols());
 
   Eigen::JacobiRotation<double> tempHo_GR;
   for (int n = 0; n < H_L.cols(); ++n) {
@@ -445,8 +453,8 @@ bool StateHelper::initialize(std::shared_ptr<State> state, std::shared_ptr<Type>
 
   // Do mahalanobis distance testing
   Eigen::MatrixXd P_up = get_marginal_covariance(state, H_order);
-  assert(Rup.rows() == Hup.rows());
-  assert(Hup.cols() == P_up.cols());
+  assert_r(Rup.rows() == Hup.rows());
+  assert_r(Hup.cols() == P_up.cols());
   Eigen::MatrixXd S = Hup * P_up * Hup.transpose() + Rup;
   double chi2 = resup.dot(S.llt().solve(resup));
 
@@ -482,8 +490,8 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
 
   // Check that we have isotropic noise (i.e. is diagonal and all the same value)
   // TODO: can we simplify this so it doesn't take as much time?
-  assert(R.rows() == R.cols());
-  assert(R.rows() > 0);
+  assert_r(R.rows() == R.cols());
+  assert_r(R.rows() > 0);
   for (int r = 0; r < R.rows(); r++) {
     for (int c = 0; c < R.cols(); c++) {
       if (r == c && R(0, 0) != R(r, c)) {
@@ -501,9 +509,9 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
   //==========================================================
   //==========================================================
   // Part of the Kalman Gain K = (P*H^T)*S^{-1} = M*S^{-1}
-  assert(res.rows() == R.rows());
-  assert(H_L.rows() == res.rows());
-  assert(H_L.rows() == H_R.rows());
+  assert_r(res.rows() == R.rows());
+  assert_r(H_L.rows() == res.rows());
+  assert_r(H_L.rows() == H_R.rows());
   Eigen::MatrixXd M_a = Eigen::MatrixXd::Zero(state->_Cov.rows(), res.rows());
 
   // Get the location in small jacobian for each measuring variable
@@ -539,8 +547,8 @@ void StateHelper::initialize_invertible(std::shared_ptr<State> state, std::share
   M.triangularView<Eigen::Upper>() += R;
 
   // Covariance of the variable/landmark that will be initialized
-  assert(H_L.rows() == H_L.cols());
-  assert(H_L.rows() == new_variable->size());
+  assert_r(H_L.rows() == H_L.cols());
+  assert_r(H_L.rows() == new_variable->size());
   Eigen::MatrixXd H_Linv = H_L.inverse();
   Eigen::MatrixXd P_LL = H_Linv * M.selfadjointView<Eigen::Upper>() * H_Linv.transpose();
 
@@ -595,9 +603,35 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
     dnc_dt.block(0, 0, 3, 1) = last_w;
     dnc_dt.block(3, 0, 3, 1) = state->_imu->vel();
     // Augment covariance with time offset Jacobian
+    // TODO: replace this with a call to the EKFPropagate function instead....
     state->_Cov.block(0, pose->id(), state->_Cov.rows(), 6) +=
         state->_Cov.block(0, state->_calib_dt_CAMtoIMU->id(), state->_Cov.rows(), 1) * dnc_dt.transpose();
     state->_Cov.block(pose->id(), 0, 6, state->_Cov.rows()) +=
         dnc_dt * state->_Cov.block(state->_calib_dt_CAMtoIMU->id(), 0, 1, state->_Cov.rows());
+  }
+}
+
+void StateHelper::marginalize_old_clone(std::shared_ptr<State> state) {
+  if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
+    double marginal_time = state->margtimestep();
+    assert_r(marginal_time != INFINITY);
+    StateHelper::marginalize(state, state->_clones_IMU.at(marginal_time));
+    // Note that the marginalizer should have already deleted the clone
+    // Thus we just need to remove the pointer to it from our state
+    state->_clones_IMU.erase(marginal_time);
+  }
+}
+
+void StateHelper::marginalize_slam(std::shared_ptr<State> state) {
+  // Remove SLAM features that have their marginalization flag set
+  // We also check that we do not remove any aruoctag landmarks
+  auto it0 = state->_features_SLAM.begin();
+  while (it0 != state->_features_SLAM.end()) {
+    if ((*it0).second->should_marg && (int)(*it0).first > 4 * state->_options.max_aruco_features) {
+      StateHelper::marginalize(state, (*it0).second);
+      it0 = state->_features_SLAM.erase(it0);
+    } else {
+      it0++;
+    }
   }
 }

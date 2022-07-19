@@ -7,3 +7,4 @@ doxgen_generated
 *.swp
 *.swo
 doc
+.vscode

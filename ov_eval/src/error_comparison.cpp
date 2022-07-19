@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -71,7 +71,7 @@ int main(int argc, char **argv) {
     ov_eval::Loader::load_data(path_groundtruths.at(i).string(), times, poses, cov_ori, cov_pos);
     // Print its length and stats
     double length = ov_eval::Loader::get_total_length(poses);
-    PRINT_DEBUG("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_groundtruths.at(i).filename().c_str(), length);
+    PRINT_INFO("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_groundtruths.at(i).filename().c_str(), length);
   }
 
   // Get the algorithms we will process
@@ -233,6 +233,7 @@ int main(int argc, char **argv) {
       }
     }
   }
+  PRINT_DEBUG("\n\n");
 
   //===============================================================================
   //===============================================================================
@@ -259,9 +260,11 @@ int main(int argc, char **argv) {
       if (seg.first.values.empty() || seg.second.values.empty()) {
         PRINT_INFO(" & - / -");
       } else {
-        PRINT_INFO(" & %.3f / %.3f", seg.first.rmse, seg.second.rmse);
-        sum_ori += seg.first.rmse;
-        sum_pos += seg.second.rmse;
+        seg.first.calculate();
+        seg.second.calculate();
+        PRINT_INFO(" & %.3f / %.3f", seg.first.mean, seg.second.mean);
+        sum_ori += seg.first.mean;
+        sum_pos += seg.second.mean;
         sum_ct++;
       }
     }
@@ -284,7 +287,7 @@ int main(int argc, char **argv) {
     for (auto &seg : algo.second) {
       seg.second.first.calculate();
       seg.second.second.calculate();
-      PRINT_INFO(" & %.3f / %.3f", seg.second.first.median, seg.second.second.median);
+      PRINT_INFO(" & %.3f / %.3f", seg.second.first.mean, seg.second.second.mean);
     }
     PRINT_INFO(" \\\\\n");
   }

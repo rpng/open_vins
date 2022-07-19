@@ -112,7 +112,7 @@ launch_args = [
 ]
 
 def launch_setup(context):
-    configs_dir=os.path.join(get_package_share_directory('ov_msckf'),'..','config')
+    configs_dir=os.path.join(get_package_share_directory('ov_msckf'),'config')
     available_configs = os.listdir(configs_dir)
     config = LaunchConfiguration('config').perform(context)
     if not config in available_configs:

@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,7 @@
  */
 
 #include <Eigen/Eigen>
+#include <boost/algorithm/string.hpp>
 #include <boost/filesystem.hpp>
 #include <string>
 
@@ -56,9 +57,10 @@ int main(int argc, char **argv) {
   std::vector<Eigen::Matrix<double, 7, 1>> poses;
   std::vector<Eigen::Matrix3d> cov_ori, cov_pos;
   ov_eval::Loader::load_data(argv[2], times, poses, cov_ori, cov_pos);
+
   // Print its length and stats
   double length = ov_eval::Loader::get_total_length(poses);
-  PRINT_DEBUG("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_gt.stem().string().c_str(), length);
+  PRINT_INFO("[COMP]: %d poses in %s => length of %.2f meters\n", (int)times.size(), path_gt.stem().string().c_str(), length);
 
   // Get the algorithms we will process
   // Also create empty statistic objects for each of our datasets
@@ -75,9 +77,30 @@ int main(int argc, char **argv) {
   //===============================================================================
   //===============================================================================
 
+  // ATE summery information
+  std::map<std::string, std::pair<ov_eval::Statistics, ov_eval::Statistics>> algo_ate;
+  std::map<std::string, std::pair<ov_eval::Statistics, ov_eval::Statistics>> algo_nees;
+  for (const auto &p : path_algorithms) {
+    algo_ate.insert({p.filename().string(), {ov_eval::Statistics(), ov_eval::Statistics()}});
+    algo_nees.insert({p.filename().string(), {ov_eval::Statistics(), ov_eval::Statistics()}});
+  }
+
   // Relative pose error segment lengths
-  // std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0};
+  // std::vector<double> segments = {8.0, 16.0, 24.0, 32.0, 40.0, 48.0};
   std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
+  // std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
+  // std::vector<double> segments = {5.0, 15.0, 30.0, 45.0, 60.0};
+  // std::vector<double> segments = {40.0, 60.0, 80.0, 100.0, 120.0};
+
+  // The overall RPE error calculation for each algorithm type
+  std::map<std::string, std::map<double, std::pair<ov_eval::Statistics, ov_eval::Statistics>>> algo_rpe;
+  for (const auto &p : path_algorithms) {
+    std::map<double, std::pair<ov_eval::Statistics, ov_eval::Statistics>> temp;
+    for (const auto &len : segments) {
+      temp.insert({len, {ov_eval::Statistics(), ov_eval::Statistics()}});
+    }
+    algo_rpe.insert({p.filename().string(), temp});
+  }
 
   //===============================================================================
   //===============================================================================
@@ -87,8 +110,8 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < path_algorithms.size(); i++) {
 
     // Debug print
-    PRINT_INFO("======================================\n");
-    PRINT_INFO("[COMP]: processing %s algorithm\n", path_algorithms.at(i).filename().c_str());
+    PRINT_DEBUG("======================================\n");
+    PRINT_DEBUG("[COMP]: processing %s algorithm\n", path_algorithms.at(i).filename().c_str());
 
     // Get the list of datasets this algorithm records
     std::map<std::string, boost::filesystem::path> path_algo_datasets;
@@ -100,7 +123,7 @@ int main(int argc, char **argv) {
 
     // Check if we have runs for our dataset
     if (path_algo_datasets.find(path_gt.stem().string()) == path_algo_datasets.end()) {
-      PRINT_ERROR(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET, path_algorithms.at(i).filename().c_str(),
+      PRINT_DEBUG(RED "[COMP]: %s dataset does not have any runs for %s!!!!!\n" RESET, path_algorithms.at(i).filename().c_str(),
                   path_gt.stem().c_str());
       continue;
     }
@@ -127,7 +150,7 @@ int main(int argc, char **argv) {
 
     // Check if we have runs
     if (file_paths.empty()) {
-      PRINT_ERROR(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).filename().c_str());
+      PRINT_DEBUG(RED "\tERROR: No runs found for %s, is the folder structure right??\n" RESET, path_algorithms.at(i).filename().c_str());
       continue;
     }
 
@@ -192,17 +215,17 @@ int main(int argc, char **argv) {
 
     // Print stats for this specific dataset
     std::string prefix = (ate_dataset_ori.mean > 10 || ate_dataset_pos.mean > 10) ? RED : "";
-    PRINT_INFO("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET, prefix.c_str(), ate_dataset_ori.mean, ate_dataset_pos.mean,
-               (int)ate_dataset_ori.values.size());
-    PRINT_INFO("\tATE: std_ori  = %.5f | std_pos  = %.5f\n", ate_dataset_ori.std, ate_dataset_pos.std);
-    PRINT_INFO("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n", ate_2d_dataset_ori.mean, ate_2d_dataset_pos.mean,
-               (int)ate_2d_dataset_ori.values.size());
-    PRINT_INFO("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n", ate_2d_dataset_ori.std, ate_2d_dataset_pos.std);
+    PRINT_DEBUG("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET, prefix.c_str(), ate_dataset_ori.mean, ate_dataset_pos.mean,
+                (int)ate_dataset_ori.values.size());
+    PRINT_DEBUG("\tATE: std_ori  = %.5f | std_pos  = %.5f\n", ate_dataset_ori.std, ate_dataset_pos.std);
+    PRINT_DEBUG("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n", ate_2d_dataset_ori.mean, ate_2d_dataset_pos.mean,
+                (int)ate_2d_dataset_ori.values.size());
+    PRINT_DEBUG("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n", ate_2d_dataset_ori.std, ate_2d_dataset_pos.std);
     for (auto &seg : rpe_dataset) {
       seg.second.first.calculate();
       seg.second.second.calculate();
-      PRINT_INFO("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.mean,
-                 seg.second.second.mean, (int)seg.second.second.values.size());
+      PRINT_DEBUG("\tRPE: seg %d - mean_ori = %.3f | mean_pos = %.3f (%d samples)\n", (int)seg.first, seg.second.first.mean,
+                  seg.second.second.mean, (int)seg.second.second.values.size());
       // PRINT_DEBUG("RPE: seg %d - std_ori  = %.3f | std_pos  = %.3f\n",(int)seg.first,seg.second.first.std,seg.second.second.std);
     }
 
@@ -220,7 +243,7 @@ int main(int argc, char **argv) {
     }
     rmse_ori.calculate();
     rmse_pos.calculate();
-    PRINT_INFO("\tRMSE: mean_ori = %.3f | mean_pos = %.3f\n", rmse_ori.mean, rmse_pos.mean);
+    PRINT_DEBUG("\tRMSE: mean_ori = %.3f | mean_pos = %.3f\n", rmse_ori.mean, rmse_pos.mean);
 
     // RMSE: Convert into the right format (only use times where all runs have an error)
     ov_eval::Statistics rmse_2d_ori, rmse_2d_pos;
@@ -236,7 +259,7 @@ int main(int argc, char **argv) {
     }
     rmse_2d_ori.calculate();
     rmse_2d_pos.calculate();
-    PRINT_INFO("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f\n", rmse_2d_ori.mean, rmse_2d_pos.mean);
+    PRINT_DEBUG("\tRMSE 2D: mean_ori = %.3f | mean_pos = %.3f\n", rmse_2d_ori.mean, rmse_2d_pos.mean);
 
     // NEES: Convert into the right format (only use times where all runs have an error)
     ov_eval::Statistics nees_ori, nees_pos;
@@ -252,7 +275,7 @@ int main(int argc, char **argv) {
     }
     nees_ori.calculate();
     nees_pos.calculate();
-    PRINT_INFO("\tNEES: mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
+    PRINT_DEBUG("\tNEES: mean_ori = %.3f | mean_pos = %.3f\n", nees_ori.mean, nees_pos.mean);
 
 #ifdef HAVE_PYTHONLIBS
 
@@ -316,10 +339,79 @@ int main(int argc, char **argv) {
     }
 
 #endif
-  }
 
-  // Final line for our printed stats
-  PRINT_DEBUG("============================================\n");
+    // Update the global ATE error stats
+    std::string algo = path_algorithms.at(i).filename().string();
+    algo_ate.at(algo).first = ate_dataset_ori;
+    algo_ate.at(algo).second = ate_dataset_pos;
+    algo_nees.at(algo).first = nees_ori;
+    algo_nees.at(algo).second = nees_pos;
+
+    // Update the global RPE error stats
+    for (const auto &elm : rpe_dataset) {
+      algo_rpe.at(algo).at(elm.first).first.values.insert(algo_rpe.at(algo).at(elm.first).first.values.end(),
+                                                          elm.second.first.values.begin(), elm.second.first.values.end());
+      algo_rpe.at(algo).at(elm.first).first.timestamps.insert(algo_rpe.at(algo).at(elm.first).first.timestamps.end(),
+                                                              elm.second.first.timestamps.begin(), elm.second.first.timestamps.end());
+      algo_rpe.at(algo).at(elm.first).second.values.insert(algo_rpe.at(algo).at(elm.first).second.values.end(),
+                                                           elm.second.second.values.begin(), elm.second.second.values.end());
+      algo_rpe.at(algo).at(elm.first).second.timestamps.insert(algo_rpe.at(algo).at(elm.first).second.timestamps.end(),
+                                                               elm.second.second.timestamps.begin(), elm.second.second.timestamps.end());
+    }
+  }
+  PRINT_DEBUG("\n\n");
+
+  // Finally print the ATE for all the runs
+  PRINT_INFO("============================================\n");
+  PRINT_INFO("ATE AND NEES LATEX TABLE\n");
+  PRINT_INFO("============================================\n");
+  PRINT_INFO(" & \\textbf{ATE (deg/m)} & \\textbf{NEES (deg/m)} \\\\\\hline\n");
+  for (auto &algo : algo_ate) {
+    std::string algoname = algo.first;
+    boost::replace_all(algoname, "_", "\\_");
+    PRINT_INFO(algoname.c_str());
+    // ate
+    auto ate_oripos = algo.second;
+    if (ate_oripos.first.values.empty() || ate_oripos.second.values.empty()) {
+      PRINT_INFO(" & - / -");
+    } else {
+      ate_oripos.first.calculate();
+      ate_oripos.second.calculate();
+      PRINT_INFO(" & %.3f / %.3f", ate_oripos.first.mean, ate_oripos.second.mean);
+    }
+    // nees
+    auto nees_oripos = algo_nees.at(algo.first);
+    if (nees_oripos.first.values.empty() || nees_oripos.second.values.empty()) {
+      PRINT_INFO(" & - / -");
+    } else {
+      nees_oripos.first.calculate();
+      nees_oripos.second.calculate();
+      PRINT_INFO(" & %.3f / %.3f", nees_oripos.first.mean, nees_oripos.second.mean);
+    }
+    PRINT_INFO(" \\\\\n");
+  }
+  PRINT_INFO("============================================\n");
+
+  // Finally print the RPE for all the runs
+  PRINT_INFO("============================================\n");
+  PRINT_INFO("RPE LATEX TABLE\n");
+  PRINT_INFO("============================================\n");
+  for (const auto &len : segments) {
+    PRINT_INFO(" & \\textbf{%dm}", (int)len);
+  }
+  PRINT_INFO(" \\\\\\hline\n");
+  for (auto &algo : algo_rpe) {
+    std::string algoname = algo.first;
+    boost::replace_all(algoname, "_", "\\_");
+    PRINT_INFO(algoname.c_str());
+    for (auto &seg : algo.second) {
+      seg.second.first.calculate();
+      seg.second.second.calculate();
+      PRINT_INFO(" & %.3f / %.3f", seg.second.first.mean, seg.second.second.mean);
+    }
+    PRINT_INFO(" \\\\\n");
+  }
+  PRINT_INFO("============================================\n");
 
 #ifdef HAVE_PYTHONLIBS
 

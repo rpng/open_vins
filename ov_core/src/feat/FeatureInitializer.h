@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -24,12 +24,11 @@
 
 #include <unordered_map>
 
-#include "Feature.h"
 #include "FeatureInitializerOptions.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
 
 namespace ov_core {
+
+class Feature;
 
 /**
  * @brief Class that triangulates feature
@@ -98,7 +97,7 @@ public:
    * in global frame)
    * @return Returns false if it fails to triangulate (based on the thresholds)
    */
-  bool single_triangulation(Feature *feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM);
+  bool single_triangulation(std::shared_ptr<Feature> feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM);
 
   /**
    * @brief Uses a linear triangulation to get initial estimate for the feature, treating the anchor observation as a true bearing.
@@ -111,7 +110,7 @@ public:
    * in global frame)
    * @return Returns false if it fails to triangulate (based on the thresholds)
    */
-  bool single_triangulation_1d(Feature *feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM);
+  bool single_triangulation_1d(std::shared_ptr<Feature> feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM);
 
   /**
    * @brief Uses a nonlinear triangulation to refine initial linear estimate of the feature
@@ -120,7 +119,7 @@ public:
    * in global frame)
    * @return Returns false if it fails to be optimize (based on the thresholds)
    */
-  bool single_gaussnewton(Feature *feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM);
+  bool single_gaussnewton(std::shared_ptr<Feature> feat, std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM);
 
   /**
    * @brief Gets the current configuration of the feature initializer
@@ -140,8 +139,8 @@ protected:
    * @param beta y/z in anchor
    * @param rho 1/z inverse depth
    */
-  double compute_error(std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM, Feature *feat, double alpha,
-                       double beta, double rho);
+  double compute_error(std::unordered_map<size_t, std::unordered_map<double, ClonePose>> &clonesCAM, std::shared_ptr<Feature> feat,
+                       double alpha, double beta, double rho);
 };
 
 } // namespace ov_core

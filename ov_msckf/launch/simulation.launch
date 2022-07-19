@@ -28,7 +28,7 @@
     <arg name="sim_do_calib_g_sensitivity"      default="true" />
 
     <!-- saving trajectory paths -->
-    <arg name="dosave_pose"     default="false" />
+    <arg name="dosave_pose"     default="true" />
     <arg name="path_est"        default="$(find ov_eval)/data/sim/traj_estimate.txt" />
     <arg name="path_gt"         default="$(find ov_eval)/data/sim/traj_groundtruth.txt" />
     <arg name="dosave_state"    default="true" />
@@ -66,6 +66,7 @@
         <!-- master configuration object -->
         <param name="verbosity"              type="str"    value="$(arg verbosity)" />
         <param name="config_path"            type="str"    value="$(arg config_path)" />
+        <param name="multi_threading"        type="bool"   value="false" />
 
         <!-- world/filter parameters -->
         <param name="use_fej"                   type="bool"   value="$(arg fej)" />

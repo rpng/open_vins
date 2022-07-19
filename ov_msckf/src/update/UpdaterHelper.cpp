@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,10 @@
  */
 
 #include "UpdaterHelper.h"
+
+#include "state/State.h"
+
+#include "utils/quat_ops.h"
 
 using namespace ov_core;
 using namespace ov_type;
@@ -301,7 +305,7 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
 
   // Assert that all the ones in our order are already in our local jacobian mapping
   for (auto &type : dpfg_dx_order) {
-    assert(map_hx.find(type) != map_hx.end());
+    assert_r(map_hx.find(type) != map_hx.end());
   }
 
   // Loop through each camera for this feature

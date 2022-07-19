@@ -1,0 +1,52 @@
+<launch>
+
+
+    <!-- ================================================================ -->
+    <!-- ================================================================ -->
+
+    <!-- what config we are going to run (should match folder name) -->
+    <arg name="verbosity"   default="DEBUG" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
+    <arg name="config"      default="rpng_sim" />
+    <arg name="config_path" default="$(find ov_init)/../config/$(arg config)/estimator_config.yaml" />
+
+    <arg name="seed"        default="3" />
+    <arg name="freq_cam"    default="10" />
+    <arg name="freq_imu"    default="400" />
+    <arg name="dataset"     default="tum_corridor1_512_16_okvis.txt" /> <!-- udel_gore, udel_gore_zupt, tum_corridor1_512_16_okvis, udel_arl, udel_neighborhood, euroc_V1_01_easy -->
+
+    <!-- if we should perturb the initial state values (i.e. calibration) -->
+    <arg name="sim_do_perturbation" default="true" />
+
+    <!-- if we should optimize the calibration -->
+    <arg name="mle_opt_calib"       default="false" />
+
+
+    <!-- ================================================================ -->
+    <!-- ================================================================ -->
+
+
+    <!-- MASTER NODE! -->
+<!--    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="test_dynamic_init" pkg="ov_init" type="test_dynamic_init" output="screen" clear_params="true" required="true">
+
+        <param name="sim_traj_path"          type="string" value="$(find ov_data)/sim/$(arg dataset)" />
+        <param name="sim_seed_state_init"    type="int"    value="0" />
+        <param name="sim_seed_measurements"  type="int"    value="$(arg seed)" />
+        <param name="sim_seed_preturb"       type="int"    value="$(arg seed)" />
+        <param name="sim_freq_cam"           type="int"    value="$(arg freq_cam)" />
+        <param name="sim_freq_imu"           type="int"    value="$(arg freq_imu)" />
+        <param name="sim_do_perturbation"    type="bool"   value="$(arg sim_do_perturbation)" />
+
+        <!-- master configuration object -->
+        <param name="verbosity"              type="string" value="$(arg verbosity)" />
+        <param name="config_path"            type="string" value="$(arg config_path)" />
+
+        <!-- world/filter parameters -->
+        <param name="max_cameras"            type="int"    value="1" />
+        <param name="init_dyn_mle_opt_calib" type="bool"   value="$(arg mle_opt_calib)" />
+
+    </node>
+
+
+
+</launch>

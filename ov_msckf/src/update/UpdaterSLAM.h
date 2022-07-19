@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -25,24 +25,21 @@
 #include <Eigen/Eigen>
 #include <memory>
 
-#include "feat/Feature.h"
-#include "feat/FeatureInitializer.h"
 #include "feat/FeatureInitializerOptions.h"
-#include "state/State.h"
-#include "state/StateHelper.h"
-#include "types/Landmark.h"
-#include "types/LandmarkRepresentation.h"
-#include "utils/colors.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
 
-#include "UpdaterHelper.h"
 #include "UpdaterOptions.h"
 
-#include <boost/date_time/posix_time/posix_time.hpp>
-#include <boost/math/distributions/chi_squared.hpp>
+namespace ov_core {
+class Feature;
+class FeatureInitializer;
+} // namespace ov_core
+namespace ov_type {
+class Landmark;
+} // namespace ov_type
 
 namespace ov_msckf {
+
+class State;
 
 /**
  * @brief Will compute the system for our sparse SLAM features and update the filter.
@@ -63,23 +60,7 @@ public:
    * @param options_aruco Updater options (include measurement noise value) for ARUCO features
    * @param feat_init_options Feature initializer options
    */
-  UpdaterSLAM(UpdaterOptions &options_slam, UpdaterOptions &options_aruco, ov_core::FeatureInitializerOptions &feat_init_options)
-      : _options_slam(options_slam), _options_aruco(options_aruco) {
-
-    // Save our raw pixel noise squared
-    _options_slam.sigma_pix_sq = std::pow(_options_slam.sigma_pix, 2);
-    _options_aruco.sigma_pix_sq = std::pow(_options_aruco.sigma_pix, 2);
-
-    // Save our feature initializer
-    initializer_feat = std::unique_ptr<ov_core::FeatureInitializer>(new ov_core::FeatureInitializer(feat_init_options));
-
-    // Initialize the chi squared test table with confidence level 0.95
-    // https://github.com/KumarRobotics/msckf_vio/blob/050c50defa5a7fd9a04c1eed5687b405f02919b5/src/msckf_vio.cpp#L215-L221
-    for (int i = 1; i < 500; i++) {
-      boost::math::chi_squared chi_squared_dist(i);
-      chi_squared_table[i] = boost::math::quantile(chi_squared_dist, 0.95);
-    }
-  }
+  UpdaterSLAM(UpdaterOptions &options_slam, UpdaterOptions &options_aruco, ov_core::FeatureInitializerOptions &feat_init_options);
 
   /**
    * @brief Given tracked SLAM features, this will try to use them to update the state.
@@ -123,7 +104,7 @@ protected:
   UpdaterOptions _options_aruco;
 
   /// Feature initializer class object
-  std::unique_ptr<ov_core::FeatureInitializer> initializer_feat;
+  std::shared_ptr<ov_core::FeatureInitializer> initializer_feat;
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;

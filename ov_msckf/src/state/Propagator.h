@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,12 +22,16 @@
 #ifndef OV_MSCKF_STATE_PROPAGATOR_H
 #define OV_MSCKF_STATE_PROPAGATOR_H
 
-#include "state/StateHelper.h"
-#include "utils/print.h"
-#include "utils/quat_ops.h"
+#include <memory>
+#include <mutex>
+
 #include "utils/sensor_data.h"
 
+#include "utils/NoiseManager.h"
+
 namespace ov_msckf {
+
+class State;
 
 /**
  * @brief Performs the state covariance and mean propagation using imu measurements
@@ -38,32 +42,6 @@ namespace ov_msckf {
  */
 class Propagator {
 public:
-  /**
-   * @brief Struct of our imu noise parameters
-   */
-  struct NoiseManager {
-
-    /// Gyroscope white noise (rad/s/sqrt(hz))
-    double sigma_w = 1.6968e-04;
-
-    /// Gyroscope random walk (rad/s^2/sqrt(hz))
-    double sigma_wb = 1.9393e-05;
-
-    /// Accelerometer white noise (m/s^2/sqrt(hz))
-    double sigma_a = 2.0000e-3;
-
-    /// Accelerometer random walk (m/s^3/sqrt(hz))
-    double sigma_ab = 3.0000e-03;
-
-    /// Nice print function of what parameters we have loaded
-    void print() const {
-      PRINT_DEBUG("  - gyroscope_noise_density: %.6f\n", sigma_w);
-      PRINT_DEBUG("  - accelerometer_noise_density: %.5f\n", sigma_a);
-      PRINT_DEBUG("  - gyroscope_random_walk: %.7f\n", sigma_wb);
-      PRINT_DEBUG("  - accelerometer_random_walk: %.6f\n", sigma_ab);
-    }
-  };
-
   /**
    * @brief Default constructor
    * @param noises imu noise characteristics (continuous time)
@@ -77,21 +55,23 @@ public:
   /**
    * @brief Stores incoming inertial readings
    * @param message Contains our timestamp and inertial information
+   * @param oldest_time Time that we can discard measurements before
    */
-  void feed_imu(const ov_core::ImuData &message) {
+  void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
 
     // Append it to our vector
+    std::lock_guard<std::mutex> lck(imu_data_mtx);
     imu_data.emplace_back(message);
 
-    // Loop through and delete imu messages that are older then 10 seconds
-    // TODO: we should probably have more elegant logic then this
-    // TODO: but this prevents unbounded memory growth and slow prop with high freq imu
-    auto it0 = imu_data.begin();
-    while (it0 != imu_data.end()) {
-      if (message.timestamp - (*it0).timestamp > 10) {
-        it0 = imu_data.erase(it0);
-      } else {
-        it0++;
+    // Loop through and delete imu messages that are older than our requested time
+    if (oldest_time != -1) {
+      auto it0 = imu_data.begin();
+      while (it0 != imu_data.end()) {
+        if (it0->timestamp < oldest_time - 0.10) {
+          it0 = imu_data.erase(it0);
+        } else {
+          it0++;
+        }
       }
     }
   }
@@ -106,7 +86,7 @@ public:
    * We clone the current imu pose as a new clone in our state.
    *
    * @param state Pointer to state
-   * @param timestamp Time to propagate to and clone at
+   * @param timestamp Time to propagate to and clone at (CAM clock frame)
    */
   void propagate_and_clone(std::shared_ptr<State> state, double timestamp);
 
@@ -118,10 +98,13 @@ public:
    * This is typically used to provide high frequency pose estimates between updates.
    *
    * @param state Pointer to state
-   * @param timestamp Time to propagate to
-   * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinG, w_IinI)
+   * @param timestamp Time to propagate to (IMU clock frame)
+   * @param state_plus The propagated state (q_GtoI, p_IinG, v_IinI, w_IinI)
+   * @param covariance The propagated covariance (q_GtoI, p_IinG, v_IinI, w_IinI)
+   * @return True if we were able to propagate the state to the current timestep
    */
-  void fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus);
+  bool fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
+                            Eigen::Matrix<double, 12, 12> &covariance);
 
   /**
    * @brief Helper function that given current imu data, will select imu readings between the two times.
@@ -218,10 +201,6 @@ public:
   static Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
 
 protected:
-  /// Estimate for time offset at last propagation time
-  double last_prop_time_offset = 0.0;
-  bool have_last_prop_time_offset = false;
-
   /**
    * @brief Propagates the state forward using the imu data and computes the noise covariance and state-transition
    * matrix of this interval.
@@ -433,11 +412,16 @@ protected:
                                 const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q,
                                 const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G);
 
+  /// Estimate for time offset at last propagation time
+  double last_prop_time_offset = 0.0;
+  bool have_last_prop_time_offset = false;
+
   /// Container for the noise values
   NoiseManager _noises;
 
   /// Our history of IMU messages (time, angular, linear)
   std::vector<ov_core::ImuData> imu_data;
+  std::mutex imu_data_mtx;
 
   /// Gravity vector
   Eigen::Vector3d _gravity;

@@ -1,9 +1,9 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2021 Patrick Geneva
- * Copyright (C) 2021 Guoquan Huang
- * Copyright (C) 2021 OpenVINS Contributors
- * Copyright (C) 2019 Kevin Eckenhoff
+ * Copyright (C) 2018-2022 Patrick Geneva
+ * Copyright (C) 2018-2022 Guoquan Huang
+ * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -27,7 +27,6 @@
 #endif
 
 #include "TrackBase.h"
-#include "utils/print.h"
 
 namespace ov_core {
 
@@ -48,13 +47,13 @@ public:
    * @brief Public constructor with configuration variables
    * @param cameras camera calibration object which has all camera intrinsics in it
    * @param numaruco the max id of the arucotags, we don't use any tags greater than this value even if we extract them
-   * @param binocular if we should do binocular feature tracking or stereo if there are multiple cameras
+   * @param stereo if we should do stereo feature tracking or binocular
    * @param histmethod what type of histogram pre-processing should be done (histogram eq?)
    * @param downsize we can scale the image by 1/2 to increase Aruco tag extraction speed
    */
-  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool binocular,
-                      HistogramMethod histmethod, bool downsize)
-      : TrackBase(cameras, 0, numaruco, binocular, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
+  explicit TrackAruco(std::unordered_map<size_t, std::shared_ptr<CamBase>> cameras, int numaruco, bool stereo, HistogramMethod histmethod,
+                      bool downsize)
+      : TrackBase(cameras, 0, numaruco, stereo, histmethod), max_tag_id(numaruco), do_downsizing(downsize) {
 #if ENABLE_ARUCO_TAGS
     aruco_dict = cv::aruco::getPredefinedDictionary(cv::aruco::DICT_6X6_1000);
     aruco_params = cv::aruco::DetectorParameters::create();
@@ -70,7 +69,7 @@ public:
    * @brief Process a new image
    * @param message Contains our timestamp, images, and camera ids
    */
-  void feed_new_camera(const CameraData &message);
+  void feed_new_camera(const CameraData &message) override;
 
 #if ENABLE_ARUCO_TAGS
   /**
@@ -78,8 +77,9 @@ public:
    * @param img_out image to which we will overlayed features on
    * @param r1,g1,b1 first color to draw in
    * @param r2,g2,b2 second color to draw in
+   * @param overlay Text overlay to replace to normal "cam0" in the top left of screen
    */
-  void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2) override;
+  void display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::string overlay = "") override;
 #endif
 
 protected:
