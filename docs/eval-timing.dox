@@ -74,6 +74,21 @@ mean_time = 0.0128 | std = 0.0035 | 99th = 0.0208  | max = 0.0403 (total)
 
 
 
+@subsection eval-ov-timing-hist Script "timing_histogram"
+Generates a histogram plot of *binned* execution times for a specific class.
+This allows for inspection of the distribution of times as compared to just the mean of it.
+The file should be comma separated format, with the first column being the timing, and the last column being the total time.
+The middle columns should describe how much each component takes (whose names are extracted from the header of the csv file).
+
+@code{.shell-session}
+rosrun ov_eval timing_histogram <file_times.txt> <num_bins>
+rosrun ov_eval timing_histogram timing_mono_ethV101.txt 75
+@endcode
+
+
+@image html eval/timing_hist.png width=90%
+
+
 
 
 @subsection eval-ov-timing-compare Script "timing_comparison"
@@ -94,7 +109,7 @@ Example output:
 [TIME]: loading data for timing_mono
 [TIME]: loaded 2817 timestamps from file (7 categories)!!
 mean_time = 0.0037 | std = 0.0011 | 99th = 0.0063  | max = 0.0254 (tracking)
-mean_time = 0.0004 | std = 0.0001 | 99th = 0.0006  | max = 0.0014 ( propagation)
+mean_time = 0.0004 | std = 0.0001 | 99th = 0.0006  | max = 0.0014 (propagation)
 mean_time = 0.0032 | std = 0.0022 | 99th = 0.0083  | max = 0.0309 (msckf update)
 mean_time = 0.0034 | std = 0.0013 | 99th = 0.0063  | max = 0.0099 (slam update)
 mean_time = 0.0012 | std = 0.0017 | 99th = 0.0052  | max = 0.0141 (slam delayed)
@@ -105,7 +120,7 @@ mean_time = 0.0128 | std = 0.0035 | 99th = 0.0208  | max = 0.0403 (total)
 [TIME]: loading data for timing_stereo
 [TIME]: loaded 2817 timestamps from file (7 categories)!!
 mean_time = 0.0077 | std = 0.0020 | 99th = 0.0124  | max = 0.0219 (tracking)
-mean_time = 0.0004 | std = 0.0001 | 99th = 0.0007  | max = 0.0023 ( propagation)
+mean_time = 0.0004 | std = 0.0001 | 99th = 0.0007  | max = 0.0023 (propagation)
 mean_time = 0.0081 | std = 0.0047 | 99th = 0.0189  | max = 0.0900 (msckf update)
 mean_time = 0.0063 | std = 0.0023 | 99th = 0.0117  | max = 0.0151 (slam update)
 mean_time = 0.0020 | std = 0.0026 | 99th = 0.0079  | max = 0.0205 (slam delayed)
