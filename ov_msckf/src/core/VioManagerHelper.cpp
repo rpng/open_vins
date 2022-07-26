@@ -179,7 +179,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
 
   // If we are single threaded, then run single threaded
   // Otherwise detach this thread so it runs in the background!
-  if (!params.use_multi_threading) {
+  if (!params.use_multi_threading_subs) {
     thread.join();
   } else {
     thread.detach();

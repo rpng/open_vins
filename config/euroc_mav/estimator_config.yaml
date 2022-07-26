@@ -86,7 +86,7 @@ min_px_dist: 10 # distance between features (features near each other provide le
 knn_ratio: 0.70 # descriptor knn threshold for the top two descriptor matches
 track_frequency: 21.0 # frequency we will perform feature tracking at (in frames per second / hertz)
 downsample_cameras: false # will downsample image in half if true
-multi_threading: true # if should enable opencv multi threading
+num_opencv_threads: 4 # -1: auto, 0-1: serial, >1: number of threads
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
 # aruco tag tracker for the system

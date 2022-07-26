@@ -133,7 +133,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   }
 
   // Start thread for the image publishing
-  if (_app->get_params().use_multi_threading) {
+  if (_app->get_params().use_multi_threading_pubs) {
     std::thread thread([&] {
       ros::Rate loop_rate(20);
       while (ros::ok()) {
@@ -202,7 +202,7 @@ void ROS1Visualizer::visualize() {
   // rT0_1 = boost::posix_time::microsec_clock::local_time();
 
   // publish current image (only if not multi-threaded)
-  if (!_app->get_params().use_multi_threading)
+  if (!_app->get_params().use_multi_threading_pubs)
     publish_images();
 
   // Return if we have not inited

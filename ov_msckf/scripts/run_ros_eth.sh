@@ -51,7 +51,7 @@ bagstarttimes=(
 save_path1="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_euroc/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_euroc/timings"
 bag_path="/media/patrick/RPNG FLASH 3/euroc_mav/"
-ov_ver="2.6.1"
+ov_ver="2.6.2"
 
 
 

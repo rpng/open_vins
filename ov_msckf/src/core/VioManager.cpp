@@ -63,7 +63,7 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
 
   // This will globally set the thread count we will use
   // -1 will reset to the system default threading (usually the num of cores)
-  cv::setNumThreads(params.use_multi_threading ? -1 : 0);
+  cv::setNumThreads(params.num_opencv_threads);
   cv::setRNGSeed(0);
 
   // Create the state!!

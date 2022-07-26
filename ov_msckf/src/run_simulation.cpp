@@ -91,7 +91,8 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
-  params.use_multi_threading = false; // for repeatability
+  params.num_opencv_threads = 0; // for repeatability
+  params.use_multi_threading_pubs = false;
   params.use_multi_threading_subs = false;
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);

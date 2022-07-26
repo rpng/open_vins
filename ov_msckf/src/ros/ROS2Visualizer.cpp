@@ -145,7 +145,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   }
 
   // Start thread for the image publishing
-  if (_app->get_params().use_multi_threading) {
+  if (_app->get_params().use_multi_threading_pubs) {
     std::thread thread([&] {
       rclcpp::Rate loop_rate(20);
       while (rclcpp::ok()) {
@@ -226,7 +226,7 @@ void ROS2Visualizer::visualize() {
   // rT0_1 = boost::posix_time::microsec_clock::local_time();
 
   // publish current image (only if not multi-threaded)
-  if (!_app->get_params().use_multi_threading)
+  if (!_app->get_params().use_multi_threading_pubs)
     publish_images();
 
   // Return if we have not inited
