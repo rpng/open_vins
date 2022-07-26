@@ -39,6 +39,9 @@ Factor_GenericPrior::Factor_GenericPrior(const Eigen::MatrixXd &x_lin_, const st
     } else if (str == "quat_yaw") {
       state_size += 4;
       state_error_size += 1;
+    } else if (str == "vec1") {
+      state_size += 1;
+      state_error_size += 1;
     } else if (str == "vec3") {
       state_size += 3;
       state_error_size += 3;
@@ -79,6 +82,8 @@ Factor_GenericPrior::Factor_GenericPrior(const Eigen::MatrixXd &x_lin_, const st
       mutable_parameter_block_sizes()->push_back(4);
     if (str == "quat_yaw")
       mutable_parameter_block_sizes()->push_back(4);
+    if (str == "vec1")
+      mutable_parameter_block_sizes()->push_back(1);
     if (str == "vec3")
       mutable_parameter_block_sizes()->push_back(3);
     if (str == "vec8")
@@ -125,6 +130,15 @@ bool Factor_GenericPrior::Evaluate(double const *const *parameters, double *resi
         jacobian.block(0, 0, num_residuals(), 3) = sqrtI.block(0, local_it, num_residuals(), 1) * H_theta;
       }
       global_it += 4;
+      local_it += 1;
+    } else if (x_type[i] == "vec1") {
+      double x = parameters[i][0];
+      res(local_it, 0) = x - x_lin(global_it, 0);
+      if (jacobians && jacobians[i]) {
+        Eigen::Map<Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>> J_vi(jacobians[i], num_residuals(), 1);
+        J_vi.block(0, 0, num_residuals(), 1) = sqrtI.block(0, local_it, num_residuals(), 1);
+      }
+      global_it += 1;
       local_it += 1;
     } else if (x_type[i] == "vec3") {
       Eigen::Matrix<double, 3, 1> p_i = Eigen::Map<const Eigen::Matrix<double, 3, 1>>(parameters[i]);
