@@ -84,7 +84,7 @@ min_px_dist: 15
 knn_ratio: 0.65
 track_frequency: 21.0
 downsample_cameras: false
-multi_threading: true
+num_opencv_threads: 4 # -1: auto, 0-1: serial, >1: number of threads
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
 # aruco tag tracker for the system

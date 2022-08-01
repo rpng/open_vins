@@ -36,7 +36,7 @@ list(APPEND thirdparty_libraries
         ${OpenCV_LIBRARIES}
         ${CERES_LIBRARIES}
         ${catkin_LIBRARIES}
-        )
+)
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
@@ -68,7 +68,7 @@ list(APPEND LIBRARY_SOURCES
         src/dynamic/DynamicInitializer.cpp
         src/static/StaticInitializer.cpp
         src/sim/SimulatorInit.cpp
-        )
+)
 file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_init_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 target_link_libraries(ov_init_lib ${thirdparty_libraries})
@@ -77,11 +77,11 @@ install(TARGETS ov_init_lib
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 install(DIRECTORY src/
         DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-        )
+)
 
 
 ##################################################
@@ -94,7 +94,7 @@ install(TARGETS test_simulation
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 add_executable(test_dynamic_mle src/test_dynamic_mle.cpp)
 target_link_libraries(test_dynamic_mle ov_init_lib ${thirdparty_libraries})
@@ -102,7 +102,7 @@ install(TARGETS test_dynamic_mle
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 add_executable(test_dynamic_init src/test_dynamic_init.cpp)
 target_link_libraries(test_dynamic_init ov_init_lib ${thirdparty_libraries})
@@ -110,6 +110,6 @@ install(TARGETS test_dynamic_init
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 

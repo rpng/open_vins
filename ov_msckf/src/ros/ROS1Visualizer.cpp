@@ -45,40 +45,40 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   image_transport::ImageTransport it(*_nh);
 
   // Setup pose and path publisher
-  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
+  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("poseimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu.getTopic().c_str());
-  pub_odomimu = nh->advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
+  pub_odomimu = nh->advertise<nav_msgs::Odometry>("odomimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
-  pub_pathimu = nh->advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
+  pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
 
   // 3D points publishing
-  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_msckf", 2);
+  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_slam", 2);
+  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("points_slam", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_aruco", 2);
+  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("points_aruco", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_aruco.getTopic().c_str());
-  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
+  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("points_sim", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_sim.getTopic().c_str());
 
   // Our tracking image
-  it_pub_tracks = it.advertise("/ov_msckf/trackhist", 2);
+  it_pub_tracks = it.advertise("trackhist", 2);
   PRINT_DEBUG("Publishing: %s\n", it_pub_tracks.getTopic().c_str());
 
   // Groundtruth publishers
-  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
+  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("posegt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_posegt.getTopic().c_str());
-  pub_pathgt = nh->advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
+  pub_pathgt = nh->advertise<nav_msgs::Path>("pathgt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathgt.getTopic().c_str());
 
   // Loop closure publishers
-  pub_loop_pose = nh->advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
-  pub_loop_point = nh->advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
-  pub_loop_extrinsic = nh->advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
-  pub_loop_intrinsics = nh->advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
-  it_pub_loop_img_depth = it.advertise("/ov_msckf/loop_depth", 2);
-  it_pub_loop_img_depth_color = it.advertise("/ov_msckf/loop_depth_colored", 2);
+  pub_loop_pose = nh->advertise<nav_msgs::Odometry>("loop_pose", 2);
+  pub_loop_point = nh->advertise<sensor_msgs::PointCloud>("loop_feats", 2);
+  pub_loop_extrinsic = nh->advertise<nav_msgs::Odometry>("loop_extrinsic", 2);
+  pub_loop_intrinsics = nh->advertise<sensor_msgs::CameraInfo>("loop_intrinsics", 2);
+  it_pub_loop_img_depth = it.advertise("loop_depth", 2);
+  it_pub_loop_img_depth_color = it.advertise("loop_depth_colored", 2);
 
   // option to enable publishing of global to IMU transformation
   nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
@@ -133,7 +133,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   }
 
   // Start thread for the image publishing
-  if (_app->get_params().use_multi_threading) {
+  if (_app->get_params().use_multi_threading_pubs) {
     std::thread thread([&] {
       ros::Rate loop_rate(20);
       while (ros::ok()) {
@@ -202,7 +202,7 @@ void ROS1Visualizer::visualize() {
   // rT0_1 = boost::posix_time::microsec_clock::local_time();
 
   // publish current image (only if not multi-threaded)
-  if (!_app->get_params().use_multi_threading)
+  if (!_app->get_params().use_multi_threading_pubs)
     publish_images();
 
   // Return if we have not inited

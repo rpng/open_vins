@@ -86,7 +86,7 @@ min_px_dist: 15
 knn_ratio: 0.70
 track_frequency: 31.0
 downsample_cameras: false # will downsample image in half if true
-multi_threading: true # if should enable opencv multi threading
+num_opencv_threads: 4 # -1: auto, 0-1: serial, >1: number of threads
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
 fi_max_dist: 10.0

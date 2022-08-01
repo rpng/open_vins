@@ -47,16 +47,13 @@ int main(int argc, char **argv) {
   ov_core::Printer::setPrintLevel("INFO");
 
   // Ensure we have a path
-  if (argc < 2) {
+  if (argc < 3) {
     PRINT_ERROR(RED "ERROR: Please specify a timing file\n" RESET);
-    PRINT_ERROR(RED "ERROR: ./timing_flamegraph <file_times.txt> <subsample>\n" RESET);
-    PRINT_ERROR(RED "ERROR: rosrun ov_eval timing_flamegraph <file_times.txt> <subsample>\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./timing_histagram <file_times.txt> <num_bins>\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval timing_flamegraph <file_times.txt> <num_bins>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
-  int keep_every = 10;
-  if (argc == 3) {
-    keep_every = atoi(argv[2]);
-  }
+  int nbins = atoi(argv[2]);
 
   // Load it!!
   std::vector<std::string> names;
@@ -74,66 +71,25 @@ int main(int argc, char **argv) {
   for (size_t i = 0; i < times.size(); i++) {
     for (size_t c = 0; c < names.size(); c++) {
       stats.at(c).timestamps.push_back(times.at(i));
-      stats.at(c).values.push_back(timing_values.at(i)(c));
+      stats.at(c).values.push_back(1000.0 * timing_values.at(i)(c));
     }
-  }
-
-  // Now print the statistic for this run
-  for (size_t i = 0; i < names.size(); i++) {
-    stats.at(i).calculate();
-    PRINT_INFO("mean_time = %.4f | std = %.4f | 99th = %.4f  | max = %.4f (%s)\n", stats.at(i).mean, stats.at(i).std,
-               stats.at(i).ninetynine, stats.at(i).max, names.at(i).c_str());
   }
 
 #ifdef HAVE_PYTHONLIBS
 
-  // Sub-sample the time
-  std::vector<double> times_skipped;
-  for (size_t t = 0; t < times.size(); t++) {
-    if (t % keep_every == 0) {
-      times_skipped.push_back(times.at(t));
-    }
-  }
-
-  // Zero our time arrays
-  double starttime1 = (times_skipped.empty()) ? 0 : times_skipped.at(0);
-  double endtime1 = (times_skipped.empty()) ? 0 : times_skipped.at(times_skipped.size() - 1);
-  for (size_t j = 0; j < times_skipped.size(); j++) {
-    times_skipped.at(j) -= starttime1;
-  }
-
   // Valid colors
   // https://matplotlib.org/stable/tutorials/colors/colors.html
   // std::vector<std::string> colors_valid = {"blue","aqua","lightblue","lightgreen","yellowgreen","green"};
-  std::vector<std::string> colors_valid = {"navy", "blue", "lightgreen", "green", "gold", "goldenrod"};
+  std::vector<std::string> colors_valid = {"navy", "blue", "lightgreen", "green", "orange", "goldenrod", "red", "pink", "black"};
 
-  // Create vector for each category
-  // NOTE we skip the last category since it is the "total" time by convention
-  std::vector<std::string> labels;
-  std::vector<std::string> colors;
-  std::vector<std::vector<double>> timings;
-  for (size_t i = 0; i < names.size() - 1; i++) {
-    labels.push_back(names.at(i));
-    colors.push_back(colors_valid.at(i % colors_valid.size()));
-    std::vector<double> values_skipped;
-    for (size_t t = 0; t < stats.at(i).values.size(); t++) {
-      if (t % keep_every == 0) {
-        values_skipped.push_back(stats.at(i).values.at(t));
-      }
-    }
-    timings.push_back(values_skipped);
+  // Plot each histogram
+  for (size_t i = 0; i < names.size(); i++) {
+    matplotlibcpp::figure_size(500, 300);
+    matplotlibcpp::hist(stats.at(i).values, nbins, colors_valid.at(i % colors_valid.size()));
+    matplotlibcpp::ylabel(names.at(i));
+    matplotlibcpp::xlabel("execution time (ms)");
+    matplotlibcpp::tight_layout();
   }
-
-  // Plot this figure
-  matplotlibcpp::figure_size(1200, 400);
-  matplotlibcpp::stackplot(times_skipped, timings, labels, colors, "zero");
-  matplotlibcpp::ylabel("execution time (s)");
-  matplotlibcpp::xlim(0.0, endtime1 - starttime1);
-  // matplotlibcpp::ylim(0.0,stats.at(stats.size()-1).ninetynine);
-  matplotlibcpp::ylim(0.0, stats.at(stats.size() - 1).max);
-  matplotlibcpp::xlabel("dataset time (s)");
-  matplotlibcpp::legend();
-  matplotlibcpp::tight_layout();
 
   // Display to the user
   matplotlibcpp::show(true);

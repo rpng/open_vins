@@ -42,8 +42,8 @@
 
 
     <!-- MASTER NODE! -->
-    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">
-<!--    <node name="run_simulation" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="ov_msckf" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true">
+<!--    <node name="ov_msckf" pkg="ov_msckf" type="run_simulation" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
 
         <!-- =============================================== -->
         <!-- SIMULATION PARAMETERS -->
@@ -68,7 +68,7 @@
         <!-- master configuration object -->
         <param name="verbosity"              type="str"    value="$(arg verbosity)" />
         <param name="config_path"            type="str"    value="$(arg config_path)" />
-        <param name="multi_threading"        type="bool"   value="false" />
+        <param name="num_opencv_threads"     type="int"    value="0" />
 
         <!-- world/filter parameters -->
         <param name="use_fej"                type="bool"   value="$(arg fej)" />

@@ -144,9 +144,9 @@ bool StaticInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarianc
   order.clear();
   order.push_back(t_imu);
   covariance = std::pow(0.02, 2) * Eigen::MatrixXd::Identity(t_imu->size(), t_imu->size());
-  covariance.block(3, 3, 3, 3) = std::pow(0.017, 2) * Eigen::Matrix3d::Identity(); // q
-  covariance.block(3, 3, 3, 3) = std::pow(0.05, 2) * Eigen::Matrix3d::Identity();  // p
-  covariance.block(6, 6, 3, 3) = std::pow(0.01, 2) * Eigen::Matrix3d::Identity();  // v (static)
+  covariance.block(0, 0, 3, 3) = std::pow(0.02, 2) * Eigen::Matrix3d::Identity(); // q
+  covariance.block(3, 3, 3, 3) = std::pow(0.05, 2) * Eigen::Matrix3d::Identity(); // p
+  covariance.block(6, 6, 3, 3) = std::pow(0.01, 2) * Eigen::Matrix3d::Identity(); // v (static)
 
   // A VIO system has 4dof unobservable directions which can be arbitrarily picked.
   // This means that on startup, we can fix the yaw and position to be 100 percent known.

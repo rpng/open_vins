@@ -332,8 +332,11 @@ struct VioManagerOptions {
   /// Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)
   bool downsample_cameras = false;
 
-  /// If our front-end should try to use some multi-threading for stereo matching
-  bool use_multi_threading = true;
+  /// Threads our front-end should try to use (opencv uses this also)
+  int num_opencv_threads = 4;
+
+  /// If our ROS image publisher should be async (if sim this should be no!)
+  bool use_multi_threading_pubs = true;
 
   /// If our ROS subscriber callbacks should be async (if sim and serial then this should be no!)
   bool use_multi_threading_subs = false;
@@ -378,7 +381,8 @@ struct VioManagerOptions {
       parser->parse_config("use_aruco", use_aruco);
       parser->parse_config("downsize_aruco", downsize_aruco);
       parser->parse_config("downsample_cameras", downsample_cameras);
-      parser->parse_config("multi_threading", use_multi_threading);
+      parser->parse_config("num_opencv_threads", num_opencv_threads);
+      parser->parse_config("multi_threading_pubs", use_multi_threading_pubs, false);
       parser->parse_config("multi_threading_subs", use_multi_threading_subs, false);
       parser->parse_config("num_pts", num_pts);
       parser->parse_config("fast_threshold", fast_threshold);
@@ -409,7 +413,8 @@ struct VioManagerOptions {
     PRINT_DEBUG("  - use_aruco: %d\n", use_aruco);
     PRINT_DEBUG("  - downsize aruco: %d\n", downsize_aruco);
     PRINT_DEBUG("  - downsize cameras: %d\n", downsample_cameras);
-    PRINT_DEBUG("  - use multi-threading: %d\n", use_multi_threading);
+    PRINT_DEBUG("  - num opencv threads: %d\n", num_opencv_threads);
+    PRINT_DEBUG("  - use multi-threading pubs: %d\n", use_multi_threading_pubs);
     PRINT_DEBUG("  - use multi-threading subs: %d\n", use_multi_threading_subs);
     PRINT_DEBUG("  - num_pts: %d\n", num_pts);
     PRINT_DEBUG("  - fast threshold: %d\n", fast_threshold);

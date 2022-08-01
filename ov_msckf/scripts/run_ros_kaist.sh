@@ -38,7 +38,7 @@ bagstarttimes=(
 save_path1="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_kaist/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_kaist/timings"
 bag_path="/media/patrick/RPNG FLASH 3/kaist/"
-ov_ver="2.6.1"
+ov_ver="2.6.2"
 
 
 

@@ -63,7 +63,8 @@ int main(int argc, char **argv) {
   // Create our VIO system
   VioManagerOptions params;
   params.print_and_load(parser);
-  // params.use_multi_threading = false; // uncomment if you want repeatability
+  // params.num_opencv_threads = 0; // uncomment if you want repeatability
+  // params.use_multi_threading_pubs = 0; // uncomment if you want repeatability
   params.use_multi_threading_subs = false;
   sys = std::make_shared<VioManager>(params);
   viz = std::make_shared<ROS1Visualizer>(nh, sys);
