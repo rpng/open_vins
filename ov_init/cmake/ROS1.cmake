@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.3)
 
 # Find ROS build system
-find_package(catkin QUIET COMPONENTS roscpp ov_core)
+find_package(catkin QUIET COMPONENTS roscpp ov_core nav_msgs)
 
 # Describe ROS project
 option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
