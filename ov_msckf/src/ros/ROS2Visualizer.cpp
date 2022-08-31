@@ -30,6 +30,7 @@
 #include "utils/dataset_reader.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
+#include <math.h>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -284,12 +285,54 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
     odomIinM.header.frame_id = "global";
 
     // The POSE component (orientation and position)
-    odomIinM.pose.pose.orientation.x = state_plus(0);
-    odomIinM.pose.pose.orientation.y = state_plus(1);
-    odomIinM.pose.pose.orientation.z = state_plus(2);
-    odomIinM.pose.pose.orientation.w = state_plus(3);
-    odomIinM.pose.pose.position.x = state_plus(4);
-    odomIinM.pose.pose.position.y = state_plus(5);
+    // odomIinM.pose.pose.orientation.x = state_plus(0);
+    // odomIinM.pose.pose.orientation.y = state_plus(1);
+    // odomIinM.pose.pose.orientation.z = state_plus(1);
+    // odomIinM.pose.pose.orientation.w = state_plus(3);
+    // odomIinM.pose.pose.position.x = state_plus(4);
+    // odomIinM.pose.pose.position.y = state_plus(5);
+    // odomIinM.pose.pose.position.z = state_plus(6);
+
+    Eigen::Quaterniond q(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
+    // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
+    Eigen::Vector3d angle;
+
+    // roll (x-axis rotation)
+    double sinr_cosp = 2 * (q.w()* q.x() + q.y() * q.z());
+    double cosr_cosp = 1 - 2 * (q.x() * q.x() + q.y() * q.y());
+    angle[0] = std::atan2(sinr_cosp, cosr_cosp);
+
+    // pitch (y-axis rotation)
+    double sinp = 2 * (q.w() * q.y() - q.z()* q.x());
+    if (std::abs(sinp) >= 1)
+        angle[1]= std::copysign(M_PI / 2, sinp); // use 90 degrees if out of range
+    else
+        angle[1] = std::asin(sinp);
+
+    // yaw (z-axis rotation)
+    double siny_cosp = 2 * (q.w() * q.z() + q.x() * q.y());
+    double cosy_cosp = 1 - 2 * (q.y() * q.y() + q.z() * q.z());
+    angle[2] = std::atan2(siny_cosp, cosy_cosp) + M_PI/2.0; // plus 90 degree to transform IMU frame to world frame
+
+    Eigen::Quaterniond new_q;
+    double cy = cos(angle[2] * 0.5);
+    double sy = sin(angle[2] * 0.5);
+    double cp = cos(angle[1] * 0.5);
+    double sp = sin(angle[1] * 0.5);
+    double cr = cos(angle[0] * 0.5);
+    double sr = sin(angle[0] * 0.5);
+
+    new_q.w() = cr * cp * cy + sr * sp * sy;
+    new_q.x() = sr * cp * cy - cr * sp * sy;
+    new_q.y() = cr * sp * cy + sr * cp * sy;
+    new_q.z() = cr * cp * sy - sr * sp * cy;
+
+    odomIinM.pose.pose.orientation.x = new_q.x();
+    odomIinM.pose.pose.orientation.y = new_q.y();
+    odomIinM.pose.pose.orientation.z = new_q.z();
+    odomIinM.pose.pose.orientation.w = new_q.w();
+    odomIinM.pose.pose.position.x = -state_plus(5);
+    odomIinM.pose.pose.position.y = state_plus(4);
     odomIinM.pose.pose.position.z = state_plus(6);
 
     // The TWIST component (angular and linear velocities)
