@@ -628,8 +628,8 @@ void ROS1Visualizer::publish_state() {
     poseIinM.pose.pose.orientation.y = new_q.y();
     poseIinM.pose.pose.orientation.z = new_q.z();
     poseIinM.pose.pose.orientation.w = new_q.w();
-    poseIinM.pose.pose.position.x = -state->_imu->pos()(1);;
-    poseIinM.pose.pose.position.y = state->_imu->pos()(0);;
+    poseIinM.pose.pose.position.x = -state->_imu->pos()(1);
+    poseIinM.pose.pose.position.y = state->_imu->pos()(0);
     poseIinM.pose.pose.position.z = state->_imu->pos()(2);
 
   // Finally set the covariance in the message (in the order position then orientation as per ros convention)
