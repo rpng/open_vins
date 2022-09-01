@@ -1,9 +1,9 @@
 %YAML:1.0 # need to specify the file type at the top!
 
 imu0:
-  T_i_b:
+  T_imu_world:
+    - [0.0, -1.0, 0.0, 0.0]
     - [1.0, 0.0, 0.0, 0.0]
-    - [0.0, 1.0, 0.0, 0.0]
     - [0.0, 0.0, 1.0, 0.0]
     - [0.0, 0.0, 0.0, 1.0]
   accelerometer_noise_density: 1.4e-02  # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
