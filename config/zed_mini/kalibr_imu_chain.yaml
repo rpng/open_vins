@@ -1,10 +1,10 @@
 %YAML:1.0 # need to specify the file type at the top!
 
 imu0:
-  T_i_b:
-    - [1.0, 0.0, 0.0, 0.0]
-    - [0.0, 1.0, 0.0, 0.0]
-    - [0.0, 0.0, 1.0, 0.0]
+  T_imu_world:
+    - [ 0.00608797, -0.99985019, -0.01620309,  0.08459263]
+    - [ 0.99956308,  0.00561595,  0.02901906,  0.01371961]
+    - [-0.02892372, -0.01637268,  0.99944752,  0.0207709]
     - [0.0, 0.0, 0.0, 1.0]
   accelerometer_noise_density: 1.4e-02  # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
   accelerometer_random_walk: 8.0e-04    # [ m / s^3 / sqrt(Hz) ].  ( accel bias diffusion )
@@ -17,4 +17,4 @@ imu0:
   model: calibrated
   rostopic: /zedm/zed_node/imu/data_raw  
   time_offset: 0.0
-  update_rate: 200.0
+  update_rate: 400.0
