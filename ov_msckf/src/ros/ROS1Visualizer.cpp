@@ -20,7 +20,6 @@
  */
 
 #include "ROS1Visualizer.h"
-
 #include "core/VioManager.h"
 #include "ros/ROSVisualizerHelper.h"
 #include "sim/Simulator.h"
@@ -35,6 +34,9 @@
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
+
+Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
+Eigen::Matrix<double, 7, 1> T_imu_world_eigen;
 
 ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
     : _nh(nh), _app(app), _sim(sim), thread_update_running(false) {
@@ -155,6 +157,12 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   std::string topic_imu;
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
+  parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
+      // Load these into our state
+     
+  T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
+  T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
+
   sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this); //ros::TransportHints().tcpNoDelay());
 
 
@@ -268,48 +276,21 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     // odomIinM.pose.pose.position.x = state_plus(4);
     // odomIinM.pose.pose.position.y = state_plus(5);
     // odomIinM.pose.pose.position.z = state_plus(6);
-
+    Eigen::Vector4d position;
+    Eigen::Vector4d new_position;
+    position << state_plus(4),state_plus(5),state_plus(6),1;
+    new_position = T_ItoW * position;
+    Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
     Eigen::Quaterniond q(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
-    // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    Eigen::Vector3d angle;
-
-    // roll (x-axis rotation)
-    double sinr_cosp = 2 * (q.w() * q.x() + q.y() * q.z());
-    double cosr_cosp = 1 - 2 * (q.x() * q.x() + q.y() * q.y());
-    angle[0] = std::atan2(sinr_cosp, cosr_cosp);
-
-    // pitch (y-axis rotation)
-    double sinp = 2 * (q.w() * q.y() - q.z() * q.x());
-    if (std::abs(sinp) >= 1)
-        angle[1]= std::copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-    else
-        angle[1] = std::asin(sinp);
-
-    // yaw (z-axis rotation)
-    double siny_cosp = 2 * (q.w() * q.z() + q.x() * q.y());
-    double cosy_cosp = 1 - 2 * (q.y() * q.y() + q.z() * q.z());
-    angle[2] = std::atan2(siny_cosp, cosy_cosp) + M_PI/2.0; // plus 90 degree to transform IMU frame to world frame
-
-    Eigen::Quaterniond new_q;
-    double cy = cos(angle[2] * 0.5);
-    double sy = sin(angle[2] * 0.5);
-    double cp = cos(angle[1] * 0.5);
-    double sp = sin(angle[1] * 0.5);
-    double cr = cos(angle[0] * 0.5);
-    double sr = sin(angle[0] * 0.5);
-
-    new_q.w() = cr * cp * cy + sr * sp * sy;
-    new_q.x() = sr * cp * cy - cr * sp * sy;
-    new_q.y() = cr * sp * cy + sr * cp * sy;
-    new_q.z() = cr * cp * sy - sr * sp * cy;
+    Eigen::Quaterniond new_q = q_imu_world*q;
 
     odomIinM.pose.pose.orientation.x = new_q.x();
     odomIinM.pose.pose.orientation.y = new_q.y();
     odomIinM.pose.pose.orientation.z = new_q.z();
     odomIinM.pose.pose.orientation.w = new_q.w();
-    odomIinM.pose.pose.position.x = -state_plus(5);
-    odomIinM.pose.pose.position.y = state_plus(4);
-    odomIinM.pose.pose.position.z = state_plus(6);
+    odomIinM.pose.pose.position.x = new_position(0);
+    odomIinM.pose.pose.position.y = new_position(1);
+    odomIinM.pose.pose.position.z = new_position(2);
 
     // The TWIST component (angular and linear velocities)
     odomIinM.child_frame_id = "imu";
@@ -589,48 +570,21 @@ void ROS1Visualizer::publish_state() {
   // poseIinM.pose.pose.position.y = state->_imu->pos()(1);
   // poseIinM.pose.pose.position.z = state->_imu->pos()(2);
 
+    Eigen::Vector4d position;
+    Eigen::Vector4d new_position;
+    position << state->_imu->pos()(0),state->_imu->pos()(1),state->_imu->pos()(2),1;
+    new_position = T_ItoW * position;
+    Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
+    Eigen::Quaterniond q(state->_imu->quat()(3),state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2));
+    Eigen::Quaterniond new_q = q_imu_world*q;
 
-  Eigen::Quaterniond q(state->_imu->quat()(3),state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2));
-    // https://en.wikipedia.org/wiki/Conversion_between_quaternions_and_Euler_angles
-    Eigen::Vector3d angle;
-
-    // roll (x-axis rotation)
-    double sinr_cosp = 2 * (q.w() * q.x() + q.y() * q.z());
-    double cosr_cosp = 1 - 2 * (q.x() * q.x() + q.y() * q.y());
-    angle[0] = std::atan2(sinr_cosp, cosr_cosp);
-
-    // pitch (y-axis rotation)
-    double sinp = 2 * (q.w() * q.y() - q.z() * q.x());
-    if (std::abs(sinp) >= 1)
-        angle[1]= std::copysign(M_PI / 2, sinp); // use 90 degrees if out of range
-    else
-        angle[1] = std::asin(sinp);
-
-    // yaw (z-axis rotation)
-    double siny_cosp = 2 * (q.w() * q.z() + q.x() * q.y());
-    double cosy_cosp = 1 - 2 * (q.y() * q.y() + q.z() * q.z());
-    angle[2] = std::atan2(siny_cosp, cosy_cosp) + M_PI/2.0; // plus 90 degree to transform IMU frame to world frame
-
-    Eigen::Quaterniond new_q;
-    double cy = cos(angle[2] * 0.5);
-    double sy = sin(angle[2] * 0.5);
-    double cp = cos(angle[1] * 0.5);
-    double sp = sin(angle[1] * 0.5);
-    double cr = cos(angle[0] * 0.5);
-    double sr = sin(angle[0] * 0.5);
-
-    new_q.w() = cr * cp * cy + sr * sp * sy;
-    new_q.x() = sr * cp * cy - cr * sp * sy;
-    new_q.y() = cr * sp * cy + sr * cp * sy;
-    new_q.z() = cr * cp * sy - sr * sp * cy;
-
-    poseIinM.pose.pose.orientation.x = new_q.x();
-    poseIinM.pose.pose.orientation.y = new_q.y();
-    poseIinM.pose.pose.orientation.z = new_q.z();
-    poseIinM.pose.pose.orientation.w = new_q.w();
-    poseIinM.pose.pose.position.x = -state->_imu->pos()(1);
-    poseIinM.pose.pose.position.y = state->_imu->pos()(0);
-    poseIinM.pose.pose.position.z = state->_imu->pos()(2);
+  poseIinM.pose.pose.orientation.x = new_q.x();
+  poseIinM.pose.pose.orientation.y = new_q.y();
+  poseIinM.pose.pose.orientation.z = new_q.z();
+  poseIinM.pose.pose.orientation.w = new_q.w();
+  poseIinM.pose.pose.position.x = new_position(0);
+  poseIinM.pose.pose.position.y = new_position(1);
+  poseIinM.pose.pose.position.z = new_position(2);
 
   // Finally set the covariance in the message (in the order position then orientation as per ros convention)
   std::vector<std::shared_ptr<Type>> statevars;
