@@ -28,13 +28,13 @@ config=(
 # this can be used to skip the initial sections
 bagstarttimes=(
 # indoor forward
-    "20" # bag needs to end early as there is a hard landing....
+    "0" # bag needs to end early as there is a hard landing....
 )
 
 # location to save log files into
-save_path1="/home/chenyu/Music/catkin_ws_ov/src/open_vins/ov_analysis/algorithms"
-save_path2="/home/chenyu/Music/catkin_ws_ov/src/open_vins/ov_analysis/timings"
-bag_path="/home/chenyu/Music/catkin_ws_ov/data"
+save_path1="${SCRIPT_DIR}/algorithms"
+save_path2="${SCRIPT_DIR}/timings"
+bag_path="../ov_data"
 ov_ver="2.6.2"
 
 
@@ -73,7 +73,7 @@ roslaunch ov_msckf serial.launch \
   use_stereo:="$temp2" \
   config:="${config[i]}" \
   dataset:="${bagnames[i]}" \
-  bag:="$bag_path/${config[i]}/${bagnames[i]}.bag" \
+  bag:="${SCRIPT_DIR}/../ov_data/${config[k]}/${bagnames[i]}.bag" \
   bag_start:="${bagstarttimes[i]}" \
   dobag:="true" \
   dosave:="true" \
