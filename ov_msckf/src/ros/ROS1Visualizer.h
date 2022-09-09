@@ -89,6 +89,11 @@ public:
   void setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser);
 
   /**
+   * @brief setup T_imu_world tf in order to compensate camera-vicon tf
+   * @param parser Configuration file parser
+   */
+  void setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> parser); 
+  /**
    * @brief Will visualize the system if we have new things
    */
   void visualize();
@@ -198,6 +203,10 @@ protected:
   // Files and if we should save total state
   bool save_total_state = false;
   std::ofstream of_state_est, of_state_std, of_state_gt;
+
+  // Deal with Transformation from IMU frame to world frame to compensate camera-vicon tf
+  Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
+  Eigen::Matrix<double, 7, 1> T_imu_world_eigen;
 };
 
 } // namespace ov_msckf

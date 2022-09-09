@@ -35,8 +35,7 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
 
-Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
-Eigen::Matrix<double, 7, 1> T_imu_world_eigen;
+
 
 ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
     : _nh(nh), _app(app), _sim(sim), thread_update_running(false) {
@@ -147,7 +146,18 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
     thread.detach();
   }
 }
-
+void ROS1Visualizer::setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> parser) {
+  parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
+      // Load these into our state
+     
+  T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
+  T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
+  // Debug INFO to check if it is exposed to ros1_serial_msckf
+  std::cout<<"Debug T_imu_world" << std::endl;
+  std::cout << T_imu_world_eigen <<std::endl;
+  std::cout<<"----------------" << std::endl;
+  PRINT_INFO(REDPURPLE "Debug T_imu_world %.3f,%.3f,%.3f,%.3f,\n" RESET, T_ItoW(0, 0), T_ItoW(0, 1), T_ItoW(0, 2), T_ItoW(0, 3));
+}
 void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser) {
 
   // We need a valid parser
@@ -157,12 +167,18 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   std::string topic_imu;
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
+  /*
+  // !! This part of the code has been refactored to setup_T_imu_world as an public interface
   parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
       // Load these into our state
      
   T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
   T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
-
+  std::cout<<"Debug T_imu_world" << std::endl;
+  std::cout << T_imu_world_eigen <<std::endl;
+  std::cout<<"----------------" << std::endl;
+  */
+  setup_T_imu_world(parser);
   sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this); //ros::TransportHints().tcpNoDelay());
 
 

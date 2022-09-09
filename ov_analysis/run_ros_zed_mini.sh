@@ -51,7 +51,7 @@ for k in "${!config[@]}"; do
 
 # Monte Carlo runs for this dataset
 # If you want more runs, change the below loop
-for j in {00..03}; do
+for j in {00..00}; do
 
 # start timing
 start_time="$(date -u +%s)"
@@ -80,7 +80,7 @@ roslaunch ov_msckf serial.launch \
   path_est:="$filename_est" \
   dotime:="true" \
   dolivetraj:="true" \
-  path_time:="$filename_time" &> /dev/null
+  path_time:="$filename_time" #&> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"
