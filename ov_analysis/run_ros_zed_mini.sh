@@ -16,7 +16,8 @@ modes=(
 # dataset locations
 bagnames=(
     "fan_yes_propeller_yes_translation" # bag needs to end early as there is a hard landing....
-    
+    #"fan_yes_propeller_yes_circle" # bag needs to end early as there is a hard landing....
+    "fan_yes_propeller_yes_lissajous" # bag needs to end early as there is a hard landing....
 )
 
 # what sensor configuration each dataset has
@@ -28,6 +29,8 @@ config=(
 # this can be used to skip the initial sections
 bagstarttimes=(
 # indoor forward
+    "0" # bag needs to end early as there is a hard landing....
+    #"0" # bag needs to end early as there is a hard landing....
     "0" # bag needs to end early as there is a hard landing....
 )
 
@@ -71,7 +74,7 @@ fi
 roslaunch ov_msckf serial.launch \
   max_cameras:="$temp1" \
   use_stereo:="$temp2" \
-  config:="${config[i]}" \
+  config:="${config[k]}" \
   dataset:="${bagnames[i]}" \
   bag:="${SCRIPT_DIR}/../ov_data/${config[k]}/${bagnames[i]}.bag" \
   bag_start:="${bagstarttimes[i]}" \
@@ -80,7 +83,7 @@ roslaunch ov_msckf serial.launch \
   path_est:="$filename_est" \
   dotime:="true" \
   dolivetraj:="true" \
-  path_time:="$filename_time" #&> /dev/null
+  path_time:="$filename_time" &> /dev/null
 
 # print out the time elapsed
 end_time="$(date -u +%s)"
