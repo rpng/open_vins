@@ -17,17 +17,19 @@ modes=(
 bagnames=(
     "fan_yes_propeller_yes_translation" # bag needs to end early as there is a hard landing....
     "fan_yes_propeller_yes_lissajous" # bag needs to end early as there is a hard landing....
-    #"fan_yes_propeller_yes_circle" # bag needs to end early as there is a hard landing....
+    "fan_yes_propeller_yes_circle" # bag needs to end early as there is a hard landing....
 )
 
 # what sensor configuration each dataset has
 config=(
     "zed_mini"
     #"zed_mini_10" # bag needs to end early as there is a hard landing....
+    #"zed_mini_1e3" # bag needs to end early as there is a hard landing....
 )
 # sensor type for rosbag 
 sensortype=(
     "zed_mini"
+    #"zed_mini"
     #"zed_mini"
 )
 
