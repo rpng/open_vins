@@ -54,6 +54,10 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
 
+  // Setup pose and path publisher in world frame
+  pub_odomworld = nh->advertise<nav_msgs::Odometry>("odomworld", 2);
+  PRINT_DEBUG("Publishing: %s\n", pub_odomworld.getTopic().c_str());
+
   // 3D points publishing
   pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
@@ -272,9 +276,9 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
   // Get fast propagate state at the desired timestamp
   std::shared_ptr<State> state = _app->get_state();
-  Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
+  Eigen::Matrix<double, 19, 1> state_plus = Eigen::Matrix<double, 19, 1>::Zero();
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
-  if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
+  if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus, T_ItoW))
     return;
 
   // Publish our odometry message if requested
@@ -334,6 +338,81 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
       }
     }
     pub_odomimu.publish(odomIinM);
+  }
+
+// odom world
+    if (pub_odomworld.getNumSubscribers() != 0) {
+
+    nav_msgs::Odometry odomIinM;
+    odomIinM.header.stamp = ros::Time(timestamp);
+    odomIinM.header.frame_id = "global";
+
+    Eigen::Vector4d position;
+    Eigen::Vector4d new_position;
+    position << state_plus(4),state_plus(5),state_plus(6),1;
+    new_position = T_ItoW * position;
+    Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
+    Eigen::Quaterniond q(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
+    Eigen::Quaterniond new_q = q_imu_world*q;
+
+    odomIinM.pose.pose.orientation.x = new_q.x();
+    odomIinM.pose.pose.orientation.y = new_q.y();
+    odomIinM.pose.pose.orientation.z = new_q.z();
+    odomIinM.pose.pose.orientation.w = new_q.w();
+    odomIinM.pose.pose.position.x = new_position(0);
+    odomIinM.pose.pose.position.y = new_position(1);
+    odomIinM.pose.pose.position.z = new_position(2);
+
+/*
+    // The TWIST component (angular and linear velocities)
+    odomIinM.child_frame_id = "global";
+    Eigen::Vector3d v_imu;
+    Eigen::Vector3d w_imu;
+    Eigen::Matrix3d p_imu_to_world_hat;
+    Eigen::Matrix3d p_i_world_to_imu_hat;
+    Eigen::Matrix3d R_ItoW = new_q.normalized().toRotationMatrix();
+    Eigen::Matrix3d R_correction ;
+    // R_correction << 0,-1,0,1,0,0,0,0,1;
+    R_correction << 1,0,0,0,1,0,0,0,1;
+
+    v_imu << state_plus(13),state_plus(14),state_plus(15);
+    w_imu << state_plus(16),state_plus(17),state_plus(18);
+    p_imu_to_world_hat<< 0, -new_position(2), new_position(1), new_position(2), 0, -new_position(0), -new_position(1), new_position(0), 0;
+
+    Eigen::Vector3d v_world = R_ItoW * R_correction * v_imu + p_imu_to_world_hat * R_ItoW *  R_correction  * w_imu;
+    Eigen::Vector3d w_world = R_ItoW * R_correction * w_imu;
+
+
+    odomIinM.twist.twist.linear.x = v_world(0);   // vel in local frame
+    odomIinM.twist.twist.linear.y = v_world(1);   // vel in local frame
+    odomIinM.twist.twist.linear.z = v_world(2);   // vel in local frame
+    odomIinM.twist.twist.angular.x = w_world(0); // we do not estimate this...
+    odomIinM.twist.twist.angular.y = w_world(1); // we do not estimate this...
+    odomIinM.twist.twist.angular.z = w_world(2); // we do not estimate this...
+*/
+    odomIinM.twist.twist.linear.x = state_plus(13);   // vel in world frame
+    odomIinM.twist.twist.linear.y = state_plus(14);   // vel in world frame
+    odomIinM.twist.twist.linear.z = state_plus(15);   // vel in world frame
+    odomIinM.twist.twist.angular.x = state_plus(16); // we do not estimate this...
+    odomIinM.twist.twist.angular.y = state_plus(17); // we do not estimate this...
+    odomIinM.twist.twist.angular.z = state_plus(18); // we do not estimate this...
+    // Finally set the covariance in the message (in the order position then orientation as per ros convention)
+    Eigen::Matrix<double, 12, 12> Phi = Eigen::Matrix<double, 12, 12>::Zero();
+    Phi.block(0, 3, 3, 3).setIdentity();
+    Phi.block(3, 0, 3, 3).setIdentity();
+    Phi.block(6, 6, 6, 6).setIdentity();
+    cov_plus = Phi * cov_plus * Phi.transpose();
+    for (int r = 0; r < 6; r++) {
+      for (int c = 0; c < 6; c++) {
+        odomIinM.pose.covariance[6 * r + c] = cov_plus(r, c);
+      }
+    }
+    for (int r = 0; r < 6; r++) {
+      for (int c = 0; c < 6; c++) {
+        odomIinM.twist.covariance[6 * r + c] = cov_plus(r + 6, c + 6);
+      }
+    }
+    pub_odomworld.publish(odomIinM);
   }
 
   // Publish our transform on TF

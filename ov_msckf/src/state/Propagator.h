@@ -109,8 +109,8 @@ public:
    * @param covariance The propagated covariance (q_GtoI, p_IinG, v_IinI, w_IinI)
    * @return True if we were able to propagate the state to the current timestep
    */
-  bool fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
-                            Eigen::Matrix<double, 12, 12> &covariance);
+  bool fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 19, 1> &state_plus,
+                            Eigen::Matrix<double, 12, 12> &covariance, Eigen::Matrix4d &T_ItoW);
 
   /**
    * @brief Helper function that given current imu data, will select imu readings between the two times.

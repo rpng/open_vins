@@ -9,3 +9,4 @@ doxgen_generated
 doc
 .vscode
 *.bag
+ov_data/zed_mini

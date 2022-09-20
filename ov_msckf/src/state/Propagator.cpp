@@ -120,8 +120,8 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
   StateHelper::augment_clone(state, last_w);
 }
 
-bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
-                                      Eigen::Matrix<double, 12, 12> &covariance) {
+bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 19, 1> &state_plus,
+                                      Eigen::Matrix<double, 12, 12> &covariance, Eigen::Matrix4d &T_ItoW) {
 
   // First we will store the current calibration / estimates of the state
   double state_time = state->_timestamp;
@@ -199,12 +199,21 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   Eigen::Vector4d q_Gtoi = state_est.block(0, 0, 4, 1);
   Eigen::Vector3d v_iinG = state_est.block(7, 0, 3, 1);
   Eigen::Vector3d p_iinG = state_est.block(4, 0, 3, 1);
+  Eigen::Vector3d w_iinimu = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
+  //p_i_world_to_imu_hat<< 0, p_iinG(2), -p_iinG(1), -p_iinG(2), 0, p_iinG(0), p_iinG(1), -p_iinG(0), 0;
+  Eigen::Vector3d p_i_body_to_imu_hat;
+  //Eigen::Matrix4d T_ItoW;
+  //TODO read from yaml
+  //T_ItoW<< 0.00608797, -0.99985019, -0.01620309,0.99956308, 0.00561595, 0.02901906, 0.01371961, -0.02892372, -0.01637268, 0.99944752,0.0207709,0,0,0,1;
+  p_i_body_to_imu_hat << 0,  -T_ItoW(3,2), T_ItoW(3,1), T_ItoW(3,2), 0, -T_ItoW(3,0), -T_ItoW(3,1), T_ItoW(3,0), 0;
+  // T_ItoW imu -> body 
   state_plus.setZero();
   state_plus.block(0, 0, 4, 1) = q_Gtoi;
   state_plus.block(4, 0, 3, 1) = p_iinG;
   state_plus.block(7, 0, 3, 1) = quat_2_Rot(q_Gtoi) * v_iinG;
   state_plus.block(10, 0, 3, 1) = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
-
+  state_plus.block(13, 0, 3, 1) = quat_2_Rot(q_Gtoi)*v_iinG - quat_2_Rot(q_Gtoi) * p_i_body_to_imu_hat * T_ItoW.block(0,0,3,3).transpose()*(-T_ItoW.block(0,3,3,1));
+  state_plus.block(16, 0, 3, 1) = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
   // Do a covariance propagation for our velocity
   // TODO: more properly do the covariance of the angular velocity here...
   // TODO: it should be dependent on the state bias, thus correlated with the pose
