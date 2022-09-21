@@ -110,7 +110,7 @@ public:
    * @return True if we were able to propagate the state to the current timestep
    */
   bool fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 19, 1> &state_plus,
-                            Eigen::Matrix<double, 12, 12> &covariance, Eigen::Matrix4d &T_ItoW);
+                            Eigen::Matrix<double, 12, 12> &covariance, Eigen::Matrix4d &T_ItoW, Eigen::Matrix<double, 7, 1> &T_imu_world_eigen);
 
   /**
    * @brief Helper function that given current imu data, will select imu readings between the two times.

@@ -278,7 +278,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   std::shared_ptr<State> state = _app->get_state();
   Eigen::Matrix<double, 19, 1> state_plus = Eigen::Matrix<double, 19, 1>::Zero();
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
-  if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus, T_ItoW))
+  if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus, T_ItoW, T_imu_world_eigen))
     return;
 
   // Publish our odometry message if requested
@@ -289,28 +289,13 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomIinM.header.frame_id = "global";
 
     // The POSE component (orientation and position)
-    // odomIinM.pose.pose.orientation.x = state_plus(0);
-    // odomIinM.pose.pose.orientation.y = state_plus(1);
-    // odomIinM.pose.pose.orientation.z = state_plus(2);
-    // odomIinM.pose.pose.orientation.w = state_plus(3);
-    // odomIinM.pose.pose.position.x = state_plus(4);
-    // odomIinM.pose.pose.position.y = state_plus(5);
-    // odomIinM.pose.pose.position.z = state_plus(6);
-    Eigen::Vector4d position;
-    Eigen::Vector4d new_position;
-    position << state_plus(4),state_plus(5),state_plus(6),1;
-    new_position = T_ItoW * position;
-    Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
-    Eigen::Quaterniond q(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
-    Eigen::Quaterniond new_q = q_imu_world*q;
-
-    odomIinM.pose.pose.orientation.x = new_q.x();
-    odomIinM.pose.pose.orientation.y = new_q.y();
-    odomIinM.pose.pose.orientation.z = new_q.z();
-    odomIinM.pose.pose.orientation.w = new_q.w();
-    odomIinM.pose.pose.position.x = new_position(0);
-    odomIinM.pose.pose.position.y = new_position(1);
-    odomIinM.pose.pose.position.z = new_position(2);
+    odomIinM.pose.pose.orientation.x = state_plus(0);
+    odomIinM.pose.pose.orientation.y = state_plus(1);
+    odomIinM.pose.pose.orientation.z = state_plus(2);
+    odomIinM.pose.pose.orientation.w = state_plus(3);
+    odomIinM.pose.pose.position.x = state_plus(4);
+    odomIinM.pose.pose.position.y = state_plus(5);
+    odomIinM.pose.pose.position.z = state_plus(6);
 
     // The TWIST component (angular and linear velocities)
     odomIinM.child_frame_id = "imu";
@@ -346,7 +331,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     nav_msgs::Odometry odomIinM;
     odomIinM.header.stamp = ros::Time(timestamp);
     odomIinM.header.frame_id = "global";
-
+    /*
     Eigen::Vector4d position;
     Eigen::Vector4d new_position;
     position << state_plus(4),state_plus(5),state_plus(6),1;
@@ -362,8 +347,17 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomIinM.pose.pose.position.x = new_position(0);
     odomIinM.pose.pose.position.y = new_position(1);
     odomIinM.pose.pose.position.z = new_position(2);
+    */
 
+    odomIinM.pose.pose.orientation.x = state_plus(13);
+    odomIinM.pose.pose.orientation.y = state_plus(14);
+    odomIinM.pose.pose.orientation.z = state_plus(15);
+    odomIinM.pose.pose.orientation.w = state_plus(16);
+    odomIinM.pose.pose.position.x = state_plus(17);
+    odomIinM.pose.pose.position.y = state_plus(18);
+    odomIinM.pose.pose.position.z = state_plus(19);
 /*
+    // LEGACY
     // The TWIST component (angular and linear velocities)
     odomIinM.child_frame_id = "global";
     Eigen::Vector3d v_imu;
@@ -390,12 +384,12 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomIinM.twist.twist.angular.y = w_world(1); // we do not estimate this...
     odomIinM.twist.twist.angular.z = w_world(2); // we do not estimate this...
 */
-    odomIinM.twist.twist.linear.x = state_plus(13);   // vel in world frame
-    odomIinM.twist.twist.linear.y = state_plus(14);   // vel in world frame
-    odomIinM.twist.twist.linear.z = state_plus(15);   // vel in world frame
-    odomIinM.twist.twist.angular.x = state_plus(16); // we do not estimate this...
-    odomIinM.twist.twist.angular.y = state_plus(17); // we do not estimate this...
-    odomIinM.twist.twist.angular.z = state_plus(18); // we do not estimate this...
+    odomIinM.twist.twist.linear.x = state_plus(20);   // vel in world frame
+    odomIinM.twist.twist.linear.y = state_plus(21);   // vel in world frame
+    odomIinM.twist.twist.linear.z = state_plus(22);   // vel in world frame
+    odomIinM.twist.twist.angular.x = state_plus(23); // we do not estimate this...
+    odomIinM.twist.twist.angular.y = state_plus(24); // we do not estimate this...
+    odomIinM.twist.twist.angular.z = state_plus(25); // we do not estimate this...
     // Finally set the covariance in the message (in the order position then orientation as per ros convention)
     Eigen::Matrix<double, 12, 12> Phi = Eigen::Matrix<double, 12, 12>::Zero();
     Phi.block(0, 3, 3, 3).setIdentity();
@@ -419,7 +413,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
   // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
   auto odom_pose = std::make_shared<ov_type::PoseJPL>();
-  odom_pose->set_value(state_plus.block(0, 0, 7, 1));
+  odom_pose->set_value(state_plus.block(13, 0, 7, 1));
   tf::StampedTransform trans = ROSVisualizerHelper::get_stamped_transform_from_pose(odom_pose, false);
   trans.frame_id_ = "global";
   trans.child_frame_id_ = "imu";

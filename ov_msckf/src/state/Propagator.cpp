@@ -121,7 +121,7 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
 }
 
 bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 19, 1> &state_plus,
-                                      Eigen::Matrix<double, 12, 12> &covariance, Eigen::Matrix4d &T_ItoW) {
+                                      Eigen::Matrix<double, 12, 12> &covariance, Eigen::Matrix4d &T_ItoW, Eigen::Matrix<double, 7, 1> &T_imu_world_eigen) {
 
   // First we will store the current calibration / estimates of the state
   double state_time = state->_timestamp;
@@ -212,8 +212,16 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   state_plus.block(4, 0, 3, 1) = p_iinG;
   state_plus.block(7, 0, 3, 1) = quat_2_Rot(q_Gtoi) * v_iinG;
   state_plus.block(10, 0, 3, 1) = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
-  state_plus.block(13, 0, 3, 1) = quat_2_Rot(q_Gtoi)*v_iinG - quat_2_Rot(q_Gtoi) * p_i_body_to_imu_hat * T_ItoW.block(0,0,3,3).transpose()*(-T_ItoW.block(0,3,3,1));
-  state_plus.block(16, 0, 3, 1) = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
+  Eigen::Vector4d position(state_plus(4),state_plus(5),state_plus(6),1);
+  Eigen::Vector4d new_position = T_ItoW * position;
+  Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
+  Eigen::Quaterniond q(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
+  Eigen::Quaterniond new_q = q_imu_world*q;
+  Eigen::Vector4d new_rotation(new_q.x(), new_q.y(), new_q.z(), new_q.w());
+  state_plus.block(13, 0, 4, 1) = new_rotation;
+  state_plus.block(17, 0, 3, 1) = new_position;
+  state_plus.block(20, 0, 3, 1) = quat_2_Rot(q_Gtoi)*v_iinG - quat_2_Rot(q_Gtoi) * p_i_body_to_imu_hat * T_ItoW.block(0,0,3,3).transpose()*(-T_ItoW.block(0,3,3,1));
+  state_plus.block(23, 0, 3, 1) = 0.5 * (prop_data.at(prop_data.size() - 1).wm + prop_data.at(prop_data.size() - 2).wm) - bias_g;
   // Do a covariance propagation for our velocity
   // TODO: more properly do the covariance of the angular velocity here...
   // TODO: it should be dependent on the state bias, thus correlated with the pose
