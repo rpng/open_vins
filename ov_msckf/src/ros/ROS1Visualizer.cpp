@@ -51,6 +51,10 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
   pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
+  pub_odomworld = nh->advertise<nav_msgs::Odometry>("odomworld", 2);
+  PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
+  pub_pathworld = nh->advertise<nav_msgs::Path>("pathimuworld", 2);
+  PRINT_DEBUG("Publishing: %s\n", pub_pathworld.getTopic().c_str());
 
   // 3D points publishing
   pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 2);
@@ -82,6 +86,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
 
   // option to enable publishing of global to IMU transformation
   nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
+  nh->param<bool>("publish_world_to_body_tf", publish_world2body_tf, true);
   nh->param<bool>("publish_calibration_tf", publish_calibration_tf, true);
 
   // Load groundtruth if we have it and are not doing simulation
@@ -144,12 +149,65 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
     thread.detach();
   }
 }
-// Deal with Transformation from IMU local frame to world frame to compensate camera-vicon tf
-// local 1.-> body 2.-> world
-// 1. imu-cam (camera-imu calibration)-> cam->body (vicon camera calibration)
-// 2. default 0,0,75 or read from vicon
-void ROS1Visualizer::setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> parser) {
-  parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
+/* 
+  Deal with Transformation from local frame M to world frame  W to compensate camera-vicon tf
+   It can be calculated by the transformation from the imu frame(I) to world frame (W) at the zero timestamp
+   local frame "global" (I) -> camera (C) -> body (B)  ->  vicon frame "world" (W)
+   1. I -> C: camera imu calibration
+   2. C -> B: camera-vicon calibration
+   3. B -> W: body frame from vicon tracking (vicon odom), by default it will be 0,0,75 for race platform
+*/
+void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
+  Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_ItoC = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_CtoB = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_BtoW = Eigen::Matrix4d::Identity();
+  parser->parse_external("relative_config_imu", "imu0", "T_imu_world", T_ItoW);
+  parser->parse_external("relative_config_imu", "imu0", "T_imu_cam", T_ItoC);
+  parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB);
+  parser->parse_external("relative_config_imu", "imu0", "T_body_world", T_BtoW);
+  // If there is vicon input, use body pose in vicon frame as the T_BtoW
+  bool init_world_with_vicon = false;
+  //_nh->param<std::bool>("init_world_with_vicon", init_world_with_vicon, false);
+  parser->parse_config("init_world_with_vicon", init_world_with_vicon);
+  if (init_world_with_vicon) {
+    std::string viconOdomWTopic;
+    //_nh->param<std::string>("viconOdomWTopic", viconOdomWTopic, "/vicon/race4/odom");
+    parser->parse_config("viconOdomWTopic", viconOdomWTopic);
+    boost::shared_ptr<nav_msgs::Odometry const> sharedInitBodyOdominW;
+    nav_msgs::Odometry initBodyOdominW;
+    sharedInitBodyOdominW = ros::topic::waitForMessage<nav_msgs::Odometry>(viconOdomWTopic, ros::Duration(5));
+    if(sharedInitBodyOdominW != nullptr) {
+      initBodyOdominW = *sharedInitBodyOdominW;
+      PRINT_INFO("Got the init T_BtoW from vicon topic %s", viconOdomWTopic.c_str());
+    }
+    else {
+      PRINT_ERROR("Failed to get init T_BtoW from vicon topic %s", viconOdomWTopic.c_str());
+      exit(1);
+    }
+    // parse initBodyOdominW
+    Eigen::Vector3d initBodyPosinW;
+    Eigen::Quaterniond initBodyQuatinW;
+    initBodyPosinW << initBodyOdominW.pose.pose.position.x, initBodyOdominW.pose.pose.position.y, initBodyOdominW.pose.pose.position.z;
+    initBodyQuatinW.w() = initBodyOdominW.pose.pose.orientation.w;
+    initBodyQuatinW.x() = initBodyOdominW.pose.pose.orientation.x;
+    initBodyQuatinW.y() = initBodyOdominW.pose.pose.orientation.y;
+    initBodyQuatinW.z() = initBodyOdominW.pose.pose.orientation.z;
+    Eigen::Matrix4d T_WtoB = Eigen::Matrix4d::Identity();
+    T_WtoB.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix();
+    T_WtoB.block(0, 3, 3, 1) = initBodyPosinW;
+    T_BtoW = T_WtoB.inverse();
+  } 
+  //TODO: check math
+  T_ItoB = T_CtoB * T_ItoC;
+  T_ItoW = T_BtoW * T_ItoB;
+  //T_WtoI = T_ItoW.inverse();
+  T_MtoW = T_ItoW;
+  T_MtoW_eigen.block(0,0,4,1) = ov_core::rot_2_quat(T_MtoW.block(0,0,3,3));
+  T_MtoW_eigen.block(4,0,3,1) = T_MtoW.block(0,3,3,1);
+  //PRINT_INFO(REDPURPLE "T_MtoW R %.3f %.3f %.3f %.3f \n| T_MtoW T %.3f %.3f %.3f" RESET, T_MtoW_eigen(0,0), T_MtoW_eigen(0,1), T_MtoW_eigen(0,2), T_MtoW_eigen(0,3), T_MtoW_eigen(0,4), T_MtoW_eigen(0,5), T_MtoW_eigen(0,6));
+  PRINT_INFO(REDPURPLE "T_MtoW R %.3f %.3f %.3f %.3f \n| T_MtoW T %.3f %.3f %.3f" RESET, T_MtoW_eigen(0,0), T_MtoW_eigen(1,0), T_MtoW_eigen(2,0), T_MtoW_eigen(3,0), T_MtoW_eigen(4,0), T_MtoW_eigen(5,0), T_MtoW_eigen(6,0));
+  /*LEGACY
       // Load these into our state
   T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
   T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
@@ -158,21 +216,6 @@ void ROS1Visualizer::setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> pars
   std::cout << T_imu_world_eigen <<std::endl;
   std::cout<<"----------------" << std::endl;
   PRINT_INFO(REDPURPLE "Debug T_imu_world %.3f,%.3f,%.3f,%.3f,\n" RESET, T_ItoW(0, 0), T_ItoW(0, 1), T_ItoW(0, 2), T_ItoW(0, 3));
-  /*
-  bool init_world;
-  parser>parse_external("init_world", init_world);
-  if (init_world) {
-    std::string odomWTopic;
-    parse_external("odomWTopic", odomWTopic);
-    boost::shared_ptr<nav_msgs::Odometry const> sharedInitBodyOdominW;
-    nav_msgs::Odometry initBodyOdominW;
-    sharedInitBodyOdominW = ros::topic::waitForMessage<nav_msgs::Odometry>("/path_planned/edge");
-    if(sharedInitBodyOdominW != NULL){
-      initBodyOdominW = *sharedInitBodyOdominW;
-    }
-  } else {
-    
-  }
   */
 }
 
@@ -185,7 +228,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   std::string topic_imu;
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
-  setup_T_imu_world(parser);
+  setup_T_MtoW(parser);
   sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this);
 
   // Logic for sync stereo subscriber
@@ -282,11 +325,13 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
   if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
     return;
-
+  // 1. publish odomIinM (imu odometry in the vio local frame)
   // Publish our odometry message if requested
+  bool published_odomIinM = false;
+  nav_msgs::Odometry odomIinM;
   if (pub_odomimu.getNumSubscribers() != 0) {
-
-    nav_msgs::Odometry odomIinM;
+    published_odomIinM = true;
+    //nav_msgs::Odometry odomIinM;
     odomIinM.header.stamp = ros::Time(timestamp);
     odomIinM.header.frame_id = "global";
 
@@ -347,6 +392,76 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     if (publish_calibration_tf) {
       mTfBr->sendTransform(trans_calib);
     }
+  }
+  // 2. publish odomBinW (imu odometry in the vio local frame)
+  // Publish our odometry message if requested
+  nav_msgs::Odometry odomBinW;
+  Eigen::Matrix<double, 13, 1> state_plus_world = Eigen::Matrix<double, 13, 1>::Zero();
+  if (pub_odomworld.getNumSubscribers() != 0) {
+    // calculate the new state_plus
+    
+    state_plus_world = state_plus;
+    // state_plus is the IMU state in the local frame (M)
+    // 1. stateIinM -> stateIinW
+    // 2. stateIinW -> stateBinW
+    // TODO: finish math
+    // odomIinW = (T_MtoW*odomI_M);
+    // odomBinW = (T_I2B * (odomIinW).inverse).inverse();
+
+    nav_msgs::Odometry odomBinW;
+    odomBinW.header.stamp = ros::Time(timestamp);
+    odomBinW.header.frame_id = "world";
+
+    // The POSE component (orientation and position)
+    odomBinW.pose.pose.orientation.x = state_plus_world(0);
+    odomBinW.pose.pose.orientation.y = state_plus_world(1);
+    odomBinW.pose.pose.orientation.z = state_plus_world(2);
+    odomBinW.pose.pose.orientation.w = state_plus_world(3);
+    odomBinW.pose.pose.position.x = state_plus_world(4);
+    odomBinW.pose.pose.position.y = state_plus_world(5);
+    odomBinW.pose.pose.position.z = state_plus_world(6);
+
+    // The TWIST component (angular and linear velocities)
+    odomBinW.child_frame_id = "body";
+    odomBinW.twist.twist.linear.x = state_plus_world(7);   // vel in world frame
+    odomBinW.twist.twist.linear.y = state_plus_world(8);   // vel in world frame
+    odomBinW.twist.twist.linear.z = state_plus_world(9);   // vel in world frame
+    odomBinW.twist.twist.angular.x = state_plus_world(10); // we do not estimate this...
+    odomBinW.twist.twist.angular.y = state_plus_world(11); // we do not estimate this...
+    odomBinW.twist.twist.angular.z = state_plus_world(12); // we do not estimate this...
+
+    if (published_odomIinM) {
+      odomBinW.pose.covariance = odomIinM.pose.covariance;
+    } else {
+      Eigen::Matrix<double, 12, 12> Phi = Eigen::Matrix<double, 12, 12>::Zero();
+      Phi.block(0, 3, 3, 3).setIdentity();
+      Phi.block(3, 0, 3, 3).setIdentity();
+      Phi.block(6, 6, 6, 6).setIdentity();
+      cov_plus = Phi * cov_plus * Phi.transpose();
+      for (int r = 0; r < 6; r++) {
+        for (int c = 0; c < 6; c++) {
+          odomBinW.pose.covariance[6 * r + c] = cov_plus(r, c);
+        }
+      }
+      for (int r = 0; r < 6; r++) {
+        for (int c = 0; c < 6; c++) {
+          odomBinW.twist.covariance[6 * r + c] = cov_plus(r + 6, c + 6);
+        }
+      }
+    }
+    pub_odomworld.publish(odomBinW);
+  }
+
+  // Publish our transform on TF
+  // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
+  // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
+  auto odom_pose_world = std::make_shared<ov_type::PoseJPL>();
+  odom_pose_world->set_value(state_plus_world.block(0, 0, 7, 1));
+  tf::StampedTransform trans_world = ROSVisualizerHelper::get_stamped_transform_from_pose(odom_pose_world, false);
+  trans.frame_id_ = "world";
+  trans.child_frame_id_ = "body";
+  if (publish_world2body_tf) {
+    mTfBr->sendTransform(trans_world);
   }
 }
 

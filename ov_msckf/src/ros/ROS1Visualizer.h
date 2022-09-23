@@ -89,10 +89,10 @@ public:
   void setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser);
   
   /**
-   * @brief setup T_imu_world tf in order to compensate camera-vicon tf
+   * @brief setup T_MtoW tf in order to compensate local frame to global frame tf
    * @param parser Configuration file parser
    */
-  void setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> parser); 
+  void setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser); 
 
   /**
    * @brief Will visualize the system if we have new things
@@ -148,6 +148,7 @@ protected:
   // Our publishers
   image_transport::Publisher it_pub_tracks, it_pub_loop_img_depth, it_pub_loop_img_depth_color;
   ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
+  ros::Publisher pub_poseworld, pub_odomworld, pub_pathworld;
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
   std::shared_ptr<tf::TransformBroadcaster> mTfBr;
@@ -199,18 +200,17 @@ protected:
   unsigned int poses_seq_gt = 0;
   std::vector<geometry_msgs::PoseStamped> poses_gt;
   bool publish_global2imu_tf = true;
+  bool publish_world2body_tf = true;
   bool publish_calibration_tf = true;
 
   // Files and if we should save total state
   bool save_total_state = false;
   std::ofstream of_state_est, of_state_std, of_state_gt;
 
-  // Deal with Transformation from IMU local frame to world frame to compensate camera-vicon tf
-  // local 1.-> body 2.-> world
-  // 1. imu-cam (camera-imu calibration)-> cam->body (vicon camera calibration)
-  // 2. default 0,0,75 or read from vicon
-  Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
-  Eigen::Matrix<double, 7, 1> T_imu_world_eigen;
+  // Transformation between vio local (IMU) frame to vicon world frame
+  Eigen::Matrix4d T_MtoW = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_ItoB = Eigen::Matrix4d::Identity();
+  Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
 };
 
 } // namespace ov_msckf

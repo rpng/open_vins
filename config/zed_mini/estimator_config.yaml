@@ -113,5 +113,5 @@ relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "imucam_chain_right.yaml"
 
 # init with the alignment of vicon world frame and vio global frame (which is local frame)
-init_world: true
-odomWTopic: "/race4/odom"
+init_world_with_vicon: true
+viconOdomWTopic: "/race4/odom"
