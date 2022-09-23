@@ -105,7 +105,7 @@ private:
 #ifdef __cplusplus
 extern "C" {
 #endif
-extern void __assert(const char *msg, const char *file, int line);
+extern void __assert(const char *msg, const char *file, int line) throw ();
 #ifdef __cplusplus
 };
 #endif
