@@ -144,6 +144,37 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
     thread.detach();
   }
 }
+// Deal with Transformation from IMU local frame to world frame to compensate camera-vicon tf
+// local 1.-> body 2.-> world
+// 1. imu-cam (camera-imu calibration)-> cam->body (vicon camera calibration)
+// 2. default 0,0,75 or read from vicon
+void ROS1Visualizer::setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> parser) {
+  parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
+      // Load these into our state
+  T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
+  T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
+  // Debug INFO to check if it is exposed to ros1_serial_msckf
+  std::cout<<"Debug T_imu_world" << std::endl;
+  std::cout << T_imu_world_eigen <<std::endl;
+  std::cout<<"----------------" << std::endl;
+  PRINT_INFO(REDPURPLE "Debug T_imu_world %.3f,%.3f,%.3f,%.3f,\n" RESET, T_ItoW(0, 0), T_ItoW(0, 1), T_ItoW(0, 2), T_ItoW(0, 3));
+  /*
+  bool init_world;
+  parser>parse_external("init_world", init_world);
+  if (init_world) {
+    std::string odomWTopic;
+    parse_external("odomWTopic", odomWTopic);
+    boost::shared_ptr<nav_msgs::Odometry const> sharedInitBodyOdominW;
+    nav_msgs::Odometry initBodyOdominW;
+    sharedInitBodyOdominW = ros::topic::waitForMessage<nav_msgs::Odometry>("/path_planned/edge");
+    if(sharedInitBodyOdominW != NULL){
+      initBodyOdominW = *sharedInitBodyOdominW;
+    }
+  } else {
+    
+  }
+  */
+}
 
 void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser) {
 
@@ -154,6 +185,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   std::string topic_imu;
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
+  setup_T_imu_world(parser);
   sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this);
 
   // Logic for sync stereo subscriber
