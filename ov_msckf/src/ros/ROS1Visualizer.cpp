@@ -156,67 +156,72 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
    1. I -> C: camera imu calibration
    2. C -> B: camera-vicon calibration
    3. B -> W: body frame from vicon tracking (vicon odom), by default it will be 0,0,75 for race platform
+   THe M-> W is the initial I->W
+   then vio odom odomIinM needs to be converted to odomBinW
+   (odomIinW, velIinW)= T_MtoW * (odomIinM, velIinM) 
+  odomIinW 
+
 */
 void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
-  Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
+  // Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_ItoC = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_CtoB = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_BtoW = Eigen::Matrix4d::Identity();
-  parser->parse_external("relative_config_imu", "imu0", "T_imu_world", T_ItoW);
-  parser->parse_external("relative_config_imu", "imu0", "T_imu_cam", T_ItoC);
-  parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB);
+  T_left_imu_to_right_imu = Eigen::Matrix4d::Identity();
+  //parser->parse_external("relative_config_imu", "imu0", "T_imu_world", T_ItoW); // pre-computed, could be wrong. TODO: move to legacy
+  parser->parse_external("relative_config_imucam", "cam0", "T_cam_imu", T_ItoC); // T_cam_imu is transformation from IMU to camera coordinates from kalibr
+  parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB); // from camera-vicon calibration
   parser->parse_external("relative_config_imu", "imu0", "T_body_world", T_BtoW);
+  parser->parse_external("relative_config_imu", "imu0", "T_left_imu_to_right_imu", T_left_imu_to_right_imu);
   // If there is vicon input, use body pose in vicon frame as the T_BtoW
   bool init_world_with_vicon = false;
-  //_nh->param<std::bool>("init_world_with_vicon", init_world_with_vicon, false);
   parser->parse_config("init_world_with_vicon", init_world_with_vicon);
   if (init_world_with_vicon) {
     std::string viconOdomWTopic;
-    //_nh->param<std::string>("viconOdomWTopic", viconOdomWTopic, "/vicon/race4/odom");
     parser->parse_config("viconOdomWTopic", viconOdomWTopic);
     boost::shared_ptr<nav_msgs::Odometry const> sharedInitBodyOdominW;
     nav_msgs::Odometry initBodyOdominW;
     sharedInitBodyOdominW = ros::topic::waitForMessage<nav_msgs::Odometry>(viconOdomWTopic, ros::Duration(5));
     if(sharedInitBodyOdominW != nullptr) {
       initBodyOdominW = *sharedInitBodyOdominW;
-      PRINT_INFO("Got the init T_BtoW from vicon topic %s", viconOdomWTopic.c_str());
+      PRINT_INFO("Got the init T_BtoW from vicon topic %s\n", viconOdomWTopic.c_str());
+      // parse initBodyOdominW
+      Eigen::Vector3d initBodyPosinW;
+      Eigen::Quaterniond initBodyQuatinW;
+      initBodyPosinW << initBodyOdominW.pose.pose.position.x, initBodyOdominW.pose.pose.position.y, initBodyOdominW.pose.pose.position.z;
+      initBodyQuatinW.w() = initBodyOdominW.pose.pose.orientation.w;
+      initBodyQuatinW.x() = initBodyOdominW.pose.pose.orientation.x;
+      initBodyQuatinW.y() = initBodyOdominW.pose.pose.orientation.y;
+      initBodyQuatinW.z() = initBodyOdominW.pose.pose.orientation.z;
+      // Eigen::Matrix4d T_WtoB = Eigen::Matrix4d::Identity();
+      // T_WtoB.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix().transpose();
+      // T_WtoB.block(0, 3, 3, 1) = -T_WtoB.block(0, 0, 3, 3).transpose() * initBodyPosinW;
+      T_BtoW.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix();
+      T_BtoW.block(0, 3, 3, 1) = initBodyPosinW;
     }
     else {
-      PRINT_ERROR("Failed to get init T_BtoW from vicon topic %s", viconOdomWTopic.c_str());
-      exit(1);
+      PRINT_INFO("Failed to get init T_BtoW from vicon topic %s, use default T_BtoW\n", viconOdomWTopic.c_str());
     }
-    // parse initBodyOdominW
-    Eigen::Vector3d initBodyPosinW;
-    Eigen::Quaterniond initBodyQuatinW;
-    initBodyPosinW << initBodyOdominW.pose.pose.position.x, initBodyOdominW.pose.pose.position.y, initBodyOdominW.pose.pose.position.z;
-    initBodyQuatinW.w() = initBodyOdominW.pose.pose.orientation.w;
-    initBodyQuatinW.x() = initBodyOdominW.pose.pose.orientation.x;
-    initBodyQuatinW.y() = initBodyOdominW.pose.pose.orientation.y;
-    initBodyQuatinW.z() = initBodyOdominW.pose.pose.orientation.z;
-    Eigen::Matrix4d T_WtoB = Eigen::Matrix4d::Identity();
-    T_WtoB.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix();
-    T_WtoB.block(0, 3, 3, 1) = initBodyPosinW;
-    T_BtoW = T_WtoB.inverse();
   } 
   //TODO: check math
   T_ItoB = T_CtoB * T_ItoC;
-  T_ItoW = T_BtoW * T_ItoB;
-  //T_WtoI = T_ItoW.inverse();
-  T_MtoW = T_ItoW;
-  T_MtoW_eigen.block(0,0,4,1) = ov_core::rot_2_quat(T_MtoW.block(0,0,3,3));
-  T_MtoW_eigen.block(4,0,3,1) = T_MtoW.block(0,3,3,1);
-  //PRINT_INFO(REDPURPLE "T_MtoW R %.3f %.3f %.3f %.3f \n| T_MtoW T %.3f %.3f %.3f" RESET, T_MtoW_eigen(0,0), T_MtoW_eigen(0,1), T_MtoW_eigen(0,2), T_MtoW_eigen(0,3), T_MtoW_eigen(0,4), T_MtoW_eigen(0,5), T_MtoW_eigen(0,6));
-  PRINT_INFO(REDPURPLE "T_MtoW R %.3f %.3f %.3f %.3f \n| T_MtoW T %.3f %.3f %.3f" RESET, T_MtoW_eigen(0,0), T_MtoW_eigen(1,0), T_MtoW_eigen(2,0), T_MtoW_eigen(3,0), T_MtoW_eigen(4,0), T_MtoW_eigen(5,0), T_MtoW_eigen(6,0));
-  /*LEGACY
-      // Load these into our state
-  T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
-  T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
-  // Debug INFO to check if it is exposed to ros1_serial_msckf
-  std::cout<<"Debug T_imu_world" << std::endl;
-  std::cout << T_imu_world_eigen <<std::endl;
-  std::cout<<"----------------" << std::endl;
-  PRINT_INFO(REDPURPLE "Debug T_imu_world %.3f,%.3f,%.3f,%.3f,\n" RESET, T_ItoW(0, 0), T_ItoW(0, 1), T_ItoW(0, 2), T_ItoW(0, 3));
-  */
+  T_BtoI.block(0,0,3,3) = T_ItoB.block(0,0,3,3).transpose();
+  T_BtoI.block(0,3,3,1) = -T_ItoB.block(0,0,3,3).transpose() * T_ItoB.block(0,3,3,1);
+  T_MtoW = T_BtoW * T_ItoB; // T_ItoW at zero timestamp
+  PRINT_INFO("T_ItoB");
+  print_tf(T_ItoB);
+  PRINT_INFO("T_MtoW");
+  T_MtoW_eigen = print_tf(T_MtoW);
+  PRINT_INFO("T_BtoW");
+  print_tf(T_BtoW);
+}
+
+Eigen::Matrix<double, 7, 1> ROS1Visualizer::print_tf(Eigen::Matrix4d T) {
+  Eigen::Matrix<double, 7, 1> T_eigen;
+  T_eigen.block(0,0,4,1) = ov_core::rot_2_quat(T.block(0,0,3,3));
+  T_eigen.block(4,0,3,1) = T.block(0,3,3,1);
+  PRINT_INFO(REDPURPLE "R %.3f %.3f %.3f %.3f \n| T %.3f %.3f %.3f\n" RESET, T_eigen(0,0), T_eigen(1,0), T_eigen(2,0), T_eigen(3,0), T_eigen(4,0), T_eigen(5,0), T_eigen(6,0));
+  return T_eigen;
 }
 
 void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser) {
@@ -407,19 +412,68 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     // TODO: finish math
     // odomIinW = (T_MtoW*odomI_M);
     // odomBinW = (T_I2B * (odomIinW).inverse).inverse();
-
+    // TODO: In this iteration, odomBinW is odomBinM
     nav_msgs::Odometry odomBinW;
     odomBinW.header.stamp = ros::Time(timestamp);
     odomBinW.header.frame_id = "world";
+    Eigen::Vector4d position_IinW, position_IinM, position_BinW;
+    Eigen::Matrix4d state_IinM;
+    //position_IinM << state_plus_world(4),state_plus_world(5),state_plus_world(6),1;
+    //position_IinW = T_MtoW * position_IinM;
+    Eigen::Matrix<double, 4,1> q_IinM_eigen;
+    q_IinM_eigen <<state_plus_world(0),state_plus_world(1),state_plus_world(2), state_plus_world(3);
+    state_IinM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen);
+    state_IinM(0, 3) = state_plus_world(4);
+    state_IinM(1, 3) = state_plus_world(5);
+    state_IinM(2, 3) = state_plus_world(6);
+    state_IinM(3, 3) = 1;
+    state_IinM  = T_left_imu_to_right_imu * state_IinM;
+    Eigen::Matrix4d state_IinW;
+    Eigen::Matrix4d state_BinW;
+    state_IinW = T_MtoW * state_IinM;
+    state_BinW = state_IinW * T_BtoI;
+    //Eigen::Quaterniond q_MtoW(T_MtoW_eigen(3),T_MtoW_eigen(0),T_MtoW_eigen(1),T_MtoW_eigen(2));
+    //Eigen::Quaterniond q_IinM(state_plus_world(3),state_plus_world(0),state_plus_world(1),state_plus_world(2));
+    //Eigen::Quaterniond q_IinW = q_MtoW * q_IinM;
+    Eigen::Matrix<double, 4,1> state_BinW_eigen;
+    state_BinW_eigen = ov_core::rot_2_quat(state_IinW.block(0,0,3,3));
+    Eigen::Quaterniond q_BinW(state_BinW_eigen(3), state_BinW_eigen(0), state_BinW_eigen(1), state_BinW_eigen(2));
+    position_IinW << state_IinW(0,3), state_IinW(1,3), state_IinW(2,3), state_IinW(3,3);
+    position_BinW << state_BinW(0,3), state_BinW(1,3), state_BinW(2,3), state_BinW(3,3);
+    //Eigen::Quaterniond q_b_world ( ov_core::rot_2_quat(T_BtoW.block(0,0,3,3))(3),ov_core::rot_2_quat(T_BtoW.block(0,0,3,3))(0),ov_core::rot_2_quat(T_BtoW.block(0,0,3,3))(1),ov_core::rot_2_quat(T_BtoW.block(0,0,3,3))(2));
+    // Eigen::Quaterniond q_IinW = q_map_I*q_IinM;
+    //Eigen::Quaterniond q_IinW = q_b_world *q_MtoW*q_IinM;
+    /*
 
+    Eigen::Quaterniond q_map_I(T_MtoI_eigen(3),T_MtoI_eigen(0),T_MtoI_eigen(1),T_MtoI_eigen(2));
+    Eigen::Quaterniond q_IinM(state_plus_world(3),state_plus_world(0),state_plus_world(1),state_plus
+_world(2));
+    Eigen::Quaterniond q_b_world ( ov_core::rot_2_quat(T_BtoW.block(0,0,3,3))(3),ov_core::rot_2_quat
+(T_BtoW.block(0,0,3,3))(0),ov_core::rot_2_quat(T_BtoW.block(0,0,3,3))(1),ov_core::rot_2_quat(T_BtoW.b
+lock(0,0,3,3))(2));
+    // Eigen::Quaterniond q_IinW = q_map_I*q_IinM;
+    Eigen::Quaterniond q_IinW = q_b_world *q_map_I*q_IinM;
+
+    Eigen::Matrix4d odomIinW_matrix = Eigen::Matrix<double, 4, 4>::Zero();;
+    odomIinW_matrix.block(0,0,3,3) = q_IinW.normalized().toRotationMatrix();
+    odomIinW_matrix(0,3) = position_IinW(0);
+    odomIinW_matrix(1,3) = position_IinW(1);
+    odomIinW_matrix(2,3) = position_IinW(2);
+    odomIinW_matrix(3,3) = 1;
+    Eigen::Vector3d v_iinimu = state_plus.block(7, 0, 3, 1);
+    Eigen::Quaterniond q_imuinM(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
+    Eigen::Matrix3d R_imu2M = q_imuinM.normalized().toRotationMatrix();
+
+    Eigen::Vector3d linear_velocity = T_WtoB.block(0,0,3,3)*T_ItoM.block(0,0,3,3)*R_imu2M*v_iinimu;
+    */
     // The POSE component (orientation and position)
-    odomBinW.pose.pose.orientation.x = state_plus_world(0);
-    odomBinW.pose.pose.orientation.y = state_plus_world(1);
-    odomBinW.pose.pose.orientation.z = state_plus_world(2);
-    odomBinW.pose.pose.orientation.w = state_plus_world(3);
-    odomBinW.pose.pose.position.x = state_plus_world(4);
-    odomBinW.pose.pose.position.y = state_plus_world(5);
-    odomBinW.pose.pose.position.z = state_plus_world(6);
+    odomBinW.pose.pose.orientation.x = q_BinW.x();//state_plus_world(0);
+    odomBinW.pose.pose.orientation.y = q_BinW.y();//state_plus_world(1);
+    odomBinW.pose.pose.orientation.z = q_BinW.z();//state_plus_world(2);
+    odomBinW.pose.pose.orientation.w = q_BinW.w();//state_plus_world(3);
+    odomBinW.pose.pose.position.x = position_BinW(0) / position_BinW(3); // state_plus_world(4);
+    odomBinW.pose.pose.position.y = position_BinW(1) / position_BinW(3); //state_plus_world(5);
+    odomBinW.pose.pose.position.z = position_BinW(2) / position_BinW(3); //state_plus_world(6);
 
     // The TWIST component (angular and linear velocities)
     odomBinW.child_frame_id = "body";

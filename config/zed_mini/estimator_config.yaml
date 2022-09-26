@@ -110,7 +110,7 @@ use_mask: false
 # imu and camera spacial-temporal
 # imu config should also have the correct noise values
 relative_config_imu: "kalibr_imu_chain.yaml"
-relative_config_imucam: "imucam_chain_right.yaml"
+relative_config_imucam: "imucam_chain_raw.yaml"
 
 # init with the alignment of vicon world frame and vio global frame (which is local frame)
 init_world_with_vicon: true

@@ -136,6 +136,8 @@ protected:
   /// Publish loop-closure information of current pose and active track information
   void publish_loopclosure_information();
 
+  Eigen::Matrix<double, 7, 1> print_tf(Eigen::Matrix4d T);
+
   /// Global node handler
   std::shared_ptr<ros::NodeHandle> _nh;
 
@@ -210,6 +212,9 @@ protected:
   // Transformation between vio local (IMU) frame to vicon world frame
   Eigen::Matrix4d T_MtoW = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_ItoB = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_BtoI = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_WtoB = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_left_imu_to_right_imu = Eigen::Matrix4d::Identity();
   Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
 };
 
