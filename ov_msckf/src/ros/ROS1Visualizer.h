@@ -151,6 +151,7 @@ protected:
   image_transport::Publisher it_pub_tracks, it_pub_loop_img_depth, it_pub_loop_img_depth_color;
   ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
   ros::Publisher pub_poseworld, pub_odomworld, pub_pathworld;
+  ros::Publisher pub_poseworldB0, pub_odomworldB0, pub_pathworldB0;
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
   std::shared_ptr<tf::TransformBroadcaster> mTfBr;
@@ -213,8 +214,9 @@ protected:
   Eigen::Matrix4d T_MtoW = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_ItoB = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_BtoI = Eigen::Matrix4d::Identity();
-  Eigen::Matrix4d T_WtoB = Eigen::Matrix4d::Identity();
-  Eigen::Matrix4d T_left_imu_to_right_imu = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_B0toW = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_correct = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_correct_inv = Eigen::Matrix4d::Identity();
   Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
 };
 
