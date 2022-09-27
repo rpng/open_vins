@@ -346,6 +346,21 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
   // Get fast propagate state at the desired timestamp
   std::shared_ptr<State> state = _app->get_state();
+
+  if (!got_init_tf){
+    Eigen::Matrix<double, 4,1> q_init_tf;
+    //state(0) is the timestamp;
+    Eigen::MatrixXd state_est = state->_imu->value();
+    q_init_tf <<state_est(0),state_est(1),state_est(2), state_est(3);
+    T_init_tf.block(0,0,3,3) = ov_core::quat_2_Rot(q_init_tf);
+    T_init_tf(0, 3) = state_est(4);
+    T_init_tf(1, 3) = state_est(5);
+    T_init_tf(2, 3) = state_est(6);
+    T_init_tf_inv.block(0,0,3,3) = T_init_tf.block(0,0,3,3).transpose();
+    T_init_tf_inv.block(0,3,3,1) = -T_init_tf.block(0,0,3,3).transpose()*T_init_tf.block(0,3,3,1);
+    got_init_tf = true;
+  }
+
   Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
   if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
@@ -447,15 +462,15 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_ItoM(0, 3) = state_plus_world(4);
     T_ItoM(1, 3) = state_plus_world(5);
     T_ItoM(2, 3) = state_plus_world(6);
-    //T_ItoM.block(0,0,3,3) = T_correct.block(0,0,3,3) * T_ItoM.block(0,0,3,3);
-    //odomIinM_eigen is T_ItoM (T_MtoM0)
 
-    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_correct * T_ItoM * T_correct_inv * T_BtoI;
-    Eigen::Matrix4d T_BtoB0 = T_correct * T_ItoM * T_correct_inv ;
+    //TODO: DEBUG
+    T_ItoM = T_init_tf_inv* T_ItoM;
+    Eigen::Matrix4d T_BtoB0 = T_ItoB * T_correct * T_ItoM * T_correct_inv * T_BtoI;
+    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_init_tf_inv*T_correct * T_ItoM * T_correct_inv * T_BtoI;
     Eigen::Matrix4d T_BtoW = T_B0toW *T_BtoB0;
     Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));;
     Eigen::Vector4d position_BinW (T_BtoW(0,3), T_BtoW(1,3), T_BtoW(2,3), T_BtoW(3,3));
-    Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));;
+    Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));
     Eigen::Vector4d position_BinB0 (T_BtoB0(0,3), T_BtoB0(1,3), T_BtoB0(2,3), T_BtoB0(3,3));
 
     // The POSE component (orientation and position)

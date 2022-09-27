@@ -218,6 +218,10 @@ protected:
   Eigen::Matrix4d T_correct = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_correct_inv = Eigen::Matrix4d::Identity();
   Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
+
+  bool got_init_tf=false;
+  Eigen::Matrix4d T_init_tf = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_init_tf_inv = Eigen::Matrix4d::Identity();
 };
 
 } // namespace ov_msckf
