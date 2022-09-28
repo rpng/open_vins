@@ -35,19 +35,13 @@ imu0:
     - [0.0, 0.0, 0.0, 1.0]
   # zed mini imu uses left-hand coordinate system, the transformation from zed coordinate system to ros right-hand coordinate system is (x,y,z) -> (-y, x, z)
   T_correct:
+    # - [1,0,0,0]
+    # - [0,1,0,0]
     - [0,-1,0,0]
     - [1,0,0,0]
     - [0,0,1,0]
     - [0,0,0,1]
 
-    #- [1,0,0,0]
-    #- [0,1,0,0]
-    #- [0,0,1,0]
-    #- [0,0,0,1]
-    
-    
-    
-    
   accelerometer_noise_density: 1.4e-02  # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
   accelerometer_random_walk: 8.0e-04    # [ m / s^3 / sqrt(Hz) ].  ( accel bias diffusion )
   gyroscope_noise_density: 8.6e-04    # [ rad / s / sqrt(Hz) ]   ( gyro "white noise" )

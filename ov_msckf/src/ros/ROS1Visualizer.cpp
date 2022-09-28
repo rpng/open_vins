@@ -203,11 +203,10 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
       initBodyQuatinW.x() = initBodyOdominW.pose.pose.orientation.x;
       initBodyQuatinW.y() = initBodyOdominW.pose.pose.orientation.y;
       initBodyQuatinW.z() = initBodyOdominW.pose.pose.orientation.z;
-      // Eigen::Matrix4d T_WtoB = Eigen::Matrix4d::Identity();
-      // T_WtoB.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix().transpose();
-      // T_WtoB.block(0, 3, 3, 1) = -T_WtoB.block(0, 0, 3, 3).transpose() * initBodyPosinW;
       T_B0toW.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix();
       T_B0toW.block(0, 3, 3, 1) = initBodyPosinW;
+      T_WtoB0.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix().transpose();
+      T_WtoB0.block(0, 3, 3, 1) = -initBodyQuatinW.toRotationMatrix().transpose() * initBodyPosinW;
     }
     else {
       PRINT_INFO("Failed to get init T_BtoW from vicon topic %s, use default T_BtoW\n", viconOdomWTopic.c_str());
@@ -346,7 +345,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
   // Get fast propagate state at the desired timestamp
   std::shared_ptr<State> state = _app->get_state();
-
+   
   if (!got_init_tf){
     Eigen::Matrix<double, 4,1> q_init_tf;
     //state(0) is the timestamp;
@@ -356,6 +355,9 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_init_tf(0, 3) = state_est(4);
     T_init_tf(1, 3) = state_est(5);
     T_init_tf(2, 3) = state_est(6);
+    //T_init_tf = T_correct * T_init_tf;
+    PRINT_INFO("T_init_tf\n");
+    std::cout << T_init_tf << std::endl;
     T_init_tf_inv.block(0,0,3,3) = T_init_tf.block(0,0,3,3).transpose();
     T_init_tf_inv.block(0,3,3,1) = -T_init_tf.block(0,0,3,3).transpose()*T_init_tf.block(0,3,3,1);
     got_init_tf = true;
@@ -441,13 +443,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     // calculate the new state_plus
     
     state_plus_world = state_plus;
-    // state_plus is the IMU state in the local frame (M)
-    // 1. stateIinM -> stateIinW
-    // 2. stateIinW -> stateBinW
-    // TODO: finish math
-    // odomIinW = (T_MtoW*odomI_M);
-    // odomBinW = (T_I2B * (odomIinW).inverse).inverse();
-    // TODO: In this iteration, odomBinW is odomBinM
+
     nav_msgs::Odometry odomBinW;
     odomBinW.header.stamp = ros::Time(timestamp);
     odomBinW.header.frame_id = "world";
@@ -457,18 +453,41 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
     Eigen::Matrix<double, 4,1> q_IinM_eigen;
     q_IinM_eigen <<state_plus_world(0),state_plus_world(1),state_plus_world(2), state_plus_world(3);
+    Eigen::Quaterniond q_IinM (-state_plus_world(3),state_plus_world(0),state_plus_world(1),state_plus_world(2));
+
     Eigen::Matrix4d T_ItoM = Eigen::Matrix4d::Identity(); // from odomIinM
-    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen);
+    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); // this is right-handed JPL->right-handed
     T_ItoM(0, 3) = state_plus_world(4);
     T_ItoM(1, 3) = state_plus_world(5);
     T_ItoM(2, 3) = state_plus_world(6);
 
-    //TODO: DEBUG
-    T_ItoM = T_init_tf_inv* T_ItoM;
-    Eigen::Matrix4d T_BtoB0 = T_ItoB * T_correct * T_ItoM * T_correct_inv * T_BtoI;
+    // TRANSLATION SOLVED if using JPL convention
+    T_ItoM.block(0,3,3,1) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,3,3,1); //this is correct if nothing done for T_ItoM before and it is better than the T_correct since T_init_tf is not a perfect T_correct
+    //T_ItoM.block(0,3,3,1) = T_correct * T_ItoM.block(0,3,3,1); //this is correct if nothing done for T_ItoM before
+    // Rotation solved by rot4 if using JPL convention
+    //T_ItoM.block(0,0,3,3) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,0,3,3); // rot1
+    //T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3); //rot2
+    //T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf.block(0,0,3,3); //rot3
+    T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); // rot4
+    //T_ItoM.block(0,0,3,3) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); // rot5
+    //T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3) * T_init_tf.block(0,0,3,3); // rot6
+    
+    // The TF that is required for flight test
+    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM *  T_BtoI);
+    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_correct * T_ItoM * T_correct_inv * T_BtoI;
     //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_init_tf_inv*T_correct * T_ItoM * T_correct_inv * T_BtoI;
-    Eigen::Matrix4d T_BtoW = T_B0toW *T_BtoB0;
-    Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));;
+    
+    // Transform the body pose in World frame
+    Eigen::Matrix4d T_BtoW = Eigen::Matrix4d::Identity();
+    //T_BtoW = T_B0toW * T_ItoM; // noib
+    //T_BtoW = T_B0toW * T_BtoB0; //BW1  works for zero yaw zero translation init; zero yaw nonzero translation init| NOT work for any yaw init
+    T_BtoW.block(0,3,3,1) = T_B0toW * T_BtoB0.block(0,3,3,1); //BW2V1-4
+    T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_WtoB0.block(0,0,3,3); // BW2V1 correct for roll pitch yaw when there is no roll pitch init, when there is roll/pitch init, it would have an error during yaw motion
+    //T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_B0toW.block(0,0,3,3);  //BW2V2  roll pitch correct, yaw seems T_B0toW is applied reversed direction
+    //T_BtoW.block(0,0,3,3) = T_B0toW.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);  //BW2V3 should be same as BW1
+    //T_BtoW.block(0,0,3,3) = T_WtoB0.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);  //BW2V4
+    
+    Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));
     Eigen::Vector4d position_BinW (T_BtoW(0,3), T_BtoW(1,3), T_BtoW(2,3), T_BtoW(3,3));
     Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));
     Eigen::Vector4d position_BinB0 (T_BtoB0(0,3), T_BtoB0(1,3), T_BtoB0(2,3), T_BtoB0(3,3));
