@@ -435,7 +435,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
       mTfBr->sendTransform(trans_calib);
     }
   }
-  // 2. publish odomBinW (imu odometry in the vio local frame)
+  // 2. publish odomBinW (Current body pose w.r.t. world frame)
   // Publish our odometry message if requested
   nav_msgs::Odometry odomBinW;
   Eigen::Matrix<double, 13, 1> state_plus_world = Eigen::Matrix<double, 13, 1>::Zero();
@@ -456,36 +456,21 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Quaterniond q_IinM (-state_plus_world(3),state_plus_world(0),state_plus_world(1),state_plus_world(2));
 
     Eigen::Matrix4d T_ItoM = Eigen::Matrix4d::Identity(); // from odomIinM
-    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); // this is right-handed JPL->right-handed
+    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); 
     T_ItoM(0, 3) = state_plus_world(4);
     T_ItoM(1, 3) = state_plus_world(5);
     T_ItoM(2, 3) = state_plus_world(6);
 
-    // TRANSLATION SOLVED if using JPL convention
-    T_ItoM.block(0,3,3,1) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,3,3,1); //this is correct if nothing done for T_ItoM before and it is better than the T_correct since T_init_tf is not a perfect T_correct
-    //T_ItoM.block(0,3,3,1) = T_correct * T_ItoM.block(0,3,3,1); //this is correct if nothing done for T_ItoM before
-    // Rotation solved by rot4 if using JPL convention
-    //T_ItoM.block(0,0,3,3) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,0,3,3); // rot1
-    //T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3); //rot2
-    //T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf.block(0,0,3,3); //rot3
-    T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); // rot4
-    //T_ItoM.block(0,0,3,3) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); // rot5
-    //T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3) * T_init_tf.block(0,0,3,3); // rot6
+    // Current IMU frame w.r.t. initial IMU frame by compensating initial IMU pose T_init_tf
+    T_ItoM.block(0,3,4,1) = T_init_tf * T_ItoM.block(0,3,4,1);
+    T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); 
+    // Current body frame w.r.t. initial body frame
+    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM *  T_BtoI); 
     
-    // The TF that is required for flight test
-    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM *  T_BtoI);
-    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_correct * T_ItoM * T_correct_inv * T_BtoI;
-    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_init_tf_inv*T_correct * T_ItoM * T_correct_inv * T_BtoI;
-    
-    // Transform the body pose in World frame
+    // Current body frame w.r.t. world frame
     Eigen::Matrix4d T_BtoW = Eigen::Matrix4d::Identity();
-    //T_BtoW = T_B0toW * T_ItoM; // noib
-    //T_BtoW = T_B0toW * T_BtoB0; //BW1  works for zero yaw zero translation init; zero yaw nonzero translation init| NOT work for any yaw init
-    T_BtoW.block(0,3,3,1) = T_B0toW * T_BtoB0.block(0,3,3,1); //BW2V1-4
-    T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_WtoB0.block(0,0,3,3); // BW2V1 correct for roll pitch yaw when there is no roll pitch init, when there is roll/pitch init, it would have an error during yaw motion
-    //T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_B0toW.block(0,0,3,3);  //BW2V2  roll pitch correct, yaw seems T_B0toW is applied reversed direction
-    //T_BtoW.block(0,0,3,3) = T_B0toW.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);  //BW2V3 should be same as BW1
-    //T_BtoW.block(0,0,3,3) = T_WtoB0.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);  //BW2V4
+    T_BtoW.block(0,3,4,1) = T_B0toW * T_BtoB0.block(0,3,4,1);
+    T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_WtoB0.block(0,0,3,3); 
     
     Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));
     Eigen::Vector4d position_BinW (T_BtoW(0,3), T_BtoW(1,3), T_BtoW(2,3), T_BtoW(3,3));
