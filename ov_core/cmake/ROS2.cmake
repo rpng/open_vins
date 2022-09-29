@@ -77,5 +77,10 @@ ament_target_dependencies(test_webcam rclcpp cv_bridge)
 target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})
 install(TARGETS test_webcam DESTINATION lib/${PROJECT_NAME})
 
+add_executable(test_profile src/test_profile.cpp)
+ament_target_dependencies(test_profile rclcpp cv_bridge)
+target_link_libraries(test_profile ov_core_lib ${thirdparty_libraries})
+install(TARGETS test_profile DESTINATION lib/${PROJECT_NAME})
+
 # finally define this as the package
 ament_package()
