@@ -209,7 +209,8 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
       T_WtoB0.block(0, 3, 3, 1) = -initBodyQuatinW.toRotationMatrix().transpose() * initBodyPosinW;
     }
     else {
-      PRINT_INFO("Failed to get init T_BtoW from vicon topic %s, use default T_BtoW\n", viconOdomWTopic.c_str());
+      PRINT_INFO("Failed to get init T_BtoW from vicon topic %s, use default T_BtoW by setting init_world_with_vicon false\n", viconOdomWTopic.c_str());
+      exit(1);
     }
   } 
   //TODO: check math
