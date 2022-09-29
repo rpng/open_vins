@@ -216,8 +216,6 @@ protected:
   Eigen::Matrix4d T_BtoI = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_B0toW = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_WtoB0 = Eigen::Matrix4d::Identity();
-  Eigen::Matrix4d T_correct = Eigen::Matrix4d::Identity();
-  Eigen::Matrix4d T_correct_inv = Eigen::Matrix4d::Identity();
   Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
 
   bool got_init_tf=false;

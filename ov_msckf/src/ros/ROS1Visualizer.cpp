@@ -170,19 +170,10 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
   // Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_ItoC = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_CtoB = Eigen::Matrix4d::Identity();
-  T_correct = Eigen::Matrix4d::Identity();
-  //parser->parse_external("relative_config_imu", "imu0", "T_imu_world", T_ItoW); // pre-computed, could be wrong. TODO: move to legacy
   parser->parse_external("relative_config_imucam", "cam0", "T_cam_imu", T_ItoC); // T_cam_imu is transformation from IMU to camera coordinates from kalibr
   parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB); // from camera-vicon calibration
   parser->parse_external("relative_config_imu", "imu0", "T_body_world", T_B0toW);
-  parser->parse_external("relative_config_imu", "imu0", "T_correct", T_correct);
-  
-  T_correct_inv.block(0, 0, 3, 3) = T_correct.block(0,0,3,3).transpose();
-  T_correct_inv.block(0, 3, 3, 1) = - T_correct.block(0, 0, 3, 3).transpose() * T_correct.block(0,3,3,1);
-  ROS_INFO(REDPURPLE"DEBUG T_correct\n");
-  std::cout<<T_correct<<std::endl;
-  ROS_INFO(REDPURPLE"DEBUG T_correct_inv\n");
-  std::cout<<T_correct_inv<<std::endl;
+
   // If there is vicon input, use body pose in vicon frame as the T_BtoW
   bool init_world_with_vicon = false;
   parser->parse_config("init_world_with_vicon", init_world_with_vicon);
