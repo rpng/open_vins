@@ -352,6 +352,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     std::cout << T_init_tf << std::endl;
     T_init_tf_inv.block(0,0,3,3) = T_init_tf.block(0,0,3,3).transpose();
     T_init_tf_inv.block(0,3,3,1) = -T_init_tf.block(0,0,3,3).transpose()*T_init_tf.block(0,3,3,1);
+    T_MtoW = T_MtoW*T_init_tf;
     got_init_tf = true;
   }
 
@@ -427,7 +428,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
       mTfBr->sendTransform(trans_calib);
     }
   }
-  // 2. publish odomBinW (Current body pose w.r.t. world frame)
+  // 2. publish odomBinW (imu odometry in the vio local frame)
   // Publish our odometry message if requested
   nav_msgs::Odometry odomBinW;
   Eigen::Matrix<double, 13, 1> state_plus_world = Eigen::Matrix<double, 13, 1>::Zero();
@@ -448,26 +449,58 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Quaterniond q_IinM (-state_plus_world(3),state_plus_world(0),state_plus_world(1),state_plus_world(2));
 
     Eigen::Matrix4d T_ItoM = Eigen::Matrix4d::Identity(); // from odomIinM
-    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); 
+    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); // this is right-handed JPL->right-handed
     T_ItoM(0, 3) = state_plus_world(4);
     T_ItoM(1, 3) = state_plus_world(5);
     T_ItoM(2, 3) = state_plus_world(6);
 
-    // Current IMU frame w.r.t. initial IMU frame by compensating initial IMU pose T_init_tf
-    T_ItoM.block(0,3,4,1) = T_init_tf * T_ItoM.block(0,3,4,1);
-    T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); 
-    // Current body frame w.r.t. initial body frame
-    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM *  T_BtoI); 
+    // TRANSLATION SOLVED if using JPL convention
+    T_ItoM.block(0,3,3,1) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,3,3,1); //this is correct if nothing done for T_ItoM before and it is better than the T_correct since T_init_tf is not a perfect T_correct
+    //T_ItoM.block(0,3,3,1) = T_correct * T_ItoM.block(0,3,3,1); //this is correct if nothing done for T_ItoM before
+    // Rotation solved by rot4 if using JPL convention
+    //T_ItoM.block(0,0,3,3) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,0,3,3); // rot1
+    //T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3); //rot2
+    //T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf.block(0,0,3,3); //rot3
+    T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); // rot4
+    //T_ItoM.block(0,0,3,3) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); // rot5
+    //T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3) * T_init_tf.block(0,0,3,3); // rot6
     
-    // Current body frame w.r.t. world frame
+    // The TF that is required for flight test
+    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM *  T_BtoI);
+    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_correct * T_ItoM * T_correct_inv * T_BtoI;
+    //Eigen::Matrix4d T_BtoB0 = T_ItoB * T_init_tf_inv*T_correct * T_ItoM * T_correct_inv * T_BtoI;
+    
+    // Transform the body pose in World frame
     Eigen::Matrix4d T_BtoW = Eigen::Matrix4d::Identity();
-    T_BtoW.block(0,3,4,1) = T_B0toW * T_BtoB0.block(0,3,4,1);
-    T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_WtoB0.block(0,0,3,3); 
+    //T_BtoW = T_B0toW * T_ItoM; // noib
+    //T_BtoW = T_B0toW * T_BtoB0; //BW1  works for zero yaw zero translation init; zero yaw nonzero translation init| NOT work for any yaw init
+    T_BtoW.block(0,3,3,1) = T_B0toW * T_BtoB0.block(0,3,3,1); //BW2V1-4
+    T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_WtoB0.block(0,0,3,3); // BW2V1 correct for roll pitch yaw when there is no roll pitch init, when there is roll/pitch init, it would have an error during yaw motion
+    //T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_B0toW.block(0,0,3,3);  //BW2V2  roll pitch correct, yaw seems T_B0toW is applied reversed direction
+    //T_BtoW.block(0,0,3,3) = T_B0toW.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);  //BW2V3 should be same as BW1
+    //T_BtoW.block(0,0,3,3) = T_WtoB0.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);  //BW2V4
     
     Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));
     Eigen::Vector4d position_BinW (T_BtoW(0,3), T_BtoW(1,3), T_BtoW(2,3), T_BtoW(3,3));
     Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));
     Eigen::Vector4d position_BinB0 (T_BtoB0(0,3), T_BtoB0(1,3), T_BtoB0(2,3), T_BtoB0(3,3));
+
+    Eigen::Vector3d v_iinIMU (state_plus_world(7),state_plus_world(8),state_plus_world(9));
+    Eigen::Vector4d q_itoM = state_plus_world.block(0, 0, 4, 1);
+    Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
+    // Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
+    // Eigen::Matrix3d hat_I2B (0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3),0);
+    Eigen::Matrix3d hat_I2B;
+    Eigen::Matrix3d hat_M2W;
+    hat_I2B<< 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3), 0;
+    hat_M2W<< 0,-T_MtoW(2,3), T_MtoW(1,3), T_MtoW(2,3), 0, -T_MtoW(0,3),  -T_MtoW(1,3), T_MtoW(0,3), 0;
+    Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    // Eigen::Vector3d w_iinW  =T_init_tf.block(0,0,3,3)*T_B0toW.block(0,0,3,3)*w_iinI;
+
+    // Eigen::Vector3d v_iinW = T_B0toW.block(0,0,3,3) * v_iinM + hat_M2W*T_B0toW.block(0,0,3,3)*w_iinI;
+
+    // Eigen::Vector3d v_iinW =hat_M2W*T_MtoW.block(0,0,3,3)*T_ItoM.block(0,3,3,1)+T_MtoW.block(0,0,3,3).transpose()* v_iinM;
+    Eigen::Vector3d v_iinW = T_MtoW.block(0,0,3,3)* v_iinM;
 
     // The POSE component (orientation and position)
     odomBinW.pose.pose.orientation.x = q_BinW.x();
@@ -488,20 +521,20 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     
     // The TWIST component (angular and linear velocities)
     odomBinW.child_frame_id = "body";
-    odomBinW.twist.twist.linear.x = state_plus_world(7);   // vel in world frame
-    odomBinW.twist.twist.linear.y = state_plus_world(8);   // vel in world frame
-    odomBinW.twist.twist.linear.z = state_plus_world(9);   // vel in world frame
-    odomBinW.twist.twist.angular.x = state_plus_world(10); // we do not estimate this...
-    odomBinW.twist.twist.angular.y = state_plus_world(11); // we do not estimate this...
-    odomBinW.twist.twist.angular.z = state_plus_world(12); // we do not estimate this...
+    odomBinW.twist.twist.linear.x = v_iinW(0);   // vel in world frame
+    odomBinW.twist.twist.linear.y = v_iinW(1);   // vel in world frame
+    odomBinW.twist.twist.linear.z = v_iinW(2);   // vel in world frame
+    odomBinW.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
+    odomBinW.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
+    odomBinW.twist.twist.angular.z = w_iinI(2);; // we do not estimate this...
 
     odomBinB0.child_frame_id = "body";
-    odomBinB0.twist.twist.linear.x = state_plus_world(7);   // vel in world frame
-    odomBinB0.twist.twist.linear.y = state_plus_world(8);   // vel in world frame
-    odomBinB0.twist.twist.linear.z = state_plus_world(9);   // vel in world frame
-    odomBinB0.twist.twist.angular.x = state_plus_world(10); // we do not estimate this...
-    odomBinB0.twist.twist.angular.y = state_plus_world(11); // we do not estimate this...
-    odomBinB0.twist.twist.angular.z = state_plus_world(12); // we do not estimate this...
+    odomBinB0.twist.twist.linear.x = v_iinM(0);   // vel in world frame
+    odomBinB0.twist.twist.linear.y = v_iinM(1);   // vel in world frame
+    odomBinB0.twist.twist.linear.z = v_iinM(2);   // vel in world frame
+    odomBinB0.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
+    odomBinB0.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
+    odomBinB0.twist.twist.angular.z = w_iinI(2); // we do not estimate this...
 
     if (published_odomIinM) {
       odomBinW.pose.covariance = odomIinM.pose.covariance;
