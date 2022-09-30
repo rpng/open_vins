@@ -360,6 +360,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     std::cout << T_init_tf << std::endl;
     T_init_tf_inv.block(0,0,3,3) = T_init_tf.block(0,0,3,3).transpose();
     T_init_tf_inv.block(0,3,3,1) = -T_init_tf.block(0,0,3,3).transpose()*T_init_tf.block(0,3,3,1);
+    T_MtoW = T_MtoW*T_init_tf;
     got_init_tf = true;
   }
 
@@ -493,19 +494,21 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Vector4d position_BinB0 (T_BtoB0(0,3), T_BtoB0(1,3), T_BtoB0(2,3), T_BtoB0(3,3));
 
     Eigen::Vector3d v_iinIMU (state_plus_world(7),state_plus_world(8),state_plus_world(9));
-    Eigen::Vector4d q_Mtoi = state_plus_world.block(0, 0, 4, 1);
-    Eigen::Vector3d v_iinM = quat_2_Rot(q_Mtoi).transpose() * v_iinIMU;
-    // Eigen::Vector3d v_iinM = quat_2_Rot(q_Mtoi).transpose() * v_iinIMU;
+    Eigen::Vector4d q_itoM = state_plus_world.block(0, 0, 4, 1);
+    Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
+    // Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
     // Eigen::Matrix3d hat_I2B (0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3),0);
     Eigen::Matrix3d hat_I2B;
     Eigen::Matrix3d hat_M2W;
     hat_I2B<< 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3), 0;
-    hat_M2W<< 0,-T_B0toW(2,3), T_B0toW(1,3), T_B0toW(2,3), 0, -T_B0toW(0,3),  -T_B0toW(1,3), T_B0toW(0,3), 0;
-    Eigen::Vector3d w_iinM (state_plus_world(10),state_plus_world(11),state_plus_world(12));
-    // Eigen::Vector3d w_iinW  =T_init_tf.block(0,0,3,3)*T_B0toW.block(0,0,3,3)*w_iinM;
+    hat_M2W<< 0,-T_MtoW(2,3), T_MtoW(1,3), T_MtoW(2,3), 0, -T_MtoW(0,3),  -T_MtoW(1,3), T_MtoW(0,3), 0;
+    Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    // Eigen::Vector3d w_iinW  =T_init_tf.block(0,0,3,3)*T_B0toW.block(0,0,3,3)*w_iinI;
 
-    // Eigen::Vector3d v_iinW = T_B0toW.block(0,0,3,3) * v_iinM + hat_M2W*T_B0toW.block(0,0,3,3)*w_iinM;
-    Eigen::Vector3d v_iinW = T_init_tf.block(0,0,3,3)*T_B0toW.block(0,0,3,3)* v_iinM;
+    // Eigen::Vector3d v_iinW = T_B0toW.block(0,0,3,3) * v_iinM + hat_M2W*T_B0toW.block(0,0,3,3)*w_iinI;
+
+    // Eigen::Vector3d v_iinW =hat_M2W*T_MtoW.block(0,0,3,3)*T_ItoM.block(0,3,3,1)+T_MtoW.block(0,0,3,3).transpose()* v_iinM;
+    Eigen::Vector3d v_iinW = T_MtoW.block(0,0,3,3)* v_iinM;
 
     // The POSE component (orientation and position)
     odomBinW.pose.pose.orientation.x = q_BinW.x();
@@ -529,17 +532,17 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomBinW.twist.twist.linear.x = v_iinW(0);   // vel in world frame
     odomBinW.twist.twist.linear.y = v_iinW(1);   // vel in world frame
     odomBinW.twist.twist.linear.z = v_iinW(2);   // vel in world frame
-    odomBinW.twist.twist.angular.x = w_iinM(0); // we do not estimate this...
-    odomBinW.twist.twist.angular.y = w_iinM(1); // we do not estimate this...
-    odomBinW.twist.twist.angular.z = w_iinM(2);; // we do not estimate this...
+    odomBinW.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
+    odomBinW.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
+    odomBinW.twist.twist.angular.z = w_iinI(2);; // we do not estimate this...
 
     odomBinB0.child_frame_id = "body";
     odomBinB0.twist.twist.linear.x = v_iinM(0);   // vel in world frame
     odomBinB0.twist.twist.linear.y = v_iinM(1);   // vel in world frame
     odomBinB0.twist.twist.linear.z = v_iinM(2);   // vel in world frame
-    odomBinB0.twist.twist.angular.x = w_iinM(0); // we do not estimate this...
-    odomBinB0.twist.twist.angular.y = w_iinM(1); // we do not estimate this...
-    odomBinB0.twist.twist.angular.z = w_iinM(2); // we do not estimate this...
+    odomBinB0.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
+    odomBinB0.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
+    odomBinB0.twist.twist.angular.z = w_iinI(2); // we do not estimate this...
 
     if (published_odomIinM) {
       odomBinW.pose.covariance = odomIinM.pose.covariance;
