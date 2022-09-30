@@ -221,6 +221,8 @@ protected:
   bool got_init_tf=false;
   Eigen::Matrix4d T_init_tf = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_init_tf_inv = Eigen::Matrix4d::Identity();
+  Eigen::Matrix3d hat_I2B;
+  Eigen::Matrix3d hat_M2W;
 };
 
 } // namespace ov_msckf

@@ -354,6 +354,9 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_init_tf_inv.block(0,3,3,1) = -T_init_tf.block(0,0,3,3).transpose()*T_init_tf.block(0,3,3,1);
     T_MtoW = T_MtoW*T_init_tf;
     got_init_tf = true;
+
+    hat_I2B<< 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3), 0;
+    hat_M2W<< 0,-T_MtoW(2,3), T_MtoW(1,3), T_MtoW(2,3), 0, -T_MtoW(0,3),  -T_MtoW(1,3), T_MtoW(0,3), 0;
   }
 
   Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
@@ -476,10 +479,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
     // Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
     // Eigen::Matrix3d hat_I2B (0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3),0);
-    Eigen::Matrix3d hat_I2B;
-    Eigen::Matrix3d hat_M2W;
-    hat_I2B<< 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3), 0;
-    hat_M2W<< 0,-T_MtoW(2,3), T_MtoW(1,3), T_MtoW(2,3), 0, -T_MtoW(0,3),  -T_MtoW(1,3), T_MtoW(0,3), 0;
+ 
     Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
     // Eigen::Vector3d w_iinW  =T_init_tf.block(0,0,3,3)*T_B0toW.block(0,0,3,3)*w_iinI;
 
@@ -515,9 +515,9 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomBinW.twist.twist.angular.z = w_iinI(2);; // we do not estimate this...
 
     odomBinB0.child_frame_id = "body";
-    odomBinB0.twist.twist.linear.x = v_iinM(0);   // vel in world frame
-    odomBinB0.twist.twist.linear.y = v_iinM(1);   // vel in world frame
-    odomBinB0.twist.twist.linear.z = v_iinM(2);   // vel in world frame
+    odomBinB0.twist.twist.linear.x = v_iinIMU(0);   // vel in world frame
+    odomBinB0.twist.twist.linear.y = v_iinIMU(1);   // vel in world frame
+    odomBinB0.twist.twist.linear.z = v_iinIMU(2);   // vel in world frame
     odomBinB0.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
     odomBinB0.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
     odomBinB0.twist.twist.angular.z = w_iinI(2); // we do not estimate this...
