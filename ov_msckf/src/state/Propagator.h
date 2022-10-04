@@ -125,6 +125,9 @@ public:
    * @param warn If we should warn if we don't have enough IMU to propagate with (e.g. fast prop will get warnings otherwise)
    * @return Vector of measurements (if we could compute them)
    */
+  bool fast_state_propagate_cache(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
+                                      Eigen::Matrix<double, 12, 12> &covariance);
+
   static std::vector<ov_core::ImuData> select_imu_readings(const std::vector<ov_core::ImuData> &imu_data, double time0, double time1,
                                                            bool warn = true);
 
@@ -242,6 +245,10 @@ protected:
 
   /// Gravity vector
   Eigen::Vector3d _gravity;
+  Eigen::Matrix<double, 16, 1> state_est;
+  Eigen::Matrix<double, 15, 15> state_covariance;
+  double last_state_timestamp=-1;
+  double state_plus_time=-1;
 };
 
 } // namespace ov_msckf

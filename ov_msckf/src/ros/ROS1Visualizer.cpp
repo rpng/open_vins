@@ -361,7 +361,12 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
   Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
+
+  /* LEGACY
   if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
+    return;
+  */
+  if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
     return;
   // 1. publish odomIinM (imu odometry in the vio local frame)
   // Publish our odometry message if requested
@@ -449,7 +454,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
     Eigen::Matrix<double, 4,1> q_IinM_eigen;
     q_IinM_eigen <<state_plus_world(0),state_plus_world(1),state_plus_world(2), state_plus_world(3);
-    Eigen::Quaterniond q_IinM (-state_plus_world(3),state_plus_world(0),state_plus_world(1),state_plus_world(2));
+    
 
     Eigen::Matrix4d T_ItoM = Eigen::Matrix4d::Identity(); // from odomIinM
     T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); // this is right-handed JPL->right-handed
@@ -521,7 +526,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomBinB0.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
     odomBinB0.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
     odomBinB0.twist.twist.angular.z = w_iinI(2); // we do not estimate this...
-
+    
     if (published_odomIinM) {
       odomBinW.pose.covariance = odomIinM.pose.covariance;
     } else {
