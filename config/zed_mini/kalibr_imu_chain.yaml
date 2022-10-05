@@ -54,3 +54,4 @@ imu0:
   rostopic: /zedm/zed_node/imu/data_raw  
   time_offset: 0.0
   update_rate: 400.0
+  odom_update_rate: 100.0

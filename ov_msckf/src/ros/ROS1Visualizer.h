@@ -223,6 +223,11 @@ protected:
   Eigen::Matrix4d T_init_tf_inv = Eigen::Matrix4d::Identity();
   Eigen::Matrix3d hat_I2B;
   Eigen::Matrix3d hat_M2W;
+
+  int skip_count = 0;
+  int pub_frequency = -1;
+  float imu_rate = 0;
+  float odom_rate = 0;
 };
 
 } // namespace ov_msckf

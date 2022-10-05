@@ -172,7 +172,10 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
   Eigen::Matrix4d T_CtoB = Eigen::Matrix4d::Identity();
   parser->parse_external("relative_config_imucam", "cam0", "T_cam_imu", T_ItoC); // T_cam_imu is transformation from IMU to camera coordinates from kalibr
   parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB); // from camera-vicon calibration
-  parser->parse_external("relative_config_imu", "imu0", "T_body_world", T_B0toW);
+  parser->parse_external("relative_config_imu", "imu0", "update_rate", imu_rate);
+  parser->parse_external("relative_config_imu", "imu0", "odom_update_rate", odom_rate);
+  pub_frequency = imu_rate/odom_rate;
+  skip_count = pub_frequency;
 
   // If there is vicon input, use body pose in vicon frame as the T_BtoW
   bool init_world_with_vicon = false;
@@ -362,12 +365,12 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
 
-  /* LEGACY
+
   if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
     return;
-  */
-  if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
-    return;
+  
+  // if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
+  //   return;
   // 1. publish odomIinM (imu odometry in the vio local frame)
   // Publish our odometry message if requested
   bool published_odomIinM = false;
@@ -647,8 +650,16 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
   // send it to our VIO system
   _app->feed_measurement_imu(message);
-  visualize_odometry(message.timestamp);
 
+  if (skip_count == pub_frequency){
+    // PRINT_INFO(REDPURPLE "visualize_odometry: %d \n\n" RESET,skip_count );
+    visualize_odometry(message.timestamp);
+    skip_count = 0;
+  }
+  skip_count += 1;
+  // visualize_odometry(message.timestamp);
+  // PRINT_INFO(REDPURPLE "skip_count: %d/ %d \n\n" RESET,skip_count,  pub_frequency);
+  
   // If the processing queue is currently active / running just return so we can keep getting measurements
   // Otherwise create a second thread to do our update in an async manor
   // The visualization of the state, images, and features will be synchronous with the update!
