@@ -216,13 +216,13 @@ protected:
   Eigen::Matrix4d T_BtoI = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_B0toW = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_WtoB0 = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_MtoB0 = Eigen::Matrix4d::Identity();
   Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
 
   bool got_init_tf=false;
   Eigen::Matrix4d T_init_tf = Eigen::Matrix4d::Identity();
   Eigen::Matrix4d T_init_tf_inv = Eigen::Matrix4d::Identity();
-  Eigen::Matrix3d hat_I2B;
-  Eigen::Matrix3d hat_M2W;
+  Eigen::Matrix3d hat_M2B0;
 
   int skip_count = 0;
   int pub_frequency = -1;

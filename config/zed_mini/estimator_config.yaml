@@ -13,8 +13,8 @@ calib_cam_extrinsics: false
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true
 
-max_clones: 11
-max_slam: 50
+max_clones: 8
+max_slam: 150 #40
 max_slam_in_update: 25
 max_msckf_in_update: 40
 dt_slam_delay: 2
@@ -28,10 +28,10 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
 try_zupt: true
-zupt_chi2_multipler: 0 # set to 0 for only disp-based
+zupt_chi2_multipler: 0.05 # set to 0 for only disp-based
 zupt_max_velocity: 0.5
-zupt_noise_multiplier: 20
-zupt_max_disparity: 0.5 # set to 0 for only imu-based
+zupt_noise_multiplier: 50
+zupt_max_disparity: 0.4 # set to 0 for only imu-based
 zupt_only_at_beginning: true
 
 # ==================================================================
@@ -42,7 +42,7 @@ init_imu_thresh: 0.40
 init_max_disparity: 2.0
 init_max_features: 75
 
-init_dyn_use: false
+init_dyn_use: true
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05
@@ -76,15 +76,15 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
-num_pts: 200
-fast_threshold: 50
-grid_x: 5
-grid_y: 5
-min_px_dist: 15
+num_pts: 300 #100
+fast_threshold: 10 #50
+grid_x: 10 #5
+grid_y: 8 #5
+min_px_dist: 5 #15
 knn_ratio: 0.70
 track_frequency: 31.0
 downsample_cameras: false
-num_opencv_threads: 4 # -1: auto, 0-1: serial, >1: number of threads
+num_opencv_threads: 2 # -1: auto, 0-1: serial, >1: number of threads
 histogram_method: "HISTOGRAM" # NONE, HISTOGRAM, CLAHE
 
 # aruco tag tracker for the system

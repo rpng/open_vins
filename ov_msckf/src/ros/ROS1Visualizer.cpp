@@ -201,6 +201,7 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
       T_B0toW.block(0, 3, 3, 1) = initBodyPosinW;
       T_WtoB0.block(0, 0, 3, 3) = initBodyQuatinW.toRotationMatrix().transpose();
       T_WtoB0.block(0, 3, 3, 1) = -initBodyQuatinW.toRotationMatrix().transpose() * initBodyPosinW;
+      T_MtoB0 = T_WtoB0 * T_MtoW;
     }
     else {
       PRINT_INFO("Failed to get init T_BtoW from vicon topic %s, use default T_BtoW by setting init_world_with_vicon false\n", viconOdomWTopic.c_str());
@@ -358,8 +359,6 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_MtoW = T_MtoW*T_init_tf;
     got_init_tf = true;
 
-    hat_I2B<< 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3), 0;
-    hat_M2W<< 0,-T_MtoW(2,3), T_MtoW(1,3), T_MtoW(2,3), 0, -T_MtoW(0,3),  -T_MtoW(1,3), T_MtoW(0,3), 0;
   }
 
   Eigen::Matrix<double, 13, 1> state_plus = Eigen::Matrix<double, 13, 1>::Zero();
@@ -465,6 +464,11 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_ItoM(1, 3) = state_plus_world(5);
     T_ItoM(2, 3) = state_plus_world(6);
 
+    Eigen::Matrix4d T_ItoB0 = Eigen::Matrix4d::Identity(); // from odomIinM
+    Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity(); // from odomIinM
+    T_ItoB0 = T_MtoB0*T_ItoM;
+    T_ItoW = T_MtoW*T_ItoM;
+
     // TRANSLATION SOLVED if using JPL convention
     T_ItoM.block(0,3,3,1) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,3,3,1); 
     T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); 
@@ -485,20 +489,16 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Vector3d v_iinIMU (state_plus_world(7),state_plus_world(8),state_plus_world(9));
     Eigen::Vector4d q_itoM = state_plus_world.block(0, 0, 4, 1);
     Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
-    // Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
-    // Eigen::Matrix3d hat_I2B (0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3),  -T_ItoB(1,3), T_ItoB(0,3),0);
- 
+
     Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
-    // Eigen::Vector3d w_iinW  =T_init_tf.block(0,0,3,3)*T_B0toW.block(0,0,3,3)*w_iinI;
+    Eigen::Vector3d w_BinB =  w_iinI;
 
-    // Eigen::Vector3d v_iinW = T_B0toW.block(0,0,3,3) * v_iinM + hat_M2W*T_B0toW.block(0,0,3,3)*w_iinI;
-
-    // Eigen::Vector3d v_iinW =hat_M2W*T_MtoW.block(0,0,3,3)*T_ItoM.block(0,3,3,1)+T_MtoW.block(0,0,3,3).transpose()* v_iinM;
     Eigen::Vector3d v_iinW = T_MtoW.block(0,0,3,3)* v_iinM;
+    Eigen::Vector3d v_iinB0 = T_MtoB0.block(0,0,3,3)* v_iinM;
 
     // The POSE component (orientation and position)
     odomBinW.pose.pose.orientation.x = q_BinW.x();
-    odomBinW.pose.pose.orientation.y = q_BinW.y();
+    odomBinW.pose.pose.orientation.y = q_BinW.y();  
     odomBinW.pose.pose.orientation.z = q_BinW.z();
     odomBinW.pose.pose.orientation.w = q_BinW.w();
     odomBinW.pose.pose.position.x = position_BinW(0); 
@@ -518,17 +518,17 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomBinW.twist.twist.linear.x = v_iinW(0);   // vel in world frame
     odomBinW.twist.twist.linear.y = v_iinW(1);   // vel in world frame
     odomBinW.twist.twist.linear.z = v_iinW(2);   // vel in world frame
-    odomBinW.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
-    odomBinW.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
-    odomBinW.twist.twist.angular.z = w_iinI(2);; // we do not estimate this...
+    odomBinW.twist.twist.angular.x = w_BinB(0); // we do not estimate this...
+    odomBinW.twist.twist.angular.y = w_BinB(1); // we do not estimate this...
+    odomBinW.twist.twist.angular.z = w_BinB(2);; // we do not estimate this...
 
     odomBinB0.child_frame_id = "body";
-    odomBinB0.twist.twist.linear.x = v_iinIMU(0);   // vel in world frame
-    odomBinB0.twist.twist.linear.y = v_iinIMU(1);   // vel in world frame
-    odomBinB0.twist.twist.linear.z = v_iinIMU(2);   // vel in world frame
-    odomBinB0.twist.twist.angular.x = w_iinI(0); // we do not estimate this...
-    odomBinB0.twist.twist.angular.y = w_iinI(1); // we do not estimate this...
-    odomBinB0.twist.twist.angular.z = w_iinI(2); // we do not estimate this...
+    odomBinB0.twist.twist.linear.x = v_iinB0(0);   // vel in world frame
+    odomBinB0.twist.twist.linear.y = v_iinB0(1);   // vel in world frame
+    odomBinB0.twist.twist.linear.z = v_iinB0(2);   // vel in world frame
+    odomBinB0.twist.twist.angular.x = w_BinB(0); // we do not estimate this...
+    odomBinB0.twist.twist.angular.y = w_BinB(1); // we do not estimate this...
+    odomBinB0.twist.twist.angular.z = w_BinB(2); // we do not estimate this...
     
     if (published_odomIinM) {
       odomBinW.pose.covariance = odomIinM.pose.covariance;
@@ -572,10 +572,6 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     }
     pub_odomworldB0.publish(odomBinB0);
   }
-  
-
-  /*
-  // Publish our transform on TF
   // NOTE: since we use JPL we have an implicit conversion to Hamilton when we publish
   // NOTE: a rotation from GtoI in JPL has the same xyzw as a ItoG Hamilton rotation
   auto odom_pose_world = std::make_shared<ov_type::PoseJPL>();
@@ -586,7 +582,6 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   if (publish_world2body_tf) {
     mTfBr->sendTransform(trans_world);
   }
-  */
 }
 
 void ROS1Visualizer::visualize_final() {
