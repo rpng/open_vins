@@ -13,8 +13,8 @@ calib_cam_extrinsics: false
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true
 
-max_clones: 8
-max_slam: 150 #40
+max_clones: 11
+max_slam: 40
 max_slam_in_update: 25
 max_msckf_in_update: 40
 dt_slam_delay: 2
@@ -38,7 +38,7 @@ zupt_only_at_beginning: true
 # ==================================================================
 
 init_window_time: 2.0
-init_imu_thresh: 0.40
+init_imu_thresh: 0.8
 init_max_disparity: 2.0
 init_max_features: 75
 
@@ -76,8 +76,8 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true
-num_pts: 300 #100
-fast_threshold: 10 #50
+num_pts:  100
+fast_threshold: 50
 grid_x: 10 #5
 grid_y: 8 #5
 min_px_dist: 5 #15
@@ -109,7 +109,7 @@ use_mask: false
 
 # imu and camera spacial-temporal
 # imu config should also have the correct noise values
-relative_config_imu: "kalibr_imu_chain.yaml"
+relative_config_imu: "kalibr_imu_chain_oct07.yaml"
 relative_config_imucam: "imucam_chain_raw.yaml"
 
 # init with the alignment of vicon world frame and vio global frame (which is local frame)
