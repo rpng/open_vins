@@ -1,0 +1,8 @@
+<library path="lib/libovmsckf_nodelet">
+	<class name="ovmsckf_nodelet/OvmsckfNodeletClass" type="ovmsckf_nodelet_ns::OvmsckfNodeletClass"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			OvmsckfNodeletClass.
+		</description>
+	</class>
+</library>
