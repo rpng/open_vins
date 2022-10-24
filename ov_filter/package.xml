@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>butterworth</name>
+  <version>0.0.0</version>
+  <description>butterworth imu filter</description>
+
+  <author email="yangzhou@nyu.edu">Yang Zhou</author>
+  <maintainer email="yangzhou@nyu.edu">Yang Zhou</maintainer>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <depend>roscpp</depend>
+  <depend>roslib</depend>
+  <depend>sensor_msgs</depend>
+</package>
