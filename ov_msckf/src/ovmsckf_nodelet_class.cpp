@@ -13,7 +13,7 @@ namespace ovmsckf_nodelet_ns
 OvmsckfNodeletClass::OvmsckfNodeletClass()
 {
   ROS_INFO("<<<OvmsckfNodeletClass Constructor");
-  std::string config_path = "/home/chenyu/Desktop/OpenVINS/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
+  std::string config_path = "/home/chenyu/Desktop/ws_openvins/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
 #if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);

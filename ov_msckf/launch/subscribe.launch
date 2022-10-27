@@ -75,4 +75,58 @@
     name="OvmsckfNodeletClass_loader" output="screen">
 	</node>
 
+    <!-- Camera Model and Name -->
+    <arg name="camera_name"           default="zedm" /> <!-- The name you want -->
+    <arg name="camera_model"          default="zedm" /> <!-- 'zed' or 'zedm' or 'zed2' -->
+    <arg name="node_name"             default="zed_node" />
+
+    <!-- Load SVO file -->
+    <arg name="svo_file"              default="" /><!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
+    <!-- Remote stream -->
+    <arg name="stream"                default="" /> <!-- <arg name="stream" default="<ip_address>:<port>"> -->
+
+    <!-- Base frame -->
+    <arg name="base_frame"            default="base_link" />
+
+    <!-- Publish ZED urdf -->
+    <arg name="publish_urdf"          default="true" />
+
+    <arg name="camera_id"             default="0" />
+    <arg name="gpu_id"                default="-1" />
+
+    <!-- Position respect to base frame (i.e. "base_link) -->
+    <arg name="cam_pos_x"             default="0.0" />
+    <arg name="cam_pos_y"             default="0.0" />
+    <arg name="cam_pos_z"             default="0.0" />
+
+    <!-- Orientation respect to base frame (i.e. "base_link) -->
+    <arg name="cam_roll"              default="0.0" />
+    <arg name="cam_pitch"             default="0.0" />
+    <arg name="cam_yaw"               default="0.0" />
+
+
+    <node pkg="nodelet" type="nodelet" args="load zed_nodelets/ZEDWrapperNodelet ovmsckf_nodelet_manager"
+    name="zed_nodelet" output="screen">
+        <rosparam file="$(find zed_wrapper)/params/common_arpl.yaml" command="load" />
+        <rosparam file="$(find zed_wrapper)/params/$(arg camera_model)_arpl.yaml" command="load" />
+
+        <!-- Camera name -->
+        <param name="general/camera_name"               value="$(arg camera_name)" />
+
+        <!-- Base frame -->
+        <param name="general/base_frame"                value="$(arg base_frame)" />
+
+        <!-- SVO file path -->
+        <param name="svo_file"                          value="$(arg svo_file)" />
+
+        <!-- Remote stream -->
+        <param name="stream"                            value="$(arg stream)" />
+
+        <!-- Camera ID -->
+        <param name="general/zed_id"                    value="$(arg camera_id)" />
+
+        <!-- GPU ID -->
+        <param name="general/gpu_id"                    value="$(arg gpu_id)" />
+	</node>
+
 </launch>
