@@ -151,7 +151,7 @@ void Filter::setup() {
   ROS_INFO("[IMU filter] Using butterworth filter with corner frequency %dHz", corner_freq);
 }
 
-int main(int argc, char** argv) {
+/*int main(int argc, char** argv) {
   ros::init(argc, argv, "butterworth_node");
 
   ros::NodeHandle nh;
@@ -163,4 +163,4 @@ int main(int argc, char** argv) {
   ros::spin();
 
   return 0;
-}
+}*/

@@ -22,6 +22,7 @@
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
 #include "utils/dataset_reader.h"
+#include "../../ov_filter/include/butterworth/butterworth.h"
 
 using namespace ov_msckf;
 using namespace ov_core;

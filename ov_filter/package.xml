@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package format="2">
+<package format="3">
   <name>butterworth</name>
   <version>0.0.0</version>
   <description>butterworth imu filter</description>
@@ -14,4 +14,10 @@
   <depend>roscpp</depend>
   <depend>roslib</depend>
   <depend>sensor_msgs</depend>
+  <build_depend>nodelet</build_depend>
+  <exec_depend>nodelet</exec_depend>
+
+    <export>
+        <nodelet plugin="${prefix}/butterworth_nodelet.xml" />
+    </export>
 </package>

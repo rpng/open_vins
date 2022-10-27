@@ -18,8 +18,8 @@ class Filter {
 		void imuCallback(const sensor_msgs::ImuConstPtr& msg_in);
 		void shift_stamp(ros::Time& stamp, double delay);
 
-		ros::NodeHandle& nh;
-		ros::NodeHandle& pnh;
+		ros::NodeHandle nh;
+		ros::NodeHandle pnh;
 
 		ros::Subscriber imu_sub;
 		ros::Publisher imu_pub;
