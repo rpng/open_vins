@@ -25,7 +25,7 @@
     <!-- if we should viz the groundtruth -->
     <arg name="dolivetraj"  default="false" />
     <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
-
+    
 
     <!-- MASTER NODE! -->
 <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
@@ -73,8 +73,11 @@
 	
 	<node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
     name="OvmsckfNodeletClass_loader" output="screen">
+        <param name="publish_global_to_imu_tf" type="bool" value="false"/>
+        <param name="publish_world_to_body_tf" type="bool" value="false"/>
+        <param name="publish_calibration_tf" type="bool" value="false"/>
 	</node>
-
+    <!-- Below parts are ZEDM -->
     <!-- Camera Model and Name -->
     <arg name="camera_name"           default="zedm" /> <!-- The name you want -->
     <arg name="camera_model"          default="zedm" /> <!-- 'zed' or 'zedm' or 'zed2' -->
@@ -106,7 +109,7 @@
 
 
     <node pkg="nodelet" type="nodelet" args="load zed_nodelets/ZEDWrapperNodelet ovmsckf_nodelet_manager"
-    name="zed_nodelet" output="screen">
+    name="zed_nodelet" output="log">
         <rosparam file="$(find zed_wrapper)/params/common_arpl.yaml" command="load" />
         <rosparam file="$(find zed_wrapper)/params/$(arg camera_model)_arpl.yaml" command="load" />
 

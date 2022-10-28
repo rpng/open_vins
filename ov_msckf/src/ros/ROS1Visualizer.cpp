@@ -89,9 +89,9 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   it_pub_loop_img_depth_color = it.advertise("loop_depth_colored", 2);
 
   // option to enable publishing of global to IMU transformation
-  nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
-  nh->param<bool>("publish_world_to_body_tf", publish_world2body_tf, true);
-  nh->param<bool>("publish_calibration_tf", publish_calibration_tf, true);
+  nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, false);
+  nh->param<bool>("publish_world_to_body_tf", publish_world2body_tf, false);
+  nh->param<bool>("publish_calibration_tf", publish_calibration_tf, false);
 
   // Load groundtruth if we have it and are not doing simulation
   // NOTE: needs to be a csv ASL format file
