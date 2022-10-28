@@ -31,14 +31,11 @@
 <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
     <!--ode name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
-        
         <param name="verbosity"              type="string" value="$(arg verbosity)" />
         <param name="config_path"            type="string" value="$(arg config_path)" />
-
         
         <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
-
         
         <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
         <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />

@@ -38,7 +38,7 @@ public:
     void callback_inertial(const sensor_msgs::Imu::ConstPtr &msg);
     virtual void onInit();
 private:
-    std::string config_path = "/home/chenyu/Desktop/ws_openvins/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
+    std::string config_path = "/home/race4/sdcard/chenyu_ws/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
     std::shared_ptr<ov_core::YamlParser>  parser = std::make_shared<ov_core::YamlParser>(config_path);
     ov_core::ImuData imu_message;
 	  ros::Subscriber sub_imu;
