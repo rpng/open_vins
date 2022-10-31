@@ -2,8 +2,8 @@
 #include <sensor_msgs/Imu.h>
 
 struct filter_state {
-  float xs[3];
-  float ys[3];
+  float xs[3] = {0,0,0};
+  float ys[3] = {0,0,0};
 };
 
 class Filter {
