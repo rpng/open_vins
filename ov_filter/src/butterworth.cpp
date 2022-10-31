@@ -29,13 +29,12 @@ float Filter::apply(filter_state &state, float sample) {
   float dt = std::fabs(output - prev_output);
   if (isnan(output)){
       std::cout<<"Nan ssample" << sample <<std::endl;
-      return sample;
+      return 0.0;
   }
 
-  if (dt>5.0) { // check if filter state has converged yet
-        std::cout<<"jump history" <<std::endl;
-    return sample;
-  }
+  // if (dt>5.0) { // check if filter state has converged yet
+  //   return sample;
+  // }
 
   return output;
 }
