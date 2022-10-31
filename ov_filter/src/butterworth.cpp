@@ -1,5 +1,6 @@
 
 #include "../include/butterworth/butterworth.h"
+#include <iostream>
 
 // constructor
 Filter::Filter(ros::NodeHandle& nodeHandle,
@@ -26,8 +27,13 @@ float Filter::apply(filter_state &state, float sample) {
   float prev_output = state.ys[1];
   float output = state.ys[2];
   float dt = std::fabs(output - prev_output);
+  if (isnan(output)){
+      std::cout<<"Nan ssample" << sample <<std::endl;
+      return 0.0;
+  }
 
   if (dt>5.0) { // check if filter state has converged yet
+        std::cout<<"jump history" <<std::endl;
     return sample;
   }
 
@@ -66,6 +72,7 @@ void Filter::shift_stamp(ros::Time& stamp, double delay) {
 void Filter::setup() {
   imu_sub = nh.subscribe("/zed_nodelet/imu/data_raw", 100, &Filter::imuCallback, this);
   imu_pub = nh.advertise<sensor_msgs::Imu>("/zed_nodelet/imu/data_raw_filtered", 100);
+  imu_pub = nh.advertise<sensor_msgs::Imu>("/race4/imu/data_raw_filtered", 100);
 
   pnh.param("corner_freq", corner_freq, 50);
   pnh.param("filter_delay", filter_delay, 0.0);
