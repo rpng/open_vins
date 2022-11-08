@@ -25,20 +25,17 @@
     <!-- if we should viz the groundtruth -->
     <arg name="dolivetraj"  default="false" />
     <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
-    
+
 
     <!-- MASTER NODE! -->
 <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
     <!--ode name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
-        
         <param name="verbosity"              type="string" value="$(arg verbosity)" />
         <param name="config_path"            type="string" value="$(arg config_path)" />
-
         
         <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
-
         
         <param name="record_timing_information"   type="bool"   value="$(arg dotime)" />
         <param name="record_timing_filepath"      type="string" value="$(arg path_time)" />
@@ -79,7 +76,7 @@
         <param name="publish_world_to_body_tf" type="bool" value="false"/>
         <param name="publish_calibration_tf" type="bool" value="false"/>
 	</node>
-    <!-- Below parts are ZEDM -->
+
     <!-- Camera Model and Name -->
     <arg name="camera_name"           default="zedm" /> <!-- The name you want -->
     <arg name="camera_model"          default="zedm" /> <!-- 'zed' or 'zedm' or 'zed2' -->
@@ -111,7 +108,7 @@
 
 
     <node pkg="nodelet" type="nodelet" args="load zed_nodelets/ZEDWrapperNodelet ovmsckf_nodelet_manager"
-    name="zed_nodelet" output="log">
+    name="zed_nodelet" output="screen">
         <rosparam file="$(find zed_wrapper)/params/common_arpl.yaml" command="load" />
         <rosparam file="$(find zed_wrapper)/params/$(arg camera_model)_arpl.yaml" command="load" />
 
@@ -134,8 +131,8 @@
         <param name="general/gpu_id"                    value="$(arg gpu_id)" />
 	</node>
     
-    <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
-    name="butterworth_nodelet" output="screen">
-	</node>
+	 <!--    <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
+	    name="butterworth_nodelet" output="screen">
+	</node> -->  
 
 </launch>

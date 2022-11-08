@@ -46,7 +46,7 @@ float Filter::apply(filter_state &state, float sample) {
 }
 
 float Filter::reset(filter_state &state, float sample) {
-  for (int i; i<3; i++) {
+  for (int i=0; i<3; i++) {
     state.xs[i] = sample;
     state.ys[i] = sample;
   }
@@ -77,10 +77,8 @@ void Filter::shift_stamp(ros::Time& stamp, double delay) {
 }
 
 void Filter::setup() {
-  imu_sub = nh.subscribe("/zedm/zed_node/imu/data_raw", 100, &Filter::imuCallback, this);
-  // imu_sub = nh.subscribe("/zed_nodelet/imu/data_raw", 100, &Filter::imuCallback, this);
-  imu_pub = nh.advertise<sensor_msgs::Imu>("/zedm/zed_node/imu/data_raw_filtered", 100);
-  // imu_pub = nh.advertise<sensor_msgs::Imu>("/zed_nodelet/imu/data_raw_filtered", 100);
+  imu_sub = nh.subscribe("/zed_nodelet/imu/data_raw", 100, &Filter::imuCallback, this);
+  imu_pub = nh.advertise<sensor_msgs::Imu>("/zed_nodelet/imu/data_raw_filtered", 100);
 
   pnh.param("corner_freq", corner_freq, 30);
   pnh.param("filter_delay", filter_delay, 0.0);

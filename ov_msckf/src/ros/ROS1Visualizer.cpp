@@ -365,11 +365,11 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
 
 
-  if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
-    return;
+ // if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
+   // return;
   
-  // if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
-  //   return;
+   if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
+     return;
   // 1. publish odomIinM (imu odometry in the vio local frame)
   // Publish our odometry message if requested
   bool published_odomIinM = false;
