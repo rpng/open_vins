@@ -1,9 +1,3 @@
-/*
- * ovmsckf_nodelet_class.cpp
- *
- *  Created on: 2016/09/18
- *      Author: cryborg21
- */
 #include "ovmsckf_nodelet_class.h"
 #include <pluginlib/class_list_macros.h>
 // #include "../../ov_core//src/utils/opencv_yaml_parse.h"
@@ -20,14 +14,11 @@ OvmsckfNodeletClass::~OvmsckfNodeletClass()
 
 void OvmsckfNodeletClass::onInit()
 {
-  ROS_INFO("onInit???");
   std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>(getPrivateNodeHandle());
   if( !nh->getParam("config_path", config_path) )
     ROS_ERROR("Failed to get param config_path from server.");
-  ROS_INFO("config_path: ");
-  std::cout << config_path << std::endl;
 
-  ROS_INFO("<<<OvmsckfNodeletClass Constructor--??");
+  ROS_INFO("<<<OvmsckfNodeletClass Constructor");
   //std::string config_path = "/home/chenyu/Desktop/ws_openvins/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
 #if ROS_AVAILABLE == 1
