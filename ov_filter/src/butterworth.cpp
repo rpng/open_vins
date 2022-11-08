@@ -14,6 +14,7 @@ Filter::Filter(ros::NodeHandle& nodeHandle,
 float Filter::apply(filter_state &state, float sample) {
   if(!initalised){
     initalised = true;
+    std::cout<<"initial"<<std::endl;
     return reset(state, sample);
   }
   state.xs[0] = state.xs[1];
@@ -27,9 +28,14 @@ float Filter::apply(filter_state &state, float sample) {
   float prev_output = state.ys[1];
   float output = state.ys[2];
   float dt = std::fabs(output - prev_output);
-  if (isnan(output)){
+  static bool first = true;
+  // if (isnan(output)&& first){
+   if (isnan(output)){
+    // first = false;
+      std::cout << " VECTOR state in " << state.xs[0]<<" "<< state.xs[1]<< " "<<state.xs[2]<<std::endl;
+      std::cout << " VECTOR state out " << state.ys[0]<<" "<< state.ys[1]<< " "<<state.ys[2] <<std::endl;
       std::cout<<"Nan ssample" << sample <<std::endl;
-      return 0.0;
+      return reset(state, sample);
   }
 
   // if (dt>5.0) { // check if filter state has converged yet
@@ -40,7 +46,7 @@ float Filter::apply(filter_state &state, float sample) {
 }
 
 float Filter::reset(filter_state &state, float sample) {
-  for (int i; i<3; i++) {
+  for (int i=0; i<3; i++) {
     state.xs[i] = sample;
     state.ys[i] = sample;
   }
@@ -62,6 +68,8 @@ void Filter::imuCallback(const sensor_msgs::ImuConstPtr& msg_in) {
   shift_stamp(shifted_stamp, filter_delay);
   msg_out.header.stamp = shifted_stamp;
   imu_pub.publish(msg_out);
+  std::cout<<"imu reading from filter"<< msg_in->linear_acceleration.x<<" " << msg_in->angular_velocity.y<<" "<< msg_in->angular_velocity.z<<std::endl;
+  std::cout<<"msg_out from filter"<< msg_out.linear_acceleration.x<<" " << msg_out.angular_velocity.y<<" "<< msg_out.angular_velocity.z<<std::endl;
 }
 
 void Filter::shift_stamp(ros::Time& stamp, double delay) {
@@ -75,7 +83,7 @@ void Filter::setup() {
   pnh.param("corner_freq", corner_freq, 30);
   pnh.param("filter_delay", filter_delay, 0.0);
 
-  // Coefficients from http://www-users.cs.york.ac.uk/~fisher/mkfilter/trad.html
+  // Coefficients from http://www-users.cs.york.ac.uk/~fisher/mkfilter/trad.htmlE
   // filtertype = Butterworth
   // passtype = Lowpass
   // ripple =
@@ -156,7 +164,7 @@ void Filter::setup() {
   ROS_INFO("[IMU filter] Using butterworth filter with corner frequency %dHz", corner_freq);
 }
 
-/*int main(int argc, char** argv) {
+int main(int argc, char** argv) {
   ros::init(argc, argv, "butterworth_node");
 
   ros::NodeHandle nh;
@@ -168,4 +176,4 @@ void Filter::setup() {
   ros::spin();
 
   return 0;
-}*/
+}
