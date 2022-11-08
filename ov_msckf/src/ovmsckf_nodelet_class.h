@@ -38,16 +38,16 @@ public:
     void callback_inertial(const sensor_msgs::Imu::ConstPtr &msg);
     virtual void onInit();
 private:
-    std::string config_path = "/home/chenyu/Desktop/ws_openvins/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
-    std::shared_ptr<ov_core::YamlParser>  parser = std::make_shared<ov_core::YamlParser>(config_path);
+    std::string config_path;
+    //std::shared_ptr<ov_core::YamlParser>  parser = std::make_shared<ov_core::YamlParser>(config_path);
     ov_core::ImuData imu_message;
-	  ros::Subscriber sub_imu;
+	ros::Subscriber sub_imu;
     std::shared_ptr<VioManager> sys;
 	//   std:: string topic_imu = "/race4/zedm/zed_node/imu/data_raw";
 	//   std:: string topic_image_left = "/zedm/zed_node/left/image_rect_gray";
 	//   std:: string topic_image_right = "/zedm/zed_node/right/image_rect_gray";
     std::shared_ptr<VioManager> _app;
-    std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>("~");
+    //std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>("~");
     #if ROS_AVAILABLE == 1
     std::shared_ptr<ROS1Visualizer> viz;
     #elif ROS_AVAILABLE == 2
