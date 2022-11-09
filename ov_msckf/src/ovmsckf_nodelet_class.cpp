@@ -1,9 +1,3 @@
-/*
- * ovmsckf_nodelet_class.cpp
- *
- *  Created on: 2016/09/18
- *      Author: cryborg21
- */
 #include "ovmsckf_nodelet_class.h"
 #include <pluginlib/class_list_macros.h>
 // #include "../../ov_core//src/utils/opencv_yaml_parse.h"
@@ -12,8 +6,20 @@ namespace ovmsckf_nodelet_ns
 {
 OvmsckfNodeletClass::OvmsckfNodeletClass()
 {
+}
+OvmsckfNodeletClass::~OvmsckfNodeletClass()
+{
+  ROS_INFO("OvmsckfNodeletClass Destructor");
+}
+
+void OvmsckfNodeletClass::onInit()
+{
+  std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>(getPrivateNodeHandle());
+  if( !nh->getParam("config_path", config_path) )
+    ROS_ERROR("Failed to get param config_path from server.");
+
   ROS_INFO("<<<OvmsckfNodeletClass Constructor");
-  std::string config_path = "/home/race4/sdcard/chenyu_ws/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
+  //std::string config_path = "/home/chenyu/Desktop/ws_openvins/src/open_vins/ov_msckf/../config/zed_mini/estimator_config.yaml";
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
 #if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);
@@ -44,18 +50,10 @@ if (!parser->successful()) {
   // Spin off to ROS
   PRINT_DEBUG("done...spinning to ros\n");
   ROS_INFO("OvmsckfNodeletClass Constructor>>>");
-}
 
-OvmsckfNodeletClass::~OvmsckfNodeletClass()
-{
-  ROS_INFO("OvmsckfNodeletClass Destructor");
-}
-
-void OvmsckfNodeletClass::onInit()
-{
   NODELET_INFO("CHENYU COMPUTER  %s", __FUNCTION__);
   NODELET_INFO("OvmsckfNodeletClass - %s", __FUNCTION__);
-  // ros::NodeHandle nh(getPrivateNodeHandle());
+ 
   // sub_imu = nh.subscribe(topic_imu, 1000, &OvmsckfNodeletClass::callback_inertial, this);
   viz->visualize_final();
 }

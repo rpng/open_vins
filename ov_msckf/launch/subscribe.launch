@@ -65,11 +65,16 @@
     </group>
 
     <node pkg="nodelet" type="nodelet" args="manager"
-    name="ovmsckf_nodelet_manager" output="screen" />
+    name="ovmsckf_nodelet_manager" output="screen">
+    </node>
 
 	
 	<node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
     name="OvmsckfNodeletClass_loader" output="screen">
+        <param name="config_path"            type="string" value="$(arg config_path)" />
+        <param name="publish_global_to_imu_tf" type="bool" value="false"/>
+        <param name="publish_world_to_body_tf" type="bool" value="false"/>
+        <param name="publish_calibration_tf" type="bool" value="false"/>
 	</node>
 
     <!-- Camera Model and Name -->
@@ -126,8 +131,8 @@
         <param name="general/gpu_id"                    value="$(arg gpu_id)" />
 	</node>
     
-	     <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
+	 <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
 	    name="butterworth_nodelet" output="screen">
-	</node>   
 
+	</node>   
 </launch>

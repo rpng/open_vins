@@ -68,8 +68,8 @@ void Filter::imuCallback(const sensor_msgs::ImuConstPtr& msg_in) {
   shift_stamp(shifted_stamp, filter_delay);
   msg_out.header.stamp = shifted_stamp;
   imu_pub.publish(msg_out);
-  std::cout<<"imu reading from filter"<< msg_in->linear_acceleration.x<<" " << msg_in->angular_velocity.y<<" "<< msg_in->angular_velocity.z<<std::endl;
-  std::cout<<"msg_out from filter"<< msg_out.linear_acceleration.x<<" " << msg_out.angular_velocity.y<<" "<< msg_out.angular_velocity.z<<std::endl;
+  //std::cout<<"imu reading from filter"<< msg_in->linear_acceleration.x<<" " << msg_in->angular_velocity.y<<" "<< msg_in->angular_velocity.z<<std::endl;
+  //std::cout<<"msg_out from filter"<< msg_out.linear_acceleration.x<<" " << msg_out.angular_velocity.y<<" "<< msg_out.angular_velocity.z<<std::endl;
 }
 
 void Filter::shift_stamp(ros::Time& stamp, double delay) {
