@@ -56,12 +56,18 @@
     <depend>libopencv-contrib-dev</depend>
     <depend>boost</depend>
     <depend>libceres-dev</depend>
+    <buildtool_depend>catkin</buildtool_depend>
+    <build_depend>roscpp</build_depend>
+    <build_depend>nodelet</build_depend>
+    <exec_depend>roscpp</exec_depend>
+    <exec_depend>nodelet</exec_depend>
 
     <!-- Note the export is required to expose the executables -->
     <export>
         <build_type condition="$ROS_VERSION == 1">catkin</build_type>
         <build_type condition="$ROS_VERSION == 2">ament_cmake</build_type>
         <rosdoc config="rosdoc.yaml" />
+        <nodelet plugin="${prefix}/ovmsckf_nodelet.xml" />
     </export>
 
     <!-- These are really "soft" dependencies, and are just required if you need them for launch... -->

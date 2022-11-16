@@ -87,12 +87,13 @@ public:
    * @param parser Configuration file parser
    */
   void setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser);
-
+  
   /**
-   * @brief setup T_imu_world tf in order to compensate camera-vicon tf
+   * @brief setup T_MtoW tf in order to compensate local frame to global frame tf
    * @param parser Configuration file parser
    */
-  void setup_T_imu_world(std::shared_ptr<ov_core::YamlParser> parser); 
+  void setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser); 
+
   /**
    * @brief Will visualize the system if we have new things
    */
@@ -135,6 +136,8 @@ protected:
   /// Publish loop-closure information of current pose and active track information
   void publish_loopclosure_information();
 
+  Eigen::Matrix<double, 7, 1> print_tf(Eigen::Matrix4d T);
+
   /// Global node handler
   std::shared_ptr<ros::NodeHandle> _nh;
 
@@ -146,7 +149,9 @@ protected:
 
   // Our publishers
   image_transport::Publisher it_pub_tracks, it_pub_loop_img_depth, it_pub_loop_img_depth_color;
-  ros::Publisher pub_poseimu, pub_odomimu, pub_odomworld, pub_pathimu;
+  ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
+  ros::Publisher pub_poseworld, pub_odomworld, pub_pathworld;
+  ros::Publisher pub_poseworldB0, pub_odomworldB0, pub_pathworldB0;
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
   std::shared_ptr<tf::TransformBroadcaster> mTfBr;
@@ -198,15 +203,32 @@ protected:
   unsigned int poses_seq_gt = 0;
   std::vector<geometry_msgs::PoseStamped> poses_gt;
   bool publish_global2imu_tf = true;
+  bool publish_world2body_tf = true;
   bool publish_calibration_tf = true;
 
   // Files and if we should save total state
   bool save_total_state = false;
   std::ofstream of_state_est, of_state_std, of_state_gt;
 
-  // Deal with Transformation from IMU frame to world frame to compensate camera-vicon tf
-  Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
-  Eigen::Matrix<double, 7, 1> T_imu_world_eigen;
+  // Transformation between vio local (IMU) frame to vicon world frame
+  Eigen::Matrix4d T_MtoW = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_ItoB = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_BtoI = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_B0toW = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_WtoB0 = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_MtoB0 = Eigen::Matrix4d::Identity();
+  Eigen::Matrix<double, 7, 1> T_MtoW_eigen;
+
+  bool got_init_tf=false;
+  Eigen::Matrix4d T_init_tf = Eigen::Matrix4d::Identity();
+  Eigen::Matrix4d T_init_tf_inv = Eigen::Matrix4d::Identity();
+  Eigen::Matrix3d hat_M2B0;
+
+  int skip_count = 0;
+  double pub_frequency = 0.0;
+  float imu_rate = 0;
+  float odom_rate = 0;
+  double last_timestamp = 0;
 };
 
 } // namespace ov_msckf

@@ -50,12 +50,17 @@ int main(int argc, char **argv) {
   if (argc > 1) {
     config_path = argv[1];
   }
+  std::cout<<"!!!!!line 53  "<< argv[1] <<" >>>>>>>>>>>\n";
 
 #if ROS_AVAILABLE == 1
   // Launch our ros node
-  ros::init(argc, argv, "run_subscribe_msckf");
+    ros::init(argc, argv, "run_subscribe_msckf");
   auto nh = std::make_shared<ros::NodeHandle>("~");
+
+std::cout << "Type of NH:"<<typeid(nh).name() << std::endl;
+
   nh->param<std::string>("config_path", config_path, config_path);
+  std::cout<<"---------config_path "<< config_path<<"\n";
 #elif ROS_AVAILABLE == 2
   // Launch our ros node
   rclcpp::init(argc, argv);
@@ -67,6 +72,7 @@ int main(int argc, char **argv) {
 #endif
 
   // Load the config
+  // std::cout<<"---------config_path "<< config_path<<"\n";
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
 #if ROS_AVAILABLE == 1
   parser->set_node_handler(nh);

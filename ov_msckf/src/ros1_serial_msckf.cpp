@@ -69,7 +69,7 @@ int main(int argc, char **argv) {
   sys = std::make_shared<VioManager>(params);
   viz = std::make_shared<ROS1Visualizer>(nh, sys);
   //setup T_imu_world which is a private varialble to compensate camera-vicon tf
-  viz->setup_T_imu_world(parser);
+  viz->setup_T_MtoW(parser);
   // Ensure we read in all parameters required
   if (!parser->successful()) {
     PRINT_ERROR(RED "[SERIAL]: unable to parse all parameters, please fix\n" RESET);

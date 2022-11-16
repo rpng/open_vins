@@ -160,6 +160,34 @@ install(DIRECTORY launch/
 )
 
 
+find_package(catkin REQUIRED COMPONENTS
+  roscpp
+  nodelet
+)
 
+catkin_package(
+#  INCLUDE_DIRS include
+  LIBRARIES ${PROJECT_NAME}
+  CATKIN_DEPENDS roscpp nodelet
+#  DEPENDS system_lib
+)
+
+include_directories(
+  ${catkin_INCLUDE_DIRS}
+)
+
+## Declare a C++ library
+add_library(ovmsckf_nodelet
+  src/ovmsckf_nodelet_class.cpp
+)
+target_link_libraries(ovmsckf_nodelet ov_msckf_lib ${catkin_LIBRARIES})
+if(catkin_EXPORTED_LIBRARIES)
+  add_dependencies(ovmsckf_nodelet ${catkin_EXPORTED_LIBRARIES})
+endif()
+install(TARGETS ovmsckf_nodelet
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
 
 
