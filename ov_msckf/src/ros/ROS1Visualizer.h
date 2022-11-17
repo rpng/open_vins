@@ -225,6 +225,7 @@ protected:
   Eigen::Matrix3d hat_M2B0;
 
   int skip_count = 0;
+
   double pub_frequency = 0.0;
   float imu_rate = 0;
   float odom_rate = 0;

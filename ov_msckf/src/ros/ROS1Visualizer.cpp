@@ -51,11 +51,13 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
   pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
+
   pub_odomworld = nh->advertise<nav_msgs::Odometry>("odomworld", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_odomworld.getTopic().c_str());
   pub_pathworld = nh->advertise<nav_msgs::Path>("pathimuworld", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_pathworld.getTopic().c_str());
   pub_odomworldB0 = nh->advertise<nav_msgs::Odometry>("odomworldB0", 1);
+
   PRINT_DEBUG("Publishing: %s\n", pub_odomworldB0.getTopic().c_str());
   pub_pathworldB0 = nh->advertise<nav_msgs::Path>("pathimuworldB0", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathworldB0.getTopic().c_str());
@@ -174,6 +176,7 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
   parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB); // from camera-vicon calibration
   parser->parse_external("relative_config_imu", "imu0", "update_rate", imu_rate);
   parser->parse_external("relative_config_imu", "imu0", "odom_update_rate", odom_rate);
+
   // pub_frequency = imu_rate/odom_rate;
   pub_frequency = 1.0/odom_rate; 
   // skip_count = pub_frequency;
@@ -250,6 +253,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
   setup_T_MtoW(parser);
+
 
   sub_imu = _nh->subscribe(topic_imu, 1, &ROS1Visualizer::callback_inertial, this, ros::TransportHints().tcpNoDelay());
 
@@ -647,6 +651,7 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
   // send it to our VIO system
   _app->feed_measurement_imu(message);
+
 
   double startTime = ros::Time::now().toSec();
   std::cout << "The start time is " << ros::Time::now().toSec() << "\n";
