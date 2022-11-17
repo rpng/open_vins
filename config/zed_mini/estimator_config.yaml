@@ -110,8 +110,9 @@ use_mask: false
 # imu and camera spacial-temporal
 # imu config should also have the correct noise values
 relative_config_imu: "imu_1107_30hzfiltered.yaml"
-relative_config_imucam: "camchain-imucam-1107_raw.yaml"
+
+relative_config_imucam: "camchain-imucam-1107_30hzfilter.yaml"
 
 # init with the alignment of vicon world frame and vio global frame (which is local frame)
-init_world_with_vicon: true
+init_world_with_vicon: false
 viconOdomWTopic: "/race4/odom"

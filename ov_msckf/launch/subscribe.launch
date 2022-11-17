@@ -66,6 +66,7 @@
 
     <node pkg="nodelet" type="nodelet" args="manager"
     name="ovmsckf_nodelet_manager" output="screen">
+
     </node>
 
 	
@@ -75,6 +76,12 @@
         <param name="publish_global_to_imu_tf" type="bool" value="false"/>
         <param name="publish_world_to_body_tf" type="bool" value="false"/>
         <param name="publish_calibration_tf" type="bool" value="false"/>
+
+        <remap from="/zedm/zed_node/imu/data_raw" to="/zed_nodelet/imu/data_raw" />
+        <remap from="/zedm/zed_node/left_raw/image_raw_gray" to="/zed_nodelet/left_raw/image_raw_gray" />
+        <remap from="/zedm/zed_node/right_raw/image_raw_gray" to="/zed_nodelet/right_raw/image_raw_gray" />
+        <remap from="/OvmsckfNodeletClass_loader/odomworld" to="/OvmsckfNodeletClass_loader/odomworld_laptop" />
+
 	</node>
 
     <!-- Camera Model and Name -->
@@ -107,32 +114,28 @@
     <arg name="cam_yaw"               default="0.0" />
 
 
-    <node pkg="nodelet" type="nodelet" args="load zed_nodelets/ZEDWrapperNodelet ovmsckf_nodelet_manager"
+
+    <!-- <node pkg="nodelet" type="nodelet" args="load zed_nodelets/ZEDWrapperNodelet ovmsckf_nodelet_manager"
+
     name="zed_nodelet" output="screen">
         <rosparam file="$(find zed_wrapper)/params/common_arpl.yaml" command="load" />
         <rosparam file="$(find zed_wrapper)/params/$(arg camera_model)_arpl.yaml" command="load" />
 
-        <!-- Camera name -->
+
         <param name="general/camera_name"               value="$(arg camera_name)" />
 
-        <!-- Base frame -->
         <param name="general/base_frame"                value="$(arg base_frame)" />
 
-        <!-- SVO file path -->
         <param name="svo_file"                          value="$(arg svo_file)" />
 
-        <!-- Remote stream -->
         <param name="stream"                            value="$(arg stream)" />
-
-        <!-- Camera ID -->
         <param name="general/zed_id"                    value="$(arg camera_id)" />
-
-        <!-- GPU ID -->
         <param name="general/gpu_id"                    value="$(arg gpu_id)" />
 	</node>
-    
-	 <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
+    -->
+	<!-- <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
 	    name="butterworth_nodelet" output="screen">
 
-	</node>   
+	</node>     -->
+
 </launch>

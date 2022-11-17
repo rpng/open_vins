@@ -45,29 +45,31 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   image_transport::ImageTransport it(*_nh);
 
   // Setup pose and path publisher
-  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("poseimu", 2);
+  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("poseimu", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu.getTopic().c_str());
-  pub_odomimu = nh->advertise<nav_msgs::Odometry>("odomimu", 2);
+  pub_odomimu = nh->advertise<nav_msgs::Odometry>("odomimu", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
-  pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
+  pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
-  pub_odomworld = nh->advertise<nav_msgs::Odometry>("odomworld", 2);
+
+  pub_odomworld = nh->advertise<nav_msgs::Odometry>("odomworld", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_odomworld.getTopic().c_str());
-  pub_pathworld = nh->advertise<nav_msgs::Path>("pathimuworld", 2);
+  pub_pathworld = nh->advertise<nav_msgs::Path>("pathimuworld", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_pathworld.getTopic().c_str());
-  pub_odomworldB0 = nh->advertise<nav_msgs::Odometry>("odomworldB0", 2);
+  pub_odomworldB0 = nh->advertise<nav_msgs::Odometry>("odomworldB0", 1);
+
   PRINT_DEBUG("Publishing: %s\n", pub_odomworldB0.getTopic().c_str());
   pub_pathworldB0 = nh->advertise<nav_msgs::Path>("pathimuworldB0", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathworldB0.getTopic().c_str());
 
   // 3D points publishing
-  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 2);
+  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("points_slam", 2);
+  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("points_slam", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("points_aruco", 2);
+  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("points_aruco", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_points_aruco.getTopic().c_str());
-  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("points_sim", 2);
+  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("points_sim", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_points_sim.getTopic().c_str());
 
   // Our tracking image
@@ -75,7 +77,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   PRINT_DEBUG("Publishing: %s\n", it_pub_tracks.getTopic().c_str());
 
   // Groundtruth publishers
-  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("posegt", 2);
+  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("posegt", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_posegt.getTopic().c_str());
   pub_pathgt = nh->advertise<nav_msgs::Path>("pathgt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathgt.getTopic().c_str());
@@ -174,8 +176,10 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
   parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB); // from camera-vicon calibration
   parser->parse_external("relative_config_imu", "imu0", "update_rate", imu_rate);
   parser->parse_external("relative_config_imu", "imu0", "odom_update_rate", odom_rate);
-  pub_frequency = imu_rate/odom_rate;
-  skip_count = pub_frequency;
+
+  // pub_frequency = imu_rate/odom_rate;
+  pub_frequency = 1.0/odom_rate; 
+  // skip_count = pub_frequency;
 
   // If there is vicon input, use body pose in vicon frame as the T_BtoW
   bool init_world_with_vicon = false;
@@ -249,7 +253,9 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
   setup_T_MtoW(parser);
-  sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this);
+
+
+  sub_imu = _nh->subscribe(topic_imu, 1, &ROS1Visualizer::callback_inertial, this, ros::TransportHints().tcpNoDelay());
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
@@ -365,11 +371,11 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
 
 
- // if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
-   // return;
+ if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
+   return;
   
-   if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
-     return;
+  //  if (!_app->get_propagator()->fast_state_propagate_cache(state, timestamp, state_plus, cov_plus))
+  //    return;
   // 1. publish odomIinM (imu odometry in the vio local frame)
   // Publish our odometry message if requested
   bool published_odomIinM = false;
@@ -637,8 +643,8 @@ void ROS1Visualizer::visualize_final() {
 
 void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
-  // convert into correct format
-  ov_core::ImuData message;
+  // convert into correct
+   ov_core::ImuData message;
   message.timestamp = msg->header.stamp.toSec();
   message.wm << msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z;
   message.am << msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z;
@@ -646,12 +652,15 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
   // send it to our VIO system
   _app->feed_measurement_imu(message);
 
-  if (skip_count == pub_frequency){
-    // PRINT_INFO(REDPURPLE "visualize_odometry: %d \n\n" RESET,skip_count );
+
+  double startTime = ros::Time::now().toSec();
+  std::cout << "The start time is " << ros::Time::now().toSec() << "\n";
+  if ((ros::Time::now().toSec() - last_timestamp) >=  pub_frequency){
+    PRINT_INFO(REDPURPLE "visualize_odometry: %4.5f \n\n" RESET, ros::Time::now().toSec() - last_timestamp );
     visualize_odometry(message.timestamp);
-    skip_count = 0;
+    last_timestamp = ros::Time::now().toSec();
   }
-  skip_count += 1;
+
   // visualize_odometry(message.timestamp);
   // PRINT_INFO(REDPURPLE "skip_count: %d/ %d \n\n" RESET,skip_count,  pub_frequency);
   
@@ -701,6 +710,10 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
   } else {
     thread.detach();
   }
+
+  double dt = ros::Time::now().toSec() - startTime;
+  std::cout << "The end time is " << ros::Time::now() << "\n";
+  std::cout << "The dt is " << dt << "\n";
 }
 
 void ROS1Visualizer::callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {

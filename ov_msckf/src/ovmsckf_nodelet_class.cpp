@@ -14,7 +14,9 @@ OvmsckfNodeletClass::~OvmsckfNodeletClass()
 
 void OvmsckfNodeletClass::onInit()
 {
-  std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>(getPrivateNodeHandle());
+
+  std::shared_ptr<ros::NodeHandle> nh = std::make_shared<ros::NodeHandle>(getMTPrivateNodeHandle());
+
   if( !nh->getParam("config_path", config_path) )
     ROS_ERROR("Failed to get param config_path from server.");
 
