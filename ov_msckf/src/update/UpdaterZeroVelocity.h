@@ -142,6 +142,9 @@ protected:
 
   /// Last timestamp we did zero velocity update with
   double last_zupt_state_timestamp = 0.0;
+
+  /// Number of times we have called update
+  int last_zupt_count = 0;
 };
 
 } // namespace ov_msckf

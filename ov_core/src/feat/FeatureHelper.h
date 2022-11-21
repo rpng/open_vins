@@ -121,7 +121,7 @@ public:
    * @param oldest_time Only compute disparity for ones newer (-1 to disable)
    */
   static void compute_disparity(std::shared_ptr<ov_core::FeatureDatabase> db, double &disp_mean, double &disp_var, int &total_feats,
-                                double newest_time = 1, double oldest_time = 1) {
+                                double newest_time = -1, double oldest_time = -1) {
 
     // Compute the disparity
     std::vector<double> disparities;

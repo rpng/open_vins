@@ -189,6 +189,13 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     // Replace with the simulated tracker
     trackSIM = std::make_shared<TrackSIM>(state->_cam_intrinsics_cameras, state->_options.max_aruco_features);
     trackFEATS = trackSIM;
+    // Need to also replace it in init and zv-upt since it points to the trackFEATS db pointer
+    initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options, trackFEATS->get_feature_database());
+    if (params.try_zupt) {
+      updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_noises, trackFEATS->get_feature_database(),
+                                                          propagator, params.gravity_mag, params.zupt_max_velocity,
+                                                          params.zupt_noise_multiplier, params.zupt_max_disparity);
+    }
     PRINT_WARNING(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
   }
 
@@ -208,6 +215,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
       did_zupt_update = updaterZUPT->try_update(state, timestamp);
     }
     if (did_zupt_update) {
+      trackDATABASE->cleanup_measurements(timestamp);
       return;
     }
   }
@@ -281,6 +289,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
       did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
     }
     if (did_zupt_update) {
+      trackDATABASE->cleanup_measurements(message.timestamp);
       return;
     }
   }
@@ -558,7 +567,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // First do anchor change if we are about to lose an anchor pose
   updaterSLAM->change_anchors(state);
 
-  // Cleanup any features older then the marginalization time
+  // Cleanup any features older than the marginalization time
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
     trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
     trackDATABASE->cleanup_measurements(state->margtimestep());
