@@ -51,13 +51,11 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
   pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
-
   pub_odomworld = nh->advertise<nav_msgs::Odometry>("odomworld", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_odomworld.getTopic().c_str());
   pub_pathworld = nh->advertise<nav_msgs::Path>("pathimuworld", 1);
   PRINT_DEBUG("Publishing: %s\n", pub_pathworld.getTopic().c_str());
   pub_odomworldB0 = nh->advertise<nav_msgs::Odometry>("odomworldB0", 1);
-
   PRINT_DEBUG("Publishing: %s\n", pub_odomworldB0.getTopic().c_str());
   pub_pathworldB0 = nh->advertise<nav_msgs::Path>("pathimuworldB0", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathworldB0.getTopic().c_str());
@@ -176,7 +174,6 @@ void ROS1Visualizer::setup_T_MtoW(std::shared_ptr<ov_core::YamlParser> parser) {
   parser->parse_external("relative_config_imu", "imu0", "T_cam_body", T_CtoB); // from camera-vicon calibration
   parser->parse_external("relative_config_imu", "imu0", "update_rate", imu_rate);
   parser->parse_external("relative_config_imu", "imu0", "odom_update_rate", odom_rate);
-
   // pub_frequency = imu_rate/odom_rate;
   pub_frequency = 1.0/odom_rate; 
   // skip_count = pub_frequency;
@@ -253,7 +250,6 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
   setup_T_MtoW(parser);
-
 
   sub_imu = _nh->subscribe(topic_imu, 1, &ROS1Visualizer::callback_inertial, this, ros::TransportHints().tcpNoDelay());
 
@@ -491,16 +487,20 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Vector4d position_BinW (T_BtoW(0,3), T_BtoW(1,3), T_BtoW(2,3), T_BtoW(3,3));
     Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));
     Eigen::Vector4d position_BinB0 (T_BtoB0(0,3), T_BtoB0(1,3), T_BtoB0(2,3), T_BtoB0(3,3));
-
+    Eigen::Matrix3d skew_ItoB;
+    skew_ItoB << 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3), -T_ItoB(1,3),T_ItoB(0,3), 0;
     Eigen::Vector3d v_iinIMU (state_plus_world(7),state_plus_world(8),state_plus_world(9));
-    Eigen::Vector4d q_itoM = state_plus_world.block(0, 0, 4, 1);
-    Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
+    Eigen::Vector3d w_BinB (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    Eigen::Vector3d w_iinIMU (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    Eigen::Vector3d v_BinB = - T_ItoB.block(0,0,3,3) *skew_ItoB * w_iinIMU + T_ItoB.block(0,0,3,3) * v_iinIMU ;
 
-    Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
-    Eigen::Vector3d w_BinB =  w_iinI;
 
-    Eigen::Vector3d v_iinW = T_MtoW.block(0,0,3,3)* v_iinM;
-    Eigen::Vector3d v_iinB0 = T_MtoB0.block(0,0,3,3)* v_iinM;
+    // Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    // Eigen::Vector3d w_BinB =  w_iinI;
+    // Eigen::Vector3d v_BinB = T_ItoB.block(0,0,3,3)*v_iinIMU + skew_ItoB*T_ItoB.block(0,0,3,3)*w_iinI;
+    Eigen::Vector3d v_BinW = T_BtoW.block(0,0,3,3).transpose() * v_BinB;
+    Eigen::Vector3d v_BinB0 = T_BtoB0.block(0,0,3,3).transpose() * v_BinB;
+    // Eigen::Vector3d v_BinB0 = T_MtoB0.block(0,0,3,3)* v_BinB ;
 
     // The POSE component (orientation and position)
     odomBinW.pose.pose.orientation.x = q_BinW.x();
@@ -521,17 +521,17 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     
     // The TWIST component (angular and linear velocities)
     odomBinW.child_frame_id = "body";
-    odomBinW.twist.twist.linear.x = v_iinW(0);   // vel in world frame
-    odomBinW.twist.twist.linear.y = v_iinW(1);   // vel in world frame
-    odomBinW.twist.twist.linear.z = v_iinW(2);   // vel in world frame
+    odomBinW.twist.twist.linear.x = v_BinW(0);   // vel in world frame
+    odomBinW.twist.twist.linear.y = v_BinW(1);   // vel in world frame
+    odomBinW.twist.twist.linear.z = v_BinW(2);   // vel in world frame
     odomBinW.twist.twist.angular.x = w_BinB(0); // we do not estimate this...
     odomBinW.twist.twist.angular.y = w_BinB(1); // we do not estimate this...
     odomBinW.twist.twist.angular.z = w_BinB(2);; // we do not estimate this...
 
     odomBinB0.child_frame_id = "body";
-    odomBinB0.twist.twist.linear.x = v_iinB0(0);   // vel in world frame
-    odomBinB0.twist.twist.linear.y = v_iinB0(1);   // vel in world frame
-    odomBinB0.twist.twist.linear.z = v_iinB0(2);   // vel in world frame
+    odomBinB0.twist.twist.linear.x = v_BinB0(0);   // vel in world frame
+    odomBinB0.twist.twist.linear.y = v_BinB0(1);   // vel in world frame
+    odomBinB0.twist.twist.linear.z = v_BinB0(2);   // vel in world frame
     odomBinB0.twist.twist.angular.x = w_BinB(0); // we do not estimate this...
     odomBinB0.twist.twist.angular.y = w_BinB(1); // we do not estimate this...
     odomBinB0.twist.twist.angular.z = w_BinB(2); // we do not estimate this...
@@ -651,7 +651,6 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
 
   // send it to our VIO system
   _app->feed_measurement_imu(message);
-
 
   double startTime = ros::Time::now().toSec();
   std::cout << "The start time is " << ros::Time::now().toSec() << "\n";
