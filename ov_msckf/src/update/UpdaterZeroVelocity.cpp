@@ -21,6 +21,8 @@
 
 #include "UpdaterZeroVelocity.h"
 
+#include "UpdaterHelper.h"
+
 #include "feat/FeatureDatabase.h"
 #include "feat/FeatureHelper.h"
 #include "state/Propagator.h"
@@ -120,12 +122,11 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     Hx_order.push_back(state->_imu->v());
   }
 
-  // Large final matrices used for update
+  // Large final matrices used for update (we will compress these)
   int h_size = (integrated_accel_constraint) ? 12 : 9;
   int m_size = 6 * ((int)imu_recent.size() - 1);
   Eigen::MatrixXd H = Eigen::MatrixXd::Zero(m_size, h_size);
   Eigen::VectorXd res = Eigen::VectorXd::Zero(m_size);
-  Eigen::MatrixXd R = Eigen::MatrixXd::Identity(m_size, m_size);
 
   // Loop through all our IMU and construct the residual and Jacobian
   // State order is: [q_GtoI, bg, ba, v_IinG]
@@ -140,40 +141,48 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     double dt = imu_recent.at(i + 1).timestamp - imu_recent.at(i).timestamp;
     Eigen::Vector3d a_hat = imu_recent.at(i).am - state->_imu->bias_a();
 
+    // Measurement noise (convert from continuous to discrete)
+    // NOTE: The dt time might be different if we have "cut" any imu measurements
+    // NOTE: We are performing "whittening" thus, we will decompose R_meas^-1 = L*L^t
+    // NOTE: This is then multiplied to the residual and Jacobian (equivalent to just updating with R_meas)
+    // NOTE: See Maybeck Stochastic Models, Estimation, and Control Vol. 1 Equations (7-21a)-(7-21c)
+    double w_omega = std::sqrt(dt) / _noises.sigma_w;
+    double w_accel = std::sqrt(dt) / _noises.sigma_a;
+    double w_accel_v = 1.0 / (std::sqrt(dt) * _noises.sigma_a);
+
     // Measurement residual (true value is zero)
-    res.block(6 * i + 0, 0, 3, 1) = -(imu_recent.at(i).wm - state->_imu->bias_g());
+    res.block(6 * i + 0, 0, 3, 1) = -w_omega * (imu_recent.at(i).wm - state->_imu->bias_g());
     if (!integrated_accel_constraint) {
-      res.block(6 * i + 3, 0, 3, 1) = -(a_hat - state->_imu->Rot() * _gravity);
+      res.block(6 * i + 3, 0, 3, 1) = -w_accel * (a_hat - state->_imu->Rot() * _gravity);
     } else {
-      res.block(6 * i + 3, 0, 3, 1) = -(state->_imu->vel() - _gravity * dt + state->_imu->Rot().transpose() * a_hat * dt);
+      assert(false);
+      res.block(6 * i + 3, 0, 3, 1) = -w_accel_v * (state->_imu->vel() - _gravity * dt + state->_imu->Rot().transpose() * a_hat * dt);
     }
 
     // Measurement Jacobian
     Eigen::Matrix3d R_GtoI_jacob = (state->_options.do_fej) ? state->_imu->Rot_fej() : state->_imu->Rot();
-    H.block(6 * i + 0, 3, 3, 3) = -Eigen::Matrix3d::Identity();
+    H.block(6 * i + 0, 3, 3, 3) = -w_omega * Eigen::Matrix3d::Identity();
     if (!integrated_accel_constraint) {
-      H.block(6 * i + 3, 0, 3, 3) = -skew_x(R_GtoI_jacob * _gravity);
-      H.block(6 * i + 3, 6, 3, 3) = -Eigen::Matrix3d::Identity();
+      H.block(6 * i + 3, 0, 3, 3) = -w_accel * skew_x(R_GtoI_jacob * _gravity);
+      H.block(6 * i + 3, 6, 3, 3) = -w_accel * Eigen::Matrix3d::Identity();
     } else {
-      H.block(6 * i + 3, 0, 3, 3) = -R_GtoI_jacob.transpose() * skew_x(a_hat) * dt;
-      H.block(6 * i + 3, 6, 3, 3) = -R_GtoI_jacob.transpose() * dt;
-      H.block(6 * i + 3, 9, 3, 3) = Eigen::Matrix3d::Identity();
-    }
-
-    // Measurement noise (convert from continuous to discrete)
-    // Note the dt time might be different if we have "cut" any imu measurements
-    R.block(6 * i + 0, 6 * i + 0, 3, 3) *= _noises.sigma_w_2 / dt;
-    if (!integrated_accel_constraint) {
-      R.block(6 * i + 3, 6 * i + 3, 3, 3) *= _noises.sigma_a_2 / dt;
-    } else {
-      R.block(6 * i + 3, 6 * i + 3, 3, 3) *= _noises.sigma_a_2 * dt;
+      assert(false);
+      H.block(6 * i + 3, 0, 3, 3) = -w_accel_v * R_GtoI_jacob.transpose() * skew_x(a_hat) * dt;
+      H.block(6 * i + 3, 6, 3, 3) = -w_accel_v * R_GtoI_jacob.transpose() * dt;
+      H.block(6 * i + 3, 9, 3, 3) = w_accel_v * Eigen::Matrix3d::Identity();
     }
     dt_summed += dt;
   }
 
+  // Compress the system (we should be over determined)
+  UpdaterHelper::measurement_compress_inplace(H, res);
+  if (H.rows() < 1) {
+    return false;
+  }
+
   // Multiply our noise matrix by a fixed amount
   // We typically need to treat the IMU as being "worst" to detect / not become over confident
-  R *= _zupt_noise_multiplier;
+  Eigen::MatrixXd R = _zupt_noise_multiplier * Eigen::MatrixXd::Identity(res.rows(), res.rows());
 
   // Next propagate the biases forward in time
   // NOTE: G*Qd*G^t = dt*Qd*dt = dt*(1/dt*Qc)*dt = dt*Qc
