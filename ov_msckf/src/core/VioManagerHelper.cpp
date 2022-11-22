@@ -194,7 +194,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   retri_rT1 = boost::posix_time::microsec_clock::local_time();
 
   // Clear old active track data
-  active_tracks_time = state->_timestamp;
+  assert(state->_clones_IMU.find(message.timestamp) != state->_clones_IMU.end());
+  active_tracks_time = message.timestamp;
   active_image = cv::Mat();
   trackFEATS->display_active(active_image, 255, 255, 255, 255, 255, 255, " ");
   if (!active_image.empty()) {
@@ -212,14 +213,15 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   std::map<size_t, Eigen::Matrix3d> active_feat_linsys_A_new;
   std::map<size_t, Eigen::Vector3d> active_feat_linsys_b_new;
   std::map<size_t, int> active_feat_linsys_count_new;
+  std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG_new;
 
   // Append our new observations for each camera
   std::map<size_t, cv::Point2f> feat_uvs_in_cam0;
   for (auto const &cam_id : message.sensor_ids) {
 
     // IMU historical clone
-    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(state->_timestamp)->Rot();
-    Eigen::Vector3d p_IinG = state->_clones_IMU.at(state->_timestamp)->pos();
+    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(active_tracks_time)->Rot();
+    Eigen::Vector3d p_IinG = state->_clones_IMU.at(active_tracks_time)->pos();
 
     // Calibration for this cam_id
     Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(cam_id)->Rot();
@@ -234,6 +236,11 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     assert(last_ids.find(cam_id) != last_ids.end());
     for (size_t i = 0; i < last_obs.at(cam_id).size(); i++) {
 
+      // Skip this feature if it is a SLAM feature (the state estimate takes priority)
+      size_t featid = last_ids.at(cam_id).at(i);
+      if (state->_features_SLAM.find(featid) != state->_features_SLAM.end())
+        continue;
+
       // Get the UV coordinate normal
       cv::Point2f pt_d = last_obs.at(cam_id).at(i).pt;
       cv::Point2f pt_n = state->_cam_intrinsics_cameras.at(cam_id)->undistort_cv(pt_d);
@@ -244,7 +251,6 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
       Eigen::Matrix3d Bperp = skew_x(b_i);
 
       // Record this feature uv if is seen from cam0
-      size_t featid = last_ids.at(cam_id).at(i);
       if (cam_id == 0) {
         feat_uvs_in_cam0[featid] = pt_d;
       }
@@ -282,7 +288,7 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
         // Then set the flag for bad (i.e. set z-axis to nan)
         if (std::abs(condA) <= params.featinit_options.max_cond_number && p_FinCi(2, 0) >= params.featinit_options.min_dist &&
             p_FinCi(2, 0) <= params.featinit_options.max_dist && !std::isnan(p_FinCi.norm())) {
-          active_tracks_posinG[featid] = p_FinG;
+          active_tracks_posinG_new[featid] = p_FinG;
         }
       }
     }
@@ -293,6 +299,7 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   active_feat_linsys_A = active_feat_linsys_A_new;
   active_feat_linsys_b = active_feat_linsys_b_new;
   active_feat_linsys_count = active_feat_linsys_count_new;
+  active_tracks_posinG = active_tracks_posinG_new;
   retri_rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Return if no features
