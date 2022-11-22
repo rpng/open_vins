@@ -500,6 +500,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     Eigen::Vector3d w_BinB (state_plus_world(10),state_plus_world(11),state_plus_world(12));
     Eigen::Vector3d w_iinIMU (state_plus_world(10),state_plus_world(11),state_plus_world(12));
     Eigen::Vector3d v_BinB = - T_ItoB.block(0,0,3,3) *skew_ItoB * w_iinIMU + T_ItoB.block(0,0,3,3) * v_iinIMU ;
+
     //std::cout<<"R_BtoB0: "<< R_BtoB0.determinant() <<std::endl; 
     //Eigen::Matrix3d R_ItoM = T_ItoM.block(0,0,3,3);
     //std::cout<<"R_ItoM: "<< R_ItoM.determinant() <<std::endl;
@@ -526,6 +527,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
     Eigen::Vector3d v_BinB0 =   T_BinB0_from_q.normalized().toRotationMatrix() * v_BinB ;
     Eigen::Vector3d v_BinW =   T_BinW_from_q.normalized().toRotationMatrix() * v_BinB ;
+
     // Eigen::Vector3d v_BinB0 = T_MtoB0.block(0,0,3,3)* v_BinB ;
 
     // The POSE component (orientation and position)
