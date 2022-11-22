@@ -230,8 +230,8 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     Eigen::Vector3d p_CiinG = p_IinG - R_GtoCi.transpose() * p_IinC;
 
     // Loop through each measurement
-    assert_r(last_obs.find(cam_id) != last_obs.end());
-    assert_r(last_ids.find(cam_id) != last_ids.end());
+    assert(last_obs.find(cam_id) != last_obs.end());
+    assert(last_ids.find(cam_id) != last_ids.end());
     for (size_t i = 0; i < last_obs.at(cam_id).size(); i++) {
 
       // Get the UV coordinate normal

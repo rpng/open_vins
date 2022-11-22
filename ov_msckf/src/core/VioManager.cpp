@@ -215,7 +215,7 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
       did_zupt_update = updaterZUPT->try_update(state, timestamp);
     }
     if (did_zupt_update) {
-      assert_r(state->_timestamp == timestamp);
+      assert(state->_timestamp == timestamp);
       propagator->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       updaterZUPT->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       return;
@@ -287,7 +287,7 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
       did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
     }
     if (did_zupt_update) {
-      assert_r(state->_timestamp == message.timestamp);
+      assert(state->_timestamp == message.timestamp);
       propagator->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       updaterZUPT->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       return;

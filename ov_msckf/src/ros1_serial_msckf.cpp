@@ -54,7 +54,7 @@ int main(int argc, char **argv) {
   // Load the config
   auto parser = std::make_shared<ov_core::YamlParser>(config_path);
   parser->set_node_handler(nh);
-
+assert(false);
   // Verbosity
   std::string verbosity = "INFO";
   parser->parse_config("verbosity", verbosity);

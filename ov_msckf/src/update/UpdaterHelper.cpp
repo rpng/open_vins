@@ -304,9 +304,11 @@ void UpdaterHelper::get_feature_jacobian_full(std::shared_ptr<State> state, Upda
   UpdaterHelper::get_feature_jacobian_representation(state, feature, dpfg_dlambda, dpfg_dx, dpfg_dx_order);
 
   // Assert that all the ones in our order are already in our local jacobian mapping
+#ifndef NDEBUG
   for (auto &type : dpfg_dx_order) {
-    assert_r(map_hx.find(type) != map_hx.end());
+    assert(map_hx.find(type) != map_hx.end());
   }
+#endif
 
   // Loop through each camera for this feature
   for (auto const &pair : feature.timestamps) {
