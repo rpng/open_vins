@@ -163,6 +163,9 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
   if (oldest_time > state->_timestamp) {
     oldest_time = -1;
   }
+  if (!is_initialized_vio) {
+    oldest_time = message.timestamp - params.init_options.init_window_time + state->_calib_dt_CAMtoIMU->value()(0) - 0.10;
+  }
   propagator->feed_imu(message, oldest_time);
 
   // Push back to our initializer
@@ -170,8 +173,9 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
     initializer->feed_imu(message, oldest_time);
   }
 
-  // Push back to the zero velocity updater if we have it
-  if (is_initialized_vio && updaterZUPT != nullptr) {
+  // Push back to the zero velocity updater if it is enabled
+  // No need to push back if we are just doing the zv-update at the begining and we have moved
+  if (is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
     updaterZUPT->feed_imu(message, oldest_time);
   }
 }
@@ -215,7 +219,10 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
       did_zupt_update = updaterZUPT->try_update(state, timestamp);
     }
     if (did_zupt_update) {
+      assert_r(state->_timestamp == timestamp);
       trackDATABASE->cleanup_measurements(timestamp);
+      propagator->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
+      updaterZUPT->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       return;
     }
   }
@@ -289,7 +296,10 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
       did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
     }
     if (did_zupt_update) {
+      assert_r(state->_timestamp == message.timestamp);
       trackDATABASE->cleanup_measurements(message.timestamp);
+      propagator->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
+      updaterZUPT->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       return;
     }
   }
@@ -442,9 +452,10 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 
   // Loop through current SLAM features, we have tracks of them, grab them for this update!
-  // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
-  // Note: we only enforce this if the current camera message is where the feature was seen from
-  // Note: if you do not use FEJ, these types of slam features *degrade* the estimator performance....
+  // NOTE: if we have a slam feature that has lost tracking, then we should marginalize it out
+  // NOTE: we only enforce this if the current camera message is where the feature was seen from
+  // NOTE: if you do not use FEJ, these types of slam features *degrade* the estimator performance....
+  // NOTE: we will also marginalize SLAM features if they have failed their update a couple times in a row
   for (std::pair<const size_t, std::shared_ptr<Landmark>> &landmark : state->_features_SLAM) {
     if (trackARUCO != nullptr) {
       std::shared_ptr<Feature> feat1 = trackARUCO->get_feature_database()->get_feature(landmark.second->_featid);
@@ -458,6 +469,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     bool current_unique_cam =
         std::find(message.sensor_ids.begin(), message.sensor_ids.end(), landmark.second->_unique_camera_id) != message.sensor_ids.end();
     if (feat2 == nullptr && current_unique_cam)
+      landmark.second->should_marg = true;
+    if (landmark.second->update_fail_count > 1)
       landmark.second->should_marg = true;
   }
 
@@ -492,7 +505,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // Sort based on track length
   // TODO: we should have better selection logic here (i.e. even feature distribution in the FOV etc..)
   // TODO: right now features that are "lost" are at the front of this vector, while ones at the end are long-tracks
-  std::sort(featsup_MSCKF.begin(), featsup_MSCKF.end(), [](const std::shared_ptr<Feature> &a, const std::shared_ptr<Feature> &b) -> bool {
+  auto compare_feat = [](const std::shared_ptr<Feature> &a, const std::shared_ptr<Feature> &b) -> bool {
     size_t asize = 0;
     size_t bsize = 0;
     for (const auto &pair : a->timestamps)
@@ -500,7 +513,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     for (const auto &pair : b->timestamps)
       bsize += pair.second.size();
     return asize < bsize;
-  });
+  };
+  std::sort(featsup_MSCKF.begin(), featsup_MSCKF.end(), compare_feat);
 
   // Pass them to our MSCKF updater
   // NOTE: if we have more then the max, we select the "best" ones (i.e. max tracks) for this update

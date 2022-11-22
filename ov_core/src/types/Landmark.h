@@ -60,6 +60,9 @@ public:
   /// Boolean if this landmark should be marginalized out
   bool should_marg = false;
 
+  /// Number of times the update has failed for this feature (we should remove if it fails a couple times!)
+  int update_fail_count = 0;
+
   /// First normalized uv coordinate bearing of this measurement (used for single depth representation)
   Eigen::Vector3d uv_norm_zero;
 

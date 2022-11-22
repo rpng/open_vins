@@ -84,15 +84,24 @@ public:
     //    return i.timestamp < j.timestamp;
     //});
 
-    // Loop through and delete imu messages that are older than our requested time
-    if (oldest_time != -1) {
-      auto it0 = imu_data.begin();
-      while (it0 != imu_data.end()) {
-        if (it0->timestamp < oldest_time - 0.10) {
-          it0 = imu_data.erase(it0);
-        } else {
-          it0++;
-        }
+    // Clean old measurements
+    // std::cout << "ZVUPT: imu_data.size() " << imu_data.size() << std::endl;
+    clean_old_imu_measurements(oldest_time - 0.10);
+  }
+
+  /**
+   * @brief This will remove any IMU measurements that are older then the given measurement time
+   * @param oldest_time Time that we can discard measurements before (in IMU clock)
+   */
+  void clean_old_imu_measurements(double oldest_time) {
+    if (oldest_time < 0)
+      return;
+    auto it0 = imu_data.begin();
+    while (it0 != imu_data.end()) {
+      if (it0->timestamp < oldest_time) {
+        it0 = imu_data.erase(it0);
+      } else {
+        it0++;
       }
     }
   }
