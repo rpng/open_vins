@@ -236,24 +236,25 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     assert(last_ids.find(cam_id) != last_ids.end());
     for (size_t i = 0; i < last_obs.at(cam_id).size(); i++) {
 
-      // Skip this feature if it is a SLAM feature (the state estimate takes priority)
+      // Record this feature uv if is seen from cam0
       size_t featid = last_ids.at(cam_id).at(i);
-      if (state->_features_SLAM.find(featid) != state->_features_SLAM.end())
+      cv::Point2f pt_d = last_obs.at(cam_id).at(i).pt;
+      if (cam_id == 0) {
+        feat_uvs_in_cam0[featid] = pt_d;
+      }
+
+      // Skip this feature if it is a SLAM feature (the state estimate takes priority)
+      if (state->_features_SLAM.find(featid) != state->_features_SLAM.end()) {
         continue;
+      }
 
       // Get the UV coordinate normal
-      cv::Point2f pt_d = last_obs.at(cam_id).at(i).pt;
       cv::Point2f pt_n = state->_cam_intrinsics_cameras.at(cam_id)->undistort_cv(pt_d);
       Eigen::Matrix<double, 3, 1> b_i;
       b_i << pt_n.x, pt_n.y, 1;
       b_i = R_GtoCi.transpose() * b_i;
       b_i = b_i / b_i.norm();
       Eigen::Matrix3d Bperp = skew_x(b_i);
-
-      // Record this feature uv if is seen from cam0
-      if (cam_id == 0) {
-        feat_uvs_in_cam0[featid] = pt_d;
-      }
 
       // Append to our linear system
       Eigen::Matrix3d Ai = Bperp.transpose() * Bperp;
