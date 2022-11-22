@@ -116,7 +116,6 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
   // Let's make a feature extractor
   // NOTE: after we initialize we will increase the total number of feature tracks
   // NOTE: we will split the total number of features over all cameras uniformly
-  trackDATABASE = std::make_shared<FeatureDatabase>();
   int init_max_features = std::floor((double)params.init_options.init_max_features / (double)params.state_options.num_cameras);
   if (params.use_klt) {
     trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras, init_max_features,
@@ -205,9 +204,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
 
   // Feed our simulation tracker
   trackSIM->feed_measurement_simulation(timestamp, camids, feats);
-  if (is_initialized_vio) {
-    trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
-  }
   rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Check if we should do zero-velocity, if so update the state with it
@@ -220,7 +216,6 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     }
     if (did_zupt_update) {
       assert_r(state->_timestamp == timestamp);
-      trackDATABASE->cleanup_measurements(timestamp);
       propagator->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       updaterZUPT->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       return;
@@ -274,16 +269,12 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
-  if (is_initialized_vio) {
-    trackDATABASE->append_new_measurements(trackFEATS->get_feature_database());
-  }
 
   // If the aruco tracker is available, the also pass to it
   // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids
   // NOTE: thus we just call the stereo tracking if we are doing binocular!
   if (is_initialized_vio && trackARUCO != nullptr) {
     trackARUCO->feed_new_camera(message);
-    trackDATABASE->append_new_measurements(trackARUCO->get_feature_database());
   }
   rT2 = boost::posix_time::microsec_clock::local_time();
 
@@ -297,7 +288,6 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
     }
     if (did_zupt_update) {
       assert_r(state->_timestamp == message.timestamp);
-      trackDATABASE->cleanup_measurements(message.timestamp);
       propagator->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       updaterZUPT->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
       return;
@@ -584,7 +574,6 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // Cleanup any features older than the marginalization time
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
     trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
-    trackDATABASE->cleanup_measurements(state->margtimestep());
     if (trackARUCO != nullptr) {
       trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
     }

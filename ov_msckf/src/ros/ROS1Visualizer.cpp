@@ -886,9 +886,8 @@ void ROS1Visualizer::publish_loopclosure_information() {
 
     // Create the images we will populate with the depths
     std::pair<int, int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
-    cv::Mat depthmap_viz;
-    cv::cvtColor(active_cam0_image, depthmap_viz, cv::COLOR_GRAY2RGB);
     cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
+    cv::Mat depthmap_viz = active_cam0_image;
 
     // Loop through all points and append
     for (const auto &feattimes : active_tracks_uvd) {
@@ -898,7 +897,7 @@ void ROS1Visualizer::publish_loopclosure_information() {
       Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
 
       // Skip invalid points
-      double dw = 3;
+      double dw = 4;
       if (uvd(0) < dw || uvd(0) > wh_pair.first - dw || uvd(1) < dw || uvd(1) > wh_pair.second - dw) {
         continue;
       }
