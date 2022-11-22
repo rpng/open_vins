@@ -349,7 +349,7 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     //state(0) is the timestamp;
     Eigen::MatrixXd state_est = state->_imu->value();
     q_init_tf <<state_est(0),state_est(1),state_est(2), state_est(3);
-    T_init_tf.block(0,0,3,3) = ov_core::quat_2_Rot(q_init_tf);
+    T_init_tf.block(0,0,3,3) = ov_core::quat_2_Rot(q_init_tf).transpose();
     T_init_tf(0, 3) = state_est(4);
     T_init_tf(1, 3) = state_est(5);
     T_init_tf(2, 3) = state_est(6);
@@ -456,12 +456,12 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     odomBinB0.header.stamp = ros::Time(timestamp);
     odomBinB0.header.frame_id = "world";
 
-    Eigen::Matrix<double, 4,1> q_IinM_eigen;
-    q_IinM_eigen <<state_plus_world(0),state_plus_world(1),state_plus_world(2), state_plus_world(3);
+    Eigen::Matrix<double, 4,1> q_GinI_eigen;
+    q_GinI_eigen <<state_plus_world(0),state_plus_world(1),state_plus_world(2), state_plus_world(3);
     
 
     Eigen::Matrix4d T_ItoM = Eigen::Matrix4d::Identity(); // from odomIinM
-    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_IinM_eigen); // this is right-handed JPL->right-handed
+    T_ItoM.block(0,0,3,3) = ov_core::quat_2_Rot(q_GinI_eigen).transpose(); // this is right-handed JPL->right-handed
     T_ItoM(0, 3) = state_plus_world(4);
     T_ItoM(1, 3) = state_plus_world(5);
     T_ItoM(2, 3) = state_plus_world(6);
@@ -472,31 +472,61 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_ItoW = T_MtoW*T_ItoM;
 
     // TRANSLATION SOLVED if using JPL convention
-    T_ItoM.block(0,3,3,1) = T_init_tf.block(0,0,3,3) * T_ItoM.block(0,3,3,1); 
-    T_ItoM.block(0,0,3,3) = T_ItoM.block(0,0,3,3) * T_init_tf_inv.block(0,0,3,3); 
+    T_ItoM.block(0,3,3,1) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,3,3,1); 
+    T_ItoM.block(0,0,3,3) = T_init_tf_inv.block(0,0,3,3) * T_ItoM.block(0,0,3,3) ; 
     
     // The TF that is required for flight test
-    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM *  T_BtoI);
+    Eigen::Matrix4d T_BtoB0 = (T_ItoB * T_ItoM * T_BtoI);
     
     // Transform the body pose in World frame
     Eigen::Matrix4d T_BtoW = Eigen::Matrix4d::Identity();
     T_BtoW.block(0,3,3,1) = T_B0toW * T_BtoB0.block(0,3,3,1);
-    T_BtoW.block(0,0,3,3) = T_BtoB0.block(0,0,3,3) * T_WtoB0.block(0,0,3,3);
+    T_BtoW.block(0,0,3,3) =  T_B0toW.block(0,0,3,3) * T_BtoB0.block(0,0,3,3);
     
-    Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));
+    // Eigen::Matrix<double, 4,1> q_BinW  = ov_core::rot_2_quat(T_BtoW.block(0,0,3,3));
+    Eigen::Quaterniond  q_BinW;
+    Eigen::Matrix3d R_BtoW =  T_BtoW.block(0,0,3,3);
+    q_BinW = R_BtoW;
+    // Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));
+    Eigen::Quaterniond  q_BinB0;
+    Eigen::Matrix3d R_BtoB0 =  T_BtoB0.block(0,0,3,3);
+    q_BinB0 = R_BtoB0;
+
     Eigen::Vector4d position_BinW (T_BtoW(0,3), T_BtoW(1,3), T_BtoW(2,3), T_BtoW(3,3));
-    Eigen::Matrix<double, 4,1> q_BinB0  = ov_core::rot_2_quat(T_BtoB0.block(0,0,3,3));
     Eigen::Vector4d position_BinB0 (T_BtoB0(0,3), T_BtoB0(1,3), T_BtoB0(2,3), T_BtoB0(3,3));
-
+    Eigen::Matrix3d skew_ItoB;
+    skew_ItoB << 0,-T_ItoB(2,3), T_ItoB(1,3), T_ItoB(2,3), 0, -T_ItoB(0,3), -T_ItoB(1,3),T_ItoB(0,3), 0;
     Eigen::Vector3d v_iinIMU (state_plus_world(7),state_plus_world(8),state_plus_world(9));
-    Eigen::Vector4d q_itoM = state_plus_world.block(0, 0, 4, 1);
-    Eigen::Vector3d v_iinM = quat_2_Rot(q_itoM).transpose() * v_iinIMU;
+    Eigen::Vector3d w_BinB (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    Eigen::Vector3d w_iinIMU (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    Eigen::Vector3d v_BinB = - T_ItoB.block(0,0,3,3) *skew_ItoB * w_iinIMU + T_ItoB.block(0,0,3,3) * v_iinIMU ;
+    //std::cout<<"R_BtoB0: "<< R_BtoB0.determinant() <<std::endl; 
+    //Eigen::Matrix3d R_ItoM = T_ItoM.block(0,0,3,3);
+    //std::cout<<"R_ItoM: "<< R_ItoM.determinant() <<std::endl;
+    //Eigen::Matrix3d R_ItoB = T_ItoB.block(0,0,3,3);
+    //std::cout<<"R_ItoB: "<< R_ItoB.determinant() <<std::endl;
+    //Eigen::Matrix3d R_BtoI = T_BtoI.block(0,0,3,3);
+    //std::cout<<"R_BtoI: "<< R_BtoI.determinant() <<std::endl;   
 
-    Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
-    Eigen::Vector3d w_BinB =  w_iinI;
+    // Eigen::Vector3d w_iinI (state_plus_world(10),state_plus_world(11),state_plus_world(12));
+    // Eigen::Vector3d w_BinB =  w_iinI;
+    // Eigen::Vector3d v_BinB = T_ItoB.block(0,0,3,3)*v_iinIMU + skew_ItoB*T_ItoB.block(0,0,3,3)*w_iinI;
+    // Eigen::Vector3d v_BinW = T_BtoW.block(0,0,3,3).transpose() * v_BinB;
+    // Eigen::Vector3d v_BinB0 = T_BtoB0.block(0,0,3,3).transpose() * v_BinB;
+    Eigen::Quaterniond T_BinB0_from_q;
+    Eigen::Quaterniond T_BinW_from_q;
+    T_BinB0_from_q.x() = q_BinB0.x();
+    T_BinB0_from_q.y() = q_BinB0.y();
+    T_BinB0_from_q.z() = q_BinB0.z();
+    T_BinB0_from_q.w() = q_BinB0.w();
+    T_BinW_from_q.x() = q_BinW.x();
+    T_BinW_from_q.y() = q_BinW.y();
+    T_BinW_from_q.z() = q_BinW.z();
+    T_BinW_from_q.w() = q_BinW.w();
 
-    Eigen::Vector3d v_iinW = T_MtoW.block(0,0,3,3)* v_iinM;
-    Eigen::Vector3d v_iinB0 = T_MtoB0.block(0,0,3,3)* v_iinM;
+    Eigen::Vector3d v_BinB0 =   T_BinB0_from_q.normalized().toRotationMatrix() * v_BinB ;
+    Eigen::Vector3d v_BinW =   T_BinW_from_q.normalized().toRotationMatrix() * v_BinB ;
+    // Eigen::Vector3d v_BinB0 = T_MtoB0.block(0,0,3,3)* v_BinB ;
 
     // The POSE component (orientation and position)
     odomBinW.pose.pose.orientation.x = q_BinW.x();
@@ -517,17 +547,17 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     
     // The TWIST component (angular and linear velocities)
     odomBinW.child_frame_id = "body";
-    odomBinW.twist.twist.linear.x = v_iinW(0);   // vel in world frame
-    odomBinW.twist.twist.linear.y = v_iinW(1);   // vel in world frame
-    odomBinW.twist.twist.linear.z = v_iinW(2);   // vel in world frame
+    odomBinW.twist.twist.linear.x = v_BinW(0);   // vel in world frame
+    odomBinW.twist.twist.linear.y = v_BinW(1);   // vel in world frame
+    odomBinW.twist.twist.linear.z = v_BinW(2);   // vel in world frame
     odomBinW.twist.twist.angular.x = w_BinB(0); // we do not estimate this...
     odomBinW.twist.twist.angular.y = w_BinB(1); // we do not estimate this...
     odomBinW.twist.twist.angular.z = w_BinB(2);; // we do not estimate this...
 
     odomBinB0.child_frame_id = "body";
-    odomBinB0.twist.twist.linear.x = v_iinB0(0);   // vel in world frame
-    odomBinB0.twist.twist.linear.y = v_iinB0(1);   // vel in world frame
-    odomBinB0.twist.twist.linear.z = v_iinB0(2);   // vel in world frame
+    odomBinB0.twist.twist.linear.x = v_BinB0(0);   // vel in world frame
+    odomBinB0.twist.twist.linear.y = v_BinB0(1);   // vel in world frame
+    odomBinB0.twist.twist.linear.z = v_BinB0(2);   // vel in world frame
     odomBinB0.twist.twist.angular.x = w_BinB(0); // we do not estimate this...
     odomBinB0.twist.twist.angular.y = w_BinB(1); // we do not estimate this...
     odomBinB0.twist.twist.angular.z = w_BinB(2); // we do not estimate this...
