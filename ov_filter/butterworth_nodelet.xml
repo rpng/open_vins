@@ -1,0 +1,8 @@
+<library path="lib/libbutterworth_nodelet">
+	<class name="butterworth_nodelet/OvfilterNodeletClass" type="ovfilter_nodelet_ns::OvfilterNodeletClass"
+		base_class_type="nodelet::Nodelet">
+		<description>
+			OvfilterNodeletClass.
+		</description>
+	</class>
+</library>

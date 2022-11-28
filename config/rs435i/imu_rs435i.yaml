@@ -1,0 +1,62 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+imu0:
+  # camera-vicon calibration low raw
+  T_cam_body: 
+    - [-0.03733941, -0.04482354,  0.99829686,  0.08515745]
+    - [-0.99919785,  0.01614175, -0.03664835, -0.05000685]
+    - [-0.01447155, -0.9988645,  -0.04539031, -0.04028514]
+    - [0.0, 0.0, 0.0, 1.0]
+     
+  # default is 0,0, -0.85, can be updated by vicon tracking message
+  T_imu_world:
+    - [ 0.00608797, -0.99985019, -0.01620309,  0.08459263]
+    - [ 0.99956308,  0.00561595,  0.02901906,  0.01371961]
+    - [-0.02892372, -0.01637268,  0.99944752,  0.0207709 ]
+    - [0.0, 0.0, 0.0, 1.0]
+  #  Deal with Transformation from IMU local frame to world frame to compensate camera-vicon tf
+  # local 1.-> body 2.-> world
+  #  1. imu-cam (camera-imu calibration)-> cam-body (vicon camera calibration)
+  #  2. default 0,0,75 or read from vicon
+  # legacy, will use  relative_config_imucam's cam0 -> T_cam_imu
+  T_imu_cam:
+   - [1.0, 0.0, 0.0, 0.0]
+   - [0.0, 1.0, 0.0, 0.0]
+   - [0.0, 0.0, 1.0, 0.0]
+   - [0.0, 0.0, 0.0, 1.0]
+
+  # default is 0,0, -0.85, can be updated by vicon tracking message
+  T_body_world:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.085]
+    - [0.0, 0.0, 0.0, 1.0]
+  # zed mini imu uses left-hand coordinate system, the transformation from zed coordinate system to ros right-hand coordinate system is (x,y,z) -> (-y, x, z)
+  T_correct:
+    # - [1,0,0,0]
+    # - [0,1,0,0]
+    - [0,-1,0,0]
+    - [1,0,0,0]
+    - [0,0,1,0]
+    - [0,0,0,1]
+
+  # accelerometer_noise_density: 1.4e-03 #1.4e-02  # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
+  # accelerometer_random_walk: 8.0e-05    # [ m / s^3 / sqrt(Hz) ].  ( accel bias diffusion )
+  #accelerometer_noise_density: 1.4e-02 #1.4e-02  # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
+  #accelerometer_random_walk: 8.0e-04    # [ m / s^3 / sqrt(Hz) ].  ( accel bias diffusion )
+  #gyroscope_noise_density: 8.6e-04    # [ rad / s / sqrt(Hz) ]   ( gyro "white noise" )
+  #gyroscope_random_walk: 2.2e-05        # [ rad / s^2 / sqrt(Hz) ] ( gyro bias diffusion )
+  accelerometer_noise_density: 0.01
+  accelerometer_random_walk: 0.0002
+  gyroscope_noise_density: 0.005
+  gyroscope_random_walk: 4.0e-06
+  #  accelerometer_noise_density: 0.1   # [ m / s^2 / sqrt(Hz) ]   ( accel "white noise" )
+  #  accelerometer_random_walk: 0.002   # [ m / s^3 / sqrt(Hz) ].  ( accel bias diffusion )
+  #  gyroscope_noise_density: 0.05      # [ rad / s / sqrt(Hz) ]   ( gyro "white noise" )
+  #  gyroscope_random_walk: 4.0e-05     # [ rad / s^2 / sqrt(Hz) ] ( gyro bias diffusion )
+  model: calibrated
+  # rostopic: /zed_nodelet/imu/data_raw_filtered
+  rostopic: /cam1/imu
+  time_offset:  0.0052559264670291456
+  update_rate: 400.0
+  odom_update_rate: 120.0

@@ -66,7 +66,7 @@
 
     <node pkg="nodelet" type="nodelet" args="manager"
     name="ovmsckf_nodelet_manager" output="screen">
-
+        
     </node>
 
 	
@@ -80,61 +80,52 @@
         <remap from="/zedm/zed_node/left_raw/image_raw_gray" to="/zed_nodelet/left_raw/image_raw_gray" />
         <remap from="/zedm/zed_node/right_raw/image_raw_gray" to="/zed_nodelet/right_raw/image_raw_gray" /> -->
         <!-- remap from="/OvmsckfNodeletClass_loader/odomworld" to="/OvmsckfNodeletClass_loader/odomworld_laptop" / -->
+	</node>
 
-   	</node>
+    <arg name="tf_namespace"              default="drone31"/>
+    <arg name="device_type_camera_f"      default="d4.5"/>
+    <arg name="camera_f"                  default="cam1"/>              <!-- Note: Replace with camera name -->
+    <arg name="clip_distance"             default="-2"/>
+    <arg name="tf_prefix_camera_f"        default="$(arg tf_namespace)/$(arg camera_f)"/>
 
-    <!-- Camera Model and Name -->
-    <arg name="camera_name"           default="zedm" /> <!-- The name you want -->
-    <arg name="camera_model"          default="zedm" /> <!-- 'zed' or 'zedm' or 'zed2' -->
-    <arg name="node_name"             default="zed_node" />
+    <arg name="initial_reset"             default="true"/>
+    <arg name="enable_fisheye"            default="false"/>
+    <arg name="color_width"               default="640"/>
+    <arg name="color_height"              default="480"/>
+    <arg name="depth_width"               default="640"/>
+    <arg name="depth_height"              default="480"/>
+    <arg name="topic_odom_in"             default="odom_in"/>
+    <arg name="calib_odom_file"           default=""/>
+    <arg name="d435_imu_unite"            default="linear_interpolation"/>
+    <arg name="t265_imu_unite"            default="copy"/>
+    <arg name="gyro_fps_d435"             default="400"/>
+    <arg name="accel_fps_d435"            default="250"/>
 
-    <!-- Load SVO file -->
-    <arg name="svo_file"              default="" /><!-- <arg name="svo_file" default="path/to/svo/file.svo"> -->
-    <!-- Remote stream -->
-    <arg name="stream"                default="" /> <!-- <arg name="stream" default="<ip_address>:<port>"> -->
+    <group ns="$(arg camera_f)">
+      <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+        <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
+        <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
+        <arg name="initial_reset"               value="$(arg initial_reset)"/>
+        <arg name="align_depth"                 value="false"/>
+        <arg name="enable_infra1"               value="true"/>
+        <arg name="enable_infra2"               value="true"/>
+        <arg name="enable_accel"                value="true"/>
+        <arg name="enable_gyro"                 value="true"/>
+        <arg name="enable_depth"                value="false"/>
+        <arg name="color_width"                 value="$(arg color_width)"/>
+        <arg name="color_height"                value="$(arg color_height)"/>
+        <arg name="depth_width"                 value="$(arg depth_width)"/>
+        <arg name="depth_height"                value="$(arg depth_height)"/>
+        <arg name="clip_distance"               value="$(arg clip_distance)"/>
+        <arg name="unite_imu_method"            value="$(arg d435_imu_unite)"/>
+        <arg name="accel_fps"                   value="$(arg accel_fps_d435)"/>
+        <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
+        <arg name="stereo_module/exposure/1"    value="2500"/>
+        <arg name="stereo_module/gain/1"        value="16"/>
+        <!-- <arg name="external_manager"            value="true"/> -->
+        <!-- <arg name="manager"                     value="ovmsckf_nodelet_manager"/> -->
+      </include>
+    </group>
 
-    <!-- Base frame -->
-    <arg name="base_frame"            default="base_link" />
-
-    <!-- Publish ZED urdf -->
-    <arg name="publish_urdf"          default="true" />
-
-    <arg name="camera_id"             default="0" />
-    <arg name="gpu_id"                default="-1" />
-
-    <!-- Position respect to base frame (i.e. "base_link) -->
-    <arg name="cam_pos_x"             default="0.0" />
-    <arg name="cam_pos_y"             default="0.0" />
-    <arg name="cam_pos_z"             default="0.0" />
-
-    <!-- Orientation respect to base frame (i.e. "base_link) -->
-    <arg name="cam_roll"              default="0.0" />
-    <arg name="cam_pitch"             default="0.0" />
-    <arg name="cam_yaw"               default="0.0" />
-
-
-
-    <!-- <node pkg="nodelet" type="nodelet" args="load zed_nodelets/ZEDWrapperNodelet ovmsckf_nodelet_manager"
-
-    name="zed_nodelet" output="screen">
-        <rosparam file="$(find zed_wrapper)/params/common_arpl.yaml" command="load" />
-        <rosparam file="$(find zed_wrapper)/params/$(arg camera_model)_arpl.yaml" command="load" />
-
-
-        <param name="general/camera_name"               value="$(arg camera_name)" />
-
-        <param name="general/base_frame"                value="$(arg base_frame)" />
-
-        <param name="svo_file"                          value="$(arg svo_file)" />
-
-        <param name="stream"                            value="$(arg stream)" />
-        <param name="general/zed_id"                    value="$(arg camera_id)" />
-        <param name="general/gpu_id"                    value="$(arg gpu_id)" />
-	</node> -->
- 
-	<!-- <node pkg="nodelet" type="nodelet" args="load butterworth_nodelet/OvfilterNodeletClass ovmsckf_nodelet_manager"
-	    name="butterworth_nodelet" output="screen">
-
-	</node>     -->
 
 </launch>

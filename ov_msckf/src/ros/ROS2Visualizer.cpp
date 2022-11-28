@@ -30,14 +30,10 @@
 #include "utils/dataset_reader.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
-#include <math.h>
 
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
-
-Eigen::Matrix4d T_ItoW = Eigen::Matrix4d::Identity();
-Eigen::Matrix<double, 7, 1> T_imu_world_eigen;
 
 ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
     : _node(node), _app(app), _sim(sim), thread_update_running(false) {
@@ -171,12 +167,6 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _node->declare_parameter<std::string>("topic_imu", "/imu0");
   _node->get_parameter("topic_imu", topic_imu);
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
-  parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
-      // Load these into our state
-     
-  T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
-  T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
-  
   sub_imu = _node->create_subscription<sensor_msgs::msg::Imu>(topic_imu, rclcpp::SensorDataQoS(),
                                                               std::bind(&ROS2Visualizer::callback_inertial, this, std::placeholders::_1));
   PRINT_INFO("subscribing to IMU: %s\n", topic_imu.c_str());
@@ -295,29 +285,13 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
     odomIinM.header.frame_id = "global";
 
     // The POSE component (orientation and position)
-    // odomIinM.pose.pose.orientation.x = state_plus(0);
-    // odomIinM.pose.pose.orientation.y = state_plus(1);
-    // odomIinM.pose.pose.orientation.z = state_plus(1);
-    // odomIinM.pose.pose.orientation.w = state_plus(3);
-    // odomIinM.pose.pose.position.x = state_plus(4);
-    // odomIinM.pose.pose.position.y = state_plus(5);
-    // odomIinM.pose.pose.position.z = state_plus(6);
-
-    Eigen::Vector4d position;
-    Eigen::Vector4d new_position;
-    position << state_plus(4),state_plus(5),state_plus(6),1;
-    new_position = T_ItoW * position;
-    Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
-    Eigen::Quaterniond q(state_plus(3),state_plus(0),state_plus(1),state_plus(2));
-    Eigen::Quaterniond new_q = q_imu_world*q;
-
-    odomIinM.pose.pose.orientation.x = new_q.x();
-    odomIinM.pose.pose.orientation.y = new_q.y();
-    odomIinM.pose.pose.orientation.z = new_q.z();
-    odomIinM.pose.pose.orientation.w = new_q.w();
-    odomIinM.pose.pose.position.x = new_position(0);
-    odomIinM.pose.pose.position.y = new_position(1);
-    odomIinM.pose.pose.position.z = new_position(2);
+    odomIinM.pose.pose.orientation.x = state_plus(0);
+    odomIinM.pose.pose.orientation.y = state_plus(1);
+    odomIinM.pose.pose.orientation.z = state_plus(2);
+    odomIinM.pose.pose.orientation.w = state_plus(3);
+    odomIinM.pose.pose.position.x = state_plus(4);
+    odomIinM.pose.pose.position.y = state_plus(5);
+    odomIinM.pose.pose.position.z = state_plus(6);
 
     // The TWIST component (angular and linear velocities)
     odomIinM.child_frame_id = "imu";
@@ -590,31 +564,14 @@ void ROS2Visualizer::publish_state() {
   geometry_msgs::msg::PoseWithCovarianceStamped poseIinM;
   poseIinM.header.stamp = ROSVisualizerHelper::get_time_from_seconds(timestamp_inI);
   poseIinM.header.frame_id = "global";
+  poseIinM.pose.pose.orientation.x = state->_imu->quat()(0);
+  poseIinM.pose.pose.orientation.y = state->_imu->quat()(1);
+  poseIinM.pose.pose.orientation.z = state->_imu->quat()(2);
+  poseIinM.pose.pose.orientation.w = state->_imu->quat()(3);
+  poseIinM.pose.pose.position.x = state->_imu->pos()(0);
+  poseIinM.pose.pose.position.y = state->_imu->pos()(1);
+  poseIinM.pose.pose.position.z = state->_imu->pos()(2);
 
-  // poseIinM.pose.pose.orientation.x = state->_imu->quat()(0);
-  // poseIinM.pose.pose.orientation.y = state->_imu->quat()(1);
-  // poseIinM.pose.pose.orientation.z = state->_imu->quat()(2);
-  // poseIinM.pose.pose.orientation.w = state->_imu->quat()(3);
-  // poseIinM.pose.pose.position.x = state->_imu->pos()(0);
-  // poseIinM.pose.pose.position.y = state->_imu->pos()(1);
-  // poseIinM.pose.pose.position.z = state->_imu->pos()(2);
-
-    Eigen::Vector4d position;
-    Eigen::Vector4d new_position;
-    position << state->_imu->pos()(0),state->_imu->pos()(1),state->_imu->pos()(2),1;
-    new_position = T_ItoW * position;
-    Eigen::Quaterniond q_imu_world(T_imu_world_eigen(3),T_imu_world_eigen(0),T_imu_world_eigen(1),T_imu_world_eigen(2));
-    Eigen::Quaterniond q(state->_imu->quat()(3),state->_imu->quat()(0),state->_imu->quat()(1),state->_imu->quat()(2));
-    Eigen::Quaterniond new_q = q_imu_world*q;
-
-    odomIinM.pose.pose.orientation.x = new_q.x();
-    odomIinM.pose.pose.orientation.y = new_q.y();
-    odomIinM.pose.pose.orientation.z = new_q.z();
-    odomIinM.pose.pose.orientation.w = new_q.w();
-    odomIinM.pose.pose.position.x = new_position(0);
-    odomIinM.pose.pose.position.y = new_position(1);
-    odomIinM.pose.pose.position.z = new_position(2);
-  
   // Finally set the covariance in the message (in the order position then orientation as per ros convention)
   std::vector<std::shared_ptr<Type>> statevars;
   statevars.push_back(state->_imu->pose()->p());
