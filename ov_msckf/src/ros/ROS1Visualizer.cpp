@@ -171,25 +171,8 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   std::string topic_imu;
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
-<<<<<<< HEAD
-  /*
-  // !! This part of the code has been refactored to setup_T_imu_world as an public interface
-  parser->parse_external("relative_config_imu", "imu0" , "T_imu_world", T_ItoW);
-      // Load these into our state
-     
-  T_imu_world_eigen.block(0, 0, 4, 1) = ov_core::rot_2_quat(T_ItoW.block(0, 0, 3, 3).transpose());
-  T_imu_world_eigen.block(4, 0, 3, 1) = -T_ItoW.block(0, 0, 3, 3).transpose() * T_ItoW.block(0, 3, 3, 1);
-  std::cout<<"Debug T_imu_world" << std::endl;
-  std::cout << T_imu_world_eigen <<std::endl;
-  std::cout<<"----------------" << std::endl;
-  */
-  setup_T_imu_world(parser);
-  sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this); //ros::TransportHints().tcpNoDelay());
-
-=======
   sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this);
   PRINT_INFO("subscribing to IMU: %s\n", topic_imu.c_str());
->>>>>>> master_rpng
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
