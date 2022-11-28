@@ -267,7 +267,7 @@ double FeatureDatabase::get_oldest_timestamp() {
   double oldest_time = -1;
   for (auto const &feat : features_idlookup) {
     for (auto const &camtimepair : feat.second->timestamps) {
-      if (!camtimepair.second.empty() && (oldest_time == -1 || oldest_time < camtimepair.second.at(0))) {
+      if (!camtimepair.second.empty() && (oldest_time == -1 || oldest_time > camtimepair.second.at(0))) {
         oldest_time = camtimepair.second.at(0);
       }
     }

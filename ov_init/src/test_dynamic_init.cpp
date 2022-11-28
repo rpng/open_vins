@@ -188,7 +188,8 @@ int main(int argc, char **argv) {
         // First lets align the groundtruth state with the IMU state
         // NOTE: imu biases do not have to be corrected with the pos yaw alignment here...
         Eigen::Matrix<double, 17, 1> gt_imu;
-        assert_r(sim.get_state(timestamp + sim.get_true_parameters().calib_camimu_dt, gt_imu));
+        bool success1 = sim.get_state(timestamp + sim.get_true_parameters().calib_camimu_dt, gt_imu);
+        assert(success1);
         Eigen::Matrix3d R_ESTtoGT_imu;
         Eigen::Vector3d t_ESTinGT_imu;
         align_posyaw_single(_imu->quat(), _imu->pos(), gt_imu.block(1, 0, 4, 1), gt_imu.block(5, 0, 3, 1), R_ESTtoGT_imu, t_ESTinGT_imu);
@@ -248,7 +249,8 @@ int main(int argc, char **argv) {
         q_es_0 = oldestpose->quat();
         p_es_0 = oldestpose->pos();
         Eigen::Matrix<double, 17, 1> gt_imustate_0;
-        assert_r(sim.get_state(oldestpose_time + sim.get_true_parameters().calib_camimu_dt, gt_imustate_0));
+        bool success2 = sim.get_state(oldestpose_time + sim.get_true_parameters().calib_camimu_dt, gt_imustate_0);
+        assert(success2);
         q_gt_0 = gt_imustate_0.block(1, 0, 4, 1);
         p_gt_0 = gt_imustate_0.block(5, 0, 3, 1);
         Eigen::Matrix3d R_ESTtoGT;
@@ -273,7 +275,8 @@ int main(int argc, char **argv) {
           poseEST.pose.position.y = _pose.second->pos()(1, 0);
           poseEST.pose.position.z = _pose.second->pos()(2, 0);
           Eigen::Matrix<double, 17, 1> gt_imustate;
-          assert_r(sim.get_state(_pose.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate));
+          bool success3 = sim.get_state(_pose.first + sim.get_true_parameters().calib_camimu_dt, gt_imustate);
+          assert(success3);
           gt_imustate.block(1, 0, 4, 1) = ov_core::quat_multiply(gt_imustate.block(1, 0, 4, 1), ov_core::rot_2_quat(R_ESTtoGT));
           gt_imustate.block(5, 0, 3, 1) = R_ESTtoGT.transpose() * (gt_imustate.block(5, 0, 3, 1) - t_ESTinGT);
           poseGT.header.stamp = ros::Time(_pose.first);

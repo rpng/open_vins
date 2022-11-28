@@ -51,7 +51,7 @@ void BsplineSE3::feed_trajectory(std::vector<Eigen::VectorXd> traj_points) {
     if (pose.first <= timestamp_min) {
       timestamp_min = pose.first;
     }
-    if (pose.first >= timestamp_min) {
+    if (pose.first >= timestamp_max) {
       timestamp_max = pose.first;
     }
   }

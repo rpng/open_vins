@@ -94,5 +94,13 @@ install(TARGETS test_webcam
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+add_executable(test_profile src/test_profile.cpp)
+target_link_libraries(test_profile ov_core_lib ${thirdparty_libraries})
+install(TARGETS test_profile
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 
 

@@ -13,7 +13,7 @@ calib_cam_extrinsics: false # degenerate motion
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true # degenerate motion
 
-max_clones: 8
+max_clones: 11
 max_slam: 50
 max_slam_in_update: 25
 max_msckf_in_update: 50
@@ -28,9 +28,9 @@ feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 # zero velocity update parameters we can use
 # we support either IMU-based or disparity detection.
 try_zupt: true
-zupt_chi2_multipler: 0.25 # set to 0 for only disp-based
+zupt_chi2_multipler: 0.5 # set to 0 for only disp-based
 zupt_max_velocity: 0.1
-zupt_noise_multiplier: 5
+zupt_noise_multiplier: 1
 zupt_max_disparity: 0.4 # set to 0 for only imu-based
 zupt_only_at_beginning: false
 

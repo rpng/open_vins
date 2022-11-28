@@ -532,7 +532,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
       continue;
     Eigen::Vector3d p_FinI0;
     if (size_feature == 1) {
-      assert_r(false);
+      assert(false);
       // p_FinI0 = x_hat(size_feature * map_features.at(feat.first) + 6, 0) * features_bearings.at(feat->featid);
     } else {
       p_FinI0 = x_hat.block(size_feature * A_index_features.at(feat.first) + 6, 0, 3, 1);
@@ -1007,52 +1007,52 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::Matrix<double, 3, 3, Eigen::RowMajor> covtmp = Eigen::Matrix<double, 3, 3, Eigen::RowMajor>::Zero();
 
   // block diagonal
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_ori[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_ori[state_index], covtmp.data()));
   covariance.block(0, 0, 3, 3) = covtmp.eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_pos[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_pos[state_index], covtmp.data()));
   covariance.block(3, 3, 3, 3) = covtmp.eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_vel[state_index], covtmp.data()));
   covariance.block(6, 6, 3, 3) = covtmp.eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(9, 9, 3, 3) = covtmp.eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_a[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(12, 12, 3, 3) = covtmp.eval();
 
   // orientation
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_pos[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_pos[state_index], covtmp.data()));
   covariance.block(0, 3, 3, 3) = covtmp.eval();
   covariance.block(3, 0, 3, 3) = covtmp.transpose();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_vel[state_index], covtmp.data()));
   covariance.block(0, 6, 3, 3) = covtmp.eval();
   covariance.block(6, 0, 3, 3) = covtmp.transpose().eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(0, 9, 3, 3) = covtmp.eval();
   covariance.block(9, 0, 3, 3) = covtmp.transpose().eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_ori[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(0, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 0, 3, 3) = covtmp.transpose().eval();
 
   // position
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_vel[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_vel[state_index], covtmp.data()));
   covariance.block(3, 6, 3, 3) = covtmp.eval();
   covariance.block(6, 3, 3, 3) = covtmp.transpose().eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(3, 9, 3, 3) = covtmp.eval();
   covariance.block(9, 3, 3, 3) = covtmp.transpose().eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_pos[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(3, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 3, 3, 3) = covtmp.transpose().eval();
 
   // velocity
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_g[state_index], covtmp.data()));
   covariance.block(6, 9, 3, 3) = covtmp.eval();
   covariance.block(9, 6, 3, 3) = covtmp.transpose().eval();
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_vel[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(6, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 6, 3, 3) = covtmp.transpose().eval();
 
   // bias_g
-  assert_r(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
+  CHECK(problem_cov.GetCovarianceBlockInTangentSpace(ceres_vars_bias_g[state_index], ceres_vars_bias_a[state_index], covtmp.data()));
   covariance.block(9, 12, 3, 3) = covtmp.eval();
   covariance.block(12, 9, 3, 3) = covtmp.transpose().eval();
 

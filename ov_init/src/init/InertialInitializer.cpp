@@ -57,6 +57,7 @@ void InertialInitializer::feed_imu(const ov_core::ImuData &message, double oldes
   //});
 
   // Loop through and delete imu messages that are older than our requested time
+  // std::cout << "INIT: imu_data.size() " << imu_data->size() << std::endl;
   if (oldest_time != -1) {
     auto it0 = imu_data->begin();
     while (it0 != imu_data->end()) {
@@ -81,7 +82,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
       }
     }
   }
-  double oldest_time = newest_cam_time - params.init_window_time - 0.01;
+  double oldest_time = newest_cam_time - params.init_window_time - 0.10;
   if (newest_cam_time < 0 || oldest_time < 0) {
     return false;
   }

@@ -99,15 +99,4 @@ private:
 #define PRINT_WARNING(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::WARNING, __FILE__, TOSTRING(__LINE__), x);
 #define PRINT_ERROR(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::ERROR, __FILE__, TOSTRING(__LINE__), x);
 
-// Assert that will always be here in release builds also
-// TODO: place this in a better header, just putting here for now...
-#define assert_r(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern void __assert(const char *msg, const char *file, int line) throw ();
-#ifdef __cplusplus
-};
-#endif
-
 #endif /* OV_CORE_PRINT_H */
