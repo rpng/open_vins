@@ -451,10 +451,10 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
 
     nav_msgs::Odometry odomBinW;
     odomBinW.header.stamp = ros::Time(timestamp);
-    odomBinW.header.frame_id = "world";
+    odomBinW.header.frame_id = "odom";
     nav_msgs::Odometry odomBinB0;
     odomBinB0.header.stamp = ros::Time(timestamp);
-    odomBinB0.header.frame_id = "world";
+    odomBinB0.header.frame_id = "odom";
 
     Eigen::Matrix<double, 4,1> q_GinI_eigen;
     q_GinI_eigen <<state_plus_world(0),state_plus_world(1),state_plus_world(2), state_plus_world(3);
