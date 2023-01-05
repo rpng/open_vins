@@ -91,6 +91,10 @@
             </dt>
             <dd>Feed function for inertial data.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#a7e5af15b3766f85ec3aa29fdac3a696e" class="m-doc">clean_old_imu_measurements</a>(</span><span class="m-doc-wrap">double oldest_time)</span>
+            </dt>
+            <dd>This will remove any IMU measurements that are older then the given measurement time.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">auto <a href="#a703a198829da68f905280ce8af8aa9e6" class="m-doc">try_update</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               double timestamp) -&gt; bool</span>
             </dt>
@@ -148,6 +152,10 @@
               double <a href="#a6b782fc825eddcd71a7808288cbb9734" class="m-doc-self">last_zupt_state_timestamp</a>
             </dt>
             <dd>Last timestamp we did zero velocity update with.</dd>
+            <dt id="a3358cda7ba4b450b49f3e1594d974732">
+              int <a href="#a3358cda7ba4b450b49f3e1594d974732" class="m-doc-self">last_zupt_count</a>
+            </dt>
+            <dd>Number of times we have called update.</dd>
           </dl>
         </section>
         <section>
@@ -222,6 +230,23 @@
                 <tr>
                   <td>oldest_time</td>
                   <td>Time that we can discard measurements before</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="a7e5af15b3766f85ec3aa29fdac3a696e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />UpdaterZeroVelocity::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a7e5af15b3766f85ec3aa29fdac3a696e" class="m-doc-self">clean_old_imu_measurements</a>(</span><span class="m-doc-wrap">double oldest_time)</span></span>
+            </h3>
+            <p>This will remove any IMU measurements that are older then the given measurement time.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">oldest_time</td>
+                  <td>Time that we can discard measurements before (in IMU clock)</td>
                 </tr>
               </tbody>
             </table>

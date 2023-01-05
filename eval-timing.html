@@ -60,6 +60,7 @@
               <a href="#eval-ov-timing-plot">Processing &amp; Plotting</a>
               <ul>
                 <li><a href="#eval-ov-timing-flame">Script &quot;timing_flamegraph&quot;</a></li>
+                <li><a href="#eval-ov-timing-hist">Script &quot;timing_histogram&quot;</a></li>
                 <li><a href="#eval-ov-timing-compare">Script &quot;timing_comparison&quot;</a></li>
                 <li><a href="#eval-ov-timing-percentages">Script &quot;timing_percentages&quot;</a></li>
               </ul>
@@ -80,12 +81,13 @@
 <span class="go">mean_time = 0.0034 | std = 0.0013 | 99th = 0.0063  | max = 0.0099 (slam update)</span>
 <span class="go">mean_time = 0.0012 | std = 0.0017 | 99th = 0.0052  | max = 0.0141 (slam delayed)</span>
 <span class="go">mean_time = 0.0009 | std = 0.0003 | 99th = 0.0015  | max = 0.0027 (marginalization)</span>
-<span class="go">mean_time = 0.0128 | std = 0.0035 | 99th = 0.0208  | max = 0.0403 (total)</span></pre><img class="m-image" src="timing_flame.png" alt="Image" style="width: 90%;" /></section><section id="eval-ov-timing-compare"><h3><a href="#eval-ov-timing-compare">Script &quot;timing_comparison&quot;</a></h3><p>This script is use to compare the run-time of different runs of the algorithm. This take in the same file as the flame graph and is recorded in the <a href="classov__msckf_1_1VioManager.html" class="m-doc">ov_msckf::<wbr />VioManager</a>. The file should be comma separated format, with the first column being the timing, and the last column being the total time. The middle columns should describe how much each component takes (whose names are extracted from the header of the csv file).</p><pre class="m-console"><span class="go">rosrun ov_eval timing_comparison &lt;file_times1.txt&gt; ... &lt;file_timesN.txt&gt;</span>
+<span class="go">mean_time = 0.0128 | std = 0.0035 | 99th = 0.0208  | max = 0.0403 (total)</span></pre><img class="m-image" src="timing_flame.png" alt="Image" style="width: 90%;" /></section><section id="eval-ov-timing-hist"><h3><a href="#eval-ov-timing-hist">Script &quot;timing_histogram&quot;</a></h3><p>Generates a histogram plot of <em>binned</em> execution times for a specific class. This allows for inspection of the distribution of times as compared to just the mean of it. The file should be comma separated format, with the first column being the timing, and the last column being the total time. The middle columns should describe how much each component takes (whose names are extracted from the header of the csv file).</p><pre class="m-console"><span class="go">rosrun ov_eval timing_histogram &lt;file_times.txt&gt; &lt;num_bins&gt;</span>
+<span class="go">rosrun ov_eval timing_histogram timing_mono_ethV101.txt 75</span></pre><img class="m-image" src="timing_hist.png" alt="Image" style="width: 90%;" /></section><section id="eval-ov-timing-compare"><h3><a href="#eval-ov-timing-compare">Script &quot;timing_comparison&quot;</a></h3><p>This script is use to compare the run-time of different runs of the algorithm. This take in the same file as the flame graph and is recorded in the <a href="classov__msckf_1_1VioManager.html" class="m-doc">ov_msckf::<wbr />VioManager</a>. The file should be comma separated format, with the first column being the timing, and the last column being the total time. The middle columns should describe how much each component takes (whose names are extracted from the header of the csv file).</p><pre class="m-console"><span class="go">rosrun ov_eval timing_comparison &lt;file_times1.txt&gt; ... &lt;file_timesN.txt&gt;</span>
 <span class="go">rosrun ov_eval timing_comparison timing_mono_ethV101.txt timing_stereo_ethV101.txt</span></pre><p>Example output:</p><pre class="m-console"><span class="go">======================================</span>
 <span class="go">[TIME]: loading data for timing_mono</span>
 <span class="go">[TIME]: loaded 2817 timestamps from file (7 categories)!!</span>
 <span class="go">mean_time = 0.0037 | std = 0.0011 | 99th = 0.0063  | max = 0.0254 (tracking)</span>
-<span class="go">mean_time = 0.0004 | std = 0.0001 | 99th = 0.0006  | max = 0.0014 ( propagation)</span>
+<span class="go">mean_time = 0.0004 | std = 0.0001 | 99th = 0.0006  | max = 0.0014 (propagation)</span>
 <span class="go">mean_time = 0.0032 | std = 0.0022 | 99th = 0.0083  | max = 0.0309 (msckf update)</span>
 <span class="go">mean_time = 0.0034 | std = 0.0013 | 99th = 0.0063  | max = 0.0099 (slam update)</span>
 <span class="go">mean_time = 0.0012 | std = 0.0017 | 99th = 0.0052  | max = 0.0141 (slam delayed)</span>
@@ -96,7 +98,7 @@
 <span class="go">[TIME]: loading data for timing_stereo</span>
 <span class="go">[TIME]: loaded 2817 timestamps from file (7 categories)!!</span>
 <span class="go">mean_time = 0.0077 | std = 0.0020 | 99th = 0.0124  | max = 0.0219 (tracking)</span>
-<span class="go">mean_time = 0.0004 | std = 0.0001 | 99th = 0.0007  | max = 0.0023 ( propagation)</span>
+<span class="go">mean_time = 0.0004 | std = 0.0001 | 99th = 0.0007  | max = 0.0023 (propagation)</span>
 <span class="go">mean_time = 0.0081 | std = 0.0047 | 99th = 0.0189  | max = 0.0900 (msckf update)</span>
 <span class="go">mean_time = 0.0063 | std = 0.0023 | 99th = 0.0117  | max = 0.0151 (slam update)</span>
 <span class="go">mean_time = 0.0020 | std = 0.0026 | 99th = 0.0079  | max = 0.0205 (slam delayed)</span>

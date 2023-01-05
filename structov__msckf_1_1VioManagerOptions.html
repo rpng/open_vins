@@ -201,10 +201,14 @@
               bool <a href="#af08feea8c9e944e727483f6ff3899e8e" class="m-doc-self">downsample_cameras</a>
             </dt>
             <dd>Will half the resolution all tracking image (aruco will be 1/4 instead of halved if dowsize_aruoc also enabled)</dd>
-            <dt id="af76c6a235ac9c9a5cf30ffced7bff15d">
-              bool <a href="#af76c6a235ac9c9a5cf30ffced7bff15d" class="m-doc-self">use_multi_threading</a>
+            <dt id="ac68cc4f6f0e072ba2a06ada8e68b22bc">
+              int <a href="#ac68cc4f6f0e072ba2a06ada8e68b22bc" class="m-doc-self">num_opencv_threads</a>
             </dt>
-            <dd>If our front-end should try to use some multi-threading for stereo matching.</dd>
+            <dd>Threads our front-end should try to use (opencv uses this also)</dd>
+            <dt id="afaadd730413dd254d8f53da5a7ba5f17">
+              bool <a href="#afaadd730413dd254d8f53da5a7ba5f17" class="m-doc-self">use_multi_threading_pubs</a>
+            </dt>
+            <dd>If our ROS image publisher should be async (if sim this should be no!)</dd>
             <dt id="a63e5226f519e51f29210e3d29f757eba">
               bool <a href="#a63e5226f519e51f29210e3d29f757eba" class="m-doc-self">use_multi_threading_subs</a>
             </dt>

@@ -105,6 +105,10 @@
             </dt>
             <dd>Stores incoming inertial readings.</dd>
             <dt>
+              <span class="m-doc-wrap-bumper">void <a href="#aa7bd31c1032630f6f34a6365f272c00b" class="m-doc">clean_old_imu_measurements</a>(</span><span class="m-doc-wrap">double oldest_time)</span>
+            </dt>
+            <dd>This will remove any IMU measurements that are older then the given measurement time.</dd>
+            <dt>
               <span class="m-doc-wrap-bumper">void <a href="#ac96e7c40b696501a1f68097e10dde319" class="m-doc">propagate_and_clone</a>(</span><span class="m-doc-wrap">std::shared_ptr&lt;<a href="classov__msckf_1_1State.html" class="m-doc">State</a>&gt; state,
               double timestamp)</span>
             </dt>
@@ -284,7 +288,24 @@
                 </tr>
                 <tr>
                   <td>oldest_time</td>
-                  <td>Time that we can discard measurements before</td>
+                  <td>Time that we can discard measurements before (in IMU clock)</td>
+                </tr>
+              </tbody>
+            </table>
+          </div></section>
+          <section class="m-doc-details" id="aa7bd31c1032630f6f34a6365f272c00b"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">void ov_msckf::<wbr />Propagator::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#aa7bd31c1032630f6f34a6365f272c00b" class="m-doc-self">clean_old_imu_measurements</a>(</span><span class="m-doc-wrap">double oldest_time)</span></span>
+            </h3>
+            <p>This will remove any IMU measurements that are older then the given measurement time.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <thead>
+                <tr><th colspan="2">Parameters</th></tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td style="width: 1%">oldest_time</td>
+                  <td>Time that we can discard measurements before (in IMU clock)</td>
                 </tr>
               </tbody>
             </table>
