@@ -171,6 +171,7 @@ The [KAIST urban dataset](https://sites.google.com/view/complex-urban-dataset) @
 The dataset was collected in Korea with a vehicle equipped with stereo camera pair, 2d SICK LiDARs, 3d Velodyne LiDAR, Xsens IMU, fiber optic gyro (FoG), wheel encoders, and RKT GPS.
 The camera is 10 Hz, while the Xsens IMU is 100 Hz sensing rate.
 A groundtruth "baseline" trajectory is also provided which is the resulting output from fusion of the FoG, RKT GPS, and wheel encoders.
+We provide [processing scripts](https://github.com/rpng/open_vins/tree/master/ov_data/kaist/matlab) to generate the calibration and groundtruth from the dataset's formats.
 
 @m_class{m-block m-warning}
 
@@ -215,7 +216,7 @@ Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and
 The [KAIST VIO dataset](https://github.com/url-kaist/kaistviodataset) @cite Jeon2021RAL is a dataset of a MAV in an indoor 3.15 x 3.60 x 2.50 meter environment which undergoes various trajectory motions.
 The camera is intel realsense D435i 25 Hz, while the IMU is 100 Hz sensing rate from the pixelhawk 4 unit.
 A groundtruth "baseline" trajectory is also provided from a OptiTrack Mocap system at 50 Hz, the bag files have the marker body frame to IMU frame already applied.
-This topic has been provided in ov_data for convinces sake.
+This topic has been provided in ov_data for convenience sake.
 
 @m_div{m-text-center}
 | Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |
