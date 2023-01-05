@@ -106,8 +106,8 @@ up_aruco_chi2_multipler: 1
 
 # masks for our images
 use_mask: true
-mask0: "../../ov_data/masks/uzhfpv_outdoor_mask0.png" #relative to current file
-mask1: "../../ov_data/masks/uzhfpv_outdoor_mask1.png" #relative to current file
+mask0: "mask_uzhfpv_outdoor_mask0.png" #relative to current file
+mask1: "mask_uzhfpv_outdoor_mask1.png" #relative to current file
 
 # imu and camera spacial-temporal
 # imu config should also have the correct noise values
