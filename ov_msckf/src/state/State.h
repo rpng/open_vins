@@ -63,6 +63,7 @@ public:
    * @return timestep of clone we will marginalize
    */
   double margtimestep() {
+    std::lock_guard<std::mutex> lock(_mutex_state);
     double time = INFINITY;
     for (const auto &clone_imu : _clones_IMU) {
       if (clone_imu.first < time) {
@@ -77,6 +78,9 @@ public:
    * @return Size of the current covariance matrix
    */
   int max_covariance_size() { return (int)_Cov.rows(); }
+
+  /// Mutex for locking access to the state
+  std::mutex _mutex_state;
 
   /// Current timestamp (should be the last update time!)
   double _timestamp = -1;
