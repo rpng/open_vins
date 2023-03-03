@@ -113,5 +113,5 @@ relative_config_imu: "imu_rs435i.yaml"
 relative_config_imucam: "camchain-imucam-realsense435i_race4.yaml"
 
 # init with the alignment of vicon world frame and vio global frame (which is local frame)
-init_world_with_vicon: true
+init_world_with_vicon: false #true
 viconOdomWTopic: "/race4/odom"
