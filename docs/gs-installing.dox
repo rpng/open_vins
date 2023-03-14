@@ -1,7 +1,7 @@
 /**
 
 
-@page gs-installing Installation Guide
+@page gs-installing Installation Guide (ROS1 and ROS2)
 @tableofcontents
 
 
@@ -31,8 +31,9 @@ sudo apt-get install libeigen3-dev libboost-all-dev libceres-dev
 
 
 If ROS is not found on the system, one can use command line options to run the simulation without any visualization or `cmake -DENABLE_ROS=OFF ..`.
-If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions.
+If you are using the ROS-free interface, you will need to properly construct the @ref ov_msckf::VioManagerOptions struct with proper information and feed inertial and image data into the correct functions with proper buffers.
 The simulator binary `run_simulation` can give you and example on how to do this.
+To build without ROS installed, please refer to @ref gs-installing-free.
 
 
 
@@ -63,10 +64,10 @@ source ~/.bashrc
 Otherwise, if you want to also install ROS2, you must *NOT* have a global source.
 Instead we can have a nice helper command which can be used when we build a ROS1 workspace.
 Additionally, the `source_devel` command can be used when in your workspace root to source built packages.
-Once appended simply run `source_ros1` to load your ROS1 environmental variables.
+Once appended simply run `ros1_source` to load your ROS1 environmental variables.
 
 @code{.shell-session}
-echo "alias source_ros1=\"source /opt/ros/$ROS1_DISTRO/setup.bash\"" >> ~/.bashrc
+echo "alias ros1_source=\"source /opt/ros/$ROS1_DISTRO/setup.bash\"" >> ~/.bashrc
 echo "alias source_devel=\"source devel/setup.bash\"" >> ~/.bashrc
 source ~/.bashrc
 @endcode
@@ -98,10 +99,10 @@ source ~/.bashrc
 Otherwise, if you want to also install ROS1, you must *NOT* have a global source.
 Instead we can have a nice helper command which can be used when we build a ROS1 workspace.
 Additionally, the `source_install` command can be used when in your workspace root to source built packages.
-Once appended simply run `source_ros2` to load your ROS1 environmental variables.
+Once appended simply run `ros2_source` to load your ROS1 environmental variables.
 
 @code{.shell-session}
-echo "alias source_ros2=\"source /opt/ros/$ROS2_DISTRO/setup.bash\"" >> ~/.bashrc
+echo "alias ros2_source=\"source /opt/ros/$ROS2_DISTRO/setup.bash\"" >> ~/.bashrc
 echo "alias source_install=\"source install/setup.bash\"" >> ~/.bashrc
 source ~/.bashrc
 @endcode
@@ -117,7 +118,7 @@ After the build is successful please following the @ref gs-tutorial guide on get
 There are additional options that users might be interested in.
 Configure these with `catkin build -D<option_name>=OFF` or `cmake -D<option_name>=ON ..` in the ROS free case.
 
-- `ENABLE_ROS` - (default ON) - Enable or disable building with ROS (if it is found)
+- `ENABLE_ROS` - (default ON) - Enable or disable building with ROS (see @ref gs-installing-free)
 - `ENABLE_ARUCO_TAGS` - (default ON) - Enable or disable aruco tag (disable if no contrib modules)
 - `BUILD_OV_EVAL` - (default ON) - Enable or disable building of ov_eval
 - `DISABLE_MATPLOTLIB` - (default OFF) - Disable or enable matplotlib plot scripts in ov_eval
@@ -132,21 +133,9 @@ colcon build # ROS2
 colcon build --event-handlers console_cohesion+ --packages-select ov_core ov_init ov_msckf ov_eval # ROS2 with verbose output
 @endcode
 
-If you do not have ROS installed, then you can do the following:
-
-
-@code{.shell-session}
-cd ~/github/
-git clone https://github.com/rpng/open_vins/
-cd open_vins/ov_msckf/
-mkdir build
-cd build
-cmake ..
-make -j4
-@endcode
-
-If you wish to debug and run with assert statements, you can configure your workspace as follows:
-
+To build without ROS installed, please refer to @ref gs-installing-free.
+We recommend compiling with RelWithDebInfo as we always include [-g](https://gcc.gnu.org/onlinedocs/gcc/Debugging-Options.html) for debug symbols.
+If you wish to Debug, the workspace can configure as:
 
 @code{.shell-session}
 catkin config --cmake-args -DCMAKE_BUILD_TYPE=Debug
@@ -183,6 +172,7 @@ One should make sure you can see some of the "contrib" (e.g. aruco) when you cma
 
 @par OpenCV Source Installation
     Try to first build with your system / ROS OpenCV.
+    We have tested building with OpenCV 3.2, 3.3, 3.4, 4.2, and 4.5.
     Only fall back onto this if it does not allow you to compile, or want a newer version!
 
 @code{.shell-session}
