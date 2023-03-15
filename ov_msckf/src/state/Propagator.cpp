@@ -118,20 +118,24 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
 
   // Now perform stochastic cloning
   StateHelper::augment_clone(state, last_w);
+  cache_imu_valid = false;
 }
 
 bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
                                       Eigen::Matrix<double, 12, 12> &covariance) {
 
   // First we will store the current calibration / estimates of the state
-  double state_time = state->_timestamp;
-  Eigen::MatrixXd state_est = state->_imu->value();
-  Eigen::MatrixXd state_covariance = StateHelper::get_marginal_covariance(state, {state->_imu});
-  double t_off = state->_calib_dt_CAMtoIMU->value()(0);
+  if (!cache_imu_valid) {
+    cache_state_time = state->_timestamp;
+    cache_state_est = state->_imu->value();
+    cache_state_covariance = StateHelper::get_marginal_covariance(state, {state->_imu});
+    cache_t_off = state->_calib_dt_CAMtoIMU->value()(0);
+    cache_imu_valid = true;
+  }
 
   // First lets construct an IMU vector of measurements we need
-  double time0 = state_time + t_off;
-  double time1 = timestamp + t_off;
+  double time0 = cache_state_time + cache_t_off;
+  double time1 = timestamp + cache_t_off;
   std::vector<ov_core::ImuData> prop_data;
   {
     std::lock_guard<std::mutex> lck(imu_data_mtx);
@@ -141,8 +145,8 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
     return false;
 
   // Biases
-  Eigen::Vector3d bias_g = state_est.block(10, 0, 3, 1);
-  Eigen::Vector3d bias_a = state_est.block(13, 0, 3, 1);
+  Eigen::Vector3d bias_g = cache_state_est.block(10, 0, 3, 1);
+  Eigen::Vector3d bias_a = cache_state_est.block(13, 0, 3, 1);
 
   // Loop through all IMU messages, and use them to move the state forward in time
   // This uses the zero'th order quat, and then constant acceleration discrete
@@ -152,13 +156,12 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
     double dt = prop_data.at(i + 1).timestamp - prop_data.at(i).timestamp;
     Eigen::Vector3d w_hat = 0.5 * (prop_data.at(i + 1).wm + prop_data.at(i).wm) - bias_g;
     Eigen::Vector3d a_hat = 0.5 * (prop_data.at(i + 1).am + prop_data.at(i).am) - bias_a;
-    Eigen::Matrix3d R_Gtoi = quat_2_Rot(state_est.block(0, 0, 4, 1));
-    Eigen::Vector3d v_iinG = state_est.block(7, 0, 3, 1);
-    Eigen::Vector3d p_iinG = state_est.block(4, 0, 3, 1);
+    Eigen::Matrix3d R_Gtoi = quat_2_Rot(cache_state_est.block(0, 0, 4, 1));
+    Eigen::Vector3d v_iinG = cache_state_est.block(7, 0, 3, 1);
+    Eigen::Vector3d p_iinG = cache_state_est.block(4, 0, 3, 1);
 
     // State transition and noise matrix
     Eigen::Matrix<double, 15, 15> F = Eigen::Matrix<double, 15, 15>::Zero();
-    Eigen::Matrix<double, 15, 15> Qd = Eigen::Matrix<double, 15, 15>::Zero();
     F.block(0, 0, 3, 3) = exp_so3(-w_hat * dt);
     F.block(0, 9, 3, 3).noalias() = -exp_so3(-w_hat * dt) * Jr_so3(-w_hat * dt) * dt;
     F.block(9, 9, 3, 3).setIdentity();
@@ -180,6 +183,7 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
     // Construct our discrete noise covariance matrix
     // Note that we need to convert our continuous time noises to discrete
     // Equations (129) amd (130) of Trawny tech report
+    Eigen::Matrix<double, 15, 15> Qd = Eigen::Matrix<double, 15, 15>::Zero();
     Eigen::Matrix<double, 12, 12> Qc = Eigen::Matrix<double, 12, 12>::Zero();
     Qc.block(0, 0, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix3d::Identity();
     Qc.block(3, 3, 3, 3) = _noises.sigma_a_2 / dt * Eigen::Matrix3d::Identity();
@@ -187,18 +191,23 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
     Qc.block(9, 9, 3, 3) = _noises.sigma_ab_2 * dt * Eigen::Matrix3d::Identity();
     Qd = G * Qc * G.transpose();
     Qd = 0.5 * (Qd + Qd.transpose());
-    state_covariance = F * state_covariance * F.transpose() + Qd;
+    cache_state_covariance = F * cache_state_covariance * F.transpose() + Qd;
 
     // Propagate the mean forward
-    state_est.block(0, 0, 4, 1) = rot_2_quat(exp_so3(-w_hat * dt) * R_Gtoi);
-    state_est.block(4, 0, 3, 1) = p_iinG + v_iinG * dt + 0.5 * R_Gtoi.transpose() * a_hat * dt * dt - 0.5 * _gravity * dt * dt;
-    state_est.block(7, 0, 3, 1) = v_iinG + R_Gtoi.transpose() * a_hat * dt - _gravity * dt;
+    cache_state_est.block(0, 0, 4, 1) = rot_2_quat(exp_so3(-w_hat * dt) * R_Gtoi);
+    cache_state_est.block(4, 0, 3, 1) = p_iinG + v_iinG * dt + 0.5 * R_Gtoi.transpose() * a_hat * dt * dt - 0.5 * _gravity * dt * dt;
+    cache_state_est.block(7, 0, 3, 1) = v_iinG + R_Gtoi.transpose() * a_hat * dt - _gravity * dt;
   }
 
+  // Move the time forward
+  // This time will now be in the IMU clock, so reset the toff to zero
+  cache_state_time = time1;
+  cache_t_off = 0.0;
+
   // Now record what the predicted state should be
-  Eigen::Vector4d q_Gtoi = state_est.block(0, 0, 4, 1);
-  Eigen::Vector3d v_iinG = state_est.block(7, 0, 3, 1);
-  Eigen::Vector3d p_iinG = state_est.block(4, 0, 3, 1);
+  Eigen::Vector4d q_Gtoi = cache_state_est.block(0, 0, 4, 1);
+  Eigen::Vector3d v_iinG = cache_state_est.block(7, 0, 3, 1);
+  Eigen::Vector3d p_iinG = cache_state_est.block(4, 0, 3, 1);
   state_plus.setZero();
   state_plus.block(0, 0, 4, 1) = q_Gtoi;
   state_plus.block(4, 0, 3, 1) = p_iinG;
@@ -211,8 +220,8 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
   covariance.setZero();
   Eigen::Matrix<double, 15, 15> Phi = Eigen::Matrix<double, 15, 15>::Identity();
   Phi.block(6, 6, 3, 3) = quat_2_Rot(q_Gtoi);
-  state_covariance = Phi * state_covariance * Phi.transpose();
-  covariance.block(0, 0, 9, 9) = state_covariance.block(0, 0, 9, 9);
+  Eigen::MatrixXd covariance_tmp = Phi * cache_state_covariance * Phi.transpose();
+  covariance.block(0, 0, 9, 9) = covariance_tmp.block(0, 0, 9, 9);
   double dt = prop_data.at(prop_data.size() - 1).timestamp - prop_data.at(prop_data.size() - 2).timestamp;
   covariance.block(9, 9, 3, 3) = _noises.sigma_w_2 / dt * Eigen::Matrix3d::Identity();
   return true;
@@ -274,19 +283,20 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
       } else if (imu_data.at(i).timestamp > time1) {
         ov_core::ImuData data = interpolate_data(imu_data.at(i - 1), imu_data.at(i), time1);
         prop_data.push_back(data);
-        // PRINT_DEBUG("propagation #%d = CASE 3.1 = %.3f => %.3f\n",
-        // (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
+        // PRINT_DEBUG("propagation #%d = CASE 3.1 = %.3f => %.3f\n", (int)i, imu_data.at(i).timestamp - prop_data.at(0).timestamp,
+        //             imu_data.at(i).timestamp - time0);
       } else {
         prop_data.push_back(imu_data.at(i));
-        // PRINT_DEBUG("propagation #%d = CASE 3.2 = %.3f => %.3f\n",
-        // (int)i,imu_data.at(i).timestamp-prop_data.at(0).timestamp,imu_data.at(i).timestamp-time0);
+        // PRINT_DEBUG("propagation #%d = CASE 3.2 = %.3f => %.3f\n", (int)i, imu_data.at(i).timestamp - prop_data.at(0).timestamp,
+        //             imu_data.at(i).timestamp - time0);
       }
       // If the added IMU message doesn't end exactly at the camera time
       // Then we need to add another one that is right at the ending time
       if (prop_data.at(prop_data.size() - 1).timestamp != time1) {
         ov_core::ImuData data = interpolate_data(imu_data.at(i), imu_data.at(i + 1), time1);
         prop_data.push_back(data);
-        // PRINT_DEBUG("propagation #%d = CASE 3.3 = %.3f => %.3f\n", (int)i,data.timestamp-prop_data.at(0).timestamp,data.timestamp-time0);
+        // PRINT_DEBUG("propagation #%d = CASE 3.3 = %.3f => %.3f\n", (int)i, data.timestamp - prop_data.at(0).timestamp,
+        //             data.timestamp - time0);
       }
       break;
     }
@@ -302,15 +312,23 @@ std::vector<ov_core::ImuData> Propagator::select_imu_readings(const std::vector<
     return prop_data;
   }
 
-  // If we did not reach the whole integration period (i.e., the last inertial measurement we have is smaller then the time we want to
-  // reach) Then we should just "stretch" the last measurement to be the whole period (case 3 in the above loop)
-  // if(time1-imu_data.at(imu_data.size()-1).timestamp > 1e-3) {
-  //    PRINT_DEBUG(YELLOW "Propagator::select_imu_readings(): Missing inertial measurements to propagate with (%.6f sec missing).
-  //    IMU-CAMERA are likely messed up!!!\n" RESET, (time1-imu_data.at(imu_data.size()-1).timestamp)); return prop_data;
-  //}
+  // If we did not reach the whole integration period
+  // (i.e., the last inertial measurement we have is smaller then the time we want to reach)
+  // Then we should just "stretch" the last measurement to be the whole period
+  // TODO: this really isn't that good of logic, we should fix this so the above logic is exact!
+  if (prop_data.at(prop_data.size() - 1).timestamp != time1) {
+    if (warn)
+      PRINT_DEBUG(YELLOW "Propagator::select_imu_readings(): Missing inertial measurements to propagate with (%f sec missing)!\n" RESET,
+                  (time1 - imu_data.at(imu_data.size() - 1).timestamp));
+    ov_core::ImuData data = interpolate_data(imu_data.at(imu_data.size() - 2), imu_data.at(imu_data.size() - 1), time1);
+    prop_data.push_back(data);
+    // PRINT_DEBUG("propagation #%d = CASE 3.4 = %.3f => %.3f\n", (int)(imu_data.size() - 2), data.timestamp - prop_data.at(0).timestamp,
+    // data.timestamp - time0);
+  }
 
-  // Loop through and ensure we do not have an zero dt values
+  // Loop through and ensure we do not have any zero dt values
   // This would cause the noise covariance to be Infinity
+  // TODO: we should actually fix this by properly implementing this function and doing unit tests on it...
   for (size_t i = 0; i < prop_data.size() - 1; i++) {
     if (std::abs(prop_data.at(i + 1).timestamp - prop_data.at(i).timestamp) < 1e-12) {
       if (warn)
