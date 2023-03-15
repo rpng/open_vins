@@ -93,6 +93,13 @@ public:
   }
 
   /**
+   * @brief Will invalidate the cache used for fast propagation
+   */
+  void invalidate_cache() {
+    cache_imu_valid = false;
+  }
+
+  /**
    * @brief Propagate state up to given timestamp and then clone
    *
    * This will first collect all imu readings that occured between the

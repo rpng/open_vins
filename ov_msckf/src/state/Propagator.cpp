@@ -118,7 +118,6 @@ void Propagator::propagate_and_clone(std::shared_ptr<State> state, double timest
 
   // Now perform stochastic cloning
   StateHelper::augment_clone(state, last_w);
-  cache_imu_valid = false;
 }
 
 bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double timestamp, Eigen::Matrix<double, 13, 1> &state_plus,
