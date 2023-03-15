@@ -28,10 +28,6 @@ We encourage users to look at the specific documentation for a detailed view of 
 The ov_eval library has a bunch of evaluation methods and scripts that one can use to generate research results for publication.
 
 
-
-
-
-
 @section getting-started-more Getting Started Guides
 
 -   @subpage gs-installing --- OpenVINS and dependencies within the ROS-based ecosystem
