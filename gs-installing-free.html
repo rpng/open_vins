@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>ov_eval namespace | OpenVINS</title>
+  <title>Getting Started &raquo; Installation Guide (ROS Free) | OpenVINS</title>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:400,400i,600,600i%7CSource+Code+Pro:400,400i,600&amp;subset=latin-ext" />
   <link rel="stylesheet" href="m-udel+documentation.compiled.css" />
   <link rel="stylesheet" href="custom.css" />
@@ -31,7 +31,7 @@
             <li><a href="namespaceov__type.html">ov_type</a></li>
             <li><a href="namespaceov__msckf.html">ov_msckf</a></li>
             <li><a href="namespaceov__init.html">ov_init</a></li>
-            <li><a href="namespaceov__eval.html" id="m-navbar-current">ov_eval</a></li>
+            <li><a href="namespaceov__eval.html">ov_eval</a></li>
           </ol>
           <ol class="m-col-t-6 m-col-m-none" start="8">
             <li><a href="https://github.com/rpng/open_vins/">GitHub</a></li>
@@ -49,54 +49,28 @@
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
         <h1>
-          ov_eval <span class="m-thin">namespace</span>
+          <span class="m-breadcrumb"><a href="getting-started.html">Getting Started</a> &raquo;</span>
+          Installation Guide (ROS Free)
         </h1>
-        <p>Evaluation and recording utilities.</p>
-        <div class="m-block m-default">
-          <h3>Contents</h3>
-          <ul>
-            <li>
-              Reference
-              <ul>
-                <li><a href="#nested-classes">Classes</a></li>
-              </ul>
-            </li>
-          </ul>
-        </div>
-<p>This project contains the key evaluation and research scripts for localization methods. These come from the necessity of trying to quantify the accuracy of the estimated trajectory while also allowing for the comparision to other methods. Please see the following documentation pages for details:</p><ul><li><a href="eval-metrics.html" class="m-doc">Filter Evaluation Metrics</a> &mdash; Definitions of different metrics for estimator accuracy.</li><li><a href="eval-error.html" class="m-doc">Filter Error Evaluation Methods</a> &mdash; Error evaluation methods for evaluating system performance.</li><li><a href="eval-timing.html" class="m-doc">Filter Timing Analysis</a> &mdash; Timing of estimator components and complexity.</li></ul><p>The key methods that we have included are as follows:</p><ul><li>Absolute trajectory error</li><li>Relative pose error (for varying segment lengths)</li><li>Pose to text file recorder</li><li>Timing of system components</li></ul><p>The absolute and relative error scripts have been implemented in C++ to allow for fast computation on multiple runs. We recommend that people look at the <a href="https://github.com/uzh-rpg/rpg_trajectory_evaluation">rpg_<wbr />trajectory_<wbr />evaluation</a> toolbox provided by Zhang and Scaramuzza. For a background we recommend reading their <a href="http://rpg.ifi.uzh.ch/docs/IROS18_Zhang.pdf">A Tutorial on Quantitative Trajectory Evaluation for Visual(-Inertial) Odometry</a> <a href="citelist.html#CITEREF_Zhang2018IROS" class="m-doc">[27]</a> and its use in <a href="http://rpg.ifi.uzh.ch/docs/ICRA18_Delmerico.pdf">A Benchmark Comparison of Monocular Visual-Inertial Odometry Algorithms for Flying Robots</a> <a href="citelist.html#CITEREF_Delmerico2018ICRA" class="m-doc">[5]</a></p>
-        <section id="nested-classes">
-          <h2><a href="#nested-classes">Classes</a></h2>
-          <dl class="m-doc">
-            <dt>
-              class <a href="classov__eval_1_1AlignTrajectory.html" class="m-doc">AlignTrajectory</a>
-            </dt>
-            <dd>Class that given two trajectories, will align the two.</dd>
-            <dt>
-              class <a href="classov__eval_1_1AlignUtils.html" class="m-doc">AlignUtils</a>
-            </dt>
-            <dd>Helper functions for the trajectory alignment class.</dd>
-            <dt>
-              class <a href="classov__eval_1_1Loader.html" class="m-doc">Loader</a>
-            </dt>
-            <dd>Has helper functions to load text files from disk and process them.</dd>
-            <dt>
-              class <a href="classov__eval_1_1Recorder.html" class="m-doc">Recorder</a>
-            </dt>
-            <dd>This class takes in published poses and writes them to file.</dd>
-            <dt>
-              class <a href="classov__eval_1_1ResultSimulation.html" class="m-doc">ResultSimulation</a>
-            </dt>
-            <dd>A single simulation run (the full state not just pose).</dd>
-            <dt>
-              class <a href="classov__eval_1_1ResultTrajectory.html" class="m-doc">ResultTrajectory</a>
-            </dt>
-            <dd>A single run for a given dataset.</dd>
-            <dt>
-              struct <a href="structov__eval_1_1Statistics.html" class="m-doc">Statistics</a>
-            </dt>
-            <dd><a href="structov__eval_1_1Statistics.html" class="m-doc">Statistics</a> object for a given set scalar time series values.</dd>
-          </dl>
-        </section>
+<p>We do support ROS-free builds, but don&#x27;t recommend using this interface as we have limited support for it. You will need to ensure you have installed OpenCV 3 or 4, Eigen3, and Ceres which are the only dependencies. Each of the submodules can be build and installed as a library onto a linux-based system. For Ubuntu linux-based system the system dependencies are:</p><pre class="m-console"><span class="go">sudo apt-get install libeigen3-dev libboost-all-dev libceres-dev</span></pre><p>Refer to <a href="gs-installing.html#gs-install-opencv" class="m-doc">OpenCV Dependency (from source)</a> and <a href="gs-installing.html#gs-install-ceres" class="m-doc">Ceres Solver (from source)</a> if a custom version of these are desired. We have tested building with OpenCV 3.2, 3.3, 3.4, 4.2, and 4.5.</p><p>If ROS is found on the system, one can use command line options to ensure the ROS free version is compiled with: <code>cmake -DENABLE_ROS=OFF ..</code>. There are additional cmake options that users might be interested in. Configure these with <code>cmake -D&lt;option_name&gt;=ON ..</code> options.</p><ul><li><code>ENABLE_ROS</code> - (default ON) - Enable or disable building with ROS (ensure to disable this)</li><li><code>ENABLE_ARUCO_TAGS</code> - (default ON) - Enable or disable aruco tag (disable if no contrib modules)</li><li><code>BUILD_OV_EVAL</code> - (default ON) - Enable or disable building of <a href="namespaceov__eval.html" class="m-doc">ov_<wbr />eval</a> (needs to be built separately)</li><li><code>DISABLE_MATPLOTLIB</code> - (default OFF) - Disable or enable matplotlib plot scripts in <a href="namespaceov__eval.html" class="m-doc">ov_<wbr />eval</a></li></ul><p>We can build and install the <a href="namespaceov__msckf.html" class="m-doc">ov_<wbr />msckf</a> library and binary files as follows:</p><pre class="m-console"><span class="go">cd ~/github/</span>
+<span class="go">git clone https://github.com/rpng/open_vins/</span>
+<span class="go">cd open_vins/ov_msckf/</span>
+<span class="go">mkdir build &amp;&amp; cd build</span>
+<span class="go">cmake -DENABLE_ROS=OFF ..</span>
+<span class="go">make -j4</span>
+<span class="go">sudo make install</span></pre><p>If you are using the ROS-free interface, you will need to properly construct the <a href="structov__msckf_1_1VioManagerOptions.html" class="m-doc">ov_msckf::<wbr />VioManagerOptions</a> struct with proper information and feed inertial and image data into the correct functions with proper buffers. The simulator binary <code>run_simulation</code> can give you and example on how to do this without the buffering logic.</p><p>To now link to the built project from a different project, one can configure the following in their CMakeLists.txt:</p><pre class="m-code"><span class="c"># headers: /usr/local/include/open_vins/</span>
+<span class="c"># library: /usr/local/lib/libov_msckf_lib.so</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">OPENVINS_INCLUDE_DIR</span> <span class="s">/usr/local/include/open_vins/</span><span class="p">)</span>
+<span class="nb">set</span><span class="p">(</span><span class="s">OPENVINS_LIBRARIES</span> <span class="s">ov_msckf_lib</span><span class="p">)</span></pre><p>Note that it is important to also link to the Eigen3, OpenCV, and Ceres dependencies of OpenVINS. Finally it can all come together and then be directly used as:</p><pre class="m-code"><span class="nb">target_include_directories</span><span class="p">(</span><span class="s">your_binary</span> <span class="s">PUBLIC</span>
+    <span class="o">${</span><span class="nv">CMAKE_CURRENT_SOURCE_DIR</span><span class="o">}</span>
+    <span class="o">${</span><span class="nv">EIGEN3_INCLUDE_DIR</span><span class="o">}</span>
+    <span class="o">${</span><span class="nv">BOOST_INCLUDE_DIR</span><span class="o">}</span>
+    <span class="o">${</span><span class="nv">OPENVINS_INCLUDE_DIR</span><span class="o">}</span>
+<span class="p">)</span>
+<span class="nb">target_link_libraries</span><span class="p">(</span><span class="s">your_binary</span> <span class="s">PRIVATE</span>
+    <span class="o">${</span><span class="nv">CERES_LIBRARIES</span><span class="o">}</span>
+    <span class="o">${</span><span class="nv">OPENVINS_LIBRARIES</span><span class="o">}</span>
+<span class="p">)</span></pre>
       </div>
     </div>
   </div>
