@@ -149,9 +149,6 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
                                                         propagator, params.gravity_mag, params.zupt_max_velocity,
                                                         params.zupt_noise_multiplier, params.zupt_max_disparity);
   }
-
-  // Feature initializer for active tracks
-  active_tracks_initializer = std::make_shared<FeatureInitializer>(params.featinit_options);
 }
 
 void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {

@@ -232,9 +232,6 @@ protected:
   // Good features that where used in the last update (used in visualization)
   std::vector<Eigen::Vector3d> good_features_MSCKF;
 
-  /// Feature initializer used to triangulate all active tracks
-  std::shared_ptr<ov_core::FeatureInitializer> active_tracks_initializer;
-
   // Re-triangulated features 3d positions seen from the current frame (used in visualization)
   // For each feature we have a linear system A * p_FinG = b we create and increment their costs
   double active_tracks_time = -1;

@@ -24,7 +24,7 @@ Please take a look at the [run_ros_eth.sh](https://github.com/rpng/open_vins/blo
 
 @par Groundtruth on V1_01_easy
     We have found that the groundtruth on the V1_01_easy dataset is not accurate in its orientation estimate.
-    We have recomputed this by optimizing the inertial and vicon readings in a graph to get the trajectory of the imu.
+    We have recomputed this by optimizing the inertial and vicon readings in a graph to get the trajectory of the imu (refer to our [vicon2gt](https://github.com/rpng/vicon2gt) @cite Geneva2020TRVICON2GT project).
     You can find the output at this [link](https://drive.google.com/drive/folders/1d62Q_RQwHzKLcIdUlTeBmojr7j0UL4sM?usp=sharing) and is what we normally use to evaluate the error on this dataset.
 
 @m_div{m-text-center}
@@ -55,6 +55,7 @@ Not all datasets have groundtruth available throughout the entire trajectory as 
 There are quite a few very challenging outdoor handheld datasets which are a challenging direction for research.
 Note that we focus on the room datasets as full 6 dof pose collection is available over the total trajectory.
 
+@image html datasets/tumvi.png width=90%
 
 @m_class{m-block m-warning}
 
@@ -62,6 +63,7 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
     These datasets have very non-static starts, as they are handheld, and the standstill initialization has issues handling this.
     Thus careful tuning of the imu initialization threshold is typically needed to ensure that the initialized orientation and the zero velocity assumption are valid.
     Please take a look at the [run_ros_tumvi.sh](https://github.com/rpng/open_vins/blob/master/ov_msckf/scripts/run_ros_tumvi.sh) script for some reasonable default values (they might still need to be tuned).
+    One can enable dynamic initialization to avoid this problem via the `init_dyn_use` configuration value.
 
 
 @m_div{m-text-center}
@@ -75,6 +77,28 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
 | room6 | 67 | [rosbag](http://vision.in.tum.de/tumvi/calibrated/512_16/dataset-room6_512_16.bag) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/tum_vi) | [config](https://github.com/rpng/open_vins/blob/master/config/tum_vi) |
 @m_enddiv
 
+
+
+@section gs-data-rpng-ar-table RPNG AR Table Dataset
+
+The [Indoor AR Table Visual-Inertial Datasets](https://github.com/rpng/ar_table_dataset/) @cite Chen2023ICRA were collected to demonstrate the impact of estimating long-term planar surfaces within a visual-inertial estimator.
+An Intel Realsense D4553 with 30Hz RGB-D (depth was not used) and 400Hz BMI055 IMU along with 100Hz OptiTrack poses were recorded in 1-2 minute segments.
+The groundtruth was recovered using the [vicon2gt](https://github.com/rpng/vicon2gt) utility @cite Geneva2020TRVICON2GT.
+
+@image html datasets/ar_table.jpg width=90%
+
+@m_div{m-text-center}
+| Dataset Name | Length (m) | Dataset Link | Size (GB) | Groundtruth Traj. | Config |
+|:------:|:-------:|:-------:|:-----:|:-----:|:-----:|
+| table1 | 56 | [rosbag](https://drive.google.com/file/d/1qpjOQQYB8rvozTTbGBvuWjiat9MlDaMi/view?usp=sharing) | 4.77 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table2 | 44 | [rosbag](https://drive.google.com/file/d/1RBt8xYDsegtRiY5gKVyg9WPhecVvdXqn/view?usp=sharing) | 5.54 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table3 | 88 | [rosbag](https://drive.google.com/file/d/1_uLTYC3i2b1tx85OpGlqecxXgaO7BDT_/view?usp=sharing) | 13.19 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table4 | 91 | [rosbag](https://drive.google.com/file/d/1nYno_ttjGHwCQoxgV5SisVTc19Cb5O5c/view?usp=sharing) | 11.49 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table5 | 75 | [rosbag](https://drive.google.com/file/d/1CjkGfSCD_hWAidKsJ7edhuWQg7CyGa3U/view?usp=sharing) | 11.66 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table6 | 50 | [rosbag](https://drive.google.com/file/d/1FAGk7ZjRKDTkf-lhW3sb4EPj6SsUhyeQ/view?usp=sharing) | 5.26 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table7 | 63 | [rosbag](https://drive.google.com/file/d/1yWZGo6N0qlP_fHMIsr0jayRP3tXCO54U/view?usp=sharing) | 9.02 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table8 | 125 | [rosbag](https://drive.google.com/file/d/1pIz9owK4PvIkL_1t6eTZwGMrsLNpHBwa/view?usp=sharing) | 16.01 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+@m_enddiv
 
 
 
@@ -97,6 +121,8 @@ Here are the specifics of the sensors that each dataset uses:
     - GPS fixes at 5 Hz (/reach01/tcpfix has corrections from [NYSNet](https://cors.dot.ny.gov/sbc))
     - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1bhn0GrIYNEeAabQAbWoP8l_514cJ0KrZ/view?usp=sharing)
 
+
+@image html datasets/neighborhood.png width=90%
 
 @m_class{m-block m-warning}
 
@@ -136,14 +162,14 @@ Each of these datasets is picked up in the beginning and then set down, we norma
 Please take a look at the [run_ros_uzhfpv.sh](https://github.com/rpng/open_vins/blob/master/ov_msckf/scripts/run_ros_uzhfpv.sh) script for some reasonable default values (they might still need to be tuned).
 
 
+@image html datasets/uzhfpv.png width=90%
+
 @m_class{m-block m-warning}
 
 @par Dataset Groundtruthing
     Only the Absolute Trajectory Error (ATE) should be used as a metric for this dataset.
     This is due to inaccurate groundtruth orientation estimates which are explain in their [report](https://fpv.ifi.uzh.ch/wp-content/uploads/2020/11/Ground-Truth-Rotation-Issue-Report.pdf) on the issue.
     The basic summary is that it is hard to get an accurate orientation information due to the point-based Leica measurements used to groundtruth.
-
-    
 
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Config |
