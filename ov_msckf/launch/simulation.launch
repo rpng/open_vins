@@ -17,6 +17,10 @@
     <arg name="num_slam"    default="50" />
     <arg name="num_pts"     default="100" />
     <arg name="max_cameras" default="2" />
+    <arg name="use_stereo"  default="true" />
+
+    <arg name="feat_dist_min" default="5.0" />
+    <arg name="feat_dist_max" default="7.0" />
 
     <arg name="freq_cam"    default="10" />
     <arg name="freq_imu"    default="400" />
@@ -57,6 +61,9 @@
         <param name="sim_freq_imu"           type="int"    value="$(arg freq_imu)" />
         <param name="sim_do_perturbation"    type="bool"   value="$(arg sim_do_perturbation)" />
 
+        <param name="sim_min_feature_gen_dist" type="double" value="$(arg feat_dist_min)" />
+        <param name="sim_max_feature_gen_dist" type="double" value="$(arg feat_dist_max)" />
+
         <param name="save_total_state"       type="bool"   value="$(arg dosave_state)" />
         <param name="filepath_est"           type="str"    value="$(arg path_state_est)" />
         <param name="filepath_std"           type="str"    value="$(arg path_state_std)" />
@@ -77,6 +84,7 @@
         <param name="calib_cam_timeoffset"   type="bool"   value="$(arg sim_do_calibration)" />
         <param name="max_clones"             type="int"    value="$(arg num_clones)" />
         <param name="max_slam"               type="int"    value="$(arg num_slam)" />
+        <param name="use_stereo"             type="bool"   value="$(arg use_stereo)" />
         <param name="max_cameras"            type="int"    value="$(arg max_cameras)" />
         <param name="feat_rep_msckf"         type="str"    value="$(arg feat_rep)" />
         <param name="feat_rep_slam"          type="str"    value="$(arg feat_rep)" />
