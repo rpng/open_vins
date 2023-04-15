@@ -46,18 +46,18 @@ bagstarttimes=(
   "5" # 18
 )
 
-
 # location to save log files into
-save_path1="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_euroc/algorithms"
-save_path2="/home/patrick/github/pubs_data/pgeneva/2022_openvins_test/exp_euroc/timings"
-bag_path="/media/patrick/RPNG FLASH 3/euroc_mav/"
-ov_ver="2.6.2"
-
+save_path1="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_euroc/algorithms"
+save_path2="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_euroc/timings"
+bag_path="/home/patrick/datasets/euroc_mav/"
+ov_ver="2.6.3"
 
 
 #=============================================================
 #=============================================================
 #=============================================================
+
+big_start_time="$(date -u +%s)"
 
 # Loop through all datasets
 for i in "${!bagnames[@]}"; do
@@ -116,5 +116,14 @@ done
 
 done
 done
+
+
+
+
+# print out the time elapsed
+big_end_time="$(date -u +%s)"
+big_elapsed="$(($big_end_time-$big_start_time))"
+echo "BASH: script took $big_elapsed seconds in total!!";
+
 
 

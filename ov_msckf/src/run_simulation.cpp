@@ -155,8 +155,7 @@ int main(int argc, char **argv) {
     if (hasimu) {
       sys->feed_measurement_imu(message_imu);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
-      // TODO: fix this, can be slow at high frequency...
-      // viz->visualize_odometry(message_imu.timestamp - sim->get_true_parameters().calib_camimu_dt);
+      viz->visualize_odometry(message_imu.timestamp);
 #endif
     }
 
@@ -167,9 +166,6 @@ int main(int argc, char **argv) {
     bool hascam = sim->get_next_cam(time_cam, camids, feats);
     if (hascam) {
       if (buffer_timecam != -1) {
-#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
-        viz->visualize_odometry(buffer_timecam);
-#endif
         sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
         viz->visualize();
