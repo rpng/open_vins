@@ -83,7 +83,7 @@ bagstarttimes=(
 save_path1="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_uzhfpv/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_uzhfpv/timings"
 bag_path="/home/patrick/datasets/euroc_mav/"
-ov_ver="2.6.2"
+ov_ver="2.6.3"
 
 
 #=============================================================
