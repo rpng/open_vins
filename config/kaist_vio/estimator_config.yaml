@@ -43,6 +43,7 @@ init_max_disparity: 5.0 # max disparity to consider the platform stationary (dep
 init_max_features: 75 # how many features to track during initialization (saves on computation)
 
 init_dyn_use: false
+init_dyn_min_movement: 0 # min movement for a dynamic initialization to be considered reliable
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05
