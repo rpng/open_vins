@@ -909,6 +909,15 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return state_imu;
   };
 
+  // Calculate the distance between the head and the tail.
+  // If the movement is smaller than threshold, the parallax is not enough and initialization is not allowed
+  Eigen::Vector3d movement = get_pose(newest_cam_time).segment<3>(4) - get_pose(oldest_camera_time).segment<3>(4);
+  double distance = movement.norm();
+  if (distance < params.init_dyn_min_movement) {
+    PRINT_DEBUG(YELLOW "[init-d]: the distance is %.3f < %.3f, intialization failed\n" RESET, distance, params.init_dyn_min_movement);
+    return false;
+  }
+
   // Our most recent state is the IMU state!
   assert(map_states.find(newest_cam_time) != map_states.end());
   if (_imu == nullptr) {
