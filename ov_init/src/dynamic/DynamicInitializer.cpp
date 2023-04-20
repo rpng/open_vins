@@ -41,6 +41,23 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_init;
 
+class AutoRelease {
+private:
+  std::function<void()> release_action_ = nullptr;
+
+public:
+  AutoRelease(std::function<void()> release_action)
+    :release_action_(release_action)
+  {}
+
+  ~AutoRelease() {
+    if (release_action_ != nullptr) {
+      release_action_();
+      release_action_ = nullptr;
+    }
+  }
+};
+
 bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covariance, std::vector<std::shared_ptr<ov_type::Type>> &order,
                                     std::shared_ptr<ov_type::IMU> &_imu, std::map<double, std::shared_ptr<ov_type::PoseJPL>> &_clones_IMU,
                                     std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> &_features_SLAM) {
@@ -601,6 +618,24 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // Setup intrinsic calibration focal, center, distortion (map from camera id to index)
   std::map<size_t, int> map_calib_cam;
   std::vector<double *> ceres_vars_calib_cam_intrinsics;
+
+  AutoRelease callback_runner([&](){
+    for (const std::vector<double *> &vec : {ceres_vars_ori,
+                                             ceres_vars_pos,
+                                             ceres_vars_vel,
+                                             ceres_vars_bias_g,
+                                             ceres_vars_bias_a,
+                                             ceres_vars_feat,
+                                             ceres_vars_calib_cam2imu_ori,
+                                             ceres_vars_calib_cam2imu_pos,
+                                             ceres_vars_calib_cam_intrinsics}) {
+      for (double* p : vec) {
+        if (p) {
+          delete p;
+        }
+      }
+    }
+  });
 
   // Set the optimization settings
   // NOTE: We use dense schur since after eliminating features we have a dense problem
