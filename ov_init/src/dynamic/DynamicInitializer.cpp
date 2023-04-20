@@ -911,10 +911,10 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
 
   // Calculate the distance between the head and the tail.
   // If the movement is smaller than threshold, the parallax is not enough and initialization is not allowed
-  Eigen::Vector3d movement = get_pose(newest_cam_time).segment<3>(4) - get_pose(oldest_camera_time).segment<3>(4);
+  Eigen::Vector3d movement = get_pose(newest_cam_time).block(4, 0, 3, 1) - get_pose(oldest_camera_time).block(4, 0, 3, 1);
   double distance = movement.norm();
   if (distance < params.init_dyn_min_movement) {
-    PRINT_DEBUG(YELLOW "[init-d]: the distance is %.3f < %.3f, intialization failed\n" RESET, distance, params.init_dyn_min_movement);
+    PRINT_WARNING(YELLOW "[init-d]: the distance is %.3f < %.3f, initialization failed!\n" RESET, distance, params.init_dyn_min_movement);
     return false;
   }
 
