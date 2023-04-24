@@ -76,16 +76,13 @@
     <group ns="$(arg mav_name)">
 	<node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
     name="OvmsckfNodeletClass_loader" output="screen">
+        <param name="mav_name" type="string" value="$(arg mav_name)"/>
         <param name="config_path"            type="string" value="$(arg config_path)" />
         <param name="publish_global_to_imu_tf" type="bool" value="false"/>
         <param name="publish_world_to_body_tf" type="bool" value="false"/>
         <param name="publish_calibration_tf" type="bool" value="false"/>
-        <!-- <remap from="/zedm/zed_node/imu/data_raw" to="/zed_nodelet/imu/data_raw" />
-        <remap from="/zedm/zed_node/left_raw/image_raw_gray" to="/zed_nodelet/left_raw/image_raw_gray" />
-        <remap from="/zedm/zed_node/right_raw/image_raw_gray" to="/zed_nodelet/right_raw/image_raw_gray" /> -->
-        <!-- remap from="/OvmsckfNodeletClass_loader/odomworld" to="/OvmsckfNodeletClass_loader/odomworld_laptop" / -->
 	</node>
-    </group>
+    <!--/group-->
 
     <arg name="tf_namespace"              default="drone31"/>
     <arg name="device_type_camera_f"      default="d4.5"/>
@@ -109,8 +106,8 @@
     <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="2500"/>
     <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
 
-    <group ns="$(arg mav_name)">
-    <group ns="$(arg camera_f)">
+    <!--group ns="$(arg mav_name)"-->
+      <group ns="OvmsckfNodeletClass_loader/$(arg camera_f)">
       <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
         <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
         <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
@@ -131,13 +128,13 @@
         <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
         <arg name="stereo_module/exposure/1"    value="2500"/>
         <arg name="stereo_module/gain/1"        value="16"/>
-        <!-- <arg name="external_manager"            value="true"/> -->
-        <!-- <arg name="manager"                     value="ovmsckf_nodelet_manager"/> -->
+        <arg name="external_manager"            value="false"/>
+        <!--arg name="manager"                     value="/$(arg mav_name)/OvmsckfNodeletClass_loader"/-->
       </include>
     </group>
-    </group>
+    <!--/group-->
 	
-    <group ns="$(arg mav_name)">
+    <!--group ns="$(arg mav_name)"-->
     <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
     name="odom_transform_nodelet" output="screen">
      <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />

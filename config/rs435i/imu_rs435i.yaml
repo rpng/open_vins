@@ -56,7 +56,7 @@ imu0:
   #  gyroscope_random_walk: 4.0e-05     # [ rad / s^2 / sqrt(Hz) ] ( gyro bias diffusion )
   model: calibrated
   # rostopic: /zed_nodelet/imu/data_raw_filtered
-  rostopic: /cam1/imu
+  rostopic: cam1/imu
   time_offset:  0.0052559264670291456
   update_rate: 400.0
   odom_update_rate: 120.0
