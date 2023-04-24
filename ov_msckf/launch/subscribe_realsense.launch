@@ -1,5 +1,6 @@
 <launch>
 
+    <arg name="mav_name" default="$(env MAV_NAME)"/>
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
     <arg name="config"      default="rs435i" /> <!-- euroc_mav, tum_vi, rpng_aruco -->
@@ -29,7 +30,7 @@
 
     <!-- MASTER NODE! -->
 <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <!--ode name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+    <!--node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
         <param name="verbosity"              type="string" value="$(arg verbosity)" />
         <param name="config_path"            type="string" value="$(arg config_path)" />
@@ -64,12 +65,15 @@
         </node>
     </group>
 
+    <group ns="$(arg mav_name)">
     <node pkg="nodelet" type="nodelet" args="manager"
     name="ovmsckf_nodelet_manager" output="screen">
         
     </node>
+    </group>
 
 	
+    <group ns="$(arg mav_name)">
 	<node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
     name="OvmsckfNodeletClass_loader" output="screen">
         <param name="config_path"            type="string" value="$(arg config_path)" />
@@ -81,6 +85,7 @@
         <remap from="/zedm/zed_node/right_raw/image_raw_gray" to="/zed_nodelet/right_raw/image_raw_gray" /> -->
         <!-- remap from="/OvmsckfNodeletClass_loader/odomworld" to="/OvmsckfNodeletClass_loader/odomworld_laptop" / -->
 	</node>
+    </group>
 
     <arg name="tf_namespace"              default="drone31"/>
     <arg name="device_type_camera_f"      default="d4.5"/>
@@ -101,9 +106,10 @@
     <arg name="gyro_fps_d435"             default="400"/>
     <arg name="accel_fps_d435"            default="250"/>
     
-    <param name="/cam1/stereo_module/exposure"        value="2500"/>
-    <param name="/cam1/stereo_module/emitter_enabled" value="0"/>
+    <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="2500"/>
+    <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
 
+    <group ns="$(arg mav_name)">
     <group ns="$(arg camera_f)">
       <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
         <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
@@ -129,11 +135,13 @@
         <!-- <arg name="manager"                     value="ovmsckf_nodelet_manager"/> -->
       </include>
     </group>
+    </group>
 	
+    <group ns="$(arg mav_name)">
     <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
     name="odom_transform_nodelet" output="screen">
      <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />
         <rosparam file="$(find odom_transform)/config/transform.yaml" />
 	</node>
-
+    </group>
 </launch>
