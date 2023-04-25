@@ -108,6 +108,7 @@
 
     <!--group ns="$(arg mav_name)"-->
       <group ns="OvmsckfNodeletClass_loader/$(arg camera_f)">
+      <!--group ns="$(arg camera_f)"-->
       <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
         <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
         <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
@@ -128,8 +129,8 @@
         <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
         <arg name="stereo_module/exposure/1"    value="2500"/>
         <arg name="stereo_module/gain/1"        value="16"/>
-        <arg name="external_manager"            value="false"/>
-        <!--arg name="manager"                     value="/$(arg mav_name)/OvmsckfNodeletClass_loader"/-->
+        <arg name="external_manager"            value="true"/>
+        <arg name="manager"                     value="/$(arg mav_name)/ovmsckf_nodelet_manager"/>
       </include>
     </group>
     <!--/group-->
