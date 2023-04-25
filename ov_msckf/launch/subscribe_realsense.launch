@@ -81,6 +81,9 @@
         <param name="publish_global_to_imu_tf" type="bool" value="false"/>
         <param name="publish_world_to_body_tf" type="bool" value="false"/>
         <param name="publish_calibration_tf" type="bool" value="false"/>
+        <remap from="~cam1/infra1/image_rect_raw" to="cam1/infra1/image_rect_raw"/>
+        <remap from="~cam1/infra2/image_rect_raw" to="cam1/infra2/image_rect_raw"/>
+        <remap from="~cam1/imu" to="cam1/imu"/>
 	</node>
     <!--/group-->
 
@@ -106,9 +109,8 @@
     <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="2500"/>
     <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
 
-    <!--group ns="$(arg mav_name)"-->
-      <group ns="OvmsckfNodeletClass_loader/$(arg camera_f)">
-      <!--group ns="$(arg camera_f)"-->
+      <!--group ns="OvmsckfNodeletClass_loader/$(arg camera_f)"-->
+      <group ns="$(arg camera_f)">
       <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
         <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
         <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
@@ -135,11 +137,11 @@
     </group>
     <!--/group-->
 	
-    <!--group ns="$(arg mav_name)"-->
     <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
     name="odom_transform_nodelet" output="screen">
      <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />
         <rosparam file="$(find odom_transform)/config/transform.yaml" />
-	</node>
+     <remap from="~odomimu" to="OvmsckfNodeletClass_loader/odomimu"/>
+    </node>
     </group>
 </launch>
