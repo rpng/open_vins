@@ -103,7 +103,7 @@
     <arg name="gyro_fps_d435"             default="400"/>
     <arg name="accel_fps_d435"            default="250"/>
     
-    <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="2500"/>
+    <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="5000"/>
     <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
 
     <!--group ns="$(arg mav_name)"-->
@@ -127,7 +127,7 @@
         <arg name="unite_imu_method"            value="$(arg d435_imu_unite)"/>
         <arg name="accel_fps"                   value="$(arg accel_fps_d435)"/>
         <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
-        <arg name="stereo_module/exposure/1"    value="2500"/>
+        <arg name="stereo_module/exposure/1"    value="5000"/>
         <arg name="stereo_module/gain/1"        value="16"/>
         <arg name="external_manager"            value="true"/>
         <arg name="manager"                     value="/$(arg mav_name)/ovmsckf_nodelet_manager"/>
