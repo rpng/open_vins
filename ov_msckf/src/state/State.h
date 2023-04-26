@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -24,6 +24,7 @@
 
 #include <map>
 #include <memory>
+#include <mutex>
 #include <unordered_map>
 #include <vector>
 
@@ -63,6 +64,7 @@ public:
    * @return timestep of clone we will marginalize
    */
   double margtimestep() {
+    std::lock_guard<std::mutex> lock(_mutex_state);
     double time = INFINITY;
     for (const auto &clone_imu : _clones_IMU) {
       if (clone_imu.first < time) {
@@ -77,6 +79,9 @@ public:
    * @return Size of the current covariance matrix
    */
   int max_covariance_size() { return (int)_Cov.rows(); }
+
+  /// Mutex for locking access to the state
+  std::mutex _mutex_state;
 
   /// Current timestamp (should be the last update time!)
   double _timestamp = -1;

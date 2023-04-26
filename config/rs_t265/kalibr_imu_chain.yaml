@@ -1,0 +1,27 @@
+%YAML:1.0
+
+imu0:
+  T_i_b:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+  # Values from allan plots
+  # https://github.com/rpng/ar_table_dataset
+  #accelerometer_noise_density: 0.001464164197530967
+  #accelerometer_random_walk: 6.696534319519138e-05
+  #gyroscope_noise_density: 0.00010833365085022152
+  #gyroscope_random_walk: 1.1687657234840692e-06
+  # Inflated values (to account for unmodelled effects)
+  #  - white noise multiplied by 5
+  #  - bias random walk multiplied by 10
+  accelerometer_noise_density: 0.00732082098
+  accelerometer_random_walk: 0.0006696534319519138
+  gyroscope_noise_density: 0.00054166825
+  gyroscope_random_walk: 1.1687657234840692e-05
+  model: calibrated
+  rostopic: /t265/imu
+  time_offset: 0.0
+  update_rate: 200
+
+

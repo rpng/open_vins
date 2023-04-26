@@ -14,8 +14,8 @@
     <arg name="dataset"     default="V1_01_easy" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium -->
     <arg name="dobag"       default="false" /> <!-- if we should play back the bag -->
     <arg name="bag"         default="/media/patrick/RPNG\ FLASH\ 3/$(arg config)/$(arg dataset).bag" />
-<!--    <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />-->
-<!--    <arg name="bag"         default="/datasets/$(arg config)/$(arg dataset).bag" />-->
+    <!--    <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />-->
+    <!--    <arg name="bag"         default="/datasets/$(arg config)/$(arg dataset).bag" />-->
 
     <!-- saving trajectory path and timing information -->
     <arg name="dosave"      default="false" />
@@ -29,7 +29,7 @@
 
 
     <!-- MASTER NODE! -->
-<!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
     <!--node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
         <param name="verbosity"              type="string" value="$(arg verbosity)" />
@@ -66,82 +66,82 @@
     </group>
 
     <group ns="$(arg mav_name)">
-    <node pkg="nodelet" type="nodelet" args="manager"
-    name="ovmsckf_nodelet_manager" output="screen">
-        
-    </node>
-    </group>
 
-	
-    <group ns="$(arg mav_name)">
-	<node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
-    name="OvmsckfNodeletClass_loader" output="screen">
-        <param name="mav_name" type="string" value="$(arg mav_name)"/>
-        <param name="config_path"            type="string" value="$(arg config_path)" />
-        <param name="publish_global_to_imu_tf" type="bool" value="false"/>
-        <param name="publish_world_to_body_tf" type="bool" value="false"/>
-        <param name="publish_calibration_tf" type="bool" value="false"/>
-        <remap from="~cam1/infra1/image_rect_raw" to="cam1/infra1/image_rect_raw"/>
-        <remap from="~cam1/infra2/image_rect_raw" to="cam1/infra2/image_rect_raw"/>
-        <remap from="~cam1/imu" to="cam1/imu"/>
-	</node>
-    <!--/group-->
+        <!-- nodelet manager for ovmsckf, realsense2_camera and odom_transform -->
+        <node pkg="nodelet" type="nodelet" args="manager"
+            name="ovmsckf_nodelet_manager" output="screen">
+        </node>
 
-    <arg name="tf_namespace"              default="drone31"/>
-    <arg name="device_type_camera_f"      default="d4.5"/>
-    <arg name="camera_f"                  default="cam1"/>              <!-- Note: Replace with camera name -->
-    <arg name="clip_distance"             default="-2"/>
-    <arg name="tf_prefix_camera_f"        default="$(arg tf_namespace)/$(arg camera_f)"/>
+        <!-- nodelet of openvins -->
+	    <node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
+            name="OvmsckfNodeletClass_loader" output="screen">
+            <param name="mav_name" type="string" value="$(arg mav_name)"/>
+            <param name="config_path"            type="string" value="$(arg config_path)" />
+            <param name="publish_global_to_imu_tf" type="bool" value="false"/>
+            <param name="publish_world_to_body_tf" type="bool" value="false"/>
+            <param name="publish_calibration_tf" type="bool" value="false"/>
+            <remap from="~cam1/infra1/image_rect_raw" to="cam1/infra1/image_rect_raw"/>
+            <remap from="~cam1/infra2/image_rect_raw" to="cam1/infra2/image_rect_raw"/>
+            <remap from="~cam1/imu" to="cam1/imu"/>
+	    </node>
 
-    <arg name="initial_reset"             default="true"/>
-    <arg name="enable_fisheye"            default="false"/>
-    <arg name="color_width"               default="640"/>
-    <arg name="color_height"              default="480"/>
-    <arg name="depth_width"               default="640"/>
-    <arg name="depth_height"              default="480"/>
-    <arg name="topic_odom_in"             default="odom_in"/>
-    <arg name="calib_odom_file"           default=""/>
-    <arg name="d435_imu_unite"            default="linear_interpolation"/>
-    <arg name="t265_imu_unite"            default="copy"/>
-    <arg name="gyro_fps_d435"             default="400"/>
-    <arg name="accel_fps_d435"            default="250"/>
+
+        <!-- config for openvins -->
+        <arg name="tf_namespace"              default="drone31"/>
+        <arg name="device_type_camera_f"      default="d4.5"/>
+        <arg name="camera_f"                  default="cam1"/>              <!-- Note: Replace with camera name -->
+        <arg name="clip_distance"             default="-2"/>
+        <arg name="tf_prefix_camera_f"        default="$(arg tf_namespace)/$(arg camera_f)"/>
+
+        <arg name="initial_reset"             default="true"/>
+        <arg name="enable_fisheye"            default="false"/>
+        <arg name="color_width"               default="1280"/>
+        <arg name="color_height"              default="960"/>
+        <arg name="depth_width"               default="640"/>
+        <arg name="depth_height"              default="480"/>
+        <arg name="topic_odom_in"             default="odom_in"/>
+        <arg name="calib_odom_file"           default=""/>
+        <arg name="d435_imu_unite"            default="linear_interpolation"/>
+        <arg name="t265_imu_unite"            default="copy"/>
+        <arg name="gyro_fps_d435"             default="400"/>
+        <arg name="accel_fps_d435"            default="250"/>
     
-    <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="5000"/>
-    <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
+        <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="5000"/>
+        <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
 
-      <!--group ns="OvmsckfNodeletClass_loader/$(arg camera_f)"-->
-      <group ns="$(arg camera_f)">
-      <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
-        <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
-        <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
-        <arg name="initial_reset"               value="$(arg initial_reset)"/>
-        <arg name="align_depth"                 value="false"/>
-        <arg name="enable_infra1"               value="true"/>
-        <arg name="enable_infra2"               value="true"/>
-        <arg name="enable_accel"                value="true"/>
-        <arg name="enable_gyro"                 value="true"/>
-        <arg name="enable_depth"                value="false"/>
-        <arg name="color_width"                 value="$(arg color_width)"/>
-        <arg name="color_height"                value="$(arg color_height)"/>
-        <arg name="depth_width"                 value="$(arg depth_width)"/>
-        <arg name="depth_height"                value="$(arg depth_height)"/>
-        <arg name="clip_distance"               value="$(arg clip_distance)"/>
-        <arg name="unite_imu_method"            value="$(arg d435_imu_unite)"/>
-        <arg name="accel_fps"                   value="$(arg accel_fps_d435)"/>
-        <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
-        <arg name="stereo_module/exposure/1"    value="5000"/>
-        <arg name="stereo_module/gain/1"        value="16"/>
-        <arg name="external_manager"            value="true"/>
-        <arg name="manager"                     value="/$(arg mav_name)/ovmsckf_nodelet_manager"/>
-      </include>
-    </group>
-    <!--/group-->
+        <!-- nodelet of realsense2_camera -->
+        <group ns="$(arg camera_f)">
+            <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
+            <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
+            <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
+            <arg name="initial_reset"               value="$(arg initial_reset)"/>
+            <arg name="align_depth"                 value="false"/>
+            <arg name="enable_infra1"               value="true"/>
+            <arg name="enable_infra2"               value="true"/>
+            <arg name="enable_accel"                value="true"/>
+            <arg name="enable_gyro"                 value="true"/>
+            <arg name="enable_depth"                value="false"/>
+            <arg name="color_width"                 value="$(arg color_width)"/>
+            <arg name="color_height"                value="$(arg color_height)"/>
+            <arg name="depth_width"                 value="$(arg depth_width)"/>
+            <arg name="depth_height"                value="$(arg depth_height)"/>
+            <arg name="clip_distance"               value="$(arg clip_distance)"/>
+            <arg name="unite_imu_method"            value="$(arg d435_imu_unite)"/>
+            <arg name="accel_fps"                   value="$(arg accel_fps_d435)"/>
+            <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
+            <arg name="stereo_module/exposure/1"    value="5000"/>
+            <arg name="stereo_module/gain/1"        value="16"/>
+            <arg name="external_manager"            value="true"/>
+            <arg name="manager"                     value="/$(arg mav_name)/ovmsckf_nodelet_manager"/>
+            </include>
+        </group>
 	
-    <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
-    name="odom_transform_nodelet" output="screen">
-     <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />
-        <rosparam file="$(find odom_transform)/config/transform.yaml" />
-     <remap from="~odomimu" to="OvmsckfNodeletClass_loader/odomimu"/>
-    </node>
+        <!-- nodelet of odom_transform -->
+        <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
+            name="odom_transform_nodelet" output="screen">
+            <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />
+            <rosparam file="$(find odom_transform)/config/transform.yaml" />
+            <remap from="~odomimu" to="OvmsckfNodeletClass_loader/odomimu"/>
+        </node>
     </group>
 </launch>

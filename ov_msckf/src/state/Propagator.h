@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 #ifndef OV_MSCKF_STATE_PROPAGATOR_H
 #define OV_MSCKF_STATE_PROPAGATOR_H
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 
@@ -49,7 +50,7 @@ public:
    * @param noises imu noise characteristics (continuous time)
    * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    */
-  Propagator(NoiseManager noises, double gravity_mag) : _noises(noises) {
+  Propagator(NoiseManager noises, double gravity_mag) : _noises(noises), cache_imu_valid(false) {
     _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
     _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
     _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
@@ -89,6 +90,13 @@ public:
         it0++;
       }
     }
+  }
+
+  /**
+   * @brief Will invalidate the cache used for fast propagation
+   */
+  void invalidate_cache() {
+    cache_imu_valid = false;
   }
 
   /**
@@ -163,9 +171,6 @@ public:
   }
 
 protected:
-  /// Estimate for time offset at last propagation time
-  double last_prop_time_offset = 0.0;
-  bool have_last_prop_time_offset = false;
 
   /**
    * @brief Propagates the state forward using the imu data and computes the noise covariance and state-transition
@@ -254,10 +259,22 @@ protected:
 
   /// Gravity vector
   Eigen::Vector3d _gravity;
+
   Eigen::Matrix<double, 16, 1> state_est;
   Eigen::Matrix<double, 15, 15> state_covariance;
   double last_state_timestamp=-1;
   double state_plus_time=-1;
+
+  // Estimate for time offset at last propagation time
+  double last_prop_time_offset = 0.0;
+  bool have_last_prop_time_offset = false;
+
+  // Cache of the last fast propagated state
+  std::atomic<bool> cache_imu_valid;
+  double cache_state_time;
+  Eigen::MatrixXd cache_state_est;
+  Eigen::MatrixXd cache_state_covariance;
+  double cache_t_off;
 };
 
 } // namespace ov_msckf

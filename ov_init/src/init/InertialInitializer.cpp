@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -137,6 +137,11 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
     std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
     std::unordered_map<size_t, std::shared_ptr<ov_type::Landmark>> _features_SLAM;
     return init_dynamic->initialize(timestamp, covariance, order, t_imu, _clones_IMU, _features_SLAM);
+  } else {
+    std::string msg = (has_jerk) ? "" : "no accel jerk detected";
+    msg += (has_jerk || is_still) ? "" : ", ";
+    msg += (is_still) ? "" : "platform moving too much";
+    PRINT_INFO(YELLOW "[init]: failed static init: %s\n" RESET, msg.c_str());
   }
   return false;
 }

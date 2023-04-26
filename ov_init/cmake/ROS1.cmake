@@ -18,7 +18,7 @@ else ()
     include(GNUInstallDirs)
     set(CATKIN_PACKAGE_LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     set(CATKIN_PACKAGE_BIN_DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/open_vins/")
 endif ()
 
 # Include our header files
@@ -44,13 +44,16 @@ list(APPEND thirdparty_libraries
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
 
     message(STATUS "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
     file(GLOB_RECURSE OVCORE_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_core/src/*.cpp")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_profile\\.cpp$")
     list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_webcam\\.cpp$")
     list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_tracking\\.cpp$")
     list(APPEND LIBRARY_SOURCES ${OVCORE_LIBRARY_SOURCES})
-    file(GLOB_RECURSE OVCORE_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_core/src/*.h")
-    list(APPEND LIBRARY_HEADERS ${OVCORE_LIBRARY_HEADERS})
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/../ov_core/src/
+            DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+            FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+    )
 
 endif ()
 
@@ -87,6 +90,14 @@ install(DIRECTORY src/
 ##################################################
 # Make binary files!
 ##################################################
+
+if (catkin_FOUND AND ENABLE_ROS)
+
+    install(DIRECTORY launch/
+            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    )
+
+endif ()
 
 add_executable(test_simulation src/test_simulation.cpp)
 target_link_libraries(test_simulation ov_init_lib ${thirdparty_libraries})
