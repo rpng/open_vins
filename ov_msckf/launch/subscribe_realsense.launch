@@ -1,4 +1,5 @@
 <launch>
+    <arg name="mav_name" default="$(optenv MAV_NAME quadrotor)"/>
 
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
@@ -29,7 +30,7 @@
 
     <!-- MASTER NODE! -->
 <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <!--ode name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+    <!--node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
         <param name="verbosity"              type="string" value="$(arg verbosity)" />
         <param name="config_path"            type="string" value="$(arg config_path)" />
@@ -64,23 +65,27 @@
         </node>
     </group>
 
+    <group ns="$(arg mav_name)">
     <node pkg="nodelet" type="nodelet" args="manager"
     name="ovmsckf_nodelet_manager" output="screen">
         
     </node>
+    </group>
 
 	
+    <group ns="$(arg mav_name)">
 	<node pkg="nodelet" type="nodelet" args="load ovmsckf_nodelet/OvmsckfNodeletClass ovmsckf_nodelet_manager"
     name="OvmsckfNodeletClass_loader" output="screen">
+        <param name="mav_name" type="string" value="$(arg mav_name)"/>
         <param name="config_path"            type="string" value="$(arg config_path)" />
         <param name="publish_global_to_imu_tf" type="bool" value="false"/>
         <param name="publish_world_to_body_tf" type="bool" value="false"/>
         <param name="publish_calibration_tf" type="bool" value="false"/>
-        <!-- <remap from="/zedm/zed_node/imu/data_raw" to="/zed_nodelet/imu/data_raw" />
-        <remap from="/zedm/zed_node/left_raw/image_raw_gray" to="/zed_nodelet/left_raw/image_raw_gray" />
-        <remap from="/zedm/zed_node/right_raw/image_raw_gray" to="/zed_nodelet/right_raw/image_raw_gray" /> -->
-        <!-- remap from="/OvmsckfNodeletClass_loader/odomworld" to="/OvmsckfNodeletClass_loader/odomworld_laptop" / -->
+        <remap from="~cam1/infra1/image_rect_raw" to="cam1/infra1/image_rect_raw"/>
+        <remap from="~cam1/infra2/image_rect_raw" to="cam1/infra2/image_rect_raw"/>
+        <remap from="~cam1/imu" to="cam1/imu"/>
 	</node>
+    <!--/group-->
 
     <arg name="tf_namespace"              default="drone31"/>
     <arg name="device_type_camera_f"      default="d4.5"/>
@@ -101,10 +106,11 @@
     <arg name="gyro_fps_d435"             default="400"/>
     <arg name="accel_fps_d435"            default="250"/>
     
-    <param name="/cam1/stereo_module/exposure"        value="5000"/>
-    <param name="/cam1/stereo_module/emitter_enabled" value="0"/>
+    <param name="/$(arg mav_name)/cam1/stereo_module/exposure"        value="5000"/>
+    <param name="/$(arg mav_name)/cam1/stereo_module/emitter_enabled" value="0"/>
 
-    <group ns="$(arg camera_f)">
+      <!--group ns="OvmsckfNodeletClass_loader/$(arg camera_f)"-->
+      <group ns="$(arg camera_f)">
       <include file="$(find realsense2_camera)/launch/includes/nodelet.launch.xml">
         <arg name="device_type"                 value="$(arg device_type_camera_f)"/>
         <arg name="tf_prefix"                   value="$(arg tf_prefix_camera_f)"/>
@@ -125,15 +131,17 @@
         <arg name="gyro_fps"                    value="$(arg gyro_fps_d435)"/>
         <arg name="stereo_module/exposure/1"    value="5000"/>
         <arg name="stereo_module/gain/1"        value="16"/>
-        <!-- <arg name="external_manager"            value="true"/> -->
-        <!-- <arg name="manager"                     value="ovmsckf_nodelet_manager"/> -->
+        <arg name="external_manager"            value="true"/>
+        <arg name="manager"                     value="/$(arg mav_name)/ovmsckf_nodelet_manager"/>
       </include>
     </group>
+    <!--/group-->
 	
     <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
     name="odom_transform_nodelet" output="screen">
      <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />
         <rosparam file="$(find odom_transform)/config/transform.yaml" />
-	</node>
-
+     <remap from="~odomimu" to="OvmsckfNodeletClass_loader/odomimu"/>
+    </node>
+    </group>
 </launch>
