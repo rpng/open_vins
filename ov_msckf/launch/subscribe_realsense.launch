@@ -1,6 +1,6 @@
 <launch>
+    <arg name="mav_name" default="$(optenv MAV_NAME quadrotor)"/>
 
-    <arg name="mav_name" default="$(env MAV_NAME)"/>
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
     <arg name="config"      default="rs435i" /> <!-- euroc_mav, tum_vi, rpng_aruco -->
