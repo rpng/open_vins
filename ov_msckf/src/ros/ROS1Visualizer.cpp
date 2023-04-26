@@ -354,8 +354,8 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     T_init_tf(1, 3) = state_est(5);
     T_init_tf(2, 3) = state_est(6);
     //T_init_tf = T_correct * T_init_tf;
-    PRINT_INFO("T_init_tf\n");
-    std::cout << T_init_tf << std::endl;
+    //PRINT_INFO("T_init_tf\n");
+    //std::cout << T_init_tf << std::endl;
     T_init_tf_inv.block(0,0,3,3) = T_init_tf.block(0,0,3,3).transpose();
     T_init_tf_inv.block(0,3,3,1) = -T_init_tf.block(0,0,3,3).transpose()*T_init_tf.block(0,3,3,1);
     T_MtoW = T_MtoW*T_init_tf;
@@ -706,9 +706,9 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
   _app->feed_measurement_imu(message);
 
   double startTime = ros::Time::now().toSec();
-  std::cout << "The start time is " << ros::Time::now().toSec() << "\n";
+  // std::cout << "The start time is " << ros::Time::now().toSec() << "\n";
   if ((ros::Time::now().toSec() - last_timestamp) >=  pub_frequency){
-    PRINT_INFO(REDPURPLE "visualize_odometry: %4.5f \n\n" RESET, ros::Time::now().toSec() - last_timestamp );
+    PRINT_INFO(REDPURPLE "visualize_odometry: %4.5f \n" RESET, ros::Time::now().toSec() - last_timestamp );
     visualize_odometry(message.timestamp);
     last_timestamp = ros::Time::now().toSec();
   }
@@ -764,8 +764,8 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
   }
 
   double dt = ros::Time::now().toSec() - startTime;
-  std::cout << "The end time is " << ros::Time::now() << "\n";
-  std::cout << "The dt is " << dt << "\n";
+  //std::cout << "The end time is " << ros::Time::now() << "\n";
+  //std::cout << "The dt is " << dt << "\n";
 }
 
 void ROS1Visualizer::callback_monocular(const sensor_msgs::ImageConstPtr &msg0, int cam_id0) {

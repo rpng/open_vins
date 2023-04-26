@@ -137,11 +137,11 @@
         </group>
 	
         <!-- nodelet of odom_transform -->
-        <node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
+        <!--node pkg="nodelet" type="nodelet" args="load odom_transform_nodelet/OvtransformNodeletClass ovmsckf_nodelet_manager"
             name="odom_transform_nodelet" output="screen">
             <param name="config_path"            type="string" value="$(find odom_transform)/config/transform.yaml" />
             <rosparam file="$(find odom_transform)/config/transform.yaml" />
             <remap from="~odomimu" to="OvmsckfNodeletClass_loader/odomimu"/>
-        </node>
+        </node-->
     </group>
 </launch>
