@@ -82,7 +82,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
       }
     }
   }
-  double oldest_time = newest_cam_time - params.init_window_time - 0.10;
+  double oldest_time = newest_cam_time - std::max(params.init_window_time, params.init_dyn_window_time) - 0.1;
   if (newest_cam_time < 0 || oldest_time < 0) {
     return false;
   }
@@ -103,13 +103,14 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
 
     // Get the disparity statistics from this image to the previous
     // Only compute the disparity for the oldest half of the initialization period
-    double newest_time_allowed = newest_cam_time - 0.5 * params.init_window_time;
+    double newest_time_allowed1 = newest_cam_time - 0.5 * params.init_window_time;
+    double newest_time_allowed0 = newest_cam_time - params.init_window_time;
     int num_features0 = 0;
     int num_features1 = 0;
     double avg_disp0, avg_disp1;
     double var_disp0, var_disp1;
-    FeatureHelper::compute_disparity(_db, avg_disp0, var_disp0, num_features0, newest_time_allowed);
-    FeatureHelper::compute_disparity(_db, avg_disp1, var_disp1, num_features1, newest_cam_time, newest_time_allowed);
+    FeatureHelper::compute_disparity(_db, avg_disp0, var_disp0, num_features0, newest_time_allowed1, newest_time_allowed0);
+    FeatureHelper::compute_disparity(_db, avg_disp1, var_disp1, num_features1, newest_cam_time, newest_time_allowed1);
 
     // Return if we can't compute the disparity
     int feat_thresh = 15;

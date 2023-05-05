@@ -72,7 +72,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
       }
     }
   }
-  double oldest_time = newest_cam_time - params.init_window_time;
+  double oldest_time = newest_cam_time - params.init_dyn_window_time;
   if (newest_cam_time < 0 || oldest_time < 0) {
     return false;
   }
@@ -114,7 +114,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // ======================================================
 
   // Settings
-  const int min_num_meas_to_optimize = (int)params.init_window_time;
+  const int min_num_meas_to_optimize = (int)params.init_dyn_window_time;
   const int min_valid_features = 8;
 
   // Validation information for features we can use
@@ -126,7 +126,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   std::map<double, bool> map_camera_times;
   map_camera_times[newest_cam_time] = true; // always insert final pose
   std::map<size_t, bool> map_camera_ids;
-  double pose_dt_avg = params.init_window_time / (double)(params.init_dyn_num_pose + 1);
+  double pose_dt_avg = params.init_dyn_window_time / (double)(params.init_dyn_num_pose + 1);
   for (auto const &feat : features) {
 
     // Loop through each timestamp and make sure it is a valid pose
