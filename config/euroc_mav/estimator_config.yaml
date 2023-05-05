@@ -43,7 +43,9 @@ init_max_disparity: 10.0 # max disparity to consider the platform stationary (de
 init_max_features: 75 # how many features to track during initialization (saves on computation)
 
 init_dyn_use: false # if dynamic initialization should be used
+init_dyn_window_time: 2.0 # time window for dynamic initialization
 init_dyn_min_movement: 0 # min movement for a dynamic initialization to be considered reliable
+init_dyn_min_velocity: 0.5 # If the speed is less than this value (m/s), static initialization should be used instead of dynamic initialization
 init_dyn_mle_opt_calib: false # if we should optimize calibration during intialization (not recommended)
 init_dyn_mle_max_iter: 50 # how many iterations the MLE refinement should use (zero to skip the MLE)
 init_dyn_mle_max_time: 0.05 # how many seconds the MLE should be completed in
