@@ -953,6 +953,12 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     return false;
   }
 
+  double velocity = get_pose(newest_cam_time).block(7, 0, 3, 1).norm();
+  if (velocity < params.init_dyn_min_velocity) {
+    PRINT_WARNING(YELLOW "[init-d]: the velocity is %.3f < %.3f, initialization failed!\n" RESET, velocity, params.init_dyn_min_velocity);
+    return false;
+  }
+
   // Our most recent state is the IMU state!
   assert(map_states.find(newest_cam_time) != map_states.end());
   if (_imu == nullptr) {
