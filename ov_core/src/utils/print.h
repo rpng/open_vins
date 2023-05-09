@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -98,16 +98,5 @@ private:
 #define PRINT_INFO(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::INFO, __FILE__, TOSTRING(__LINE__), x);
 #define PRINT_WARNING(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::WARNING, __FILE__, TOSTRING(__LINE__), x);
 #define PRINT_ERROR(x...) ov_core::Printer::debugPrint(ov_core::Printer::PrintLevel::ERROR, __FILE__, TOSTRING(__LINE__), x);
-
-// Assert that will always be here in release builds also
-// TODO: place this in a better header, just putting here for now...
-#define assert_r(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
-#ifdef __cplusplus
-extern "C" {
-#endif
-extern void __assert(const char *msg, const char *file, int line);
-#ifdef __cplusplus
-};
-#endif
 
 #endif /* OV_CORE_PRINT_H */

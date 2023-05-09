@@ -2,16 +2,16 @@
 
     <!-- what config we are going to run (should match folder name) -->
     <arg name="verbosity"   default="INFO" /> <!-- ALL, DEBUG, INFO, WARNING, ERROR, SILENT -->
-    <arg name="config"      default="euroc_mav" /> <!-- euroc_mav, tum_vi, rpng_aruco -->
+    <arg name="config"      default="euroc_mav" /> <!-- euroc_mav, tum_vi, rpng_aruco, kaist -->
     <arg name="config_path" default="$(find ov_msckf)/../config/$(arg config)/estimator_config.yaml" />
 
     <!-- mono or stereo and what ros bag to play -->
     <arg name="max_cameras" default="2" />
     <arg name="use_stereo"  default="true" />
     <arg name="bag_start"   default="0" /> <!-- v1-2: 0, mh1: 40, mh2: 35, mh3: 17.5, mh4-5: 15 -->
-    <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V2_02_medium, dataset-room1_512_16 -->
-<!--    <arg name="bag"         default="/media/patrick/RPNG FLASH 3/$(arg config)/$(arg dataset).bag" />-->
-     <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />
+    <arg name="dataset"     default="V1_02_medium" /> <!-- V1_01_easy, V1_02_medium, V1_03_difficult, V2_02_medium, dataset-room1_512_16 -->
+    <!-- <arg name="bag"         default="/media/patrick/RPNG FLASH 3/$(arg config)/$(arg dataset).bag" /> -->
+    <arg name="bag"         default="/home/patrick/datasets/$(arg config)/$(arg dataset).bag" />
     <!-- <arg name="bag"         default="/datasets/$(arg config)/$(arg dataset).bag" /> -->
 
     <!-- saving trajectory path and timing information -->
@@ -25,8 +25,8 @@
     <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
 
     <!-- MASTER NODE! -->
-<!--    <node name="ros1_serial_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <node name="ros1_serial_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true">
+<!--    <node name="ov_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="ov_msckf" pkg="ov_msckf" type="ros1_serial_msckf" output="screen" clear_params="true" required="true">
 
         <!-- bag parameters -->
         <param name="path_bag"                 type="str"    value="$(arg bag)" />

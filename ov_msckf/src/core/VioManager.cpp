@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,7 +63,7 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
 
   // This will globally set the thread count we will use
   // -1 will reset to the system default threading (usually the num of cores)
-  cv::setNumThreads(params.use_multi_threading ? -1 : 0);
+  cv::setNumThreads(params.num_opencv_threads);
   cv::setRNGSeed(0);
 
   // Create the state!!
@@ -128,7 +128,6 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
   // Let's make a feature extractor
   // NOTE: after we initialize we will increase the total number of feature tracks
   // NOTE: we will split the total number of features over all cameras uniformly
-  trackDATABASE = std::make_shared<FeatureDatabase>();
   int init_max_features = std::floor((double)params.init_options.init_max_features / (double)params.state_options.num_cameras);
   if (params.use_klt) {
     trackFEATS = std::shared_ptr<TrackBase>(new TrackKLT(state->_cam_intrinsics_cameras, init_max_features,
@@ -162,9 +161,6 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
                                                         propagator, params.gravity_mag, params.zupt_max_velocity,
                                                         params.zupt_noise_multiplier, params.zupt_max_disparity);
   }
-
-  // Feature initializer for active tracks
-  active_tracks_initializer = std::make_shared<FeatureInitializer>(params.featinit_options);
 }
 
 void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
@@ -175,6 +171,9 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
   if (oldest_time > state->_timestamp) {
     oldest_time = -1;
   }
+  if (!is_initialized_vio) {
+    oldest_time = message.timestamp - params.init_options.init_window_time + state->_calib_dt_CAMtoIMU->value()(0) - 0.10;
+  }
   propagator->feed_imu(message, oldest_time);
 
   // Push back to our initializer
@@ -182,8 +181,9 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
     initializer->feed_imu(message, oldest_time);
   }
 
-  // Push back to the zero velocity updater if we have it
-  if (is_initialized_vio && updaterZUPT != nullptr) {
+  // Push back to the zero velocity updater if it is enabled
+  // No need to push back if we are just doing the zv-update at the begining and we have moved
+  if (is_initialized_vio && updaterZUPT != nullptr && (!params.zupt_only_at_beginning || !has_moved_since_zupt)) {
     updaterZUPT->feed_imu(message, oldest_time);
   }
 }
@@ -201,14 +201,18 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
     // Replace with the simulated tracker
     trackSIM = std::make_shared<TrackSIM>(state->_cam_intrinsics_cameras, state->_options.max_aruco_features);
     trackFEATS = trackSIM;
+    // Need to also replace it in init and zv-upt since it points to the trackFEATS db pointer
+    initializer = std::make_shared<ov_init::InertialInitializer>(params.init_options, trackFEATS->get_feature_database());
+    if (params.try_zupt) {
+      updaterZUPT = std::make_shared<UpdaterZeroVelocity>(params.zupt_options, params.imu_noises, trackFEATS->get_feature_database(),
+                                                          propagator, params.gravity_mag, params.zupt_max_velocity,
+                                                          params.zupt_noise_multiplier, params.zupt_max_disparity);
+    }
     PRINT_WARNING(RED "[SIM]: casting our tracker to a TrackSIM object!\n" RESET);
   }
 
   // Feed our simulation tracker
   trackSIM->feed_measurement_simulation(timestamp, camids, feats);
-  if (is_initialized_vio) {
-    trackDATABASE->append_new_measurements(trackSIM->get_feature_database());
-  }
   rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Check if we should do zero-velocity, if so update the state with it
@@ -220,6 +224,10 @@ void VioManager::feed_measurement_simulation(double timestamp, const std::vector
       did_zupt_update = updaterZUPT->try_update(state, timestamp);
     }
     if (did_zupt_update) {
+      assert(state->_timestamp == timestamp);
+      propagator->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
+      updaterZUPT->clean_old_imu_measurements(timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
+      propagator->invalidate_cache();
       return;
     }
   }
@@ -271,16 +279,12 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
-  if (is_initialized_vio) {
-    trackDATABASE->append_new_measurements(trackFEATS->get_feature_database());
-  }
 
   // If the aruco tracker is available, the also pass to it
   // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids
   // NOTE: thus we just call the stereo tracking if we are doing binocular!
   if (is_initialized_vio && trackARUCO != nullptr) {
     trackARUCO->feed_new_camera(message);
-    trackDATABASE->append_new_measurements(trackARUCO->get_feature_database());
   }
   rT2 = boost::posix_time::microsec_clock::local_time();
 
@@ -293,6 +297,10 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
       did_zupt_update = updaterZUPT->try_update(state, message.timestamp);
     }
     if (did_zupt_update) {
+      assert(state->_timestamp == message.timestamp);
+      propagator->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
+      updaterZUPT->clean_old_imu_measurements(message.timestamp + state->_calib_dt_CAMtoIMU->value()(0) - 0.10);
+      propagator->invalidate_cache();
       return;
     }
   }
@@ -445,9 +453,10 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 
   // Loop through current SLAM features, we have tracks of them, grab them for this update!
-  // Note: if we have a slam feature that has lost tracking, then we should marginalize it out
-  // Note: we only enforce this if the current camera message is where the feature was seen from
-  // Note: if you do not use FEJ, these types of slam features *degrade* the estimator performance....
+  // NOTE: if we have a slam feature that has lost tracking, then we should marginalize it out
+  // NOTE: we only enforce this if the current camera message is where the feature was seen from
+  // NOTE: if you do not use FEJ, these types of slam features *degrade* the estimator performance....
+  // NOTE: we will also marginalize SLAM features if they have failed their update a couple times in a row
   for (std::pair<const size_t, std::shared_ptr<Landmark>> &landmark : state->_features_SLAM) {
     if (trackARUCO != nullptr) {
       std::shared_ptr<Feature> feat1 = trackARUCO->get_feature_database()->get_feature(landmark.second->_featid);
@@ -461,6 +470,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     bool current_unique_cam =
         std::find(message.sensor_ids.begin(), message.sensor_ids.end(), landmark.second->_unique_camera_id) != message.sensor_ids.end();
     if (feat2 == nullptr && current_unique_cam)
+      landmark.second->should_marg = true;
+    if (landmark.second->update_fail_count > 1)
       landmark.second->should_marg = true;
   }
 
@@ -495,7 +506,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // Sort based on track length
   // TODO: we should have better selection logic here (i.e. even feature distribution in the FOV etc..)
   // TODO: right now features that are "lost" are at the front of this vector, while ones at the end are long-tracks
-  std::sort(featsup_MSCKF.begin(), featsup_MSCKF.end(), [](const std::shared_ptr<Feature> &a, const std::shared_ptr<Feature> &b) -> bool {
+  auto compare_feat = [](const std::shared_ptr<Feature> &a, const std::shared_ptr<Feature> &b) -> bool {
     size_t asize = 0;
     size_t bsize = 0;
     for (const auto &pair : a->timestamps)
@@ -503,7 +514,8 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     for (const auto &pair : b->timestamps)
       bsize += pair.second.size();
     return asize < bsize;
-  });
+  };
+  std::sort(featsup_MSCKF.begin(), featsup_MSCKF.end(), compare_feat);
 
   // Pass them to our MSCKF updater
   // NOTE: if we have more then the max, we select the "best" ones (i.e. max tracks) for this update
@@ -511,6 +523,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   if ((int)featsup_MSCKF.size() > state->_options.max_msckf_in_update)
     featsup_MSCKF.erase(featsup_MSCKF.begin(), featsup_MSCKF.end() - state->_options.max_msckf_in_update);
   updaterMSCKF->update(state, featsup_MSCKF);
+  propagator->invalidate_cache();
   rT4 = boost::posix_time::microsec_clock::local_time();
 
   // Perform SLAM delay init and update
@@ -527,6 +540,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     // Do the update
     updaterSLAM->update(state, featsup_TEMP);
     feats_slam_UPDATE_TEMP.insert(feats_slam_UPDATE_TEMP.end(), featsup_TEMP.begin(), featsup_TEMP.end());
+    propagator->invalidate_cache();
   }
   feats_slam_UPDATE = feats_slam_UPDATE_TEMP;
   rT5 = boost::posix_time::microsec_clock::local_time();
@@ -570,10 +584,9 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   // First do anchor change if we are about to lose an anchor pose
   updaterSLAM->change_anchors(state);
 
-  // Cleanup any features older then the marginalization time
+  // Cleanup any features older than the marginalization time
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
     trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
-    trackDATABASE->cleanup_measurements(state->margtimestep());
     if (trackARUCO != nullptr) {
       trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
     }

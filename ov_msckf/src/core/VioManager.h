@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -185,9 +185,6 @@ protected:
   /// Propagator of our state
   std::shared_ptr<Propagator> propagator;
 
-  /// Complete history of our feature tracks
-  std::shared_ptr<ov_core::FeatureDatabase> trackDATABASE;
-
   /// Our sparse feature tracker (klt or descriptor)
   std::shared_ptr<ov_core::TrackBase> trackFEATS;
 
@@ -235,14 +232,15 @@ protected:
   // Good features that where used in the last update (used in visualization)
   std::vector<Eigen::Vector3d> good_features_MSCKF;
 
-  /// Feature initializer used to triangulate all active tracks
-  std::shared_ptr<ov_core::FeatureInitializer> active_tracks_initializer;
-
   // Re-triangulated features 3d positions seen from the current frame (used in visualization)
+  // For each feature we have a linear system A * p_FinG = b we create and increment their costs
   double active_tracks_time = -1;
   std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG;
   std::unordered_map<size_t, Eigen::Vector3d> active_tracks_uvd;
   cv::Mat active_image;
+  std::map<size_t, Eigen::Matrix3d> active_feat_linsys_A;
+  std::map<size_t, Eigen::Vector3d> active_feat_linsys_b;
+  std::map<size_t, int> active_feat_linsys_count;
 };
 
 } // namespace ov_msckf

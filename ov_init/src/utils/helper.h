@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -137,16 +137,15 @@ public:
    */
   static void gram_schmidt(const Eigen::Vector3d &gravity_inI, Eigen::Matrix3d &R_GtoI) {
 
-    // Now gram schmidt to find rot for grav
-    // https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
-    // Get z axis, which alines with -g (z_in_G=0,0,1)
+    // This will find an orthogonal vector to gravity which is our local z-axis
+    // We need to ensure we normalize after each one such that we obtain unit vectors
     Eigen::Vector3d z_axis = gravity_inI / gravity_inI.norm();
     Eigen::Vector3d x_axis, y_axis;
     Eigen::Vector3d e_1(1.0, 0.0, 0.0);
     Eigen::Vector3d e_2(0.0, 1.0, 0.0);
     double inner1 = e_1.dot(z_axis) / z_axis.norm();
     double inner2 = e_2.dot(z_axis) / z_axis.norm();
-    if (fabs(inner1) >= fabs(inner2)) {
+    if (fabs(inner1) < fabs(inner2)) {
       x_axis = z_axis.cross(e_1);
       x_axis = x_axis / x_axis.norm();
       y_axis = z_axis.cross(x_axis);
@@ -159,6 +158,7 @@ public:
     }
 
     // Original method
+    // https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
     // x_axis = e_1 - z_axis * z_axis.transpose() * e_1;
     // x_axis = x_axis / x_axis.norm();
     // y_axis = ov_core::skew_x(z_axis) * x_axis;

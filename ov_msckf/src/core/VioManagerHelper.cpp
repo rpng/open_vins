@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -47,7 +47,7 @@ void VioManager::initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate) {
   // TODO: Why does this break out simulation consistency metrics?
   std::vector<std::shared_ptr<ov_type::Type>> order = {state->_imu};
   Eigen::MatrixXd Cov = std::pow(0.02, 2) * Eigen::MatrixXd::Identity(state->_imu->size(), state->_imu->size());
-  Cov.block(3, 3, 3, 3) = std::pow(0.017, 2) * Eigen::Matrix3d::Identity(); // q
+  Cov.block(0, 0, 3, 3) = std::pow(0.017, 2) * Eigen::Matrix3d::Identity(); // q
   Cov.block(3, 3, 3, 3) = std::pow(0.05, 2) * Eigen::Matrix3d::Identity();  // p
   Cov.block(6, 6, 3, 3) = std::pow(0.01, 2) * Eigen::Matrix3d::Identity();  // v (static)
   StateHelper::set_initial_covariance(state, Cov, order);
@@ -179,7 +179,7 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
 
   // If we are single threaded, then run single threaded
   // Otherwise detach this thread so it runs in the background!
-  if (!params.use_multi_threading) {
+  if (!params.use_multi_threading_subs) {
     thread.join();
   } else {
     thread.detach();
@@ -190,109 +190,124 @@ bool VioManager::try_to_initialize(const ov_core::CameraData &message) {
 void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message) {
 
   // Start timing
-  boost::posix_time::ptime retri_rT1, retri_rT2, retri_rT3, retri_rT4, retri_rT5;
+  boost::posix_time::ptime retri_rT1, retri_rT2, retri_rT3;
   retri_rT1 = boost::posix_time::microsec_clock::local_time();
 
   // Clear old active track data
-  active_tracks_time = state->_timestamp;
-  active_image = message.images.at(0).clone();
+  assert(state->_clones_IMU.find(message.timestamp) != state->_clones_IMU.end());
+  active_tracks_time = message.timestamp;
+  active_image = cv::Mat();
+  trackFEATS->display_active(active_image, 255, 255, 255, 255, 255, 255, " ");
+  if (!active_image.empty()) {
+    active_image = active_image(cv::Rect(0, 0, message.images.at(0).cols, message.images.at(0).rows));
+  }
   active_tracks_posinG.clear();
   active_tracks_uvd.clear();
 
-  // Get all features which are tracked in the current frame
-  // NOTE: This database should have all features from all trackers already in it
-  // NOTE: it also has the complete history so we shouldn't see jumps from deleting measurements
-  std::vector<std::shared_ptr<Feature>> active_features = trackDATABASE->features_containing_older(state->_timestamp);
+  // Current active tracks in our frontend
+  // TODO: should probably assert here that these are at the message time...
+  auto last_obs = trackFEATS->get_last_obs();
+  auto last_ids = trackFEATS->get_last_ids();
 
-  // 0. Get all timestamps our clones are at (and thus valid measurement times)
-  std::vector<double> clonetimes;
-  for (const auto &clone_imu : state->_clones_IMU) {
-    clonetimes.emplace_back(clone_imu.first);
+  // New set of linear systems that only contain the latest track info
+  std::map<size_t, Eigen::Matrix3d> active_feat_linsys_A_new;
+  std::map<size_t, Eigen::Vector3d> active_feat_linsys_b_new;
+  std::map<size_t, int> active_feat_linsys_count_new;
+  std::unordered_map<size_t, Eigen::Vector3d> active_tracks_posinG_new;
+
+  // Append our new observations for each camera
+  std::map<size_t, cv::Point2f> feat_uvs_in_cam0;
+  for (auto const &cam_id : message.sensor_ids) {
+
+    // IMU historical clone
+    Eigen::Matrix3d R_GtoI = state->_clones_IMU.at(active_tracks_time)->Rot();
+    Eigen::Vector3d p_IinG = state->_clones_IMU.at(active_tracks_time)->pos();
+
+    // Calibration for this cam_id
+    Eigen::Matrix3d R_ItoC = state->_calib_IMUtoCAM.at(cam_id)->Rot();
+    Eigen::Vector3d p_IinC = state->_calib_IMUtoCAM.at(cam_id)->pos();
+
+    // Convert current CAMERA position relative to global
+    Eigen::Matrix3d R_GtoCi = R_ItoC * R_GtoI;
+    Eigen::Vector3d p_CiinG = p_IinG - R_GtoCi.transpose() * p_IinC;
+
+    // Loop through each measurement
+    assert(last_obs.find(cam_id) != last_obs.end());
+    assert(last_ids.find(cam_id) != last_ids.end());
+    for (size_t i = 0; i < last_obs.at(cam_id).size(); i++) {
+
+      // Record this feature uv if is seen from cam0
+      size_t featid = last_ids.at(cam_id).at(i);
+      cv::Point2f pt_d = last_obs.at(cam_id).at(i).pt;
+      if (cam_id == 0) {
+        feat_uvs_in_cam0[featid] = pt_d;
+      }
+
+      // Skip this feature if it is a SLAM feature (the state estimate takes priority)
+      if (state->_features_SLAM.find(featid) != state->_features_SLAM.end()) {
+        continue;
+      }
+
+      // Get the UV coordinate normal
+      cv::Point2f pt_n = state->_cam_intrinsics_cameras.at(cam_id)->undistort_cv(pt_d);
+      Eigen::Matrix<double, 3, 1> b_i;
+      b_i << pt_n.x, pt_n.y, 1;
+      b_i = R_GtoCi.transpose() * b_i;
+      b_i = b_i / b_i.norm();
+      Eigen::Matrix3d Bperp = skew_x(b_i);
+
+      // Append to our linear system
+      Eigen::Matrix3d Ai = Bperp.transpose() * Bperp;
+      Eigen::Vector3d bi = Ai * p_CiinG;
+      if (active_feat_linsys_A.find(featid) == active_feat_linsys_A.end()) {
+        active_feat_linsys_A_new.insert({featid, Ai});
+        active_feat_linsys_b_new.insert({featid, bi});
+        active_feat_linsys_count_new.insert({featid, 1});
+      } else {
+        active_feat_linsys_A_new[featid] = Ai + active_feat_linsys_A[featid];
+        active_feat_linsys_b_new[featid] = bi + active_feat_linsys_b[featid];
+        active_feat_linsys_count_new[featid] = 1 + active_feat_linsys_count[featid];
+      }
+
+      // For this feature, recover its 3d position if we have enough observations!
+      if (active_feat_linsys_count_new.at(featid) > 3) {
+
+        // Recover feature estimate
+        Eigen::Matrix3d A = active_feat_linsys_A_new[featid];
+        Eigen::Vector3d b = active_feat_linsys_b_new[featid];
+        Eigen::MatrixXd p_FinG = A.colPivHouseholderQr().solve(b);
+        Eigen::MatrixXd p_FinCi = R_GtoCi * (p_FinG - p_CiinG);
+
+        // Check A and p_FinCi
+        Eigen::JacobiSVD<Eigen::Matrix3d> svd(A);
+        Eigen::MatrixXd singularValues;
+        singularValues.resize(svd.singularValues().rows(), 1);
+        singularValues = svd.singularValues();
+        double condA = singularValues(0, 0) / singularValues(singularValues.rows() - 1, 0);
+
+        // If we have a bad condition number, or it is too close
+        // Then set the flag for bad (i.e. set z-axis to nan)
+        if (std::abs(condA) <= params.featinit_options.max_cond_number && p_FinCi(2, 0) >= params.featinit_options.min_dist &&
+            p_FinCi(2, 0) <= params.featinit_options.max_dist && !std::isnan(p_FinCi.norm())) {
+          active_tracks_posinG_new[featid] = p_FinG;
+        }
+      }
+    }
   }
+  size_t total_triangulated = active_tracks_posinG.size();
 
-  // 1. Clean all feature measurements and make sure they all have valid clone times
-  //    Also remove any that we are unable to triangulate (due to not having enough measurements)
-  auto it0 = active_features.begin();
-  while (it0 != active_features.end()) {
-
-    // Skip if it is a SLAM feature since it already is already going to be added
-    if (state->_features_SLAM.find((*it0)->featid) != state->_features_SLAM.end()) {
-      it0 = active_features.erase(it0);
-      continue;
-    }
-
-    // Clean the feature
-    (*it0)->clean_old_measurements(clonetimes);
-
-    // Count how many measurements
-    int ct_meas = 0;
-    for (const auto &pair : (*it0)->timestamps) {
-      ct_meas += (*it0)->timestamps[pair.first].size();
-    }
-
-    // Remove if we don't have enough and am not a SLAM feature which doesn't need triangulation
-    if (ct_meas < (int)std::max(4.0, std::floor(state->_options.max_clone_size * 2.0 / 5.0))) {
-      it0 = active_features.erase(it0);
-    } else {
-      it0++;
-    }
-  }
+  // Update active set of linear systems
+  active_feat_linsys_A = active_feat_linsys_A_new;
+  active_feat_linsys_b = active_feat_linsys_b_new;
+  active_feat_linsys_count = active_feat_linsys_count_new;
+  active_tracks_posinG = active_tracks_posinG_new;
   retri_rT2 = boost::posix_time::microsec_clock::local_time();
 
   // Return if no features
-  if (active_features.empty() && state->_features_SLAM.empty())
+  if (active_tracks_posinG.empty() && state->_features_SLAM.empty())
     return;
 
-  // 2. Create vector of cloned *CAMERA* poses at each of our clone timesteps
-  std::unordered_map<size_t, std::unordered_map<double, FeatureInitializer::ClonePose>> clones_cam;
-  for (const auto &clone_calib : state->_calib_IMUtoCAM) {
-
-    // For this camera, create the vector of camera poses
-    std::unordered_map<double, FeatureInitializer::ClonePose> clones_cami;
-    for (const auto &clone_imu : state->_clones_IMU) {
-
-      // Get current camera pose
-      Eigen::Matrix3d R_GtoCi = clone_calib.second->Rot() * clone_imu.second->Rot();
-      Eigen::Vector3d p_CioinG = clone_imu.second->pos() - R_GtoCi.transpose() * clone_calib.second->pos();
-
-      // Append to our map
-      clones_cami.insert({clone_imu.first, FeatureInitializer::ClonePose(R_GtoCi, p_CioinG)});
-    }
-
-    // Append to our map
-    clones_cam.insert({clone_calib.first, clones_cami});
-  }
-  retri_rT3 = boost::posix_time::microsec_clock::local_time();
-
-  // 3. Try to triangulate all features that have measurements
-  auto it1 = active_features.begin();
-  while (it1 != active_features.end()) {
-
-    // Triangulate the feature and remove if it fails
-    bool success_tri = true;
-    if (active_tracks_initializer->config().triangulate_1d) {
-      success_tri = active_tracks_initializer->single_triangulation_1d(*it1, clones_cam);
-    } else {
-      success_tri = active_tracks_initializer->single_triangulation(*it1, clones_cam);
-    }
-
-    // Remove the feature if not a success
-    if (!success_tri) {
-      it1 = active_features.erase(it1);
-      continue;
-    }
-    it1++;
-  }
-  retri_rT4 = boost::posix_time::microsec_clock::local_time();
-
-  // Return if no features
-  if (active_features.empty() && state->_features_SLAM.empty())
-    return;
-
-  // Points which we have in the global frame
-  for (const auto &feat : active_features) {
-    active_tracks_posinG[feat->featid] = feat->p_FinG;
-  }
+  // Append our SLAM features we have
   for (const auto &feat : state->_features_SLAM) {
     Eigen::Vector3d p_FinG = feat.second->get_xyz(false);
     if (LandmarkRepresentation::is_relative_representation(feat.second->_feat_representation)) {
@@ -325,13 +340,24 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
   //    We also will project the features into the current frame
   for (const auto &feat : active_tracks_posinG) {
 
-    // Project the current feature into the current frame of reference
+    // For now skip features not seen from current frame
+    // TODO: should we publish other features not tracked in cam0??
+    if (feat_uvs_in_cam0.find(feat.first) == feat_uvs_in_cam0.end())
+      continue;
+
+    // Calculate the depth of the feature in the current frame
+    // Project SLAM feature and non-cam0 features into the current frame of reference
     Eigen::Vector3d p_FinIi = R_GtoIi * (feat.second - p_IiinG);
     Eigen::Vector3d p_FinCi = R_ItoC * p_FinIi + p_IinC;
     double depth = p_FinCi(2);
-    Eigen::Vector2d uv_norm, uv_dist;
-    uv_norm << p_FinCi(0) / depth, p_FinCi(1) / depth;
-    uv_dist = state->_cam_intrinsics_cameras.at(0)->distort_d(uv_norm);
+    Eigen::Vector2d uv_dist;
+    if (feat_uvs_in_cam0.find(feat.first) != feat_uvs_in_cam0.end()) {
+      uv_dist << (double)feat_uvs_in_cam0.at(feat.first).x, (double)feat_uvs_in_cam0.at(feat.first).y;
+    } else {
+      Eigen::Vector2d uv_norm;
+      uv_norm << p_FinCi(0) / depth, p_FinCi(1) / depth;
+      uv_dist = state->_cam_intrinsics_cameras.at(0)->distort_d(uv_norm);
+    }
 
     // Skip if not valid (i.e. negative depth, or outside of image)
     if (depth < 0.1) {
@@ -351,14 +377,13 @@ void VioManager::retriangulate_active_tracks(const ov_core::CameraData &message)
     uvd << uv_dist, depth;
     active_tracks_uvd.insert({feat.first, uvd});
   }
-  retri_rT5 = boost::posix_time::microsec_clock::local_time();
+  retri_rT3 = boost::posix_time::microsec_clock::local_time();
 
   // Timing information
-  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for cleaning\n" RESET, (retri_rT2-retri_rT1).total_microseconds() * 1e-6);
-  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for triangulate setup\n" RESET, (retri_rT3-retri_rT2).total_microseconds() * 1e-6);
-  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for triangulation\n" RESET, (retri_rT4-retri_rT3).total_microseconds() * 1e-6);
-  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds for re-projection\n" RESET, (retri_rT5-retri_rT4).total_microseconds() * 1e-6);
-  // PRINT_DEBUG(CYAN "[RETRI-TIME]: %.4f seconds total\n" RESET, (retri_rT5-retri_rT1).total_microseconds() * 1e-6);
+  PRINT_ALL(CYAN "[RETRI-TIME]: %.4f seconds for triangulation (%zu tri of %zu active)\n" RESET,
+            (retri_rT2 - retri_rT1).total_microseconds() * 1e-6, total_triangulated, active_feat_linsys_A.size());
+  PRINT_ALL(CYAN "[RETRI-TIME]: %.4f seconds for re-projection into current\n" RESET, (retri_rT3 - retri_rT2).total_microseconds() * 1e-6);
+  PRINT_ALL(CYAN "[RETRI-TIME]: %.4f seconds total\n" RESET, (retri_rT3 - retri_rT1).total_microseconds() * 1e-6);
 }
 
 cv::Mat VioManager::get_historical_viz_image() {

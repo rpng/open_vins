@@ -18,7 +18,7 @@ else ()
     include(GNUInstallDirs)
     set(CATKIN_PACKAGE_LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     set(CATKIN_PACKAGE_BIN_DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/open_vins/")
 endif ()
 
 
@@ -37,7 +37,7 @@ list(APPEND thirdparty_libraries
         ${OpenCV_LIBRARIES}
         ${CERES_LIBRARIES}
         ${catkin_LIBRARIES}
-        )
+)
 
 # If we are not building with ROS then we need to manually link to its headers
 # This isn't that elegant of a way, but this at least allows for building without ROS
@@ -46,25 +46,29 @@ list(APPEND thirdparty_libraries
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
 
     message(STATUS "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
     file(GLOB_RECURSE OVCORE_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_core/src/*.cpp")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_profile\\.cpp$")
     list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_webcam\\.cpp$")
     list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_tracking\\.cpp$")
     list(APPEND LIBRARY_SOURCES ${OVCORE_LIBRARY_SOURCES})
-    file(GLOB_RECURSE OVCORE_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_core/src/*.h")
-    list(APPEND LIBRARY_HEADERS ${OVCORE_LIBRARY_HEADERS})
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/../ov_core/src/
+            DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+            FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+    )
 
     message(STATUS "MANUALLY LINKING TO OV_INIT LIBRARY....")
-    include_directories(${CMAKE_SOURCE_DIR}/../ov_init/src/)
     file(GLOB_RECURSE OVINIT_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_init/src/*.cpp")
     list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*test_dynamic_init\\.cpp$")
     list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*test_dynamic_mle\\.cpp$")
     list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*test_simulation\\.cpp$")
     list(FILTER OVINIT_LIBRARY_SOURCES EXCLUDE REGEX ".*Simulator\\.cpp$")
     list(APPEND LIBRARY_SOURCES ${OVINIT_LIBRARY_SOURCES})
-    file(GLOB_RECURSE OVINIT_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_init/src/*.h")
-    list(FILTER OVINIT_LIBRARY_HEADERS EXCLUDE REGEX ".*Simulator\\.h$")
-    list(APPEND LIBRARY_HEADERS ${OVINIT_LIBRARY_HEADERS})
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_init/src/)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/../ov_init/src/
+            DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+            FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+    )
 
 endif ()
 
@@ -84,7 +88,7 @@ list(APPEND LIBRARY_SOURCES
         src/update/UpdaterMSCKF.cpp
         src/update/UpdaterSLAM.cpp
         src/update/UpdaterZeroVelocity.cpp
-        )
+)
 if (catkin_FOUND AND ENABLE_ROS)
     list(APPEND LIBRARY_SOURCES src/ros/ROS1Visualizer.cpp src/ros/ROSVisualizerHelper.cpp)
 endif ()
@@ -96,11 +100,12 @@ install(TARGETS ov_msckf_lib
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 install(DIRECTORY src/
         DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-        )
+)
+
 
 ##################################################
 # Make binary files!
@@ -114,7 +119,7 @@ if (catkin_FOUND AND ENABLE_ROS)
             ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-            )
+    )
 
     add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
     target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
@@ -122,7 +127,11 @@ if (catkin_FOUND AND ENABLE_ROS)
             ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-            )
+    )
+    
+    install(DIRECTORY launch/
+            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    )
 
 endif ()
 
@@ -132,7 +141,7 @@ install(TARGETS run_simulation
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 add_executable(test_sim_meas src/test_sim_meas.cpp)
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
@@ -140,7 +149,7 @@ install(TARGETS test_sim_meas
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
+)
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
@@ -148,18 +157,5 @@ install(TARGETS test_sim_repeat
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
-        )
-
-
-##################################################
-# Launch files!
-##################################################
-
-install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-        )
-
-
-
-
+)
 

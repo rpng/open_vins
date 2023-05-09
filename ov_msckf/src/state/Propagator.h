@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -22,6 +22,7 @@
 #ifndef OV_MSCKF_STATE_PROPAGATOR_H
 #define OV_MSCKF_STATE_PROPAGATOR_H
 
+#include <atomic>
 #include <memory>
 #include <mutex>
 
@@ -47,7 +48,11 @@ public:
    * @param noises imu noise characteristics (continuous time)
    * @param gravity_mag Global gravity magnitude of the system (normally 9.81)
    */
-  Propagator(NoiseManager noises, double gravity_mag) : _noises(noises) {
+  Propagator(NoiseManager noises, double gravity_mag) : _noises(noises), cache_imu_valid(false) {
+    _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
+    _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
+    _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
+    _noises.sigma_ab_2 = std::pow(_noises.sigma_ab, 2);
     last_prop_time_offset = 0.0;
     _gravity << 0.0, 0.0, gravity_mag;
   }
@@ -55,7 +60,7 @@ public:
   /**
    * @brief Stores incoming inertial readings
    * @param message Contains our timestamp and inertial information
-   * @param oldest_time Time that we can discard measurements before
+   * @param oldest_time Time that we can discard measurements before (in IMU clock)
    */
   void feed_imu(const ov_core::ImuData &message, double oldest_time = -1) {
 
@@ -63,18 +68,32 @@ public:
     std::lock_guard<std::mutex> lck(imu_data_mtx);
     imu_data.emplace_back(message);
 
-    // Loop through and delete imu messages that are older than our requested time
-    if (oldest_time != -1) {
-      auto it0 = imu_data.begin();
-      while (it0 != imu_data.end()) {
-        if (it0->timestamp < oldest_time - 0.10) {
-          it0 = imu_data.erase(it0);
-        } else {
-          it0++;
-        }
+    // Clean old measurements
+    // std::cout << "PROP: imu_data.size() " << imu_data.size() << std::endl;
+    clean_old_imu_measurements(oldest_time - 0.10);
+  }
+
+  /**
+   * @brief This will remove any IMU measurements that are older then the given measurement time
+   * @param oldest_time Time that we can discard measurements before (in IMU clock)
+   */
+  void clean_old_imu_measurements(double oldest_time) {
+    if (oldest_time < 0)
+      return;
+    auto it0 = imu_data.begin();
+    while (it0 != imu_data.end()) {
+      if (it0->timestamp < oldest_time) {
+        it0 = imu_data.erase(it0);
+      } else {
+        it0++;
       }
     }
   }
+
+  /**
+   * @brief Will invalidate the cache used for fast propagation
+   */
+  void invalidate_cache() { cache_imu_valid = false; }
 
   /**
    * @brief Propagate state up to given timestamp and then clone
@@ -412,10 +431,6 @@ protected:
                                 const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q,
                                 const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G);
 
-  /// Estimate for time offset at last propagation time
-  double last_prop_time_offset = 0.0;
-  bool have_last_prop_time_offset = false;
-
   /// Container for the noise values
   NoiseManager _noises;
 
@@ -425,6 +440,17 @@ protected:
 
   /// Gravity vector
   Eigen::Vector3d _gravity;
+
+  // Estimate for time offset at last propagation time
+  double last_prop_time_offset = 0.0;
+  bool have_last_prop_time_offset = false;
+
+  // Cache of the last fast propagated state
+  std::atomic<bool> cache_imu_valid;
+  double cache_state_time;
+  Eigen::MatrixXd cache_state_est;
+  Eigen::MatrixXd cache_state_covariance;
+  double cache_t_off;
 };
 
 } // namespace ov_msckf

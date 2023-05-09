@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -38,7 +38,7 @@ sensor_msgs::PointCloud2 ROSVisualizerHelper::get_ros_pointcloud(const std::vect
   sensor_msgs::PointCloud2 cloud;
   cloud.header.frame_id = "global";
   cloud.header.stamp = ros::Time::now();
-  cloud.width = 3 * feats.size();
+  cloud.width = feats.size();
   cloud.height = 1;
   cloud.is_bigendian = false;
   cloud.is_dense = false; // there may be invalid points
@@ -46,7 +46,7 @@ sensor_msgs::PointCloud2 ROSVisualizerHelper::get_ros_pointcloud(const std::vect
   // Setup pointcloud fields
   sensor_msgs::PointCloud2Modifier modifier(cloud);
   modifier.setPointCloud2FieldsByString(1, "xyz");
-  modifier.resize(3 * feats.size());
+  modifier.resize(feats.size());
 
   // Iterators
   sensor_msgs::PointCloud2Iterator<float> out_x(cloud, "x");
@@ -96,7 +96,7 @@ sensor_msgs::msg::PointCloud2 ROSVisualizerHelper::get_ros_pointcloud(std::share
   sensor_msgs::msg::PointCloud2 cloud;
   cloud.header.frame_id = "global";
   cloud.header.stamp = node->now();
-  cloud.width = 3 * feats.size();
+  cloud.width = feats.size();
   cloud.height = 1;
   cloud.is_bigendian = false;
   cloud.is_dense = false; // there may be invalid points
@@ -104,7 +104,7 @@ sensor_msgs::msg::PointCloud2 ROSVisualizerHelper::get_ros_pointcloud(std::share
   // Setup pointcloud fields
   sensor_msgs::PointCloud2Modifier modifier(cloud);
   modifier.setPointCloud2FieldsByString(1, "xyz");
-  modifier.resize(3 * feats.size());
+  modifier.resize(feats.size());
 
   // Iterators
   sensor_msgs::PointCloud2Iterator<float> out_x(cloud, "x");

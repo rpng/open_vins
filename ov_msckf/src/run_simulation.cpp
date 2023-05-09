@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -91,7 +91,8 @@ int main(int argc, char **argv) {
   VioManagerOptions params;
   params.print_and_load(parser);
   params.print_and_load_simulation(parser);
-  params.use_multi_threading = false; // for repeatability
+  params.num_opencv_threads = 0; // for repeatability
+  params.use_multi_threading_pubs = false;
   params.use_multi_threading_subs = false;
   sim = std::make_shared<Simulator>(params);
   sys = std::make_shared<VioManager>(params);
@@ -154,8 +155,7 @@ int main(int argc, char **argv) {
     if (hasimu) {
       sys->feed_measurement_imu(message_imu);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
-      // TODO: fix this, can be slow at high frequency...
-      // viz->visualize_odometry(message_imu.timestamp - sim->get_true_parameters().calib_camimu_dt);
+      viz->visualize_odometry(message_imu.timestamp);
 #endif
     }
 
@@ -166,9 +166,6 @@ int main(int argc, char **argv) {
     bool hascam = sim->get_next_cam(time_cam, camids, feats);
     if (hascam) {
       if (buffer_timecam != -1) {
-#if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
-        viz->visualize_odometry(buffer_timecam);
-#endif
         sys->feed_measurement_simulation(buffer_timecam, buffer_camids, buffer_feats);
 #if ROS_AVAILABLE == 1 || ROS_AVAILABLE == 2
         viz->visualize();

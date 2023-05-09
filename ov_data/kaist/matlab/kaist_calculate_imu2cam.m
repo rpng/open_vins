@@ -3,11 +3,12 @@ clear all;
 close all;
 
 
+% stereoParams.mat
 % load their stereo parameters
 % looks like they used the matlab calibration tool to get it.
 % https://www.mathworks.com/help/vision/ref/stereoparameters.html#d117e94134
 load ../raw/stereoParams.mat
-%stereoParams = toStruct(stereoParams);
+stereoParams = toStruct(stereoParams);
 
 % transform between the left (stereo pair base) and the right camera
 % the units of the stereo parameters are millimeters
@@ -19,21 +20,23 @@ T_LtoR = [...
     0 0 0 1
 ];
 
-
-% T_LtoR = zeros(4,4);
-% T_LtoR(1,1) = 1;
-% T_LtoR(1,4) = -0.4751;
-% T_LtoR(2,2) = 1;
-% T_LtoR(3,3) = 1;
-% T_LtoR(4,4) = 1;
+% Use this computed output if you do not have the toolbox
+% TODO: can we manually read in the stereParams.mat? (probs not)
+% T_LtoR = [...
+%     1.0000   -0.0021   -0.0036   -0.4751;
+%     0.0021    1.0000    0.0046   -0.0011;
+%     0.0036   -0.0046    1.0000    0.0020;
+%          0         0         0    1.0000;
+% ];
 
 
 % Vehicle2Stereo.txt
 % Stereo camera (based on left camera) extrinsic calibration parameter from vehicle
-% WHAT????? THEIR POSITION IS INCORRECTLY THE OPOSITE
-% DIRECTION????!@#!@#?!@#!@#$!@$%!#@%!#%!~@%!@#%@!#^%#@%^!@#%@#%
-p_LinV = [1.66944; 0.278027; 1.61215];
-R_LtoV = [-0.00413442 -0.0196634 0.999798; -0.999931 -0.0109505 -0.00435034; 0.0110338 -0.999747 -0.0196168];
+% NOTE: This was taken from the Urban28 dataset
+% NOTE: The sample_with_img.tar.gz has different calibration (shouldn't be used)
+% WHAT????? THEIR POSITION IS INCORRECTLY THE OPOSITE DIRECTION????
+p_LinV = [1.64239; 0.247401; 1.58411];
+R_LtoV = [-0.00680499 -0.0153215 0.99985; -0.999977 0.000334627 -0.00680066; -0.000230383 -0.999883 -0.0153234];
 T_VtoL = [...
     R_LtoV' -R_LtoV'*p_LinV;
     0 0 0 1
@@ -48,7 +51,6 @@ T_VtoI = [...
     R_ItoV' -R_ItoV'*p_IinV;
     0 0 0 1
 ];
-
 
 
 % calculate the transform between the camneras and the IMU

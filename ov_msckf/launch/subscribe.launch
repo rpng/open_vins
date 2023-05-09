@@ -27,8 +27,8 @@
     <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
 
     <!-- MASTER NODE! -->
-<!--    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
-    <node name="run_subscribe_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+<!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
+    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
 
         <!-- master configuration object -->
         <param name="verbosity"              type="string" value="$(arg verbosity)" />

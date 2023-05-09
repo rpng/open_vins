@@ -18,7 +18,7 @@ else ()
     include(GNUInstallDirs)
     set(CATKIN_PACKAGE_LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     set(CATKIN_PACKAGE_BIN_DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/open_vins/")
 endif ()
 
 # Include our header files
@@ -42,13 +42,16 @@ list(APPEND thirdparty_libraries
 if (NOT catkin_FOUND OR NOT ENABLE_ROS)
 
     message(STATUS "MANUALLY LINKING TO OV_CORE LIBRARY....")
-    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
     file(GLOB_RECURSE OVCORE_LIBRARY_SOURCES "${CMAKE_SOURCE_DIR}/../ov_core/src/*.cpp")
+    list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_profile\\.cpp$")
     list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_webcam\\.cpp$")
     list(FILTER OVCORE_LIBRARY_SOURCES EXCLUDE REGEX ".*test_tracking\\.cpp$")
     list(APPEND LIBRARY_SOURCES ${OVCORE_LIBRARY_SOURCES})
-    file(GLOB_RECURSE OVCORE_LIBRARY_HEADERS "${CMAKE_SOURCE_DIR}/../ov_core/src/*.h")
-    list(APPEND LIBRARY_HEADERS ${OVCORE_LIBRARY_HEADERS})
+    include_directories(${CMAKE_SOURCE_DIR}/../ov_core/src/)
+    install(DIRECTORY ${CMAKE_SOURCE_DIR}/../ov_core/src/
+            DESTINATION ${CATKIN_GLOBAL_INCLUDE_DESTINATION}
+            FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+    )
 
 endif ()
 
@@ -100,6 +103,13 @@ if (catkin_FOUND AND ENABLE_ROS)
             RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
     )
 
+    catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+    catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+    install(DIRECTORY launch/
+            DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
+    )
+
 endif ()
 
 add_executable(format_converter src/format_converter.cpp)
@@ -142,6 +152,14 @@ install(TARGETS error_simulation
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+add_executable(timing_comparison src/timing_comparison.cpp)
+target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
+install(TARGETS timing_comparison
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
 add_executable(timing_flamegraph src/timing_flamegraph.cpp)
 target_link_libraries(timing_flamegraph ov_eval_lib ${thirdparty_libraries})
 install(TARGETS timing_flamegraph
@@ -150,9 +168,9 @@ install(TARGETS timing_flamegraph
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-add_executable(timing_comparison src/timing_comparison.cpp)
-target_link_libraries(timing_comparison ov_eval_lib ${thirdparty_libraries})
-install(TARGETS timing_comparison
+add_executable(timing_histogram src/timing_histogram.cpp)
+target_link_libraries(timing_histogram ov_eval_lib ${thirdparty_libraries})
+install(TARGETS timing_histogram
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -174,24 +192,4 @@ install(TARGETS plot_trajectories
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
-
-##################################################
-# Python scripts!
-##################################################
-
-if (catkin_FOUND AND ENABLE_ROS)
-
-    catkin_install_python(PROGRAMS python/pid_ros.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-    catkin_install_python(PROGRAMS python/pid_sys.py DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-endif ()
-
-
-##################################################
-# Launch files!
-##################################################
-
-install(DIRECTORY launch/
-        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-)
 

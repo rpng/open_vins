@@ -8,7 +8,7 @@ import os
 import sys
 
 launch_args = [
-    DeclareLaunchArgument(name="namespace", default_value="", description="namespace"),
+    DeclareLaunchArgument(name="namespace", default_value="ov_msckf", description="namespace"),
     DeclareLaunchArgument(
         name="ov_enable", default_value="true", description="enable OpenVINS node"
     ),

@@ -14,7 +14,8 @@ jobs:
         uses: actions/checkout@v2
       - name: Installing Ceres Solver
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
+          sudo apt install -y libunwind-dev
           sudo apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libceres-dev
 #          cd ..
 #          git clone https://ceres-solver.googlesource.com/ceres-solver
@@ -27,7 +28,7 @@ jobs:
 #          cd ../../
       - name: Configure and Build
         run: |
-          sudo apt-get update
+          sudo apt-get update -y
           sudo apt-get install -y libeigen3-dev libopencv-dev libboost-all-dev
           mkdir build
           cd build

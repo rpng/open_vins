@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -161,9 +161,10 @@ void TrackAruco::perform_tracking(double timestamp, const cv::Mat &imgin, size_t
   rT3 = boost::posix_time::microsec_clock::local_time();
 
   // Timing information
-  // PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for detection\n",(rT2-rT1).total_microseconds() * 1e-6);
-  // PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n",(rT3-rT2).total_microseconds() * 1e-6,
-  // (int)good_left.size()); PRINT_DEBUG("[TIME-ARUCO]: %.4f seconds for total\n",(rT3-rT1).total_microseconds() * 1e-6);
+  PRINT_ALL("[TIME-ARUCO]: %.4f seconds for detection\n", (rT2 - rT1).total_microseconds() * 1e-6);
+  PRINT_ALL("[TIME-ARUCO]: %.4f seconds for feature DB update (%d features)\n", (rT3 - rT2).total_microseconds() * 1e-6,
+            (int)ids_new.size());
+  PRINT_ALL("[TIME-ARUCO]: %.4f seconds for total\n", (rT3 - rT1).total_microseconds() * 1e-6);
 }
 
 void TrackAruco::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2, int g2, int b2, std::string overlay) {

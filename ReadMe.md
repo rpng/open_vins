@@ -21,7 +21,10 @@ details on what the system supports.
 
 ## News / Events
 
-* **July 14, 2022** - Improved feature extraction logic for >100hz tracking, some bug fixes and updated scripts. See v2.6.1 [PR#259](https://github.com/rpng/open_vins/pull/259).
+
+* **April 15, 2023** - Minor update to v2.6.3 to support incremental feature triangulation of active features for downstream applications, faster zero-velocity update, small bug fixes, some example realsense configurations, and cached fast state prediction. Please check out the [release page](https://github.com/rpng/open_vins/releases/tag/v2.6.3) for details.
+* **April 3, 2023** - We have released a monocular plane-aided VINS, termed [ov_plane](https://github.com/rpng/ov_plane), which leverages the OpenVINS project. Both now support the released [Indoor AR Table](https://github.com/rpng/ar_table_dataset) dataset.
+* **July 14, 2022** - Improved feature extraction logic for >100hz tracking, some bug fixes and updated scripts. See v2.6.1 [PR#259](https://github.com/rpng/open_vins/pull/259) and v2.6.2 [PR#264](https://github.com/rpng/open_vins/pull/264).
 * **March 14, 2022** - Initial dynamic initialization open sourcing, asynchronous subscription to inertial readings and publishing of odometry, support for lower frequency feature tracking. See v2.6 [PR#232](https://github.com/rpng/open_vins/pull/232) for details.
 * **December 13, 2021** - New YAML configuration system, ROS2 support, Docker images, robust static initialization based on disparity, internal logging system to reduce verbosity, image transport publishers, dynamic number of features support, and other small fixes. See
   v2.5 [PR#209](https://github.com/rpng/open_vins/pull/209) for details.
@@ -91,6 +94,13 @@ details on what the system supports.
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
 ## Codebase Extensions
+
+* **[ov_plane](https://github.com/rpng/ov_plane)** - A real-time monocular visual-inertial odometry (VIO) system which leverages
+  environmental planes. At the core it presents an efficient robust monocular-based plane detection algorithm which does
+  not require additional sensing modalities such as a stereo, depth camera or neural network. The plane detection and tracking
+  algorithm enables real-time regularization of point features to environmental planes which are either maintained in the state
+  vector as long-lived planes, or marginalized for efficiency. Planar regularities are applied to both in-state SLAM and
+  out-of-state MSCKF point features, enabling long-term point-to-plane loop-closures due to the large spacial volume of planes.
 
 * **[vicon2gt](https://github.com/rpng/vicon2gt)** - This utility was created to generate groundtruth trajectories using
   a motion capture system (e.g. Vicon or OptiTrack) for use in evaluating visual-inertial estimation systems.

@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -132,6 +132,18 @@ public:
    * @param id_new Id we want to change the old id to
    */
   void change_feat_id(size_t id_old, size_t id_new);
+
+  /// Getter method for active features in the last frame (observations per camera)
+  std::unordered_map<size_t, std::vector<cv::KeyPoint>> get_last_obs() {
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
+    return pts_last;
+  }
+
+  /// Getter method for active features in the last frame (ids per camera)
+  std::unordered_map<size_t, std::vector<size_t>> get_last_ids() {
+    std::lock_guard<std::mutex> lckv(mtx_last_vars);
+    return ids_last;
+  }
 
   /// Getter method for number of active features
   int get_num_features() { return num_features; }

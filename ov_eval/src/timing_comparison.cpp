@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -105,7 +105,7 @@ int main(int argc, char **argv) {
 #ifdef HAVE_PYTHONLIBS
 
   // Valid colors
-  // https://matplotlib.org/tutorials/colors/colors.html
+  // https://matplotlib.org/stable/tutorials/colors/colors.html
   // std::vector<std::string> colors = {"blue","aqua","lightblue","lightgreen","yellowgreen","green"};
   // std::vector<std::string> colors = {"navy","blue","lightgreen","green","gold","goldenrod"};
   std::vector<std::string> colors = {"black", "blue", "red", "green", "cyan", "magenta"};

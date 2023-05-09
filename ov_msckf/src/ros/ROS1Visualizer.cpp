@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -45,40 +45,40 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   image_transport::ImageTransport it(*_nh);
 
   // Setup pose and path publisher
-  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("/ov_msckf/poseimu", 2);
+  pub_poseimu = nh->advertise<geometry_msgs::PoseWithCovarianceStamped>("poseimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_poseimu.getTopic().c_str());
-  pub_odomimu = nh->advertise<nav_msgs::Odometry>("/ov_msckf/odomimu", 2);
+  pub_odomimu = nh->advertise<nav_msgs::Odometry>("odomimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu.getTopic().c_str());
-  pub_pathimu = nh->advertise<nav_msgs::Path>("/ov_msckf/pathimu", 2);
+  pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
 
   // 3D points publishing
-  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_msckf", 2);
+  pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_slam", 2);
+  pub_points_slam = nh->advertise<sensor_msgs::PointCloud2>("points_slam", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
-  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_aruco", 2);
+  pub_points_aruco = nh->advertise<sensor_msgs::PointCloud2>("points_aruco", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_aruco.getTopic().c_str());
-  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("/ov_msckf/points_sim", 2);
+  pub_points_sim = nh->advertise<sensor_msgs::PointCloud2>("points_sim", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_sim.getTopic().c_str());
 
   // Our tracking image
-  it_pub_tracks = it.advertise("/ov_msckf/trackhist", 2);
+  it_pub_tracks = it.advertise("trackhist", 2);
   PRINT_DEBUG("Publishing: %s\n", it_pub_tracks.getTopic().c_str());
 
   // Groundtruth publishers
-  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("/ov_msckf/posegt", 2);
+  pub_posegt = nh->advertise<geometry_msgs::PoseStamped>("posegt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_posegt.getTopic().c_str());
-  pub_pathgt = nh->advertise<nav_msgs::Path>("/ov_msckf/pathgt", 2);
+  pub_pathgt = nh->advertise<nav_msgs::Path>("pathgt", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathgt.getTopic().c_str());
 
   // Loop closure publishers
-  pub_loop_pose = nh->advertise<nav_msgs::Odometry>("/ov_msckf/loop_pose", 2);
-  pub_loop_point = nh->advertise<sensor_msgs::PointCloud>("/ov_msckf/loop_feats", 2);
-  pub_loop_extrinsic = nh->advertise<nav_msgs::Odometry>("/ov_msckf/loop_extrinsic", 2);
-  pub_loop_intrinsics = nh->advertise<sensor_msgs::CameraInfo>("/ov_msckf/loop_intrinsics", 2);
-  it_pub_loop_img_depth = it.advertise("/ov_msckf/loop_depth", 2);
-  it_pub_loop_img_depth_color = it.advertise("/ov_msckf/loop_depth_colored", 2);
+  pub_loop_pose = nh->advertise<nav_msgs::Odometry>("loop_pose", 2);
+  pub_loop_point = nh->advertise<sensor_msgs::PointCloud>("loop_feats", 2);
+  pub_loop_extrinsic = nh->advertise<nav_msgs::Odometry>("loop_extrinsic", 2);
+  pub_loop_intrinsics = nh->advertise<sensor_msgs::CameraInfo>("loop_intrinsics", 2);
+  it_pub_loop_img_depth = it.advertise("loop_depth", 2);
+  it_pub_loop_img_depth_color = it.advertise("loop_depth_colored", 2);
 
   // option to enable publishing of global to IMU transformation
   nh->param<bool>("publish_global_to_imu_tf", publish_global2imu_tf, true);
@@ -136,7 +136,7 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   }
 
   // Start thread for the image publishing
-  if (_app->get_params().use_multi_threading) {
+  if (_app->get_params().use_multi_threading_pubs) {
     std::thread thread([&] {
       ros::Rate loop_rate(20);
       while (ros::ok()) {
@@ -158,6 +158,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   _nh->param<std::string>("topic_imu", topic_imu, "/imu0");
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
   sub_imu = _nh->subscribe(topic_imu, 1000, &ROS1Visualizer::callback_inertial, this);
+  PRINT_INFO("subscribing to IMU: %s\n", topic_imu.c_str());
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
@@ -177,8 +178,8 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
     sync_cam.push_back(sync);
     sync_subs_cam.push_back(image_sub0);
     sync_subs_cam.push_back(image_sub1);
-    PRINT_DEBUG("subscribing to cam (stereo): %s\n", cam_topic0.c_str());
-    PRINT_DEBUG("subscribing to cam (stereo): %s\n", cam_topic1.c_str());
+    PRINT_INFO("subscribing to cam (stereo): %s\n", cam_topic0.c_str());
+    PRINT_INFO("subscribing to cam (stereo): %s\n", cam_topic1.c_str());
   } else {
     // Now we should add any non-stereo callbacks here
     for (int i = 0; i < _app->get_params().state_options.num_cameras; i++) {
@@ -188,7 +189,7 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
       parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
       // create subscriber
       subs_cam.push_back(_nh->subscribe<sensor_msgs::Image>(cam_topic, 10, boost::bind(&ROS1Visualizer::callback_monocular, this, _1, i)));
-      PRINT_DEBUG("subscribing to cam (mono): %s\n", cam_topic.c_str());
+      PRINT_INFO("subscribing to cam (mono): %s\n", cam_topic.c_str());
     }
   }
 }
@@ -205,7 +206,7 @@ void ROS1Visualizer::visualize() {
   // rT0_1 = boost::posix_time::microsec_clock::local_time();
 
   // publish current image (only if not multi-threaded)
-  if (!_app->get_params().use_multi_threading)
+  if (!_app->get_params().use_multi_threading_pubs)
     publish_images();
 
   // Return if we have not inited
@@ -253,6 +254,33 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   Eigen::Matrix<double, 12, 12> cov_plus = Eigen::Matrix<double, 12, 12>::Zero();
   if (!_app->get_propagator()->fast_state_propagate(state, timestamp, state_plus, cov_plus))
     return;
+
+  //  // Get the simulated groundtruth so we can evaulate the error in respect to it
+  //  // NOTE: we get the true time in the IMU clock frame
+  //  if (_sim != nullptr) {
+  //    Eigen::Matrix<double, 17, 1> state_gt;
+  //    if (_sim->get_state(timestamp, state_gt)) {
+  //      // Difference between positions
+  //      double dx = state_plus(4, 0) - state_gt(5, 0);
+  //      double dy = state_plus(5, 0) - state_gt(6, 0);
+  //      double dz = state_plus(6, 0) - state_gt(7, 0);
+  //      double err_pos = std::sqrt(dx * dx + dy * dy + dz * dz);
+  //      // Quaternion error
+  //      Eigen::Matrix<double, 4, 1> quat_gt, quat_st, quat_diff;
+  //      quat_gt << state_gt(1, 0), state_gt(2, 0), state_gt(3, 0), state_gt(4, 0);
+  //      quat_st << state_plus(0, 0), state_plus(1, 0), state_plus(2, 0), state_plus(3, 0);
+  //      quat_diff = quat_multiply(quat_st, Inv(quat_gt));
+  //      double err_ori = (180 / M_PI) * 2 * quat_diff.block(0, 0, 3, 1).norm();
+  //      // Calculate NEES values
+  //      Eigen::Vector3d quat_diff_vec = quat_diff.block(0, 0, 3, 1);
+  //      Eigen::Vector3d cov_vec = cov_plus.block(0, 0, 3, 3).inverse() * 2 * quat_diff.block(0, 0, 3, 1);
+  //      double ori_nees = 2 * quat_diff_vec.dot(cov_vec);
+  //      Eigen::Vector3d errpos = state_plus.block(4, 0, 3, 1) - state_gt.block(5, 0, 3, 1);
+  //      double pos_nees = errpos.transpose() * cov_plus.block(3, 3, 3, 3).inverse() * errpos;
+  //      PRINT_INFO(REDPURPLE "error to gt => %.3f, %.3f (deg,m) | nees => %.1f, %.1f (ori,pos) \n" RESET, err_ori, err_pos, ori_nees,
+  //                 pos_nees);
+  //    }
+  //  }
 
   // Publish our odometry message if requested
   if (pub_odomimu.getNumSubscribers() != 0) {
@@ -923,9 +951,8 @@ void ROS1Visualizer::publish_loopclosure_information() {
 
     // Create the images we will populate with the depths
     std::pair<int, int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
-    cv::Mat depthmap_viz;
-    cv::cvtColor(active_cam0_image, depthmap_viz, cv::COLOR_GRAY2RGB);
     cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
+    cv::Mat depthmap_viz = active_cam0_image;
 
     // Loop through all points and append
     for (const auto &feattimes : active_tracks_uvd) {
@@ -935,7 +962,7 @@ void ROS1Visualizer::publish_loopclosure_information() {
       Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
 
       // Skip invalid points
-      double dw = 3;
+      double dw = 4;
       if (uvd(0) < dw || uvd(0) > wh_pair.first - dw || uvd(1) < dw || uvd(1) > wh_pair.second - dw) {
         continue;
       }

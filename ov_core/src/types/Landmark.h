@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -59,6 +59,9 @@ public:
 
   /// Boolean if this landmark should be marginalized out
   bool should_marg = false;
+
+  /// Number of times the update has failed for this feature (we should remove if it fails a couple times!)
+  int update_fail_count = 0;
 
   /// First normalized uv coordinate bearing of this measurement (used for single depth representation)
   Eigen::Vector3d uv_norm_zero;
