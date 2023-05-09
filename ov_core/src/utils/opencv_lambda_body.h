@@ -27,7 +27,7 @@
 
 namespace ov_core {
 
-/**
+/*
  * @brief Helper class to do OpenCV parallelization
  *
  * This is a utility class required to build with older version of opencv

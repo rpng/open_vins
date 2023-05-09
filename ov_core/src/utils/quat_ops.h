@@ -26,7 +26,8 @@
  * @section Summary
  * This file contains the common utility functions for operating on JPL quaternions.
  * We need to take special care to handle edge cases when converting to and from other rotation formats.
- * All equations are based on the following tech report:
+ * All equations are based on the following tech report @cite Trawny2005TR :
+ *
  * > Trawny, Nikolas, and Stergios I. Roumeliotis. "Indirect Kalman filter for 3D attitude estimation."
  * > University of Minnesota, Dept. of Comp. Sci. & Eng., Tech. Rep 2 (2005): 2005.
  * > http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf
@@ -48,13 +49,13 @@
  *  ~,~
  *  -\mathbf{k}\mathbf{i}=\mathbf{i}\mathbf{k}=\mathbf{j}
  * @f]
- * As noted in [Trawny2005] this does not correspond to the Hamilton notation, and follows the "JPL Proposed Standard Conventions".
+ * As noted in @cite Trawny2005TR this does not correspond to the Hamilton notation, and follows the "JPL Proposed Standard Conventions".
  * The q_4 quantity is the "scalar" portion of the quaternion, while q_1,q_2,q_3 are part of the "vector" portion.
  * We split the 4x1 vector into the following convention:
  * @f[
  *  \bar{q} = \begin{bmatrix}q_1\\q_2\\q_3\\q_4\end{bmatrix} = \begin{bmatrix}\mathbf{q}\\q_4\end{bmatrix}
  * @f]
- * It is also important to note that the quaternion is constrainted to the unit circle:
+ * It is also important to note that the quaternion is constrained to the unit circle:
  * @f[
  *  |\bar{q}| = \sqrt{\bar{q}^\top\bar{q}} = \sqrt{|\mathbf{q}|^2+q_4^2} = 1
  * @f]
