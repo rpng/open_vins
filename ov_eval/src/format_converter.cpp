@@ -134,8 +134,8 @@ int main(int argc, char **argv) {
   // Ensure we have a path
   if (argc < 2) {
     PRINT_ERROR(RED "ERROR: Please specify a file to convert\n" RESET);
-    PRINT_ERROR(RED "ERROR: ./format_convert <file.csv or folder\n" RESET);
-    PRINT_ERROR(RED "ERROR: rosrun ov_eval format_convert <file.csv or folder>\n" RESET);
+    PRINT_ERROR(RED "ERROR: ./format_converter <file.csv or folder\n" RESET);
+    PRINT_ERROR(RED "ERROR: rosrun ov_eval format_converter <file.csv or folder>\n" RESET);
     std::exit(EXIT_FAILURE);
   }
 
