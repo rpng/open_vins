@@ -4,7 +4,7 @@
 @page fej First Estimate Jacobian (FEJ) Estimation
 @tableofcontents
 
-
+  The observability and consistency of VINS have attracted significant research efforts due to its ability to provide: (i) the minimal conditions for initialization, (ii) insights into what states are unrecoverable, and (iii) degenerate motions which can hurt the performance of the system. However, EKF-based VINS estimators have been shown to be inconsistent due to spurious information gain along unobservable directions and have required the creation of “observability aware” filters which explicitly correct for these inaccurate information gains causing filter over-confidence. In this section, we will introduce First-estimates Jacobian (FEJ) methodology which can guarantee the observability properties of VINS.
 
 @section fej-sys-evolution EKF Linearized Error-State System
 
@@ -101,7 +101,10 @@ while  we  here are  interested in how the state evolves  in order to examine it
 
 @section fej-sys-observability Linearized System Observability
 
-The observability matrix of this linearized system is defined by:
+System observability plays a crucial role in state estimation.
+Understanding system observability provides a deep insight about the system’s geometrical properties and determines the minimal
+measurement modalities needed.
+With the state translation matrix, \f$\mathbf{\Phi}_{(k,0)}\f$, and measurement Jacobian at timestep *k*, \f$\mathbf{H}_{k}\f$ , the observability matrix of this linearized system is defined by:
 
 \f{align*}{
 \mathcal{O}=
@@ -114,7 +117,7 @@ The observability matrix of this linearized system is defined by:
 \end{bmatrix}
 \f}
 
-where \f$\mathbf{H}_{k}\f$ is the measurement Jacobian at timestep *k* and \f$\mathbf{\Phi}_{(k,0)}\f$ is the compounded state transition (system Jacobian) matrix from timestep 0 to k.
+If \f$\mathcal{O}\f$ is of full column rank, the system is fully observable.  
 For a given block row of this matrix, we have:
 
 \f{align*}{
@@ -141,7 +144,7 @@ For a given block row of this matrix, we have:
 \f}
 
 
-We now  verify the following nullspace which corresponds to the global yaw about gravity and global IMU and feature positions:
+We now verify the following nullspace which corresponds to the global yaw about gravity and global IMU and feature positions:
 
 
 \f{align*}{
@@ -155,12 +158,13 @@ We now  verify the following nullspace which corresponds to the global yaw about
 \f}
 
 It is not difficult to verify that \f$ \mathbf{H}_{k}\mathbf{\Phi}_{(k,0)}\mathcal{N}_{vio} = \mathbf 0 \f$.
-Thus  this is a nullspace of the system,
+Thus this is a nullspace of the system,
 which clearly shows that there are the four unobserable directions (global yaw and position) of visual-inertial systems.
 
 
 
 @section fej-fej First Estimate Jacobians
+
 
 
 The main idea of First-Estimate Jacobains (FEJ) approaches is to ensure that the state transition and Jacobian matrices are evaluated at correct linearization points such that the above observability analysis will hold true.
