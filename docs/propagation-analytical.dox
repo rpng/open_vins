@@ -14,6 +14,7 @@ Key references for analytical inertial integration include:
 - High-precision, consistent EKF-based visual-inertial odometry @cite Li2013IJRR @cite Li2012TR
 - Closed-form preintegration methods for graph-based visual-inertial navigation @cite Eckenhoff2019IJRR @cite Eckenhoff2018TR
 - Analytic Combined IMU Integration (ACI^2) for Visual-Inertial Navigation @cite Yang2020ICRA @cite Yang2019TR_ACI
+- Online Self-Calibration for Visual-Inertial Navigation: Models, Analysis and Degeneracy @cite Yang2023TRO
 
 
 
@@ -44,24 +45,33 @@ to prevent unneeded matrix inversions and transposes in the measurement equation
 We only calibrate either \f${}^I_w\mathbf{R}\f$ or \f${}^I_a\mathbf{R}\f$ since the base "inertial"
 frame must coincide with one frame arbitrarily.
 If both \f${}^I_w\mathbf{R}\f$ and \f${}^I_a\mathbf{R}\f$ are calibrated,
-it will make the rotation between the IMU and camera unobservable due to over parameterization @cite Yang2020RSS.
+it will make the rotation between the IMU and camera unobservable due to over parameterization @cite Yang2020RSS @cite Yang2023TRO.
 We define two different models of interested:
 
 - *KALIBR*: Contains \f$\mathbf{D}'_{w6}\f$, \f$\mathbf{D}'_{a6}\f$, \f${}^I_w\mathbf{R}\f$ and gravity sensitivity \f$\mathbf{T}_{g9}\f$.
     This model follows IMU intrinsic calibration presented in @cite Rehder2017Sensors and the
-    output used in the open-source calibration toolbox Kalibr @cite Furgale2013IROS.
+    output used in the open-source calibration toolbox [Kalibr](https://github.com/ethz-asl/kalibr) @cite Furgale2013IROS.
 
 - *RPNG*: Contains \f$\mathbf{D}_{w6}\f$, \f$\mathbf{D}_{a6}\f$, the rotation \f${}^I_a\mathbf{R}\f$, and gravity sensitivity \f$\mathbf{T}_{g9}\f$.
-    \f$\mathbf{D}_{a6}\f$ and \f$\mathbf{D}_{w6}\f$ are uptriangular matrices, and follows *imu2* analysed in @cite Yang2020RSS.
+    \f$\mathbf{D}_{a6}\f$ and \f$\mathbf{D}_{w6}\f$ are uptriangular matrices, and follows *imu2* analyzed in @cite Yang2020RSS @cite Yang2023TRO.
 
-We can define \f$\mathbf{D}_{*6} = {\mathbf{D}'_{*6}}^\top\f$  and the following matrices:
+It is important to note that one should use the *KALIBR* model if there is a non-negligible transformation between
+the gyroscope and accelerometer (it is negligible for most MEMS IMUs, see @cite Li2014ICRA @cite Schneider2019Sensor)
+since it assumes the accelerometer frame to be the inertial frame
+and rigid bodies share the same angular velocity at all points.
+We can define the following matrices:
 
 \f{align*}{
 \mathbf{D}_{*6} &= \begin{bmatrix}
     d_{*1} & d_{*2} & d_{*4} \\
     0 & d_{*3} & d_{*5} \\
     0 & 0 & d_{*6}
-    \end{bmatrix} \\
+    \end{bmatrix},~~
+\mathbf{D}'_{*6} &= \begin{bmatrix}
+    d_{*1} & 0 & 0 \\
+    d_{*2} & d_{*4} & 0 \\
+     d_{*3} & d_{*5} & d_{*6}
+    \end{bmatrix},~~
 \mathbf{T}_{g9} &= \begin{bmatrix}
     t_{g1} & t_{g4} & t_{g7} \\
     t_{g2} & t_{g5} & t_{g8} \\
@@ -226,6 +236,30 @@ The mean propagation for the new state at \f$t_{k+1}\f$ can be written after tak
 
 @section analytical_linearization Model Linearization Derivations
 
+
+@subsection analytical_linearization_error_stats Error States Definitions
+
+We first remind the reader of the error states used throughout the system.
+It is crucial that all error states are consistent between propagation and update.
+OpenVINS has a type system (see @ref ov_type and @ref dev-index-types) for which Jacobians need to be derived from.
+We have the following pose (orientation + position) errors (based on @ref ov_type::PoseJPL)
+
+
+\f{align*}{
+{}^{I}_G \mathbf{R} &\simeq \exp(-\delta \boldsymbol{\theta}) {}^{I}_G \hat{\mathbf{R}} \\
+&\simeq (\mathbf{I} - \lfloor \delta \boldsymbol{\theta} \rfloor) {}^{I}_G \hat{\mathbf{R}} \\
+{}^{G}\mathbf{p}_I &= {}^{G}\hat{\mathbf{p}}_I + {}^{G}\tilde{\mathbf{p}}_I
+\f}
+
+For all other vectors (such as IMU intrinsics etc), we leverage simple additive error (based on @ref ov_type::Vec)
+
+\f{align*}{
+\mathbf{v} &= \hat{\mathbf{v}} +\tilde{\mathbf{v}}
+\f}
+
+
+
+
 @subsection analytical_linearization_imu IMU Reading Linearization
 We first define the \f${}^{I_k}\tilde{\boldsymbol{\omega}}\f$ and \f${}^{I_k}\tilde{\mathbf{a}}\f$ error states.
 For \f${}^I\hat{\mathbf{a}}\f$ and \f${}^I\tilde{\mathbf{a}}\f$, we have:
@@ -317,7 +351,7 @@ For \f${}^I\hat{\boldsymbol{\omega}}\f$ and \f${}^I\tilde{\boldsymbol{\omega}}\f
 \f}
 
 where we need to define \f$\mathbf{H}_{Dw}\f$, \f$\mathbf{H}_{Da}\f$ and \f$\mathbf{H}_{Tg}\f$.
-For the KALIBR model, we have:
+For the *KALIBR* model, we have:
 
 \f{align*}{
 \mathbf{H}_{Dw} & =
@@ -335,7 +369,7 @@ For the KALIBR model, we have:
     \end{bmatrix}
 \f}
 
-For the RPNG model, we have:
+For the *RPNG* model, we have:
 
 \f{align*}{
 \mathbf{H}_{Dw} & =
@@ -580,8 +614,8 @@ For the integration of \f$\Delta \mathbf{v}_k\f$, we get:
 
 where \f$\delta \tau = t_\tau - t_k\f$ and
 \f$\boldsymbol{\Xi}_i, i=1\ldots4\f$ are shown in the @ref analytical_integration_components section.
-\f$\mathbf {J}_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t)\f$ is the right Jacobian of \f${SO}(3)\f$
-[see @ref ov_core::Jr_so3() and @cite Barfoot2017].
+\f$\mathbf {J}_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t_k)\f$ is the right Jacobian of \f${SO}(3)\f$
+[see @ref ov_core::Jr_so3() @cite Barfoot2017].
 In summary, we have the following linearized integration components (see @ref analytical_integration_components):
 
 \f{align*}{
@@ -697,9 +731,12 @@ where \f$\boldsymbol{\Phi}_{I(k+1,k)}\f$ and \f$\mathbf{G}_{Ik}\f$ are the state
     \end{bmatrix}
 \f}
 
-When using FEJ (see @ref fej for an overview) for the state transition matrix,
-we need to replace \f$\Delta \hat{\mathbf{R}}_k\f$, \f$\Delta \hat{\mathbf{p}}_k\f$ and \f$\Delta \hat{\mathbf{v}}_k\f$ as:
 
+@m_class{m-note m-frame}
+
+@par How to apply FEJ to ensure consistency?
+When using First-Estimate Jacobians (see @ref fej for an overview) for the state transition matrix,
+we need to replace \f$\Delta \hat{\mathbf{R}}_k\f$, \f$\Delta \hat{\mathbf{p}}_k\f$ and \f$\Delta \hat{\mathbf{v}}_k\f$ as:
 \f{align*}{
     \Delta \hat{\mathbf{R}}_k & =
      {}^{I_{k+1}}_{G}\hat{\mathbf{R}}
@@ -722,8 +759,13 @@ we need to replace \f$\Delta \hat{\mathbf{R}}_k\f$, \f$\Delta \hat{\mathbf{p}}_k
     + {}^G\mathbf{g}\Delta t_k
     )
 \f}
+This ensure the semi-group property of the state transition matrix by ensuring that the previous timestep is
+evaluated at the same linearization point (their estimate before update / their estimate when they were first initialized into the state).
 
-Note that \f$\mathbf{n}_{d*}\sim \mathcal{N}(\mathbf{0}, \frac{\sigma^2_{*}\mathbf{I}_3}{\Delta t})\f$ and hence the covariance for \f$\mathbf{n}_{dI}\f$ can be written as:
+
+
+
+Note that \f$\mathbf{n}_{d*}\sim \mathcal{N}(\mathbf{0}, \frac{\sigma^2_{*}\mathbf{I}_3}{\Delta t_k})\f$ and hence the covariance for \f$\mathbf{n}_{dI}\f$ can be written as:
 
 \f{align*}{
     \mathbf{Q}_{dI} & =
@@ -927,7 +969,8 @@ identities as (see [L'Hôpital's rule](https://en.wikipedia.org/wiki/L%27H%C3%B4
     \boldsymbol{\Xi}_3
 \f}
 
-
+We currently do not implement a [RK4](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods) version of the above integrations.
+This would likely improve performance if leveraged as it would allow for the measurement to evolve over the integration period.
 
 
 */

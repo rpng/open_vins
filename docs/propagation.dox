@@ -44,8 +44,8 @@ the gyroscope and acceleration sensor frames.
 \f$\mathbf{T}_g\f$ denotes the gravity sensitivity, which represents the effects of gravity to the
 gyroscope readings due to its inherent inertia.
 Note that this does not take into account the translation between the
-gyroscope and accelerometer frames, since it is negligible for most IMUs (see @cite Li2014ICRA @cite Schneider2019Sensor).
-
+gyroscope and accelerometer frames, since it is negligible for most MEMS IMUs (see @cite Li2014ICRA @cite Schneider2019Sensor).
+The full background and summary of different models can be found in @cite Yang2020RSS @cite Yang2023TRO.
 
 
 @section ins_state Inertial State Vector
@@ -80,7 +80,7 @@ while we use the quaternion error state \f$\delta \bar{q}\f$ with a left quatern
     \cos(\frac{1}{2}\tilde{\theta}) \end{bmatrix}
     \simeq
     \begin{bmatrix}
-    \frac{1}{2}\delta\tilde{\boldsymbol{\theta}}\\ 1
+    \frac{1}{2}\tilde{\boldsymbol{\theta}}\\ 1
     \end{bmatrix}
 \f}
 
@@ -92,7 +92,7 @@ The total IMU error state thus is defined as the following 15x1 (not 16x1) vecto
 \f{align*}{
 \tilde{\mathbf{x}}_I(t) =
 \begin{bmatrix}
-^I_G\delta\tilde{\boldsymbol{\theta}}(t) \\
+^I_G\tilde{\boldsymbol{\theta}}(t) \\
 ^G\tilde{\mathbf{p}}_I(t) \\
 ^G\tilde{\mathbf{v}}_I(t)\\
 \tilde{\mathbf{b}}_{{g}}(t) \\
@@ -140,7 +140,7 @@ we can define the solutions to the above IMU kinematics differential equation.
 \f{align*}{
     {}^{I_{k+1}}_{G}\mathbf{R} & =
     \exp \left(-\int^{t_{k+1}}_{t_k} {}^{I}\boldsymbol{\omega}(t_\tau) ~ d \tau \right) {}^{I_k}_{G}\mathbf{R} \\
-    &\triangleq \Delta \mathbf{R}_k ~{}^{I_k}_{G}\mathbf{R} \\
+    &\triangleq \Delta \mathbf{R}_k ~{}^{I_k}_{G}\mathbf{R} = {}^{I_{k+1}}_{I_k}\mathbf{R} ~{}^{I_k}_{G}\mathbf{R}  \\
     {}^G\mathbf{p}_{I_{k+1}} & =
     {}^G\mathbf{p}_{I_k} + {}^G\mathbf{v}_{I_k}\Delta t_k +
     {}^{I_k}_{G}\mathbf{R}^\top
