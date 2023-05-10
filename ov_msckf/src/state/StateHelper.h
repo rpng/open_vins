@@ -82,8 +82,8 @@ public:
    * @param state Pointer to state
    * @param H_order Variable ordering used in the compressed Jacobian
    * @param H Condensed Jacobian of updating measurement
-   * @param res residual of updating measurement
-   * @param R updating measurement covariance
+   * @param res Residual of updating measurement
+   * @param R Updating measurement covariance
    */
   static void EKFUpdate(std::shared_ptr<State> state, const std::vector<std::shared_ptr<ov_type::Type>> &H_order, const Eigen::MatrixXd &H,
                         const Eigen::VectorXd &res, const Eigen::MatrixXd &R);
@@ -107,7 +107,7 @@ public:
    *
    * @param state Pointer to state
    * @param small_variables Vector of variables whose marginal covariance is desired
-   * @return marginal covariance of the passed variables
+   * @return Marginal covariance of the passed variables
    */
   static Eigen::MatrixXd get_marginal_covariance(std::shared_ptr<State> state,
                                                  const std::vector<std::shared_ptr<ov_type::Type>> &small_variables);
@@ -120,7 +120,7 @@ public:
    * Please use the other interface functions in the StateHelper to progamatically change to covariance.
    *
    * @param state Pointer to state
-   * @return covariance of current state
+   * @return Covariance of current state
    */
   static Eigen::MatrixXd get_full_covariance(std::shared_ptr<State> state);
 
@@ -190,8 +190,9 @@ public:
    * After propagation, normally we augment the state with an new clone that is at the new update timestep.
    * This augmentation clones the IMU pose and adds it to our state's clone map.
    * If we are doing time offset calibration we also make our cloning a function of the time offset.
-   * Time offset logic is based on Mingyang Li and Anastasios I. Mourikis paper:
-   * http://journals.sagepub.com/doi/pdf/10.1177/0278364913515286 We can write the current clone at the true imu base clock time as the
+   * Time offset logic is based on Li and Mourikis @cite Li2014IJRR.
+   *
+   * We can write the current clone at the true imu base clock time as the
    * follow: \f{align*}{
    * {}^{I_{t+t_d}}_G\bar{q} &= \begin{bmatrix}\frac{1}{2} {}^{I_{t+\hat{t}_d}}\boldsymbol\omega \tilde{t}_d \\
    * 1\end{bmatrix}\otimes{}^{I_{t+\hat{t}_d}}_G\bar{q} \\

@@ -45,7 +45,23 @@ the gyroscope and acceleration sensor frames.
 gyroscope readings due to its inherent inertia.
 Note that this does not take into account the translation between the
 gyroscope and accelerometer frames, since it is negligible for most MEMS IMUs (see @cite Li2014ICRA @cite Schneider2019Sensor).
-The full background and summary of different models can be found in @cite Yang2020RSS @cite Yang2023TRO.
+
+
+
+@m_class{m-block m-warning}
+
+@par Calibration of Inertial Intrinsics
+It is important to note that calibration of inertial intrinsics introduces many additional degrees of freedoms into the state.
+Without picking a confident prior distribution for these, the initial trajectory needs to ensure sufficient excitation to enable
+calibration and avoid degeneracies.
+As found in @cite Yang2020RSS @cite Yang2023TRO there are many trajectories (e.g. planar, 1-axis, constant meas, etc..)
+which can hurt inertial intrinsic calibration.
+In general we *do not* recommend calibration (but still do it offline!), unless you know your trajectory will
+have good excitation (e.g. dynamic handheld).
+The full background, summary, and analysis of different inertial models can be found in @cite Yang2020RSS @cite Yang2023TRO.
+
+
+
 
 
 @section ins_state Inertial State Vector
@@ -195,6 +211,10 @@ The second is the full continuous-time integration (with constant measurement as
 -   @subpage propagation_discrete --- Simplified discrete mean and covariance propagation derivations
 -   @subpage propagation_analytical --- Analytical mean and covariance propagation with IMU intrinsics derivations
 
+For general background on how to formulate the evolution of states over time we can make a few recommendations.
+For classical linear systems we can recommend Maybeck's @cite Maybeck1982STOC Volume 1 and Bar-Shalom et al. @cite Bar2001 discussion of estimator consistency.
+For background on Kalman filtering and propagation with similar notation to ours we can recommend Farrell's @cite Farrell2008 aided navigation book.
+Finally, for the inertial problem formulation and equations Chatfield's @cite Chatfield1997 fundamental remains foundational.
 
 
 

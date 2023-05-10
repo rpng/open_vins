@@ -79,6 +79,7 @@ details on what the system supports.
     * Camera to IMU transform
     * Camera to IMU time offset
     * Camera intrinsics
+    * Inertial intrinsics (including g-sensitivity)
 * Environmental SLAM feature
     * OpenCV ARUCO tag SLAM features
     * Sparse feature SLAM features
@@ -90,7 +91,7 @@ details on what the system supports.
     * Masked tracking
 * Static and dynamic state initialization
 * Zero velocity detection and updates
-* Out of the box evaluation on EurocMav, TUM-VI, UZH-FPV, KAIST Urban and VIO datasets
+* Out of the box evaluation on EuRocMav, TUM-VI, UZH-FPV, KAIST Urban and other VIO datasets
 * Extensive evaluation suite (ATE, RPE, NEES, RMSE, etc..)
 
 ## Codebase Extensions

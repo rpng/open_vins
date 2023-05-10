@@ -466,7 +466,18 @@ inline Eigen::Matrix<double, 4, 1> Inv(Eigen::Matrix<double, 4, 1> q) {
  *
  * See equation (48) of trawny tech report [Indirect Kalman Filter for 3D Attitude
  * Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf).
+ * This matrix is derived in Section 1.5 of the report by finding the Quaterion Time Derivative.
  *
+ * \f{align*}{
+ * \boldsymbol{\Omega}(\boldsymbol{\omega}) &=
+ * \begin{bmatrix}
+ * -\lfloor{\boldsymbol{\omega}}  \rfloor & \boldsymbol{\omega} \\
+ * -\boldsymbol{\omega}^\top & 0
+ * \end{bmatrix}
+ * \f}
+ *
+ * @param w Angular velocity
+ * @return The matrix \f$\boldsymbol{\Omega}\f$
  */
 inline Eigen::Matrix<double, 4, 4> Omega(Eigen::Matrix<double, 3, 1> w) {
   Eigen::Matrix<double, 4, 4> mat;
@@ -532,7 +543,7 @@ inline Eigen::Matrix<double, 3, 3> Jr_so3(const Eigen::Matrix<double, 3, 1> &w) 
  * If you are interested in how to compute Jacobians checkout this report:
  * http://mars.cs.umn.edu/tr/reports/Trawny05c.pdf
  *
- * @param rot Rotation matrix
+ * @param rot SO(3) rotation matrix
  * @return roll, pitch, yaw values (in that order)
  */
 inline Eigen::Matrix<double, 3, 1> rot2rpy(const Eigen::Matrix<double, 3, 3> &rot) {
@@ -550,7 +561,18 @@ inline Eigen::Matrix<double, 3, 1> rot2rpy(const Eigen::Matrix<double, 3, 3> &ro
 
 /**
  * @brief Construct rotation matrix from given roll
+ *
+ * \f{align*}{
+ * \mathbf{R}_x(t) &=
+ * \begin{bmatrix}
+ * 1 & 0 & 0 \\
+ * 0 & \cos(t) & -\sin(t) \\
+ * 0 & \sin(t) & \cos(t)
+ * \end{bmatrix}
+ * \f}
+ *
  * @param t roll angle
+ * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> rot_x(double t) {
   Eigen::Matrix<double, 3, 3> r;
@@ -562,7 +584,18 @@ inline Eigen::Matrix<double, 3, 3> rot_x(double t) {
 
 /**
  * @brief Construct rotation matrix from given pitch
+ *
+ * \f{align*}{
+ * \mathbf{R}_y(t) &=
+ * \begin{bmatrix}
+ * \cos(t) & 0 & \sin(t) \\
+ * 0 & 1 & 0 \\
+ * -\sin(t) & 0 & \cos(t)
+ * \end{bmatrix}
+ * \f}
+ *
  * @param t pitch angle
+ * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> rot_y(double t) {
   Eigen::Matrix<double, 3, 3> r;
@@ -574,7 +607,18 @@ inline Eigen::Matrix<double, 3, 3> rot_y(double t) {
 
 /**
  * @brief Construct rotation matrix from given yaw
+ *
+ * \f{align*}{
+ * \mathbf{R}_z(t) &=
+ * \begin{bmatrix}
+ * \cos(t) & -\sin(t) & 0 \\
+ * \sin(t) & \cos(t) & 0 \\
+ * 0 & 0 & 1
+ * \end{bmatrix}
+ * \f}
+ *
  * @param t yaw angle
+ * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> rot_z(double t) {
   Eigen::Matrix<double, 3, 3> r;
