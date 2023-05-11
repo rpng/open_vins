@@ -43,7 +43,8 @@ namespace ov_core {
  * @brief Helper class to do OpenCV yaml parsing from both file and ROS.
  *
  * The logic is as follows:
- * - Given a path to the main config file we will load it into our [cv::FileStorage](https://docs.opencv.org/4.x/da/d56/classcv_1_1FileStorage.html) object.
+ * - Given a path to the main config file we will load it into our
+ * [cv::FileStorage](https://docs.opencv.org/4.x/da/d56/classcv_1_1FileStorage.html) object.
  * - From there the user can request for different parameters of different types from the config.
  * - If we have ROS, then we will also check to see if the user has overridden any config files via ROS.
  * - The ROS parameters always take priority over the ones in our config.

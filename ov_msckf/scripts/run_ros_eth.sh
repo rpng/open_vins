@@ -23,11 +23,11 @@ bagnames=(
   "V2_01_easy"
   "V2_02_medium"
   "V2_03_difficult"
-  "MH_01_easy"
-  "MH_02_easy"
-  "MH_03_medium"
-  "MH_04_difficult"
-  "MH_05_difficult"
+#  "MH_01_easy"
+#  "MH_02_easy"
+#  "MH_03_medium"
+#  "MH_04_difficult"
+#  "MH_05_difficult"
 )
 
 # how far we should start into the dataset
@@ -49,8 +49,8 @@ bagstarttimes=(
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_euroc/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_euroc/timings"
-bag_path="/home/patrick/datasets/euroc_mav/"
-ov_ver="2.6.3"
+bag_path="/media/patrick/Windows/datasets/euroc_mav/"
+ov_ver="2.7"
 
 
 #=============================================================

@@ -26,8 +26,6 @@
 #include <opencv2/opencv.hpp>
 #include <vector>
 
-#include "utils/quat_ops.h"
-
 namespace ov_core {
 
 /**

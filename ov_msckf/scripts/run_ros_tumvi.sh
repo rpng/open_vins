@@ -39,8 +39,8 @@ bagstarttimes=(
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_tumvi/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_tumvi/timings"
-bag_path="/home/patrick/datasets/tum_vi/"
-ov_ver="2.6.3"
+bag_path="/media/patrick/Windows/datasets/tum_vi/"
+ov_ver="2.7"
 
 
 #=============================================================
