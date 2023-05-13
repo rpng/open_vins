@@ -96,7 +96,7 @@ public:
   void initialize_with_gt(Eigen::Matrix<double, 17, 1> imustate);
 
   /// If we are initialized or not
-  bool initialized() { return is_initialized_vio; }
+  bool initialized() { return is_initialized_vio && timelastupdate != -1; }
 
   /// Timestamp that the system was initialized at
   double initialized_time() { return startup_time; }
