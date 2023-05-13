@@ -69,7 +69,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     have_old_imu_readings = true;
     it_imu = imu_data->erase(it_imu);
   }
-  if (_db->get_internal_data().size() < 0.95 * params.init_max_features) {
+  if (_db->get_internal_data().size() < 0.75 * params.init_max_features) {
     PRINT_WARNING(RED "[init-d]: only %zu valid features of required (%.0f thresh)!!\n" RESET, _db->get_internal_data().size(),
                   0.95 * params.init_max_features);
     return false;
@@ -602,6 +602,28 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   std::map<size_t, int> map_calib_cam;
   std::vector<double *> ceres_vars_calib_cam_intrinsics;
 
+  // Helper lambda that will free any memory we have allocated
+  auto free_state_memory = [&]() {
+    for (auto const &ptr : ceres_vars_ori)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_pos)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_vel)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_bias_g)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_bias_a)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_feat)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_calib_cam2imu_ori)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_calib_cam2imu_pos)
+      delete[] ptr;
+    for (auto const &ptr : ceres_vars_calib_cam_intrinsics)
+      delete[] ptr;
+  };
+
   // Set the optimization settings
   // NOTE: We use dense schur since after eliminating features we have a dense problem
   // NOTE: http://ceres-solver.org/solving_faqs.html#solving
@@ -887,6 +909,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   timestamp = newest_cam_time;
   if (params.init_dyn_mle_max_iter != 0 && summary.termination_type != ceres::CONVERGENCE) {
     PRINT_WARNING(YELLOW "[init-d]: opt failed: %s!\n" RESET, summary.message.c_str());
+    free_state_memory();
     return false;
   }
   PRINT_DEBUG("[init-d]: %s\n", summary.message.c_str());
@@ -997,6 +1020,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   bool success = problem_cov.Compute(covariance_blocks, &problem);
   if (!success) {
     PRINT_WARNING(YELLOW "[init-d]: covariance recovery failed...\n" RESET);
+    free_state_memory();
     return false;
   }
 
@@ -1086,5 +1110,6 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   PRINT_DEBUG("[TIME]: %.4f sec for ceres opt\n", (rT6 - rT5).total_microseconds() * 1e-6);
   PRINT_DEBUG("[TIME]: %.4f sec for ceres covariance\n", (rT7 - rT6).total_microseconds() * 1e-6);
   PRINT_DEBUG("[TIME]: %.4f sec total for initialization\n", (rT7 - rT1).total_microseconds() * 1e-6);
+  free_state_memory();
   return true;
 }
