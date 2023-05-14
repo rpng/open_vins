@@ -23,11 +23,11 @@ bagnames=(
   "V2_01_easy"
   "V2_02_medium"
   "V2_03_difficult"
-#  "MH_01_easy"
-#  "MH_02_easy"
-#  "MH_03_medium"
-#  "MH_04_difficult"
-#  "MH_05_difficult"
+  "MH_01_easy"
+  "MH_02_easy"
+  "MH_03_medium"
+  "MH_04_difficult"
+  "MH_05_difficult"
 )
 
 # how far we should start into the dataset
@@ -39,11 +39,11 @@ bagstarttimes=(
   "0"
   "0"
   "0"
-  "40" # 40
-  "35" # 35
-  "5" # 10
-  "10" # 17
-  "5" # 18
+  "40"
+  "35"
+  "5"
+  "10"
+  "5" # stereo can fail if starts while still due to bad left-right KLT....
 )
 
 # location to save log files into

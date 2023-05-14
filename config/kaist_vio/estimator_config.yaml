@@ -40,7 +40,7 @@ zupt_only_at_beginning: false
 init_window_time: 2.0 # how many seconds to collect initialization information
 init_imu_thresh: 0.60 # threshold for variance of the accelerometer to detect a "jerk" in motion
 init_max_disparity: 5.0 # max disparity to consider the platform stationary (dependent on resolution)
-init_max_features: 75 # how many features to track during initialization (saves on computation)
+init_max_features: 50 # how many features to track during initialization (saves on computation)
 
 init_dyn_use: false
 init_dyn_mle_opt_calib: false
