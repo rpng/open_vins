@@ -21,7 +21,15 @@ imu0:
   rostopic: /imu/data_raw
   time_offset: 0.0
   update_rate: 500.0
-  model: "kalibr" # calibrated (same as kalibr), kalibr, rpng
+  # three different modes supported:
+  # "calibrated" (same as "kalibr"), "kalibr", "rpng"
+  model: "kalibr"
+  # how to get from Kalibr imu.yaml result file:
+  #   - Tw is imu0:gyroscopes:M:
+  #   - R_IMUtoGYRO: is imu0:gyroscopes:M:
+  #   - Ta is imu0:accelerometers:M:
+  #   - R_IMUtoACC not used by Kalibr
+  #   - Tg is imu0:gyroscopes:A:
   Tw:
     - [ 1.0, 0.0, 0.0 ]
     - [ 0.0, 1.0, 0.0 ]
