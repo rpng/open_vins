@@ -44,6 +44,13 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
     PRINT_ERROR(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
     std::exit(EXIT_FAILURE);
   }
+  double len_gt = ov_eval::Loader::get_total_length(gt_poses);
+  double len_est = ov_eval::Loader::get_total_length(est_poses);
+  double ratio = len_est / len_gt;
+  if (ratio > 1.1 || ratio < 0.9) {
+    PRINT_WARNING(YELLOW "[TRAJ]: Trajectory is a bad ratio of %.2f length (est %.2f, gt %.2f)\n", ratio, len_est, len_gt);
+    PRINT_WARNING(YELLOW "[TRAJ]: %s\n", path_est.c_str());
+  }
 
   // Perform alignment of the trajectories
   Eigen::Matrix3d R_ESTtoGT, R_GTtoEST;
