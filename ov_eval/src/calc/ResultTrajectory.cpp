@@ -34,6 +34,13 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
   // std::string base_filename2 = path_gt.substr(path_gt.find_last_of("/\\") + 1);
   // PRINT_DEBUG("[TRAJ]: loaded %d poses from %s\n",(int)est_times.size(),base_filename1.c_str());
   // PRINT_DEBUG("[TRAJ]: loaded %d poses from %s\n",(int)gt_times.size(),base_filename2.c_str());
+  double len_gt = ov_eval::Loader::get_total_length(gt_poses);
+  double len_est = ov_eval::Loader::get_total_length(est_poses);
+  double ratio = len_est / len_gt;
+  if (ratio > 1.1 || ratio < 0.9) {
+    PRINT_WARNING(YELLOW "[TRAJ]: Trajectory is a bad ratio of %.2f length (est %.2f, gt %.2f)\n", ratio, len_est, len_gt);
+    PRINT_WARNING(YELLOW "[TRAJ]: %s\n", path_est.c_str());
+  }
 
   // Intersect timestamps
   AlignUtils::perform_association(0, 0.02, est_times, gt_times, est_poses, gt_poses, est_covori, est_covpos, gt_covori, gt_covpos);
@@ -43,13 +50,6 @@ ResultTrajectory::ResultTrajectory(std::string path_est, std::string path_gt, st
     PRINT_ERROR(RED "[TRAJ]: unable to get enough common timestamps between trajectories.\n" RESET);
     PRINT_ERROR(RED "[TRAJ]: does the estimated trajectory publish the rosbag timestamps??\n" RESET);
     std::exit(EXIT_FAILURE);
-  }
-  double len_gt = ov_eval::Loader::get_total_length(gt_poses);
-  double len_est = ov_eval::Loader::get_total_length(est_poses);
-  double ratio = len_est / len_gt;
-  if (ratio > 1.1 || ratio < 0.9) {
-    PRINT_WARNING(YELLOW "[TRAJ]: Trajectory is a bad ratio of %.2f length (est %.2f, gt %.2f)\n", ratio, len_est, len_gt);
-    PRINT_WARNING(YELLOW "[TRAJ]: %s\n", path_est.c_str());
   }
 
   // Perform alignment of the trajectories
