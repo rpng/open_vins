@@ -1005,8 +1005,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   ceres::Covariance::Options options_cov;
   options_cov.null_space_rank = (!params.init_dyn_mle_opt_calib) * ((int)map_calib_cam2imu.size() * (6 + 8));
   options_cov.min_reciprocal_condition_number = params.init_dyn_min_rec_cond;
-  options_cov.algorithm_type = ceres::CovarianceAlgorithmType::SPARSE_QR; // SPARSE_QR, DENSE_SVD
-  options_cov.apply_loss_function = true;                                 // Better consistency if we use this
+  // options_cov.algorithm_type = ceres::CovarianceAlgorithmType::DENSE_SVD;
+  options_cov.apply_loss_function = true; // Better consistency if we use this
   options_cov.num_threads = params.init_dyn_mle_max_threads;
   ceres::Covariance problem_cov(options_cov);
   bool success = problem_cov.Compute(covariance_blocks, &problem);
