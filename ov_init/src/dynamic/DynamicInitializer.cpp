@@ -224,6 +224,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   // We will recover position of feature, velocity, gravity
   // Based on Equation (14) in the following paper:
   // https://ieeexplore.ieee.org/abstract/document/6386235
+  // State ordering is: [features, velocity, gravity]
   // Feature size of 1 will use the first ever bearing of the feature as true (depth only..)
   const bool use_single_depth = false;
   int size_feature = (use_single_depth) ? 1 : 3;
@@ -306,6 +307,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   }
 
   // Loop through each feature observation and append it!
+  // State ordering is: [features, velocity, gravity]
   Eigen::MatrixXd A = Eigen::MatrixXd::Zero(num_measurements, system_size);
   Eigen::VectorXd b = Eigen::VectorXd::Zero(num_measurements);
   PRINT_DEBUG("[init-d]: system of %d measurement x %d states created (%d features, %s)\n", num_measurements, system_size, num_features,
@@ -358,35 +360,23 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
         //         = R_C0toCi * R_ItoC * (p_FinI0 - v_I0inI0 * dt - 0.5 * grav_inI0 * dt^2 - alpha) + p_IinC
         Eigen::MatrixXd H_proj = Eigen::MatrixXd::Zero(2, 3);
         H_proj << 1, 0, -uv_norm(0), 0, 1, -uv_norm(1);
-        Eigen::MatrixXd H = Eigen::MatrixXd::Zero(2, system_size);
+        Eigen::MatrixXd Y = H_proj * R_ItoC * R_I0toIk;
+        Eigen::MatrixXd H_i = Eigen::MatrixXd::Zero(2, system_size);
+        Eigen::MatrixXd b_i = Y * alpha_I0toIk - H_proj * p_IinC;
         if (size_feature == 1) {
           assert(false);
-          // H.block(0, size_feature * map_features.at(feat.first), 2, 1) = H_proj * R_ItoC * R_I0toIk * features_bearings.at(feat->featid);
+          // Substitute in p_FinI0 = z*bearing_inC0_rotI0 - R_ItoC^T*p_IinC
+          // H_i.block(0, size_feature * A_index_features.at(feat.first), 2, 1) = Y * features_bearings.at(feat.first);
+          // b_i += Y * R_ItoC.transpose() * p_IinC;
         } else {
-          H.block(0, size_feature * A_index_features.at(feat.first), 2, 3) = H_proj * R_ItoC * R_I0toIk; // feat
+          H_i.block(0, size_feature * A_index_features.at(feat.first), 2, 3) = Y; // feat
         }
-        H.block(0, size_feature * num_features + 0, 2, 3) = -H_proj * R_ItoC * R_I0toIk * DT;           // vel
-        H.block(0, size_feature * num_features + 3, 2, 3) = 0.5 * H_proj * R_ItoC * R_I0toIk * DT * DT; // grav
-        Eigen::MatrixXd b_i = H_proj * (R_ItoC * R_I0toIk * alpha_I0toIk - p_IinC);
-
-        // Uncertainty of the measurement is the feature pixel noise and and preintegration
-        // TODO: We should propagate the raw pixel uncertainty to the normalized and the preintegration error to the measurement
-        // TODO: Fix this logic since this uses a unique H_proj matrix structure...
-        // Eigen::MatrixXd R_sqrtinv = 1e4 * Eigen::MatrixXd::Identity(2, 2);
-        // if (map_camera_cpi_I0toIi.find(time) != map_camera_cpi_I0toIi.end() && map_camera_cpi_I0toIi.at(time) != nullptr) {
-        //   Eigen::MatrixXd H_cpi = H_proj * R_ItoC * R_I0toIk;
-        //   Eigen::MatrixXd P_alpha = map_camera_cpi_I0toIi.at(time)->P_meas.block(12, 12, 3, 3);
-        //   Eigen::MatrixXd R = H_cpi * P_alpha * H_cpi.transpose();
-        //   R_sqrtinv = R.llt().matrixL();
-        //   R_sqrtinv = R_sqrtinv.colPivHouseholderQr().solve(Eigen::MatrixXd::Identity(R.rows(), R.rows()));
-        // }
-        //  Eigen::MatrixXd H_dz_dzn, H_dz_dzeta;
-        //  params.camera_intrinsics.at(cam_id)->compute_distort_jacobian(uv_norm, H_dz_dzn, H_dz_dzeta);
-        //  Eigen::MatrixXd R_pixel = std::pow(params.sigma_pix, 2) * H_dz_dzn * H_dz_dzn.transpose();
+        H_i.block(0, size_feature * num_features + 0, 2, 3) = -DT * Y;            // vel
+        H_i.block(0, size_feature * num_features + 3, 2, 3) = 0.5 * DT * DT * Y;  // grav
 
         // Else lets append this to our system!
-        A.block(index_meas, 0, 2, A.cols()) = H; // R_sqrtinv * H;
-        b.block(index_meas, 0, 2, 1) = b_i;      // R_sqrtinv * b_i;
+        A.block(index_meas, 0, 2, A.cols()) = H_i;
+        b.block(index_meas, 0, 2, 1) = b_i;
         index_meas += 2;
       }
     }
@@ -471,7 +461,7 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   Eigen::MatrixXd D_lambdaI_inv = (D - lambda_min * I_dd).llt().solve(I_dd);
   Eigen::VectorXd state_grav = D_lambdaI_inv * d;
 
-  // Overwrite our state
+  // Overwrite our state: [features, velocity, gravity]
   Eigen::VectorXd state_feat_vel = -A1A1_inv * A1.transpose() * A2 * state_grav + A1A1_inv * A1.transpose() * b;
   Eigen::MatrixXd x_hat = Eigen::MatrixXd::Zero(system_size, 1);
   x_hat.block(0, 0, size_feature * num_features + 3, 1) = state_feat_vel;
@@ -533,15 +523,17 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
     Eigen::Vector3d p_FinI0;
     if (size_feature == 1) {
       assert(false);
-      // p_FinI0 = x_hat(size_feature * map_features.at(feat.first) + 6, 0) * features_bearings.at(feat->featid);
+      // double depth = x_hat(size_feature * A_index_features.at(feat.first), 0);
+      // p_FinI0 = depth * features_bearings.at(feat.first) - R_ItoC.transpose() * p_IinC;
     } else {
-      p_FinI0 = x_hat.block(size_feature * A_index_features.at(feat.first) + 6, 0, 3, 1);
+      p_FinI0 = x_hat.block(size_feature * A_index_features.at(feat.first), 0, 3, 1);
     }
     bool is_behind = false;
     for (auto const &camtime : feat.second->timestamps) {
       size_t cam_id = camtime.first;
       Eigen::Vector4d q_ItoC = params.camera_extrinsics.at(cam_id).block(0, 0, 4, 1);
-      Eigen::Vector3d p_FinC0 = quat_2_Rot(q_ItoC) * p_FinI0;
+      Eigen::Vector3d p_IinC = params.camera_extrinsics.at(cam_id).block(4, 0, 3, 1);
+      Eigen::Vector3d p_FinC0 = quat_2_Rot(q_ItoC) * p_FinI0 + p_IinC;
       if (p_FinC0(2) < 0) {
         is_behind = true;
       }
@@ -1013,8 +1005,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
   ceres::Covariance::Options options_cov;
   options_cov.null_space_rank = (!params.init_dyn_mle_opt_calib) * ((int)map_calib_cam2imu.size() * (6 + 8));
   options_cov.min_reciprocal_condition_number = params.init_dyn_min_rec_cond;
-  options_cov.algorithm_type = ceres::CovarianceAlgorithmType::DENSE_SVD; // SPARSE_QR, DENSE_SVD
-  options_cov.apply_loss_function = false;
+  options_cov.algorithm_type = ceres::CovarianceAlgorithmType::SPARSE_QR; // SPARSE_QR, DENSE_SVD
+  options_cov.apply_loss_function = true;                                 // Better consistency if we use this
   options_cov.num_threads = params.init_dyn_mle_max_threads;
   ceres::Covariance problem_cov(options_cov);
   bool success = problem_cov.Compute(covariance_blocks, &problem);

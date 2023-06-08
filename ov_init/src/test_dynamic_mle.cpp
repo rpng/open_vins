@@ -614,13 +614,13 @@ int main(int argc, char **argv) {
         sensor_msgs::PointCloud2 cloud;
         cloud.header.frame_id = "global";
         cloud.header.stamp = ros::Time::now();
-        cloud.width = 3 * map_features.size();
+        cloud.width = map_features.size();
         cloud.height = 1;
         cloud.is_bigendian = false;
         cloud.is_dense = false; // there may be invalid points
         sensor_msgs::PointCloud2Modifier modifier(cloud);
         modifier.setPointCloud2FieldsByString(1, "xyz");
-        modifier.resize(3 * map_features.size());
+        modifier.resize(map_features.size());
         sensor_msgs::PointCloud2Iterator<float> out_x(cloud, "x");
         sensor_msgs::PointCloud2Iterator<float> out_y(cloud, "y");
         sensor_msgs::PointCloud2Iterator<float> out_z(cloud, "z");
