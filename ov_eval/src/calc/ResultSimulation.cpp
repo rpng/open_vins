@@ -126,6 +126,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (deg)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
   //=====================================================
 
@@ -142,6 +143,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (m)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
   //=====================================================
 
@@ -158,6 +160,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (m/s)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
   //=====================================================
 
@@ -174,6 +177,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (rad/s)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
   //=====================================================
 
@@ -190,6 +194,7 @@ void ResultSimulation::plot_state(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (m/s^2)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
   //=====================================================
 
@@ -232,7 +237,6 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
   return;
 #else
 
-  //=====================================================
   // Plot this figure
   matplotlibcpp::figure_size(800, 250);
 
@@ -267,8 +271,8 @@ void ResultSimulation::plot_timeoff(bool doplotting, double max_time) {
   matplotlibcpp::title("Camera IMU Time Offset Error");
   matplotlibcpp::ylabel("error (sec)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
-  //=====================================================
 
 #endif
 }
@@ -336,7 +340,6 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
   std::vector<std::string> colors = {"blue", "red", "black", "green", "cyan", "magenta"};
   assert(error_cam_k.size() <= colors.size());
 
-  //=====================================================
   // Plot this figure
   matplotlibcpp::figure_size(800, 600);
   for (int n = 0; n < (int)est_state.at(0)(18); n++) {
@@ -356,10 +359,9 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
   matplotlibcpp::subplot(4, 1, 4);
   matplotlibcpp::ylabel("cy (px)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
-  //=====================================================
 
-  //=====================================================
   // Plot this figure
   matplotlibcpp::figure_size(800, 600);
   for (int n = 0; n < (int)est_state.at(0)(18); n++) {
@@ -379,8 +381,8 @@ void ResultSimulation::plot_cam_instrinsics(bool doplotting, double max_time) {
   matplotlibcpp::subplot(4, 1, 4);
   matplotlibcpp::ylabel("d4");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
-  //=====================================================
 
 #endif
 }
@@ -454,7 +456,6 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
   std::vector<std::string> colors = {"blue", "red", "black", "green", "cyan", "magenta"};
   assert(error_cam_ori.size() <= colors.size());
 
-  //=====================================================
   // Plot this figure
   matplotlibcpp::figure_size(800, 500);
   for (int n = 0; n < (int)est_state.at(0)(18); n++) {
@@ -472,10 +473,9 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (deg)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
-  //=====================================================
 
-  //=====================================================
   // Plot this figure
   matplotlibcpp::figure_size(800, 500);
   for (int n = 0; n < (int)est_state.at(0)(18); n++) {
@@ -493,8 +493,241 @@ void ResultSimulation::plot_cam_extrinsics(bool doplotting, double max_time) {
   matplotlibcpp::subplot(3, 1, 3);
   matplotlibcpp::ylabel("z-error (m)");
   matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
+
+#endif
+}
+
+void ResultSimulation::plot_imu_intrinsics(bool doplotting, double max_time) {
+
+  // Check that we have cameras
+  if ((int)est_state.at(0)(18) < 1) {
+    PRINT_ERROR(YELLOW "You need at least one camera to run estimator and plot results...\n" RESET);
+    return;
+  }
+
+  // get the parameters id
+  int num_cam = (int)est_state.at(0)(18);
+  int imu_model = (int)est_state.at(0)(1 + 16 + 1 + 1 + 15 * num_cam);
+  int dw_id = 1 + 16 + 1 + 1 + 15 * num_cam + 1;
+  int dw_cov_id = 1 + 15 + 1 + 1 + 14 * num_cam + 1;
+  int da_id = dw_id + 6;
+  int da_cov_id = dw_cov_id + 6;
+  int tg_id = da_id + 6;
+  int tg_cov_id = da_cov_id + 6;
+  int wtoI_id = tg_id + 9;
+  int wtoI_cov_id = tg_cov_id + 9;
+  int atoI_id = wtoI_id + 4;
+  int atoI_cov_id = wtoI_cov_id + 3;
+
+  // IMU intrinsics statistic storage
+  std::vector<Statistics> error_dw, error_da, error_tg, error_wtoI, error_atoI;
+  for (int j = 0; j < 6; j++) {
+    error_dw.emplace_back(Statistics());
+    error_da.emplace_back(Statistics());
+  }
+  for (int j = 0; j < 9; j++) {
+    error_tg.emplace_back(Statistics());
+  }
+  for (int j = 0; j < 3; j++) {
+    error_wtoI.emplace_back(Statistics());
+    error_atoI.emplace_back(Statistics());
+  }
+
+  // Loop through and calculate error
+  double start_time = est_state.at(0)(0);
+  for (size_t i = 0; i < est_state.size(); i++) {
+
+    // Exit if we have reached our max time
+    if ((est_state.at(i)(0) - start_time) > max_time)
+      break;
+
+    // Assert our times are the same
+    assert(est_state.at(i)(0) == gt_state.at(i)(0));
+
+    // If we are not calibrating then don't plot it!
+    if (state_cov.at(i)(dw_cov_id) == 0.0) {
+      PRINT_WARNING(YELLOW "IMU intrinsics not calibrated online, so will not plot...\n" RESET);
+      return;
+    }
+
+    // Loop through IMU parameters and calculate error
+    for (int j = 0; j < 6; j++) {
+      error_dw.at(j).timestamps.push_back(est_state.at(i)(0));
+      error_dw.at(j).values.push_back(est_state.at(i)(dw_id + j) - gt_state.at(i)(dw_id + j));
+      error_dw.at(j).values_bound.push_back(3 * state_cov.at(i)(dw_cov_id + j));
+      error_da.at(j).timestamps.push_back(est_state.at(i)(0));
+      error_da.at(j).values.push_back(est_state.at(i)(da_id + j) - gt_state.at(i)(da_id + j));
+      error_da.at(j).values_bound.push_back(3 * state_cov.at(i)(da_cov_id + j));
+    }
+    for (int j = 0; j < 9; j++) {
+      error_tg.at(j).timestamps.push_back(est_state.at(i)(0));
+      error_tg.at(j).values.push_back(est_state.at(i)(tg_id + j) - gt_state.at(i)(tg_id + j));
+      error_tg.at(j).values_bound.push_back(3 * state_cov.at(i)(tg_cov_id + j));
+    }
+
+    // Calculate orientation errors
+    Eigen::Matrix3d e_R_wtoI = ov_core::quat_2_Rot(gt_state.at(i).block<4, 1>(wtoI_id, 0)) *
+                               ov_core::quat_2_Rot(est_state.at(i).block<4, 1>(wtoI_id, 0)).transpose();
+    Eigen::Vector3d ori_wtoI = -180.0 / M_PI * ov_core::log_so3(e_R_wtoI);
+    Eigen::Matrix3d e_R_atoI = ov_core::quat_2_Rot(gt_state.at(i).block<4, 1>(atoI_id, 0)) *
+                               ov_core::quat_2_Rot(est_state.at(i).block<4, 1>(atoI_id, 0)).transpose();
+    Eigen::Vector3d ori_atoI = -180.0 / M_PI * ov_core::log_so3(e_R_atoI);
+    for (int j = 0; j < 3; j++) {
+      error_wtoI.at(j).timestamps.push_back(est_state.at(i)(0));
+      error_wtoI.at(j).values.push_back(ori_wtoI(j));
+      error_wtoI.at(j).values_bound.push_back(3 * 180.0 / M_PI * state_cov.at(i)(wtoI_cov_id + j));
+      error_atoI.at(j).timestamps.push_back(est_state.at(i)(0));
+      error_atoI.at(j).values.push_back(ori_atoI(j));
+      error_atoI.at(j).values_bound.push_back(3 * 180.0 / M_PI * state_cov.at(i)(atoI_cov_id + j));
+    }
+  }
+
+  // return if we don't want to plot
+  if (!doplotting)
+    return;
+
+#ifndef HAVE_PYTHONLIBS
+  PRINT_ERROR(RED "Matplotlib not loaded, so will not plot, just returning..\n" RESET);
+  return;
+#else
+
+  // Plot line colors
+  std::vector<std::string> colors = {"blue", "red", "black", "green", "cyan", "magenta"};
+  std::string estcolor = ((int)est_state.at(0)(18) == 1) ? "blue" : colors.at(0);
+  std::string stdcolor = ((int)est_state.at(0)(18) == 1) ? "red" : colors.at(1);
+
+  // Plot this figure
+  matplotlibcpp::figure_size(1000, 500);
+  plot_6errors(error_dw[0], error_dw[3], error_dw[1], error_dw[4], error_dw[2], error_dw[5], colors.at(0), stdcolor);
+
+  // Update the title and axis labels
+  matplotlibcpp::subplot(3, 2, 1);
+  matplotlibcpp::title("IMU Dw Error (1:3)");
+  matplotlibcpp::ylabel("dw_1");
+  matplotlibcpp::subplot(3, 2, 2);
+  matplotlibcpp::title("IMU Dw Error (4:6)");
+  matplotlibcpp::ylabel("dw_4");
+  matplotlibcpp::subplot(3, 2, 3);
+  matplotlibcpp::ylabel("dw_2");
+  matplotlibcpp::subplot(3, 2, 4);
+  matplotlibcpp::ylabel("dw_5");
+  matplotlibcpp::subplot(3, 2, 5);
+  matplotlibcpp::ylabel("dw_3");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::subplot(3, 2, 6);
+  matplotlibcpp::ylabel("dw_6");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
+  matplotlibcpp::show(false);
+
   //=====================================================
+  //=====================================================
+
+  // Plot this figure
+  matplotlibcpp::figure_size(1000, 500);
+  plot_6errors(error_da[0], error_da[3], error_da[1], error_da[4], error_da[2], error_da[5], colors.at(0), stdcolor);
+
+  // Update the title and axis labels
+  matplotlibcpp::subplot(3, 2, 1);
+  matplotlibcpp::title("IMU Da Error (1:3)");
+  matplotlibcpp::ylabel("da_1");
+  matplotlibcpp::subplot(3, 2, 2);
+  matplotlibcpp::title("IMU Da Error (4:6)");
+  matplotlibcpp::ylabel("da_4");
+  matplotlibcpp::subplot(3, 2, 3);
+  matplotlibcpp::ylabel("da_2");
+  matplotlibcpp::subplot(3, 2, 4);
+  matplotlibcpp::ylabel("da_5");
+  matplotlibcpp::subplot(3, 2, 5);
+  matplotlibcpp::ylabel("da_3");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::subplot(3, 2, 6);
+  matplotlibcpp::ylabel("da_6");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
+  matplotlibcpp::show(false);
+
+  //=====================================================
+  //=====================================================
+
+  // Plot this figure
+  // NOTE: display is row-based not column-based
+  matplotlibcpp::figure_size(1400, 500);
+  plot_9errors(error_tg[0], error_tg[3], error_tg[6], error_tg[1], error_tg[4], error_tg[7], error_tg[2], error_tg[5], error_tg[8],
+               colors.at(0), stdcolor);
+
+  // Update the title and axis labels
+  matplotlibcpp::subplot(3, 3, 1);
+  matplotlibcpp::title("IMU Tg Error (1:3)");
+  matplotlibcpp::ylabel("tg_1");
+  matplotlibcpp::subplot(3, 3, 2);
+  matplotlibcpp::title("IMU Tg Error (4:6)");
+  matplotlibcpp::ylabel("tg_4");
+  matplotlibcpp::subplot(3, 3, 3);
+  matplotlibcpp::title("IMU Tg Error (7:9)");
+  matplotlibcpp::ylabel("tg_7");
+  matplotlibcpp::subplot(3, 3, 4);
+  matplotlibcpp::ylabel("tg_2");
+  matplotlibcpp::subplot(3, 3, 5);
+  matplotlibcpp::ylabel("tg_5");
+  matplotlibcpp::subplot(3, 3, 6);
+  matplotlibcpp::ylabel("tg_8");
+  matplotlibcpp::subplot(3, 3, 7);
+  matplotlibcpp::ylabel("tg_3");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::subplot(3, 3, 8);
+  matplotlibcpp::ylabel("tg_6");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::subplot(3, 3, 9);
+  matplotlibcpp::ylabel("tg_9");
+  matplotlibcpp::xlabel("dataset time (s)");
+  matplotlibcpp::tight_layout();
+  matplotlibcpp::show(false);
+
+  //=====================================================
+  //=====================================================
+
+  // Finally plot
+  if (imu_model == 0) {
+
+    // Kalibr model
+    // Plot this figure
+    matplotlibcpp::figure_size(800, 500);
+    plot_3errors(error_wtoI[0], error_wtoI[1], error_wtoI[2], colors.at(0), stdcolor);
+
+    // Update the title and axis labels
+    matplotlibcpp::subplot(3, 1, 1);
+    matplotlibcpp::title("IMU R_GYROtoIMU Error");
+    matplotlibcpp::ylabel("x-error (deg)");
+    matplotlibcpp::subplot(3, 1, 2);
+    matplotlibcpp::ylabel("y-error (deg)");
+    matplotlibcpp::subplot(3, 1, 3);
+    matplotlibcpp::ylabel("z-error (deg)");
+    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::tight_layout();
+    matplotlibcpp::show(false);
+
+  } else {
+
+    // RPNG model
+    // Plot this figure
+    matplotlibcpp::figure_size(800, 500);
+    plot_3errors(error_atoI[0], error_atoI[1], error_atoI[2], colors.at(0), stdcolor);
+
+    // Update the title and axis labels
+    matplotlibcpp::subplot(3, 1, 1);
+    matplotlibcpp::title("IMU R_ACCtoIMU Error");
+    matplotlibcpp::ylabel("x-error (deg)");
+    matplotlibcpp::subplot(3, 1, 2);
+    matplotlibcpp::ylabel("y-error (deg)");
+    matplotlibcpp::subplot(3, 1, 3);
+    matplotlibcpp::ylabel("z-error (deg)");
+    matplotlibcpp::xlabel("dataset time (s)");
+    matplotlibcpp::tight_layout();
+    matplotlibcpp::show(false);
+  }
 
 #endif
 }

@@ -38,8 +38,8 @@ By default the EuRoC groundtruth has the timestamp in nanoseconds and the quater
 A user can either process all CSV files in a given folder, or just a specific one.
 
 @code{.shell-session}
-rosrun ov_eval format_convert folder/path/
-rosrun ov_eval format_convert file.csv
+rosrun ov_eval format_converter folder/path/
+rosrun ov_eval format_converter file.csv
 @endcode
 
 In addition we have a specific folder structure that is assumed.
@@ -98,7 +98,7 @@ It will use the filename as the name in the legend, so you can change that to ch
 
 @code{.shell-session}
 rosrun ov_eval plot_trajectories <align_mode> <file_gt.txt> ... <file_est9.txt>
-rosrun ov_eval plot_trajectories posyaw 1565371553_estimate.txt truths/V1_01_easy.txt
+rosrun ov_eval plot_trajectories posyaw truths/V1_01_easy.txt 1565371553_estimate.txt
 @endcode
 
 @image html eval/plot_xy.png width=70%

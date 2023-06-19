@@ -10,10 +10,10 @@ source ${SCRIPT_DIR}/../../../../devel/setup.bash
 
 # datasets
 datasets=(
-    "udel_gore"
+#    "udel_gore"
 #    "udel_arl"
 #    "udel_gore_zupt"
-#    "tum_corridor1_512_16_okvis"
+    "tum_corridor1_512_16_okvis"
 )
 
 # If we want to calibrate parameters

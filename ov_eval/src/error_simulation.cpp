@@ -63,6 +63,10 @@ int main(int argc, char **argv) {
   PRINT_INFO("Plotting camera extrinsics...\n");
   traj.plot_cam_extrinsics(true, 60);
 
+  // Plot IMU intrinsics
+  PRINT_INFO("Plotting IMU intrinsics...\n");
+  traj.plot_imu_intrinsics(true, 60);
+
 #ifdef HAVE_PYTHONLIBS
   matplotlibcpp::show(true);
 #endif

@@ -108,7 +108,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
   // If we should integrate the acceleration and say the velocity should be zero
   // Also if we should still inflate the bias based on their random walk noises
-  bool integrated_accel_constraint = false;
+  bool integrated_accel_constraint = false; // untested
   bool model_time_varying_bias = true;
   bool override_with_disparity_check = true;
   bool explicitly_enforce_zero_motion = false;
@@ -128,7 +128,13 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   Eigen::MatrixXd H = Eigen::MatrixXd::Zero(m_size, h_size);
   Eigen::VectorXd res = Eigen::VectorXd::Zero(m_size);
 
+  // IMU intrinsic calibration estimates (static)
+  Eigen::Matrix3d Dw = State::Dm(state->_options.imu_model, state->_calib_imu_dw->value());
+  Eigen::Matrix3d Da = State::Dm(state->_options.imu_model, state->_calib_imu_da->value());
+  Eigen::Matrix3d Tg = State::Tg(state->_calib_imu_tg->value());
+
   // Loop through all our IMU and construct the residual and Jacobian
+  // TODO: should add jacobians here in respect to IMU intrinsics!!
   // State order is: [q_GtoI, bg, ba, v_IinG]
   // Measurement order is: [w_true = 0, a_true = 0 or v_k+1 = 0]
   // w_true = w_m - bw - nw
@@ -139,7 +145,8 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
 
     // Precomputed values
     double dt = imu_recent.at(i + 1).timestamp - imu_recent.at(i).timestamp;
-    Eigen::Vector3d a_hat = imu_recent.at(i).am - state->_imu->bias_a();
+    Eigen::Vector3d a_hat = state->_calib_imu_ACCtoIMU->Rot() * Da * (imu_recent.at(i).am - state->_imu->bias_a());
+    Eigen::Vector3d w_hat = state->_calib_imu_GYROtoIMU->Rot() * Dw * (imu_recent.at(i).wm - state->_imu->bias_g() - Tg * a_hat);
 
     // Measurement noise (convert from continuous to discrete)
     // NOTE: The dt time might be different if we have "cut" any imu measurements
@@ -151,11 +158,10 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
     double w_accel_v = 1.0 / (std::sqrt(dt) * _noises.sigma_a);
 
     // Measurement residual (true value is zero)
-    res.block(6 * i + 0, 0, 3, 1) = -w_omega * (imu_recent.at(i).wm - state->_imu->bias_g());
+    res.block(6 * i + 0, 0, 3, 1) = -w_omega * w_hat;
     if (!integrated_accel_constraint) {
       res.block(6 * i + 3, 0, 3, 1) = -w_accel * (a_hat - state->_imu->Rot() * _gravity);
     } else {
-      assert(false);
       res.block(6 * i + 3, 0, 3, 1) = -w_accel_v * (state->_imu->vel() - _gravity * dt + state->_imu->Rot().transpose() * a_hat * dt);
     }
 
@@ -166,7 +172,6 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
       H.block(6 * i + 3, 0, 3, 3) = -w_accel * skew_x(R_GtoI_jacob * _gravity);
       H.block(6 * i + 3, 6, 3, 3) = -w_accel * Eigen::Matrix3d::Identity();
     } else {
-      assert(false);
       H.block(6 * i + 3, 0, 3, 3) = -w_accel_v * R_GtoI_jacob.transpose() * skew_x(a_hat) * dt;
       H.block(6 * i + 3, 6, 3, 3) = -w_accel_v * R_GtoI_jacob.transpose() * dt;
       H.block(6 * i + 3, 9, 3, 3) = w_accel_v * Eigen::Matrix3d::Identity();
@@ -181,7 +186,7 @@ bool UpdaterZeroVelocity::try_update(std::shared_ptr<State> state, double timest
   }
 
   // Multiply our noise matrix by a fixed amount
-  // We typically need to treat the IMU as being "worst" to detect / not become over confident
+  // We typically need to treat the IMU as being "worst" to detect / not become overconfident
   Eigen::MatrixXd R = _zupt_noise_multiplier * Eigen::MatrixXd::Identity(res.rows(), res.rows());
 
   // Next propagate the biases forward in time

@@ -34,10 +34,7 @@ namespace ov_core {
  *
  * This is the base class for all our camera models.
  * All these models are pinhole cameras, thus just have standard reprojection logic.
- *
- * See each base class for detailed examples on each model:
- *  - @ref ov_core::CamEqui
- *  - @ref ov_core::CamRadtan
+ * See each derived class for detailed examples of each model.
  */
 class CamBase {
 

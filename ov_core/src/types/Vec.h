@@ -45,6 +45,11 @@ public:
 
   /**
    * @brief Implements the update operation through standard vector addition
+   *
+   * \f{align*}{
+   * \mathbf{v} &= \hat{\mathbf{v}} + \tilde{\mathbf{v}}_{dx}
+   * \f}
+   *
    * @param dx Additive error state correction
    */
   void update(const Eigen::VectorXd &dx) override {

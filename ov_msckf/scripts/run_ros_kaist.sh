@@ -18,7 +18,7 @@ modes=(
 # dataset locations
 bagnames=(
   "urban28"
-  "urban32"
+#  "urban32"
 #  "urban34" # too strong of sun...
   "urban38"
   "urban39"
@@ -37,8 +37,8 @@ bagstarttimes=(
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_kaist/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_kaist/timings"
-bag_path="/home/patrick/datasets/euroc_mav/"
-ov_ver="2.6.3"
+bag_path="/media/patrick/Windows/datasets/kaist/"
+ov_ver="2.7"
 
 
 #=============================================================

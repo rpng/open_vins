@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
   // Display to the user
   matplotlibcpp::xlabel("x-axis (m)");
   matplotlibcpp::ylabel("y-axis (m)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
 
   // Plot this figure
@@ -201,6 +202,7 @@ int main(int argc, char **argv) {
   matplotlibcpp::ylabel("z-axis (m)");
   matplotlibcpp::xlim(0.0, endtime - starttime);
   matplotlibcpp::legend();
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(true);
 
 #endif

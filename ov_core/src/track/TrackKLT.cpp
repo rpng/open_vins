@@ -457,7 +457,7 @@ void TrackKLT::perform_detection_monocular(const std::vector<cv::Mat> &img0pyr, 
     if (x - min_px_dist >= 0 && x + min_px_dist < img0pyr.at(0).cols && y - min_px_dist >= 0 && y + min_px_dist < img0pyr.at(0).rows) {
       cv::Point pt1(x - min_px_dist, y - min_px_dist);
       cv::Point pt2(x + min_px_dist, y + min_px_dist);
-      cv::rectangle(mask0_updated, pt1, pt2, cv::Scalar(255));
+      cv::rectangle(mask0_updated, pt1, pt2, cv::Scalar(255), -1);
     }
     it0++;
     it1++;
@@ -593,7 +593,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
     if (x - min_px_dist >= 0 && x + min_px_dist < img0pyr.at(0).cols && y - min_px_dist >= 0 && y + min_px_dist < img0pyr.at(0).rows) {
       cv::Point pt1(x - min_px_dist, y - min_px_dist);
       cv::Point pt2(x + min_px_dist, y + min_px_dist);
-      cv::rectangle(mask0_updated, pt1, pt2, cv::Scalar(255));
+      cv::rectangle(mask0_updated, pt1, pt2, cv::Scalar(255), -1);
     }
     it0++;
     it1++;
@@ -662,8 +662,8 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
     if (!pts0_new.empty()) {
 
       // Do our KLT tracking from the left to the right frame of reference
-      // Note: we have a pretty big window size here since our projection might be bad
-      // Note: but this might cause failure in cases of repeated textures (eg. checkerboard)
+      // NOTE: we have a pretty big window size here since our projection might be bad
+      // NOTE: but this might cause failure in cases of repeated textures (eg. checkerboard)
       std::vector<uchar> mask;
       // perform_matching(img0pyr, img1pyr, kpts0_new, kpts1_new, cam_id_left, cam_id_right, mask);
       std::vector<float> error;
@@ -674,22 +674,18 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
       // Loop through and record only ones that are valid
       for (size_t i = 0; i < pts0_new.size(); i++) {
 
-        // Check that it is in bounds
-        if ((int)pts0_new.at(i).x < 0 || (int)pts0_new.at(i).x >= img0pyr.at(0).cols || (int)pts0_new.at(i).y < 0 ||
-            (int)pts0_new.at(i).y >= img0pyr.at(0).rows) {
-          continue;
-        }
-        if ((int)pts1_new.at(i).x < 0 || (int)pts1_new.at(i).x >= img1pyr.at(0).cols || (int)pts1_new.at(i).y < 0 ||
-            (int)pts1_new.at(i).y >= img1pyr.at(0).rows) {
-          continue;
-        }
+        // Check to see if the feature is out of bounds (oob) in either image
+        bool oob_left = ((int)pts0_new.at(i).x < 0 || (int)pts0_new.at(i).x >= img0pyr.at(0).cols || (int)pts0_new.at(i).y < 0 ||
+                         (int)pts0_new.at(i).y >= img0pyr.at(0).rows);
+        bool oob_right = ((int)pts1_new.at(i).x < 0 || (int)pts1_new.at(i).x >= img1pyr.at(0).cols || (int)pts1_new.at(i).y < 0 ||
+                          (int)pts1_new.at(i).y >= img1pyr.at(0).rows);
 
         // Check to see if it there is already a feature in the right image at this location
         //  1) If this is not already in the right image, then we should treat it as a stereo
         //  2) Otherwise we will treat this as just a monocular track of the feature
         // TODO: we should check to see if we can combine this new feature and the one in the right
         // TODO: seems if reject features which overlay with right features already we have very poor tracking perf
-        if (mask[i] == 1) {
+        if (!oob_left && !oob_right && mask[i] == 1) {
           // update the uv coordinates
           kpts0_new.at(i).pt = pts0_new.at(i);
           kpts1_new.at(i).pt = pts1_new.at(i);
@@ -700,7 +696,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
           size_t temp = ++currid;
           ids0.push_back(temp);
           ids1.push_back(temp);
-        } else {
+        } else if (!oob_left) {
           // update the uv coordinates
           kpts0_new.at(i).pt = pts0_new.at(i);
           // append the new uv coordinate
@@ -722,6 +718,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
   float size_y1 = (float)img1pyr.at(0).rows / (float)grid_y;
   cv::Size size_grid1(grid_x, grid_y); // width x height
   cv::Mat grid_2d_grid1 = cv::Mat::zeros(size_grid1, CV_8UC1);
+  cv::Mat mask1_updated = mask0.clone();
   it0 = pts1.begin();
   it1 = ids1.begin();
   while (it0 != pts1.end()) {
@@ -751,17 +748,15 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
       it1 = ids1.erase(it1);
       continue;
     }
-    // Check if this is a stereo point
-    bool is_stereo = (std::find(ids0.begin(), ids0.end(), *it1) != ids0.end());
     // Check if this keypoint is near another point
     // NOTE: if it is *not* a stereo point, then we will not delete the feature
     // NOTE: this means we might have a mono and stereo feature near each other, but that is ok
-    if (grid_2d_close1.at<uint8_t>(y_grid, x_grid) > 127 && !is_stereo) {
+    bool is_stereo = (std::find(ids0.begin(), ids0.end(), *it1) != ids0.end());
+    if (grid_2d_close1.at<uint8_t>(y_close, x_close) > 127 && !is_stereo) {
       it0 = pts1.erase(it0);
       it1 = ids1.erase(it1);
       continue;
     }
-
     // Now check if it is in a mask area or not
     // NOTE: mask has max value of 255 (white) if it should be
     if (mask1.at<uint8_t>(y, x) > 127) {
@@ -770,9 +765,15 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
       continue;
     }
     // Else we are good, move forward to the next point
-    grid_2d_close1.at<uint8_t>(y_grid, x_grid) = 255;
+    grid_2d_close1.at<uint8_t>(y_close, x_close) = 255;
     if (grid_2d_grid1.at<uint8_t>(y_grid, x_grid) < 255) {
       grid_2d_grid1.at<uint8_t>(y_grid, x_grid) += 1;
+    }
+    // Append this to the local mask of the image
+    if (x - min_px_dist >= 0 && x + min_px_dist < img1pyr.at(0).cols && y - min_px_dist >= 0 && y + min_px_dist < img1pyr.at(0).rows) {
+      cv::Point pt1(x - min_px_dist, y - min_px_dist);
+      cv::Point pt2(x + min_px_dist, y + min_px_dist);
+      cv::rectangle(mask1_updated, pt1, pt2, cv::Scalar(255), -1);
     }
     it0++;
     it1++;
@@ -786,7 +787,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
     // This is old extraction code that would extract from the whole image
     // This can be slow as this will recompute extractions for grid areas that we have max features already
     // std::vector<cv::KeyPoint> pts1_ext;
-    // Grider_FAST::perform_griding(img1pyr.at(0), mask1, pts1_ext, num_features, grid_x, grid_y, threshold, true);
+    // Grider_FAST::perform_griding(img1pyr.at(0), mask1_updated, pts1_ext, num_features, grid_x, grid_y, threshold, true);
 
     // We also check a downsampled mask such that we don't extract in areas where it is all masked!
     cv::Mat mask1_grid;
@@ -804,7 +805,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
       }
     }
     std::vector<cv::KeyPoint> pts1_ext;
-    Grider_GRID::perform_griding(img1pyr.at(0), mask1, valid_locs, pts1_ext, num_features, grid_x, grid_y, threshold, true);
+    Grider_GRID::perform_griding(img1pyr.at(0), mask1_updated, valid_locs, pts1_ext, num_features, grid_x, grid_y, threshold, true);
 
     // Now, reject features that are close a current feature
     for (auto &kpt : pts1_ext) {

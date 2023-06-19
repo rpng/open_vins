@@ -39,18 +39,18 @@ bagstarttimes=(
   "0"
   "0"
   "0"
-  "40" # 40
-  "35" # 35
-  "5" # 10
-  "10" # 17
-  "5" # 18
+  "40"
+  "35"
+  "5"
+  "10"
+  "5" # stereo can fail if starts while still due to bad left-right KLT....
 )
 
 # location to save log files into
 save_path1="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_euroc/algorithms"
 save_path2="/home/patrick/github/pubs_data/pgeneva/2023_openvins_reproduce/exp_euroc/timings"
-bag_path="/home/patrick/datasets/euroc_mav/"
-ov_ver="2.6.3"
+bag_path="/media/patrick/Windows/datasets/euroc_mav/"
+ov_ver="2.7"
 
 
 #=============================================================

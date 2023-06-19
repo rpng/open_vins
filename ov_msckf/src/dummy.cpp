@@ -37,9 +37,10 @@
  * The key features of the system are the following:
  *
  * - Sliding stochastic imu clones
- * - First estimate Jacobians
+ * - First-Estimate Jacobians to maintain consistency
  * - Camera intrinsics and extrinsic online calibration
  * - Time offset between camera and imu calibration
+ * - Inertial intrinsic calibration (including g-sensitivity)
  * - Standard MSCKF features with nullspace projection
  * - 3d SLAM feature support (with six different representations)
  * - Generic simulation of trajectories through and environment (see @ref ov_msckf::Simulator)

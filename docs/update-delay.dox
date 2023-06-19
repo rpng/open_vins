@@ -4,6 +4,9 @@
 @page update-delay Delayed Feature Initialization
 
 We describe a method of delayed initialization of a 3D point feature as in [Visual-Inertial Odometry on Resource-Constrained Systems](https://escholarship.org/content/qt4nn0j264/qt4nn0j264.pdf) @cite Li2014THESIS.
+It is important to note that this is just an example of how to leverage delayed initialization which is very pertinent to visual-inertial state estimation.
+In practice, as long as sufficient measurements are available to constrain the new state (e.g. ENU-to-VIO transform, sensor calibration, object pose, etc..), the below delayed initialization procedure can be applied directly.
+
 Specifically, given a set of measurements involving the state \f$\mathbf{x}\f$ and a new feature  \f$\mathbf{f}\f$, we want to optimally and efficiently initialize the feature.
 
 \f{align*}{
@@ -85,6 +88,9 @@ For example when initializing a new feature to the end of the state, the augment
 
 Note that this process does not update the estimate for \f$\mathbf{x}\f$. 
 However, after initialization, we can then use the second system, \f$\mathbf{r}_2\f$, \f$\mathbf{H}_{x2}\f$, and \f$\mathbf{n}_2\f$ to update our new state through a standard EKF update (see @ref linear-meas section).
+We note that if there are exactly enough measurements to initialize the state, then no update occurs.
+This make sense, as the system is not yet overconstrained, thus only the to-be-initialized state and its uncertainty can be found (it does not yet benefit the navigation state estimates).
+Some additional notes on performing delayed initialization can be found in [this](https://pgeneva.com/downloads/notes/2022_notes_delay_init.pdf) technical report.
 
 
 */

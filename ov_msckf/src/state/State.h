@@ -80,10 +80,64 @@ public:
    */
   int max_covariance_size() { return (int)_Cov.rows(); }
 
+  /**
+   * @brief Gyroscope and accelerometer intrinsic matrix (scale imperfection and axis misalignment)
+   *
+   * If kalibr model, lower triangular of the matrix is used
+   * If rpng model, upper triangular of the matrix is used
+   *
+   * @return 3x3 matrix of current imu gyroscope / accelerometer intrinsics
+   */
+  static Eigen::Matrix3d Dm(StateOptions::ImuModel imu_model, const Eigen::MatrixXd &vec) {
+    assert(vec.rows() == 6);
+    assert(vec.cols() == 1);
+    Eigen::Matrix3d D_matrix = Eigen::Matrix3d::Identity();
+    if (imu_model == StateOptions::ImuModel::KALIBR) {
+      D_matrix << vec(0), 0, 0, vec(1), vec(3), 0, vec(2), vec(4), vec(5);
+    } else {
+      D_matrix << vec(0), vec(1), vec(3), 0, vec(2), vec(4), 0, 0, vec(5);
+    }
+    return D_matrix;
+  }
+
+  /**
+   * @brief Gyroscope gravity sensitivity
+   *
+   * For both kalibr and rpng models, this a 3x3 that is column-wise filled.
+   *
+   * @return 3x3 matrix of current gravity sensitivity
+   */
+  static Eigen::Matrix3d Tg(const Eigen::MatrixXd &vec) {
+    assert(vec.rows() == 9);
+    assert(vec.cols() == 1);
+    Eigen::Matrix3d Tg = Eigen::Matrix3d::Zero();
+    Tg << vec(0), vec(3), vec(6), vec(1), vec(4), vec(7), vec(2), vec(5), vec(8);
+    return Tg;
+  }
+
+  /**
+   * @brief Calculates the error state size for imu intrinsics.
+   *
+   * This is used to construct our state transition which depends on if we are estimating calibration.
+   * 15 if doing intrinsics, another +9 if doing grav sensitivity
+   *
+   * @return size of error state
+   */
+  int imu_intrinsic_size() const {
+    int sz = 0;
+    if (_options.do_calib_imu_intrinsics) {
+      sz += 15;
+      if (_options.do_calib_imu_g_sensitivity) {
+        sz += 9;
+      }
+    }
+    return sz;
+  }
+
   /// Mutex for locking access to the state
   std::mutex _mutex_state;
 
-  /// Current timestamp (should be the last update time!)
+  /// Current timestamp (should be the last update time in camera clock frame!)
   double _timestamp = -1;
 
   /// Struct containing filter options
@@ -109,6 +163,21 @@ public:
 
   /// Camera intrinsics camera objects
   std::unordered_map<size_t, std::shared_ptr<ov_core::CamBase>> _cam_intrinsics_cameras;
+
+  /// Gyroscope IMU intrinsics (scale imperfection and axis misalignment)
+  std::shared_ptr<ov_type::Vec> _calib_imu_dw;
+
+  /// Accelerometer IMU intrinsics (scale imperfection and axis misalignment)
+  std::shared_ptr<ov_type::Vec> _calib_imu_da;
+
+  /// Gyroscope gravity sensitivity
+  std::shared_ptr<ov_type::Vec> _calib_imu_tg;
+
+  /// Rotation from gyroscope frame to the "IMU" accelerometer frame (kalibr model)
+  std::shared_ptr<ov_type::JPLQuat> _calib_imu_GYROtoIMU;
+
+  /// Rotation from accelerometer to the "IMU" gyroscope frame frame (rpng model)
+  std::shared_ptr<ov_type::JPLQuat> _calib_imu_ACCtoIMU;
 
 private:
   // Define that the state helper is a friend class of this class

@@ -69,6 +69,18 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
   // Create the state!!
   state = std::make_shared<State>(params.state_options);
 
+  // Set the IMU intrinsics
+  state->_calib_imu_dw->set_value(params.vec_dw);
+  state->_calib_imu_dw->set_fej(params.vec_dw);
+  state->_calib_imu_da->set_value(params.vec_da);
+  state->_calib_imu_da->set_fej(params.vec_da);
+  state->_calib_imu_tg->set_value(params.vec_tg);
+  state->_calib_imu_tg->set_fej(params.vec_tg);
+  state->_calib_imu_GYROtoIMU->set_value(params.q_GYROtoIMU);
+  state->_calib_imu_GYROtoIMU->set_fej(params.q_GYROtoIMU);
+  state->_calib_imu_ACCtoIMU->set_value(params.q_ACCtoIMU);
+  state->_calib_imu_ACCtoIMU->set_fej(params.q_ACCtoIMU);
+
   // Timeoffset from camera to IMU
   Eigen::VectorXd temp_camimu_dt;
   temp_camimu_dt.resize(1);
@@ -666,5 +678,37 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
       PRINT_INFO("cam%d extrinsics = %.3f,%.3f,%.3f,%.3f | %.3f,%.3f,%.3f\n", (int)i, calib->quat()(0), calib->quat()(1), calib->quat()(2),
                  calib->quat()(3), calib->pos()(0), calib->pos()(1), calib->pos()(2));
     }
+  }
+
+  // Debug for imu intrinsics
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
+    PRINT_INFO("q_GYROtoI = %.3f,%.3f,%.3f,%.3f\n", state->_calib_imu_GYROtoIMU->value()(0), state->_calib_imu_GYROtoIMU->value()(1),
+               state->_calib_imu_GYROtoIMU->value()(2), state->_calib_imu_GYROtoIMU->value()(3));
+  }
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::RPNG) {
+    PRINT_INFO("q_ACCtoI = %.3f,%.3f,%.3f,%.3f\n", state->_calib_imu_ACCtoIMU->value()(0), state->_calib_imu_ACCtoIMU->value()(1),
+               state->_calib_imu_ACCtoIMU->value()(2), state->_calib_imu_ACCtoIMU->value()(3));
+  }
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::KALIBR) {
+    PRINT_INFO("Dw = | %.4f,%.4f,%.4f | %.4f,%.4f | %.4f |\n", state->_calib_imu_dw->value()(0), state->_calib_imu_dw->value()(1),
+               state->_calib_imu_dw->value()(2), state->_calib_imu_dw->value()(3), state->_calib_imu_dw->value()(4),
+               state->_calib_imu_dw->value()(5));
+    PRINT_INFO("Da = | %.4f,%.4f,%.4f | %.4f,%.4f | %.4f |\n", state->_calib_imu_da->value()(0), state->_calib_imu_da->value()(1),
+               state->_calib_imu_da->value()(2), state->_calib_imu_da->value()(3), state->_calib_imu_da->value()(4),
+               state->_calib_imu_da->value()(5));
+  }
+  if (state->_options.do_calib_imu_intrinsics && state->_options.imu_model == StateOptions::ImuModel::RPNG) {
+    PRINT_INFO("Dw = | %.4f | %.4f,%.4f | %.4f,%.4f,%.4f |\n", state->_calib_imu_dw->value()(0), state->_calib_imu_dw->value()(1),
+               state->_calib_imu_dw->value()(2), state->_calib_imu_dw->value()(3), state->_calib_imu_dw->value()(4),
+               state->_calib_imu_dw->value()(5));
+    PRINT_INFO("Da = | %.4f | %.4f,%.4f | %.4f,%.4f,%.4f |\n", state->_calib_imu_da->value()(0), state->_calib_imu_da->value()(1),
+               state->_calib_imu_da->value()(2), state->_calib_imu_da->value()(3), state->_calib_imu_da->value()(4),
+               state->_calib_imu_da->value()(5));
+  }
+  if (state->_options.do_calib_imu_intrinsics && state->_options.do_calib_imu_g_sensitivity) {
+    PRINT_INFO("Tg = | %.4f,%.4f,%.4f |  %.4f,%.4f,%.4f | %.4f,%.4f,%.4f |\n", state->_calib_imu_tg->value()(0),
+               state->_calib_imu_tg->value()(1), state->_calib_imu_tg->value()(2), state->_calib_imu_tg->value()(3),
+               state->_calib_imu_tg->value()(4), state->_calib_imu_tg->value()(5), state->_calib_imu_tg->value()(6),
+               state->_calib_imu_tg->value()(7), state->_calib_imu_tg->value()(8));
   }
 }

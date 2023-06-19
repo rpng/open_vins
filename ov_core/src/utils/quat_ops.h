@@ -26,7 +26,8 @@
  * @section Summary
  * This file contains the common utility functions for operating on JPL quaternions.
  * We need to take special care to handle edge cases when converting to and from other rotation formats.
- * All equations are based on the following tech report:
+ * All equations are based on the following tech report @cite Trawny2005TR :
+ *
  * > Trawny, Nikolas, and Stergios I. Roumeliotis. "Indirect Kalman filter for 3D attitude estimation."
  * > University of Minnesota, Dept. of Comp. Sci. & Eng., Tech. Rep 2 (2005): 2005.
  * > http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf
@@ -48,13 +49,13 @@
  *  ~,~
  *  -\mathbf{k}\mathbf{i}=\mathbf{i}\mathbf{k}=\mathbf{j}
  * @f]
- * As noted in [Trawny2005] this does not correspond to the Hamilton notation, and follows the "JPL Proposed Standard Conventions".
+ * As noted in @cite Trawny2005TR this does not correspond to the Hamilton notation, and follows the "JPL Proposed Standard Conventions".
  * The q_4 quantity is the "scalar" portion of the quaternion, while q_1,q_2,q_3 are part of the "vector" portion.
  * We split the 4x1 vector into the following convention:
  * @f[
  *  \bar{q} = \begin{bmatrix}q_1\\q_2\\q_3\\q_4\end{bmatrix} = \begin{bmatrix}\mathbf{q}\\q_4\end{bmatrix}
  * @f]
- * It is also important to note that the quaternion is constrainted to the unit circle:
+ * It is also important to note that the quaternion is constrained to the unit circle:
  * @f[
  *  |\bar{q}| = \sqrt{\bar{q}^\top\bar{q}} = \sqrt{|\mathbf{q}|^2+q_4^2} = 1
  * @f]
@@ -465,7 +466,18 @@ inline Eigen::Matrix<double, 4, 1> Inv(Eigen::Matrix<double, 4, 1> q) {
  *
  * See equation (48) of trawny tech report [Indirect Kalman Filter for 3D Attitude
  * Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf).
+ * This matrix is derived in Section 1.5 of the report by finding the Quaterion Time Derivative.
  *
+ * \f{align*}{
+ * \boldsymbol{\Omega}(\boldsymbol{\omega}) &=
+ * \begin{bmatrix}
+ * -\lfloor{\boldsymbol{\omega}}  \rfloor & \boldsymbol{\omega} \\
+ * -\boldsymbol{\omega}^\top & 0
+ * \end{bmatrix}
+ * \f}
+ *
+ * @param w Angular velocity
+ * @return The matrix \f$\boldsymbol{\Omega}\f$
  */
 inline Eigen::Matrix<double, 4, 4> Omega(Eigen::Matrix<double, 3, 1> w) {
   Eigen::Matrix<double, 4, 4> mat;
@@ -492,10 +504,10 @@ inline Eigen::Matrix<double, 4, 1> quatnorm(Eigen::Matrix<double, 4, 1> q_t) {
  * @brief Computes left Jacobian of SO(3)
  *
  * The left Jacobian of SO(3) is defined equation (7.77b) in [State Estimation for
- * Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot. Specifically it is the following (with
- * \f$\theta=|\boldsymbol\theta|\f$ and \f$\mathbf a=\boldsymbol\theta/|\boldsymbol\theta|\f$): \f{align*}{ J_l(\boldsymbol\theta) =
- * \frac{\sin\theta}{\theta}\mathbf I + \Big(1-\frac{\sin\theta}{\theta}\Big)\mathbf a \mathbf a^\top + \frac{1-\cos\theta}{\theta}\lfloor
- * \mathbf a \times\rfloor \f}
+ * Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot @cite Barfoot2017. Specifically it is the
+ * following (with \f$\theta=|\boldsymbol\theta|\f$ and \f$\mathbf a=\boldsymbol\theta/|\boldsymbol\theta|\f$): \f{align*}{
+ * J_l(\boldsymbol\theta) = \frac{\sin\theta}{\theta}\mathbf I + \Big(1-\frac{\sin\theta}{\theta}\Big)\mathbf a \mathbf a^\top +
+ * \frac{1-\cos\theta}{\theta}\lfloor \mathbf a \times\rfloor \f}
  *
  * @param w axis-angle
  * @return The left Jacobian of SO(3)
@@ -516,8 +528,8 @@ inline Eigen::Matrix<double, 3, 3> Jl_so3(const Eigen::Matrix<double, 3, 1> &w) 
  * @brief Computes right Jacobian of SO(3)
  *
  * The right Jacobian of SO(3) is related to the left by Jl(-w)=Jr(w).
- * See equation (7.87) in [State Estimation for Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot.
- * See @ref Jl_so3() for the definition of the left Jacobian of SO(3).
+ * See equation (7.87) in [State Estimation for Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf) by Timothy D. Barfoot
+ * @cite Barfoot2017. See @ref Jl_so3() for the definition of the left Jacobian of SO(3).
  *
  * @param w axis-angle
  * @return The right Jacobian of SO(3)
@@ -531,7 +543,7 @@ inline Eigen::Matrix<double, 3, 3> Jr_so3(const Eigen::Matrix<double, 3, 1> &w) 
  * If you are interested in how to compute Jacobians checkout this report:
  * http://mars.cs.umn.edu/tr/reports/Trawny05c.pdf
  *
- * @param rot Rotation matrix
+ * @param rot SO(3) rotation matrix
  * @return roll, pitch, yaw values (in that order)
  */
 inline Eigen::Matrix<double, 3, 1> rot2rpy(const Eigen::Matrix<double, 3, 3> &rot) {
@@ -549,7 +561,18 @@ inline Eigen::Matrix<double, 3, 1> rot2rpy(const Eigen::Matrix<double, 3, 3> &ro
 
 /**
  * @brief Construct rotation matrix from given roll
+ *
+ * \f{align*}{
+ * \mathbf{R}_x(t) &=
+ * \begin{bmatrix}
+ * 1 & 0 & 0 \\
+ * 0 & \cos(t) & -\sin(t) \\
+ * 0 & \sin(t) & \cos(t)
+ * \end{bmatrix}
+ * \f}
+ *
  * @param t roll angle
+ * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> rot_x(double t) {
   Eigen::Matrix<double, 3, 3> r;
@@ -561,7 +584,18 @@ inline Eigen::Matrix<double, 3, 3> rot_x(double t) {
 
 /**
  * @brief Construct rotation matrix from given pitch
+ *
+ * \f{align*}{
+ * \mathbf{R}_y(t) &=
+ * \begin{bmatrix}
+ * \cos(t) & 0 & \sin(t) \\
+ * 0 & 1 & 0 \\
+ * -\sin(t) & 0 & \cos(t)
+ * \end{bmatrix}
+ * \f}
+ *
  * @param t pitch angle
+ * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> rot_y(double t) {
   Eigen::Matrix<double, 3, 3> r;
@@ -573,7 +607,18 @@ inline Eigen::Matrix<double, 3, 3> rot_y(double t) {
 
 /**
  * @brief Construct rotation matrix from given yaw
+ *
+ * \f{align*}{
+ * \mathbf{R}_z(t) &=
+ * \begin{bmatrix}
+ * \cos(t) & -\sin(t) & 0 \\
+ * \sin(t) & \cos(t) & 0 \\
+ * 0 & 0 & 1
+ * \end{bmatrix}
+ * \f}
+ *
  * @param t yaw angle
+ * @return SO(3) rotation matrix
  */
 inline Eigen::Matrix<double, 3, 3> rot_z(double t) {
   Eigen::Matrix<double, 3, 3> r;

@@ -91,12 +91,14 @@ int main(int argc, char **argv) {
 
   // ATE summery information
   std::map<std::string, std::vector<std::pair<ov_eval::Statistics, ov_eval::Statistics>>> algo_ate;
+  std::map<std::string, std::vector<std::pair<ov_eval::Statistics, ov_eval::Statistics>>> algo_ate_2d;
   for (const auto &p : path_algorithms) {
     std::vector<std::pair<ov_eval::Statistics, ov_eval::Statistics>> temp;
     for (size_t i = 0; i < path_groundtruths.size(); i++) {
       temp.push_back({ov_eval::Statistics(), ov_eval::Statistics()});
     }
     algo_ate.insert({p.filename().string(), temp});
+    algo_ate_2d.insert({p.filename().string(), temp});
   }
 
   // Relative pose error segment lengths
@@ -104,7 +106,7 @@ int main(int argc, char **argv) {
   // std::vector<double> segments = {7.0, 14.0, 21.0, 28.0, 35.0};
   // std::vector<double> segments = {10.0, 25.0, 50.0, 75.0, 120.0};
   // std::vector<double> segments = {5.0, 15.0, 30.0, 45.0, 60.0};
-  // std::vector<double> segments = {40.0, 60.0, 80.0, 100.0, 120.0};
+  // std::vector<double> segments = {40.0, 80.0, 120.0, 160.0, 200.0, 240.0};
 
   // The overall RPE error calculation for each algorithm type
   std::map<std::string, std::map<double, std::pair<ov_eval::Statistics, ov_eval::Statistics>>> algo_rpe;
@@ -150,8 +152,8 @@ int main(int argc, char **argv) {
                   path_groundtruths.at(j).stem().c_str());
 
       // Errors for this specific dataset (i.e. our averages over the total runs)
-      ov_eval::Statistics ate_dataset_ori;
-      ov_eval::Statistics ate_dataset_pos;
+      ov_eval::Statistics ate_dataset_ori, ate_dataset_pos;
+      ov_eval::Statistics ate_2d_dataset_ori, ate_2d_dataset_pos;
       std::map<double, std::pair<ov_eval::Statistics, ov_eval::Statistics>> rpe_dataset;
       for (const auto &len : segments) {
         rpe_dataset.insert({len, {ov_eval::Statistics(), ov_eval::Statistics()}});
@@ -181,6 +183,12 @@ int main(int argc, char **argv) {
         ate_dataset_ori.values.push_back(error_ori.rmse);
         ate_dataset_pos.values.push_back(error_pos.rmse);
 
+        // Calculate ATE 2D error for this dataset
+        ov_eval::Statistics error_ori_2d, error_pos_2d;
+        traj.calculate_ate_2d(error_ori_2d, error_pos_2d);
+        ate_2d_dataset_ori.values.push_back(error_ori_2d.rmse);
+        ate_2d_dataset_pos.values.push_back(error_pos_2d.rmse);
+
         // Calculate RPE error for this dataset
         std::map<double, std::pair<ov_eval::Statistics, ov_eval::Statistics>> error_rpe;
         traj.calculate_rpe(segments, error_rpe);
@@ -199,12 +207,17 @@ int main(int argc, char **argv) {
       // Compute our mean ATE score
       ate_dataset_ori.calculate();
       ate_dataset_pos.calculate();
+      ate_2d_dataset_ori.calculate();
+      ate_2d_dataset_pos.calculate();
 
       // Print stats for this specific dataset
       std::string prefix = (ate_dataset_ori.mean > 10 || ate_dataset_pos.mean > 10) ? RED : "";
       PRINT_DEBUG("%s\tATE: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n" RESET, prefix.c_str(), ate_dataset_ori.mean,
                   ate_dataset_pos.mean, (int)ate_dataset_pos.values.size());
       PRINT_DEBUG("\tATE: std_ori  = %.3f | std_pos  = %.3f\n", ate_dataset_ori.std, ate_dataset_pos.std);
+      PRINT_DEBUG("\tATE 2D: mean_ori = %.3f | mean_pos = %.3f (%d runs)\n", ate_2d_dataset_ori.mean, ate_2d_dataset_pos.mean,
+                  (int)ate_2d_dataset_ori.values.size());
+      PRINT_DEBUG("\tATE 2D: std_ori  = %.5f | std_pos  = %.5f\n", ate_2d_dataset_ori.std, ate_2d_dataset_pos.std);
       for (auto &seg : rpe_dataset) {
         seg.second.first.calculate();
         seg.second.second.calculate();
@@ -219,6 +232,8 @@ int main(int argc, char **argv) {
       std::string algo = path_algorithms.at(i).filename().string();
       algo_ate.at(algo).at(j).first = ate_dataset_ori;
       algo_ate.at(algo).at(j).second = ate_dataset_pos;
+      algo_ate_2d.at(algo).at(j).first = ate_2d_dataset_ori;
+      algo_ate_2d.at(algo).at(j).second = ate_2d_dataset_pos;
 
       // Update the global RPE error stats
       for (const auto &elm : rpe_dataset) {
@@ -250,6 +265,39 @@ int main(int argc, char **argv) {
   }
   PRINT_INFO(" & \\textbf{Average} \\\\\\hline\n");
   for (auto &algo : algo_ate) {
+    std::string algoname = algo.first;
+    boost::replace_all(algoname, "_", "\\_");
+    PRINT_INFO(algoname.c_str());
+    double sum_ori = 0.0;
+    double sum_pos = 0.0;
+    int sum_ct = 0;
+    for (auto &seg : algo.second) {
+      if (seg.first.values.empty() || seg.second.values.empty()) {
+        PRINT_INFO(" & - / -");
+      } else {
+        seg.first.calculate();
+        seg.second.calculate();
+        PRINT_INFO(" & %.3f / %.3f", seg.first.mean, seg.second.mean);
+        sum_ori += seg.first.mean;
+        sum_pos += seg.second.mean;
+        sum_ct++;
+      }
+    }
+    PRINT_INFO(" & %.3f / %.3f \\\\\n", sum_ori / sum_ct, sum_pos / sum_ct);
+  }
+  PRINT_INFO("============================================\n");
+
+  // Finally print the ATE for all the runs
+  PRINT_INFO("============================================\n");
+  PRINT_INFO("ATE 2D LATEX TABLE\n");
+  PRINT_INFO("============================================\n");
+  for (size_t i = 0; i < path_groundtruths.size(); i++) {
+    std::string gtname = path_groundtruths.at(i).stem().string();
+    boost::replace_all(gtname, "_", "\\_");
+    PRINT_INFO(" & \\textbf{%s}", gtname.c_str());
+  }
+  PRINT_INFO(" & \\textbf{Average} \\\\\\hline\n");
+  for (auto &algo : algo_ate_2d) {
     std::string algoname = algo.first;
     boost::replace_all(algoname, "_", "\\_");
     PRINT_INFO(algoname.c_str());
@@ -385,6 +433,7 @@ int main(int argc, char **argv) {
   matplotlibcpp::title("Relative Position Error");
   matplotlibcpp::ylabel("translational error (m)");
   matplotlibcpp::xlabel("sub-segment lengths (m)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(true);
 
 #endif

@@ -25,6 +25,7 @@
 #include "cam/CamEqui.h"
 #include "cam/CamRadtan.h"
 #include "sim/BsplineSE3.h"
+#include "state/State.h"
 #include "utils/colors.h"
 #include "utils/dataset_reader.h"
 
@@ -237,6 +238,30 @@ void Simulator::perturb_parameters(std::mt19937 gen_state, VioManagerOptions &pa
       params_.camera_extrinsics.at(i)(r) += 0.01 * w(gen_state);
     }
   }
+
+  // If we need to perturb the imu intrinsics
+  if (params_.state_options.do_calib_imu_intrinsics) {
+    for (int j = 0; j < 6; j++) {
+      params_.vec_dw(j) += 0.004 * w(gen_state);
+      params_.vec_da(j) += 0.004 * w(gen_state);
+    }
+    if (params_.state_options.imu_model == StateOptions::ImuModel::KALIBR) {
+      Eigen::Vector3d w_vec;
+      w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
+      params_.q_GYROtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.q_GYROtoIMU));
+    } else {
+      Eigen::Vector3d w_vec;
+      w_vec << 0.002 * w(gen_state), 0.002 * w(gen_state), 0.002 * w(gen_state);
+      params_.q_ACCtoIMU = rot_2_quat(exp_so3(w_vec) * quat_2_Rot(params_.q_ACCtoIMU));
+    }
+  }
+
+  // If we need to perturb gravity sensitivity
+  if (params_.state_options.do_calib_imu_g_sensitivity) {
+    for (int j = 0; j < 9; j++) {
+      params_.vec_tg(j) += 0.004 * w(gen_state);
+    }
+  }
 }
 
 bool Simulator::get_state(double desired_time, Eigen::Matrix<double, 17, 1> &imustate) {
@@ -312,10 +337,23 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   }
 
   // Transform omega and linear acceleration into imu frame
-  Eigen::Vector3d omega_inI = w_IinI;
   Eigen::Vector3d gravity;
   gravity << 0.0, 0.0, params.gravity_mag;
   Eigen::Vector3d accel_inI = R_GtoI * (a_IinG + gravity);
+  Eigen::Vector3d omega_inI = w_IinI;
+
+  // Get our imu intrinsic parameters
+  //  - kalibr: lower triangular of the matrix is used
+  //  - rpng: upper triangular of the matrix is used
+  Eigen::Matrix3d Dw = State::Dm(params.state_options.imu_model, params.vec_dw);
+  Eigen::Matrix3d Da = State::Dm(params.state_options.imu_model, params.vec_da);
+  Eigen::Matrix3d Tg = State::Tg(params.vec_tg);
+
+  // Get the readings with the imu intrinsic "distortion"
+  Eigen::Matrix3d Tw = Dw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
+  Eigen::Matrix3d Ta = Da.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
+  Eigen::Vector3d omega_inGYRO = Tw * quat_2_Rot(params.q_GYROtoIMU).transpose() * omega_inI + Tg * accel_inI;
+  Eigen::Vector3d accel_inACC = Ta * quat_2_Rot(params.q_ACCtoIMU).transpose() * accel_inI;
 
   // Calculate the bias values for this IMU reading
   // NOTE: we skip the first ever bias since we have already appended it
@@ -339,12 +377,12 @@ bool Simulator::get_next_imu(double &time_imu, Eigen::Vector3d &wm, Eigen::Vecto
   has_skipped_first_bias = true;
 
   // Now add noise to these measurements
-  wm(0) = omega_inI(0) + true_bias_gyro(0) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  wm(1) = omega_inI(1) + true_bias_gyro(1) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  wm(2) = omega_inI(2) + true_bias_gyro(2) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
-  am(0) = accel_inI(0) + true_bias_accel(0) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-  am(1) = accel_inI(1) + true_bias_accel(1) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
-  am(2) = accel_inI(2) + true_bias_accel(2) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  wm(0) = omega_inGYRO(0) + true_bias_gyro(0) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  wm(1) = omega_inGYRO(1) + true_bias_gyro(1) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  wm(2) = omega_inGYRO(2) + true_bias_gyro(2) + params.imu_noises.sigma_w / std::sqrt(dt) * w(gen_meas_imu);
+  am(0) = accel_inACC(0) + true_bias_accel(0) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  am(1) = accel_inACC(1) + true_bias_accel(1) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
+  am(2) = accel_inACC(2) + true_bias_accel(2) + params.imu_noises.sigma_a / std::sqrt(dt) * w(gen_meas_imu);
 
   // Return success
   return true;
@@ -445,8 +483,7 @@ std::vector<std::pair<size_t, Eigen::VectorXf>> Simulator::project_pointcloud(co
     uv_norm << (float)(p_FinC(0) / p_FinC(2)), (float)(p_FinC(1) / p_FinC(2));
 
     // Distort the normalized coordinates
-    Eigen::Vector2f uv_dist;
-    uv_dist = camera->distort_f(uv_norm);
+    Eigen::Vector2f uv_dist = camera->distort_f(uv_norm);
 
     // Check that it is inside our bounds
     if (uv_dist(0) < 0 || uv_dist(0) > camera->w() || uv_dist(1) < 0 || uv_dist(1) > camera->h()) {
@@ -487,8 +524,7 @@ void Simulator::generate_points(const Eigen::Matrix3d &R_GtoI, const Eigen::Vect
     cv::Point2f uv_dist((float)u_dist, (float)v_dist);
 
     // Undistort this point to our normalized coordinates
-    cv::Point2f uv_norm;
-    uv_norm = camera->undistort_cv(uv_dist);
+    cv::Point2f uv_norm = camera->undistort_cv(uv_dist);
 
     // Generate a random depth
     std::uniform_real_distribution<double> gen_depth(params.sim_min_feature_gen_distance, params.sim_max_feature_gen_distance);

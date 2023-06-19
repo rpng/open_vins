@@ -26,10 +26,9 @@
 #include <memory>
 #include <mutex>
 
-#include "utils/NoiseManager.h"
-
-#include "utils/print.h"
 #include "utils/sensor_data.h"
+
+#include "utils/NoiseManager.h"
 
 namespace ov_msckf {
 
@@ -43,7 +42,6 @@ class State;
  * For derivations look at @ref propagation page which has detailed equations.
  */
 class Propagator {
-
 public:
   /**
    * @brief Default constructor
@@ -95,9 +93,7 @@ public:
   /**
    * @brief Will invalidate the cache used for fast propagation
    */
-  void invalidate_cache() {
-    cache_imu_valid = false;
-  }
+  void invalidate_cache() { cache_imu_valid = false; }
 
   /**
    * @brief Propagate state up to given timestamp and then clone
@@ -167,8 +163,63 @@ public:
     return data;
   }
 
-protected:
+  /**
+   * @brief compute the Jacobians for Dw
+   *
+   * See @ref analytical_linearization_imu for details.
+   * \f{align*}{
+   * \mathbf{H}_{Dw,kalibr} & =
+   *   \begin{bmatrix}
+   *   {}^w\hat{w}_1 \mathbf{I}_3  & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_2\mathbf{e}_3 & {}^w\hat{w}_3 \mathbf{e}_3
+   *   \end{bmatrix} \\
+   *   \mathbf{H}_{Dw,rpng} & =
+   *   \begin{bmatrix}
+   *   {}^w\hat{w}_1\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_1 & {}^w\hat{w}_2\mathbf{e}_2 & {}^w\hat{w}_3 \mathbf{I}_3
+   *   \end{bmatrix}
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param w_uncorrected Angular velocity in a frame with bias and gravity sensitivity removed
+   */
+  static Eigen::MatrixXd compute_H_Dw(std::shared_ptr<State> state, const Eigen::Vector3d &w_uncorrected);
 
+  /**
+   * @brief compute the Jacobians for Da
+   *
+   * See @ref analytical_linearization_imu for details.
+   * \f{align*}{
+   * \mathbf{H}_{Da,kalibr} & =
+   * \begin{bmatrix}
+   *   {}^a\hat{a}_1\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_1 & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_3 \mathbf{I}_3
+   * \end{bmatrix} \\
+   * \mathbf{H}_{Da,rpng} & =
+   * \begin{bmatrix}
+   *   {}^a\hat{a}_1 \mathbf{I}_3 &  & {}^a\hat{a}_2\mathbf{e}_2 & {}^a\hat{a}_2\mathbf{e}_3 & {}^a\hat{a}_3\mathbf{e}_3
+   * \end{bmatrix}
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param a_uncorrected Linear acceleration in gyro frame with bias removed
+   */
+  static Eigen::MatrixXd compute_H_Da(std::shared_ptr<State> state, const Eigen::Vector3d &a_uncorrected);
+
+  /**
+   * @brief compute the Jacobians for Tg
+   *
+   * See @ref analytical_linearization_imu for details.
+   * \f{align*}{
+   * \mathbf{H}_{Tg} & =
+   *  \begin{bmatrix}
+   *  {}^I\hat{a}_1 \mathbf{I}_3 & {}^I\hat{a}_2 \mathbf{I}_3 & {}^I\hat{a}_3 \mathbf{I}_3
+   *  \end{bmatrix}
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param a_inI Linear acceleration with bias removed
+   */
+  static Eigen::MatrixXd compute_H_Tg(std::shared_ptr<State> state, const Eigen::Vector3d &a_inI);
+
+protected:
   /**
    * @brief Propagates the state forward using the imu data and computes the noise covariance and state-transition
    * matrix of this interval.
@@ -176,7 +227,8 @@ protected:
    * This function can be replaced with analytical/numerical integration or when using a different state representation.
    * This contains our state transition matrix along with how our noise evolves in time.
    * If you have other state variables besides the IMU that evolve you would add them here.
-   * See the @ref error_prop page for details on how this was derived.
+   * See the @ref propagation_discrete page for details on how discrete model was derived.
+   * See the @ref propagation_analytical page for details on how analytic model was derived.
    *
    * @param state Pointer to state
    * @param data_minus imu readings at beginning of interval
@@ -185,12 +237,12 @@ protected:
    * @param Qd Discrete-time noise covariance over the interval
    */
   void predict_and_compute(std::shared_ptr<State> state, const ov_core::ImuData &data_minus, const ov_core::ImuData &data_plus,
-                           Eigen::Matrix<double, 15, 15> &F, Eigen::Matrix<double, 15, 15> &Qd);
+                           Eigen::MatrixXd &F, Eigen::MatrixXd &Qd);
 
   /**
    * @brief Discrete imu mean propagation.
    *
-   * See @ref propagation for details on these equations.
+   * See @ref disc_prop for details on these equations.
    * \f{align*}{
    * \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
    * &= \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}\big({\boldsymbol{\omega}}_{m,k}-\hat{\mathbf{b}}_{g,k}\big)\Delta t\bigg)
@@ -205,25 +257,22 @@ protected:
    *
    * @param state Pointer to state
    * @param dt Time we should integrate over
-   * @param w_hat1 Angular velocity with bias removed
-   * @param a_hat1 Linear acceleration with bias removed
-   * @param w_hat2 Next angular velocity with bias removed
-   * @param a_hat2 Next linear acceleration with bias removed
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
    * @param new_q The resulting new orientation after integration
    * @param new_v The resulting new velocity after integration
    * @param new_p The resulting new position after integration
    */
-  void predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
-                             const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2, Eigen::Vector4d &new_q, Eigen::Vector3d &new_v,
-                             Eigen::Vector3d &new_p);
+  void predict_mean_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                             Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p);
 
   /**
    * @brief RK4 imu mean propagation.
    *
    * See this wikipedia page on [Runge-Kutta Methods](https://en.wikipedia.org/wiki/Runge%E2%80%93Kutta_methods).
-   * We are doing a RK4 method, [this wolframe page](http://mathworld.wolfram.com/Runge-KuttaMethod.html) has the forth order equation
+   * We are doing a RK4 method, [this wolfram page](http://mathworld.wolfram.com/Runge-KuttaMethod.html) has the forth order equation
    * defined below. We define function \f$ f(t,y) \f$ where y is a function of time t, see @ref imu_kinematic for the definition of the
-   * continous-time functions.
+   * continuous-time functions.
    *
    * \f{align*}{
    * {k_1} &= f({t_0}, y_0) \Delta t  \\
@@ -246,6 +295,141 @@ protected:
   void predict_mean_rk4(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat1, const Eigen::Vector3d &a_hat1,
                         const Eigen::Vector3d &w_hat2, const Eigen::Vector3d &a_hat2, Eigen::Vector4d &new_q, Eigen::Vector3d &new_v,
                         Eigen::Vector3d &new_p);
+
+  /**
+   * @brief Analytically compute the integration components based on ACI^2
+   *
+   * See the @ref analytical_prop page and @ref analytical_integration_components for details.
+   * For computing Xi_1, Xi_2, Xi_3 and Xi_4 we have:
+   *
+   * \f{align*}{
+   * \boldsymbol{\Xi}_1 & = \mathbf{I}_3 \delta t + \frac{1 - \cos (\hat{\omega} \delta t)}{\hat{\omega}} \lfloor \hat{\mathbf{k}} \rfloor
+   * + \left(\delta t  - \frac{\sin (\hat{\omega} \delta t)}{\hat{\omega}}\right) \lfloor \hat{\mathbf{k}} \rfloor^2 \\
+   * \boldsymbol{\Xi}_2 & = \frac{1}{2} \delta t^2 \mathbf{I}_3 +
+   * \frac{\hat{\omega} \delta t - \sin (\hat{\omega} \delta t)}{\hat{\omega}^2}\lfloor \hat{\mathbf{k}} \rfloor
+   * + \left( \frac{1}{2} \delta t^2 - \frac{1  - \cos (\hat{\omega} \delta t)}{\hat{\omega}^2} \right) \lfloor \hat{\mathbf{k}} \rfloor ^2
+   * \\ \boldsymbol{\Xi}_3  &= \frac{1}{2}\delta t^2  \lfloor \hat{\mathbf{a}} \rfloor
+   * + \frac{\sin (\hat{\omega} \delta t_i) - \hat{\omega} \delta t }{\hat{\omega}^2} \lfloor\hat{\mathbf{a}} \rfloor \lfloor
+   * \hat{\mathbf{k}} \rfloor
+   * + \frac{\sin (\hat{\omega} \delta t) - \hat{\omega} \delta t \cos (\hat{\omega} \delta t)  }{\hat{\omega}^2}
+   * \lfloor \hat{\mathbf{k}} \rfloor\lfloor\hat{\mathbf{a}} \rfloor
+   * + \left( \frac{1}{2} \delta t^2 - \frac{1 - \cos (\hat{\omega} \delta t)}{\hat{\omega}^2} \right) 	\lfloor\hat{\mathbf{a}} \rfloor
+   * \lfloor \hat{\mathbf{k}} \rfloor ^2
+   * + \left(
+   * \frac{1}{2} \delta t^2 + \frac{1 - \cos (\hat{\omega} \delta t) - \hat{\omega} \delta t \sin (\hat{\omega} \delta t) }{\hat{\omega}^2}
+   *  \right)
+   *  \lfloor \hat{\mathbf{k}} \rfloor ^2 \lfloor\hat{\mathbf{a}} \rfloor
+   *  + \left(
+   *  \frac{1}{2} \delta t^2 + \frac{1 - \cos (\hat{\omega} \delta t) - \hat{\omega} \delta t \sin (\hat{\omega} \delta t) }{\hat{\omega}^2}
+   *  \right)  \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor
+   *  - \frac{ 3 \sin (\hat{\omega} \delta t) - 2 \hat{\omega} \delta t - \hat{\omega} \delta t \cos (\hat{\omega} \delta t)
+   * }{\hat{\omega}^2} \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor ^2  \\
+   * \boldsymbol{\Xi}_4 & = \frac{1}{6}\delta
+   * t^3 \lfloor\hat{\mathbf{a}} \rfloor
+   * + \frac{2(1 - \cos (\hat{\omega} \delta t)) - (\hat{\omega}^2 \delta t^2)}{2 \hat{\omega}^3}
+   *  \lfloor\hat{\mathbf{a}} \rfloor \lfloor \hat{\mathbf{k}} \rfloor
+   *  + \left(
+   *  \frac{2(1- \cos(\hat{\omega} \delta t)) - \hat{\omega} \delta t \sin (\hat{\omega} \delta t)}{\hat{\omega}^3}
+   *  \right)
+   *  \lfloor \hat{\mathbf{k}} \rfloor\lfloor\hat{\mathbf{a}} \rfloor
+   *  + \left(
+   *  \frac{\sin (\hat{\omega} \delta t) - \hat{\omega} \delta t}{\hat{\omega}^3} +
+   *  \frac{\delta t^3}{6}
+   *  \right)
+   *  \lfloor\hat{\mathbf{a}} \rfloor \lfloor \hat{\mathbf{k}} \rfloor^2
+   *  +
+   *  \frac{\hat{\omega} \delta t - 2 \sin(\hat{\omega} \delta t) + \frac{1}{6}(\hat{\omega} \delta t)^3 + \hat{\omega} \delta t
+   * \cos(\hat{\omega} \delta t)}{\hat{\omega}^3} \lfloor \hat{\mathbf{k}} \rfloor^2\lfloor\hat{\mathbf{a}} \rfloor
+   *  +
+   *  \frac{\hat{\omega} \delta t - 2 \sin(\hat{\omega} \delta t) + \frac{1}{6}(\hat{\omega} \delta t)^3 + \hat{\omega} \delta t
+   * \cos(\hat{\omega} \delta t)}{\hat{\omega}^3} \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor
+   *  +
+   *  \frac{4 \cos(\hat{\omega} \delta t) - 4 + (\hat{\omega} \delta t)^2 + \hat{\omega} \delta t \sin(\hat{\omega} \delta t) }
+   *  {\hat{\omega}^3}
+   *  \hat{\mathbf{k}}^{\top} \hat{\mathbf{a}} \lfloor \hat{\mathbf{k}} \rfloor^2
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param Xi_sum All the needed integration components, including R_k, Xi_1, Xi_2, Jr, Xi_3, Xi_4 in order
+   */
+  void compute_Xi_sum(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                      Eigen::Matrix<double, 3, 18> &Xi_sum);
+
+  /**
+   * @brief Analytically predict IMU mean based on ACI^2
+   *
+   * See the @ref analytical_prop page for details.
+   *
+   * \f{align*}{
+   * {}^{I_{k+1}}_G\hat{\mathbf{R}} & \simeq  \Delta \mathbf{R}_k {}^{I_k}_G\hat{\mathbf{R}}  \\
+   * {}^G\hat{\mathbf{p}}_{I_{k+1}} & \simeq {}^{G}\hat{\mathbf{p}}_{I_k} + {}^G\hat{\mathbf{v}}_{I_k}\delta t_k  +
+   * {}^{I_k}_G\hat{\mathbf{R}}^\top  \Delta \hat{\mathbf{p}}_k - \frac{1}{2}{}^G\mathbf{g}\delta t^2_k \\
+   * {}^G\hat{\mathbf{v}}_{I_{k+1}} & \simeq  {}^{G}\hat{\mathbf{v}}_{I_k} + {}^{I_k}_G\hat{\mathbf{R}}^\top + \Delta \hat{\mathbf{v}}_k -
+   * {}^G\mathbf{g}\delta t_k
+   * \f}
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param new_q The resulting new orientation after integration
+   * @param new_v The resulting new velocity after integration
+   * @param new_p The resulting new position after integration
+   * @param Xi_sum All the needed integration components, including R_k, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   */
+  void predict_mean_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                             Eigen::Vector4d &new_q, Eigen::Vector3d &new_v, Eigen::Vector3d &new_p, Eigen::Matrix<double, 3, 18> &Xi_sum);
+
+  /**
+   * @brief Analytically compute state transition matrix F and noise Jacobian G based on ACI^2
+   *
+   * This function is for analytical integration of the linearized error-state.
+   * This contains our state transition matrix and noise Jacobians.
+   * If you have other state variables besides the IMU that evolve you would add them here.
+   * See the @ref analytical_linearization page for details on how this was derived.
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param w_uncorrected Angular velocity in acc frame with bias and gravity sensitivity removed
+   * @param new_q The resulting new orientation after integration
+   * @param new_v The resulting new velocity after integration
+   * @param new_p The resulting new position after integration
+   * @param Xi_sum All the needed integration components, including R_k, Xi_1, Xi_2, Jr, Xi_3, Xi_4
+   * @param F State transition matrix
+   * @param G Noise Jacobian
+   */
+  void compute_F_and_G_analytic(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                                const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q,
+                                const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p, const Eigen::Matrix<double, 3, 18> &Xi_sum,
+                                Eigen::MatrixXd &F, Eigen::MatrixXd &G);
+
+  /**
+   * @brief compute state transition matrix F and noise Jacobian G
+   *
+   * This function is for analytical integration or when using a different state representation.
+   * This contains our state transition matrix and noise Jacobians.
+   * If you have other state variables besides the IMU that evolve you would add them here.
+   * See the @ref error_prop page for details on how this was derived.
+   *
+   * @param state Pointer to state
+   * @param dt Time we should integrate over
+   * @param w_hat Angular velocity with bias removed
+   * @param a_hat Linear acceleration with bias removed
+   * @param w_uncorrected Angular velocity in acc frame with bias and gravity sensitivity removed
+   * @param new_q The resulting new orientation after integration
+   * @param new_v The resulting new velocity after integration
+   * @param new_p The resulting new position after integration
+   * @param F State transition matrix
+   * @param G Noise Jacobian
+   */
+  void compute_F_and_G_discrete(std::shared_ptr<State> state, double dt, const Eigen::Vector3d &w_hat, const Eigen::Vector3d &a_hat,
+                                const Eigen::Vector3d &w_uncorrected, const Eigen::Vector3d &a_uncorrected, const Eigen::Vector4d &new_q,
+                                const Eigen::Vector3d &new_v, const Eigen::Vector3d &new_p, Eigen::MatrixXd &F, Eigen::MatrixXd &G);
 
   /// Container for the noise values
   NoiseManager _noises;

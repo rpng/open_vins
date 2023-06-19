@@ -3,7 +3,7 @@
 
     <!-- Package Information -->
     <name>ov_init</name>
-    <version>2.6.3</version>
+    <version>2.7.0</version>
     <description>
         Initialization package which handles static and dynamic initialization.
     </description>

@@ -68,6 +68,11 @@ namespace ov_core {}
  * };
  * @endcode
  *
+ * When deriving Jacobians, it is important to ensure that the error state used matches the type.
+ * Each type updates an update function, and thus directly defines the error state it has.
+ * A type with non-trivial error states is the @ref ov_type::JPLQuat which has equivalent quaterion and SO(3) error.
+ * For rotations and on-manifold representations, [State Estimation for Robotics](http://asrl.utias.utoronto.ca/~tdb/bib/barfoot_ser17.pdf)
+ * by Timothy D. Barfoot @cite Barfoot2017 covers a nice range of examples.
  *
  */
 namespace ov_type {}

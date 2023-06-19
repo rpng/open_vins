@@ -264,8 +264,8 @@ Therefore, we can have the least-squares formulated and Jacobians:
 	\frac{\partial \mathbf{h}(u_A, v_A, \rho_A)}{\partial {h}(u_A, v_A, \rho_A)}
     & = 
     \begin{bmatrix}
-    1/h(\cdots)(1) & 0 & -h(\cdots)(1)/h(\cdots)(3)^2 \\
-    0 & 1/h(\cdots)(2) & -h(\cdots)(2)/h(\cdots)(3)^2
+    1/h(\cdots)(3) & 0 & -h(\cdots)(1)/h(\cdots)(3)^2 \\
+    0 & 1/h(\cdots)(3) & -h(\cdots)(2)/h(\cdots)(3)^2
     \end{bmatrix} \\
 	\frac{\partial {h}(u_A, v_A, \rho_A)}{\partial [u_A, v_A, \rho_A]}
     & = 
