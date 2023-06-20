@@ -33,23 +33,24 @@ The key software used is [Kalibr](https://github.com/ethz-asl/kalibr) and [allan
 
 @m_div{m-text-center}
 <a href="http://www.youtube.com/watch?v=BtzmsuJemgI">
-   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/rBT5O5TEOV4-MQ.jpg" width="320" height="180" />
+@image html https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/BtzmsuJemgI-MQ.jpg width=60%
 </a>
 @m_enddiv
 
 In this video takes from having a sensor, to collecting data, performing calibration, and finally processing that data live with OpenVINS to recover a 6dof pose estimate.
 The later part is similar to the @subpage gs-tutorial but is for a live sensor.
-First we create a launch file for the Intel Realsense T265 sensor, after which we perform calibration. Finally we use the calibration to process data with OpenVINS and demo the recovered trajectory.
+First we create a launch file for the [Intel Realsense T265](https://www.intelrealsense.com/tracking-camera-t265/) sensor, after which we perform calibration.
+Finally we use the calibration to process data with OpenVINS and demo the recovered trajectory.
 
 @m_div{m-text-center}
 <a href="http://www.youtube.com/watch?v=rBT5O5TEOV4">
-   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/rBT5O5TEOV4-MQ.jpg" width="320" height="180" />
+@image html https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/rBT5O5TEOV4-MQ.jpg width=60%
 </a>
 @m_enddiv
 
 
-@section gs-calib-cam-static  Camera Intrinsic Calibration (Offline)
 
+@section gs-calib-cam-static  Camera Intrinsic Calibration (Offline)
 
 The first task is to calibrate the camera intrinsic values such as the focal length, camera center, and distortion coefficients.
 Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) @cite Furgale2013IROS calibration toolbox to perform both intrinsic and extrinsic offline calibrations, by proceeding the following steps:
@@ -74,7 +75,7 @@ Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) @cite Fur
 An example script [calibrate_camera_static.sh](https://github.com/rpng/ar_table_dataset/blob/9d556a789e2d01387e5ba2aeb2453269bc2c4001/calibrate_camera_static.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
 
 
-@section gs-calib-imu-static  IMU Intrinsic Calibration (Offline)
+@section gs-calib-imu-static  IMU Noise Calibration (Offline)
 
 The other important intrinsic calibration is to compute the inertial sensor intrinsic noise characteristics,
 which  are needed for the batch optimization to calibrate the camera to IMU transform and in any VINS estimator so that we can properly probabilistically fuse the images and inertial readings.
