@@ -58,6 +58,7 @@
             <li>
               Reference
               <ul>
+                <li><a href="#pub-static-methods">Public static functions</a></li>
                 <li><a href="#typeless-methods">Constructors, destructors, conversion operators</a></li>
                 <li><a href="#pub-methods">Public functions</a></li>
                 <li><a href="#pub-attribs">Public variables</a></li>
@@ -66,6 +67,20 @@
           </ul>
         </div>
 <p>This state has all the current estimates for the filter. This system is modeled after the MSCKF filter, thus we have a sliding window of clones. We additionally have more parameters for online estimation of calibration and SLAM features. We also have the covariance of the system, which should be managed using the <a href="classov__msckf_1_1StateHelper.html" class="m-doc">StateHelper</a> class.</p>
+        <section id="pub-static-methods">
+          <h2><a href="#pub-static-methods">Public static functions</a></h2>
+          <dl class="m-doc">
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a href="#a3a8f85e6481f2418288b7692d9eaa6a0" class="m-doc">Dm</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html#a4e021a0c4752fd6990fffb60f775dbb7" class="m-doc">StateOptions::<wbr />ImuModel</a> imu_model,
+              const Eigen::MatrixXd&amp; vec) -&gt; Eigen::Matrix3d</span>
+            </dt>
+            <dd>Gyroscope and accelerometer intrinsic matrix (scale imperfection and axis misalignment)</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">static auto <a href="#ae8e70766eaaf8d4009a2c0f519bb645e" class="m-doc">Tg</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; vec) -&gt; Eigen::Matrix3d</span>
+            </dt>
+            <dd>Gyroscope gravity sensitivity.</dd>
+          </dl>
+        </section>
         <section id="typeless-methods">
           <h2><a href="#typeless-methods">Constructors, destructors, conversion operators</a></h2>
           <dl class="m-doc">
@@ -86,6 +101,10 @@
               <span class="m-doc-wrap-bumper">auto <a href="#a37c45cc1d3d1a3dcc46d3799a997355f" class="m-doc">max_covariance_size</a>(</span><span class="m-doc-wrap">) -&gt; int</span>
             </dt>
             <dd>Calculates the current max size of the covariance.</dd>
+            <dt>
+              <span class="m-doc-wrap-bumper">auto <a href="#ad9274f5ef5012b4108666c7d0e461934" class="m-doc">imu_intrinsic_size</a>(</span><span class="m-doc-wrap">) const -&gt; int</span>
+            </dt>
+            <dd>Calculates the error state size for imu intrinsics.</dd>
           </dl>
         </section>
         <section id="pub-attribs">
@@ -98,7 +117,7 @@
             <dt id="ae7615177e3edeb8eac39eb05867dc72f">
               double <a href="#ae7615177e3edeb8eac39eb05867dc72f" class="m-doc-self">_timestamp</a>
             </dt>
-            <dd>Current timestamp (should be the last update time!)</dd>
+            <dd>Current timestamp (should be the last update time in camera clock frame!)</dd>
             <dt id="a2af409a71537d305b45c62a91b6dda75">
               <a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a> <a href="#a2af409a71537d305b45c62a91b6dda75" class="m-doc-self">_options</a>
             </dt>
@@ -131,10 +150,61 @@
               std::unordered_map&lt;size_t, std::shared_ptr&lt;<a href="classov__core_1_1CamBase.html" class="m-doc">ov_core::<wbr />CamBase</a>&gt;&gt; <a href="#af66308da3cab5bcc0098aadd5a16e874" class="m-doc-self">_cam_intrinsics_cameras</a>
             </dt>
             <dd>Camera intrinsics camera objects.</dd>
+            <dt id="a1eaae4a7476bd6335f9474fcd5184200">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">ov_type::<wbr />Vec</a>&gt; <a href="#a1eaae4a7476bd6335f9474fcd5184200" class="m-doc-self">_calib_imu_dw</a>
+            </dt>
+            <dd>Gyroscope IMU intrinsics (scale imperfection and axis misalignment)</dd>
+            <dt id="aec156dc6e477759b25aef13689110a93">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">ov_type::<wbr />Vec</a>&gt; <a href="#aec156dc6e477759b25aef13689110a93" class="m-doc-self">_calib_imu_da</a>
+            </dt>
+            <dd>Accelerometer IMU intrinsics (scale imperfection and axis misalignment)</dd>
+            <dt id="af2affc81c7ec40b81249a98384025b6d">
+              std::shared_ptr&lt;<a href="classov__type_1_1Vec.html" class="m-doc">ov_type::<wbr />Vec</a>&gt; <a href="#af2affc81c7ec40b81249a98384025b6d" class="m-doc-self">_calib_imu_tg</a>
+            </dt>
+            <dd>Gyroscope gravity sensitivity.</dd>
+            <dt id="aa7f71683c999ad0c08701277fd6dd733">
+              std::shared_ptr&lt;<a href="classov__type_1_1JPLQuat.html" class="m-doc">ov_type::<wbr />JPLQuat</a>&gt; <a href="#aa7f71683c999ad0c08701277fd6dd733" class="m-doc-self">_calib_imu_GYROtoIMU</a>
+            </dt>
+            <dd>Rotation from gyroscope frame to the &quot;IMU&quot; accelerometer frame (kalibr model)</dd>
+            <dt id="a605caf4fbbe3f4309f5f0ce118794884">
+              std::shared_ptr&lt;<a href="classov__type_1_1JPLQuat.html" class="m-doc">ov_type::<wbr />JPLQuat</a>&gt; <a href="#a605caf4fbbe3f4309f5f0ce118794884" class="m-doc-self">_calib_imu_ACCtoIMU</a>
+            </dt>
+            <dd>Rotation from accelerometer to the &quot;IMU&quot; gyroscope frame frame (rpng model)</dd>
           </dl>
         </section>
         <section>
           <h2>Function documentation</h2>
+          <section class="m-doc-details" id="a3a8f85e6481f2418288b7692d9eaa6a0"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static Eigen::Matrix3d ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#a3a8f85e6481f2418288b7692d9eaa6a0" class="m-doc-self">Dm</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html#a4e021a0c4752fd6990fffb60f775dbb7" class="m-doc">StateOptions::<wbr />ImuModel</a> imu_model,
+              const Eigen::MatrixXd&amp; vec)</span></span>
+            </h3>
+            <p>Gyroscope and accelerometer intrinsic matrix (scale imperfection and axis misalignment)</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>3x3 matrix of current imu gyroscope / accelerometer intrinsics</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>If kalibr model, lower triangular of the matrix is used If rpng model, upper triangular of the matrix is used</p>
+          </div></section>
+          <section class="m-doc-details" id="ae8e70766eaaf8d4009a2c0f519bb645e"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">static Eigen::Matrix3d ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ae8e70766eaaf8d4009a2c0f519bb645e" class="m-doc-self">Tg</a>(</span><span class="m-doc-wrap">const Eigen::MatrixXd&amp; vec)</span></span>
+            </h3>
+            <p>Gyroscope gravity sensitivity.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>3x3 matrix of current gravity sensitivity</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>For both kalibr and rpng models, this a 3x3 that is column-wise filled.</p>
+          </div></section>
           <section class="m-doc-details" id="ad6098accfeb57e7eb8c8a22bfd45ec0b"><div>
             <h3>
               <span class="m-doc-wrap-bumper"> ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad6098accfeb57e7eb8c8a22bfd45ec0b" class="m-doc-self">State</a>(</span><span class="m-doc-wrap"><a href="structov__msckf_1_1StateOptions.html" class="m-doc">StateOptions</a>&amp; options_)</span></span>
@@ -179,6 +249,21 @@
                 </tr>
               </tfoot>
             </table>
+          </div></section>
+          <section class="m-doc-details" id="ad9274f5ef5012b4108666c7d0e461934"><div>
+            <h3>
+              <span class="m-doc-wrap-bumper">int ov_msckf::<wbr />State::<wbr /></span><span class="m-doc-wrap"><span class="m-doc-wrap-bumper"><a href="#ad9274f5ef5012b4108666c7d0e461934" class="m-doc-self">imu_intrinsic_size</a>(</span><span class="m-doc-wrap">) const</span></span>
+            </h3>
+            <p>Calculates the error state size for imu intrinsics.</p>
+            <table class="m-table m-fullwidth m-flat">
+              <tfoot>
+                <tr>
+                  <th style="width: 1%">Returns</th>
+                  <td>size of error state</td>
+                </tr>
+              </tfoot>
+            </table>
+<p>This is used to construct our state transition which depends on if we are estimating calibration. 15 if doing intrinsics, another +9 if doing grav sensitivity</p>
           </div></section>
         </section>
       </div>
@@ -225,7 +310,7 @@
   <div class="m-container">
     <div class="m-row">
       <div class="m-col-l-10 m-push-l-1">
-        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.19 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
+        <p>Generated by <a href="https://doxygen.org/">Doxygen</a> 1.8.20 and <a href="https://mcss.mosra.cz/">m.css</a>.</p>
       </div>
     </div>
   </div>
