@@ -24,6 +24,29 @@ Within this *OpenVINS* project we address these by advocating the *online* estim
 @image html rig_hydra_old.jpg width=60%
 
 
+@section gs-calib-video  Video Walkthrough Guide to Calibration
+
+This first video walks through the process of performing visual-inertial sensor calibration and is a complete overview of the below text.
+The video was recorded in a single session from start to finish, so please use the chapters to skip to the sections which are of interest.
+The sensor used is the Intel Realsense D455 color camera and internal IMU.
+The key software used is [Kalibr](https://github.com/ethz-asl/kalibr) and [allan_variance_ros](https://github.com/ori-drs/allan_variance_ros).
+
+@m_div{m-text-center}
+<a href="http://www.youtube.com/watch?v=BtzmsuJemgI">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/rBT5O5TEOV4-MQ.jpg" width="320" height="180" />
+</a>
+@m_enddiv
+
+In this video takes from having a sensor, to collecting data, performing calibration, and finally processing that data live with OpenVINS to recover a 6dof pose estimate.
+The later part is similar to the @subpage gs-tutorial but is for a live sensor.
+First we create a launch file for the Intel Realsense T265 sensor, after which we perform calibration. Finally we use the calibration to process data with OpenVINS and demo the recovered trajectory.
+
+@m_div{m-text-center}
+<a href="http://www.youtube.com/watch?v=rBT5O5TEOV4">
+   <img src="https://raw.githubusercontent.com/rpng/open_vins/master/docs/youtube/rBT5O5TEOV4-MQ.jpg" width="320" height="180" />
+</a>
+@m_enddiv
+
 
 @section gs-calib-cam-static  Camera Intrinsic Calibration (Offline)
 
