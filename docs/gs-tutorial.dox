@@ -79,7 +79,7 @@ For RVIZ, one can open the `ov_msckf/launch/display.rviz` configuration file.
 You should see the system publishing features and a state estimate.
 
 @code{.shell-session}
-rviz # term 2
+rviz -d ov_msckf/launch/display.rviz # term 2
 rosbag play V1_01_easy.bag # term 3
 @endcode
 
