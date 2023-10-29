@@ -97,7 +97,7 @@ int main(int argc, char **argv) {
   // Location of the ROS bag we want to read in
   std::string path_to_bag;
   nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/euroc_mav/V1_01_easy.bag");
-  // nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/open_vins/aruco_room_01.bag");
+  // nh->param<std::string>("path_bag", path_to_bag, "/home/patrick/datasets/rpng_aruco/aruco_room_01.bag");
   PRINT_INFO("ros bag path is: %s\n", path_to_bag.c_str());
 
   // Get our start location and how much of the bag we want to play

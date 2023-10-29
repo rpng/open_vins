@@ -27,7 +27,7 @@ imu0:
   model: "kalibr"
   # how to get from Kalibr imu.yaml result file:
   #   - Tw is imu0:gyroscopes:M:
-  #   - R_IMUtoGYRO: is imu0:gyroscopes:M:
+  #   - R_IMUtoGYRO: is imu0:gyroscopes:C_gyro_i:
   #   - Ta is imu0:accelerometers:M:
   #   - R_IMUtoACC not used by Kalibr
   #   - Tg is imu0:gyroscopes:A:
