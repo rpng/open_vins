@@ -61,7 +61,7 @@ void InertialInitializer::feed_imu(const ov_core::ImuData &message, double oldes
   if (oldest_time != -1) {
     auto it0 = imu_data->begin();
     while (it0 != imu_data->end()) {
-      if (message.timestamp < oldest_time) {
+      if (it0->timestamp < oldest_time) {
         it0 = imu_data->erase(it0);
       } else {
         it0++;
