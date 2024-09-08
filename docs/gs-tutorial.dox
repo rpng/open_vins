@@ -17,7 +17,7 @@ In this tutorial we will run on the [EuRoC MAV Dataset](https://projects.asl.eth
 @m_enddiv
 
 @m_div{m-col-m-6 m-button m-primary}
-<a href="https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing">
+<a href="https://drive.google.com/file/d/1LFrdiMU6UBjtFfXPHzjJ4L7iDIXcdhvh/view?usp=drive_link">
 @m_div{m-big}Download ROS 2 Bag@m_enddiv
 @m_div{m-small}Vicon Room 1 01 Easy @m_enddiv
 </a>

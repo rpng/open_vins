@@ -56,7 +56,7 @@ The first task is to calibrate the camera intrinsic values such as the focal len
 Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) @cite Furgale2013IROS calibration toolbox to perform both intrinsic and extrinsic offline calibrations, by proceeding the following steps:
 
 1. Clone and build the [Kalibr](https://github.com/ethz-asl/kalibr/) toolbox
-2. Print out a calibration board to use (we normally use the [Aprilgrid 6x6 0.8x0.8 m (A0 page)](https://drive.google.com/file/d/1TCZJ1KPJrsj3ffCNnj001ege54jffc19/view))
+2. Print out a calibration board to use (we normally use the Aprilgrid 6x6 0.8x0.8 m (A0 page) [pdf](https://drive.google.com/file/d/14dY7z8pDb2iEBdveTviDXsoi5H9AaQP1/view?usp=drive_link) [yaml](https://drive.google.com/file/d/1zXfr48_OY0RafwJalBLjqkqgnme-r7Gd/view?usp=drive_link))
 3. Ensure that your sensor driver is publishing onto ROS with correct timestamps.
 4. Sensor preparations
 	- Limit motion blur by decreasing exposure time (can be achieved through high framerate)
@@ -72,7 +72,7 @@ Our group often uses the [Kalibr](https://github.com/ethz-asl/kalibr/) @cite Fur
 
 @image html kalibr_reprojection.png width=60%
 
-An example script [calibrate_camera_static.sh](https://github.com/rpng/ar_table_dataset/blob/9d556a789e2d01387e5ba2aeb2453269bc2c4001/calibrate_camera_static.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
+An example script [calibrate_camera_static.sh](https://github.com/rpng/ar_table_dataset/blob/master/calibrate_camera_static.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
 
 
 @section gs-calib-imu-static  IMU Noise Calibration (Offline)
@@ -108,7 +108,7 @@ We recommend using the [allan_variance_ros](https://github.com/ori-drs/allan_var
     - Finally process the command via their `analysis.py` script
 5. Typically these noise values should be inflated by maybe 10-20x their values to take into account unmodelled errors (one can test to see how different inflations perform)
 
-An example script [calibrate_imu.sh](https://github.com/rpng/ar_table_dataset/blob/9d556a789e2d01387e5ba2aeb2453269bc2c4001/calibrate_imu.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
+An example script [calibrate_imu.sh](https://github.com/rpng/ar_table_dataset/blob/master/calibrate_imu.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
 
 
 
@@ -121,7 +121,7 @@ One needs to have at least one translational motion along with two degrees of or
 We recommend having as much change in orientation as possible in order to ensure convergence.
 
 1. Clone and build the [Kalibr](https://github.com/ethz-asl/kalibr/) toolbox
-2. Print out a calibration board to use (we normally use the [Aprilgrid 6x6 0.8x0.8 m (A0 page)](https://drive.google.com/file/d/1TCZJ1KPJrsj3ffCNnj001ege54jffc19/view))
+2. Print out a calibration board to use (we normally use the Aprilgrid 6x6 0.8x0.8 m (A0 page) [pdf](https://drive.google.com/file/d/14dY7z8pDb2iEBdveTviDXsoi5H9AaQP1/view?usp=drive_link) [yaml](https://drive.google.com/file/d/1zXfr48_OY0RafwJalBLjqkqgnme-r7Gd/view?usp=drive_link))
 3. Ensure that your sensor driver is publishing onto ROS with correct timestamps (inspect the IMU time dt plot carefully in the PDF report!)
 4. Sensor preparations
 	- Limit motion blur by decreasing exposure time
@@ -131,13 +131,13 @@ We recommend having as much change in orientation as possible in order to ensure
 6. Finally run the calibration
 	- Use the `kalibr_calibrate_imu_camera`
 	- Input your static calibration file which will have the camera topics in it
-	- You will need to make an [imu.yaml](https://drive.google.com/file/d/1F9e9I1Xdm14nJw_E1j06HyinlBxRp3yu/view) file with your noise parameters.
+	- You will need to make an [imu.yaml](https://drive.google.com/file/d/1oucvH3FABHPUmzkyEH3rX8n4lp8_AH8P/view?usp=drive_link) file with your noise parameters.
 	- Depending on how many frames are in your dataset this can take on the upwards of half a day.
 7. Inspect the final result. You will want to make sure that the spline fitted to the inertial reading was properly fitted. Your accelerometer and gyroscope errors are within their 3-sigma bounds (if not then your IMU noise or the dataset are incorrect). Ensure that your estimated biases do not leave your 3-sigma bounds. If they do leave then your trajectory was too dynamic, or your noise values are not good. Sanity check your final rotation and translation with hand-measured values.
 
 @image html kalibr_accel_err.png width=60%
 
-An example script [calibrate_camera_dynamic.sh](https://github.com/rpng/ar_table_dataset/blob/9d556a789e2d01387e5ba2aeb2453269bc2c4001/calibrate_camera_dynamic.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
+An example script [calibrate_camera_dynamic.sh](https://github.com/rpng/ar_table_dataset/blob/master/calibrate_camera_dynamic.sh), dataset, and configuration can be found in our group's [ar\_table\_dataset](https://github.com/rpng/ar_table_dataset/) repository.
 
 
 
