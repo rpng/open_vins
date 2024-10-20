@@ -127,20 +127,13 @@ protected:
    * @param id1 id of the second camera
    * @param matches vector of matches that we have found
    *
-   * This will perform a "robust match" between the two sets of points (slow but has great results).
-   * First we do a simple KNN match from 1to2 and 2to1, which is followed by a ratio check and symmetry check.
-   * Original code is from the "RobustMatcher" in the opencv examples, and seems to give very good results in the matches.
-   * https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
+   * This will perform a "brute-force match with cross-check" between the two sets of features.
+   * When there are only a few hundred features, this is faster than KNN match followed by a ratio check and symmetry check.
+   * See BFMatcher::create from opencv for more details.
+   * https://docs.opencv.org/4.x/d3/da1/classcv_1_1BFMatcher.html#a02ef4d594b33d091767cbfe442aefb8a
    */
   void robust_match(const std::vector<cv::KeyPoint> &pts0, const std::vector<cv::KeyPoint> &pts1, const cv::Mat &desc0,
                     const cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches);
-
-  // Helper functions for the robust_match function
-  // Original code is from the "RobustMatcher" in the opencv examples
-  // https://github.com/opencv/opencv/blob/master/samples/cpp/tutorial_code/calib3d/real_time_pose_estimation/src/RobustMatcher.cpp
-  void robust_ratio_test(std::vector<std::vector<cv::DMatch>> &matches);
-  void robust_symmetry_test(std::vector<std::vector<cv::DMatch>> &matches1, std::vector<std::vector<cv::DMatch>> &matches2,
-                            std::vector<cv::DMatch> &good_matches);
 
   // Timing variables
   boost::posix_time::ptime rT1, rT2, rT3, rT4, rT5, rT6, rT7;
@@ -150,7 +143,7 @@ protected:
   cv::Ptr<cv::ORB> orb1 = cv::ORB::create();
 
   // Our descriptor matcher
-  cv::Ptr<cv::DescriptorMatcher> matcher = cv::DescriptorMatcher::create("BruteForce-Hamming");
+  cv::Ptr<cv::BFMatcher> matcher = cv::BFMatcher::create(cv::NORM_HAMMING, true);
 
   // Parameters for our FAST grid detector
   int threshold;
