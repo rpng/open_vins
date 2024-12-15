@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.3)
 find_package(catkin QUIET COMPONENTS roscpp rosbag sensor_msgs cv_bridge)
 
 # Describe ROS project
-option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (catkin_FOUND AND ENABLE_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
