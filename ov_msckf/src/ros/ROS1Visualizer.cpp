@@ -632,6 +632,19 @@ void ROS1Visualizer::publish_state() {
   }
   pub_poseimu.publish(poseIinM);
 
+
+
+  // JW: publish poseimu in tf (low frequency: ~10Hz)
+  tf::Transform transform;
+  transform.setOrigin(tf::Vector3(state->_imu->pos()(0), state->_imu->pos()(1), state->_imu->pos()(2)));
+  tf::Quaternion quat(state->_imu->quat()(0),
+  state->_imu->quat()(1),
+  state->_imu->quat()(2),
+  state->_imu->quat()(3));
+  transform.setRotation(quat);
+  mTfBr->sendTransform(tf::StampedTransform(transform, ros::Time(timestamp_inI), 
+  "global", "poseimu"));
+
   //=========================================================
   //=========================================================
 
