@@ -22,6 +22,9 @@
 
     <!-- ROS1: Dependencies needed to compile this package. -->
     <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+    <build_depend condition="$ROS_VERSION == 1">message_generation</build_depend>
+    <exec_depend condition="$ROS_VERSION == 1">message_generation</exec_depend>
+    <exec_depend condition="$ROS_VERSION == 1">message_runtime</exec_depend>
     <depend condition="$ROS_VERSION == 1">cmake_modules</depend>
     <depend condition="$ROS_VERSION == 1">roscpp</depend>
     <depend condition="$ROS_VERSION == 1">rosbag</depend>

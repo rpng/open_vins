@@ -52,6 +52,9 @@ ROS1Visualizer::ROS1Visualizer(std::shared_ptr<ros::NodeHandle> nh, std::shared_
   pub_pathimu = nh->advertise<nav_msgs::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu.getTopic().c_str());
 
+  // Status publisher
+  pub_status = nh->advertise<ov_msckf::OVRuntimeStatus>("runtime_status", 2);
+
   // 3D points publishing
   pub_points_msckf = nh->advertise<sensor_msgs::PointCloud2>("points_msckf", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_points_msckf.getTopic().c_str());
@@ -712,11 +715,33 @@ void ROS1Visualizer::publish_features() {
   // JW: use state time (i.e., last cam time) for feature timestamp (Note: pose related timestamp is in IMU time, which is state time + offset from cam to imu via online calibration if available)
   double last_visualization_timestamp_feature =  _app->get_state()->_timestamp;  
 
+  // JW: runtime status msg
+  ov_msckf::OVRuntimeStatus status_msg; 
+  status_msg.header.stamp = ros::Time(last_visualization_timestamp_feature);
+  status_msg.header.frame_id = "global";
+
+  Eigen::Matrix<double, 3, 1> bias_a = _app->get_state()->_imu->bias_a();
+  Eigen::Matrix<double, 3, 1> bias_g = _app->get_state()->_imu->bias_g();
+  status_msg.bias_a.x = bias_a(0,0);
+  status_msg.bias_a.y = bias_a(1,0);
+  status_msg.bias_a.z = bias_a(2,0);
+  status_msg.bias_g.x = bias_g(0,0);
+  status_msg.bias_g.y = bias_g(1,0);
+  status_msg.bias_g.z = bias_g(2,0);
+
+  status_msg.t_offset_imu_cam = _app->get_state()->_calib_dt_CAMtoIMU->value()(0);
+
+
+
+
   // Get our good MSCKF features
   std::vector<Eigen::Vector3d> feats_msckf = _app->get_good_features_MSCKF();
   sensor_msgs::PointCloud2 cloud = ROSVisualizerHelper::get_ros_pointcloud(feats_msckf);
   cloud.header.stamp = ros::Time(last_visualization_timestamp_feature); // JW: use state time (i.e., last cam time) for feature timestamp
   pub_points_msckf.publish(cloud);
+
+  // JW: add num of msckf feature
+  status_msg.num_msckf_features = feats_msckf.size();
 
   // Get our good SLAM features
   std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
@@ -724,11 +749,17 @@ void ROS1Visualizer::publish_features() {
   cloud_SLAM.header.stamp = ros::Time(last_visualization_timestamp_feature); // JW: use state time (i.e., last cam time) for feature timestamp
   pub_points_slam.publish(cloud_SLAM);
 
+  // JW: add num of slam feature
+  status_msg.num_slam_features = feats_slam.size();
+
   // Get our good ARUCO features
   std::vector<Eigen::Vector3d> feats_aruco = _app->get_features_ARUCO();
   sensor_msgs::PointCloud2 cloud_ARUCO = ROSVisualizerHelper::get_ros_pointcloud(feats_aruco);
   cloud_ARUCO.header.stamp = ros::Time(last_visualization_timestamp_feature); // JW: use state time (i.e., last cam time) for feature timestamp
   pub_points_aruco.publish(cloud_ARUCO);
+
+  // Publish runtime status
+  pub_status.publish(status_msg);
 
   // Skip the rest of we are not doing simulation
   if (_sim == nullptr)
@@ -739,6 +770,7 @@ void ROS1Visualizer::publish_features() {
   sensor_msgs::PointCloud2 cloud_SIM = ROSVisualizerHelper::get_ros_pointcloud(feats_sim);
   cloud_SIM.header.stamp = ros::Time(last_visualization_timestamp_feature); // JW: use state time (i.e., last cam time) for feature timestamp
   pub_points_sim.publish(cloud_SIM);
+
 }
 
 void ROS1Visualizer::publish_groundtruth() {
