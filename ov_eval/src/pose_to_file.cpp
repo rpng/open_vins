@@ -41,9 +41,12 @@ int main(int argc, char **argv) {
 
   // Get parameters to subscribe
   std::string topic, topic_type, fileoutput;
+  bool tum_format; // JW: add tum_format flag
   nh.getParam("topic", topic);
   nh.getParam("topic_type", topic_type);
   nh.getParam("output", fileoutput);
+  if(!nh.getParam("tum_format", tum_format)) tum_format=false;
+
 
   // Debug
   PRINT_DEBUG("Done reading config values");
@@ -52,7 +55,7 @@ int main(int argc, char **argv) {
   PRINT_DEBUG(" - file = %s", fileoutput.c_str());
 
   // Create the recorder object
-  ov_eval::Recorder recorder(fileoutput);
+  ov_eval::Recorder recorder(fileoutput, tum_format);
 
   // Subscribe to topic
   ros::Subscriber sub;

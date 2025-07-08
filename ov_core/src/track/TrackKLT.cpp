@@ -320,7 +320,7 @@ void TrackKLT::feed_stereo(const CameraData &message, size_t msg_id_left, size_t
     }
     // If it is a good track, and also tracked from left to right
     // Else track it as a mono feature in just the left image
-    if (mask_ll[i] && found_right && mask_rr[index_right]) {
+    if (mask_ll[i] && found_right && mask_rr[index_right]) { // JW comment: this if handles stereo tracked features
       // Ensure we do not have any bad KLT tracks (i.e., points are negative)
       if (pts_right_new.at(index_right).pt.x < 0 || pts_right_new.at(index_right).pt.y < 0 ||
           (int)pts_right_new.at(index_right).pt.x >= img_right.cols || (int)pts_right_new.at(index_right).pt.y >= img_right.rows)
@@ -330,14 +330,14 @@ void TrackKLT::feed_stereo(const CameraData &message, size_t msg_id_left, size_t
       good_ids_left.push_back(ids_left_old.at(i));
       good_ids_right.push_back(ids_right_old.at(index_right));
       // PRINT_DEBUG("adding to stereo - %u , %u\n", ids_left_old.at(i), ids_right_old.at(index_right));
-    } else if (mask_ll[i]) {
+    } else if (mask_ll[i]) { // JW comment: this handles mono tracked left features
       good_left.push_back(pts_left_new.at(i));
       good_ids_left.push_back(ids_left_old.at(i));
       // PRINT_DEBUG("adding to left - %u \n",ids_left_old.at(i));
     }
   }
 
-  // Loop through all right points
+  // Loop through all right points // JW comment: treated as mono tracked right features
   for (size_t i = 0; i < pts_right_new.size(); i++) {
     // Ensure we do not have any bad KLT tracks (i.e., points are negative)
     if (pts_right_new.at(i).pt.x < 0 || pts_right_new.at(i).pt.y < 0 || (int)pts_right_new.at(i).pt.x >= img_right.cols ||
@@ -685,7 +685,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
         //  2) Otherwise we will treat this as just a monocular track of the feature
         // TODO: we should check to see if we can combine this new feature and the one in the right
         // TODO: seems if reject features which overlay with right features already we have very poor tracking perf
-        if (!oob_left && !oob_right && mask[i] == 1) {
+        if (!oob_left && !oob_right && mask[i] == 1) {  //JW comment: stereo tracklet
           // update the uv coordinates
           kpts0_new.at(i).pt = pts0_new.at(i);
           kpts1_new.at(i).pt = pts1_new.at(i);
@@ -696,7 +696,7 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
           size_t temp = ++currid;
           ids0.push_back(temp);
           ids1.push_back(temp);
-        } else if (!oob_left) {
+        } else if (!oob_left) {  //JW comment: monocular tracklet
           // update the uv coordinates
           kpts0_new.at(i).pt = pts0_new.at(i);
           // append the new uv coordinate

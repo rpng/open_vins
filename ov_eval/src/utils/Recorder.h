@@ -51,8 +51,9 @@ public:
    * @brief Default constructor that will open the specified file on disk.
    * If the output directory does not exists this will also create the directory path to this file.
    * @param filename Desired file we want to "record" into
+   * @param tum_format JW: if record the pose in tum format
    */
-  Recorder(std::string filename) {
+  Recorder(std::string filename, bool tum_format) {
     // Create folder path to this location if not exists
     boost::filesystem::path dir(filename.c_str());
     if (boost::filesystem::create_directories(dir.parent_path())) {
@@ -71,7 +72,19 @@ public:
       ROS_ERROR("Path: %s", filename.c_str());
       std::exit(EXIT_FAILURE);
     }
-    outfile << "# timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt11 Pt12 Pt13 Pt22 Pt23 Pt33" << std::endl;
+
+    if(tum_format)
+      ROS_INFO("Record poses in TUM format");
+    else
+      ROS_INFO("Record poses in original format");
+
+    if(!tum_format)
+      outfile << "# timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt11 Pt12 Pt13 Pt22 Pt23 Pt33" << std::endl;
+    
+    tum_format_ = tum_format;
+
+
+    // outfile << "# timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt11 Pt12 Pt13 Pt22 Pt23 Pt33" << std::endl;
     // Set initial state values
     timestamp = -1;
     q_ItoG << 0, 0, 0, 1;
@@ -100,6 +113,10 @@ public:
         msg->pose.covariance.at(28), msg->pose.covariance.at(29), msg->pose.covariance.at(33), msg->pose.covariance.at(34),
         msg->pose.covariance.at(35);
     has_covariance = true;
+
+    if(tum_format_)
+      has_covariance = false;
+
     write();
   }
 
@@ -133,6 +150,10 @@ public:
         msg->pose.covariance.at(28), msg->pose.covariance.at(29), msg->pose.covariance.at(33), msg->pose.covariance.at(34),
         msg->pose.covariance.at(35);
     has_covariance = true;
+
+    if(tum_format_)
+      has_covariance = false;
+
     write();
   }
 
@@ -179,6 +200,7 @@ protected:
   std::ofstream outfile;
 
   // Temp storage objects for our pose and its certainty
+  bool tum_format_ = false;
   bool has_covariance = false;
   double timestamp;
   Eigen::Vector4d q_ItoG;
