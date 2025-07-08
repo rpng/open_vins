@@ -334,6 +334,10 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
   tf::StampedTransform trans = ROSVisualizerHelper::get_stamped_transform_from_pose(odom_pose, false);
   trans.frame_id_ = "global";
   trans.child_frame_id_ = "imu";
+
+  // JW: publish tf transform using message time
+  trans.stamp_ = ros::Time(timestamp);
+
   if (publish_global2imu_tf) {
     mTfBr->sendTransform(trans);
   }
@@ -343,6 +347,11 @@ void ROS1Visualizer::visualize_odometry(double timestamp) {
     tf::StampedTransform trans_calib = ROSVisualizerHelper::get_stamped_transform_from_pose(calib.second, true);
     trans_calib.frame_id_ = "imu";
     trans_calib.child_frame_id_ = "cam" + std::to_string(calib.first);
+
+    // JW: publish tf transform using message time
+    trans_calib.stamp_ = ros::Time(timestamp);
+
+
     if (publish_calibration_tf) {
       mTfBr->sendTransform(trans_calib);
     }
@@ -637,6 +646,10 @@ void ROS1Visualizer::publish_state() {
   // NOTE: https://github.com/ros-visualization/rviz/issues/1107
   nav_msgs::Path arrIMU;
   arrIMU.header.stamp = ros::Time::now();
+
+  // JW: change pathimu to use message time
+  arrIMU.header.stamp = poseIinM.header.stamp;
+
   arrIMU.header.seq = poses_seq_imu;
   arrIMU.header.frame_id = "global";
   for (size_t i = 0; i < poses_imu.size(); i += std::floor((double)poses_imu.size() / 16384.0) + 1) {
@@ -756,6 +769,10 @@ void ROS1Visualizer::publish_groundtruth() {
   // NOTE: https://github.com/ros-visualization/rviz/issues/1107
   nav_msgs::Path arrIMU;
   arrIMU.header.stamp = ros::Time::now();
+
+  // JW: change pathimu to use message time
+  arrIMU.header.stamp = poseIinM.header.stamp;
+
   arrIMU.header.seq = poses_seq_gt;
   arrIMU.header.frame_id = "global";
   for (size_t i = 0; i < poses_gt.size(); i += std::floor((double)poses_gt.size() / 16384.0) + 1) {
