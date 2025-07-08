@@ -1,0 +1,29 @@
+%YAML:1.0
+
+cam0:
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+   - [0.003,  0.002,  1.000,  0.002]
+   - [-1.000,  0.004,  0.003,  0.023]
+   - [-0.004, -1.000,  0.002, -0.000]
+   - [0.000,  0.000,  0.000,  1.000]
+
+  cam_overlaps: [1]
+  camera_model: pinhole
+  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]
+  distortion_model: radtan
+  intrinsics: [263.7374572753906, 263.7374572753906, 319.0159606933594, 186.48666381835938] #fu, fv, cu, cv
+  resolution: [640, 360]
+  rostopic: /cam0/image_raw
+cam1:
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+   - [0.003,  0.002,  1.000,  0.002]
+   - [-1.000,  0.004,  0.003, -0.097]
+   - [-0.004, -1.000,  0.002, -0.001]
+   - [0.000,  0.000,  0.000,  1.000]
+  cam_overlaps: []
+  camera_model: pinhole
+  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]
+  distortion_model: radtan
+  intrinsics: [263.7374572753906, 263.7374572753906, 319.0159606933594, 186.48666381835938] #fu, fv, cu, cv
+  resolution: [640, 360]
+  rostopic: /cam1/image_raw
