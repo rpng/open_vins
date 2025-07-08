@@ -1,5 +1,38 @@
 # OpenVINS
 
+
+## DRS Fork of OpenVINS
+
+**Please use `master-drs` as the default branch to build**
+
+To build:
+
+`catkin build ov_core ov_init ov_msckf ov_eval`
+
+To run (example):
+In separate terminals run:
+
+`rosrun image_transport republish compressed in:=/alphasense_driver_ros/cam1/ raw out:=/camera/left/image_raw/`
+
+`rosrun image_transport republish compressed in:=/alphasense_driver_ros/cam0/ raw out:=/camera/right/image_raw/`
+
+`roslaunch ov_msckf ros_halo_0623.launch`
+
+To visualize:
+
+`roscd ov_msckf`
+
+`rviz -d launch/display.rviz`
+
+
+**To save trajectory in TUM format:**
+
+Pass `<param name="tum_format" type="bool" value="true" />` to `pose_to_file` node 
+
+
+---
+
+
 [![ROS 1 Workflow](https://github.com/rpng/open_vins/actions/workflows/build_ros1.yml/badge.svg)](https://github.com/rpng/open_vins/actions/workflows/build_ros1.yml)
 [![ROS 2 Workflow](https://github.com/rpng/open_vins/actions/workflows/build_ros2.yml/badge.svg)](https://github.com/rpng/open_vins/actions/workflows/build_ros2.yml)
 [![ROS Free Workflow](https://github.com/rpng/open_vins/actions/workflows/build.yml/badge.svg)](https://github.com/rpng/open_vins/actions/workflows/build.yml)
