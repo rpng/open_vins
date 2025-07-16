@@ -53,7 +53,7 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   pub_pathimu = node->create_publisher<nav_msgs::msg::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu->get_topic_name());
 
-  pub_status = node->create_publisher<ov_msckf::msg::ROS2OVRuntimeStatus>("runtime_status", 2);
+  pub_status = node->create_publisher<ov_msckf::msg::OVRuntimeStatus>("runtime_status", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_status->get_topic_name());
 
   // 3D points publishing
@@ -685,7 +685,7 @@ void ROS2Visualizer::publish_features() {
     double last_visualization_timestamp_feature = _app->get_state()->_timestamp;
 
     // OVRuntimeStatus message
-    ov_msckf::msg::ROS2OVRuntimeStatus status_msg;
+    ov_msckf::msg::OVRuntimeStatus status_msg;
     status_msg.header.stamp = ROSVisualizerHelper::get_time_from_seconds(last_visualization_timestamp_feature);
     status_msg.header.frame_id = "global";
 

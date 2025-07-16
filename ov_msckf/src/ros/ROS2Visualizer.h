@@ -55,7 +55,7 @@
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 // #include <ov_msckf/msg/ov_runtime_status.hpp>
-#include <ov_msckf/msg/ros2_ov_runtime_status.hpp> // ROS2OVRuntimeStatus.hpp
+#include <ov_msckf/msg/ov_runtime_status.hpp> 
 // #include <ov_msckf/msg/ov_runtime_status.hpp>
 namespace ov_core {
 class YamlParser;
@@ -155,7 +155,7 @@ protected:
   rclcpp::Publisher<nav_msgs::msg::Odometry>::SharedPtr pub_loop_pose, pub_loop_extrinsic;
   rclcpp::Publisher<sensor_msgs::msg::PointCloud>::SharedPtr pub_loop_point;
   rclcpp::Publisher<sensor_msgs::msg::CameraInfo>::SharedPtr pub_loop_intrinsics;
-  rclcpp::Publisher<ov_msckf::msg::ROS2OVRuntimeStatus>::SharedPtr pub_status;
+  rclcpp::Publisher<ov_msckf::msg::OVRuntimeStatus>::SharedPtr pub_status;
   std::shared_ptr<tf2_ros::TransformBroadcaster> mTfBr;
 
   // Our subscribers and camera synchronizers
