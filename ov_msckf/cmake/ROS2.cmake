@@ -13,7 +13,7 @@ find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(ov_core REQUIRED)
 find_package(ov_init REQUIRED)
-
+find_package(rosidl_default_generators REQUIRED)
 # Describe ROS project
 option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (NOT ENABLE_ROS)
@@ -21,12 +21,28 @@ if (NOT ENABLE_ROS)
 endif ()
 add_definitions(-DROS_AVAILABLE=2)
 
+
+# Add message files
+set(msg_files
+        msg/ros2/ROS2OVRuntimeStatus.msg
+)
+
+rosidl_generate_interfaces(${PROJECT_NAME}
+        ${msg_files}
+        DEPENDENCIES std_msgs geometry_msgs
+)
+ament_export_dependencies(rosidl_default_runtime)
+
+# Add this after rosidl_generate_interfaces
+rosidl_get_typesupport_target(cpp_typesupport_target ${PROJECT_NAME} "rosidl_typesupport_cpp")
+
 # Include our header files
 include_directories(
         src
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
         ${CERES_INCLUDE_DIRS}
+        ${CMAKE_CURRENT_BINARY_DIR}/rosidl_generator_cpp
 )
 
 # Set link libraries used by all binaries
@@ -53,6 +69,8 @@ list(APPEND ament_libraries
 # Make the shared library
 ##################################################
 
+
+
 list(APPEND LIBRARY_SOURCES
         src/dummy.cpp
         src/sim/Simulator.cpp
@@ -71,6 +89,7 @@ file(GLOB_RECURSE LIBRARY_HEADERS "src/*.h")
 add_library(ov_msckf_lib SHARED ${LIBRARY_SOURCES} ${LIBRARY_HEADERS})
 ament_target_dependencies(ov_msckf_lib ${ament_libraries})
 target_link_libraries(ov_msckf_lib ${thirdparty_libraries})
+target_link_libraries(ov_msckf_lib ${cpp_typesupport_target})
 target_include_directories(ov_msckf_lib PUBLIC src/)
 install(TARGETS ov_msckf_lib
         LIBRARY DESTINATION lib
@@ -91,21 +110,25 @@ ament_export_libraries(ov_msckf_lib)
 add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
 ament_target_dependencies(run_subscribe_msckf ${ament_libraries})
 target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
+target_link_libraries(run_subscribe_msckf ${cpp_typesupport_target})
 install(TARGETS run_subscribe_msckf DESTINATION lib/${PROJECT_NAME})
 
 add_executable(run_simulation src/run_simulation.cpp)
 ament_target_dependencies(run_simulation ${ament_libraries})
 target_link_libraries(run_simulation ov_msckf_lib ${thirdparty_libraries})
+target_link_libraries(run_simulation ${cpp_typesupport_target})
 install(TARGETS run_simulation DESTINATION lib/${PROJECT_NAME})
 
 add_executable(test_sim_meas src/test_sim_meas.cpp)
 ament_target_dependencies(test_sim_meas ${ament_libraries})
 target_link_libraries(test_sim_meas ov_msckf_lib ${thirdparty_libraries})
+target_link_libraries(test_sim_meas ${cpp_typesupport_target})
 install(TARGETS test_sim_meas DESTINATION lib/${PROJECT_NAME})
 
 add_executable(test_sim_repeat src/test_sim_repeat.cpp)
 ament_target_dependencies(test_sim_repeat ${ament_libraries})
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
+target_link_libraries(test_sim_repeat ${cpp_typesupport_target})
 install(TARGETS test_sim_repeat DESTINATION lib/${PROJECT_NAME})
 
 # Install launch and config directories

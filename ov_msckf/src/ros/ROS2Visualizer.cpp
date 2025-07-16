@@ -30,6 +30,7 @@
 #include "utils/dataset_reader.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
+// #include "ov_msckf/msg/o_vruntime_status.hpp"
 
 using namespace ov_core;
 using namespace ov_type;
@@ -51,6 +52,9 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
   PRINT_DEBUG("Publishing: %s\n", pub_odomimu->get_topic_name());
   pub_pathimu = node->create_publisher<nav_msgs::msg::Path>("pathimu", 2);
   PRINT_DEBUG("Publishing: %s\n", pub_pathimu->get_topic_name());
+
+  pub_status = node->create_publisher<ov_msckf::msg::ROS2OVRuntimeStatus>("runtime_status", 2);
+  PRINT_DEBUG("Publishing: %s\n", pub_status->get_topic_name());
 
   // 3D points publishing
   pub_points_msckf = node->create_publisher<sensor_msgs::msg::PointCloud2>("points_msckf", 2);
@@ -330,7 +334,8 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
   auto odom_pose = std::make_shared<ov_type::PoseJPL>();
   odom_pose->set_value(state_plus.block(0, 0, 7, 1));
   geometry_msgs::msg::TransformStamped trans = ROSVisualizerHelper::get_stamped_transform_from_pose(_node, odom_pose, false);
-  trans.header.stamp = _node->now();
+  // trans.header.stamp = _node->now();
+  trans.header.stamp = ROSVisualizerHelper::get_time_from_seconds(timestamp);
   trans.header.frame_id = "global";
   trans.child_frame_id = "imu";
   if (publish_global2imu_tf) {
@@ -340,7 +345,8 @@ void ROS2Visualizer::visualize_odometry(double timestamp) {
   // Loop through each camera calibration and publish it
   for (const auto &calib : state->_calib_IMUtoCAM) {
     geometry_msgs::msg::TransformStamped trans_calib = ROSVisualizerHelper::get_stamped_transform_from_pose(_node, calib.second, true);
-    trans_calib.header.stamp = _node->now();
+    // trans_calib.header.stamp = _node->now();
+    trans_calib.header.stamp = ROSVisualizerHelper::get_time_from_seconds(timestamp);
     trans_calib.header.frame_id = "imu";
     trans_calib.child_frame_id = "cam" + std::to_string(calib.first);
     if (publish_calibration_tf) {
@@ -673,35 +679,74 @@ void ROS2Visualizer::publish_images() {
 
 void ROS2Visualizer::publish_features() {
 
-  // Check if we have subscribers
+  // Always publish runtime status if we have subscribers, regardless of other publishers
+  if (pub_status->get_subscription_count() > 0) {
+    // Use state time (i.e., last cam time) for feature timestamp 
+    double last_visualization_timestamp_feature = _app->get_state()->_timestamp;
+
+    // OVRuntimeStatus message
+    ov_msckf::msg::ROS2OVRuntimeStatus status_msg;
+    status_msg.header.stamp = ROSVisualizerHelper::get_time_from_seconds(last_visualization_timestamp_feature);
+    status_msg.header.frame_id = "global";
+
+    Eigen::Matrix<double, 3, 1> bias_a = _app->get_state()->_imu->bias_a();
+    Eigen::Matrix<double, 3, 1> bias_g = _app->get_state()->_imu->bias_g();
+    status_msg.bias_a.x = bias_a(0,0);
+    status_msg.bias_a.y = bias_a(1,0);
+    status_msg.bias_a.z = bias_a(2,0);
+    status_msg.bias_g.x = bias_g(0,0);
+    status_msg.bias_g.y = bias_g(1,0);
+    status_msg.bias_g.z = bias_g(2,0);
+    status_msg.t_offset_imu_cam = _app->get_state()->_calib_dt_CAMtoIMU->value()(0);
+
+    // Get feature counts
+    std::vector<Eigen::Vector3d> feats_msckf = _app->get_good_features_MSCKF();
+    std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
+    status_msg.num_msckf_features = feats_msckf.size();
+    status_msg.num_slam_features = feats_slam.size();
+
+    // Publish runtime status
+    pub_status->publish(status_msg);
+    // PRINT_DEBUG("Published runtime status with %ld MSCKF features and %ld SLAM features\n", 
+    //             status_msg.num_msckf_features, status_msg.num_slam_features);
+  }
+
+  // Check if we have subscribers for point cloud publishers
   if (pub_points_msckf->get_subscription_count() == 0 && pub_points_slam->get_subscription_count() == 0 &&
       pub_points_aruco->get_subscription_count() == 0 && pub_points_sim->get_subscription_count() == 0)
     return;
 
+  // Use state time (i.e., last cam time) for feature timestamp 
+  double last_visualization_timestamp_feature = _app->get_state()->_timestamp;
+
   // Get our good MSCKF features
   std::vector<Eigen::Vector3d> feats_msckf = _app->get_good_features_MSCKF();
   sensor_msgs::msg::PointCloud2 cloud = ROSVisualizerHelper::get_ros_pointcloud(_node, feats_msckf);
+  cloud.header.stamp = ROSVisualizerHelper::get_time_from_seconds(last_visualization_timestamp_feature);
   pub_points_msckf->publish(cloud);
 
   // Get our good SLAM features
   std::vector<Eigen::Vector3d> feats_slam = _app->get_features_SLAM();
   sensor_msgs::msg::PointCloud2 cloud_SLAM = ROSVisualizerHelper::get_ros_pointcloud(_node, feats_slam);
+  cloud_SLAM.header.stamp = ROSVisualizerHelper::get_time_from_seconds(last_visualization_timestamp_feature);
   pub_points_slam->publish(cloud_SLAM);
 
   // Get our good ARUCO features
   std::vector<Eigen::Vector3d> feats_aruco = _app->get_features_ARUCO();
   sensor_msgs::msg::PointCloud2 cloud_ARUCO = ROSVisualizerHelper::get_ros_pointcloud(_node, feats_aruco);
+  cloud_ARUCO.header.stamp = ROSVisualizerHelper::get_time_from_seconds(last_visualization_timestamp_feature);
   pub_points_aruco->publish(cloud_ARUCO);
 
-  // Skip the rest of we are not doing simulation
+  // Skip the rest if we are not doing simulation
   if (_sim == nullptr)
     return;
 
   // Get our good SIMULATION features
   std::vector<Eigen::Vector3d> feats_sim = _sim->get_map_vec();
   sensor_msgs::msg::PointCloud2 cloud_SIM = ROSVisualizerHelper::get_ros_pointcloud(_node, feats_sim);
+  cloud_SIM.header.stamp = ROSVisualizerHelper::get_time_from_seconds(last_visualization_timestamp_feature);
   pub_points_sim->publish(cloud_SIM);
-}
+ }
 
 void ROS2Visualizer::publish_groundtruth() {
 
