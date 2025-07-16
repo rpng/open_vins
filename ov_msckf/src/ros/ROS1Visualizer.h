@@ -51,6 +51,8 @@
 #include <boost/filesystem.hpp>
 #include <cv_bridge/cv_bridge.h>
 
+#include <ov_msckf/OVRuntimeStatus.h>
+
 namespace ov_core {
 class YamlParser;
 struct CameraData;
@@ -144,6 +146,7 @@ protected:
   ros::Publisher pub_poseimu, pub_odomimu, pub_pathimu;
   ros::Publisher pub_points_msckf, pub_points_slam, pub_points_aruco, pub_points_sim;
   ros::Publisher pub_loop_pose, pub_loop_point, pub_loop_extrinsic, pub_loop_intrinsics;
+  ros::Publisher pub_status;
   std::shared_ptr<tf::TransformBroadcaster> mTfBr;
 
   // Our subscribers and camera synchronizers
