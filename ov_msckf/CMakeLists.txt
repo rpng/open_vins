@@ -54,3 +54,9 @@ endif ()
 
 
 
+# install executable bash scripts with the correct permissions
+install(PROGRAMS
+  python/ov_msckf/rotate_image.py
+  python/ov_msckf/stack_image.py
+  DESTINATION lib/${PROJECT_NAME}
+)
