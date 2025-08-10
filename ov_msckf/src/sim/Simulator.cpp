@@ -416,6 +416,7 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
 
     // Get the uv features for this frame
     std::vector<std::pair<size_t, Eigen::VectorXf>> uvs = project_pointcloud(R_GtoI, p_IinG, i, featmap);
+    std::shared_ptr<ov_core::CamBase> camera = params.camera_intrinsics.at(i);
 
     // If we do not have enough, generate more
     if ((int)uvs.size() < params.num_pts) {
@@ -435,10 +436,16 @@ bool Simulator::get_next_cam(double &time_cam, std::vector<int> &camids,
     }
 
     // Loop through and add noise to each uv measurement
-    std::normal_distribution<double> w(0, 1);
-    for (size_t j = 0; j < uvs.size(); j++) {
-      uvs.at(j).second(0) += params.msckf_options.sigma_pix * w(gen_meas_cams.at(i));
-      uvs.at(j).second(1) += params.msckf_options.sigma_pix * w(gen_meas_cams.at(i));
+    for (auto it_uv = uvs.begin(); it_uv != uvs.end();) {
+      it_uv->second(0) += params.msckf_options.sigma_pix * w(gen_meas_cams.at(i));
+      it_uv->second(1) += params.msckf_options.sigma_pix * w(gen_meas_cams.at(i));
+
+      // Check that it is inside our bounds
+      if (it_uv->second(0) < 0 || it_uv->second(0) > camera->w() ||
+          it_uv->second(1) < 0 || it_uv->second(1) > camera->h()) {
+        it_uv = uvs.erase(it_uv);
+      } else
+        it_uv++;
     }
 
     // Push back for this camera
