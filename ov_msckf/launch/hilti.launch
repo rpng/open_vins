@@ -5,7 +5,7 @@
     
     <!-- BAG 파일 설정 -->
     <arg name="dataset" default="exp21_outside_building" />
-    <arg name="bag_path" default="/home/jhjangjh/workspace/dataset/$(arg dataset).bag" />
+    <arg name="bag_path" default="$(find ov_msckf)/../../../../dataset/$(arg dataset).bag" />
     <arg name="bag_start" default="0" />
     <arg name="bag_rate" default="1.0" />
     
@@ -25,7 +25,7 @@
         <param name="config_path" type="string" value="$(arg config_path)" />
         <param name="verbosity" type="string" value="$(arg verbosity)" />
         <param name="record_timing_information" type="bool" value="$(arg dotime)" />
-        <param name="record_timing_filepath" type="string" value="/home/jhjangjh/workspace/results/$(arg dataset)_timing.txt" />
+        <param name="record_timing_filepath" type="string" value="$(find ov_msckf)/../../../../results/$(arg dataset)_timing.txt" />
     </node>
     
     <!-- ============================================ -->
@@ -47,7 +47,7 @@
         <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
             <param name="topic" type="str" value="/ov_msckf/poseimu" />
             <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
-            <param name="output" type="str" value="/home/jhjangjh/workspace/results/$(arg dataset)_estimate.txt" />
+            <param name="output" type="str" value="$(find ov_msckf)/../../../../results/$(arg dataset)_estimate.txt" />
         </node>
     </group>
 
