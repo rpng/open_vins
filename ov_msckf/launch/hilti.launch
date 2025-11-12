@@ -1,0 +1,54 @@
+<launch>
+    <!-- ============================================ -->
+    <!-- HILTI SLAM Challenge 2022 Dataset -->
+    <!-- ============================================ -->
+    
+    <!-- BAG 파일 설정 -->
+    <arg name="dataset" default="exp21_outside_building" />
+    <arg name="bag_path" default="/home/jhjangjh/workspace/dataset/$(arg dataset).bag" />
+    <arg name="bag_start" default="0" />
+    <arg name="bag_rate" default="1.0" />
+    
+    <!-- Config 경로 -->
+    <arg name="config_path" default="$(find ov_msckf)/../config/hilti/estimator_config.yaml" />
+    <arg name="verbosity" default="INFO" />
+    
+    <!-- 결과 저장 설정 -->
+    <arg name="dosave" default="true" />
+    <arg name="dotime" default="false" />
+    <arg name="dolivetraj" default="false" />
+    
+    <!-- ============================================ -->
+    <!-- OpenVINS Subscribe Node -->
+    <!-- ============================================ -->
+    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">
+        <param name="config_path" type="string" value="$(arg config_path)" />
+        <param name="verbosity" type="string" value="$(arg verbosity)" />
+        <param name="record_timing_information" type="bool" value="$(arg dotime)" />
+        <param name="record_timing_filepath" type="string" value="/home/jhjangjh/workspace/results/$(arg dataset)_timing.txt" />
+    </node>
+    
+    <!-- ============================================ -->
+    <!-- RViz Visualization -->
+    <!-- ============================================ -->
+    <node type="rviz" name="rviz" pkg="rviz" args="-d $(find ov_msckf)/launch/display.rviz" />
+    
+    <!-- ============================================ -->
+    <!-- Play Rosbag -->
+    <!-- ============================================ -->
+    <node pkg="rosbag" type="play" name="rosbag" 
+          args="--clock $(arg bag_path) -s $(arg bag_start) -r $(arg bag_rate)" 
+          required="true" />
+    
+    <!-- ============================================ -->
+    <!-- Record Output Trajectory (선택적) -->
+    <!-- ============================================ -->
+    <group if="$(arg dolivetraj)">
+        <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
+            <param name="topic" type="str" value="/ov_msckf/poseimu" />
+            <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
+            <param name="output" type="str" value="/home/jhjangjh/workspace/results/$(arg dataset)_estimate.txt" />
+        </node>
+    </group>
+
+</launch>
