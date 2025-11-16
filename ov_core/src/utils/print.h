@@ -101,6 +101,11 @@ private:
 
 // Assert that will always be here in release builds also
 // TODO: place this in a better header, just putting here for now...
+#ifdef __ANDROID__
+// On Android, use the system __assert which has signature: void __assert(const char* __file, int __line, const char* __msg)
+#define assert_r(EX) (void)((EX) || (__assert(__FILE__, __LINE__, #EX), 0))
+#else
+// On other platforms, define our own __assert
 #define assert_r(EX) (void)((EX) || (__assert(#EX, __FILE__, __LINE__), 0))
 #ifdef __cplusplus
 extern "C" {
@@ -108,6 +113,7 @@ extern "C" {
 extern void __assert(const char *msg, const char *file, int line);
 #ifdef __cplusplus
 };
+#endif
 #endif
 
 #endif /* OV_CORE_PRINT_H */
