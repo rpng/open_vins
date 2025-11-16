@@ -26,7 +26,6 @@
     <arg name="dolivetraj"  default="false" />
     <arg name="path_gt"     default="$(find ov_data)/$(arg config)/$(arg dataset).txt" />
 
-
     <!-- MASTER NODE! -->
 <!--    <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true" launch-prefix="gdb -ex run &#45;&#45;args">-->
     <node name="ov_msckf" pkg="ov_msckf" type="run_subscribe_msckf" output="screen" clear_params="true" required="true">

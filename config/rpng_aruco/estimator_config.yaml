@@ -2,16 +2,16 @@
 
 verbosity: "INFO" # ALL, DEBUG, INFO, WARNING, ERROR, SILENT
 
-use_fej: true # if we should use first-estimate Jacobians (enable for good consistency)
-use_imuavg: true # for our discrete integration, if we should average sequential IMU measurements to "smooth" it
-use_rk4int: true # if rk4 integration should be used (overrides imu averaging)
-
+use_fej: true # if first-estimate Jacobians should be used (enable for good consistency)
+integration: "rk4" # discrete, rk4, analytical (if rk4 or analytical used then analytical covariance propagation is used)
 use_stereo: true # if we have more than 1 camera, if we should try to track stereo constraints
-max_cameras: 2
+max_cameras: 2 # how many cameras we have 1 = mono, 2 = stereo, >2 = binocular (all mono tracking)
 
 calib_cam_extrinsics: true
 calib_cam_intrinsics: true
 calib_cam_timeoffset: true
+calib_imu_intrinsics: false
+calib_imu_g_sensitivity: false
 
 max_clones: 11
 max_slam: 50
@@ -40,7 +40,7 @@ zupt_only_at_beginning: true
 init_window_time: 2.0
 init_imu_thresh: 1.2
 init_max_disparity: 2.0
-init_max_features: 75
+init_max_features: 50
 
 init_dyn_use: false
 init_dyn_mle_opt_calib: false

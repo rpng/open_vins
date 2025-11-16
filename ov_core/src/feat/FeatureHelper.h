@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -121,7 +121,7 @@ public:
    * @param oldest_time Only compute disparity for ones newer (-1 to disable)
    */
   static void compute_disparity(std::shared_ptr<ov_core::FeatureDatabase> db, double &disp_mean, double &disp_var, int &total_feats,
-                                double newest_time = 1, double oldest_time = 1) {
+                                double newest_time = -1, double oldest_time = -1) {
 
     // Compute the disparity
     std::vector<double> disparities;

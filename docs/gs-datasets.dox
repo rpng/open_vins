@@ -24,23 +24,23 @@ Please take a look at the [run_ros_eth.sh](https://github.com/rpng/open_vins/blo
 
 @par Groundtruth on V1_01_easy
     We have found that the groundtruth on the V1_01_easy dataset is not accurate in its orientation estimate.
-    We have recomputed this by optimizing the inertial and vicon readings in a graph to get the trajectory of the imu.
-    You can find the output at this [link](https://drive.google.com/drive/folders/1d62Q_RQwHzKLcIdUlTeBmojr7j0UL4sM?usp=sharing) and is what we normally use to evaluate the error on this dataset.
+    We have recomputed this by optimizing the inertial and vicon readings in a graph to get the trajectory of the imu (refer to our [vicon2gt](https://github.com/rpng/vicon2gt) @cite Geneva2020TRVICON2GT project).
+    You can find the output at this [link](https://drive.google.com/drive/folders/1GospxhpVnyzvJNVUdN4qyrl8GlOd7vw8?usp=drive_link) and is what we normally use to evaluate the error on this dataset.
 
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Config |
 |-------------:|--------|--------------|------------------|------------------|
-| Vicon Room 1 01 | 58 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_01_easy/V1_01_easy.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Vicon Room 1 02 | 76 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_02_medium/V1_02_medium.bag) , [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing)| [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Vicon Room 1 03 | 79 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_03_difficult/V1_03_difficult.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Vicon Room 2 01 | 37 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_01_easy/V2_01_easy.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Vicon Room 2 02 | 83 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_02_medium/V2_02_medium.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Vicon Room 2 03 | 86 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_03_difficult/V2_03_difficult.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Machine Hall 01 | 80 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_01_easy/MH_01_easy.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Machine Hall 02 | 73 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_02_easy/MH_02_easy.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Machine Hall 03 | 131 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_03_medium/MH_03_medium.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Machine Hall 04 | 92 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_04_difficult/MH_04_difficult.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
-| Machine Hall 05 | 98 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_05_difficult/MH_05_difficult.bag), [rosbag2](https://drive.google.com/drive/folders/1xQ1KcZhZ5pioPXTyrZBN6Mjxkfpcd_B3?usp=sharing) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Vicon Room 1 01 | 58 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_01_easy/V1_01_easy.bag), [rosbag2](https://drive.google.com/file/d/1LFrdiMU6UBjtFfXPHzjJ4L7iDIXcdhvh/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Vicon Room 1 02 | 76 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_02_medium/V1_02_medium.bag) , [rosbag2](https://drive.google.com/file/d/1rlGSy7h38ucm8jr8ssH-sJPX84JfkBtX/view?usp=drive_link)| [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Vicon Room 1 03 | 79 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room1/V1_03_difficult/V1_03_difficult.bag), [rosbag2](https://drive.google.com/file/d/1Gy1zc4LaMlwsLpXBqOIci6Y3cV_5r-0k/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Vicon Room 2 01 | 37 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_01_easy/V2_01_easy.bag), [rosbag2](https://drive.google.com/file/d/1KAkE8Ptq3eSQlXMozJgzNIAVUBH3h0FP/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Vicon Room 2 02 | 83 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_02_medium/V2_02_medium.bag), [rosbag2](https://drive.google.com/file/d/1Gj4psmvcAwYwCp4T4CQH-d2ZVJ09d3x2/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Vicon Room 2 03 | 86 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/vicon_room2/V2_03_difficult/V2_03_difficult.bag), [rosbag2](https://drive.google.com/file/d/1ohWd0JqDvVhTqjOS5MqHafit5MPdlbff/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Machine Hall 01 | 80 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_01_easy/MH_01_easy.bag), [rosbag2](https://drive.google.com/file/d/1UP4nkuSEOQECZTswwh9BPgfMl-dnDstA/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Machine Hall 02 | 73 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_02_easy/MH_02_easy.bag), [rosbag2](https://drive.google.com/file/d/1wWZgZCqYz6zzzTXS0iqvQCP-cWfFuGLK/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Machine Hall 03 | 131 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_03_medium/MH_03_medium.bag), [rosbag2](https://drive.google.com/file/d/1er07gZ8rso8R3Su00hJMm_GZ4z1n9Rpq/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Machine Hall 04 | 92 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_04_difficult/MH_04_difficult.bag), [rosbag2](https://drive.google.com/file/d/1eC8joRXo1rh0wzOpq3e-B4dQ8-w6wZYz/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
+| Machine Hall 05 | 98 | [rosbag](http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_05_difficult/MH_05_difficult.bag), [rosbag2](https://drive.google.com/file/d/1zoN94K1Afrp7HXSduRLkJBiEjPKdk1UA/view?usp=drive_link) | [link](https://github.com/rpng/open_vins/tree/master/ov_data/euroc_mav) | [config](https://github.com/rpng/open_vins/blob/master/config/euroc_mav) |
 @m_enddiv
 
 
@@ -55,6 +55,7 @@ Not all datasets have groundtruth available throughout the entire trajectory as 
 There are quite a few very challenging outdoor handheld datasets which are a challenging direction for research.
 Note that we focus on the room datasets as full 6 dof pose collection is available over the total trajectory.
 
+@image html datasets/tumvi.png width=90%
 
 @m_class{m-block m-warning}
 
@@ -62,6 +63,7 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
     These datasets have very non-static starts, as they are handheld, and the standstill initialization has issues handling this.
     Thus careful tuning of the imu initialization threshold is typically needed to ensure that the initialized orientation and the zero velocity assumption are valid.
     Please take a look at the [run_ros_tumvi.sh](https://github.com/rpng/open_vins/blob/master/ov_msckf/scripts/run_ros_tumvi.sh) script for some reasonable default values (they might still need to be tuned).
+    One can enable dynamic initialization to avoid this problem via the `init_dyn_use` configuration value.
 
 
 @m_div{m-text-center}
@@ -77,6 +79,30 @@ Note that we focus on the room datasets as full 6 dof pose collection is availab
 
 
 
+@section gs-data-rpng-ar-table RPNG AR Table Dataset
+
+The [Indoor AR Table Visual-Inertial Datasets](https://github.com/rpng/ar_table_dataset/) @cite Chen2023ICRA were collected to demonstrate the impact of estimating long-term planar surfaces within a visual-inertial estimator.
+An Intel Realsense D4553 with 30Hz RGB-D (depth was not used) and 400Hz BMI055 IMU along with 100Hz OptiTrack poses were recorded in 1-2 minute segments.
+The groundtruth was recovered using the [vicon2gt](https://github.com/rpng/vicon2gt) utility @cite Geneva2020TRVICON2GT.
+
+@image html datasets/ar_table.jpg width=90%
+
+@m_div{m-text-center}
+| Dataset Name | Length (m) | Dataset Link | Size (GB) | Groundtruth Traj. | Config |
+|:------:|:-------:|:-------:|:-----:|:-----:|:-----:|
+| table1 | 56 | [rosbag](https://drive.google.com/file/d/1qpjOQQYB8rvozTTbGBvuWjiat9MlDaMi/view?usp=sharing) | 4.77 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table2 | 44 | [rosbag](https://drive.google.com/file/d/1RBt8xYDsegtRiY5gKVyg9WPhecVvdXqn/view?usp=sharing) | 5.54 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table3 | 88 | [rosbag](https://drive.google.com/file/d/1_uLTYC3i2b1tx85OpGlqecxXgaO7BDT_/view?usp=sharing) | 13.19 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table4 | 91 | [rosbag](https://drive.google.com/file/d/1nYno_ttjGHwCQoxgV5SisVTc19Cb5O5c/view?usp=sharing) | 11.49 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table5 | 75 | [rosbag](https://drive.google.com/file/d/1CjkGfSCD_hWAidKsJ7edhuWQg7CyGa3U/view?usp=sharing) | 11.66 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table6 | 50 | [rosbag](https://drive.google.com/file/d/1FAGk7ZjRKDTkf-lhW3sb4EPj6SsUhyeQ/view?usp=sharing) | 5.26 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table7 | 63 | [rosbag](https://drive.google.com/file/d/1yWZGo6N0qlP_fHMIsr0jayRP3tXCO54U/view?usp=sharing) | 9.02 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+| table8 | 125 | [rosbag](https://drive.google.com/file/d/1pIz9owK4PvIkL_1t6eTZwGMrsLNpHBwa/view?usp=sharing) | 16.01 | [link](https://github.com/rpng/open_vins/tree/master/ov_data/rpng_plane) | [config](https://github.com/rpng/open_vins/blob/master/config/rpng_plane) |
+@m_enddiv
+
+
+
+
 
 @section gs-data-rpng RPNG OpenVINS Dataset
 
@@ -88,15 +114,17 @@ Here are the specifics of the sensors that each dataset uses:
     - Core visual-inertial sensor is the [VI-Sensor](https://furgalep.github.io/bib/nikolic_icra14.pdf)
     - Stereo global shutter images at 20 Hz
     - ADIS16448 IMU at 200 Hz
-    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1I0C-z3ZrTKne4bdbgBI6CtH1Rk4EQim0/view?usp=sharing)
+    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1eYymZIMZhvH80O3ae7NSNT_KOhKkuB7q/view?usp=drive_link)
 - Ironsides Datasets:
     - Core visual-inertial sensor is the [ironsides](https://arxiv.org/pdf/1710.00893v1.pdf)
     - Has two [Reach RTK](https://docs.emlid.com/reach/) one subscribed to a base station for corrections
     - Stereo global shutter fisheye images at 20 Hz
     - InvenSense IMU at 200 Hz
     - GPS fixes at 5 Hz (/reach01/tcpfix has corrections from [NYSNet](https://cors.dot.ny.gov/sbc))
-    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1bhn0GrIYNEeAabQAbWoP8l_514cJ0KrZ/view?usp=sharing)
+    - Kalibr calibration file can be found [here](https://drive.google.com/file/d/1N-DfxBDxEIiO_k6WbVaxZVViwplVJJY1/view?usp=drive_link)
 
+
+@image html datasets/neighborhood.png width=90%
 
 @m_class{m-block m-warning}
 
@@ -112,12 +140,12 @@ Additionally, there is no groundtruth for these datasets, but some do include GP
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Config |
 |-------------:|--------|--------------|------------------|------------------|
-| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1ytjo8V6pCroaVd8-QSop7R4DbsvvKyRQ/view?usp=sharing) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
-| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1l_hnPUW6ufqxPtrLqRRHHI4mfGRZB1ha/view?usp=sharing) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
-| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1FQBo3uHqRd0qm8GUb50Q-sj5gukcwaoU/view?usp=sharing) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
-| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1oAbnV3MPOeaUSjnSc3g8t-pWV1nVjbys/view?usp=sharing) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
-| Neighborhood 01 | 2300 | [rosbag](https://drive.google.com/file/d/1N07SDbaLEkq9pVEvi6oiHpavaRuFs3j2/view?usp=sharing) | none | [config ironsides](https://github.com/rpng/open_vins/blob/master/config/rpng_ironsides) |
-| Neighborhood 02 | 7400 | [rosbag](https://drive.google.com/file/d/1QEUi40sO8OkVXEGF5JojiiZMHMSiSqtg/view?usp=sharing) | none | [config ironsides](https://github.com/rpng/open_vins/blob/master/config/rpng_ironsides) |
+| ArUco Room 01 | 27 | [rosbag](https://drive.google.com/file/d/1DnVPafN3qeyuf0nESCk7gGXnhTgEcOlT/view?usp=drive_link) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
+| ArUco Room 02 | 93 | [rosbag](https://drive.google.com/file/d/1_ektsxj1UvZ51ZEs9zPEKL7x4kZtcgbg/view?usp=drive_link) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
+| ArUco Hallway 01 | 190 | [rosbag](https://drive.google.com/file/d/1JLvy6zBgGCkRUTd0Bo14vJVYuVxpZ3ix/view?usp=drive_link) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
+| ArUco Hallway 02 | 105 | [rosbag](https://drive.google.com/file/d/1GQiyVLIimGjX3LEFD5kptGHbLTiOypuL/view?usp=drive_link) | none | [config aruco](https://github.com/rpng/open_vins/blob/master/config/rpng_aruco) |
+| Neighborhood 01 | 2300 | [rosbag](https://drive.google.com/file/d/1JAWpTE_tqs__XYa_906JgFy9CeZ1KccO/view?usp=drive_link) | none | [config ironsides](https://github.com/rpng/open_vins/blob/master/config/rpng_ironsides) |
+| Neighborhood 02 | 7400 | [rosbag](https://drive.google.com/file/d/1WmCigwqq-eOa6nOqjzF5m3J4VTw_sVIu/view?usp=drive_link) | none | [config ironsides](https://github.com/rpng/open_vins/blob/master/config/rpng_ironsides) |
 @m_enddiv
 
 
@@ -136,14 +164,14 @@ Each of these datasets is picked up in the beginning and then set down, we norma
 Please take a look at the [run_ros_uzhfpv.sh](https://github.com/rpng/open_vins/blob/master/ov_msckf/scripts/run_ros_uzhfpv.sh) script for some reasonable default values (they might still need to be tuned).
 
 
+@image html datasets/uzhfpv.png width=90%
+
 @m_class{m-block m-warning}
 
 @par Dataset Groundtruthing
     Only the Absolute Trajectory Error (ATE) should be used as a metric for this dataset.
     This is due to inaccurate groundtruth orientation estimates which are explain in their [report](https://fpv.ifi.uzh.ch/wp-content/uploads/2020/11/Ground-Truth-Rotation-Issue-Report.pdf) on the issue.
     The basic summary is that it is hard to get an accurate orientation information due to the point-based Leica measurements used to groundtruth.
-
-    
 
 @m_div{m-text-center}
 | Dataset Name | Length (m) | Dataset Link | Groundtruth Traj. | Config |
@@ -171,6 +199,7 @@ The [KAIST urban dataset](https://sites.google.com/view/complex-urban-dataset) @
 The dataset was collected in Korea with a vehicle equipped with stereo camera pair, 2d SICK LiDARs, 3d Velodyne LiDAR, Xsens IMU, fiber optic gyro (FoG), wheel encoders, and RKT GPS.
 The camera is 10 Hz, while the Xsens IMU is 100 Hz sensing rate.
 A groundtruth "baseline" trajectory is also provided which is the resulting output from fusion of the FoG, RKT GPS, and wheel encoders.
+We provide [processing scripts](https://github.com/rpng/open_vins/tree/master/ov_data/kaist/matlab) to generate the calibration and groundtruth from the dataset's formats.
 
 @m_class{m-block m-warning}
 
@@ -210,12 +239,15 @@ Typically we process the datasets at 1.5x rate so we get a ~20 Hz image feed and
 @m_enddiv
 
 
+
+
+
 @section gs-data-kaist-vio KAIST VIO Dataset
 
 The [KAIST VIO dataset](https://github.com/url-kaist/kaistviodataset) @cite Jeon2021RAL is a dataset of a MAV in an indoor 3.15 x 3.60 x 2.50 meter environment which undergoes various trajectory motions.
 The camera is intel realsense D435i 25 Hz, while the IMU is 100 Hz sensing rate from the pixelhawk 4 unit.
 A groundtruth "baseline" trajectory is also provided from a OptiTrack Mocap system at 50 Hz, the bag files have the marker body frame to IMU frame already applied.
-This topic has been provided in ov_data for convinces sake.
+This topic has been provided in ov_data for convenience sake.
 
 @m_div{m-text-center}
 | Dataset Name | Length (km) | Dataset Link | Groundtruth Traj. | Example Launch |

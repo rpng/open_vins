@@ -1,0 +1,53 @@
+%YAML:1.0
+
+imu0:
+  T_i_b:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+  # Values from allan plots
+  # https://github.com/rpng/ar_table_dataset
+  #accelerometer_noise_density: 0.0010382453726199955
+  #accelerometer_random_walk: 4.132785219723178e-05
+  #gyroscope_noise_density: 0.00010272083263292572
+  #gyroscope_random_walk: 1.1106223553679963e-06
+  # Inflated values (to account for unmodelled effects)
+  #  - white noise multiplied by 2
+  #  - bias random walk multiplied by 10
+  accelerometer_noise_density: 0.00207649074
+  accelerometer_random_walk: 0.00041327852
+  gyroscope_noise_density: 0.00020544166
+  gyroscope_random_walk: 0.00001110622
+  rostopic: /d455/imu
+  time_offset: 0.0
+  update_rate: 400
+  # three different modes supported:
+  # "calibrated" (same as "kalibr"), "kalibr", "rpng"
+  model: "kalibr"
+  # how to get from Kalibr imu.yaml result file:
+  #   - Tw is imu0:gyroscopes:M:
+  #   - R_IMUtoGYRO: is imu0:gyroscopes:C_gyro_i:
+  #   - Ta is imu0:accelerometers:M:
+  #   - R_IMUtoACC not used by Kalibr
+  #   - Tg is imu0:gyroscopes:A:
+  Tw:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  R_IMUtoGYRO:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Ta:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  R_IMUtoACC:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Tg:
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]

@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -62,6 +62,10 @@ int main(int argc, char **argv) {
   // Plot camera extrinsics
   PRINT_INFO("Plotting camera extrinsics...\n");
   traj.plot_cam_extrinsics(true, 60);
+
+  // Plot IMU intrinsics
+  PRINT_INFO("Plotting IMU intrinsics...\n");
+  traj.plot_imu_intrinsics(true, 60);
 
 #ifdef HAVE_PYTHONLIBS
   matplotlibcpp::show(true);

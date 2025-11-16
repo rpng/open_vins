@@ -1,4 +1,4 @@
-
+#!/bin/bash
 
 # sudo apt install clang-format
 find ov_core/ -regex '.*\.\(cpp\|hpp\|cu\|c\|h\)' -exec clang-format -style=file -i {} \;

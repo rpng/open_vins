@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -63,10 +63,11 @@ void InertialInitializer::feed_imu(const ov_core::ImuData &message, double oldes
   //});
 
   // Loop through and delete imu messages that are older than our requested time
+  // std::cout << "INIT: imu_data.size() " << imu_data->size() << std::endl;
   if (oldest_time != -1) {
     auto it0 = imu_data->begin();
     while (it0 != imu_data->end()) {
-      if (message.timestamp < oldest_time) {
+      if (it0->timestamp < oldest_time) {
         it0 = imu_data->erase(it0);
       } else {
         it0++;
@@ -87,7 +88,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
       }
     }
   }
-  double oldest_time = newest_cam_time - params.init_window_time - 0.01;
+  double oldest_time = newest_cam_time - params.init_window_time - 0.10;
   if (newest_cam_time < 0 || oldest_time < 0) {
     return false;
   }
@@ -137,7 +138,7 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
   if (((has_jerk && wait_for_jerk) || (is_still && !wait_for_jerk)) && params.init_imu_thresh > 0.0) {
     PRINT_DEBUG(GREEN "[init]: USING STATIC INITIALIZER METHOD!\n" RESET);
     return init_static->initialize(timestamp, covariance, order, t_imu, wait_for_jerk);
-  } else if (params.init_dyn_use) {
+  } else if (params.init_dyn_use && !is_still) {
 #ifndef __ANDROID__
     PRINT_DEBUG(GREEN "[init]: USING DYNAMIC INITIALIZER METHOD!\n" RESET);
     std::map<double, std::shared_ptr<ov_type::PoseJPL>> _clones_IMU;
@@ -148,6 +149,11 @@ bool InertialInitializer::initialize(double &timestamp, Eigen::MatrixXd &covaria
 #else
     PRINT_ERROR(RED "[init]: DYNAMIC INITIALIZER not available on Android (Ceres Solver not included)\n" RESET);
 #endif
+  } else {
+    std::string msg = (has_jerk) ? "" : "no accel jerk detected";
+    msg += (has_jerk || is_still) ? "" : ", ";
+    msg += (is_still) ? "" : "platform moving too much";
+    PRINT_INFO(YELLOW "[init]: failed static init: %s\n" RESET, msg.c_str());
   }
   return false;
 }

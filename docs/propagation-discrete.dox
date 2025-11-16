@@ -1,0 +1,326 @@
+/**
+
+@page propagation_discrete Discrete Propagation
+@tableofcontents
+
+The state definition and general propagation equations are covered in the @ref propagation page.
+Here we will cover a simplified discrete inertial model which does not include IMU intrinsic parameters.
+First we will cover how we can propagate our mean forward,
+afterwhich we cover how to derive the linearized discrete error-state system.
+
+
+
+@section disc_quat_integration Zeroth Order Quaternion Integrator
+
+First we look at how to integrate our orientation equation forward in time.
+One could use the integration property of a \f$SO(3)\f$'s matrix exponential or as we will do here, derive it for a quaternion orientation.
+The solution to the quaternion evolution has the following general form
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] @cite Trawny2005TR Section 1.6):
+
+\f{align*}{
+    ^{I_{t}}_{G}\bar{q} = \boldsymbol{\Theta}(t,t_k)  \text{}^{I_{k}}_{G}\bar{q}
+\f}
+
+Differentiating and reordering the terms yields the governing equation for
+\f$\boldsymbol{\Theta}(t,t_k)\f$ as
+
+\f{align*}{
+    \boldsymbol{\Theta}(t,t_k) &= \text{}^{I_t}_G\bar{q} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
+    \Rightarrow \dot{\boldsymbol{\Theta}}(t,t_k) &=
+    \text{}^{I_t}_G\dot{\bar{q}} \text{ }^{I_k}_{G}\bar{q}^{-1}\\
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \text{ }^{I_t}_{G}\bar{q}
+    \text{ }^{I_k}_{G}\bar{q}^{-1}\\
+    &= \frac{1}{2} \boldsymbol{\Omega}(\boldsymbol{\omega}(t)) \boldsymbol{\Theta}(t,t_k)
+\f}
+
+where we have defined:
+
+\f{align*}{
+\boldsymbol{\Omega}(\boldsymbol{\omega}(t)) &=
+\begin{bmatrix} -\lfloor \boldsymbol{\omega}(t) \times \rfloor
+&& \boldsymbol{\omega}(t) \\
+-\boldsymbol{\omega}(t)^\top && 0 \end{bmatrix}
+\f}
+
+and \f$\boldsymbol{\Theta}(t_k,t_k) = \mathbf{I}_{4}\f$.
+If we take \f$\boldsymbol{\omega}(t) = \boldsymbol{\omega}\f$ to be constant over the the period
+\f$\Delta t_k = t_{k+1} - t_k\f$,
+then the above system is linear time-invariant (LTI), and
+\f$\boldsymbol{\Theta}\f$ can be solved as (see @cite Maybeck1982STOC):
+
+\f{align*}{
+    \boldsymbol{\Theta}(t_{k+1},t_k)
+    &= \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})\Delta t_k\bigg)\\
+    &= \cos\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t_k \bigg) \cdot \mathbf{I}_4
+    + \frac{1}{|\boldsymbol{\omega}|}\sin\bigg(\frac{|\boldsymbol{\omega}|}{2} \Delta t_k \bigg)
+    \cdot \boldsymbol{\Omega}(\boldsymbol{\omega})\\
+&\simeq
+   \mathbf{I}_4 + \frac{\Delta t_k}{2}\boldsymbol{\Omega}(\boldsymbol{\omega})
+\f}
+
+where \f$\exp(\cdot)\f$ is the general matrix exponential which has a closed form solution, and
+the approximation assumes small \f$|\boldsymbol{\omega}|\f$.
+We can formulate the quaternion propagation from \f$t_k\f$ to \f$t_{k+1}\f$ using the estimated
+rotational velocity \f$\hat{\boldsymbol{\omega}}(t) = \hat{\boldsymbol{\omega}}\f$ as:
+
+\f{align*}{
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
+    = \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}(\hat{\boldsymbol{\omega}})\Delta t_k\bigg)
+     \text{}^{I_{k}}_{G}\hat{\bar{q}}
+\f}
+
+
+
+@section disc_prop Discrete-time IMU Propagation
+
+We model the measurements as discrete-time over the integration period.
+To do this, the measurements can be assumed to be constant during the sampling period.
+We employ this assumption and approximate that the measurement at time \f$t_k\f$ remains
+the same until we get the next measurement at \f$t_{k+1}\f$.
+For the quaternion propagation, it is the same as continuous-time propagation
+with constant measurement assumption \f${\boldsymbol{\omega}}_{m}(t_k) = {\boldsymbol{\omega}}_{m,k}\f$.
+We use subscript \f$k\f$ to denote it is the measurement we get at time \f$t_k\f$.
+Therefore the propagation of quaternion can be written as:
+
+\f{align*}{
+    \text{}^{I_{k+1}}_{G}\hat{\bar{q}}
+    = \exp\bigg(\frac{1}{2}\boldsymbol{\Omega}\big({\boldsymbol{\omega}}_{m,k}-{\mathbf{b}}_{g,k} - \mathbf{n}_{g,k}\big)\Delta t_k\bigg)
+     \text{}^{I_{k}}_{G}\hat{\bar{q}}
+\f}
+
+where \f$\Delta t_k = t_{k+1} - t_{k}\f$.
+For the velocity and position propagation we have constant
+\f$\mathbf{a}_{m}(t_k) = \mathbf{a}_{m,k}\f$ over \f$t \in [t_k, t_{k+1}]\f$.
+We can therefore directly solve for the new states as:
+
+\f{align*}{
+    ^G{\mathbf{p}}_{I_{k+1}}
+    &= \text{}^G{\mathbf{p}}_{I_k} + {}^G{\mathbf{v}}_{I_k} \Delta t_k
+    - \frac{1}{2}{}^G\mathbf{g}\Delta t_k^2
+    + \frac{1}{2} \text{}^{I_k}_{G}{\mathbf{R}}^\top(\mathbf{a}_{m,k} - {\mathbf{b}}_{{a},k} - \mathbf{n}_{a,k})\Delta t_k^2 \\
+    ^G{\mathbf{v}}_{k+1} &= \text{}^G{\mathbf{v}}_{I_k} - {}^G\mathbf{g}\Delta t_k
+    +\text{}^{I_k}_{G}{\mathbf{R}}^\top(\mathbf{a}_{m,k} - {\mathbf{b}}_{{a},k} - \mathbf{n}_{a,k})\Delta t_k
+\f}
+
+The propagation of each bias is likewise the continuous system:
+
+\f{align*}{
+    {\mathbf{b}}_{g,k+1} &= {\mathbf{b}}_{g,k} + \mathbf{n}_{wg,k} \\
+    {\mathbf{b}}_{a,k+1} &= {\mathbf{b}}_{a,k} + \mathbf{n}_{wa,k}
+\f}
+
+Note that the noises used here are the discrete ones which need to be converted from their continuous-time versions.
+In particular, when the covariance matrix of the continuous-time measurement noises is given by
+\f$\mathbf{Q}_c\f$ and \f$\mathbf{n}_c = [ \mathbf{n}_{g_c} ~ \mathbf{n}_{a_c} ~ \mathbf{n}_{wg_c} ~ \mathbf{n}_{wa_c} ]^\top\f$,
+then the discrete-time noise covariance \f$\mathbf{Q}_d\f$ can be computed as
+(see [[Indirect Kalman Filter for 3D Attitude Estimation](http://mars.cs.umn.edu/tr/reports/Trawny05b.pdf)] @cite Trawny2005TR Eq. (129) and (130)):
+
+\f{align*}{
+\sigma_{g} &= \frac{1}{\sqrt{\Delta t}}~ \sigma_{w_c} \\
+\sigma_{wg} &= \sqrt{\Delta t}~ \sigma_{wg_c} \\[1em]
+\mathbf{Q}_{meas} &=
+\begin{bmatrix}
+\frac{1}{\Delta t}~ \sigma_{g_c}^2~ \mathbf{I}_3 & \mathbf{0}_3 \\
+\mathbf{0}_3 & \frac{1}{\Delta t}~ \sigma_{a_c}^2~ \mathbf{I}_3
+\end{bmatrix} \\
+\mathbf{Q}_{bias} &=
+\begin{bmatrix}
+\Delta t~ \sigma_{wg_c}^2~ \mathbf{I}_3 & \mathbf{0}_3 \\
+\mathbf{0}_3 & \Delta t~ \sigma_{wa_c}^2~ \mathbf{I}_3
+\end{bmatrix}
+\f}
+
+where \f$\mathbf{n} = [ \mathbf{n}_{g} ~ \mathbf{n}_{a} ~ \mathbf{n}_{wg} ~ \mathbf{n}_{wa} ]^\top\f$ are the discrete
+IMU sensor noises which have been converted from their continuous representations.
+We define the stacked discrete measurement noise as follows:
+
+\f{align*}{
+\mathbf{Q}_{d} &=
+\begin{bmatrix}
+\mathbf{Q}_{meas} & \mathbf{0}_3 \\
+\mathbf{0}_3 & \mathbf{Q}_{bias}
+\end{bmatrix}
+\f}
+
+
+
+@section error_prop Discrete-time Error-state Propagation
+
+In order to propagate the covariance matrix, we should derive the linearized error-state propagation,
+i.e., computing the system Jacobian  \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and noise Jacobian \f$\mathbf{G}_{k}\f$.
+The method of computing Jacobians is to "perturb" each variable in the system and see how the old error "perturbation" relates to the new error state.
+That is, 
+\f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$  can be found by perturbing each variable as:
+\f{align*}{
+\tilde{\mathbf{x}}_I(t_{k+1}) = \boldsymbol{\Phi}(t_{k+1},t_k) \tilde{\mathbf{x}}_I(t_{k}) + \mathbf{G}_{k} \mathbf{n}
+\f}
+For the orientation error propagation, we start with the \f${SO}(3)\f$ perturbation using
+\f${}^{I}_G \mathbf{R} \approx (\mathbf{I}_3 - \lfloor ^{I}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I}_{G} \hat{\mathbf{R}}\f$
+(which can be shown to be exactly equivalent to the state's quaternion error, see @cite Trawny2005TR and @ref ov_type::JPLQuat):
+
+\f{align*}{
+{}^{I_{k+1}}_G \mathbf{R} &= \text{}^{I_{k+1}}_{I_{k}} \mathbf{R}  \text{}^{I_{k}}_G \mathbf{R} \\
+(\mathbf{I}_3 - \lfloor ^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k+1}}_{G}
+\hat{\mathbf{R}}
+&\approx \exp(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t_k - {}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t_k)
+(\mathbf{I}_3 - \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k}}_{G}
+\hat{\mathbf{R}}\\
+&=\exp(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t_k)\exp(-\mathbf{J}_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t_k){}^{I_{k}}\tilde{\boldsymbol{\omega}}\Delta t_k)
+(\mathbf{I}_3 - \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)^{I_{k}}_{G}
+\hat{\mathbf{R}}\\
+&=\text{}^{I_{k+1}}_{I_{k}} \hat{\mathbf{R}}
+         (\mathbf{I}_3 - \lfloor \mathbf J_r(-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t_k)
+         \tilde{\boldsymbol{\omega}}_k\Delta t_k \times\rfloor)
+(\mathbf{I}_3 - \lfloor ^{I_k}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)
+\text{}^{I_{k}}_G \hat{\mathbf{R}}
+\f}
+
+where \f$\tilde{\boldsymbol{\omega}} = \boldsymbol{\omega} - \hat{\boldsymbol{\omega}}
+= -(\tilde{\mathbf{b}}_{{g}} + \mathbf{n}_g)\f$ handles both the perturbation to the bias and measurement noise.
+\f$\mathbf {J}_r(\boldsymbol{\theta})\f$ is the right Jacobian of \f${SO}(3)\f$
+that maps the variation of rotation angle in the parameter vector space into the variation in the tangent vector space to the manifold
+[see @ref ov_core::Jr_so3() and @cite Barfoot2017].
+By neglecting the second order terms from above, we obtain the following orientation error propagation:
+
+\f{align*}
+\text{}^{I_{k+1}}_{G}\tilde{\boldsymbol{\theta}} \approx
+\text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}} \text{}^{I_k}_{G}\tilde{\boldsymbol{\theta}}
+- \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\mathbf J_r({}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}})
+\Delta t_k (\tilde{\mathbf{b}}_{{g},k} + \mathbf{n}_{{g},k})
+\f}
+
+where we have defined \f${}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}}=-{}^{I_{k}}\hat{\boldsymbol{\omega}}\Delta t_k\f$.
+This describes how tht error of the next orientation is related to the previous, gyroscope bias, and noise.
+Now we can do error propagation of position and velocity using the same scheme:
+
+\f{align*}{
+^G\mathbf{p}_{I_{k+1}}
+    &= \text{}^G\mathbf{p}_{I_k} + \text{}^G\mathbf{v}_{I_k} \Delta t_k
+    - \frac{1}{2}{}^G\mathbf{g}\Delta t_k^2
+    + \frac{1}{2}\text{}^{I_k}_G\mathbf{R}^\top \mathbf{a}_{k}\Delta t_k^2\\
+
+^G\hat{\mathbf{p}}_{I_{k+1}} + \text{}^G\tilde{\mathbf{p}}_{I_{k+1}}
+    &\approx \text{}^G\hat{\mathbf{p}}_{I_k} + \text{}^G\tilde{\mathbf{p}}_{I_k}
+    + \text{}^G\hat{\mathbf{v}}_{I_k} \Delta t_k
+    + \text{}^G\tilde{\mathbf{v}}_{I_k} \Delta t_k
+    - \frac{1}{2}{}^G\mathbf{g}\Delta t_k^2\\
+    &\hspace{4cm} + \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top
+    (\mathbf{I}_3 + \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)
+    (\hat{\mathbf{a}}_{k} + \tilde{\mathbf{a}}_{k})\Delta t_k^2\\
+\f}
+
+\f{align*}{
+^G\mathbf{v}_{k+1} &= \text{}^G\mathbf{v}_{I_k} - {}^G\mathbf{g}\Delta t_k
++\text{}^{I_k}_G\mathbf{R}^\top\mathbf{a}_{k}\Delta t_k\\
+
+^G\hat{\mathbf{v}}_{k+1} + ^G\tilde{\mathbf{v}}_{k+1} &\approx
+{}^G\hat{\mathbf{v}}_{I_k} + {}^G\tilde{\mathbf{v}}_{I_k}
+- {}^G\mathbf{g}\Delta t_k
++ \text{}^{I_k}_G\hat{\mathbf{R}}^\top
+(\mathbf{I}_3 + \lfloor ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}\times\rfloor)
+(\hat{\mathbf{a}}_{k} + \tilde{\mathbf{a}}_{k})\Delta t_k
+\f}
+
+where \f$\tilde{\mathbf{a}} = \mathbf{a} - \hat{\mathbf{a}}
+      = - (\tilde{\mathbf{b}}_{{a}} + \mathbf{n}_{{a}})\f$.
+By neglecting the second order error terms, we obtain the following position and velocity error propagation:
+
+\f{align*}{
+\text{}^G\tilde{\mathbf{p}}_{I_{k+1}} &=
+\text{}^G\tilde{\mathbf{p}}_{I_k}
++ \text{}^G\tilde{\mathbf{v}}_{I_k} \Delta t_k
+- \frac{1}{2}\text{}^{I_k}_{G}\hat{\mathbf{R}}^\top
+\lfloor \hat{\mathbf{a}}_{k} \Delta t_k^2 \times\rfloor
+^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}
+- \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t_k^2
+(\tilde{\mathbf{b}}_{{a},k} + \mathbf{n}_{{a},k})\\
+^G\tilde{\mathbf{v}}_{k+1} &=
+\text{}^G\tilde{\mathbf{v}}_{I_k}
+    - \text{}^{I_k}_G\hat{\mathbf{R}}^\top
+    \lfloor \hat{\mathbf{a}}_{k} \Delta t_k \times\rfloor
+    ^{I_{k}}_{G}\tilde{\boldsymbol{\theta}}
+    - \text{}^{I_k}_G\hat{\mathbf{R}}^\top \Delta t_k
+    (\tilde{\mathbf{b}}_{{a},k} + \mathbf{n}_{{a},k})
+\f}
+
+The propagation of the two random-walk biases are as follows:
+
+\f{align*}{
+    \mathbf{b}_{\mathbf{g},k+1} &= \mathbf{b}_{{g},k} + \mathbf{n}_{wg} \\
+    \hat{\mathbf{b}}_{{g},k+1} + \tilde{\mathbf{b}}_{{g},k+1} &=
+    \hat{\mathbf{b}}_{{g},k}  + \tilde{\mathbf{b}}_{{g},k}
+     + \mathbf{n}_{wg} \\
+    \tilde{\mathbf{b}}_{{g},k+1} &=
+    \tilde{\mathbf{b}}_{{g},k} + \mathbf{n}_{wg}
+\f}
+\f{align*}{
+\mathbf{b}_{\mathbf{a},k+1} &= \mathbf{b}_{\mathbf{a},k} + \mathbf{n}_{wa} \\
+    \hat{\mathbf{b}}_{{a},k+1} + \tilde{\mathbf{b}}_{{a},k+1} &=
+    \hat{\mathbf{b}}_{{a},k}  + \tilde{\mathbf{b}}_{{a},k}
+     + \mathbf{n}_{wa} \\
+    \tilde{\mathbf{b}}_{{a},k+1} &=
+    \tilde{\mathbf{b}}_{{a},k} + \mathbf{n}_{wa}
+\f}
+
+By collecting all the perturbation results, we can build \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices as:
+
+
+\f{align*}{
+\boldsymbol{\Phi}(t_{k+1},t_k) &=
+\begin{bmatrix}
+\text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}} & \mathbf{0}_3 & \mathbf{0}_3 &
+- \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\mathbf J_r(\text{}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}})
+\Delta t_k & \mathbf{0}_3 \\
+
+- \frac{1}{2}\text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \lfloor \hat{\mathbf{a}}_{k} \Delta t_k^2 \times\rfloor
+& \mathbf{I}_3 & \Delta t_k \mathbf{I}_3 & \mathbf{0}_3 & - \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t_k^2 \\
+
+- \text{}^{I_k}_G\hat{\mathbf{R}}^\top \lfloor \hat{\mathbf{a}}_{k} \Delta t_k \times\rfloor
+& \mathbf{0}_3 & \mathbf{I}_3 & \mathbf{0}_3 & - \text{}^{I_k}_G\hat{\mathbf{R}}^\top \Delta t_k \\
+
+\mathbf{0}_3 & \mathbf{0}_3 & \mathbf{0}_3 & \mathbf{I}_3 & \mathbf{0}_3 \\
+\mathbf{0}_3 & \mathbf{0}_3 & \mathbf{0}_3 & \mathbf{0}_3 & \mathbf{I}_3
+\end{bmatrix}
+\f}
+
+
+
+\f{align*}{
+\mathbf{G}_{k} &=
+\begin{bmatrix}
+- \text{}^{I_{k+1}}_{I_{k}}\hat{\mathbf{R}}\mathbf J_r(\text{}^{I_{k+1}}_{I_{k}}\hat{\boldsymbol{\theta}})
+\Delta t_k & \mathbf{0}_3
+& \mathbf{0}_3 & \mathbf{0}_3 \\
+
+\mathbf{0}_3 & - \frac{1}{2} \text{}^{I_k}_{G}\hat{\mathbf{R}}^\top \Delta t_k^2
+& \mathbf{0}_3 & \mathbf{0}_3 \\
+
+\mathbf{0}_3 & - \text{}^{I_k}_G\hat{\mathbf{R}}^\top \Delta t_k
+& \mathbf{0}_3 & \mathbf{0}_3 \\
+
+\mathbf{0}_3 & \mathbf{0}_3
+& \mathbf{I}_3 & \mathbf{0}_3 \\
+
+\mathbf{0}_3 & \mathbf{0}_3
+& \mathbf{0}_3 & \mathbf{I}_3
+\end{bmatrix}
+\f}
+
+
+@m_class{m-note m-frame}
+
+@par How to apply FEJ to ensure consistency?
+When using First-Estimate Jacobians (see @ref fej for an overview) for the state transition matrix,
+we need to ensure that we evaluate all state estimates of prior seen states at the same linearization point
+they were previously evaluated at (their estimate before update / their estimate when they were first initialized into the state).
+This ensure the semi-group property of the state transition matrix.
+
+
+Now, with the computed \f$\boldsymbol{\Phi}(t_{k+1},t_k)\f$ and \f$\mathbf{G}_{k}\f$ matrices, 
+we can propagate the covariance from \f$t_k\f$ to \f$t_{k+1}\f$:
+\f{align*}{
+\mathbf{P}_{k+1|k} = \boldsymbol{\Phi}(t_{k+1},t_k)\mathbf{P}_{k|k}\boldsymbol{\Phi}(t_{k+1},t_k)^\top + \mathbf{G}_k\mathbf{Q}_d\mathbf{G}_k^\top
+\f}
+
+
+*/

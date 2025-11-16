@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -177,6 +177,7 @@ int main(int argc, char **argv) {
   // Display to the user
   matplotlibcpp::xlabel("x-axis (m)");
   matplotlibcpp::ylabel("y-axis (m)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
 
   // Plot this figure
@@ -201,6 +202,7 @@ int main(int argc, char **argv) {
   matplotlibcpp::ylabel("z-axis (m)");
   matplotlibcpp::xlim(0.0, endtime - starttime);
   matplotlibcpp::legend();
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(true);
 
 #endif

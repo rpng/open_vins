@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -131,8 +131,10 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
     // Open the files
     of_state_est.open(filepath_est.c_str());
     of_state_std.open(filepath_std.c_str());
-    of_state_est << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
-    of_state_std << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
+    of_state_est << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans ... imu_model dw da tg wtoI atoI etc"
+                 << std::endl;
+    of_state_std << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans ... imu_model dw da tg wtoI atoI etc"
+                 << std::endl;
 
     // Groundtruth if we are simulating
     if (_sim != nullptr) {
@@ -140,7 +142,8 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
         boost::filesystem::remove(filepath_gt);
       boost::filesystem::create_directories(boost::filesystem::path(filepath_gt.c_str()).parent_path());
       of_state_gt.open(filepath_gt.c_str());
-      of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans .... etc" << std::endl;
+      of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans ... imu_model dw da tg wtoI atoI etc"
+                  << std::endl;
     }
   }
 
@@ -169,6 +172,7 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
   parser->parse_external("relative_config_imu", "imu0", "rostopic", topic_imu);
   sub_imu = _node->create_subscription<sensor_msgs::msg::Imu>(topic_imu, rclcpp::SensorDataQoS(),
                                                               std::bind(&ROS2Visualizer::callback_inertial, this, std::placeholders::_1));
+  PRINT_INFO("subscribing to IMU: %s\n", topic_imu.c_str());
 
   // Logic for sync stereo subscriber
   // https://answers.ros.org/question/96346/subscribe-to-two-image_raws-with-one-function/?answer=96491#post-id-96491
@@ -178,7 +182,7 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
     _node->declare_parameter<std::string>("topic_camera" + std::to_string(0), "/cam" + std::to_string(0) + "/image_raw");
     _node->get_parameter("topic_camera" + std::to_string(0), cam_topic0);
     _node->declare_parameter<std::string>("topic_camera" + std::to_string(1), "/cam" + std::to_string(1) + "/image_raw");
-    _node->get_parameter("topic_camera" + std::to_string(1), cam_topic0);
+    _node->get_parameter("topic_camera" + std::to_string(1), cam_topic1);
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
     // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
@@ -193,8 +197,8 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
     sync_cam.push_back(sync);
     sync_subs_cam.push_back(image_sub0);
     sync_subs_cam.push_back(image_sub1);
-    PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic0.c_str());
-    PRINT_DEBUG("subscribing to cam (stereo): %s", cam_topic1.c_str());
+    PRINT_INFO("subscribing to cam (stereo): %s\n", cam_topic0.c_str());
+    PRINT_INFO("subscribing to cam (stereo): %s\n", cam_topic1.c_str());
   } else {
     // Now we should add any non-stereo callbacks here
     for (int i = 0; i < _app->get_params().state_options.num_cameras; i++) {
@@ -209,7 +213,7 @@ void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
       auto sub = _node->create_subscription<sensor_msgs::msg::Image>(
           cam_topic, 10, [this, i](const sensor_msgs::msg::Image::SharedPtr msg0) { callback_monocular(msg0, i); });
       subs_cam.push_back(sub);
-      PRINT_DEBUG("subscribing to cam (mono): %s", cam_topic.c_str());
+      PRINT_INFO("subscribing to cam (mono): %s\n", cam_topic.c_str());
     }
   }
 }
@@ -375,6 +379,41 @@ void ROS2Visualizer::visualize_final() {
       PRINT_INFO(REDPURPLE "%.3f,%.3f,%.3f,%.3f,\n" RESET, T_CtoI(2, 0), T_CtoI(2, 1), T_CtoI(2, 2), T_CtoI(2, 3));
       PRINT_INFO(REDPURPLE "%.3f,%.3f,%.3f,%.3f\n\n" RESET, T_CtoI(3, 0), T_CtoI(3, 1), T_CtoI(3, 2), T_CtoI(3, 3));
     }
+  }
+
+  // IMU intrinsics
+  if (_app->get_state()->_options.do_calib_imu_intrinsics) {
+    Eigen::Matrix3d Dw = State::Dm(_app->get_state()->_options.imu_model, _app->get_state()->_calib_imu_dw->value());
+    Eigen::Matrix3d Da = State::Dm(_app->get_state()->_options.imu_model, _app->get_state()->_calib_imu_da->value());
+    Eigen::Matrix3d Tw = Dw.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
+    Eigen::Matrix3d Ta = Da.colPivHouseholderQr().solve(Eigen::Matrix3d::Identity());
+    Eigen::Matrix3d R_IMUtoACC = _app->get_state()->_calib_imu_ACCtoIMU->Rot().transpose();
+    Eigen::Matrix3d R_IMUtoGYRO = _app->get_state()->_calib_imu_GYROtoIMU->Rot().transpose();
+    PRINT_INFO(REDPURPLE "Tw:\n" RESET);
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, Tw(0, 0), Tw(0, 1), Tw(0, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, Tw(1, 0), Tw(1, 1), Tw(1, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f\n\n" RESET, Tw(2, 0), Tw(2, 1), Tw(2, 2));
+    PRINT_INFO(REDPURPLE "Ta:\n" RESET);
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, Ta(0, 0), Ta(0, 1), Ta(0, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, Ta(1, 0), Ta(1, 1), Ta(1, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f\n\n" RESET, Ta(2, 0), Ta(2, 1), Ta(2, 2));
+    PRINT_INFO(REDPURPLE "R_IMUtoACC:\n" RESET);
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, R_IMUtoACC(0, 0), R_IMUtoACC(0, 1), R_IMUtoACC(0, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, R_IMUtoACC(1, 0), R_IMUtoACC(1, 1), R_IMUtoACC(1, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f\n\n" RESET, R_IMUtoACC(2, 0), R_IMUtoACC(2, 1), R_IMUtoACC(2, 2));
+    PRINT_INFO(REDPURPLE "R_IMUtoGYRO:\n" RESET);
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, R_IMUtoGYRO(0, 0), R_IMUtoGYRO(0, 1), R_IMUtoGYRO(0, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f,\n" RESET, R_IMUtoGYRO(1, 0), R_IMUtoGYRO(1, 1), R_IMUtoGYRO(1, 2));
+    PRINT_INFO(REDPURPLE "%.5f,%.5f,%.5f\n\n" RESET, R_IMUtoGYRO(2, 0), R_IMUtoGYRO(2, 1), R_IMUtoGYRO(2, 2));
+  }
+
+  // IMU intrinsics gravity sensitivity
+  if (_app->get_state()->_options.do_calib_imu_g_sensitivity) {
+    Eigen::Matrix3d Tg = State::Tg(_app->get_state()->_calib_imu_tg->value());
+    PRINT_INFO(REDPURPLE "Tg:\n" RESET);
+    PRINT_INFO(REDPURPLE "%.6f,%.6f,%.6f,\n" RESET, Tg(0, 0), Tg(0, 1), Tg(0, 2));
+    PRINT_INFO(REDPURPLE "%.6f,%.6f,%.6f,\n" RESET, Tg(1, 0), Tg(1, 1), Tg(1, 2));
+    PRINT_INFO(REDPURPLE "%.6f,%.6f,%.6f\n\n" RESET, Tg(2, 0), Tg(2, 1), Tg(2, 2));
   }
 
   // Publish RMSE if we have it
@@ -903,9 +942,8 @@ void ROS2Visualizer::publish_loopclosure_information() {
 
     // Create the images we will populate with the depths
     std::pair<int, int> wh_pair = {active_cam0_image.cols, active_cam0_image.rows};
-    cv::Mat depthmap_viz;
-    cv::cvtColor(active_cam0_image, depthmap_viz, cv::COLOR_GRAY2RGB);
     cv::Mat depthmap = cv::Mat::zeros(wh_pair.second, wh_pair.first, CV_16UC1);
+    cv::Mat depthmap_viz = active_cam0_image;
 
     // Loop through all points and append
     for (const auto &feattimes : active_tracks_uvd) {
@@ -915,7 +953,7 @@ void ROS2Visualizer::publish_loopclosure_information() {
       Eigen::Vector3d uvd = active_tracks_uvd.at(featid);
 
       // Skip invalid points
-      double dw = 3;
+      double dw = 4;
       if (uvd(0) < dw || uvd(0) > wh_pair.first - dw || uvd(1) < dw || uvd(1) > wh_pair.second - dw) {
         continue;
       }

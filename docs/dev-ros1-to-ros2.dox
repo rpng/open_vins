@@ -13,11 +13,17 @@ This is what was used to generate the converted ROS2 bag files for standard data
 To do a conversion of a bag file we can do the following:
 
 @code{.shell-session}
-pip install rosbags
-rosbags-convert V1_01_easy.bag
+pip3 install rosbags>=0.9.11
+rosbags-convert V1_01_easy.bag --dst <ros2_bag_folder>
 @endcode
 
+If you need to create a bag from images, then we recommend using the [Kalibr bagcreater](https://github.com/ethz-asl/kalibr/wiki/bag-format#bagcreater) utility.
+To convert a ROS2 bag recorded to a ROS1 bag one which can then be processed by Kalibr or a ROS1 codebase, the following can be run:
 
+@code{.shell-session}
+pip3 install rosbags>=0.9.12
+rosbags-convert <ros2_bag_folder> --dst calib_01.bag --exclude-topic <non_img_and_imu_topics>
+@endcode
 
 
 @section dev-ros1-to-ros2-option-2 rosbag2 play
@@ -42,6 +48,7 @@ source_ros2
 ros2 bag play -s rosbag_v2 V1_01_easy.bag
 @endcode
 
+We don't recommend this method and instead suggest using the [rosbags](https://gitlab.com/ternaris/rosbags) utility as standalone.
 
 
 

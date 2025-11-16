@@ -4,7 +4,6 @@ cmake_minimum_required(VERSION 3.3)
 find_package(catkin QUIET COMPONENTS roscpp rosbag sensor_msgs cv_bridge)
 
 # Describe ROS project
-option(ENABLE_ROS "Enable or disable building with ROS (if it is found)" ON)
 if (catkin_FOUND AND ENABLE_ROS)
     add_definitions(-DROS_AVAILABLE=1)
     catkin_package(
@@ -18,7 +17,7 @@ else ()
     include(GNUInstallDirs)
     set(CATKIN_PACKAGE_LIB_DESTINATION "${CMAKE_INSTALL_LIBDIR}")
     set(CATKIN_PACKAGE_BIN_DESTINATION "${CMAKE_INSTALL_BINDIR}")
-    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}")
+    set(CATKIN_GLOBAL_INCLUDE_DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/open_vins/")
 endif ()
 
 # Include our header files
@@ -89,6 +88,14 @@ endif ()
 add_executable(test_webcam src/test_webcam.cpp)
 target_link_libraries(test_webcam ov_core_lib ${thirdparty_libraries})
 install(TARGETS test_webcam
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)
+
+add_executable(test_profile src/test_profile.cpp)
+target_link_libraries(test_profile ov_core_lib ${thirdparty_libraries})
+install(TARGETS test_profile
         ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}

@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -94,8 +94,8 @@ void TrackBase::display_active(cv::Mat &img_out, int r1, int g1, int b1, int r2,
       cv::circle(img_temp, pt_l, (is_small) ? 1 : 2, cv::Scalar(r1, g1, b1), cv::FILLED);
       // cv::putText(img_out, std::to_string(ids_left_last.at(i)), pt_l, cv::FONT_HERSHEY_SIMPLEX,0.5,cv::Scalar(0,0,255),1,cv::LINE_AA);
       // Draw rectangle around the point
-      cv::Point2f pt_l_top = cv::Point2f(pt_l.x - 5, pt_l.y - 5);
-      cv::Point2f pt_l_bot = cv::Point2f(pt_l.x + 5, pt_l.y + 5);
+      cv::Point2f pt_l_top = cv::Point2f(pt_l.x - 3, pt_l.y - 3);
+      cv::Point2f pt_l_bot = cv::Point2f(pt_l.x + 3, pt_l.y + 3);
       cv::rectangle(img_temp, pt_l_top, pt_l_bot, cv::Scalar(r2, g2, b2), 1);
     }
     // Draw what camera this is
@@ -191,9 +191,9 @@ void TrackBase::display_history(cv::Mat &img_out, int r1, int g1, int b1, int r2
           break;
         // Calculate what color we are drawing in
         bool is_stereo = (feat.uvs.size() > 1);
-        int color_r = (is_stereo ? b2 : r2) - (int)((is_stereo ? b1 : r1) / feat.uvs[pair.first].size() * z);
-        int color_g = (is_stereo ? r2 : g2) - (int)((is_stereo ? r1 : g1) / feat.uvs[pair.first].size() * z);
-        int color_b = (is_stereo ? g2 : b2) - (int)((is_stereo ? g1 : b1) / feat.uvs[pair.first].size() * z);
+        int color_r = (is_stereo ? b2 : r2) - (int)(1.0 * (is_stereo ? b1 : r1) / feat.uvs[pair.first].size() * z);
+        int color_g = (is_stereo ? r2 : g2) - (int)(1.0 * (is_stereo ? r1 : g1) / feat.uvs[pair.first].size() * z);
+        int color_b = (is_stereo ? g2 : b2) - (int)(1.0 * (is_stereo ? g1 : b1) / feat.uvs[pair.first].size() * z);
         // Draw current point
         cv::Point2f pt_c(feat.uvs[pair.first].at(z)(0), feat.uvs[pair.first].at(z)(1));
         cv::circle(img_temp, pt_c, (is_small) ? 1 : 2, cv::Scalar(color_r, color_g, color_b), cv::FILLED);

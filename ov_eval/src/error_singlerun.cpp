@@ -1,8 +1,8 @@
 /*
  * OpenVINS: An Open Platform for Visual-Inertial Research
- * Copyright (C) 2018-2022 Patrick Geneva
- * Copyright (C) 2018-2022 Guoquan Huang
- * Copyright (C) 2018-2022 OpenVINS Contributors
+ * Copyright (C) 2018-2023 Patrick Geneva
+ * Copyright (C) 2018-2023 Guoquan Huang
+ * Copyright (C) 2018-2023 OpenVINS Contributors
  * Copyright (C) 2018-2019 Kevin Eckenhoff
  *
  * This program is free software: you can redistribute it and/or modify
@@ -172,6 +172,7 @@ int main(int argc, char **argv) {
   matplotlibcpp::title("Relative Orientation Error");
   matplotlibcpp::ylabel("orientation error (deg)");
   matplotlibcpp::xlabel("sub-segment lengths (m)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
 
   // Plot this figure
@@ -189,6 +190,7 @@ int main(int argc, char **argv) {
   matplotlibcpp::title("Relative Position Error");
   matplotlibcpp::ylabel("translation error (m)");
   matplotlibcpp::xlabel("sub-segment lengths (m)");
+  matplotlibcpp::tight_layout();
   matplotlibcpp::show(false);
 
 #endif
