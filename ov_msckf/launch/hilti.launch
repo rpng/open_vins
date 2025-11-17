@@ -4,7 +4,9 @@
     <!-- ============================================ -->
     
     <!-- BAG 파일 설정 -->
-    <arg name="dataset" default="exp21_outside_building" />
+    <arg name="dataset" default="exp02_construction_multilevel" />
+    <!-- <arg name="dataset" default="exp15_attic_to_upper_gallery" /> -->
+    <!-- <arg name="dataset" default="exp21_outside_building" /> -->
     <arg name="bag_path" default="$(find ov_msckf)/../../../../dataset/$(arg dataset).bag" />
     
     <arg name="bag_start" default="0" />
