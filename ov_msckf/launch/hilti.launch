@@ -6,6 +6,7 @@
     <!-- BAG 파일 설정 -->
     <arg name="dataset" default="exp21_outside_building" />
     <arg name="bag_path" default="$(find ov_msckf)/../../../../dataset/$(arg dataset).bag" />
+    
     <arg name="bag_start" default="0" />
     <arg name="bag_rate" default="1.0" />
     
@@ -16,7 +17,7 @@
     <!-- 결과 저장 설정 -->
     <arg name="dosave" default="true" />
     <arg name="dotime" default="false" />
-    <arg name="dolivetraj" default="false" />
+    <arg name="dolivetraj" default="true" />
     
     <!-- ============================================ -->
     <!-- OpenVINS Subscribe Node -->
