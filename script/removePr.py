@@ -4,12 +4,32 @@ from pathlib import Path
 KEEP_COLS = 8
 HEADER_DEFAULT = ["timestamp(s)", "tx", "ty", "tz", "qx", "qy", "qz", "qw"]
 
-INPUT_PATH_02 = "/home/class_ee/workspace/results/exp02_construction_multilevel_estimate.txt"
-OUTPUT_PATH_02 = "/home/class_ee/workspace/results/filtered/exp02_construction_multilevel.txt"
-INPUT_PATH_15 = "/home/class_ee/workspace/results/exp15_attic_to_upper_gallery_estimate.txt"
-OUTPUT_PATH_15 = "/home/class_ee/workspace/results/filtered/exp15_attic_to_upper_gallery.txt"
-INPUT_PATH_21 = "/home/class_ee/workspace/results/exp21_outside_building_estimate.txt"
-OUTPUT_PATH_21 = "/home/class_ee/workspace/results/filtered/exp21_outside_building.txt"
+# Find the nearest parent directory that contains "results"
+CURRENT_FILE = Path(__file__).resolve()
+
+PROJECT_ROOT = None
+for p in CURRENT_FILE.parents:
+    if (p / "results").is_dir():
+        PROJECT_ROOT = p
+        break
+
+if PROJECT_ROOT is None:
+    raise FileNotFoundError(
+        f"Could not find a 'results' directory in parents of {CURRENT_FILE}"
+    )
+
+RESULTS_DIR = PROJECT_ROOT / "results"
+FILTERED_DIR = RESULTS_DIR / "filtered"
+
+# Input / output paths
+INPUT_PATH_02 = RESULTS_DIR / "exp02_construction_multilevel_estimate.txt"
+OUTPUT_PATH_02 = FILTERED_DIR / "exp02_construction_multilevel.txt"
+
+INPUT_PATH_15 = RESULTS_DIR / "exp15_attic_to_upper_gallery_estimate.txt"
+OUTPUT_PATH_15 = FILTERED_DIR / "exp15_attic_to_upper_gallery.txt"
+
+INPUT_PATH_21 = RESULTS_DIR / "exp21_outside_building_estimate.txt"
+OUTPUT_PATH_21 = FILTERED_DIR / "exp21_outside_building.txt"
 
 def process_file(src_path: str, dst_path: str):
     """Read src, keep only first 8 columns, write to dst with a # header."""
