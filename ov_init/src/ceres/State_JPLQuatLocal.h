@@ -29,7 +29,7 @@ namespace ov_init {
 /**
  * @brief JPL quaternion CERES state parameterization
  */
-class State_JPLQuatLocal : public ceres::LocalParameterization {
+class State_JPLQuatLocal : public ceres::Manifold {
 public:
   /**
    * @brief State update function for a JPL quaternion representation.
@@ -54,11 +54,15 @@ public:
    * dr/dlocal= [ dr/dlocal, 0] * [I; 0]= dr/dlocal.
    * Therefore we here define dglobal/dlocal= [I; 0]
    */
-  bool ComputeJacobian(const double *x, double *jacobian) const override;
+  bool PlusJacobian(const double *x, double *jacobian) const override;
 
-  int GlobalSize() const override { return 4; };
+  bool Minus(const double *y, const double *x, double *y_minus_x) const override;
 
-  int LocalSize() const override { return 3; };
+  bool MinusJacobian(const double *x, double *jacobian) const override;
+
+  int AmbientSize() const override { return 4; };
+
+  int TangentSize() const override { return 3; };
 };
 
 } // namespace ov_init
