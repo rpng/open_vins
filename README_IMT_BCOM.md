@@ -76,6 +76,3 @@ open_vins/
 - [Paper ICRA 2020](https://pgeneva.com/downloads/papers/Geneva2020ICRA.pdf)
 - [Repo GitHub original](https://github.com/rpng/open_vins)
 
-## 🔗 Contacts projet
-- Équipe IMT Atlantique : [À compléter]
-- Contact IRT b-com : [À compléter]
