@@ -14,21 +14,48 @@ Exemple minimal montrant comment utiliser OpenVINS en mode ROS-free.
 
 ## 🔧 Compilation
 
+### Prérequis
+OpenVINS doit être compilé et installé (voir README principal du projet).
+
 ```bash
+# Étape 1 : Compiler OpenVINS en mode ROS-free
+cd ~/workspace/open_vins/ov_msckf
+mkdir -p build && cd build
+cmake -DENABLE_ROS=OFF ..
+make -j$(nproc)
+sudo make install
+
+# Étape 2 : Compiler l'exemple d'intégration
 cd ~/workspace/open_vins/examples_integration
-mkdir build && cd build
+mkdir -p build && cd build
 cmake ..
 make
 ```
 
 ## ▶️ Exécution
 
+### Test du simulateur OpenVINS
+
+Avant de tester l'exemple d'intégration, validez que OpenVINS fonctionne :
+
 ```bash
+cd ~/workspace/open_vins
+./ov_msckf/build/run_simulation config/rpng_sim/estimator_config.yaml
+```
+
+**Sortie attendue :** Affichage de la pose estimée en temps réel (position, orientation, calibration).
+
+### Test de l'exemple d'intégration
+
+```bash
+# Depuis le dossier build de l'exemple
+cd ~/workspace/open_vins/examples_integration/build
+
 # Sans configuration (paramètres par défaut)
-./build/minimal_vio_example
+./minimal_vio_example
 
 # Avec fichier de configuration YAML
-./build/minimal_vio_example ../config/euroc_mav/estimator_config.yaml
+./minimal_vio_example ../../config/euroc_mav/estimator_config.yaml
 ```
 
 ## 📊 Sortie attendue
@@ -69,3 +96,43 @@ Le point marqué `// ICI : Envoi vers Overview` dans le code montre où transmet
 - [ ] Gérer reconnexion réseau
 - [ ] Ajouter logs de debug
 - [ ] Tester avec vraies données caméra/IMU
+
+---
+
+## 🧪 Validation du système
+
+### Étapes de test complètes
+
+```bash
+# 1. Télécharger dataset EuRoC (optionnel, ~1.7GB)
+mkdir -p ~/datasets && cd ~/datasets
+wget http://robotics.ethz.ch/~asl-datasets/ijrr_euroc_mav_dataset/machine_hall/MH_01_easy/MH_01_easy.zip
+unzip MH_01_easy.zip
+
+# 2. Vérifier l'installation des bibliothèques
+ldconfig -p | grep -E "(opencv|eigen|ceres|ov_msckf)"
+
+# 3. Tester le simulateur
+cd ~/workspace/open_vins
+timeout 10 ./ov_msckf/build/run_simulation config/rpng_sim/estimator_config.yaml
+
+# 4. Compiler et tester l'exemple
+cd examples_integration
+mkdir -p build && cd build
+cmake .. && make
+./minimal_vio_example
+```
+
+### Vérification de la sortie
+
+Le simulateur doit afficher périodiquement :
+```
+q_GtoI = [orientation quaternion] | p_IinG = [position x,y,z] | dist = [distance]
+bg = [gyro bias] | ba = [accel bias]
+camera-imu timeoffset = [offset]
+```
+
+L'exemple d'intégration doit afficher :
+```
+[t=X.XXs] Pos: [x y z] | Ori: [qx qy qz qw]
+```
