@@ -9,6 +9,8 @@ max_cameras: 1
 calib_cam_extrinsics: false
 calib_cam_intrinsics: false
 calib_cam_timeoffset: false
+calib_imu_intrinsics: false
+calib_imu_g_sensitivity: false
 
 max_clones: 11
 max_slam: 50
@@ -19,6 +21,9 @@ gravity_mag: 9.81
 
 feat_rep_msckf: "GLOBAL_3D"
 feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
+
+num_aruco: 0
 
 # Camera intrinsics (cam0 EuRoC MH_01)
 cam0_is_fisheye: false
@@ -32,3 +37,6 @@ T_C0toI:
    0.999557249008, 0.0149672133247, 0.025715529948, -0.064676986768,
    -0.0257744366974, 0.00375618835797, 0.999660727178, -0.00981073058949,
    0.0, 0.0, 0.0, 1.0]
+
+# IMU noise parameters (EuRoC defaults)
+relative_config_imu: "kalibr_imu_chain.yaml"

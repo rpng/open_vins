@@ -15,6 +15,8 @@
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
 #include "utils/sensor_data.h"
+#include "utils/print.h"
+#include "utils/opencv_yaml_parse.h"
 #include "state/State.h"
 
 #include <opencv2/opencv.hpp>
@@ -27,6 +29,7 @@
 #include <iomanip>
 #include <vector>
 #include <algorithm>
+#include <memory>
 #include <Eigen/Dense>
 
 // Structure pour stocker les données IMU
@@ -107,6 +110,9 @@ std::vector<ImageMeasurement> read_image_data(const std::string& cam_csv_path) {
         meas.timestamp = std::stod(tokens[0]) * 1e-9; // nanosec -> sec
         meas.filename = tokens[1];
         
+        // Enlever les espaces/retours à la ligne
+        meas.filename.erase(meas.filename.find_last_not_of(" \n\r\t") + 1);
+        
         img_data.push_back(meas);
     }
     
@@ -142,22 +148,29 @@ int main(int argc, char** argv) {
     
     ov_msckf::VioManagerOptions params;
     
-    // Utiliser la config YAML si disponible
+    // Charger la configuration depuis le fichier YAML
+    std::string config_path;
     if (argc > 2) {
-        std::cout << "[INFO] Utilisation config YAML: " << argv[2] << std::endl;
-        // TODO: Parser YAML config
+        config_path = argv[2];
+    } else {
+        // Utiliser la config par défaut dans le repo
+        config_path = "../euroc_mono_config.yaml";
     }
     
-    // Configuration minimale pour EuRoC (monocular)
-    params.state_options.num_cameras = 1;
-    params.state_options.max_clone_size = 11;
-    params.state_options.max_slam_features = 50;
-    params.state_options.do_fej = true;
-    params.use_stereo = false;
+    std::cout << "[INFO] Chargement configuration: " << config_path << std::endl;
     
-    std::cout << "[INFO] Configuration: monocular sans calibration (simulateur)" << std::endl;
-    std::cout << "[WARN] Pour de meilleurs résultats, utilisez: " << std::endl;
-    std::cout << "[WARN]   ./euroc_reader_example ~/datasets/mav0/ ~/workspace/open_vins/config/euroc_mav/estimator_config.yaml" << std::endl;
+    // Parser YAML
+    auto parser = std::make_shared<ov_core::YamlParser>(config_path);
+    
+    // Configurer le niveau de verbosité
+    std::string verbosity = "INFO";
+    parser->parse_config("verbosity", verbosity);
+    ov_core::Printer::setPrintLevel(verbosity);
+    
+    // Charger tous les paramètres depuis le YAML
+    params.print_and_load(parser);
+    
+    std::cout << "[OK] Configuration chargée avec succès" << std::endl;
     
     // ========================================================================
     // ÉTAPE 3 : Initialiser VioManager
@@ -216,7 +229,7 @@ int main(int argc, char** argv) {
             imu_idx++;
         }
         
-        // Charger les images cam0 et cam1
+        // Charger l'image cam0 en niveaux de gris
         std::string img0_path = cam0_img_dir + cam0_data[cam0_idx].filename;
         cv::Mat img0 = cv::imread(img0_path, cv::IMREAD_GRAYSCALE);
         
@@ -231,7 +244,8 @@ int main(int argc, char** argv) {
         cam_msg.timestamp = cam_timestamp;
         cam_msg.sensor_ids.push_back(0);
         cam_msg.images.push_back(img0);
-        cam_msg.masks.push_back(cv::Mat());
+        // Créer un masque vide (rempli de zéros = tous pixels valides)
+        cam_msg.masks.push_back(cv::Mat::zeros(img0.rows, img0.cols, CV_8UC1));
         
         // Note: On ignore cam1 pour l'instant (mode monocular)
         
