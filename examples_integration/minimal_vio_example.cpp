@@ -12,6 +12,7 @@
 #include "core/VioManager.h"
 #include "core/VioManagerOptions.h"
 #include "utils/sensor_data.h"
+#include "state/State.h"
 
 #include <iostream>
 #include <Eigen/Dense>
@@ -37,10 +38,6 @@ int main(int argc, char** argv) {
         params.state_options.max_clone_size = 11;
         params.state_options.max_slam_features = 25;
         params.state_options.do_fej = true;
-        params.state_options.imu_avg = true;
-        
-        params.init_window_time = 2.0;
-        params.init_imu_thresh = 1.5;
         
         std::cout << "[INFO] Configuration par défaut (monocular)" << std::endl;
     }

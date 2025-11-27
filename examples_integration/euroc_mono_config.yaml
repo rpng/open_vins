@@ -1,0 +1,34 @@
+%YAML:1.0
+
+verbosity: "INFO"
+use_fej: true
+integration: "rk4"
+use_stereo: false
+max_cameras: 1
+
+calib_cam_extrinsics: false
+calib_cam_intrinsics: false
+calib_cam_timeoffset: false
+
+max_clones: 11
+max_slam: 50
+max_slam_in_update: 25
+max_msckf_in_update: 40
+
+gravity_mag: 9.81
+
+feat_rep_msckf: "GLOBAL_3D"
+feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
+
+# Camera intrinsics (cam0 EuRoC MH_01)
+cam0_is_fisheye: false
+cam0_wh: [752, 480]
+cam0_intrinsic: [458.654, 457.296, 367.215, 248.375]
+cam0_distortion: [-0.28340811, 0.07395907, 0.00019359, 1.76187114e-05]
+
+# Camera extrinsics (IMU to cam0)
+T_C0toI:
+  [0.0148655429818, -0.999880929698, 0.00414029679422, -0.0216401454975,
+   0.999557249008, 0.0149672133247, 0.025715529948, -0.064676986768,
+   -0.0257744366974, 0.00375618835797, 0.999660727178, -0.00981073058949,
+   0.0, 0.0, 0.0, 1.0]

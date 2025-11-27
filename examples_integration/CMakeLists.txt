@@ -29,6 +29,16 @@ target_link_libraries(minimal_vio_example
     ${Boost_LIBRARIES}
 )
 
-install(TARGETS minimal_vio_example
+# Exemple lecteur dataset EuRoC
+add_executable(euroc_reader_example euroc_reader_example.cpp)
+
+target_link_libraries(euroc_reader_example
+    ${OV_MSCKF_LIB}
+    ${OpenCV_LIBRARIES}
+    Eigen3::Eigen
+    ${Boost_LIBRARIES}
+)
+
+install(TARGETS minimal_vio_example euroc_reader_example
     RUNTIME DESTINATION bin
 )
