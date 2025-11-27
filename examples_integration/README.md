@@ -12,6 +12,19 @@ Exemple minimal montrant comment utiliser OpenVINS en mode ROS-free.
 - ✅ Récupération de la pose estimée (`get_state()`)
 - 📡 Point d'intégration avec Overview (TODO)
 
+### `euroc_reader_example.cpp` ⭐ NOUVEAU
+Lecteur complet du dataset EuRoC pour tester OpenVINS sur vraies données.
+
+**Fonctionnalités :**
+- ✅ Lecture des fichiers CSV (`imu0/data.csv`, `cam0/data.csv`)
+- ✅ Chargement et alimentation des images réelles
+- ✅ Synchronisation IMU/caméra
+- ✅ Affichage temps réel de la trajectoire estimée
+- ✅ Sauvegarde dans `trajectory_estimated.txt`
+
+### `euroc_mono_config.yaml`
+Configuration monocular pour le dataset EuRoC MH_01 avec calibration intrinsèque/extrinsèque.
+
 ## 🔧 Compilation
 
 ### Prérequis
@@ -56,6 +69,50 @@ cd ~/workspace/open_vins/examples_integration/build
 
 # Avec fichier de configuration YAML
 ./minimal_vio_example ../../config/euroc_mav/estimator_config.yaml
+```
+
+### Test du lecteur EuRoC ⭐
+
+**Prérequis :** Dataset EuRoC téléchargé dans `~/datasets/mav0/`
+
+```bash
+cd ~/workspace/open_vins/examples_integration/build
+
+# Exécuter sur le dataset EuRoC
+./euroc_reader_example ~/datasets/mav0/
+
+# Le programme va :
+# 1. Charger les données IMU et images
+# 2. Alimenter OpenVINS en temps réel
+# 3. Afficher la pose estimée toutes les 10 frames
+# 4. Sauvegarder la trajectoire dans trajectory_estimated.txt
+```
+
+**Sortie attendue :**
+
+```
+========================================
+  Lecteur Dataset EuRoC pour OpenVINS  
+========================================
+[INFO] Dataset: /home/yannis/datasets/mav0/
+[INFO] Chargé 36516 mesures IMU
+[INFO] Chargé 3682 timestamps d'images
+[OK] VioManager initialisé
+
+[INFO] Démarrage du traitement...
+[Frame 10] Initialisation en cours...
+[Frame 20] Initialisation en cours...
+[Frame 30] t=2.153s | Pos: [-0.05, -0.46, 1.48] | Vel: 0.12 m/s
+[Frame 40] t=2.353s | Pos: [-0.08, -0.47, 1.49] | Vel: 0.15 m/s
+...
+
+========================================
+  Traitement terminé
+========================================
+Images traitées: 3682
+Mesures IMU: 36516
+Système initialisé: OUI
+Trajectoire sauvegardée: trajectory_estimated.txt
 ```
 
 ## 📊 Sortie attendue
