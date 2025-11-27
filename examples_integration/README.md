@@ -12,15 +12,17 @@ Exemple minimal montrant comment utiliser OpenVINS en mode ROS-free.
 - ✅ Récupération de la pose estimée (`get_state()`)
 - 📡 Point d'intégration avec Overview (TODO)
 
-### `euroc_reader_example.cpp` ⭐ NOUVEAU
+### `euroc_reader_example.cpp` ⭐ **FONCTIONNEL**
 Lecteur complet du dataset EuRoC pour tester OpenVINS sur vraies données.
 
 **Fonctionnalités :**
 - ✅ Lecture des fichiers CSV (`imu0/data.csv`, `cam0/data.csv`)
-- ✅ Chargement et alimentation des images réelles
-- ✅ Synchronisation IMU/caméra
+- ✅ Chargement et alimentation des images réelles (PNG 752x480)
+- ✅ Synchronisation IMU/caméra stricte
 - ✅ Affichage temps réel de la trajectoire estimée
 - ✅ Sauvegarde dans `trajectory_estimated.txt`
+- ✅ **3682 images + 36812 mesures IMU traitées avec succès**
+- ✅ **2785 poses estimées générées**
 
 ### `euroc_mono_config.yaml`
 Configuration monocular pour le dataset EuRoC MH_01 avec calibration intrinsèque/extrinsèque.
