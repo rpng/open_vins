@@ -479,21 +479,11 @@ void TrackDescriptor::perform_detection_stereo(const cv::Mat &img0, const cv::Ma
 
 void TrackDescriptor::robust_match(const std::vector<cv::KeyPoint> &pts0, const std::vector<cv::KeyPoint> &pts1, const cv::Mat &desc0,
                                    const cv::Mat &desc1, size_t id0, size_t id1, std::vector<cv::DMatch> &matches) {
+  if (pts0.empty() || pts1.empty())
+    return;
 
-  // Our 1to2 and 2to1 match vectors
-  std::vector<std::vector<cv::DMatch>> matches0to1, matches1to0;
-
-  // Match descriptors (return 2 nearest neighbours)
-  matcher->knnMatch(desc0, desc1, matches0to1, 2);
-  matcher->knnMatch(desc1, desc0, matches1to0, 2);
-
-  // Do a ratio test for both matches
-  robust_ratio_test(matches0to1);
-  robust_ratio_test(matches1to0);
-
-  // Finally do a symmetry test
   std::vector<cv::DMatch> matches_good;
-  robust_symmetry_test(matches0to1, matches1to0, matches_good);
+  matcher->match(desc0, desc1, matches_good);
 
   // Convert points into points for RANSAC
   std::vector<cv::Point2f> pts0_rsc, pts1_rsc;
@@ -532,44 +522,5 @@ void TrackDescriptor::robust_match(const std::vector<cv::KeyPoint> &pts0, const 
       continue;
     // Else, lets append this match to the return array!
     matches.push_back(matches_good.at(i));
-  }
-}
-
-void TrackDescriptor::robust_ratio_test(std::vector<std::vector<cv::DMatch>> &matches) {
-  // Loop through all matches
-  for (auto &match : matches) {
-    // If 2 NN has been identified, else remove this feature
-    if (match.size() > 1) {
-      // check distance ratio, remove it if the ratio is larger
-      if (match[0].distance / match[1].distance > knn_ratio) {
-        match.clear();
-      }
-    } else {
-      // does not have 2 neighbours, so remove it
-      match.clear();
-    }
-  }
-}
-
-void TrackDescriptor::robust_symmetry_test(std::vector<std::vector<cv::DMatch>> &matches1, std::vector<std::vector<cv::DMatch>> &matches2,
-                                           std::vector<cv::DMatch> &good_matches) {
-  // for all matches image 1 -> image 2
-  for (auto &match1 : matches1) {
-    // ignore deleted matches
-    if (match1.empty() || match1.size() < 2)
-      continue;
-    // for all matches image 2 -> image 1
-    for (auto &match2 : matches2) {
-      // ignore deleted matches
-      if (match2.empty() || match2.size() < 2)
-        continue;
-      // Match symmetry test
-      if (match1[0].queryIdx == match2[0].trainIdx && match2[0].queryIdx == match1[0].trainIdx) {
-        // add symmetrical match
-        good_matches.emplace_back(cv::DMatch(match1[0].queryIdx, match1[0].trainIdx, match1[0].distance));
-        // next match in image 1 -> image 2
-        break;
-      }
-    }
   }
 }
