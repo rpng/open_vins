@@ -8,3 +8,26 @@ doxgen_generated
 *.swo
 doc
 .vscode
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+venv/
+venv_openvins/
+
+# Temporary files
+*.log
+*.tmp
+core
+test_imread*
+
+# Results (keep structure, ignore large files)
+results/**/*.bag
+results/**/*.csv
+results/**/trajectory_estimated.txt
+
+# Datasets (too large for Git)
+datasets/
+*.zip
+*_dataset/
