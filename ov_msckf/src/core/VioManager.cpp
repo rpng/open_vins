@@ -397,19 +397,19 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
 
   // We also need to make sure that the max tracks does not contain any lost features
   // This could happen if the feature was lost in the last frame, but has a measurement at the marg timestep
-  it1 = feats_lost.begin();
-  while (it1 != feats_lost.end()) {
-    if (std::find(feats_marg.begin(), feats_marg.end(), (*it1)) != feats_marg.end()) {
+  auto it2 = feats_marg.begin();
+  while (it2 != feats_marg.end()) {
+    if (std::find(feats_lost.begin(), feats_lost.end(), (*it2)) != feats_lost.end()) {
       // PRINT_WARNING(YELLOW "FOUND FEATURE THAT WAS IN BOTH feats_lost and feats_marg!!!!!!\n" RESET);
-      it1 = feats_lost.erase(it1);
+      it2 = feats_marg.erase(it2);
     } else {
-      it1++;
+      it2++;
     }
   }
 
   // Find tracks that have reached max length, these can be made into SLAM features
   std::vector<std::shared_ptr<Feature>> feats_maxtracks;
-  auto it2 = feats_marg.begin();
+  it2 = feats_marg.begin();
   while (it2 != feats_marg.end()) {
     // See if any of our camera's reached max track
     bool reached_max = false;
