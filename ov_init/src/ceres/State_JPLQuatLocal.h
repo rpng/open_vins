@@ -29,7 +29,7 @@ namespace ov_init {
 /**
  * @brief JPL quaternion CERES state parameterization
  */
-class State_JPLQuatLocal : public ceres::LocalParameterization {
+class State_JPLQuatLocal : public ceres::Manifold {
 public:
   /**
    * @brief State update function for a JPL quaternion representation.
@@ -41,24 +41,32 @@ public:
    * \bar{q}=norm\Big(\begin{bmatrix} 0.5*\mathbf{\theta_{dx}} \\ 1 \end{bmatrix}\Big) \hat{\bar{q}}
    * @f]
    */
-  bool Plus(const double *x, const double *delta, double *x_plus_delta) const override;
+  int AmbientSize() const override {
+    return 4; // For example, if this represents a 4D state (quaternion)
+}
 
-  /**
-   * @brief Computes the jacobian in respect to the local parameterization
-   *
-   * This essentially "tricks" ceres.
-   * Instead of doing what ceres wants:
-   * dr/dlocal= dr/dglobal * dglobal/dlocal
-   *
-   * We instead directly do:
-   * dr/dlocal= [ dr/dlocal, 0] * [I; 0]= dr/dlocal.
-   * Therefore we here define dglobal/dlocal= [I; 0]
-   */
-  bool ComputeJacobian(const double *x, double *jacobian) const override;
+int TangentSize() const override {
+    return 3; // Local perturbation size, typically 3 for a rotation
+}
 
-  int GlobalSize() const override { return 4; };
+bool PlusJacobian(const double* x, double* jacobian) const override {
+    // Implement the jacobian computation for the Plus operation
+    return true;
+}
+bool Plus(const double* x, const double* delta, double* x_plus_delta) const override;
+bool ComputeJacobian(const double* x, double* jacobian) const;
 
-  int LocalSize() const override { return 3; };
+
+bool Minus(const double* y, const double* x, double* delta) const override {
+    // Implement the minus operation
+    return true;
+}
+
+bool MinusJacobian(const double* x, double* jacobian) const override {
+    // Implement the jacobian for the Minus operation
+    return true;
+}
+
 };
 
 } // namespace ov_init
