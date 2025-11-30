@@ -184,7 +184,171 @@ ls -lh mav0/
 
 ---
 
-## 🔄 Étape 7 : Workflow Git pour vos modifications
+## 🎯 Étape 7 : Exécuter euroc_reader_example (validation réelle)
+
+### Compiler l'exemple EuRoC
+
+```bash
+cd ~/workspace/open_vins/examples_integration/build
+
+# Recompiler si nécessaire
+cmake .. && make
+
+# Vérifier que l'exécutable existe
+ls -lh euroc_reader_example
+```
+
+### Exécuter avec le dataset EuRoC
+
+```bash
+# Lancer le traitement (prend ~3-5 minutes)
+./euroc_reader_example ~/datasets/mav0/ ../../config/euroc_mav/estimator_config.yaml
+```
+
+### Sortie attendue
+
+```
+========================================
+  Lecteur Dataset EuRoC pour OpenVINS  
+========================================
+[INFO] Dataset: /home/yannis/datasets/mav0/
+[INFO] Chargement configuration: ../../config/euroc_mav/estimator_config.yaml
+[OK] Configuration chargée avec succès
+[OK] VioManager initialisé
+[INFO] Chargé 36820 mesures IMU
+[INFO] Chargé 3682 timestamps d'images
+
+[INFO] Démarrage du traitement...
+---------------------------------------
+[Frame 10] t=1.4e+09s | Pos: [-0.06, -0.01, 0.02] | Vel: 0.12 m/s
+[Frame 20] t=1.4e+09s | Pos: [-0.12, -0.01, 0.02] | Vel: 0.13 m/s
+...
+[Frame 3680] t=1.4e+09s | Pos: [-0.46, 0.30, -0.06] | Vel: 0.13 m/s
+
+========================================
+  Traitement terminé
+========================================
+Images traitées: 3682
+Mesures IMU: 36812
+Système initialisé: OUI
+Trajectoire sauvegardée: trajectory_estimated.txt
+```
+
+**✅ Résultats attendus :**
+- **3682 images** traitées
+- **36812 mesures IMU** synchronisées
+- Fichier `trajectory_estimated.txt` créé avec ~2263 poses
+
+---
+
+## 📊 Étape 8 : Analyser les résultats avec evo
+
+### Installer evo (outil d'évaluation)
+
+```bash
+# Installer pipx (gestionnaire d'environnements Python)
+sudo apt install -y pipx
+pipx ensurepath
+
+# Installer evo
+pipx install evo
+
+# Installer tkinter pour visualisations
+sudo apt install -y python3-tk
+
+# Vérifier installation
+export PATH="$HOME/.local/bin:$PATH"
+evo_traj --help
+```
+
+### Convertir le ground truth EuRoC
+
+```bash
+# Créer script de conversion
+cat > ~/convert_euroc_gt.py << 'EOF'
+#!/usr/bin/env python3
+import sys
+
+input_file = sys.argv[1]
+output_file = sys.argv[2]
+
+with open(input_file, 'r') as fin, open(output_file, 'w') as fout:
+    fout.write("# timestamp tx ty tz qx qy qz qw\n")
+    for line in fin:
+        if line.startswith('#'):
+            continue
+        parts = line.strip().split(',')
+        if len(parts) < 8:
+            continue
+        
+        timestamp = float(parts[0]) * 1e-9  # ns -> s
+        px, py, pz = parts[1], parts[2], parts[3]
+        qw, qx, qy, qz = parts[4], parts[5], parts[6], parts[7]
+        
+        # Format TUM: timestamp tx ty tz qx qy qz qw
+        fout.write(f"{timestamp:.9f} {px} {py} {pz} {qx} {qy} {qz} {qw}\n")
+
+print(f"Conversion terminée : {output_file}")
+EOF
+
+# Convertir le ground truth
+python3 ~/convert_euroc_gt.py \
+    ~/datasets/mav0/state_groundtruth_estimate0/data.csv \
+    ~/workspace/open_vins/results/euroc_mh01_validation/groundtruth.txt
+```
+
+### Calculer l'erreur (APE)
+
+```bash
+cd ~/workspace/open_vins/examples_integration/build
+
+# Calculer APE avec alignement
+export PATH="$HOME/.local/bin:$PATH"
+evo_ape tum \
+    ~/workspace/open_vins/results/euroc_mh01_validation/groundtruth.txt \
+    trajectory_estimated.txt \
+    --align \
+    --save_plot ~/workspace/open_vins/results/euroc_mh01_validation/ape_plot.pdf
+```
+
+### Résultats attendus
+
+```
+APE w.r.t. translation part (m)
+(with SE(3) Umeyama alignment)
+
+       max      0.294828
+      mean      0.073918
+    median      0.066045
+       min      0.015840
+      rmse      0.086432    ← **8.6 cm RMSE** ✅
+       sse      16.905687
+       std      0.044796
+```
+
+**🎯 Objectif atteint : RMSE < 10 cm (excellent pour VIO)**
+
+### Visualiser la trajectoire 3D
+
+```bash
+# Créer visualisation 3D
+evo_traj tum trajectory_estimated.txt \
+    --plot_mode xyz \
+    --save_plot ~/workspace/open_vins/results/euroc_mh01_validation/trajectory_3d.pdf
+
+# Voir les statistiques
+evo_traj tum trajectory_estimated.txt
+```
+
+**Statistiques attendues :**
+```
+name:   trajectory_estimated
+infos:  2263 poses, 62.756m path length, 113.100s duration
+```
+
+---
+
+## 🔄 Étape 9 : Workflow Git pour vos modifications
 
 ```bash
 cd ~/workspace/open_vins
@@ -270,4 +434,80 @@ dpkg -l | grep libceres
 
 ---
 
-**Dernière mise à jour :** 26 novembre 2025
+## 🎓 Points clés découverts durant le développement
+
+### Problème 1 : Mask obligatoire
+**Erreur :** `cv::Exception: !ssize.empty() in function 'resize'`  
+**Solution :** Utiliser `cv::Mat::zeros(rows, cols, CV_8UC1)` au lieu de `cv::Mat()` vide
+
+```cpp
+// ❌ ERREUR
+cam_msg.masks.push_back(cv::Mat());
+
+// ✅ CORRECT
+cam_msg.masks.push_back(cv::Mat::zeros(img.rows, img.cols, CV_8UC1));
+```
+
+### Problème 2 : Parsing CSV avec whitespace
+**Erreur :** Noms de fichiers avec retours à la ligne  
+**Solution :** Supprimer les espaces/retours à la ligne
+
+```cpp
+// Nettoyer le filename
+filename.erase(filename.find_last_not_of(" \n\r\t") + 1);
+```
+
+### Problème 3 : Configuration YAML
+**Erreur :** `got 0 but expected 1 max cameras`  
+**Solution :** Utiliser `YamlParser` et `params.print_and_load(parser)` au lieu de setter manuellement
+
+```cpp
+auto parser = std::make_shared<ov_core::YamlParser>(config_path);
+params.print_and_load(parser);
+```
+
+### Problème 4 : Format image
+**Choix :** `IMREAD_GRAYSCALE` (équivalent à ROS `MONO8`)
+
+```cpp
+cv::Mat img = cv::imread(img_path, cv::IMREAD_GRAYSCALE);
+```
+
+---
+
+## 📁 Structure finale des résultats
+
+```
+open_vins/
+├── results/
+│   └── euroc_mh01_validation/
+│       ├── ape_plot.pdf              # Comparaison trajectoires
+│       ├── trajectory_3d.pdf         # Visualisation 3D
+│       ├── groundtruth.txt           # Ground truth converti
+│       └── README.md                 # Métriques détaillées
+│
+└── examples_integration/
+    └── build/
+        └── trajectory_estimated.txt  # Résultat de votre run
+```
+
+---
+
+## 🏆 Résultats finaux
+
+| Métrique | Valeur | Interprétation |
+|----------|--------|----------------|
+| **RMSE** | **8.6 cm** | ✅ Excellent |
+| Erreur moyenne | 7.4 cm | Précision constante |
+| Erreur médiane | 6.6 cm | Majorité < 7cm |
+| Trajectoire | 62.8 m | Distance parcourue |
+| Durée | 113 s | Temps traitement |
+
+**Comparaison benchmarks :**
+- VINS-Mono : ~10-15 cm
+- ORB-SLAM3 : ~5-10 cm
+- **Notre OpenVINS** : **8.6 cm** ← Comparable aux meilleurs !
+
+---
+
+**Dernière mise à jour :** 30 novembre 2025
