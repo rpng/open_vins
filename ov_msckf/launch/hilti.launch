@@ -3,10 +3,21 @@
     <!-- HILTI SLAM Challenge 2022 Dataset -->
     <!-- ============================================ -->
     
+      <!-- Use simulated time when playing rosbag -->
+    <param name="/use_sim_time" value="true" />
+
+    <!-- 1. IMU -> PandarXT-32 static transform -->
+    <!-- args: x y z qx qy qz qw parent_frame child_frame -->
+    <node pkg="tf2_ros"
+        type="static_transform_publisher"
+        name="imu_to_pandar"
+        args="-0.001 -0.00855 0.055 0.7071068 -0.7071068 0 0 imu PandarXT-32" />
+
+
     <!-- BAG 파일 설정 -->
-    <!-- <arg name="dataset" default="exp02_construction_multilevel" /> -->
+    <arg name="dataset" default="exp02_construction_multilevel" />
     <!-- <arg name="dataset" default="exp15_attic_to_upper_gallery" /> -->
-    <arg name="dataset" default="exp21_outside_building" />
+    <!-- <arg name="dataset" default="exp21_outside_building" /> -->
     <arg name="bag_path" default="$(find ov_msckf)/../../../../dataset/$(arg dataset).bag" />
     
     <arg name="bag_start" default="0" />
@@ -48,7 +59,8 @@
     <!-- ============================================ -->
     <group if="$(arg dolivetraj)">
         <node name="recorder_estimate" pkg="ov_eval" type="pose_to_file" output="screen">
-            <param name="topic" type="str" value="/ov_msckf/poseimu" />
+            <!-- <param name="topic" type="str" value="/ov_msckf/poseimu" /> -->
+            <param name="topic" type="str" value="/ov_secondary/poseimu" />
             <param name="topic_type" type="str" value="PoseWithCovarianceStamped" />
             <param name="output" type="str" value="$(find ov_msckf)/../../../../results/$(arg dataset)_estimate.txt" />
         </node>

@@ -15,7 +15,21 @@ for ds in "${DATASETS[@]}"; do
   echo "  Running dataset: $ds"
   echo "====================================="
 
+# 1. posegraph.launch를 백그라운드에서 실행하고 PID 저장
+  echo "Starting roslaunch loop_fusion posegraph.launch..."
+  roslaunch loop_fusion posegraph.launch &
+  POSEGRAPH_PID=$!
+  echo "posegraph.launch started with PID: $POSEGRAPH_PID"
+
   roslaunch ov_msckf hilti.launch dataset:=$ds
+
+# 3. ov_msckf 종료 후 posegraph 프로세스 종료
+  echo "Terminating posegraph.launch (PID: $POSEGRAPH_PID)..."
+  # 'kill' 명령을 사용하여 백그라운드 프로세스 종료
+  # 만약 프로세스가 이미 종료되었을 수도 있으므로 실패해도 스크립트가 멈추지 않도록 '|| true' 추가
+  kill $POSEGRAPH_PID || true
+  # 자식 프로세스들이 완전히 종료될 시간을 잠시 기다림 (선택 사항이지만 안전을 위해)
+  sleep 2
 
   echo "Finished dataset: $ds"
   echo
