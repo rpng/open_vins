@@ -239,6 +239,29 @@ Trajectoire sauvegardée: trajectory_estimated.txt
 - **36812 mesures IMU** synchronisées
 - Fichier `trajectory_estimated.txt` créé avec ~2263 poses
 
+## ⚡ Script tout-en-un (démo rapide EuRoC)
+
+Pour une démo en 1 commande (run + évaluation APE/RPE), utilisez :
+
+```bash
+cd ~/workspace/open_vins
+./scripts/run_euroc_all_in_one.sh \
+    ~/datasets/mav0 \
+    ~/workspace/open_vins/config/euroc_mav/estimator_config.yaml \
+    ~/workspace/open_vins/results/euroc_mh_01_easy
+```
+
+Ce que fait le script :
+1) Convertit le ground truth CSV en format TUM (`groundtruth.txt`)
+2) Lance `euroc_reader_example` et logge dans `vio_output.log`
+3) Exécute `evo_ape --align` et `evo_rpe --delta 10`
+4) Regroupe tout dans le dossier de résultats passé en argument
+
+**Pré-requis**
+- `examples_integration/build/euroc_reader_example` compilé
+- `evo` installé (`pip install evo --upgrade`)
+- Dataset EuRoC avec `state_groundtruth_estimate0/data.csv` présent dans `~/datasets/mav0`
+
 ---
 
 ## 📊 Étape 8 : Analyser les résultats avec evo
