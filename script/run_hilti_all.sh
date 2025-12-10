@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-set -e  # 중간에 에러 나면 바로 종료
+set -e
 
-# 이 스크립트(run_hilti_all.sh)가 있는 디렉토리 절대경로 계산
+# Calculate absolute path
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 DATASETS=(
@@ -10,30 +10,54 @@ DATASETS=(
   exp21_outside_building
 )
 
+# Function to kill background processes on script exit (Ctrl+C)
+cleanup() {
+    echo "Caught signal, killing all background processes..."
+    pkill -P $$ # Kill all child processes of this script
+}
+trap cleanup SIGINT SIGTERM
+
 for ds in "${DATASETS[@]}"; do
   echo "====================================="
   echo "  Running dataset: $ds"
   echo "====================================="
 
-# 1. posegraph.launch를 백그라운드에서 실행하고 PID 저장
+  # 1. Start posegraph.launch in background
   echo "Starting roslaunch loop_fusion posegraph.launch..."
   roslaunch loop_fusion posegraph.launch &
   POSEGRAPH_PID=$!
   echo "posegraph.launch started with PID: $POSEGRAPH_PID"
 
+  # CRITICAL: Wait for posegraph to initialize completely
+  # Adjust sleep time depending on node weight
+  sleep 5
+
+  # 2. Run the main processing node
+  # If this command fails, the script will exit due to 'set -e'
+  # Consider using '|| true' if you want to proceed even if processing fails
   roslaunch ov_msckf hilti.launch dataset:=$ds
 
-# 3. ov_msckf 종료 후 posegraph 프로세스 종료
+  # 3. Terminate posegraph.launch nicely
   echo "Terminating posegraph.launch (PID: $POSEGRAPH_PID)..."
-  # 'kill' 명령을 사용하여 백그라운드 프로세스 종료
-  # 만약 프로세스가 이미 종료되었을 수도 있으므로 실패해도 스크립트가 멈추지 않도록 '|| true' 추가
-  kill $POSEGRAPH_PID || true
-  # 자식 프로세스들이 완전히 종료될 시간을 잠시 기다림 (선택 사항이지만 안전을 위해)
-  sleep 2
+
+  # Send SIGINT (Ctrl+C) instead of default SIGTERM so roslaunch can shutdown children
+  kill -INT $POSEGRAPH_PID || true
+  
+  # Wait for the process to actually exit prevents zombie processes
+  wait $POSEGRAPH_PID 2>/dev/null || true
+
+  # 4. Force Cleanup (Safety Net)
+  # Sometimes nodes hang. Kill specific nodes by name to ensure clean state for next loop.
+  # Replace 'posegraph_node_name' with the actual node name if known, or use broader patterns.
+  # Using pkill -f to find running roslaunch processes related to loop_fusion
+  echo "Ensuring no lingering ROS nodes..."
+  pkill -f "roslaunch loop_fusion posegraph.launch" || true
+  
+  # Optional: Sleep to allow OS to free up ports
+  sleep 3
 
   echo "Finished dataset: $ds"
   echo
-  sleep 5
 done
 
 echo "====================================="
@@ -41,7 +65,6 @@ echo "  All datasets finished."
 echo "  Running post-processing: removePr.py"
 echo "====================================="
 
-# 스크립트 파일이 있는 디렉토리 기준으로 상대경로 실행
 python3 "$SCRIPT_DIR/removePr.py"
 
 echo "Post-processing done."

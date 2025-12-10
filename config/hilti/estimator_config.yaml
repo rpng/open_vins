@@ -73,7 +73,7 @@ knn_ratio: 0.70
 track_frequency: 21.0
 downsample_cameras: false
 num_opencv_threads: 4
-histogram_method: "HISTOGRAM"
+histogram_method: "CLAHE"
 
 use_aruco: false
 num_aruco: 1024
