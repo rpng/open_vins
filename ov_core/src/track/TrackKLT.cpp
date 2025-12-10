@@ -658,7 +658,8 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
     kpts1_new = kpts0_new;
     pts1_new = pts0_new;
 
-    // If we have points, do KLT tracking to get the valid projections into the right image
+    // ###### Original Code #######
+    // // If we have points, do KLT tracking to get the valid projections into the right image
     if (!pts0_new.empty()) {
 
       // Do our KLT tracking from the left to the right frame of reference
@@ -707,6 +708,79 @@ void TrackKLT::perform_detection_stereo(const std::vector<cv::Mat> &img0pyr, con
         }
       }
     }
+    
+    // What Haechul Change
+        // If we have points, do KLT tracking to get the valid projections into the right image
+    // if (!pts0_new.empty()) {
+
+    //   // ---- 추가: disparity threshold 파라미터 (가까운 점만 stereo 로 사용) ----
+    //   // 너무 작은 disparity 는 "거의 무한대 깊이"로 보고 stereo 로 쓰지 않는다.
+    //   const double stereo_min_disparity = 3.0; // [px] 튜닝해서 써봐 (1.0~3.0 정도에서 조절 추천)
+
+    //   // Do our KLT tracking from the left to the right frame of reference
+    //   // NOTE: we have a pretty big window size here since our projection might be bad
+    //   // NOTE: but this might cause failure in cases of repeated textures (eg. checkerboard)
+    //   std::vector<uchar> mask;
+    //   // perform_matching(img0pyr, img1pyr, kpts0_new, kpts1_new, cam_id_left, cam_id_right, mask);
+    //   std::vector<float> error;
+    //   cv::TermCriteria term_crit = cv::TermCriteria(cv::TermCriteria::COUNT | cv::TermCriteria::EPS, 30, 0.01);
+    //   cv::calcOpticalFlowPyrLK(img0pyr, img1pyr, pts0_new, pts1_new, mask, error,
+    //                            win_size, pyr_levels, term_crit, cv::OPTFLOW_USE_INITIAL_FLOW);
+
+    //   // Loop through and record only ones that are valid
+    //   for (size_t i = 0; i < pts0_new.size(); i++) {
+
+    //     // Check to see if the feature is out of bounds (oob) in either image
+    //     bool oob_left  = ((int)pts0_new.at(i).x < 0 || (int)pts0_new.at(i).x >= img0pyr.at(0).cols ||
+    //                       (int)pts0_new.at(i).y < 0 || (int)pts0_new.at(i).y >= img0pyr.at(0).rows);
+    //     bool oob_right = ((int)pts1_new.at(i).x < 0 || (int)pts1_new.at(i).x >= img1pyr.at(0).cols ||
+    //                       (int)pts1_new.at(i).y < 0 || (int)pts1_new.at(i).y >= img1pyr.at(0).rows);
+
+    //     // disparity 계산 (left-right KLT 결과 사이의 픽셀 차이)
+    //     double du   = pts0_new.at(i).x - pts1_new.at(i).x;
+    //     double dv   = pts0_new.at(i).y - pts1_new.at(i).y;
+    //     double disp = std::sqrt(du * du + dv * dv);
+
+    //     // Check to see if it there is already a feature in the right image at this location
+    //     //  1) If this is not already in the right image, then we should treat it as a stereo
+    //     //  2) Otherwise we will treat this as just a monocular track of the feature
+    //     // TODO: we should check to see if we can combine this new feature and the one in the right
+    //     // TODO: seems if reject features which overlay with right features already we have very poor tracking perf
+
+    //     // --> 수정된 조건:
+    //     // stereo 로 쓰려면 KLT 성공 + oob 아님 + disparity 가 일정 이상이어야 한다.
+    //     if (!oob_left && !oob_right && mask[i] == 1 && disp >= stereo_min_disparity) {
+
+    //       // update the uv coordinates
+    //       kpts0_new.at(i).pt = pts0_new.at(i);
+    //       kpts1_new.at(i).pt = pts1_new.at(i);
+
+    //       // append the new uv coordinate (stereo feature)
+    //       pts0.push_back(kpts0_new.at(i));
+    //       pts1.push_back(kpts1_new.at(i));
+
+    //       // move id forward and append this new point
+    //       size_t temp = ++currid;
+    //       ids0.push_back(temp);
+    //       ids1.push_back(temp);
+
+    //     } else if (!oob_left) {
+    //       // disparity 가 작아서 먼 점이거나, right 가 실패한 경우:
+    //       // left 에서는 여전히 monocular feature 로 써준다.
+
+    //       // update the uv coordinates
+    //       kpts0_new.at(i).pt = pts0_new.at(i);
+
+    //       // append the new uv coordinate (mono feature only on left)
+    //       pts0.push_back(kpts0_new.at(i));
+
+    //       // move id forward and append this new point
+    //       size_t temp = ++currid;
+    //       ids0.push_back(temp);
+    //     }
+    //   }
+    // }
+
   }
 
   // RIGHT: Now summarise the number of tracks in the right image
