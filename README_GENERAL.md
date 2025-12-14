@@ -1,10 +1,10 @@
-# 📘 OpenVINS - Guide Général du Projet
+#  OpenVINS - Guide Général du Projet
 
 **Fork personnalisé pour validation et portage STM32H7**
 
 ---
 
-## 🎯 Vue d'Ensemble
+##  Vue d'Ensemble
 
 Ce dépôt est un **fork d'OpenVINS** adapté pour :
 1. **Validation Desktop** : Tests et évaluation sur datasets de référence (EuRoC)
@@ -22,7 +22,7 @@ Ce dépôt est un **fork d'OpenVINS** adapté pour :
 
 ---
 
-## 🏆 Résultats Clés
+##  Résultats Clés
 
 ### Évaluation sur EuRoC MAV Dataset
 
@@ -48,7 +48,7 @@ Ce dépôt est un **fork d'OpenVINS** adapté pour :
 
 ---
 
-## 📚 Documentation Complète
+##  Documentation Complète
 
 Ce projet est documenté en **8 fichiers complémentaires** :
 
@@ -70,7 +70,7 @@ Ce projet est documenté en **8 fichiers complémentaires** :
 | **[SESSION_SUMMARY.md](SESSION_SUMMARY.md)** | Journal de développement et débogage | Équipe projet | Archive |
 | **[INTEGRATION_STM32.md](INTEGRATION_STM32.md)** | Stratégie de portage embarqué | Firmware engineers | Planning |
 
-### 📊 Données et Résultats
+###  Données et Résultats
 
 ```
 results/
@@ -126,7 +126,7 @@ evo_ape tum groundtruth.txt trajectory_estimated.txt --align -r full
 
 ---
 
-## 🧩 Architecture Technique
+##  Architecture Technique
 
 ### Composants Principaux
 
@@ -181,7 +181,7 @@ FIN
 
 ---
 
-## 📊 Métriques Détaillées
+##  Métriques Détaillées
 
 ### Qu'est-ce que l'APE (Absolute Pose Error) ?
 
@@ -209,27 +209,6 @@ $$\text{Drift} = \frac{\text{RPE}_{10m}}{10 \text{ m}} \times 100$$
 
 ---
 
-## 🎯 Applications Recommandées
-
-### ✅ Production Ready Pour :
-
-#### 1. **Drones Autonomes**
-- Navigation intérieure sans GPS
-- Erreur : **23 cm sur 100 m** → acceptable pour évitement obstacles
-- Latence temps réel : < 50 ms
-
-#### 2. **Robots Mobiles**
-- Entrepôts, usines, hôpitaux
-- Précision : **±7 cm** → suffisante pour navigation couloirs
-- Robustesse : 100% taux de succès
-
-#### 3. **Réalité Augmentée / VR**
-- Tracking < 10 cm → expérience immersive fluide
-- Drift 0.25% → pas de recalage sur courtes distances
-
-#### 4. **Véhicules Autonomes**
-- Complément GPS en tunnels/parkings
-- Fusion avec LiDAR pour localisation hybride
 
 ### ⚠️ Limitations Connues
 
@@ -247,7 +226,7 @@ $$\text{Drift} = \frac{\text{RPE}_{10m}}{10 \text{ m}} \times 100$$
 
 ---
 
-## 🔧 Installation et Compilation
+##  Installation et Compilation
 
 ### Prérequis
 
@@ -290,7 +269,7 @@ make
 
 ---
 
-## 🧪 Tests et Validation
+##  Tests et Validation
 
 ### Test 1 : Simulateur (Vérification Build)
 
@@ -343,7 +322,7 @@ evo_traj tum groundtruth.txt trajectory_estimated.txt --plot_mode xyz --align
 
 ---
 
-## 🔬 Portage vers STM32H7
+## Portage vers STM32H7
 
 ### Stratégie de Portage
 
@@ -473,7 +452,6 @@ if (vio_manager.initialized()) {
 ### Ce Fork
 
 - **Repository** : https://github.com/Yannisloum63/open_vins_modified
-- **Mainteneur** : Yannis Loum (IMT Atlantique × IRT b-com)
 - **Dernière mise à jour** : Décembre 2025
 
 ### Questions Fréquentes
@@ -522,13 +500,13 @@ find . -name build -type d -exec rm -rf {} +  # Attention !
 
 ---
 
-## 🎉 Conclusion
+##  Conclusion
 
 Ce projet démontre qu'**OpenVINS est prêt pour la production** avec :
-- ✅ Précision au niveau de l'état de l'art (7.4 cm APE)
-- ✅ Robustesse exceptionnelle (100% succès, drift 0.25%)
-- ✅ Temps réel sur CPU (pas de GPU requis)
-- ✅ Documentation complète pour reproduction et portage
+-  Précision au niveau de l'état de l'art (7.4 cm APE)
+-  Robustesse exceptionnelle (100% succès, drift 0.25%)
+-  Temps réel sur CPU (pas de GPU requis)
+-  Documentation complète pour reproduction et portage
 
 **Prochaines étapes** :
 1. Tester sur autres séquences EuRoC (V2_01, MH_03, etc.)
@@ -538,5 +516,5 @@ Ce projet démontre qu'**OpenVINS est prêt pour la production** avec :
 ---
 
 **License** : GPL-3.0 (OpenVINS original)  
-**Contributions** : Documentation et exemples d'intégration par Yannis Loum  
+**Contributions** : Documentation et exemples d'intégration par Yannis Loumouamou 
 **Date** : Décembre 2025
