@@ -1,33 +1,33 @@
 # Exemples d'intégration OpenVINS - Projet IMT-bcom
 
-## 📁 Contenu
+##  Contenu
 
 ### `minimal_vio_example.cpp`
 Exemple minimal montrant comment utiliser OpenVINS en mode ROS-free.
 
 **Démontre :**
-- ✅ Initialisation de `VioManager`
-- ✅ Alimentation avec données IMU (`feed_measurement_imu`)
-- ✅ Alimentation avec images caméra (`feed_measurement_camera`)
-- ✅ Récupération de la pose estimée (`get_state()`)
-- 📡 Point d'intégration avec Overview (TODO)
+-  Initialisation de `VioManager`
+-  Alimentation avec données IMU (`feed_measurement_imu`)
+-  Alimentation avec images caméra (`feed_measurement_camera`)
+-  Récupération de la pose estimée (`get_state()`)
+-  Point d'intégration avec Overview (TODO)
 
-### `euroc_reader_example.cpp` ⭐ **FONCTIONNEL**
+### `euroc_reader_example.cpp`  **FONCTIONNEL**
 Lecteur complet du dataset EuRoC pour tester OpenVINS sur vraies données.
 
 **Fonctionnalités :**
-- ✅ Lecture des fichiers CSV (`imu0/data.csv`, `cam0/data.csv`)
-- ✅ Chargement et alimentation des images réelles (PNG 752x480)
-- ✅ Synchronisation IMU/caméra stricte
-- ✅ Affichage temps réel de la trajectoire estimée
-- ✅ Sauvegarde dans `trajectory_estimated.txt`
-- ✅ **3682 images + 36812 mesures IMU traitées avec succès**
-- ✅ **2785 poses estimées générées**
+-  Lecture des fichiers CSV (`imu0/data.csv`, `cam0/data.csv`)
+-  Chargement et alimentation des images réelles (PNG 752x480)
+-  Synchronisation IMU/caméra stricte
+-  Affichage temps réel de la trajectoire estimée
+-  Sauvegarde dans `trajectory_estimated.txt`
+-  **3682 images + 36812 mesures IMU traitées avec succès**
+-  **2785 poses estimées générées**
 
 ### `euroc_mono_config.yaml`
 Configuration monocular pour le dataset EuRoC MH_01 avec calibration intrinsèque/extrinsèque.
 
-## 🔧 Compilation
+##  Compilation
 
 ### Prérequis
 OpenVINS doit être compilé et installé (voir README principal du projet).
@@ -47,7 +47,7 @@ cmake ..
 make
 ```
 
-## ▶️ Exécution
+##  Exécution
 
 ### Test du simulateur OpenVINS
 
@@ -73,7 +73,7 @@ cd ~/workspace/open_vins/examples_integration/build
 ./minimal_vio_example ../../config/euroc_mav/estimator_config.yaml
 ```
 
-### Test du lecteur EuRoC ⭐
+### Test du lecteur EuRoC 
 
 **Prérequis :** Dataset EuRoC téléchargé dans `~/datasets/mav0/`
 
@@ -117,7 +117,7 @@ Système initialisé: OUI
 Trajectoire sauvegardée: trajectory_estimated.txt
 ```
 
-## 📊 Sortie attendue
+##  Sortie attendue
 
 ```
 === Exemple minimal OpenVINS ROS-free ===
@@ -133,28 +133,6 @@ Images traitées: 20
 Système initialisé: OUI
 ```
 
-## 🔗 Intégration avec Overview
-
-Le point marqué `// ICI : Envoi vers Overview` dans le code montre où transmettre les données au serveur b-com.
-
-**Format proposé (JSON):**
-```json
-{
-  "timestamp": 1234567890.123,
-  "position": {"x": 0.5, "y": -1.2, "z": 0.0},
-  "orientation": {"qw": 1.0, "qx": 0.0, "qy": 0.0, "qz": 0.0},
-  "velocity": {"vx": 0.1, "vy": 0.0, "vz": 0.0},
-  "covariance": [...]  // Optionnel
-}
-```
-
-## 📋 TODO
-
-- [ ] Parser YAML pour configuration
-- [ ] Implémenter classe `OverviewClient`
-- [ ] Gérer reconnexion réseau
-- [ ] Ajouter logs de debug
-- [ ] Tester avec vraies données caméra/IMU
 
 ---
 
