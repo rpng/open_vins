@@ -4,10 +4,6 @@
 
 Ce fork OpenVINS sert de **plateforme de validation** pour le projet embarqué STM32H7.
 
-## 🔗 Repos liés
-
-- **Ce repo** : `Yannisloum63/yannis-open_vins` (fork OpenVINS, validation desktop)
-- **Repo principal** : `[VOTRE_ORGANISATION]/Projet_VIO_STM32H7` (firmware embarqué)
 
 ##  Workflow de développement
 
@@ -19,7 +15,7 @@ graph LR
     D -->|Intégration| E[Projet_VIO_STM32H7]
 ```
 
-## 🛠️ Portage vers STM32
+##  Portage vers STM32
 
 ### Modules à porter
 
