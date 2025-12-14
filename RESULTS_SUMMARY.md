@@ -1,6 +1,6 @@
-# 📊 Résumé des Résultats - OpenVINS sur EuRoC
+#  Résumé des Résultats - OpenVINS sur EuRoC
 
-## 🎯 Vue d'ensemble
+##  Vue d'ensemble
 
 Évaluation systématique d'**OpenVINS** (Visual-Inertial Odometry) sur 3 séquences du benchmark **EuRoC MAV Dataset** avec niveaux de difficulté croissants.
 
@@ -43,7 +43,7 @@
 
 ---
 
-## 🏆 Comparaison État de l'Art
+##  Comparaison État de l'Art
 
 | Système | APE Moyen | Drift Moyen | Type | Remarque |
 |---------|-----------|-------------|------|----------|
@@ -104,31 +104,8 @@
 
 ---
 
-## 🚀 Applications Recommandées
 
-### ✅ Production Ready Pour :
-
-1. **Drones Autonomes**
-   - Navigation intérieure sans GPS
-   - Erreur : 23 cm sur 100 m → acceptable pour évitement d'obstacles
-   - Latence temps réel : < 50ms
-
-2. **Robots Mobiles**
-   - Entrepôts, usines, hôpitaux
-   - Précision : ±7 cm → suffisante pour navigation dans couloirs
-   - Robustesse : 100% taux de succès
-
-3. **Réalité Augmentée / VR**
-   - Tracking < 10 cm → expérience immersive fluide
-   - Drift 0.25% → pas de recalage nécessaire sur courtes distances
-
-4. **Véhicules Autonomes**
-   - Complément GPS en tunnels/parkings
-   - Fusion avec LiDAR pour localisation hybride
-
----
-
-## ⚠️ Limitations Identifiées
+## Limitations Identifiées
 
 ### 1. **Absence de Loop Closure**
 - **Impact** : Drift cumulé sur longues distances (> 500 m)
@@ -216,17 +193,15 @@ evo_rpe tum groundtruth.txt trajectory_estimated.txt --delta 10 --pose_relation 
 
 ---
 
-## ✅ Conclusion
+##  Conclusion
 
 **OpenVINS démontre des performances de niveau recherche** :
-- ✅ Précision : **7.4 cm** (comparable ORB-SLAM3)
-- ✅ Drift : **0.25%** (Excellent VIO)
-- ✅ Robustesse : **100%** taux de succès
-- ✅ Efficacité : **Temps réel** CPU
+-  Précision : **7.4 cm** (comparable ORB-SLAM3)
+-  Drift : **0.25%** (Excellent VIO)
+-  Robustesse : **100%** taux de succès
+-  Efficacité : **Temps réel** CPU
 
-**Recommandation** : ✅ **Production Ready** pour applications drones/robots/AR
 
 ---
 
-**Auteur** : Évaluation EuRoC Benchmark - Janvier 2025  
 **License** : GPL-3.0 (OpenVINS Project)
