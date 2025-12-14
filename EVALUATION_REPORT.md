@@ -1,13 +1,13 @@
 # 📊 Rapport d'Évaluation OpenVINS sur EuRoC MAV Dataset
 
-**Date**: Janvier 2025  
+**Date**: Décembre 2025  
 **Système**: OpenVINS (ROS-free mode)  
 **Configuration**: Stereo-Inertial VIO avec MSCKF  
 **Datasets testés**: EuRoC Machine Hall (MH_01_easy), Vicon Room (V1_02_medium, V1_03_difficult)
 
 ---
 
-## 🎯 Résumé Exécutif
+## Résumé Exécutif
 
 OpenVINS démontre des **performances exceptionnelles** sur les 3 niveaux de difficulté testés :
 - ✅ **Précision absolue (APE)** : 6.3 - 9.1 cm RMSE (comparable à VINS-Mono)
@@ -186,17 +186,6 @@ Initialization: Dynamic avec détection de mouvement
 3. **Initialisation Dynamique** : Requiert mouvement initial (non-statique)
    - *Solution* : Algorithme d'initialisation zéro-velocity (Kimera-VIO style)
 
-### 🚀 Améliorations Possibles
-1. **Fusion Multi-Sensorielle** :
-   - Ajouter GPS pour correction absolue (Loosely-coupled)
-   - Intégrer baromètre pour altitude (amélioration de 15% sur Z)
-2. **Optimisation Backend** :
-   - Implémenter Graph-SLAM (g2o, GTSAM) pour loop closure
-   - Bundle Adjustment global tous les 100m
-3. **Apprentissage Profond** :
-   - CNN pour détection de features robustes (SuperPoint, DISK)
-   - Réseau de relocalization (NetVLAD) pour recovery après tracking loss
-
 ---
 
 ## 📚 Références
@@ -318,7 +307,7 @@ evo_rpe tum groundtruth.txt trajectory_estimated.txt --delta 10 --pose_relation 
 
 ---
 
-## 🎬 Conclusion
+##  Conclusion
 
 **OpenVINS démontre des performances de niveau recherche** sur les benchmarks EuRoC avec :
 - ✅ Précision absolue : **6.3 - 9.1 cm** (comparable ORB-SLAM3, meilleur que VINS-Mono)
