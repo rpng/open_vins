@@ -1,15 +1,15 @@
 # OpenVINS - Évaluation EuRoC MAV Dataset
 
-## 🎯 Résultats Finaux
+##  Résultats Finaux
 
 **Évaluation systématique sur 3 niveaux de difficulté EuRoC** (MH_01_easy, V1_02_medium, V1_03_difficult)
 
 | Métrique | Résultat | Benchmark |
 |----------|----------|-----------|
-| **APE RMSE** | **7.4 cm** | ORB-SLAM3: 7.1 cm ✅ |
-| **Drift** | **0.25%** | Excellent VIO (< 0.5%) ✅ |
-| **Succès** | **100%** | 3/3 datasets initialisés ✅ |
-| **Temps réel** | **3.8 m/s** | CPU seulement ✅ |
+| **APE RMSE** | **7.4 cm** | ORB-SLAM3: 7.1 cm  |
+| **Drift** | **0.25%** | Excellent VIO (< 0.5%)  |
+| **Succès** | **100%** | 3/3 datasets initialisés  |
+| **Temps réel** | **3.8 m/s** | CPU seulement  |
 
 ---
 
@@ -23,7 +23,7 @@
 
 ---
 
-## 🏆 Comparaison État de l'Art
+##  Comparaison État de l'Art
 
 | Système | APE Moyen | Drift | Status |
 |---------|-----------|-------|--------|
@@ -34,7 +34,7 @@
 
 ---
 
-## ✅ Conclusion
+##  Conclusion
 
 **Production Ready** : OpenVINS atteint le niveau de l'état de l'art avec :
 - Précision comparable à ORB-SLAM3
@@ -53,7 +53,7 @@
 - **Index** : [INDEX.md](./INDEX.md) (navigation)
 - **Données JSON** : [results/evaluation_results.json](./results/evaluation_results.json)
 
-## 🚀 Affichage Rapide
+##  Affichage Rapide
 
 ```bash
 python3 show_final_results.py
@@ -61,4 +61,4 @@ python3 show_final_results.py
 
 ---
 
-**Date** : Janvier 2025 | **License** : GPL-3.0
+**Date** : Décembre 2025 | **License** : GPL-3.0
