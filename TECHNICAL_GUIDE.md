@@ -767,9 +767,8 @@ P_new = P_aa - P_am · P_mm^{-1} · P_ma
 
 **Questions sur le code** : Issues GitHub  
 **Concepts théoriques** : [docs.openvins.com](https://docs.openvins.com/)  
-**Paper original** : [Geneva et al., ICRA 2020](https://pgeneva.com/downloads/papers/Geneva_ICRA2020.pdf)
+**Paper original** : [Geneva et al., ICRA 2020](https://udel.edu/~ghuang/iros19-vins-workshop/papers/06.pdf)
 
 ---
 
-**Auteur** : Yannis Loum (IMT Atlantique × IRT b-com)  
 **Dernière mise à jour** : 30 novembre 2025
