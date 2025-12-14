@@ -1,4 +1,4 @@
-# 📊 Rapport d'Évaluation OpenVINS sur EuRoC MAV Dataset
+# Rapport d'Évaluation OpenVINS sur EuRoC MAV Dataset
 
 **Date**: Décembre 2025  
 **Système**: OpenVINS (ROS-free mode)  
@@ -99,7 +99,7 @@ Le système est **prêt pour déploiement en production** avec des performances 
 
 ---
 
-## 💡 Observations Techniques
+##  Observations Techniques
 
 ### 1. **Performances Étonnantes sur V1_02/V1_03**
 - **Paradoxe** : V1_02_medium (6.3cm) et V1_03_difficult (6.9cm) surpassent MH_01_easy (9.1cm)
@@ -119,7 +119,7 @@ Le système est **prêt pour déploiement en production** avec des performances 
 
 ---
 
-## 📊 Graphiques de Trajectoire
+##  Graphiques de Trajectoire
 
 ### MH_01_easy (Machine Hall - Facile)
 - **Distance**: 80.6 m
@@ -169,26 +169,8 @@ Initialization: Dynamic avec détection de mouvement
 
 ---
 
-## 🎓 Recommandations
 
-### ✅ Production Ready
-**OpenVINS est recommandé pour déploiement dans les cas suivants** :
-1. **Drones autonomes** : Navigation intérieure sans GPS (0.23% drift → 23cm d'erreur sur 100m)
-2. **Robots mobiles** : Entrepôts, usines (environnement structuré)
-3. **Réalité Augmentée** : Tracking précis < 10cm pour applications AR/VR
-4. **Véhicules autonomes** : Complément à GPS/LiDAR en tunnels/parkings
-
-### ⚠️ Limitations Connues
-1. **Absence de Loop Closure** : Drift cumulé sur longues distances (> 500m)
-   - *Solution* : Activer SLAM features ou ajouter module de loop detection
-2. **Dépendance à la Texture** : Dégradation en environnement uniforme (murs blancs)
-   - *Solution* : Fusion avec LiDAR ou ajout de marqueurs visuels
-3. **Initialisation Dynamique** : Requiert mouvement initial (non-statique)
-   - *Solution* : Algorithme d'initialisation zéro-velocity (Kimera-VIO style)
-
----
-
-## 📚 Références
+##  Références
 
 ### Publications Scientifiques
 1. **OpenVINS** : Geneva et al., "OpenVINS: A Research Platform for Visual-Inertial Estimation", IROS 2020
@@ -207,7 +189,7 @@ Initialization: Dynamic avec détection de mouvement
 
 ---
 
-## 📝 Méthodologie d'Évaluation
+##  Méthodologie d'Évaluation
 
 ### Workflow Complet
 ```bash
@@ -240,7 +222,7 @@ timestamp tx ty tz qx qy qz qw
 
 ---
 
-## 🔍 Annexes
+##  Annexes
 
 ### A. Détails des Trajectoires
 
@@ -314,8 +296,6 @@ evo_rpe tum groundtruth.txt trajectory_estimated.txt --delta 10 --pose_relation 
 - ✅ Drift ultra-faible : **0.23 - 0.27%** (classification **Excellent VIO**)
 - ✅ Robustesse : Stable du facile au difficile (dégradation < 3cm)
 - ✅ Efficacité : Temps réel sur CPU (23-37s pour 2-3k images)
-
-**Recommandation finale** : ✅ **Production Ready** pour applications drones/robots/AR avec navigation précise < 10cm
 
 ---
 
