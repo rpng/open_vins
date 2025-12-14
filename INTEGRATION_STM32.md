@@ -1,15 +1,11 @@
 # Intégration OpenVINS → STM32H7
 
-## 🎯 Objectif
+##  Objectif
 
 Ce fork OpenVINS sert de **plateforme de validation** pour le projet embarqué STM32H7.
 
-## 🔗 Repos liés
 
-- **Ce repo** : `Yannisloum63/yannis-open_vins` (fork OpenVINS, validation desktop)
-- **Repo principal** : `[VOTRE_ORGANISATION]/Projet_VIO_STM32H7` (firmware embarqué)
-
-## 📊 Workflow de développement
+##  Workflow de développement
 
 ```mermaid
 graph LR
@@ -19,7 +15,7 @@ graph LR
     D -->|Intégration| E[Projet_VIO_STM32H7]
 ```
 
-## 🛠️ Portage vers STM32
+##  Portage vers STM32
 
 ### Modules à porter
 
@@ -48,7 +44,7 @@ graph LR
 | Boost | ❌ Supprimer (remplacer par std::chrono) |
 | ROS/ROS2 | ❌ N/A (bare metal) |
 
-## 📁 Fichiers à extraire
+##  Fichiers à extraire
 
 Pour le portage, copier **uniquement** :
 
@@ -79,7 +75,7 @@ config/euroc_mav/kalibr_imu_chain.yaml → imu_config/
 - `docs/` (générée par Doxygen)
 - Fichiers de build `build/`, `devel/`
 
-## 🔬 Validation avec ce repo
+##  Validation avec ce repo
 
 ### Tests Desktop (ici)
 
@@ -96,7 +92,7 @@ cd ~/workspace/open_vins/examples_integration/build
 - **Fréquence caméra** : 10 Hz (réduite de 20 Hz → économie CPU)
 - **Latence** : < 50 ms (temps réel)
 
-## 📝 Checklist d'intégration
+##  Checklist d'intégration
 
 - [ ] Valider algorithme sur desktop (ce repo)
 - [ ] Identifier modules critiques
@@ -108,19 +104,16 @@ cd ~/workspace/open_vins/examples_integration/build
 - [ ] Profiler CPU/RAM
 - [ ] Optimiser matrices creuses
 
-## 📚 Documentation
+##  Documentation
 
 - [Architecture VIO](../docs/vio_fusion.md) - Algorithme ESKF complet
 - [System Overview](../docs/system_overview.md) - Vue d'ensemble matériel
 - [Session Summary](SESSION_SUMMARY.md) - Résultats validation EuRoC
 
-## 🔄 Synchronisation
+##  Synchronisation
 
 **Workflow** : Les modifications validées ici (algorithme, calibration) sont **manuellement portées** vers le repo STM32, pas via Git submodule.
 
 **Raison** : Le code embarqué nécessite des adaptations importantes (float vs double, pas de stdlib complète, contraintes mémoire) → copie intelligente > lien automatique.
 
 ---
-
-**Maintenu par** : Yannis Loum (IMT Atlantique × IRT b-com)  
-**Dernière mise à jour** : Novembre 2025

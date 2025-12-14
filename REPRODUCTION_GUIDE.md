@@ -2,7 +2,7 @@
 
 Ce document liste **toutes les commandes** utilisées pour configurer, compiler et tester OpenVINS en mode ROS-free.
 
-## 🔧 Environnement
+##  Environnement
 
 - **OS :** Ubuntu 24.04 LTS
 - **Compilateur :** GCC/G++
@@ -10,7 +10,7 @@ Ce document liste **toutes les commandes** utilisées pour configurer, compiler 
 
 ---
 
-## 📦 Étape 1 : Installation des dépendances
+##  Étape 1 : Installation des dépendances
 
 ```bash
 sudo apt update
@@ -32,7 +32,7 @@ dpkg -l | grep -E "(libeigen|libceres|libopencv|libboost)"
 
 ---
 
-## 📥 Étape 2 : Cloner le fork du projet
+##  Étape 2 : Cloner le fork du projet
 
 ```bash
 # Créer le dossier de travail
@@ -53,7 +53,7 @@ git config user.email "votre.email@example.com"
 
 ---
 
-## ⚙️ Étape 3 : Compilation OpenVINS (mode ROS-free)
+##  Étape 3 : Compilation OpenVINS (mode ROS-free)
 
 ```bash
 cd ~/workspace/open_vins/ov_msckf
@@ -83,7 +83,7 @@ sudo ldconfig
 
 ---
 
-## 🧪 Étape 4 : Tester le simulateur
+##  Étape 4 : Tester le simulateur
 
 ```bash
 cd ~/workspace/open_vins
@@ -114,7 +114,7 @@ cam0 intrinsics = 458.663,457.212,366.834,248.029 | -0.284,0.074,0.000,-0.000
 
 ---
 
-## 📚 Étape 5 : Compiler l'exemple d'intégration
+##  Étape 5 : Compiler l'exemple d'intégration
 
 ```bash
 cd ~/workspace/open_vins/examples_integration
@@ -160,7 +160,7 @@ Système initialisé: NON ou OUI
 
 ---
 
-## 📥 Étape 6 : Télécharger dataset EuRoC (optionnel)
+##  Étape 6 : Télécharger dataset EuRoC (optionnel)
 
 **⚠️ Nécessite ~1.7 GB de téléchargement et connexion WiFi stable**
 
@@ -184,7 +184,7 @@ ls -lh mav0/
 
 ---
 
-## 🎯 Étape 7 : Exécuter euroc_reader_example (validation réelle)
+##  Étape 7 : Exécuter euroc_reader_example (validation réelle)
 
 ### Compiler l'exemple EuRoC
 
@@ -239,7 +239,7 @@ Trajectoire sauvegardée: trajectory_estimated.txt
 - **36812 mesures IMU** synchronisées
 - Fichier `trajectory_estimated.txt` créé avec ~2263 poses
 
-## ⚡ Script tout-en-un (démo rapide EuRoC)
+##  Script tout-en-un (démo rapide EuRoC)
 
 Pour une démo en 1 commande (run + évaluation APE/RPE), utilisez :
 
@@ -264,7 +264,7 @@ Ce que fait le script :
 
 ---
 
-## 📊 Étape 8 : Analyser les résultats avec evo
+##  Étape 8 : Analyser les résultats avec evo
 
 ### Installer evo (outil d'évaluation)
 
@@ -344,12 +344,12 @@ APE w.r.t. translation part (m)
       mean      0.073918
     median      0.066045
        min      0.015840
-      rmse      0.086432    ← **8.6 cm RMSE** ✅
+      rmse      0.086432    ← **8.6 cm RMSE** 
        sse      16.905687
        std      0.044796
 ```
 
-**🎯 Objectif atteint : RMSE < 10 cm (excellent pour VIO)**
+**Objectif atteint : RMSE < 10 cm (excellent pour VIO)**
 
 ### Visualiser la trajectoire 3D
 
@@ -371,7 +371,7 @@ infos:  2263 poses, 62.756m path length, 113.100s duration
 
 ---
 
-## 🔄 Étape 9 : Workflow Git pour vos modifications
+##  Étape 9 : Workflow Git pour  modifications
 
 ```bash
 cd ~/workspace/open_vins
@@ -397,7 +397,7 @@ git push origin feature/ma-nouvelle-fonctionnalite
 
 ---
 
-## 📊 Récapitulatif des commandes de test
+##  Récapitulatif des commandes de test
 
 ```bash
 # Test simulateur
@@ -416,7 +416,7 @@ ls -l /usr/local/bin/run_simulation
 
 ---
 
-## ❓ Dépannage
+##  Dépannage
 
 ### Erreur : `libov_msckf_lib.so: cannot open shared object file`
 
@@ -449,15 +449,14 @@ dpkg -l | grep libceres
 
 ---
 
-## 📞 Support
+##  Support
 
-- **Issues GitHub :** https://github.com/Yannisloum63/yannis-open_vins/issues
 - **Documentation OpenVINS :** https://docs.openvins.com/
 - **Projet original :** https://github.com/rpng/open_vins
 
 ---
 
-## 🎓 Points clés découverts durant le développement
+##  Points clés découverts durant le développement
 
 ### Problème 1 : Mask obligatoire
 **Erreur :** `cv::Exception: !ssize.empty() in function 'resize'`  
@@ -498,7 +497,7 @@ cv::Mat img = cv::imread(img_path, cv::IMREAD_GRAYSCALE);
 
 ---
 
-## 📁 Structure finale des résultats
+##  Structure finale des résultats
 
 ```
 open_vins/
@@ -516,7 +515,7 @@ open_vins/
 
 ---
 
-## 🏆 Résultats finaux
+##  Résultats finaux
 
 | Métrique | Valeur | Interprétation |
 |----------|--------|----------------|
