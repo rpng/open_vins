@@ -13,7 +13,7 @@
 
 ---
 
-## 📊 Tableau Comparatif
+##  Tableau Comparatif
 
 | Dataset | Difficulté | Distance | APE | Drift | Temps | Class |
 |---------|-----------|----------|-----|-------|-------|-------|
@@ -46,7 +46,7 @@
 
 ---
 
-## 📚 Documentation
+##  Documentation
 
 - **Résumé exécutif** : [RESULTS_SUMMARY.md](./RESULTS_SUMMARY.md) (~10 min)
 - **Rapport complet** : [EVALUATION_REPORT.md](./EVALUATION_REPORT.md) (~30 min)
