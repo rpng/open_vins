@@ -4,6 +4,8 @@
 
 Ce fork OpenVINS sert de **plateforme de validation** pour le projet embarqué STM32H7.
 
+👉 Dépôt embarqué associé : [71-OpenVins_light](https://github.com/IMTA-PCE-IRT-b-com/71-OpenVins_light.git) concentre la déclinaison ultra-allégée (sans OpenCV/Eigen/Ceres complets) pour respecter <1 MB RAM et <2 MB Flash. Les algorithmes et paramètres validés ici sont répliqués manuellement dans cette version light.
+
 
 ##  Workflow de développement
 

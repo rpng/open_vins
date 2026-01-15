@@ -42,6 +42,8 @@
 - Robustesse exceptionnelle (100% succès)
 - Temps réel sur CPU
 
+👉 Ces métriques servent de référence pour la déclinaison embarquée [71-OpenVins_light](https://github.com/IMTA-PCE-IRT-b-com/71-OpenVins_light.git) (STM32H7) après réduction des dépendances.
+
 **Applications** : Drones autonomes, robots mobiles, AR/VR, véhicules autonomes
 
 ---

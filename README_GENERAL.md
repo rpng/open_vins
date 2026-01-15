@@ -11,6 +11,8 @@ Ce dépôt est un **fork d'OpenVINS** adapté pour :
 2. **Plateforme de Développement** : Expérimentation d'algorithmes VIO (Visual-Inertial Odometry)
 3. **Source pour Portage Embarqué** : Base pour intégration sur microcontrôleur STM32H7
 
+👉 Déclinaison embarquée : [71-OpenVins_light](https://github.com/IMTA-PCE-IRT-b-com/71-OpenVins_light.git) est le dépôt allégé destiné au STM32H7 (dépendances minimisées, contraintes RAM/Flash). Ce repo "plein" sert à valider l'algo et le tuning avant copie/écrémage vers la version light.
+
 ### Qu'est-ce qu'OpenVINS ?
 
 **OpenVINS** est un système de **localisation visuo-inertielle** qui fusionne :
