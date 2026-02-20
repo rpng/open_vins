@@ -25,7 +25,7 @@
 #include <geometry_msgs/msg/pose_stamped.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
-#include <image_transport/image_transport.h>
+#include <image_transport/image_transport.hpp>
 #include <message_filters/subscriber.h>
 #include <message_filters/sync_policies/approximate_time.h>
 #include <message_filters/time_synchronizer.h>
@@ -42,7 +42,7 @@
 #include <std_msgs/msg/float64.hpp>
 #include <tf2/LinearMath/Quaternion.h>
 #include <tf2/transform_datatypes.h>
-#include <tf2_geometry_msgs/tf2_geometry_msgs.h>
+#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>
 #include <tf2_ros/transform_broadcaster.h>
 
 #include <atomic>
@@ -119,6 +119,11 @@ public:
   void callback_stereo(const sensor_msgs::msg::Image::ConstSharedPtr msg0, const sensor_msgs::msg::Image::ConstSharedPtr msg1, int cam_id0,
                        int cam_id1);
 
+  /// Callback for synchronized stereo camera information WITH dynamic masks
+  void callback_stereo_masks(const sensor_msgs::msg::Image::ConstSharedPtr msg0, const sensor_msgs::msg::Image::ConstSharedPtr msg1,
+                             const sensor_msgs::msg::Image::ConstSharedPtr mask0, const sensor_msgs::msg::Image::ConstSharedPtr mask1,
+                             int cam_id0, int cam_id1);
+
 protected:
   /// Publish the current state
   void publish_state();
@@ -159,8 +164,16 @@ protected:
   rclcpp::Subscription<sensor_msgs::msg::Imu>::SharedPtr sub_imu;
   std::vector<rclcpp::Subscription<sensor_msgs::msg::Image>::SharedPtr> subs_cam;
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image, sensor_msgs::msg::Image,
+                                                          sensor_msgs::msg::Image>
+      sync_pol_masks;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol_mono_mask;
   std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
   std::vector<std::shared_ptr<message_filters::Subscriber<sensor_msgs::msg::Image>>> sync_subs_cam;
+  std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol_masks>>> sync_cam_masks;
+  std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol_mono_mask>>> sync_cam_mono_masks;
+  void callback_monocular_masks(const sensor_msgs::msg::Image::ConstSharedPtr msg, const sensor_msgs::msg::Image::ConstSharedPtr mask,
+                                int cam_id);
 
   // For path viz
   std::vector<geometry_msgs::msg::PoseStamped> poses_imu;

@@ -219,6 +219,15 @@ struct VioManagerOptions {
   /// Mask images for each camera
   std::map<size_t, cv::Mat> masks;
 
+  /// If we should use dynamic masks from ROS topics
+  bool use_dynamic_mask = false;
+
+  /// ROS topic for left camera mask
+  std::string dynamic_mask_topic0 = "/mask0";
+
+  /// ROS topic for right camera mask
+  std::string dynamic_mask_topic1 = "/mask1";
+
   /**
    * @brief This function will load and print all state parameters (e.g. sensor extrinsics)
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -279,6 +288,16 @@ struct VioManagerOptions {
         camera_extrinsics.insert({i, cam_eigen});
       }
       parser->parse_config("use_mask", use_mask);
+      parser->parse_config("use_dynamic_mask", use_dynamic_mask);
+      parser->parse_config("dynamic_mask_topic0", dynamic_mask_topic0);
+      parser->parse_config("dynamic_mask_topic1", dynamic_mask_topic1);
+
+      PRINT_DEBUG("  - dynamic masks?: %d\n", use_dynamic_mask);
+      if (use_dynamic_mask) {
+        PRINT_DEBUG("  - dynamic mask topic 0: %s\n", dynamic_mask_topic0.c_str());
+        PRINT_DEBUG("  - dynamic mask topic 1: %s\n", dynamic_mask_topic1.c_str());
+      }
+
       if (use_mask) {
         for (int i = 0; i < state_options.num_cameras; i++) {
           std::string mask_path;
