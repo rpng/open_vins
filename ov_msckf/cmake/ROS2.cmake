@@ -11,6 +11,8 @@ find_package(sensor_msgs REQUIRED)
 find_package(nav_msgs REQUIRED)
 find_package(cv_bridge REQUIRED)
 find_package(image_transport REQUIRED)
+find_package(rosbag2_cpp REQUIRED)
+find_package(rosbag2_transport REQUIRED)
 find_package(ov_core REQUIRED)
 find_package(ov_init REQUIRED)
 
@@ -37,6 +39,8 @@ list(APPEND thirdparty_libraries
 )
 list(APPEND ament_libraries
         rclcpp
+        rosbag2_cpp
+        rosbag2_transport
         tf2_ros
         tf2_geometry_msgs
         std_msgs
@@ -92,6 +96,11 @@ add_executable(run_subscribe_msckf src/run_subscribe_msckf.cpp)
 ament_target_dependencies(run_subscribe_msckf ${ament_libraries})
 target_link_libraries(run_subscribe_msckf ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS run_subscribe_msckf DESTINATION lib/${PROJECT_NAME})
+
+add_executable(ros2_serial_msckf src/ros2_serial_msckf.cpp)
+ament_target_dependencies(ros2_serial_msckf ${ament_libraries})
+target_link_libraries(ros2_serial_msckf ov_msckf_lib ${thirdparty_libraries})
+install(TARGETS ros2_serial_msckf DESTINATION lib/${PROJECT_NAME})
 
 add_executable(run_simulation src/run_simulation.cpp)
 ament_target_dependencies(run_simulation ${ament_libraries})

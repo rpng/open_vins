@@ -29,11 +29,19 @@
 #include <Eigen/Eigen>
 #include <boost/filesystem.hpp>
 
+#if ROS_AVAILABLE == 1
 #include <geometry_msgs/PoseStamped.h>
 #include <geometry_msgs/PoseWithCovarianceStamped.h>
 #include <geometry_msgs/TransformStamped.h>
 #include <nav_msgs/Odometry.h>
 #include <ros/ros.h>
+#elif ROS_AVAILABLE == 2
+#include <geometry_msgs/msg/pose_stamped.hpp>
+#include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
+#include <geometry_msgs/msg/transform_stamped.hpp>
+#include <nav_msgs/msg/odometry.hpp>
+#include "utils/print.h"
+#endif
 
 namespace ov_eval {
 
@@ -56,19 +64,31 @@ public:
     // Create folder path to this location if not exists
     boost::filesystem::path dir(filename.c_str());
     if (boost::filesystem::create_directories(dir.parent_path())) {
+#if ROS_AVAILABLE == 1
       ROS_INFO("Created folder path to output file.");
       ROS_INFO("Path: %s", dir.parent_path().c_str());
+#elif ROS_AVAILABLE == 2
+      PRINT_DEBUG("Created folder path to output file: %s", dir.parent_path().c_str());
+#endif
     }
     // If it exists, then delete it
     if (boost::filesystem::exists(filename)) {
+#if ROS_AVAILABLE == 1
       ROS_WARN("Output file exists, deleting old file....");
+#elif ROS_AVAILABLE == 2
+      PRINT_DEBUG("Output file exists, deleting old file: %s", filename.c_str());
+#endif
       boost::filesystem::remove(filename);
     }
     // Open this file we want to write to
     outfile.open(filename.c_str());
     if (outfile.fail()) {
+#if ROS_AVAILABLE == 1
       ROS_ERROR("Unable to open output file!!");
       ROS_ERROR("Path: %s", filename.c_str());
+#elif ROS_AVAILABLE == 2
+      PRINT_ERROR("Unable to open output file: %s", filename.c_str());
+#endif
       std::exit(EXIT_FAILURE);
     }
     outfile << "# timestamp(s) tx ty tz qx qy qz qw Pr11 Pr12 Pr13 Pr22 Pr23 Pr33 Pt11 Pt12 Pt13 Pt22 Pt23 Pt33" << std::endl;
@@ -81,6 +101,29 @@ public:
     has_covariance = false;
   }
 
+  /**
+   * @brief Record a pose and write to file (ROS-agnostic; use from ROS2 or any source).
+   * @param ts timestamp in seconds
+   * @param p position (tx ty tz)
+   * @param q quaternion (qx qy qz qw)
+   * @param has_cov true if covariance is valid
+   * @param c_rot 3x3 rotation covariance (upper triangle written)
+   * @param c_pos 3x3 position covariance (upper triangle written)
+   */
+  void record_pose(double ts, const Eigen::Vector3d & p, const Eigen::Vector4d & q, bool has_cov,
+                   const Eigen::Matrix<double, 3, 3> & c_rot, const Eigen::Matrix<double, 3, 3> & c_pos) {
+    timestamp = ts;
+    p_IinG = p;
+    q_ItoG = q;
+    has_covariance = has_cov;
+    if (has_cov) {
+      cov_rot = c_rot;
+      cov_pos = c_pos;
+    }
+    write();
+  }
+
+#if ROS_AVAILABLE == 1
   /**
    * @brief Callback for nav_msgs::Odometry message types.
    *
@@ -146,6 +189,75 @@ public:
     p_IinG << msg->transform.translation.x, msg->transform.translation.y, msg->transform.translation.z;
     write();
   }
+#elif ROS_AVAILABLE == 2
+  /**
+   * @brief Callback for nav_msgs::msg::Odometry message types.
+   *
+   * Note that covariance is in the order (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis).
+   * http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovariance.html
+   *
+   * @param msg New message
+   */
+  void callback_odometry(const nav_msgs::msg::Odometry::SharedPtr msg) {
+    timestamp = static_cast<double>(msg->header.stamp.sec) + 1e-9 * static_cast<double>(msg->header.stamp.nanosec);
+    q_ItoG << msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w;
+    p_IinG << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
+    cov_pos << msg->pose.covariance.at(0), msg->pose.covariance.at(1), msg->pose.covariance.at(2), msg->pose.covariance.at(6),
+        msg->pose.covariance.at(7), msg->pose.covariance.at(8), msg->pose.covariance.at(12), msg->pose.covariance.at(13),
+        msg->pose.covariance.at(14);
+    cov_rot << msg->pose.covariance.at(21), msg->pose.covariance.at(22), msg->pose.covariance.at(23), msg->pose.covariance.at(27),
+        msg->pose.covariance.at(28), msg->pose.covariance.at(29), msg->pose.covariance.at(33), msg->pose.covariance.at(34),
+        msg->pose.covariance.at(35);
+    has_covariance = true;
+    write();
+  }
+
+  /**
+   * @brief Callback for geometry_msgs::msg::PoseStamped message types
+   * @param msg New message
+   */
+  void callback_pose(const geometry_msgs::msg::PoseStamped::SharedPtr msg) {
+    timestamp = static_cast<double>(msg->header.stamp.sec) + 1e-9 * static_cast<double>(msg->header.stamp.nanosec);
+    q_ItoG << msg->pose.orientation.x, msg->pose.orientation.y, msg->pose.orientation.z, msg->pose.orientation.w;
+    p_IinG << msg->pose.position.x, msg->pose.position.y, msg->pose.position.z;
+    has_covariance = false;
+    write();
+  }
+
+  /**
+   * @brief Callback for geometry_msgs::msg::PoseWithCovarianceStamped message types.
+   *
+   * Note that covariance is in the order (x, y, z, rotation about X axis, rotation about Y axis, rotation about Z axis).
+   * http://docs.ros.org/api/geometry_msgs/html/msg/PoseWithCovariance.html
+   *
+   * @param msg New message
+   */
+  void callback_posecovariance(const geometry_msgs::msg::PoseWithCovarianceStamped::SharedPtr msg) {
+    timestamp = static_cast<double>(msg->header.stamp.sec) + 1e-9 * static_cast<double>(msg->header.stamp.nanosec);
+    q_ItoG << msg->pose.pose.orientation.x, msg->pose.pose.orientation.y, msg->pose.pose.orientation.z, msg->pose.pose.orientation.w;
+    p_IinG << msg->pose.pose.position.x, msg->pose.pose.position.y, msg->pose.pose.position.z;
+    cov_pos << msg->pose.covariance.at(0), msg->pose.covariance.at(1), msg->pose.covariance.at(2), msg->pose.covariance.at(6),
+        msg->pose.covariance.at(7), msg->pose.covariance.at(8), msg->pose.covariance.at(12), msg->pose.covariance.at(13),
+        msg->pose.covariance.at(14);
+    cov_rot << msg->pose.covariance.at(21), msg->pose.covariance.at(22), msg->pose.covariance.at(23), msg->pose.covariance.at(27),
+        msg->pose.covariance.at(28), msg->pose.covariance.at(29), msg->pose.covariance.at(33), msg->pose.covariance.at(34),
+        msg->pose.covariance.at(35);
+    has_covariance = true;
+    write();
+  }
+
+  /**
+   * @brief Callback for geometry_msgs::msg::TransformStamped message types
+   * @param msg New message
+   */
+  void callback_transform(const geometry_msgs::msg::TransformStamped::SharedPtr msg) {
+    timestamp = static_cast<double>(msg->header.stamp.sec) + 1e-9 * static_cast<double>(msg->header.stamp.nanosec);
+    q_ItoG << msg->transform.rotation.x, msg->transform.rotation.y, msg->transform.rotation.z, msg->transform.rotation.w;
+    p_IinG << msg->transform.translation.x, msg->transform.translation.y, msg->transform.translation.z;
+    has_covariance = false;
+    write();
+  }
+#endif
 
 protected:
   /**
