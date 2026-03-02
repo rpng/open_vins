@@ -24,12 +24,20 @@
 
 #include <ceres/ceres.h>
 
+#if CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2
+#include <ceres/manifold.h>
+#endif
+
 namespace ov_init {
 
 /**
  * @brief JPL quaternion CERES state parameterization
  */
+#if CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2
+class State_JPLQuatLocal : public ceres::Manifold {
+#else
 class State_JPLQuatLocal : public ceres::LocalParameterization {
+#endif
 public:
   /**
    * @brief State update function for a JPL quaternion representation.
@@ -42,6 +50,21 @@ public:
    * @f]
    */
   bool Plus(const double *x, const double *delta, double *x_plus_delta) const override;
+
+#if CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2
+
+  bool PlusJacobian(const double *x, double *jacobian) const override;
+
+  // Inverse update: delta = Log(q2 ⊗ inv(q1))
+  bool Minus(const double* y, const double* x, double* delta) const override;
+
+  // Jacobian of Minus
+  bool MinusJacobian(const double* x, double* jacobian) const override;
+
+  int AmbientSize() const override { return 4; }
+  int TangentSize() const override { return 3; }
+
+#else
 
   /**
    * @brief Computes the jacobian in respect to the local parameterization
@@ -59,6 +82,9 @@ public:
   int GlobalSize() const override { return 4; };
 
   int LocalSize() const override { return 3; };
+
+#endif
+
 };
 
 } // namespace ov_init

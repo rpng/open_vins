@@ -20,6 +20,13 @@
  */
 
 #include "print.h"
+#include <cstdio>
+#include <cstdlib>
+
+#ifdef __ANDROID__
+#include <android/log.h>
+#define LOG_TAG "OpenVINS"
+#endif
 
 using namespace ov_core;
 
@@ -83,6 +90,52 @@ void Printer::debugPrint(PrintLevel level, const char location[], const char lin
     return;
   }
 
+#ifdef __ANDROID__
+  // Use Android logging on Android
+  android_LogPriority log_priority;
+  switch (level) {
+  case PrintLevel::ALL:
+  case PrintLevel::DEBUG:
+    log_priority = ANDROID_LOG_DEBUG;
+    break;
+  case PrintLevel::INFO:
+    log_priority = ANDROID_LOG_INFO;
+    break;
+  case PrintLevel::WARNING:
+    log_priority = ANDROID_LOG_WARN;
+    break;
+  case PrintLevel::ERROR:
+    log_priority = ANDROID_LOG_ERROR;
+    break;
+  default:
+    log_priority = ANDROID_LOG_INFO;
+    break;
+  }
+
+  // Build the message with location info if DEBUG level
+  char location_str[256] = {0};
+  if (static_cast<int>(Printer::current_print_level) <= static_cast<int>(Printer::PrintLevel::DEBUG)) {
+    std::string path(location);
+    std::string base_filename = path.substr(path.find_last_of("/\\") + 1);
+    if (base_filename.size() > MAX_FILE_PATH_LEGTH) {
+      snprintf(location_str, sizeof(location_str), "%s:%s ",
+               base_filename.substr(base_filename.size() - MAX_FILE_PATH_LEGTH, base_filename.size()).c_str(), line);
+    } else {
+      snprintf(location_str, sizeof(location_str), "%s:%s ", base_filename.c_str(), line);
+    }
+  }
+
+  // Format the message
+  va_list args;
+  va_start(args, format);
+  char formatted_msg[1024];
+  vsnprintf(formatted_msg, sizeof(formatted_msg), format, args);
+  va_end(args);
+
+  // Log to Android logcat
+  __android_log_print(log_priority, LOG_TAG, "%s%s", location_str, formatted_msg);
+#else
+  // Use standard printf on non-Android platforms
   // Print the location info first for our debug output
   // Truncate the filename to the max size for the filepath
   if (static_cast<int>(Printer::current_print_level) <= static_cast<int>(Printer::PrintLevel::DEBUG)) {
@@ -101,4 +154,14 @@ void Printer::debugPrint(PrintLevel level, const char location[], const char lin
   va_start(args, format);
   vprintf(format, args);
   va_end(args);
+#endif
 }
+
+#ifndef __ANDROID__
+// Implementation of custom assert function (only for non-Android platforms)
+extern "C" void __assert(const char *msg, const char *file, int line) {
+  fprintf(stderr, "Assertion failed: %s\n", msg);
+  fprintf(stderr, "  at %s:%d\n", file, line);
+  std::abort();
+}
+#endif

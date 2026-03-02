@@ -48,9 +48,51 @@ bool State_JPLQuatLocal::Plus(const double *x, const double *delta, double *x_pl
   return true;
 }
 
+#if CERES_VERSION_MAJOR == 2 && CERES_VERSION_MINOR >= 2
+bool State_JPLQuatLocal::PlusJacobian(const double *x, double *jacobian) const {
+  Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> j(jacobian);
+  j.topRows<3>().setIdentity();
+  j.bottomRows<1>().setZero();
+  return true;
+}
+
+bool State_JPLQuatLocal::Minus(const double *y, const double *x, double *delta) const {
+  Eigen::Map<const Eigen::Vector4d> q1(x);
+  Eigen::Map<const Eigen::Vector4d> q2(y);
+  Eigen::Vector4d q_rel = ov_core::quat_multiply(q2, ov_core::Inv(q1));
+  Eigen::Vector3d omega;
+
+  double qw = q_rel(3);
+  Eigen::Vector3d qv = q_rel.head<3>();
+
+  double norm_qv = qv.norm();
+  if (norm_qv < 1e-8) {
+    omega.setZero();
+  } else {
+    double angle = 2.0 * std::atan2(norm_qv, qw);
+    omega = angle * (qv / norm_qv);
+  }
+
+  Eigen::Map<Eigen::Vector3d> d_out(delta);
+  d_out = omega;
+  return true;
+}
+
+bool State_JPLQuatLocal::MinusJacobian(const double *x, double *jacobian) const {
+  // This is an approximation: ∂delta/∂x ≈ [I; 0]
+  Eigen::Map<Eigen::Matrix<double, 3, 4, Eigen::RowMajor>> j(jacobian);
+  j.setZero();
+  j.leftCols<3>().setIdentity();
+  return true;
+}
+
+#else
+
 bool State_JPLQuatLocal::ComputeJacobian(const double *x, double *jacobian) const {
   Eigen::Map<Eigen::Matrix<double, 4, 3, Eigen::RowMajor>> j(jacobian);
   j.topRows<3>().setIdentity();
   j.bottomRows<1>().setZero();
   return true;
 }
+
+#endif
