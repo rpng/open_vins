@@ -83,8 +83,10 @@ public:
    * @param node ROS node pointer
    * @param app Core estimator manager
    * @param sim Simulator if we are simulating
+   * @param parser Config file parser (used to read filepath_est/std/gt from estimator_config.yaml)
    */
-  ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr);
+  ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim = nullptr,
+                 std::shared_ptr<ov_core::YamlParser> parser = nullptr);
 
   /**
    * @brief Will setup ROS subscribers and callbacks

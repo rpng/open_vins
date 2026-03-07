@@ -35,7 +35,8 @@ using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
 
-ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
+ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim,
+                               std::shared_ptr<ov_core::YamlParser> parser)
     : _node(node), _app(app), _sim(sim), thread_update_running(false) {
 
   // Setup our transform broadcaster
@@ -108,14 +109,20 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
     std::string filepath_est = "state_estimate.txt";
     std::string filepath_std = "state_deviation.txt";
     std::string filepath_gt = "state_groundtruth.txt";
-    if (node->has_parameter("filepath_est")) {
-      node->get_parameter<std::string>("filepath_est", filepath_est);
-    }
-    if (node->has_parameter("filepath_std")) {
-      node->get_parameter<std::string>("filepath_std", filepath_std);
-    }
-    if (node->has_parameter("filepath_gt")) {
-      node->get_parameter<std::string>("filepath_gt", filepath_gt);
+
+    // Prefer values from estimator_config.yaml (via parser); fall back to ROS 2
+    // params if the parser was not provided (e.g. called from a simulator).
+    if (parser != nullptr) {
+      parser->parse_config("filepath_est", filepath_est, false);
+      parser->parse_config("filepath_std", filepath_std, false);
+      parser->parse_config("filepath_gt", filepath_gt, false);
+    } else {
+      if (node->has_parameter("filepath_est"))
+        node->get_parameter<std::string>("filepath_est", filepath_est);
+      if (node->has_parameter("filepath_std"))
+        node->get_parameter<std::string>("filepath_std", filepath_std);
+      if (node->has_parameter("filepath_gt"))
+        node->get_parameter<std::string>("filepath_gt", filepath_gt);
     }
 
     // If it exists, then delete it
@@ -125,8 +132,15 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
       boost::filesystem::remove(filepath_std);
 
     // Create folder path to this location if not exists
-    boost::filesystem::create_directories(boost::filesystem::path(filepath_est.c_str()).parent_path());
-    boost::filesystem::create_directories(boost::filesystem::path(filepath_std.c_str()).parent_path());
+    auto est_parent = boost::filesystem::path(filepath_est).parent_path();
+    if (!est_parent.empty()) {
+      boost::filesystem::create_directories(est_parent);
+    }
+
+    auto std_parent = boost::filesystem::path(filepath_std).parent_path();
+    if (!std_parent.empty()) {
+      boost::filesystem::create_directories(std_parent);
+    }
 
     // Open the files
     of_state_est.open(filepath_est.c_str());
@@ -140,7 +154,10 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
     if (_sim != nullptr) {
       if (boost::filesystem::exists(filepath_gt))
         boost::filesystem::remove(filepath_gt);
-      boost::filesystem::create_directories(boost::filesystem::path(filepath_gt.c_str()).parent_path());
+      auto gt_parent = boost::filesystem::path(filepath_gt).parent_path();
+      if (!gt_parent.empty()) {
+        boost::filesystem::create_directories(gt_parent);
+      }
       of_state_gt.open(filepath_gt.c_str());
       of_state_gt << "# timestamp(s) q p v bg ba cam_imu_dt num_cam cam0_k cam0_d cam0_rot cam0_trans ... imu_model dw da tg wtoI atoI etc"
                   << std::endl;
