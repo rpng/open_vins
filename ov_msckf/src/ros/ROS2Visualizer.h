@@ -197,6 +197,7 @@ protected:
   // Last timestamp we visualized at
   double last_visualization_timestamp = 0;
   double last_visualization_timestamp_image = 0;
+  double last_inertial_timestamp = 0;
 
   // Our groundtruth states
   std::map<double, Eigen::Matrix<double, 17, 1>> gt_states;

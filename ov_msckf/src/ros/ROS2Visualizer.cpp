@@ -449,9 +449,16 @@ void ROS2Visualizer::callback_inertial(const sensor_msgs::msg::Imu::SharedPtr ms
   message.wm << msg->angular_velocity.x, msg->angular_velocity.y, msg->angular_velocity.z;
   message.am << msg->linear_acceleration.x, msg->linear_acceleration.y, msg->linear_acceleration.z;
 
+  if (message.timestamp < last_inertial_timestamp)
+  {
+    return;
+  }
+
   // send it to our VIO system
   _app->feed_measurement_imu(message);
   visualize_odometry(message.timestamp);
+
+  last_inertial_timestamp = message.timestamp;
 
   // If the processing queue is currently active / running just return so we can keep getting measurements
   // Otherwise create a second thread to do our update in an async manor
