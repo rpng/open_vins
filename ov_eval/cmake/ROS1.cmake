@@ -23,6 +23,7 @@ endif ()
 # Include our header files
 include_directories(
         src
+        ${EIGEN3_INCLUDE_DIRS}
         ${EIGEN3_INCLUDE_DIR}
         ${Boost_INCLUDE_DIRS}
         ${PYTHON_INCLUDE_DIRS}

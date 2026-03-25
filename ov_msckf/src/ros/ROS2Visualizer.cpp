@@ -36,7 +36,7 @@ using namespace ov_type;
 using namespace ov_msckf;
 
 ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_ptr<VioManager> app, std::shared_ptr<Simulator> sim)
-    : _node(node), _app(app), _sim(sim), thread_update_running(false) {
+    : _node(node), _app(app), _sim(sim), thread_update_running(false), run_visualize_thread(true) {
 
   // Setup our transform broadcaster
   mTfBr = std::make_shared<tf2_ros::TransformBroadcaster>(node);
@@ -149,15 +149,48 @@ ROS2Visualizer::ROS2Visualizer(std::shared_ptr<rclcpp::Node> node, std::shared_p
 
   // Start thread for the image publishing
   if (_app->get_params().use_multi_threading_pubs) {
-    std::thread thread([&] {
+    thread_visualize = std::make_shared<std::thread>([this] {
       rclcpp::Rate loop_rate(20);
-      while (rclcpp::ok()) {
+      while (rclcpp::ok() && run_visualize_thread) {
         publish_images();
         loop_rate.sleep();
       }
     });
-    thread.detach();
   }
+}
+
+ROS2Visualizer::~ROS2Visualizer() {
+  // Signal and join the visualize thread
+  run_visualize_thread = false;
+  if (thread_visualize && thread_visualize->joinable()) {
+    thread_visualize->join();
+  }
+
+  // Manually reset all publishers and subscriptions
+  it_pub_tracks.shutdown();
+  it_pub_loop_img_depth.shutdown();
+  it_pub_loop_img_depth_color.shutdown();
+  pub_poseimu.reset();
+  pub_odomimu.reset();
+  pub_pathimu.reset();
+  pub_points_msckf.reset();
+  pub_points_slam.reset();
+  pub_points_aruco.reset();
+  pub_points_sim.reset();
+  pub_loop_pose.reset();
+  pub_loop_extrinsic.reset();
+  pub_loop_point.reset();
+  pub_loop_intrinsics.reset();
+  mTfBr.reset();
+  sub_imu.reset();
+  for (auto &sub : subs_cam)
+    sub.reset();
+  for (auto &sync : sync_cam)
+    sync.reset();
+  for (auto &sub : sync_subs_cam)
+    sub.reset();
+  pub_pathgt.reset();
+  pub_posegt.reset();
 }
 
 void ROS2Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> parser) {

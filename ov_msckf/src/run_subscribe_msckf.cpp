@@ -115,8 +115,12 @@ int main(int argc, char **argv) {
   // Final visualization
   viz->visualize_final();
 #if ROS_AVAILABLE == 1
+  viz.reset();
+  sys.reset();
   ros::shutdown();
 #elif ROS_AVAILABLE == 2
+  viz.reset();
+  sys.reset();
   rclcpp::shutdown();
 #endif
 

@@ -180,9 +180,15 @@ int main(int argc, char **argv) {
   // Final visualization
 #if ROS_AVAILABLE == 1
   viz->visualize_final();
+  viz.reset();
+  sys.reset();
+  sim.reset();
   ros::shutdown();
 #elif ROS_AVAILABLE == 2
   viz->visualize_final();
+  viz.reset();
+  sys.reset();
+  sim.reset();
   rclcpp::shutdown();
 #endif
 
