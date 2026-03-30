@@ -47,6 +47,8 @@
     <depend condition="$ROS_VERSION == 2">nav_msgs</depend>
     <depend condition="$ROS_VERSION == 2">cv_bridge</depend>
     <depend condition="$ROS_VERSION == 2">image_transport</depend>
+    <depend condition="$ROS_VERSION == 2">rosbag2_cpp</depend>
+    <depend condition="$ROS_VERSION == 2">rosbag2_transport</depend>
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
     <depend condition="$ROS_VERSION == 2">ov_init</depend>
 

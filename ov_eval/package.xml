@@ -33,6 +33,8 @@
     <!-- ROS2: Dependencies needed to compile this package. -->
     <buildtool_depend condition="$ROS_VERSION == 2">ament_cmake</buildtool_depend>
     <depend condition="$ROS_VERSION == 2">rclcpp</depend>
+    <depend condition="$ROS_VERSION == 2">geometry_msgs</depend>
+    <depend condition="$ROS_VERSION == 2">nav_msgs</depend>
     <depend condition="$ROS_VERSION == 2">ov_core</depend>
 
     <!-- System dependencies for both versions -->

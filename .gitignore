@@ -1,5 +1,7 @@
 cmake-build-*
 build
+install
+log
 Build
 *.*~
 .idea
@@ -8,3 +10,4 @@ doxgen_generated
 *.swo
 doc
 .vscode
+.cache
