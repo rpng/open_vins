@@ -615,9 +615,9 @@ void StateHelper::augment_clone(std::shared_ptr<State> state, Eigen::Matrix<doub
   }
 }
 
-void StateHelper::marginalize_old_clone(std::shared_ptr<State> state) {
+void StateHelper::marginalize_old_clone(std::shared_ptr<State> state, bool slow_motion) {
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
-    double marginal_time = state->margtimestep();
+    double marginal_time = state->margtimestep(slow_motion);
     // Lock the mutex to avoid deleting any elements from _clones_IMU while accessing it from other threads
     std::lock_guard<std::mutex> lock(state->_mutex_state);
     assert(marginal_time != INFINITY);

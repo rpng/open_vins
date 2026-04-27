@@ -250,7 +250,57 @@ void UpdaterSLAM::delayed_init(std::shared_ptr<State> state, std::vector<std::sh
   }
 }
 
-void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec) {
+bool UpdaterSLAM::isSlowMotion(State* state, double avg_vel_thresh, double max_vel_thresh, double disp_thresh)
+{
+    if(state->_clones_IMU.size() < 2)
+        return false;
+
+    double total_distance = 0.0;
+    double total_time = 0.0;
+    double max_velocity = 0.0;
+
+    auto it_prev = state->_clones_IMU.begin();
+    auto it_curr = std::next(it_prev);
+
+    while(it_curr != state->_clones_IMU.end())
+    {
+        double t1 = it_prev->first;
+        double t2 = it_curr->first;
+
+        Eigen::Vector3d p1 = it_prev->second->pos();
+        Eigen::Vector3d p2 = it_curr->second->pos();
+
+        double dt = t2 - t1;
+        if(dt <= 1e-6) {
+            it_prev = it_curr;
+            ++it_curr;
+            continue;
+        }
+
+        double dist = (p2 - p1).norm();
+        double vel = dist / dt;
+
+        total_distance += dist;
+        total_time += dt;
+        max_velocity = std::max(max_velocity, vel);
+
+        it_prev = it_curr;
+        ++it_curr;
+    }
+
+    if(total_time <= 1e-6)
+        return false;
+
+    double avg_velocity = total_distance / total_time;
+
+    bool is_slow = (avg_velocity < avg_vel_thresh) &&
+                   (max_velocity < max_vel_thresh) &&
+                   (total_distance < disp_thresh);
+
+    return is_slow;
+}
+
+void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_ptr<Feature>> &feature_vec, bool slow_motion) {
 
   // Return if no features
   if (feature_vec.empty())
@@ -285,11 +335,12 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     std::shared_ptr<Landmark> landmark = state->_features_SLAM.at((*it0)->featid);
     int required_meas = (landmark->_feat_representation == LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) ? 2 : 1;
 
+    // bool slow_motion = isSlowMotion(state);
     // Remove if we don't have enough
     if (ct_meas < 1) {
       (*it0)->to_delete = true;
       it0 = feature_vec.erase(it0);
-    } else if (ct_meas < required_meas) {
+    } else if (ct_meas < required_meas && !slow_motion) {
       it0 = feature_vec.erase(it0);
     } else {
       it0++;
@@ -369,6 +420,9 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
       H_xf.conservativeResize(H_x.rows(), H_x.cols() + 1);
       H_xf.block(0, H_x.cols(), H_x.rows(), 1) = H_f.block(0, H_f.cols() - 1, H_f.rows(), 1);
       H_f.conservativeResize(H_f.rows(), H_f.cols() - 1);
+      if (slow_motion) {
+        H_f.setZero();
+      }
 
       // Nullspace project the bearing portion
       // This takes into account that we have marginalized the bearing already
@@ -380,6 +434,9 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
       // Else we have the full feature in our state, so just append it
       H_xf.conservativeResize(H_x.rows(), H_x.cols() + H_f.cols());
       H_xf.block(0, H_x.cols(), H_x.rows(), H_f.cols()) = H_f;
+      if (slow_motion) {
+        H_f.setZero();
+      }
     }
 
     // Append to our Jacobian order vector
@@ -391,6 +448,11 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
     Eigen::MatrixXd S = H_xf * P_marg * H_xf.transpose();
     double sigma_pix_sq =
         ((int)feat.featid < state->_options.max_aruco_features) ? _options_aruco.sigma_pix_sq : _options_slam.sigma_pix_sq;
+    
+    if (slow_motion) {
+      sigma_pix_sq *= 4.0; // Increase the pixel noise by a factor of 4 in slow motion
+    }
+
     S.diagonal() += sigma_pix_sq * Eigen::VectorXd::Ones(S.rows());
     double chi2 = res.dot(S.llt().solve(res));
 
@@ -404,13 +466,19 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
       PRINT_WARNING(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
     }
 
+    double scale = 1.0;
+
+    if (slow_motion) {
+      scale = 2.0;
+    }
+
     // Check if we should delete or not
     double chi2_multipler =
         ((int)feat.featid < state->_options.max_aruco_features) ? _options_aruco.chi2_multipler : _options_slam.chi2_multipler;
-    if (chi2 > chi2_multipler * chi2_check) {
+    if (chi2 > scale * chi2_multipler * chi2_check) {
       if ((int)feat.featid < state->_options.max_aruco_features) {
         PRINT_WARNING(YELLOW "[SLAM-UP]: rejecting aruco tag %d for chi2 thresh (%.3f > %.3f)\n" RESET, (int)feat.featid, chi2,
-                      chi2_multipler * chi2_check);
+                      scale * chi2_multipler * chi2_check);
       } else {
         landmark->update_fail_count++;
       }
@@ -421,7 +489,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
 
     // Debug print when we are going to update the aruco tags
     if ((int)feat.featid < state->_options.max_aruco_features) {
-      PRINT_DEBUG("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)\n", (int)feat.featid, chi2, chi2_multipler * chi2_check);
+      PRINT_DEBUG("[SLAM-UP]: accepted aruco tag %d for chi2 thresh (%.3f < %.3f)\n", (int)feat.featid, chi2, scale * chi2_multipler * chi2_check);
     }
 
     // We are good!!! Append to our large H vector
@@ -478,7 +546,7 @@ void UpdaterSLAM::update(std::shared_ptr<State> state, std::vector<std::shared_p
   PRINT_ALL("[SLAM-UP]: %.4f seconds total\n", (rT3 - rT1).total_microseconds() * 1e-6);
 }
 
-void UpdaterSLAM::change_anchors(std::shared_ptr<State> state) {
+void UpdaterSLAM::change_anchors(std::shared_ptr<State> state, bool slow_motion) {
 
   // Return if we do not have enough clones
   if ((int)state->_clones_IMU.size() <= state->_options.max_clone_size) {
@@ -488,7 +556,7 @@ void UpdaterSLAM::change_anchors(std::shared_ptr<State> state) {
   // Get the marginalization timestep, and change the anchor for any feature seen from it
   // NOTE: for now we have anchor the feature in the same camera as it is before
   // NOTE: this also does not change the representation of the feature at all right now
-  double marg_timestep = state->margtimestep();
+  double marg_timestep = state->margtimestep(slow_motion);
   for (auto &f : state->_features_SLAM) {
     // Skip any features that are in the global frame
     if (f.second->_feat_representation == LandmarkRepresentation::Representation::GLOBAL_3D ||

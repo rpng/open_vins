@@ -217,11 +217,11 @@ public:
    *
    * This will marginalize the clone from our covariance, and remove it from our state.
    * This is mainly a helper function that we can call after each update.
-   * It will marginalize the clone specified by State::margtimestep() which should return a clone timestamp.
+   * It will marginalize the clone specified by State::margtimestep(slow_motion) which should return a clone timestamp.
    *
    * @param state Pointer to state
    */
-  static void marginalize_old_clone(std::shared_ptr<State> state);
+  static void marginalize_old_clone(std::shared_ptr<State> state, bool slow_motion = false);
 
   /**
    * @brief Marginalize bad SLAM features

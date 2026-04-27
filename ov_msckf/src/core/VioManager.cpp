@@ -167,7 +167,7 @@ void VioManager::feed_measurement_imu(const ov_core::ImuData &message) {
 
   // The oldest time we need IMU with is the last clone
   // We shouldn't really need the whole window, but if we go backwards in time we will
-  double oldest_time = state->margtimestep();
+  double oldest_time = state->oldesttimestep();
   if (oldest_time > state->_timestamp) {
     oldest_time = -1;
   }
@@ -359,6 +359,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
   has_moved_since_zupt = true;
 
+  bool slow_motion = updaterSLAM->isSlowMotion(state);
   //===================================================================================
   // MSCKF features and KLT tracks that are SLAM features
   //===================================================================================
@@ -370,9 +371,9 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
 
   // Don't need to get the oldest features until we reach our max number of clones
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size || (int)state->_clones_IMU.size() > 5) {
-    feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep(), false, true);
+    feats_marg = trackFEATS->get_feature_database()->features_containing(state->margtimestep(slow_motion), false, true);
     if (trackARUCO != nullptr && message.timestamp - startup_time >= params.dt_slam_delay) {
-      feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep(), false, true);
+      feats_slam = trackARUCO->get_feature_database()->features_containing(state->margtimestep(slow_motion), false, true);
     }
   }
 
@@ -538,7 +539,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
     feats_slam_UPDATE.erase(feats_slam_UPDATE.begin(),
                             feats_slam_UPDATE.begin() + std::min(state->_options.max_slam_in_update, (int)feats_slam_UPDATE.size()));
     // Do the update
-    updaterSLAM->update(state, featsup_TEMP);
+    updaterSLAM->update(state, featsup_TEMP, slow_motion);
     feats_slam_UPDATE_TEMP.insert(feats_slam_UPDATE_TEMP.end(), featsup_TEMP.begin(), featsup_TEMP.end());
     propagator->invalidate_cache();
   }
@@ -582,18 +583,18 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
 
   // First do anchor change if we are about to lose an anchor pose
-  updaterSLAM->change_anchors(state);
+  updaterSLAM->change_anchors(state, slow_motion);
 
   // Cleanup any features older than the marginalization time
   if ((int)state->_clones_IMU.size() > state->_options.max_clone_size) {
-    trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep());
+    trackFEATS->get_feature_database()->cleanup_measurements(state->margtimestep(slow_motion));
     if (trackARUCO != nullptr) {
-      trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep());
+      trackARUCO->get_feature_database()->cleanup_measurements(state->margtimestep(slow_motion));
     }
   }
 
-  // Finally marginalize the oldest clone if needed
-  StateHelper::marginalize_old_clone(state);
+  // Finally marginalize the clone if needed
+  StateHelper::marginalize_old_clone(state, slow_motion);
   rT7 = boost::posix_time::microsec_clock::local_time();
 
   //===================================================================================

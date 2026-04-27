@@ -63,7 +63,37 @@ public:
    * But if you wanted to do a keyframe system, you could selectively marginalize clones.
    * @return timestep of clone we will marginalize
    */
-  double margtimestep() {
+  double margtimestep(bool slow_motion = false) {
+    std::lock_guard<std::mutex> lock(_mutex_state);
+    if (slow_motion) {
+      // In slow motion, we want to keep clones around longer, so we return the second oldest clone time
+      double latest_time = -INFINITY;
+      double second_latest_time = -INFINITY;
+      for (const auto &clone_imu : _clones_IMU) {
+        if (clone_imu.first > latest_time) {
+          second_latest_time = latest_time;
+          latest_time = clone_imu.first;
+        } else if (clone_imu.first > second_latest_time) {
+          second_latest_time = clone_imu.first;
+        }
+      }
+      return second_latest_time;
+    }
+    double time = INFINITY;
+    for (const auto &clone_imu : _clones_IMU) {
+      if (clone_imu.first < time) {
+        time = clone_imu.first;
+      }
+    }
+    return time;
+  }
+
+  /**
+   * @brief Will return the timestep of the oldest clone in our system.
+   * This is useful for determining if we have valid measurements for our features.
+   * @return timestep of the oldest clone
+   */
+  double oldesttimestep() {
     std::lock_guard<std::mutex> lock(_mutex_state);
     double time = INFINITY;
     for (const auto &clone_imu : _clones_IMU) {

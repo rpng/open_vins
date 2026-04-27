@@ -63,11 +63,22 @@ public:
   UpdaterSLAM(UpdaterOptions &options_slam, UpdaterOptions &options_aruco, ov_core::FeatureInitializerOptions &feat_init_options);
 
   /**
+   * @brief Check if the system is in slow motion
+   * @param state State of the filter
+   * @param avg_vel_thresh Average velocity threshold
+   * @param max_vel_thresh Maximum velocity threshold
+   * @param disp_thresh Displacement threshold
+   * @return True if the system is in slow motion, false otherwise
+   */
+  bool isSlowMotion(State* state, double avg_vel_thresh = 0.05, double max_vel_thresh = 0.1, double disp_thresh = 0.2);
+
+  /**
    * @brief Given tracked SLAM features, this will try to use them to update the state.
    * @param state State of the filter
    * @param feature_vec Features that can be used for update
+   * @param slow_motion Indicates if the system is in slow motion
    */
-  void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
+  void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec, bool slow_motion=false);
 
   /**
    * @brief Given max track features, this will try to use them to initialize them in the state.
@@ -83,8 +94,9 @@ public:
    * By default, this will shift the anchor into the newest IMU clone and keep the camera calibration anchor the same.
    *
    * @param state State of the filter
+   * @param slow_motion Indicates if the system is in slow motion
    */
-  void change_anchors(std::shared_ptr<State> state);
+  void change_anchors(std::shared_ptr<State> state, bool slow_motion=false);
 
 protected:
   /**
