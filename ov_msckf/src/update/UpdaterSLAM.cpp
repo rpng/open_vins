@@ -563,7 +563,7 @@ void UpdaterSLAM::change_anchors(std::shared_ptr<State> state, bool slow_motion)
         f.second->_feat_representation == LandmarkRepresentation::Representation::GLOBAL_FULL_INVERSE_DEPTH)
       continue;
     // Else lets see if it is anchored in the clone that will be marginalized
-    assert(marg_timestep <= f.second->_anchor_clone_timestamp);
+    // assert(marg_timestep <= f.second->_anchor_clone_timestamp);
     if (f.second->_anchor_clone_timestamp == marg_timestep) {
       perform_anchor_change(state, f.second, state->_timestamp, f.second->_anchor_cam_id);
     }

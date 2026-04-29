@@ -359,7 +359,7 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
   }
   has_moved_since_zupt = true;
 
-  bool slow_motion = updaterSLAM->isSlowMotion(state);
+  bool slow_motion = updaterSLAM->isSlowMotion(state.get());
   //===================================================================================
   // MSCKF features and KLT tracks that are SLAM features
   //===================================================================================
