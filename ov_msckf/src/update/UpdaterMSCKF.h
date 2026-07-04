@@ -23,7 +23,10 @@
 #define OV_MSCKF_UPDATER_MSCKF_H
 
 #include <Eigen/Eigen>
+#include <fstream>
 #include <memory>
+#include <string>
+#include <unordered_map>
 
 #include "feat/FeatureInitializerOptions.h"
 
@@ -67,6 +70,38 @@ public:
    */
   void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
 
+  /**
+   * @brief Configure the IMU-residual per-feature noise inflation (Phase 1, Option C).
+   *
+   * When enabled, after triangulation each MSCKF feature's p_FinG is projected
+   * into cam0 at the newest clone time and compared to the actual observation.
+   * Dynamic features (large projection residual) get noise multiplier nm >> 1.
+   *
+   * @param use       Enable/disable the computation
+   * @param alpha     Multiplier scale: nm = 1 + alpha*(1 - s_imu)
+   * @param sigma_px  Decay scale for the exponential score (pixels, default 5.0)
+   */
+  void set_imu_residual_params(bool use, double alpha, double sigma_px) {
+    _use_imu_residual = use;
+    _imu_residual_alpha = alpha;
+    _imu_residual_sigma_px = sigma_px;
+  }
+
+  /**
+   * @brief Configure the per-feature CSV logger for JEPA dataset construction (Phase 2).
+   *
+   * When enabled, after each feature's nm and IMU projection are computed, a row is
+   * appended to the CSV at @p path. Disabled by default — no file I/O when false.
+   *
+   * CSV columns:
+   *   ts, feat_id, u_act, v_act, u_pred, v_pred, nm, r_px, depth,
+   *   track_len, t_prev, u_prev, v_prev, dangle_x, dangle_y, dangle_z, dt
+   *
+   * @param enable  Turn logging on/off
+   * @param path    Full output path (run number must be in the filename, e.g. feature_log_run_3.csv)
+   */
+  void set_feature_logger_params(bool enable, const std::string &path);
+
 protected:
   /// Options used during update
   UpdaterOptions _options;
@@ -76,6 +111,15 @@ protected:
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;
+
+  // IMU-residual noise inflation parameters (Phase 1, Option C)
+  bool _use_imu_residual = false;
+  double _imu_residual_alpha = 5.0;
+  double _imu_residual_sigma_px = 5.0;
+
+  // Feature logger (Phase 2 dataset collection — disabled by default)
+  bool _log_features = false;
+  std::ofstream _feat_log_file;
 };
 
 } // namespace ov_msckf

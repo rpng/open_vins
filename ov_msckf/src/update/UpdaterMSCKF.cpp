@@ -21,6 +21,9 @@
 
 #include "UpdaterMSCKF.h"
 
+#include <cmath>
+#include <unordered_map>
+
 #include "UpdaterHelper.h"
 
 #include "feat/Feature.h"
@@ -33,7 +36,9 @@
 #include "utils/quat_ops.h"
 
 #include <boost/date_time/posix_time/posix_time.hpp>
+#include <boost/filesystem.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
+#include <iomanip>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -52,6 +57,23 @@ UpdaterMSCKF::UpdaterMSCKF(UpdaterOptions &options, ov_core::FeatureInitializerO
   for (int i = 1; i < 500; i++) {
     boost::math::chi_squared chi_squared_dist(i);
     chi_squared_table[i] = boost::math::quantile(chi_squared_dist, 0.95);
+  }
+}
+
+void UpdaterMSCKF::set_feature_logger_params(bool enable, const std::string &path) {
+  _log_features = enable;
+  if (!enable || path.empty())
+    return;
+  boost::filesystem::path p(path);
+  boost::filesystem::create_directories(p.parent_path());
+  _feat_log_file.open(path, std::ofstream::out | std::ofstream::trunc);
+  if (_feat_log_file.is_open()) {
+    _feat_log_file << "# ts,feat_id,u_act,v_act,u_pred,v_pred,nm,r_px,depth,"
+                      "track_len,t_prev,u_prev,v_prev,dangle_x,dangle_y,dangle_z,dt\n";
+    PRINT_INFO(GREEN "[FEAT_LOG]: opened feature log at %s\n" RESET, path.c_str());
+  } else {
+    PRINT_WARNING(YELLOW "[FEAT_LOG]: failed to open feature log at %s\n" RESET, path.c_str());
+    _log_features = false;
   }
 }
 
@@ -205,10 +227,103 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     // Nullspace project
     UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);
 
-    /// Chi2 distance check
+    // Option C: per-feature nm using triangulated p_FinG (accurate depth, not raw disparity).
+    // Project p_FinG into cam0 at t_new using IMU-propagated pose; compare to actual observation.
+    // Dead-zone of 3*sigma_pix prevents noise-level residuals from inflating static features.
+    // Also runs when _log_features is true (even if _use_imu_residual is false) so that the
+    // dataset builder gets u_pred/v_pred for target patch extraction.
+    double nm = 1.0;
+    if ((_use_imu_residual || _log_features) &&
+        !LandmarkRepresentation::is_relative_representation(feat.feat_representation) &&
+        feat.p_FinG.norm() > 0.01 &&
+        state->_cam_intrinsics_cameras.count(0) && state->_calib_IMUtoCAM.count(0) &&
+        feat.timestamps.count(0) && feat.uvs_norm.count(0)) {
+      const auto &times0 = feat.timestamps.at(0);
+      const auto &norms0 = feat.uvs_norm.at(0);
+      if (times0.size() >= 2) {
+        double t_new = times0.back();
+        if (state->_clones_IMU.count(t_new)) {
+          cv::Matx33d K0 = state->_cam_intrinsics_cameras.at(0)->get_K();
+          double fx = K0(0, 0);
+          double fy = K0(1, 1);
+          double cx = K0(0, 2);
+          double cy = K0(1, 2);
+          Eigen::Matrix3d R_ItoC0 = state->_calib_IMUtoCAM.at(0)->Rot();
+          Eigen::Vector3d p_C0inI = state->_calib_IMUtoCAM.at(0)->pos();
+          Eigen::Matrix3d R_GtoI_new = state->_clones_IMU.at(t_new)->Rot();
+          Eigen::Vector3d p_IinG_new = state->_clones_IMU.at(t_new)->pos();
+          Eigen::Matrix3d R_GtoC0_new = R_ItoC0 * R_GtoI_new;
+          Eigen::Vector3d p_C0inG_new = p_IinG_new - R_GtoC0_new.transpose() * p_C0inI;
+          Eigen::Vector3d X_Ct = R_GtoC0_new * (feat.p_FinG - p_C0inG_new);
+          if (X_Ct[2] > 0.1) {
+            double n_pred_x = X_Ct[0] / X_Ct[2];
+            double n_pred_y = X_Ct[1] / X_Ct[2];
+            double n_act_x = norms0.back()[0];
+            double n_act_y = norms0.back()[1];
+            double r_px = fx * std::sqrt(std::pow(n_pred_x - n_act_x, 2) + std::pow(n_pred_y - n_act_y, 2));
+
+            // Always compute the geometric inconsistency score (nm_score) so the
+            // feature log gets meaningful values even when _use_imu_residual is false.
+            // nm_score uses the same formula as the Phase 1 noise inflation but is
+            // computed purely for logging — it does NOT affect the VIO covariance.
+            double noise_floor = 3.0 * _options.sigma_pix;
+            double effective_r = std::max(0.0, r_px - noise_floor);
+            double s_imu = std::exp(-effective_r / _imu_residual_sigma_px);
+            double nm_score = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s_imu));
+
+            if (_use_imu_residual) {
+              // Apply noise inflation to the VIO update only when enabled.
+              nm = nm_score;
+            }
+
+            // Feature logger for JEPA dataset construction (Phase 2).
+            // Writes one row per feature: actual pixel, IMU-predicted pixel, nm_score,
+            // depth, previous-frame pixel, and IMU rotation delta (predictor conditioning).
+            if (_log_features && _feat_log_file.is_open()) {
+              double u_act  = fx * n_act_x  + cx;
+              double v_act  = fy * n_act_y  + cy;
+              double u_pred = fx * n_pred_x + cx;
+              double v_pred = fy * n_pred_y + cy;
+
+              // Previous observation (t-1) for context patch and IMU delta
+              double t_prev = -1.0, u_prev = 0.0, v_prev = 0.0;
+              double dangle_x = 0.0, dangle_y = 0.0, dangle_z = 0.0, dt = 0.0;
+              if (times0.size() >= 2) {
+                t_prev = times0[times0.size() - 2];
+                const auto &n_prev = norms0[norms0.size() - 2];
+                u_prev = fx * (double)n_prev[0] + cx;
+                v_prev = fy * (double)n_prev[1] + cy;
+                dt = t_new - t_prev;
+                if (state->_clones_IMU.count(t_prev)) {
+                  // Relative rotation from t_prev to t_new in IMU frame → axis-angle
+                  Eigen::Matrix3d R_GtoI_prev = state->_clones_IMU.at(t_prev)->Rot();
+                  Eigen::Matrix3d R_rel = R_GtoI_prev.transpose() * R_GtoI_new;
+                  Eigen::AngleAxisd aa(R_rel);
+                  Eigen::Vector3d av = aa.angle() * aa.axis();
+                  dangle_x = av[0]; dangle_y = av[1]; dangle_z = av[2];
+                }
+              }
+
+              _feat_log_file << std::fixed << std::setprecision(9)
+                << t_new     << "," << feat.featid << ","
+                << u_act     << "," << v_act       << ","
+                << u_pred    << "," << v_pred       << ","
+                << nm_score  << "," << r_px         << "," << X_Ct[2] << ","
+                << (int)times0.size() << ","
+                << t_prev    << "," << u_prev << "," << v_prev << ","
+                << dangle_x  << "," << dangle_y << "," << dangle_z << "," << dt << "\n";
+            }
+          }
+        }
+      }
+    }
+
+    // Chi2 distance check — use inflated noise nm*sigma_pix_sq as expected model.
+    // Dynamic features are gated at their actual expected noise level, not the
+    // static baseline (prevents hard-rejection of slow-moving dynamic features).
     Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hx_order);
     Eigen::MatrixXd S = H_x * P_marg * H_x.transpose();
-    S.diagonal() += _options.sigma_pix_sq * Eigen::VectorXd::Ones(S.rows());
+    S.diagonal() += (nm * _options.sigma_pix_sq) * Eigen::VectorXd::Ones(S.rows());
     double chi2 = res.dot(S.llt().solve(res));
 
     // Get our threshold (we precompute up to 500 but handle the case that it is more)
@@ -225,12 +340,17 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     if (chi2 > _options.chi2_multipler * chi2_check) {
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
-      // PRINT_DEBUG("featid = %d\n", feat.featid);
-      // PRINT_DEBUG("chi2 = %f > %f\n", chi2, _options.chi2_multipler*chi2_check);
-      // std::stringstream ss;
-      // ss << "res = " << std::endl << res.transpose() << std::endl;
-      // PRINT_DEBUG(ss.str().c_str());
       continue;
+    }
+
+    // Measurement whitening for per-feature noise: divide H_x and res by sqrt(nm).
+    // After this scaling the global R_big = sigma_pix_sq*I is the correct noise model,
+    // equivalent to nm*sigma_pix_sq per feature in the Kalman update.
+    // Dynamic features (nm >> 1) are down-weighted; static features (nm = 1.0) unchanged.
+    if (nm > 1.0) {
+      double inv_sqrt_nm = 1.0 / std::sqrt(nm);
+      H_x *= inv_sqrt_nm;
+      res *= inv_sqrt_nm;
     }
 
     // We are good!!! Append to our large H vector

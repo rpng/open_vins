@@ -100,6 +100,23 @@ struct VioManagerOptions {
   /// The path to the file we will record the timing information into
   std::string record_timing_filepath = "ov_msckf_timing.txt";
 
+  /// If we should use IMU-residual per-feature noise inflation (Phase 1)
+  bool use_imu_residual = false;
+
+  /// Noise inflation scale: sigma^2_obs(i) = sigma^2_base * (1 + alpha * (1 - s_imu))
+  double imu_residual_alpha = 5.0;
+
+  /// Residual threshold in pixels for s_imu = exp(-r_px / sigma_px)
+  double imu_residual_sigma_px = 2.0;
+
+  /// Enable per-feature CSV logging for JEPA dataset construction (Phase 2).
+  /// Disabled by default — zero runtime cost when false.
+  bool log_features = false;
+
+  /// Output path for the feature log CSV (e.g. /data/logs/feature_log_run_1.csv).
+  /// The run number should be embedded by the calling script; not auto-incremented here.
+  std::string log_features_path = "";
+
   /**
    * @brief This function will load print out all estimator settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -119,8 +136,15 @@ struct VioManagerOptions {
       parser->parse_config("zupt_only_at_beginning", zupt_only_at_beginning);
       parser->parse_config("record_timing_information", record_timing_information);
       parser->parse_config("record_timing_filepath", record_timing_filepath);
+      parser->parse_config("use_imu_residual", use_imu_residual);
+      parser->parse_config("imu_residual_alpha", imu_residual_alpha);
+      parser->parse_config("imu_residual_sigma_px", imu_residual_sigma_px);
+      parser->parse_config("log_features", log_features);
+      parser->parse_config("log_features_path", log_features_path);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
+    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f\n", (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px);
+    PRINT_DEBUG("  - log_features: %d  path=%s\n", (int)log_features, log_features_path.c_str());
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
