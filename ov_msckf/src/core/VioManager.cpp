@@ -711,4 +711,38 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
                state->_calib_imu_tg->value()(4), state->_calib_imu_tg->value()(5), state->_calib_imu_tg->value()(6),
                state->_calib_imu_tg->value()(7), state->_calib_imu_tg->value()(8));
   }
+
+
+  
+
+  if (params.use_z_constraint) {
+        do_z_constraint_update();
+    }
+
 }
+
+void VioManager::do_z_constraint_update(){
+    if(!initialized() || !params.use_z_constraint) {
+      return ;
+
+    }
+
+    double current_z = state->_imu->pos()(2);
+
+    Eigen::VectorXd res(1);
+    res(0) = 0.0 - current_z;
+
+   std::vector<std::shared_ptr<ov_type::Type>> h_types;
+    h_types.push_back(state->_imu);
+
+    Eigen::MatrixXd H_imu = Eigen::MatrixXd::Zero(1,15);
+    H_imu(0,5) = 1.0;
+
+    std::vector<Eigen::MatrixXd> H_matrices;
+    H_matrices.push_back(H_imu);
+
+    Eigen::MatrixXd R = Eigen::MatrixXd::Identity(1,1) *params.z_constraint_noise;
+
+    StateHelper::EKFUpdate(state, h_types, H_imu, res,R);
+
+  }

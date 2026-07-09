@@ -55,6 +55,8 @@ namespace ov_msckf {
  */
 struct VioManagerOptions {
 
+  bool use_z_constraint = false;
+  double z_constraint_noise = 0.0001;
   /**
    * @brief This function will load the non-simulation parameters of the system and print.
    * @param parser If not null, this parser will be used to load our parameters
@@ -63,6 +65,21 @@ struct VioManagerOptions {
     print_and_load_estimator(parser);
     print_and_load_trackers(parser);
     print_and_load_noise(parser);
+
+//Custom Z axis constrint 
+
+    if(parser != nullptr ){
+      parser->parse_config("use_z_constraint", use_z_constraint, false);
+      parser->parse_config("z_constraint_noise", z_constraint_noise, 0.0001);
+
+
+      // to be sure 
+
+      PRINT_INFO("use-z-constraint %d ", use_z_constraint);
+      PRINT_INFO("z-constraint-noise %f ", z_constraint_noise);
+
+
+    }
 
     // needs to be called last
     print_and_load_state(parser);

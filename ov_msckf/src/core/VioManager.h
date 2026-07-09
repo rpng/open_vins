@@ -241,6 +241,14 @@ protected:
   std::map<size_t, Eigen::Matrix3d> active_feat_linsys_A;
   std::map<size_t, Eigen::Vector3d> active_feat_linsys_b;
   std::map<size_t, int> active_feat_linsys_count;
+
+  private : 
+
+  /**
+   * @brief Force the Z-axis to 0 
+   */
+  void do_z_constraint_update();
+  
 };
 
 } // namespace ov_msckf
