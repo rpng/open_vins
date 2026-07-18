@@ -1,0 +1,139 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+# Phase 1 single-frame IMU residual + triangulation quality depth gate.
+# Same as the best Phase 1 config (alpha=3.0, sigma=5.0, single-frame) but adds a
+# depth gate: features beyond max_depth have unreliable p_FinG (low stereo disparity)
+# and are excluded from nm inflation.
+#
+# Motivation: city_night/none and city_night/low fail in Phase 1 because dark scenes
+# force long-range triangulation → poor depth → noisy residuals → false nm inflation.
+# The gate suppresses nm for features > 15m (disparity < 1.3px at VIODE baseline).
+#
+# Gate metric: ATE <= Phase 1 (batch_14, 8/12) on >= 10/12 scenarios.
+#
+# Why variance is bias-invariant:
+#   Triangulation error adds a constant offset c to every r_k (same p_FinG applied
+#   to all clone poses).  var({c+x1,...,c+xN}) = var({x1,...,xN}).  A static feature
+#   has low std_r regardless of triangulation quality; a dynamic feature has high
+#   std_r because its true world position changed while p_FinG stayed fixed.
+#
+# Gate: variance-nm ATE <= Phase 1 single-frame ATE (batch_14, 8/12) on >=10/12 scenarios.
+
+verbosity: "INFO"
+
+use_fej: true
+integration: "rk4"
+use_stereo: true
+max_cameras: 2
+
+calib_cam_extrinsics: false
+calib_cam_intrinsics: false
+calib_cam_timeoffset: false
+calib_imu_intrinsics: false
+calib_imu_g_sensitivity: false
+
+max_clones: 15
+max_slam: 50
+max_slam_in_update: 25
+max_msckf_in_update: 60
+dt_slam_delay: 1
+
+gravity_mag: 9.81007
+
+feat_rep_msckf: "GLOBAL_3D"
+feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
+
+try_zupt: true
+zupt_chi2_multipler: 0
+zupt_max_velocity: 0.1
+zupt_noise_multiplier: 10
+zupt_max_disparity: 0.5
+zupt_only_at_beginning: false
+
+# ==================================================================
+
+init_window_time: 1.2
+init_imu_thresh: 0.5
+init_max_disparity: 20.0
+init_max_features: 150
+
+init_dyn_use: true
+init_dyn_mle_opt_calib: false
+init_dyn_mle_max_iter: 50
+init_dyn_mle_max_time: 0.05
+init_dyn_mle_max_threads: 6
+init_dyn_num_pose: 6
+init_dyn_min_deg: 5.0
+
+init_dyn_inflation_ori: 10
+init_dyn_inflation_vel: 100
+init_dyn_inflation_bg: 10
+init_dyn_inflation_ba: 100
+init_dyn_min_rec_cond: 1e-12
+
+init_dyn_bias_g: [ 0.0, 0.0, 0.0 ]
+init_dyn_bias_a: [ 0.0, 0.0, 0.0 ]
+
+# ==================================================================
+
+record_timing_information: false
+record_timing_filepath: "/tmp/traj_timing.txt"
+
+save_total_state: false
+filepath_est: "/tmp/ov_estimate.txt"
+filepath_std: "/tmp/ov_estimate_std.txt"
+filepath_gt: "/tmp/ov_groundtruth.txt"
+
+# ==================================================================
+
+use_klt: true
+num_pts: 600
+fast_threshold: 10
+grid_x: 8
+grid_y: 6
+min_px_dist: 10
+knn_ratio: 0.90
+track_frequency: 21.0
+downsample_cameras: false
+num_opencv_threads: 4
+histogram_method: "CLAHE"
+
+use_aruco: false
+num_aruco: 1024
+downsize_aruco: true
+
+# ==================================================================
+
+up_msckf_sigma_px: 1.5
+up_msckf_chi2_multipler: 1
+up_slam_sigma_px: 1
+up_slam_chi2_multipler: 1
+up_aruco_sigma_px: 1
+up_aruco_chi2_multipler: 1
+
+use_mask: false
+mask0: "dummy_mask.png"
+mask1: "dummy_mask.png"
+
+relative_config_imu: "kalibr_imu_chain.yaml"
+relative_config_imucam: "kalibr_imucam_chain.yaml"
+
+use_dynamic_mask: true
+dynamic_mask_topic0: "/cam0/masked"
+dynamic_mask_topic1: "/cam1/masked"
+
+# ==================================================================
+# Phase 1 single-frame + depth gate
+# ==================================================================
+
+use_imu_residual: true
+imu_residual_alpha: 3.0
+imu_residual_sigma_px: 5.0
+
+# Single-frame mode (best; variance mode is disabled)
+use_residual_variance: false
+
+# Depth gate: suppress nm for features beyond 15m.
+# Stereo disparity at 15m: 0.05m * 376px / 15m = 1.25px (unreliable).
+imu_residual_max_depth: 15.0

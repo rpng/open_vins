@@ -127,10 +127,6 @@ dynamic_mask_topic1: "/cam1/masked"
 use_imu_residual: false
 imu_residual_alpha: 5.0
 imu_residual_sigma_px: 5.0
-
-# Phase 2 JEPA dataset collection — disabled by default, zero runtime cost when false.
-# Set log_features: true and supply a run-specific CSV path to collect data.
-# The run number must be embedded in the filename by the calling script.
-log_features: false
-log_features_path: ""
+use_residual_variance: false
+imu_residual_max_depth: 0.0
 

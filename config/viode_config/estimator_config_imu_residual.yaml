@@ -128,4 +128,6 @@ dynamic_mask_topic1: "/cam1/masked"
 use_imu_residual: true
 imu_residual_alpha: 3.0
 imu_residual_sigma_px: 5.0
+use_residual_variance: false
+imu_residual_max_depth: 0.0
 

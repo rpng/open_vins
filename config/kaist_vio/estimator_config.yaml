@@ -128,10 +128,6 @@ use_imu_residual: false
 imu_residual_alpha: 5.0
 imu_residual_sigma_px: 5.0
 
-# Phase 2 JEPA dataset collection
-log_features: false
-log_features_path: ""
-
 
 
 

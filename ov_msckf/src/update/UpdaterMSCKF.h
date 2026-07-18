@@ -28,6 +28,8 @@
 #include <string>
 #include <unordered_map>
 
+#include <opencv2/core.hpp>
+
 #include "feat/FeatureInitializerOptions.h"
 
 #include "UpdaterOptions.h"
@@ -65,42 +67,40 @@ public:
   /**
    * @brief Given tracked features, this will try to use them to update the state.
    *
-   * @param state State of the filter
-   * @param feature_vec Features that can be used for update
+   * @param state        State of the filter
+   * @param feature_vec  Features that can be used for update
    */
   void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
 
   /**
-   * @brief Configure the IMU-residual per-feature noise inflation (Phase 1, Option C).
+   * @brief Configure the IMU-residual per-feature noise inflation.
    *
-   * When enabled, after triangulation each MSCKF feature's p_FinG is projected
-   * into cam0 at the newest clone time and compared to the actual observation.
-   * Dynamic features (large projection residual) get noise multiplier nm >> 1.
+   * Projects each feature's p_FinG into cam0 and computes a reprojection residual
+   * used to inflate MSCKF measurement noise for dynamic features (nm > 1).
    *
-   * @param use       Enable/disable the computation
-   * @param alpha     Multiplier scale: nm = 1 + alpha*(1 - s_imu)
-   * @param sigma_px  Decay scale for the exponential score (pixels, default 5.0)
+   * Two modes selectable via use_variance:
+   *   false (default) — single-frame: residual at the newest clone only.
+   *   true  (variance) — std-dev of residuals across all sliding-window clones.
+   *     Bias-invariant: triangulation error adds a constant to every r_k and
+   *     cancels in variance. Only features that actually moved show high std_r.
+   *     Falls back to nm=1 when fewer than 3 valid clone observations exist.
+   *
+   * @param use          Enable/disable
+   * @param alpha        Scale: nm = 1 + alpha*(1 - exp(-signal/sigma_px))
+   * @param sigma_px     Decay constant in pixels
+   * @param use_variance Use cross-clone residual std-dev instead of single-frame residual
+   * @param max_depth    Features beyond this depth (m) skip nm entirely (0 = disabled).
+   *                     Suppresses false inflation on poorly-triangulated far features.
+   *                     Stereo disparity at max_depth ≈ baseline*fx/max_depth.
    */
-  void set_imu_residual_params(bool use, double alpha, double sigma_px) {
+  void set_imu_residual_params(bool use, double alpha, double sigma_px,
+                               bool use_variance = false, double max_depth = 0.0) {
     _use_imu_residual = use;
     _imu_residual_alpha = alpha;
     _imu_residual_sigma_px = sigma_px;
+    _use_residual_variance = use_variance;
+    _imu_residual_max_depth = max_depth;
   }
-
-  /**
-   * @brief Configure the per-feature CSV logger for JEPA dataset construction (Phase 2).
-   *
-   * When enabled, after each feature's nm and IMU projection are computed, a row is
-   * appended to the CSV at @p path. Disabled by default — no file I/O when false.
-   *
-   * CSV columns:
-   *   ts, feat_id, u_act, v_act, u_pred, v_pred, nm, r_px, depth,
-   *   track_len, t_prev, u_prev, v_prev, dangle_x, dangle_y, dangle_z, dt
-   *
-   * @param enable  Turn logging on/off
-   * @param path    Full output path (run number must be in the filename, e.g. feature_log_run_3.csv)
-   */
-  void set_feature_logger_params(bool enable, const std::string &path);
 
 protected:
   /// Options used during update
@@ -112,14 +112,13 @@ protected:
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;
 
-  // IMU-residual noise inflation parameters (Phase 1, Option C)
+  // IMU-residual noise inflation parameters
   bool _use_imu_residual = false;
   double _imu_residual_alpha = 5.0;
   double _imu_residual_sigma_px = 5.0;
+  bool _use_residual_variance = false;   // use cross-clone residual std-dev instead of single-frame
+  double _imu_residual_max_depth = 0.0; // depth gate in metres (0 = disabled)
 
-  // Feature logger (Phase 2 dataset collection — disabled by default)
-  bool _log_features = false;
-  std::ofstream _feat_log_file;
 };
 
 } // namespace ov_msckf

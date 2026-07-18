@@ -149,6 +149,10 @@ protected:
   /// Simulator (is nullptr if we are not sim'ing)
   std::shared_ptr<Simulator> _sim;
 
+  /// ImageTransport instance kept alive for the lifetime of the visualizer.
+  /// Must outlive all image_transport::Publisher members below.
+  image_transport::ImageTransport _it;
+
   // Our publishers
   image_transport::Publisher it_pub_tracks, it_pub_loop_img_depth, it_pub_loop_img_depth_color;
   rclcpp::Publisher<geometry_msgs::msg::PoseWithCovarianceStamped>::SharedPtr pub_poseimu;

@@ -100,22 +100,24 @@ struct VioManagerOptions {
   /// The path to the file we will record the timing information into
   std::string record_timing_filepath = "ov_msckf_timing.txt";
 
-  /// If we should use IMU-residual per-feature noise inflation (Phase 1)
+  /// If we should use IMU-residual per-feature noise inflation
   bool use_imu_residual = false;
 
-  /// Noise inflation scale: sigma^2_obs(i) = sigma^2_base * (1 + alpha * (1 - s_imu))
+  /// Noise inflation scale: nm = 1 + alpha * (1 - exp(-signal / sigma_px))
   double imu_residual_alpha = 5.0;
 
-  /// Residual threshold in pixels for s_imu = exp(-r_px / sigma_px)
+  /// Decay constant in pixels for the exponential nm formula
   double imu_residual_sigma_px = 2.0;
 
-  /// Enable per-feature CSV logging for JEPA dataset construction (Phase 2).
-  /// Disabled by default — zero runtime cost when false.
-  bool log_features = false;
+  /// Use cross-clone residual std-dev (variance mode) instead of single-frame residual.
+  /// Variance is bias-invariant: triangulation error offsets cancel, only moving features
+  /// show high std_r.  Requires ≥3 valid clone observations; falls back to nm=1 for short tracks.
+  bool use_residual_variance = false;
 
-  /// Output path for the feature log CSV (e.g. /data/logs/feature_log_run_1.csv).
-  /// The run number should be embedded by the calling script; not auto-incremented here.
-  std::string log_features_path = "";
+  /// Depth gate for nm inflation (metres).  Features beyond this depth have low stereo
+  /// disparity → unreliable p_FinG → nm is suppressed to 1.0.  0 = disabled (default).
+  /// For VIODE (baseline=5cm, fx=376px): depth 15m → 1.3px disparity (unreliable).
+  double imu_residual_max_depth = 0.0;
 
   /**
    * @brief This function will load print out all estimator settings loaded.
@@ -139,12 +141,13 @@ struct VioManagerOptions {
       parser->parse_config("use_imu_residual", use_imu_residual);
       parser->parse_config("imu_residual_alpha", imu_residual_alpha);
       parser->parse_config("imu_residual_sigma_px", imu_residual_sigma_px);
-      parser->parse_config("log_features", log_features);
-      parser->parse_config("log_features_path", log_features_path);
+      parser->parse_config("use_residual_variance", use_residual_variance);
+      parser->parse_config("imu_residual_max_depth", imu_residual_max_depth);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
-    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f\n", (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px);
-    PRINT_DEBUG("  - log_features: %d  path=%s\n", (int)log_features, log_features_path.c_str());
+    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f\n",
+                (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px,
+                (int)use_residual_variance, imu_residual_max_depth);
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
