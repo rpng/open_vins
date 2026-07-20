@@ -30,9 +30,12 @@
 #include "track/TrackSIM.h"
 #include "types/Landmark.h"
 #include "types/LandmarkRepresentation.h"
+#include "utils/colors.h"
 #include "utils/opencv_lambda_body.h"
 #include "utils/print.h"
 #include "utils/sensor_data.h"
+
+#include <boost/math/distributions/chi_squared.hpp>
 
 #include "init/InertialInitializer.h"
 
@@ -721,28 +724,53 @@ void VioManager::do_feature_propagate_update(const ov_core::CameraData &message)
 
 }
 
-void VioManager::do_z_constraint_update(){
-    if(!initialized() || !params.use_z_constraint) {
-      return ;
-
-    }
-
-    double current_z = state->_imu->pos()(2);
-
-    Eigen::VectorXd res(1);
-    res(0) = 0.0 - current_z;
-
-   std::vector<std::shared_ptr<ov_type::Type>> h_types;
-    h_types.push_back(state->_imu);
-
-    Eigen::MatrixXd H_imu = Eigen::MatrixXd::Zero(1,15);
-    H_imu(0,5) = 1.0;
-
-    std::vector<Eigen::MatrixXd> H_matrices;
-    H_matrices.push_back(H_imu);
-
-    Eigen::MatrixXd R = Eigen::MatrixXd::Identity(1,1) *params.z_constraint_noise;
-
-    StateHelper::EKFUpdate(state, h_types, H_imu, res,R);
-
+void VioManager::do_z_constraint_update() {
+  if (!initialized() || !params.use_z_constraint) {
+    return;
   }
+
+  // Skip the warm-up window right after initialization (mirrors dt_slam_delay): the pose
+  // estimate is still settling then, so both the captured reference height and the early
+  // chi2-gated updates are unreliable and were the source of the spiral at the run start.
+  if (state->_timestamp - startup_time < params.z_constraint_start_delay) {
+    return;
+  }
+
+  // Capture the height once warm-up is done instead of assuming the global origin is
+  // exactly z=0 (it usually isn't, so pulling to a hardcoded 0 injects a persistent bias
+  // that the filter has to fight every update).
+  double current_z = state->_imu->pos()(2);
+  if (!z_constraint_ref_set) {
+    z_constraint_ref = current_z;
+    z_constraint_ref_set = true;
+  }
+
+  Eigen::VectorXd res(1);
+  res(0) = z_constraint_ref - current_z;
+
+  std::vector<std::shared_ptr<ov_type::Type>> h_types;
+  h_types.push_back(state->_imu);
+
+  Eigen::MatrixXd H_imu = Eigen::MatrixXd::Zero(1, 15);
+  H_imu(0, 5) = 1.0;
+
+  Eigen::MatrixXd R = Eigen::MatrixXd::Identity(1, 1) * params.z_constraint_noise;
+
+  // Chi-squared gate (same idea as our ZUPT updater) so that this pseudo-measurement
+  // only gets applied when it is statistically consistent with the current covariance.
+  // With a 1-D residual this is what prevents an overconfident "z==ref" update from
+  // dragging the correlated x/y and attitude states along with it whenever the true
+  // motion has some real (if small) vertical component that legitimately disagrees.
+  Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, h_types);
+  Eigen::MatrixXd S = H_imu * P_marg * H_imu.transpose() + R;
+  double chi2 = res.dot(S.llt().solve(res));
+  boost::math::chi_squared chi_squared_dist(res.rows());
+  double chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
+  if (chi2 > params.z_constraint_chi2_multiplier * chi2_check) {
+    PRINT_DEBUG(YELLOW "[Z-CONSTRAINT]: rejected dz = %.3f (chi2 %.3f > %.3f)\n" RESET, res(0), chi2,
+                params.z_constraint_chi2_multiplier * chi2_check);
+    return;
+  }
+
+  StateHelper::EKFUpdate(state, h_types, H_imu, res, R);
+}

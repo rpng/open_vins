@@ -242,13 +242,22 @@ protected:
   std::map<size_t, Eigen::Vector3d> active_feat_linsys_b;
   std::map<size_t, int> active_feat_linsys_count;
 
-  private : 
+  private :
 
   /**
-   * @brief Force the Z-axis to 0 
+   * @brief Softly constrain the Z-axis to stay near its value at initialization.
+   *
+   * Applied as a gated pseudo-measurement (chi-squared tested, like our ZUPT) so that a
+   * single low-confidence virtual observation cannot forcefully drag correlated states
+   * (x, y, attitude) through covariance cross-correlation when it disagrees with the rest
+   * of the filter.
    */
   void do_z_constraint_update();
-  
+
+  // Reference height captured the first time the constraint is applied
+  bool z_constraint_ref_set = false;
+  double z_constraint_ref = 0.0;
+
 };
 
 } // namespace ov_msckf

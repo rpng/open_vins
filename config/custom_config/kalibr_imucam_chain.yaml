@@ -1,0 +1,14 @@
+%YAML:1.0
+
+cam0:
+  rostopic: "/r302091a17/camera_front_mid/publisher/color/image"
+  camera_model: "pinhole"
+  distortion_model: "radtan"
+  resolution: [848, 480]
+  intrinsics: [604.9281, 604.3170, 435.9585, 246.9808]
+  distortion_coeffs: [0.0, 0.0, 0.0, 0.0, 0.0]
+  T_imu_cam:
+    - [0.0000, 0.0000, 1.0000, 0.4103]
+    - [-1.0000, 0.0000, 0.0000, -0.0325]
+    - [0.0000, -1.0000, 0.0000, 0.0023]
+    - [0.0000, 0.0000, 0.0000, 1.0000]
