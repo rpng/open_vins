@@ -1,0 +1,26 @@
+frequency: 30
+sensor_timeout: 0.1
+two_d_mode: true
+
+map_frame: r302091a17/map
+odom_frame: r302091a17/odom
+base_link_frame: r302091a17/base_link 
+world_frame: r302091a17/odom
+
+# 1. Sensör: Tekerlek Odometrisi (TAMAMEN KAPALI - 15 tane false)
+odom0: /r302091a17/odom
+odom0_config: [true,  true, false, 
+               false, false, true, 
+               false, false, false, 
+               false, false, false, 
+               false, false, false]
+odom0_differential: false
+
+# 2. Sensör: OpenVINS (TAM YETKİ)
+odom1: /ov_msckf/loop_pose
+odom1_config: [false,  false,  false, # X, Y AÇIK
+               true, true, false,  # Yaw AÇIK
+               false, false, false, 
+               false, false, false, 
+               false, false, false]
+odom1_relative: false

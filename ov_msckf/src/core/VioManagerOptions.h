@@ -55,6 +55,22 @@ namespace ov_msckf {
  */
 struct VioManagerOptions {
 
+  bool use_z_constraint = false;
+  // Noise variance (m^2) of the virtual "height stays put" measurement. This must reflect
+  // *realistic* height uncertainty (floor unevenness, suspension, vibration) -- if it is set
+  // too small the pseudo-measurement becomes an overconfident near-hard constraint, and since
+  // z-position is correlated with x/y and attitude in the covariance, the EKF gain will end up
+  // dragging those other states along with it every update, distorting the whole trajectory.
+  double z_constraint_noise = 0.01;
+  // Chi-squared gate multiplier for the virtual height update (same role as zupt_chi2_multipler).
+  // The update is skipped whenever the residual is statistically inconsistent with the current
+  // covariance, so it does not fight genuine vertical motion or corrupt correlated states.
+  double z_constraint_chi2_multiplier = 1.0;
+  // Seconds to wait after initialization before the constraint starts (same idea as
+  // dt_slam_delay). Right after init the pose/attitude estimate is still settling, so both
+  // the captured reference height and the early chi2-gated updates are unreliable -- applying
+  // the constraint during this window is what was causing the spiral at the start of the run.
+  double z_constraint_start_delay = 1.0;
   /**
    * @brief This function will load the non-simulation parameters of the system and print.
    * @param parser If not null, this parser will be used to load our parameters
@@ -63,6 +79,21 @@ struct VioManagerOptions {
     print_and_load_estimator(parser);
     print_and_load_trackers(parser);
     print_and_load_noise(parser);
+
+//Custom Z axis constrint 
+
+    if(parser != nullptr ){
+      parser->parse_config("use_z_constraint", use_z_constraint, false);
+      parser->parse_config("z_constraint_noise", z_constraint_noise, 0.01);
+      parser->parse_config("z_constraint_chi2_multiplier", z_constraint_chi2_multiplier, 1.0);
+      parser->parse_config("z_constraint_start_delay", z_constraint_start_delay, 1.0);
+
+      PRINT_INFO("use_z_constraint: %d\n", use_z_constraint);
+      PRINT_INFO("z_constraint_noise: %.6f\n", z_constraint_noise);
+      PRINT_INFO("z_constraint_chi2_multiplier: %.3f\n", z_constraint_chi2_multiplier);
+      PRINT_INFO("z_constraint_start_delay: %.3f\n", z_constraint_start_delay);
+
+    }
 
     // needs to be called last
     print_and_load_state(parser);
