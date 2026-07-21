@@ -292,11 +292,13 @@ struct VioManagerOptions {
           }
           cv::Mat mask = cv::imread(total_mask_path, cv::IMREAD_GRAYSCALE);
           masks.insert({i, mask});
-          if (mask.cols != camera_intrinsics.at(i)->w() || mask.rows != camera_intrinsics.at(i)->h()) {
+          const int mask_width = camera_intrinsics.at(i)->w() * (downsample_cameras ? 2 : 1);
+          const int mask_height = camera_intrinsics.at(i)->h() * (downsample_cameras ? 2 : 1);
+          if (mask.cols != mask_width || mask.rows != mask_height) {
             PRINT_ERROR(RED "VioManager(): mask size does not match camera!\n" RESET);
             PRINT_ERROR(RED "\t- mask%d - %s\n" RESET, i, total_mask_path.c_str());
             PRINT_ERROR(RED "\t- mask%d - %d x %d\n" RESET, mask.cols, mask.rows);
-            PRINT_ERROR(RED "\t- cam%d - %d x %d\n" RESET, camera_intrinsics.at(i)->w(), camera_intrinsics.at(i)->h());
+            PRINT_ERROR(RED "\t- cam%d - %d x %d\n" RESET, i, mask_width, mask_height);
             std::exit(EXIT_FAILURE);
           }
         }
