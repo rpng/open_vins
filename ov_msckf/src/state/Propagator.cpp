@@ -151,7 +151,8 @@ bool Propagator::fast_state_propagate(std::shared_ptr<State> state, double times
 
   // First lets construct an IMU vector of measurements we need
   double time0 = cache_state_time + cache_t_off;
-  double time1 = timestamp + cache_t_off;
+  // The requested timestamp comes from the IMU callback.
+  double time1 = timestamp;
   std::vector<ov_core::ImuData> prop_data;
   {
     std::lock_guard<std::mutex> lck(imu_data_mtx);

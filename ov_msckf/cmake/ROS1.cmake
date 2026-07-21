@@ -158,3 +158,10 @@ install(TARGETS test_sim_repeat
         RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
 )
 
+add_executable(test_fast_propagation src/test_fast_propagation.cpp)
+target_link_libraries(test_fast_propagation ov_msckf_lib ${thirdparty_libraries})
+install(TARGETS test_fast_propagation
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
+)

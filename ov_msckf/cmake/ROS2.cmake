@@ -108,6 +108,11 @@ ament_target_dependencies(test_sim_repeat ${ament_libraries})
 target_link_libraries(test_sim_repeat ov_msckf_lib ${thirdparty_libraries})
 install(TARGETS test_sim_repeat DESTINATION lib/${PROJECT_NAME})
 
+add_executable(test_fast_propagation src/test_fast_propagation.cpp)
+ament_target_dependencies(test_fast_propagation ${ament_libraries})
+target_link_libraries(test_fast_propagation ov_msckf_lib ${thirdparty_libraries})
+install(TARGETS test_fast_propagation DESTINATION lib/${PROJECT_NAME})
+
 # Install launch and config directories
 install(DIRECTORY launch/ DESTINATION share/${PROJECT_NAME}/launch/)
 install(DIRECTORY ../config/ DESTINATION share/${PROJECT_NAME}/config/)
