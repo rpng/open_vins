@@ -1,0 +1,53 @@
+%YAML:1.0
+# conformal_euroc.yaml  --  documentation overlay for the five numbers conformal makes learnable.
+#
+# Companion to: Section 4.4 ("The whole modification, in one sentence -- Five numbers") and
+#               Section 17 (decoupled pipeline).
+#
+# conformal leaves every line of OpenVINS untouched and makes exactly FIVE hand-tuned numbers
+# input-dependent (Section 4.4):
+#     4 IMU noise densities inside Q  (Net B)   +   1 pixel scalar inside R  (Net A).
+#
+# This file is NOT loaded directly by OpenVINS (which reads config/euroc_mav/estimator_config.yaml
+# and the kalibr chains). It is a human-readable map from "the five numbers" to the exact config
+# keys / source symbols they correspond to, plus the Stage-3 injection settings. Use it as the
+# single source of truth when wiring plug_learned_sigma.py and the Stage-3 runner.
+
+base_config: "../../config/euroc_mav/estimator_config.yaml"   # inherit the real, unmodified config
+
+# ---- R: the ONE pixel scalar Net A replaces with a per-feature sigma (Section 4.3) ----------
+#   OpenVINS key : up_msckf_sigma_px            (estimator_config.yaml, default 1)
+#   Source symbol: ov_msckf::UpdaterOptions::sigma_pix  (used in UpdaterMSCKF.cpp to build R)
+#   Also present : up_slam_sigma_px, up_aruco_sigma_px  (MSCKF path is what conformal targets)
+R_visual:
+  stock_sigma_px: 1.0
+  net_a: "per-feature sigma_pix_i (conformal/stage2_train/net_a_visual_deepsets.py)"
+
+# ---- Q: the FOUR IMU noise densities Net B rescales (Section 4.2) ---------------------------
+#   Source symbols: ov_msckf::NoiseManager {sigma_w, sigma_a, sigma_wb, sigma_ab}
+#   Config: the kalibr_imu_chain.yaml gyroscope/accelerometer *_noise_density and *_random_walk
+#   Net B applies:  sigma_k <- sigma_k * exp(delta_k)   (4 per-window log-scales)
+Q_inertial:
+  stock:                      # EuRoC defaults (NoiseManager.h)
+    sigma_w:  1.6968e-04      # gyroscope_noise_density
+    sigma_a:  2.0000e-03      # accelerometer_noise_density
+    sigma_wb: 1.9393e-05      # gyroscope_random_walk
+    sigma_ab: 3.0000e-03      # accelerometer_random_walk
+  net_b: "4 log-scales delta_k (conformal/stage2_train/net_b_imu_dilated_tcn.py)"
+
+# ---- The chi-squared outlier gate -- NOT one of the five numbers, but it READS P/R -----------
+#   Matters for ablation A3 (Section 14.1 trap): the Mahalanobis gate is not scale-invariant.
+#   OpenVINS key: up_msckf_chi2_multipler (and up_slam_/up_aruco_)
+chi2_gate:
+  up_msckf_chi2_multipler: 1
+  a3_note: "when scaling Q,R by lambda in A3, scale this by lambda too, OR disable the gate, and state which (Section 14.1)."
+
+# ---- Observability / FEJ -- crossed on/off in every sweep (Section 15) ----------------------
+fej:
+  use_fej: true               # config/euroc_mav/estimator_config.yaml key; cross on/off (the_fej_confound_control.py)
+
+# ---- Stage-3 sigma injection (Section 17 step 3) -------------------------------------------
+stage3_injection:
+  mechanism: "sidecar HDF5 keyed by (frame_time -> 4 IMU sigmas) and (frame_time, feature_id -> sigma_pix)"
+  producer: "conformal/stage3_eval/plug_learned_sigma.py"
+  arms: ["stock", "learned", "conformalised", "oracle"]
