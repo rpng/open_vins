@@ -1,0 +1,127 @@
+[roslaunch][INFO] 2026-07-21 16:06:13,551: Checking log directory for disk usage. This may take a while.
+Press Ctrl-C to interrupt
+[roslaunch][INFO] 2026-07-21 16:06:13,560: Done checking log file disk usage. Usage is <1GB.
+[roslaunch][INFO] 2026-07-21 16:06:13,561: roslaunch starting with args ['/opt/ros/noetic/bin/roslaunch', 'ov_msckf', 'serial.launch', 'config:=euroc_mav', 'dataset:=V2_02_medium', 'bag:=/datasets/vicon_2/V2_02_medium/V2_02_medium.bag', 'bag_start:=0', 'max_cameras:=2', 'use_stereo:=true', 'dosave:=true', 'path_est:=/results/V2_02_medium/estimate.txt', 'dotime:=true', 'path_time:=/results/V2_02_medium/timing.txt', 'dolivetraj:=false']
+[roslaunch][INFO] 2026-07-21 16:06:13,561: roslaunch env is environ({'HOSTNAME': 'd76b54aae425', 'ROS_PACKAGE_PATH': '/catkin_ws/src/open_vins/ov_core:/catkin_ws/src/open_vins/ov_data:/catkin_ws/src/open_vins/ov_eval:/catkin_ws/src/open_vins/ov_init:/catkin_ws/src/open_vins/ov_msckf:/opt/ros/noetic/share', 'LD_LIBRARY_PATH': '/catkin_ws/devel/lib:/opt/ros/noetic/lib', 'ROS_ETC_DIR': '/opt/ros/noetic/etc/ros', 'HOME': '/tmp', 'ROS_PYTHON_VERSION': '3', 'ROS_LOG_DIR': '/results/V2_02_medium/ros_logs', 'ROS_DISTRO': 'noetic', 'PKG_CONFIG_PATH': '/catkin_ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig', 'ROS_VERSION': '1', 'PATH': '/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'ROS_ROOT': '/opt/ros/noetic/share/ros', 'ROSLISP_PACKAGE_DIRECTORIES': '/catkin_ws/devel/share/common-lisp', 'ROS_MASTER_URI': 'http://localhost:11311', 'LC_ALL': 'C.UTF-8', 'PWD': '/catkin_ws', 'ROS_HOSTNAME': 'localhost', 'PYTHONPATH': '/opt/ros/noetic/lib/python3/dist-packages', 'CMAKE_PREFIX_PATH': '/catkin_ws/devel:/opt/ros/noetic', 'ROS_LOG_FILENAME': '/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/roslaunch-d76b54aae425-1.log'})
+[roslaunch][INFO] 2026-07-21 16:06:13,562: starting in server mode
+[roslaunch.parent][INFO] 2026-07-21 16:06:13,563: starting roslaunch parent run
+[roslaunch][INFO] 2026-07-21 16:06:13,564: loading roscore config file /opt/ros/noetic/etc/ros/roscore.xml
+[roslaunch][INFO] 2026-07-21 16:06:13,703: Added core node of type [rosout/rosout] in namespace [/]
+[roslaunch.config][INFO] 2026-07-21 16:06:13,704: loading config file /catkin_ws/src/open_vins/ov_msckf/launch/serial.launch
+[roslaunch][INFO] 2026-07-21 16:06:13,751: Added node of type [ov_msckf/ros1_serial_msckf] in namespace [/]
+[roslaunch][INFO] 2026-07-21 16:06:13,754: Added node of type [ov_eval/pose_to_file] in namespace [/]
+[roslaunch][INFO] 2026-07-21 16:06:13,755: ... selected machine [] for node of type [ov_msckf/ros1_serial_msckf]
+[roslaunch][INFO] 2026-07-21 16:06:13,756: ... selected machine [] for node of type [ov_eval/pose_to_file]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:13,758: start_process_monitor: creating ProcessMonitor
+[roslaunch.pmon][INFO] 2026-07-21 16:06:13,760: created process monitor <ProcessMonitor(ProcessMonitor-1, initial daemon)>
+[roslaunch.pmon][INFO] 2026-07-21 16:06:13,761: start_process_monitor: ProcessMonitor started
+[roslaunch.parent][INFO] 2026-07-21 16:06:13,762: starting parent XML-RPC server
+[roslaunch.server][INFO] 2026-07-21 16:06:13,764: starting roslaunch XML-RPC server
+[roslaunch.server][INFO] 2026-07-21 16:06:13,765: waiting for roslaunch XML-RPC server to initialize
+[xmlrpc][INFO] 2026-07-21 16:06:13,765: XML-RPC server binding to 127.0.0.1:0
+[xmlrpc][INFO] 2026-07-21 16:06:13,768: Started XML-RPC server [http://localhost:39773/]
+[xmlrpc][INFO] 2026-07-21 16:06:13,769: xml rpc node: starting XML-RPC server
+[roslaunch][INFO] 2026-07-21 16:06:13,779: started roslaunch server http://localhost:39773/
+[roslaunch.parent][INFO] 2026-07-21 16:06:13,781: ... parent XML-RPC server started
+[roslaunch][INFO] 2026-07-21 16:06:13,783: master.is_running[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:13,785: auto-starting new master
+[roslaunch][INFO] 2026-07-21 16:06:13,786: create_master_process: rosmaster, /opt/ros/noetic/share/ros, 11311, 3, None, False
+[roslaunch][INFO] 2026-07-21 16:06:13,788: process[master]: launching with args [['rosmaster', '--core', '-p', '11311', '-w', '3']]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:13,789: ProcessMonitor.register[master]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:13,790: ProcessMonitor.register[master] complete
+[roslaunch][INFO] 2026-07-21 16:06:13,791: process[master]: starting os process
+[roslaunch][INFO] 2026-07-21 16:06:13,793: process[master]: start w/ args [['rosmaster', '--core', '-p', '11311', '-w', '3', '__log:=/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/master.log']]
+[roslaunch][INFO] 2026-07-21 16:06:13,794: process[master]: cwd will be [/tmp/.ros]
+[roslaunch][INFO] 2026-07-21 16:06:13,802: process[master]: started with pid [88]
+[roslaunch][INFO] 2026-07-21 16:06:13,804: master.is_running[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:13,906: master.is_running[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,008: master.is_running[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,110: master.is_running[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,113: master.is_running[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,116: ROS_MASTER_URI=http://localhost:11311
+[roslaunch][INFO] 2026-07-21 16:06:14,118: setting /run_id to 18b35c1e-851e-11f1-9379-1a32f305068b
+[roslaunch][INFO] 2026-07-21 16:06:14,121: setting /roslaunch/uris/host_localhost__39773' to http://localhost:39773/
+[roslaunch][INFO] 2026-07-21 16:06:14,124: ... preparing to launch node of type [rosout/rosout]
+[roslaunch][INFO] 2026-07-21 16:06:14,125: create_node_process: package[rosout] type[rosout] machine[Machine(name[] env_loader[None] address[localhost] ssh_port[22] user[None] assignable[True] timeout[10.0])] master_uri[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,127: process[rosout-1]: env[{'HOSTNAME': 'd76b54aae425', 'ROS_PACKAGE_PATH': '/catkin_ws/src/open_vins/ov_core:/catkin_ws/src/open_vins/ov_data:/catkin_ws/src/open_vins/ov_eval:/catkin_ws/src/open_vins/ov_init:/catkin_ws/src/open_vins/ov_msckf:/opt/ros/noetic/share', 'LD_LIBRARY_PATH': '/catkin_ws/devel/lib:/opt/ros/noetic/lib', 'ROS_ETC_DIR': '/opt/ros/noetic/etc/ros', 'HOME': '/tmp', 'ROS_PYTHON_VERSION': '3', 'ROS_LOG_DIR': '/results/V2_02_medium/ros_logs', 'ROS_DISTRO': 'noetic', 'PKG_CONFIG_PATH': '/catkin_ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig', 'ROS_VERSION': '1', 'PATH': '/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'ROS_ROOT': '/opt/ros/noetic/share/ros', 'ROSLISP_PACKAGE_DIRECTORIES': '/catkin_ws/devel/share/common-lisp', 'ROS_MASTER_URI': 'http://localhost:11311', 'LC_ALL': 'C.UTF-8', 'PWD': '/catkin_ws', 'ROS_HOSTNAME': 'localhost', 'PYTHONPATH': '/opt/ros/noetic/lib/python3/dist-packages', 'CMAKE_PREFIX_PATH': '/catkin_ws/devel:/opt/ros/noetic', 'ROS_LOG_FILENAME': '/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/roslaunch-d76b54aae425-1.log'}]
+[roslaunch][INFO] 2026-07-21 16:06:14,168: process[rosout-1]: args[['/opt/ros/noetic/lib/rosout/rosout', '__name:=rosout']]
+[roslaunch][INFO] 2026-07-21 16:06:14,169: ... created process [rosout-1]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,171: ProcessMonitor.register[rosout-1]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,172: ProcessMonitor.register[rosout-1] complete
+[roslaunch][INFO] 2026-07-21 16:06:14,173: ... registered process [rosout-1]
+[roslaunch][INFO] 2026-07-21 16:06:14,174: process[rosout-1]: starting os process
+[roslaunch][INFO] 2026-07-21 16:06:14,177: process[rosout-1]: start w/ args [['/opt/ros/noetic/lib/rosout/rosout', '__name:=rosout', '__log:=/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/rosout-1.log']]
+[roslaunch][INFO] 2026-07-21 16:06:14,179: process[rosout-1]: cwd will be [/tmp/.ros]
+[roslaunch][INFO] 2026-07-21 16:06:14,185: process[rosout-1]: started with pid [161]
+[roslaunch][INFO] 2026-07-21 16:06:14,187: ... successfully launched [rosout-1]
+[roslaunch][INFO] 2026-07-21 16:06:14,188: load_parameters starting ...
+[roslaunch][INFO] 2026-07-21 16:06:14,233: ... load_parameters complete
+[roslaunch][INFO] 2026-07-21 16:06:14,235: launch_nodes: launching local nodes ...
+[roslaunch][INFO] 2026-07-21 16:06:14,236: ... preparing to launch node of type [ov_msckf/ros1_serial_msckf]
+[roslaunch][INFO] 2026-07-21 16:06:14,237: create_node_process: package[ov_msckf] type[ros1_serial_msckf] machine[Machine(name[] env_loader[None] address[localhost] ssh_port[22] user[None] assignable[True] timeout[10.0])] master_uri[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,238: process[ov_msckf-2]: env[{'HOSTNAME': 'd76b54aae425', 'ROS_PACKAGE_PATH': '/catkin_ws/src/open_vins/ov_core:/catkin_ws/src/open_vins/ov_data:/catkin_ws/src/open_vins/ov_eval:/catkin_ws/src/open_vins/ov_init:/catkin_ws/src/open_vins/ov_msckf:/opt/ros/noetic/share', 'LD_LIBRARY_PATH': '/catkin_ws/devel/lib:/opt/ros/noetic/lib', 'ROS_ETC_DIR': '/opt/ros/noetic/etc/ros', 'HOME': '/tmp', 'ROS_PYTHON_VERSION': '3', 'ROS_LOG_DIR': '/results/V2_02_medium/ros_logs', 'ROS_DISTRO': 'noetic', 'PKG_CONFIG_PATH': '/catkin_ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig', 'ROS_VERSION': '1', 'PATH': '/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'ROS_ROOT': '/opt/ros/noetic/share/ros', 'ROSLISP_PACKAGE_DIRECTORIES': '/catkin_ws/devel/share/common-lisp', 'ROS_MASTER_URI': 'http://localhost:11311', 'LC_ALL': 'C.UTF-8', 'PWD': '/catkin_ws', 'ROS_HOSTNAME': 'localhost', 'PYTHONPATH': '/opt/ros/noetic/lib/python3/dist-packages', 'CMAKE_PREFIX_PATH': '/catkin_ws/devel:/opt/ros/noetic', 'ROS_LOG_FILENAME': '/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/roslaunch-d76b54aae425-1.log'}]
+[roslaunch][INFO] 2026-07-21 16:06:14,240: process[ov_msckf-2]: args[['/catkin_ws/devel/.private/ov_msckf/lib/ov_msckf/ros1_serial_msckf', '__name:=ov_msckf']]
+[roslaunch][INFO] 2026-07-21 16:06:14,241: ... created process [ov_msckf-2]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,242: ProcessMonitor.register[ov_msckf-2]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,243: ProcessMonitor.register[ov_msckf-2] complete
+[roslaunch][INFO] 2026-07-21 16:06:14,244: ... registered process [ov_msckf-2]
+[roslaunch][INFO] 2026-07-21 16:06:14,245: process[ov_msckf-2]: starting os process
+[roslaunch][INFO] 2026-07-21 16:06:14,246: process[ov_msckf-2]: start w/ args [['/catkin_ws/devel/.private/ov_msckf/lib/ov_msckf/ros1_serial_msckf', '__name:=ov_msckf', '__log:=/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/ov_msckf-2.log']]
+[roslaunch][INFO] 2026-07-21 16:06:14,247: process[ov_msckf-2]: cwd will be [/tmp/.ros]
+[roslaunch][INFO] 2026-07-21 16:06:14,253: process[ov_msckf-2]: started with pid [169]
+[roslaunch][INFO] 2026-07-21 16:06:14,254: ... successfully launched [ov_msckf-2]
+[roslaunch][INFO] 2026-07-21 16:06:14,255: ... preparing to launch node of type [ov_eval/pose_to_file]
+[roslaunch][INFO] 2026-07-21 16:06:14,256: create_node_process: package[ov_eval] type[pose_to_file] machine[Machine(name[] env_loader[None] address[localhost] ssh_port[22] user[None] assignable[True] timeout[10.0])] master_uri[http://localhost:11311]
+[roslaunch][INFO] 2026-07-21 16:06:14,257: process[recorder_estimate-3]: env[{'HOSTNAME': 'd76b54aae425', 'ROS_PACKAGE_PATH': '/catkin_ws/src/open_vins/ov_core:/catkin_ws/src/open_vins/ov_data:/catkin_ws/src/open_vins/ov_eval:/catkin_ws/src/open_vins/ov_init:/catkin_ws/src/open_vins/ov_msckf:/opt/ros/noetic/share', 'LD_LIBRARY_PATH': '/catkin_ws/devel/lib:/opt/ros/noetic/lib', 'ROS_ETC_DIR': '/opt/ros/noetic/etc/ros', 'HOME': '/tmp', 'ROS_PYTHON_VERSION': '3', 'ROS_LOG_DIR': '/results/V2_02_medium/ros_logs', 'ROS_DISTRO': 'noetic', 'PKG_CONFIG_PATH': '/catkin_ws/devel/lib/pkgconfig:/opt/ros/noetic/lib/pkgconfig', 'ROS_VERSION': '1', 'PATH': '/opt/ros/noetic/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin', 'LANG': 'C.UTF-8', 'ROS_ROOT': '/opt/ros/noetic/share/ros', 'ROSLISP_PACKAGE_DIRECTORIES': '/catkin_ws/devel/share/common-lisp', 'ROS_MASTER_URI': 'http://localhost:11311', 'LC_ALL': 'C.UTF-8', 'PWD': '/catkin_ws', 'ROS_HOSTNAME': 'localhost', 'PYTHONPATH': '/opt/ros/noetic/lib/python3/dist-packages', 'CMAKE_PREFIX_PATH': '/catkin_ws/devel:/opt/ros/noetic', 'ROS_LOG_FILENAME': '/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/roslaunch-d76b54aae425-1.log'}]
+[roslaunch][INFO] 2026-07-21 16:06:14,260: process[recorder_estimate-3]: args[['/catkin_ws/devel/.private/ov_eval/lib/ov_eval/pose_to_file', '__name:=recorder_estimate']]
+[roslaunch][INFO] 2026-07-21 16:06:14,261: ... created process [recorder_estimate-3]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,262: ProcessMonitor.register[recorder_estimate-3]
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,263: ProcessMonitor.register[recorder_estimate-3] complete
+[roslaunch][INFO] 2026-07-21 16:06:14,263: ... registered process [recorder_estimate-3]
+[roslaunch][INFO] 2026-07-21 16:06:14,264: process[recorder_estimate-3]: starting os process
+[roslaunch][INFO] 2026-07-21 16:06:14,265: process[recorder_estimate-3]: start w/ args [['/catkin_ws/devel/.private/ov_eval/lib/ov_eval/pose_to_file', '__name:=recorder_estimate', '__log:=/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/recorder_estimate-3.log']]
+[roslaunch][INFO] 2026-07-21 16:06:14,266: process[recorder_estimate-3]: cwd will be [/tmp/.ros]
+[roslaunch][INFO] 2026-07-21 16:06:14,272: process[recorder_estimate-3]: started with pid [170]
+[roslaunch][INFO] 2026-07-21 16:06:14,273: ... successfully launched [recorder_estimate-3]
+[roslaunch][INFO] 2026-07-21 16:06:14,274: ... launch_nodes complete
+[roslaunch.pmon][INFO] 2026-07-21 16:06:14,275: registrations completed <ProcessMonitor(ProcessMonitor-1, started daemon 127168705353472)>
+[roslaunch.parent][INFO] 2026-07-21 16:06:14,276: ... roslaunch parent running, waiting for process exit
+[roslaunch][INFO] 2026-07-21 16:06:14,277: spin
+[roslaunch][ERROR] 2026-07-21 16:09:28,491: ================================================================================REQUIRED process [ov_msckf-2] has died!
+process has died [pid 169, exit code -6, cmd /catkin_ws/devel/.private/ov_msckf/lib/ov_msckf/ros1_serial_msckf __name:=ov_msckf __log:=/results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/ov_msckf-2.log].
+log file: /results/V2_02_medium/ros_logs/18b35c1e-851e-11f1-9379-1a32f305068b/ov_msckf-2*.log
+Initiating shutdown!
+================================================================================
+[roslaunch.pmon][INFO] 2026-07-21 16:09:28,592: ProcessMonitor._post_run <ProcessMonitor(ProcessMonitor-1, started daemon 127168705353472)>
+[roslaunch.pmon][INFO] 2026-07-21 16:09:28,614: ProcessMonitor._post_run <ProcessMonitor(ProcessMonitor-1, started daemon 127168705353472)>: remaining procs are [<roslaunch.nodeprocess.LocalProcess object at 0x73a95e839ac0>, <roslaunch.nodeprocess.LocalProcess object at 0x73a95e839970>, <roslaunch.nodeprocess.LocalProcess object at 0x73a95e803f10>, <roslaunch.nodeprocess.LocalProcess object at 0x73a95e8399a0>]
+[roslaunch.pmon][INFO] 2026-07-21 16:09:28,616: ProcessMonitor exit: killing recorder_estimate-3
+[roslaunch.pmon][INFO] 2026-07-21 16:09:28,616: ProcessMonitor exit: killing ov_msckf-2
+[roslaunch][INFO] 2026-07-21 16:09:28,617: [recorder_estimate-3] killing on exit
+[roslaunch][INFO] 2026-07-21 16:09:28,619: [ov_msckf-2] killing on exit
+[roslaunch][INFO] 2026-07-21 16:09:28,620: process[recorder_estimate-3]: killing os process with pid[170] pgid[170]
+[roslaunch][INFO] 2026-07-21 16:09:28,623: [recorder_estimate-3] sending SIGINT to pgid [170]
+[roslaunch][INFO] 2026-07-21 16:09:28,624: [recorder_estimate-3] sent SIGINT to pgid [170]
+[roslaunch][INFO] 2026-07-21 16:09:28,826: process[recorder_estimate-3]: SIGINT killed with return value 0
+[roslaunch.pmon][INFO] 2026-07-21 16:09:28,828: ProcessMonitor exit: killing rosout-1
+[roslaunch][INFO] 2026-07-21 16:09:28,829: [rosout-1] killing on exit
+[roslaunch][INFO] 2026-07-21 16:09:28,830: process[rosout-1]: killing os process with pid[161] pgid[161]
+[roslaunch][INFO] 2026-07-21 16:09:28,832: [rosout-1] sending SIGINT to pgid [161]
+[roslaunch][INFO] 2026-07-21 16:09:28,833: [rosout-1] sent SIGINT to pgid [161]
+[roslaunch][INFO] 2026-07-21 16:09:29,034: process[rosout-1]: SIGINT killed with return value 0
+[roslaunch.pmon][INFO] 2026-07-21 16:09:29,036: ProcessMonitor exit: killing master
+[roslaunch][INFO] 2026-07-21 16:09:29,037: [master] killing on exit
+[roslaunch][INFO] 2026-07-21 16:09:29,038: process[master]: killing os process with pid[88] pgid[88]
+[roslaunch][INFO] 2026-07-21 16:09:29,038: [master] sending SIGINT to pgid [88]
+[roslaunch][INFO] 2026-07-21 16:09:29,039: [master] sent SIGINT to pgid [88]
+[roslaunch][INFO] 2026-07-21 16:09:29,241: process[master]: SIGINT killed with return value 0
+[roslaunch.pmon][INFO] 2026-07-21 16:09:29,243: ProcessMonitor exit: cleaning up data structures and signals
+[roslaunch.pmon][INFO] 2026-07-21 16:09:29,244: ProcessMonitor exit: pmon has shutdown
+[roslaunch][INFO] 2026-07-21 16:09:29,288: process monitor is done spinning, initiating full shutdown
+[roslaunch][INFO] 2026-07-21 16:09:29,289: runner.stop()
+[roslaunch][INFO] 2026-07-21 16:09:29,290: shutting down processing monitor...
+[roslaunch][INFO] 2026-07-21 16:09:29,292: shutting down processing monitor <ProcessMonitor(ProcessMonitor-1, stopped daemon 127168705353472)>
+[roslaunch.pmon][INFO] 2026-07-21 16:09:29,293: ProcessMonitor.shutdown <ProcessMonitor(ProcessMonitor-1, stopped daemon 127168705353472)>
+[roslaunch][INFO] 2026-07-21 16:09:29,294: ... shutting down processing monitor complete
+[roslaunch][INFO] 2026-07-21 16:09:29,295: done
+[roslaunch.pmon][INFO] 2026-07-21 16:09:29,296: ProcessMonitor.shutdown <ProcessMonitor(ProcessMonitor-1, stopped daemon 127168705353472)>
+[rospy.core][INFO] 2026-07-21 16:09:29,297: signal_shutdown [atexit]

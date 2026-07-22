@@ -8,3 +8,6 @@ doxgen_generated
 *.swo
 doc
 .vscode
+EuRoC_MAV/
+catkin_ws/
+#openvins_benchmark/

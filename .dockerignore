@@ -1,0 +1,13 @@
+.git
+.agents
+.codex
+catkin_ws
+EuRoC_MAV
+openvins_benchmark
+build
+devel
+install
+logs
+*.bag
+*.zip
+

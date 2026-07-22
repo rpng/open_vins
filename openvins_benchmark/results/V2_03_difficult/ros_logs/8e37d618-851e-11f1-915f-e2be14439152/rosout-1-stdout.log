@@ -1,0 +1,3 @@
+logging to /results/V2_03_difficult/ros_logs/8e37d618-851e-11f1-915f-e2be14439152/rosout.log
+re-publishing aggregated messages to /rosout_agg
+subscribed to /rosout
