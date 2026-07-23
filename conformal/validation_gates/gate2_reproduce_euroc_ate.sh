@@ -1,29 +1,5 @@
 #!/usr/bin/env bash
-#
-# gate2_reproduce_euroc_ate.sh  --  Gate 2: reproduce published EuRoC ATE with the default config.
-#
-# Companion to: Section 19.2 (Gate 2). Week 1 (Section 21). KILL GATE (Section 22): "Gates 1-2
-# not green by end of Week 1 -> ICRA is off; revert to the IROS timeline."
-#
-# WHY THIS GATE EXISTS (Section 19.2): run UNMODIFIED OpenVINS with its shipped configuration and
-# confirm the published trajectory-error numbers are reproduced. This validates the ENTIRE Stage-1
-# chain -- data reading, timing, calibration, coordinate conventions -- against an external
-# reference. Nothing downstream is valid until this passes: without it, a later poor result is
-# uninterpretable (could be the science, could be a data-loading bug from three weeks earlier).
-# "This gate is what makes every subsequent negative result trustworthy."
-#
-# GOOD NEWS: the repo already contains the machinery to do exactly this.
-#   * benchmark/euroc_benchmark.sh      runs all 11 EuRoC sequences + computes APE(=ATE)/RPE(=RTE)
-#   * openvins_benchmark/summary.csv    the reproduced numbers already committed (commit 3c279c4)
-#   * benchmark/trajectory_to_tum.py    trajectory -> TUM for evaluation
-# So Gate 2 is mostly: run that harness (or trust the committed run), then diff against the
-# published OpenVINS EuRoC ATE table.
-#
-# USAGE:
-#   DATA_ROOT=/path/to/EuRoC_MAV ./gate2_reproduce_euroc_ate.sh
-#
-# TODO(intern): point DATA_ROOT at your EuRoC download and set the expected published ATEs below
-# (from the OpenVINS docs / paper). The script fails if any sequence deviates beyond TOL_RATIO.
+# Gate 2: compare a stock OpenVINS EuRoC run with a pinned reference table.
 
 set -euo pipefail
 
@@ -32,38 +8,74 @@ REPO_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 
 DATA_ROOT="${DATA_ROOT:-$REPO_DIR/EuRoC_MAV}"
 RESULTS_ROOT="${RESULTS_ROOT:-$REPO_DIR/openvins_benchmark}"
-TOL_RATIO="${TOL_RATIO:-1.25}"   # allow 25% slack vs published (VIO runs are stochastic)
+REFERENCE_CSV="${REFERENCE_CSV:-$SCRIPT_DIR/openvins_euroc_reference.csv}"
+TOL_RATIO="${TOL_RATIO:-1.25}"
+RUN_BENCHMARK="${RUN_BENCHMARK:-0}"
 
-# Published EuRoC ATE (metres) -- TODO(intern): fill from the OpenVINS reference table.
-declare -A PUBLISHED_ATE=(
-  ["MH_01_easy"]="TODO"
-  ["MH_02_easy"]="TODO"
-  ["MH_03_medium"]="TODO"
-  ["MH_04_difficult"]="TODO"
-  ["MH_05_difficult"]="TODO"
-  ["V1_01_easy"]="TODO"
-  ["V1_02_medium"]="TODO"
-  ["V1_03_difficult"]="TODO"
-  ["V2_01_easy"]="TODO"
-  ["V2_02_medium"]="TODO"
-  ["V2_03_difficult"]="TODO"
-)
+if [[ "$RUN_BENCHMARK" == "1" ]]; then
+  DATA_ROOT="$DATA_ROOT" RESULTS_ROOT="$RESULTS_ROOT" \
+    "$REPO_DIR/benchmark/euroc_benchmark.sh" all
+fi
 
-echo "[gate2] Reproducing EuRoC ATE with the DEFAULT config (ov_msckf unmodified)."
-echo "[gate2] Delegating the run to the existing harness: benchmark/euroc_benchmark.sh"
-echo "[gate2]   DATA_ROOT=$DATA_ROOT  RESULTS_ROOT=$RESULTS_ROOT"
+SUMMARY="$RESULTS_ROOT/summary.csv"
+for file in "$SUMMARY" "$REFERENCE_CSV"; do
+  if [[ ! -s "$file" ]]; then
+    echo "[gate2] ERROR: required file is missing or empty: $file" >&2
+    exit 2
+  fi
+done
 
-# Option A: run the full harness now.
-#   DATA_ROOT="$DATA_ROOT" RESULTS_ROOT="$RESULTS_ROOT" "$REPO_DIR/benchmark/euroc_benchmark.sh" all
-# Option B: trust the already-committed run in openvins_benchmark/summary.csv (commit 3c279c4).
+python3 - "$SUMMARY" "$REFERENCE_CSV" "$TOL_RATIO" <<'PY'
+import csv
+import math
+import sys
+from pathlib import Path
 
-# TODO(intern): parse ape.txt per sequence under $RESULTS_ROOT/results/<seq>/ and compare to
-# PUBLISHED_ATE, failing (exit 1) if any ratio exceeds TOL_RATIO. Pseudo-logic:
-#
-#   for seq in "${!PUBLISHED_ATE[@]}"; do
-#     got=$(grep -m1 'rmse' "$RESULTS_ROOT/results/$seq/ape.txt" | awk '{print $2}')
-#     ratio=$(python3 -c "print($got/${PUBLISHED_ATE[$seq]})")
-#     ...  fail if ratio > TOL_RATIO ...
-#   done
-#
-echo "[gate2] TODO(intern): implement the comparison loop above and exit non-zero on deviation."
+summary_path, reference_path = map(Path, sys.argv[1:3])
+tolerance = float(sys.argv[3])
+if tolerance < 1.0:
+    raise SystemExit("[gate2] TOL_RATIO must be >= 1.0")
+
+
+def read_table(path: Path, metric: str) -> dict[str, float]:
+    with path.open(newline="") as stream:
+        reader = csv.DictReader(stream)
+        required = {"sequence", metric}
+        if reader.fieldnames is None or not required.issubset(reader.fieldnames):
+            raise SystemExit(f"[gate2] {path} must contain columns {sorted(required)}")
+        values = {}
+        for row in reader:
+            sequence = row["sequence"].strip()
+            value = float(row[metric])
+            if not sequence or not math.isfinite(value) or value <= 0:
+                raise SystemExit(f"[gate2] invalid row in {path}: {row}")
+            values[sequence] = value
+        return values
+
+
+observed = read_table(summary_path, "ape_rmse_m")
+reference = read_table(reference_path, "ape_rmse_m")
+missing = sorted(set(reference) - set(observed))
+extra = sorted(set(observed) - set(reference))
+failed = []
+
+print("sequence,reference_m,observed_m,ratio,status")
+for sequence in sorted(reference):
+    if sequence not in observed:
+        continue
+    ratio = observed[sequence] / reference[sequence]
+    status = "PASS" if ratio <= tolerance else "FAIL"
+    if status == "FAIL":
+        failed.append(sequence)
+    print(f"{sequence},{reference[sequence]:.6f},{observed[sequence]:.6f},{ratio:.3f},{status}")
+
+if missing:
+    print(f"[gate2] missing sequences: {', '.join(missing)}", file=sys.stderr)
+if extra:
+    print(f"[gate2] unexpected sequences: {', '.join(extra)}", file=sys.stderr)
+if missing or extra or failed:
+    if failed:
+        print(f"[gate2] sequences over tolerance: {', '.join(failed)}", file=sys.stderr)
+    raise SystemExit(1)
+print(f"[gate2] PASS: {len(reference)} sequences are within {tolerance:.3f}x of the reference")
+PY

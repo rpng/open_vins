@@ -43,9 +43,23 @@
 #include "update/UpdaterSLAM.h"
 #include "update/UpdaterZeroVelocity.h"
 
+#include <utility>
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
+
+void VioManager::set_msckf_diagnostic_callback(MsckfDiagnosticCallback callback) {
+  updaterMSCKF->set_diagnostic_callback(std::move(callback));
+}
+
+void VioManager::set_msckf_sigma_provider(MsckfSigmaProvider provider) {
+  updaterMSCKF->set_sigma_provider(std::move(provider));
+}
+
+void VioManager::set_imu_noises(const NoiseManager &noises) {
+  propagator->set_noises(noises);
+}
 
 VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false), thread_init_success(false) {
 

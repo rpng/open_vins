@@ -32,6 +32,7 @@
 #include <string>
 
 #include "VioManagerOptions.h"
+#include "update/ConformalHooks.h"
 
 namespace ov_core {
 struct ImuData;
@@ -109,6 +110,12 @@ public:
 
   /// Accessor to get the current propagator
   std::shared_ptr<Propagator> get_propagator() { return propagator; }
+
+  /// Optional experiment accessors/hooks. Stock runs leave both callbacks empty.
+  std::shared_ptr<ov_core::TrackBase> get_feature_tracker() { return trackFEATS; }
+  void set_msckf_diagnostic_callback(MsckfDiagnosticCallback callback);
+  void set_msckf_sigma_provider(MsckfSigmaProvider provider);
+  void set_imu_noises(const NoiseManager &noises);
 
   /// Get a nice visualization image of what tracks we have
   cv::Mat get_historical_viz_image();

@@ -34,6 +34,7 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
+#include <cmath>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -164,6 +165,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
   std::vector<std::shared_ptr<Type>> Hx_order_big;
   size_t ct_jacob = 0;
   size_t ct_meas = 0;
+  const bool use_feature_sigmas = static_cast<bool>(sigma_provider);
 
   // 4. Compute linear system for each feature, nullspace project, and reject
   auto it2 = feature_vec.begin();
@@ -205,10 +207,24 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     // Nullspace project
     UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);
 
+    // Use the stock scalar unless Stage 3 explicitly supplies a valid
+    // per-feature standard deviation.
+    double sigma_pix = _options.sigma_pix;
+    if (use_feature_sigmas) {
+      const double supplied = sigma_provider(feat.featid, state->_timestamp);
+      if (std::isfinite(supplied) && supplied > 0.0) {
+        sigma_pix = supplied;
+      } else {
+        PRINT_WARNING(YELLOW "[conformal] invalid sigma %.6f for feature %zu; using stock %.6f\n" RESET, supplied,
+                      feat.featid, _options.sigma_pix);
+      }
+    }
+    const double sigma_pix_sq = use_feature_sigmas ? sigma_pix * sigma_pix : _options.sigma_pix_sq;
+
     /// Chi2 distance check
     Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hx_order);
     Eigen::MatrixXd S = H_x * P_marg * H_x.transpose();
-    S.diagonal() += _options.sigma_pix_sq * Eigen::VectorXd::Ones(S.rows());
+    S.diagonal() += sigma_pix_sq * Eigen::VectorXd::Ones(S.rows());
     double chi2 = res.dot(S.llt().solve(res));
 
     // Get our threshold (we precompute up to 500 but handle the case that it is more)
@@ -221,8 +237,30 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
       PRINT_WARNING(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
     }
 
+    const double chi2_threshold = _options.chi2_multipler * chi2_check;
+    const bool passed_chi2_gate = chi2 <= chi2_threshold;
+
+    // Observe every candidate before rejection. This callback is absent from
+    // stock runs and cannot alter the feature or filter state.
+    if (diagnostic_callback) {
+      size_t track_measurements = 0;
+      for (const auto &camera_timestamps : (*it2)->timestamps)
+        track_measurements += camera_timestamps.second.size();
+      MsckfFeatureDiagnostic diagnostic;
+      diagnostic.timestamp = state->_timestamp;
+      diagnostic.feature_id = feat.featid;
+      diagnostic.track_measurements = track_measurements;
+      diagnostic.filter_residual_norm = res.norm();
+      diagnostic.chi2 = chi2;
+      diagnostic.chi2_threshold = chi2_threshold;
+      diagnostic.sigma_pix = sigma_pix;
+      diagnostic.passed_chi2_gate = passed_chi2_gate;
+      diagnostic.feature = *it2;
+      diagnostic_callback(diagnostic);
+    }
+
     // Check if we should delete or not
-    if (chi2 > _options.chi2_multipler * chi2_check) {
+    if (!passed_chi2_gate) {
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
       // PRINT_DEBUG("featid = %d\n", feat.featid);
@@ -231,6 +269,13 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
       // ss << "res = " << std::endl << res.transpose() << std::endl;
       // PRINT_DEBUG(ss.str().c_str());
       continue;
+    }
+
+    // Feature-dependent isotropic blocks are whitened before stacking. The
+    // existing compression can then operate with identity measurement noise.
+    if (use_feature_sigmas) {
+      H_x /= sigma_pix;
+      res /= sigma_pix;
     }
 
     // We are good!!! Append to our large H vector
@@ -279,7 +324,8 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
   rT4 = boost::posix_time::microsec_clock::local_time();
 
   // Our noise is isotropic, so make it here after our compression
-  Eigen::MatrixXd R_big = _options.sigma_pix_sq * Eigen::MatrixXd::Identity(res_big.rows(), res_big.rows());
+  Eigen::MatrixXd R_big = (use_feature_sigmas ? 1.0 : _options.sigma_pix_sq) *
+                          Eigen::MatrixXd::Identity(res_big.rows(), res_big.rows());
 
   // 6. With all good features update the state
   StateHelper::EKFUpdate(state, Hx_order_big, Hx_big, res_big, R_big);

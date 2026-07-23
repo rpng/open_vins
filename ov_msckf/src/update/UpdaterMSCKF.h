@@ -24,10 +24,12 @@
 
 #include <Eigen/Eigen>
 #include <memory>
+#include <utility>
 
 #include "feat/FeatureInitializerOptions.h"
 
 #include "UpdaterOptions.h"
+#include "ConformalHooks.h"
 
 namespace ov_core {
 class Feature;
@@ -67,6 +69,9 @@ public:
    */
   void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
 
+  void set_sigma_provider(MsckfSigmaProvider provider) { sigma_provider = std::move(provider); }
+  void set_diagnostic_callback(MsckfDiagnosticCallback callback) { diagnostic_callback = std::move(callback); }
+
 protected:
   /// Options used during update
   UpdaterOptions _options;
@@ -76,6 +81,9 @@ protected:
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;
+
+  MsckfSigmaProvider sigma_provider;
+  MsckfDiagnosticCallback diagnostic_callback;
 };
 
 } // namespace ov_msckf

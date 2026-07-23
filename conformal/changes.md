@@ -12,21 +12,20 @@ experiments.
 
 ## 1. What was added, and the one rule behind it
 
-Everything new lives under a single new top-level directory: **`conformal/`**. Nothing under
-`ov_msckf/`, `ov_core/`, `ov_init/`, `ov_eval/`, or `config/` was modified.
+Most new code lives under **`conformal/`**. Stage 1 also adds small, opt-in hooks under
+`ov_msckf/` for diagnostics and runtime Q/R injection; `ov_core/`, `ov_init/`, `ov_eval/`, and
+the stock configurations are unchanged.
 
-**Why the core is untouched (do not break this):** the paper's central defensibility claim
-(PDF §4.4 and §18.3) is that OpenVINS runs *byte-for-byte unmodified*, so **any** change in
-behaviour is attributable to the two things conformal touches — the process-noise **Q** and the
-measurement-noise **R**. The moment you edit a filter source file, that argument is gone.
-conformal therefore only ever:
+**Core invariant:** stock runs install no conformal callback or sigma provider and follow the
+existing scalar-noise path. Experiment runs may observe candidates before rejection or replace
+only the process-noise **Q** and measurement-noise **R** values. The hooks never inject a state
+correction. The implementation:
 
-* **reads** already-public OpenVINS getters (state, covariance, tracker diagnostics), and
-* **overrides five numbers** at runtime — the 4 IMU noise densities inside **Q** (Net B) and
-  the 1 pixel scalar inside **R** (Net A). See PDF §4.4, "Five numbers".
+* observes state, covariance, tracker diagnostics, and pre-gate MSCKF candidates; and
+* overrides five numbers at runtime — the 4 IMU noise densities inside **Q** (Net B) and the
+  1 pixel scalar inside **R** (Net A). See PDF §4.4, "Five numbers".
 
-Where those five numbers live in the *existing* code (you will point the injection at these,
-not edit them):
+Where those five numbers live in the existing code:
 
 | Number | Symbol in the repo | File |
 |---|---|---|
@@ -39,19 +38,19 @@ not edit them):
 
 ## 2. The complete file map
 
-Each file has a header comment naming the exact PDF section it implements. Most are
-**scaffolds**: real interfaces + references to OpenVINS symbols, with the science left as
-clearly-marked `TODO(intern)`. Two are fully implemented and runnable today (marked ✅).
+Each file maps to a PDF section. Stage 1 and Gates 1–2 are implemented; most Stage 2/3 and
+experiment files remain scaffolds with their science marked `TODO(intern)`.
 
 ```
 conformal/
 ├── README.md                         orientation; points here
 ├── theory/
-│   └── verify_theory.py          ✅  §6  numerically verifies Thm 1, Cor 1.1, Thm 2, Thm 3
+│   └── verify_theory.py              §6  deferred: known expected-value discrepancy
 ├── stage1_dumps/                     Stage 1 (C++): run OpenVINS once, dump HDF5
-│   ├── run_asl_msckf.cpp             §18.2  ROS-free ASL/EuRoC runner (~150 lines)
-│   ├── DiagnosticsLogger.hpp         §18.3  "the only real patch" — dumps diagnostics+residuals+GT
-│   └── CMakeLists.txt                §18.1  standalone build that links the unmodified ov_* libs
+│   ├── run_asl_msckf.cpp         ✅  §18.2  ROS-free ASL/EuRoC runner
+│   ├── DiagnosticsLogger.{hpp,cpp}✅ §18.3  HDF5 diagnostics+residuals+aligned GT
+│   ├── validate_dump.py          ✅          structural/numerical validator
+│   └── CMakeLists.txt/package.xml✅ §18.1  catkin package linked to ov_* libraries
 ├── stage2_train/                     Stage 2 (Python): train the two heads (minutes on a laptop)
 │   ├── net_a_visual_deepsets.py      §8.1  Net A — per-feature σ_pix (DeepSets, target 26,305 params)
 │   ├── net_b_imu_dilated_tcn.py      §8.2  Net B — 4 IMU log-scales (dilated TCN, target 102,468 params)
@@ -94,7 +93,7 @@ ever flows through the filter, so there is no C++/PyTorch autograd bridge. The t
 talk through **files on disk**:
 
 ```
-Stage 1 (C++, run ONCE)   ASL folders → unmodified OpenVINS → HDF5 {Δ, diagnostics, residuals, GT}
+Stage 1 (C++, run ONCE)   ASL folders → instrumented OpenVINS → HDF5 {diagnostics, residuals, state, covariance, GT}
 Stage 2 (Python, run MANY)  HDF5 → train Net A & Net B  (minutes on a laptop)
 Stage 3 (Python/C++)        learned σ → back into OpenVINS Q,R → evaluate
 ```
@@ -106,9 +105,8 @@ Stage 2 hundreds of times without recompiling anything.
 
 ## 4. Prerequisites
 
-* **C++ (Stage 1):** OpenVINS built **ROS-free** (`cmake -DENABLE_ROS=OFF`, needs OpenCV +
-  Eigen3 + Ceres), plus an HDF5 binding — **HighFive** (header-only over libhdf5) is
-  recommended. A Docker image is a good fallback (PDF §18.1).
+* **C++ (Stage 1):** use `conformal/Dockerfile.stage1`; it builds the catkin Stage-1 package
+  with OpenCV, Eigen3, Ceres, and the HDF5 C++ API.
 * **Python (Stages 2–3):** `numpy`, `scipy`, `torch`, `opencv-python`, `h5py`, `matplotlib`,
   `pandas`. (`pypdf` was installed only to read the PDF; it is not a project dependency.)
 * **Data:** EuRoC MAV (anchor + training), then TUM-VI / UMA-VI (zero-shot), UZH-FPV
@@ -122,26 +120,20 @@ Do these **in order**. The order is not cosmetic — it front-loads the only irr
 uncertainty (does NEES actually break?) so you know by end of Week 2 whether there is a paper
 (PDF §21.1).
 
-### Step 0 — Verify the theory (do this today; needs only NumPy)
+### Step 0 — Verify the theory (currently deferred)
 ```bash
 python conformal/theory/verify_theory.py
 ```
-Every assertion should pass and the printed numbers should match PDF §6 (e.g. `a=(3,3)`→Γ=1.0000,
-`a=(4,1)`→Γ=1.535, crossover κ=2→4.000). This is your independent check that the maths the
-whole project rests on is right, before any systems work.
+This currently reports the two known discrepancies described in the project discussion. They
+were intentionally left unchanged; do not use this as a green gate until the expected example
+and printed Gaussian expectation are reconciled.
 
-### Step 1 — Build the Stage-1 systems (Week 1)
-1. Build OpenVINS ROS-free (see Prerequisites). This produces the `ov_*` libraries.
-2. Implement the `TODO(intern)` blocks in `conformal/stage1_dumps/`:
-   * `run_asl_msckf.cpp` — the three ASL loaders (IMU CSV, cam CSV, GT CSV). ASL timestamps
-     are **nanoseconds** (÷1e9). Keep it ROS-free.
-   * `DiagnosticsLogger.hpp` — pick the HDF5 binding and fill in the writers.
-3. Build the runner:
-   ```bash
-   cd conformal/stage1_dumps && mkdir build && cd build
-   cmake -DOPENVINS_ROOT=../../.. ..   # then point the link line at your ov_* build tree
-   make -j
-   ```
+### Step 1 — Build the Stage-1 systems (implemented)
+```bash
+docker build -f conformal/Dockerfile.stage1 -t openvins-conformal:stage1 .
+```
+The ASL loaders, timestamp ordering, pre-gate callback, aligned GT targets, HDF5 writer, and
+validator are implemented.
 
 > ### ⚠️ The two implementation traps (PDF §20) — get these wrong and you train on a bug
 > **Trap 1 — IMU ordering.** Feed *all* IMU samples with `t ≤ t_frame` **before** the camera
@@ -162,10 +154,9 @@ Run these in order; **nothing downstream is trustworthy until they pass** (PDF �
    gravity − bias. **This is the mistake that silently kills projects** — nothing fails loudly,
    training converges, and every number is wrong. If it fails, fix `T_BS` before doing anything else.
 2. **Gate 2** — `conformal/validation_gates/gate2_reproduce_euroc_ate.sh`.
-   Reproduce the published EuRoC ATE with the **default** config. This validates the entire
-   Stage-1 chain against an external reference. The repo already has the harness
-   (`benchmark/euroc_benchmark.sh`) and a committed reference run (`openvins_benchmark/summary.csv`);
-   fill in the published ATE table and the comparison loop.
+   Compare all 11 default-config EuRoC results against the pinned validated baseline. The
+   comparison loop and reference CSV are implemented. Supply another table with `REFERENCE_CSV`
+   when an external published baseline is required.
 3. **Gate 3** — `conformal/validation_gates/gate3_python_frontend_crosscheck.py`.
    *Contingency only* under the ICRA timeline (PDF §19.3): run it **only if** track counts or
    residual scales look suspicious after Gates 1–2.
@@ -176,7 +167,7 @@ Run these in order; **nothing downstream is trustworthy until they pass** (PDF �
 ### Step 3 — Produce the Stage-1 dumps
 Run the built runner over every EuRoC sequence:
 ```bash
-./run_asl_msckf ../../config/euroc_mav/estimator_config.yaml /data/EuRoC/MH_01_easy MH_01_easy.h5
+./run_asl_msckf ../../config/euroc_mav/estimator_config.yaml /data/EuRoC/MH_01_easy MH_01_easy MH_01_easy.h5 40
 # ... repeat for all 11 sequences
 ```
 You now have one HDF5 per sequence containing IMU windows, per-feature diagnostics, residuals,
@@ -285,10 +276,10 @@ and **C4** (`claim_c4_*`, Flightmare closed-loop collisions).
 
 | File | PDF | Status | Your job |
 |---|---|---|---|
-| `theory/verify_theory.py` | §6 | ✅ runnable | run it; keep numbers in sync with §6 |
-| `stage1_dumps/run_asl_msckf.cpp` | §18.2 | scaffold | 3 ASL loaders; honour Trap 1 |
-| `stage1_dumps/DiagnosticsLogger.hpp` | §18.3 | scaffold | HDF5 writers; honour Trap 2 |
-| `stage1_dumps/CMakeLists.txt` | §18.1 | scaffold | point link line at your ov_* build |
+| `theory/verify_theory.py` | §6 | deferred | reconcile expected values before gating |
+| `stage1_dumps/run_asl_msckf.cpp` | §18.2 | ✅ runnable | generate ASL dumps; honour Trap 1 |
+| `stage1_dumps/DiagnosticsLogger.{hpp,cpp}` | §18.3 | ✅ runnable | pre-gate HDF5 logger; honour Trap 2 |
+| `stage1_dumps/CMakeLists.txt` | §18.1 | ✅ runnable | catkin/HDF5 build |
 | `stage2_train/net_a_visual_deepsets.py` | §8.1 | near-complete | reconcile dims → 26,305 params |
 | `stage2_train/net_b_imu_dilated_tcn.py` | §8.2 | near-complete | verify → 102,468 params |
 | `stage2_train/heteroscedastic_nll.py` | §8.3 | ✅ runnable | — |
@@ -307,8 +298,8 @@ and **C4** (`claim_c4_*`, Flightmare closed-loop collisions).
 | `experiments/ablation_a3_*` | §14.1 | mostly done | config scaling; honour A3 trap |
 | `experiments/ablation_a4_*…a7_*` | §14 | scaffold | per-ablation sweep |
 | `experiments/the_fej_confound_control.py` | §15 | scaffold | FEJ toggle + exact-Jac sim arm |
-| `validation_gates/gate1_*` | §19.1 | scaffold | T_BS static-segment check |
-| `validation_gates/gate2_*` | §19.2 | scaffold | fill published ATE + compare loop |
+| `validation_gates/gate1_*` | §19.1 | ✅ runnable | T_BS static-segment check |
+| `validation_gates/gate2_*` | §19.2 | ✅ runnable | 11-sequence ATE comparison |
 | `validation_gates/gate3_*` | §19.3 | near-complete | contingency cross-check |
 | `configs/conformal_euroc.yaml` | §4.4 | reference | — |
 

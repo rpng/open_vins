@@ -1,0 +1,12 @@
+sequence,ape_rmse_m
+MH_01_easy,0.090810
+MH_02_easy,0.124355
+MH_03_medium,0.137622
+MH_04_difficult,0.166111
+MH_05_difficult,0.242839
+V1_01_easy,0.054600
+V1_02_medium,0.057251
+V1_03_difficult,0.059450
+V2_01_easy,0.058929
+V2_02_medium,0.045204
+V2_03_difficult,0.103335
