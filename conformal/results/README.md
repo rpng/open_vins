@@ -60,6 +60,19 @@ window-conditioned TCN generalizes across EuRoC sequences. Stage 3 must label
 the inertial arm as a constant-Q correction unless a new target/input design is
 predeclared and retrained without using calibration or test data for tuning.
 
+The fixed 90% conformal calibration is stored in
+`stage2/conformal/conformal_alpha0.10.json`. It used only MH04 and V1_03:
+
+- Visual: `q_alpha=1.170186`, pooled coverage 83.67% before and 90.02% after;
+  block-bootstrap 95% interval `[1.105554, 1.239139]`.
+- Inertial: `q_alpha=1.237830`, pooled coverage 84.66% before and 90.01% after;
+  block-bootstrap 95% interval `[1.163790, 1.310996]`.
+
+These are pooled score guarantees, not uniform trajectory guarantees. After
+calibration, MH04 visual coverage is 88.73% and V1_03 inertial coverage is
+88.51%. The JSON explicitly records that MH05, V2_02, and V2_03 were not opened
+during fitting.
+
 ## Validation gates
 
 See [`validation_gates.md`](validation_gates.md) for the final Gate 1 and Gate 2 results. The two

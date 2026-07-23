@@ -75,7 +75,11 @@ def split_conformal_quantile(errors: np.ndarray, sigmas: np.ndarray, alpha: floa
     # Finite-sample conformal level (Section 9): quantile rank (n+1)(1-alpha)/n.
     level = np.ceil((n + 1) * (1.0 - alpha)) / n
     level = min(level, 1.0)
-    return float(np.quantile(scores, level, method="higher"))
+    try:
+        return float(np.quantile(scores, level, method="higher"))
+    except TypeError:
+        # NumPy <1.22 used the old keyword. The estimator is identical.
+        return float(np.quantile(scores, level, interpolation="higher"))
 
 
 def fit_per_modality(calib_errors: dict[Modality, np.ndarray],
