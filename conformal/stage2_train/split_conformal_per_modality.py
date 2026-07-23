@@ -96,10 +96,32 @@ def block_bootstrap_qalpha_ci(errors: np.ndarray, sigmas: np.ndarray, alpha: flo
     and "pretending otherwise would be the same overconfidence the paper is about." Blocks
     (not single frames) respect temporal correlation.
 
-    TODO(intern): resample contiguous blocks of length block_len with replacement, recompute
-    q_alpha per resample, return (2.5%, 97.5%) percentiles.
+    Uses a circular moving-block bootstrap so every observation can start a
+    block and each replicate has the original sample count.
     """
-    raise NotImplementedError("TODO(intern): implement block bootstrap CI on q_alpha")
+    errors = np.asarray(errors, dtype=float).reshape(-1)
+    sigmas = np.asarray(sigmas, dtype=float).reshape(-1)
+    if errors.shape != sigmas.shape or errors.size == 0:
+        raise ValueError("errors and sigmas must be non-empty arrays of equal size")
+    if not (0.0 < alpha < 1.0):
+        raise ValueError("alpha must lie strictly between zero and one")
+    if block_len < 1 or n_boot < 1:
+        raise ValueError("block_len and n_boot must be positive")
+    scores = np.abs(errors) / np.maximum(sigmas, 1e-12)
+    n = scores.size
+    block_len = min(int(block_len), n)
+    blocks_per_sample = int(np.ceil(n / block_len))
+    offsets = np.arange(block_len)
+    rng = np.random.default_rng(seed)
+    quantiles = np.empty(n_boot, dtype=float)
+    for sample in range(n_boot):
+        starts = rng.integers(0, n, size=blocks_per_sample)
+        indices = ((starts[:, None] + offsets[None, :]) % n).reshape(-1)[:n]
+        bootstrap_scores = scores[indices]
+        quantiles[sample] = split_conformal_quantile(
+            bootstrap_scores, np.ones_like(bootstrap_scores), alpha
+        )
+    return tuple(float(value) for value in np.quantile(quantiles, (0.025, 0.975)))
 
 
 def adaptive_qalpha(*args, **kwargs) -> float:

@@ -30,6 +30,36 @@ The previously downloaded stock benchmark remains in [`../../openvins_benchmark/
 Its [`summary.csv`](../../openvins_benchmark/summary.csv) contains APE/RPE results for all eleven
 EuRoC sequences and is the input to conformal Gate 2.
 
+## Conformal Stage 2
+
+The downloaded Stage-2 artifacts are in [`stage2/`](stage2/). All eleven
+sequence arrays pass `reports/stage2_data_validation.json`, and
+`stage2_all_checksums.sha256` covers the full remote result set.
+
+Accepted:
+
+- `netA_geomvalid_seed7_epoch50_lr3e-4.pt`: geometry-valid Net A. Training NLL
+  1.04437; frozen calibration NLL 1.14010.
+- `netB_guarded_seed7_maxepoch50_lr3e-4.pt`: accepted only as an epoch-zero
+  constant four-channel Q correction. Validation selected epoch 0; frozen
+  calibration NLL 3.26105 equals the fit-only constant baseline. This is not
+  evidence for a conditional TCN.
+
+Rejected but retained for audit:
+
+- `netA_seed7_epoch50.pt`: trained before the image-diagonal GT-projection
+  validity gate; calibration NLL was approximately 1.11e10.
+- `netB_seed7_epoch50.pt`: unstable optimization.
+- `netB_stable_seed7_epoch50_lr3e-4.pt`: sequence overfit; calibration NLL 233.
+- `netB_selected_seed7_maxepoch50_lr3e-4.pt`: transferring only the selected
+  epoch count into an all-sequence refit failed; calibration NLL 14.21.
+
+The guarded Net-B result is a scientifically useful negative result: the
+current Stage-1 inputs and derived targets do not support the claim that a
+window-conditioned TCN generalizes across EuRoC sequences. Stage 3 must label
+the inertial arm as a constant-Q correction unless a new target/input design is
+predeclared and retrained without using calibration or test data for tuning.
+
 ## Validation gates
 
 See [`validation_gates.md`](validation_gates.md) for the final Gate 1 and Gate 2 results. The two

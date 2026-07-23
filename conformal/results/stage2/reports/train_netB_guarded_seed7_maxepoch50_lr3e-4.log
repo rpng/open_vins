@@ -1,0 +1,13 @@
+{"stage": "epoch_selection", "epoch": 0, "train_nll": 2.597738449550653, "training_pool_validation_nll": 2.814850297561536}
+{"stage": "epoch_selection", "epoch": 1, "train_nll": 6.914474583496181, "training_pool_validation_nll": 4.002610384628915}
+{"stage": "epoch_selection", "epoch": 2, "train_nll": 5.6594263458903065, "training_pool_validation_nll": 6.800985506358156}
+{"stage": "epoch_selection", "epoch": 3, "train_nll": 35.61074496149788, "training_pool_validation_nll": 5.835783961323684}
+{"stage": "epoch_selection", "epoch": 4, "train_nll": 18.25234337063621, "training_pool_validation_nll": 6.245186543716078}
+{"stage": "epoch_selection", "epoch": 5, "train_nll": 2.966374011265588, "training_pool_validation_nll": 4.264435633324924}
+{"stage": "epoch_selection", "epoch": 6, "train_nll": 2.3144034965475258, "training_pool_validation_nll": 45.9839338567296}
+{"stage": "epoch_selection", "epoch": 7, "train_nll": 2.0472954367177176, "training_pool_validation_nll": 58.556187404386925}
+{"stage": "epoch_selection", "epoch": 8, "train_nll": 2.0022619996010835, "training_pool_validation_nll": 51.4013558212941}
+{"stage": "epoch_selection", "epoch": 9, "train_nll": 1.8675935470856964, "training_pool_validation_nll": 58.308106004750485}
+{"stage": "epoch_selection", "epoch": 10, "train_nll": 1.7958536153158096, "training_pool_validation_nll": 94.2414746893236}
+{"stage": "early_stopping", "epoch": 10, "patience": 10}
+{"selected_epoch": 0, "training_pool_best_validation_nll": 2.814850297561536, "frozen_calibration_nll": 3.2610517067616214, "training_fit_constant_calibration_nll": 3.26105170331716}
