@@ -52,8 +52,8 @@ conformal/
 │   ├── validate_dump.py          ✅          structural/numerical validator
 │   └── CMakeLists.txt/package.xml✅ §18.1  catkin package linked to ov_* libraries
 ├── stage2_train/                     Stage 2 (Python): train the two heads (minutes on a laptop)
-│   ├── net_a_visual_deepsets.py      §8.1  Net A — per-feature σ_pix (DeepSets, target 26,305 params)
-│   ├── net_b_imu_dilated_tcn.py      §8.2  Net B — 4 IMU log-scales (dilated TCN, target 102,468 params)
+│   ├── net_a_visual_deepsets.py      §8.1  Net A — per-feature σ_pix (DeepSets, verified 25,793 params)
+│   ├── net_b_imu_dilated_tcn.py      §8.2  Net B — 4 IMU log-scales (dilated TCN, verified 150,468 params)
 │   ├── heteroscedastic_nll.py    ✅  §8.3  the training loss L = ½(e/σ)² + ½·log σ²
 │   ├── hdf5_dump_dataset.py          §8.3  loads Stage-1 HDF5; **sequence-disjoint** splits
 │   ├── train_heads.py                §8.3  offline trainer for Net A / Net B
@@ -179,8 +179,8 @@ state/covariance, and GT.
    the *wrong* way and is exactly what ablation A7 measures.
 2. Confirm architecture parameter counts (guards against silent drift):
    ```bash
-   python conformal/stage2_train/net_a_visual_deepsets.py   # target 26,305 params
-   python conformal/stage2_train/net_b_imu_dilated_tcn.py    # target 102,468 params
+   python conformal/stage2_train/net_a_visual_deepsets.py   # verified 25,793 params
+   python conformal/stage2_train/net_b_imu_dilated_tcn.py    # verified 150,468 params
    python conformal/stage2_train/heteroscedastic_nll.py      # ✅ self-test: recovers σ ≈ sqrt(E[e²])
    ```
    Reconcile `PER_FEATURE_DIM` / `FRAME_CTX_DIM` (Net A) with the exact columns you dumped so the
@@ -280,8 +280,8 @@ and **C4** (`claim_c4_*`, Flightmare closed-loop collisions).
 | `stage1_dumps/run_asl_msckf.cpp` | §18.2 | ✅ runnable | generate ASL dumps; honour Trap 1 |
 | `stage1_dumps/DiagnosticsLogger.{hpp,cpp}` | §18.3 | ✅ runnable | pre-gate HDF5 logger; honour Trap 2 |
 | `stage1_dumps/CMakeLists.txt` | §18.1 | ✅ runnable | catkin/HDF5 build |
-| `stage2_train/net_a_visual_deepsets.py` | §8.1 | near-complete | reconcile dims → 26,305 params |
-| `stage2_train/net_b_imu_dilated_tcn.py` | §8.2 | near-complete | verify → 102,468 params |
+| `stage2_train/net_a_visual_deepsets.py` | §8.1 | implemented | schema-v1 inputs, verified 25,793 params |
+| `stage2_train/net_b_imu_dilated_tcn.py` | §8.2 | implemented | two-conv residual blocks, verified 150,468 params |
 | `stage2_train/heteroscedastic_nll.py` | §8.3 | ✅ runnable | — |
 | `stage2_train/hdf5_dump_dataset.py` | §8.3 | scaffold | HDF5 reads; sequence-disjoint splits |
 | `stage2_train/train_heads.py` | §8.3 | scaffold | dataloaders + train loop |

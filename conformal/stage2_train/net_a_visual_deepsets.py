@@ -25,10 +25,9 @@ FRAME-LEVEL CONTEXT (concatenated onto each feature before the head):
     num tracked, num lost, RANSAC inlier ratio, brightness (+ ...) -> FRAME_CTX_DIM
 OUTPUT: one log-sigma per feature (exp -> sigma_pix_i, always positive).
 
-TARGET PARAM COUNT: 26,305 (p.14). A unit test asserts this so architecture drift is caught.
-
-TODO(intern): reconcile PER_FEATURE_DIM / FRAME_CTX_DIM with the exact columns you dump in
-DiagnosticsLogger.hpp so the count lands on 26,305, then remove the xfail on the test below.
+VERIFIED PARAM COUNT: 25,793 for the schema-v1 dimensions below.  The earlier
+26,305 scaffold value assumed eight additional encoder inputs that Stage 1
+does not log; retaining that number would misstate the executable model.
 """
 
 from __future__ import annotations
@@ -44,7 +43,7 @@ ENC_OUT = 64
 FRAME_CTX_DIM = 6        # frame-level context appended before the head
 POOL_OUT = 64            # Linear(192 -> 64) frame summary
 HEAD_HIDDEN = 64
-TARGET_PARAM_COUNT = 26_305
+TARGET_PARAM_COUNT = 25_793
 
 
 class PerFeatureEncoder(nn.Module):
@@ -108,7 +107,8 @@ def count_parameters(model: nn.Module) -> int:
 if __name__ == "__main__":
     net = NetA()
     n = count_parameters(net)
-    print(f"NetA parameters: {n} (target {TARGET_PARAM_COUNT} from p.14)")
+    print(f"NetA parameters: {n} (verified target {TARGET_PARAM_COUNT})")
+    assert n == TARGET_PARAM_COUNT, (n, TARGET_PARAM_COUNT)
     # Smoke test forward pass with a variable-K frame.
     B, K = 2, 150
     out = net(torch.randn(B, K, PER_FEATURE_DIM), torch.ones(B, K), torch.randn(B, FRAME_CTX_DIM))

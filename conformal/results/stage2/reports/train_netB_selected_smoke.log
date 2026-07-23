@@ -1,0 +1,3 @@
+{"stage": "epoch_selection", "epoch": 1, "train_nll": 66.61393926426982, "training_pool_validation_nll": 2.536950440638959}
+{"stage": "all_train_refit", "epoch": 1, "train_nll": 13.563497215795996}
+{"selected_epoch": 1, "training_pool_best_validation_nll": 2.536950440638959, "frozen_calibration_nll": 27.599936936421102}

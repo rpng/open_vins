@@ -1,0 +1,54 @@
+{"stage": "epoch_selection", "epoch": 1, "train_nll": 66.61393926426982, "training_pool_validation_nll": 2.536950440638959}
+{"stage": "epoch_selection", "epoch": 2, "train_nll": 2.866775401726648, "training_pool_validation_nll": 2.7146280999405117}
+{"stage": "epoch_selection", "epoch": 3, "train_nll": 2.688501668479973, "training_pool_validation_nll": 2.3398938612577385}
+{"stage": "epoch_selection", "epoch": 4, "train_nll": 2.498224299040994, "training_pool_validation_nll": 2.721700466826595}
+{"stage": "epoch_selection", "epoch": 5, "train_nll": 2.174229274967064, "training_pool_validation_nll": 3.23866670651101}
+{"stage": "epoch_selection", "epoch": 6, "train_nll": 2.2740332007484443, "training_pool_validation_nll": 3.8755350637414514}
+{"stage": "epoch_selection", "epoch": 7, "train_nll": 2.093955120425858, "training_pool_validation_nll": 17.527902710804202}
+{"stage": "epoch_selection", "epoch": 8, "train_nll": 1.6395492384320312, "training_pool_validation_nll": 10.921716746070713}
+{"stage": "epoch_selection", "epoch": 9, "train_nll": 1.5893951330913367, "training_pool_validation_nll": 6.092779388710178}
+{"stage": "epoch_selection", "epoch": 10, "train_nll": 1.5042566420657055, "training_pool_validation_nll": 6.1141787006204}
+{"stage": "epoch_selection", "epoch": 11, "train_nll": 1.4512683241154203, "training_pool_validation_nll": 16.20525647472153}
+{"stage": "epoch_selection", "epoch": 12, "train_nll": 1.435705933892348, "training_pool_validation_nll": 6.966363317420297}
+{"stage": "epoch_selection", "epoch": 13, "train_nll": 1.3718592839783281, "training_pool_validation_nll": 26.714178414737425}
+{"stage": "epoch_selection", "epoch": 14, "train_nll": 1.3525068720749809, "training_pool_validation_nll": 29.63788015138469}
+{"stage": "epoch_selection", "epoch": 15, "train_nll": 1.3320418024256409, "training_pool_validation_nll": 9.185883504487967}
+{"stage": "epoch_selection", "epoch": 16, "train_nll": 1.307590383366275, "training_pool_validation_nll": 16.669990666757283}
+{"stage": "epoch_selection", "epoch": 17, "train_nll": 1.2916808736484544, "training_pool_validation_nll": 17.30311204150356}
+{"stage": "epoch_selection", "epoch": 18, "train_nll": 1.2762769747319598, "training_pool_validation_nll": 20.71765028561127}
+{"stage": "epoch_selection", "epoch": 19, "train_nll": 1.260869867211088, "training_pool_validation_nll": 15.621885024193347}
+{"stage": "epoch_selection", "epoch": 20, "train_nll": 1.243975367707842, "training_pool_validation_nll": 15.197632056409157}
+{"stage": "epoch_selection", "epoch": 21, "train_nll": 1.2280095042464116, "training_pool_validation_nll": 26.982583647141254}
+{"stage": "epoch_selection", "epoch": 22, "train_nll": 1.2174316413473263, "training_pool_validation_nll": 18.090936325472086}
+{"stage": "epoch_selection", "epoch": 23, "train_nll": 1.2054392092767645, "training_pool_validation_nll": 17.694792584771662}
+{"stage": "epoch_selection", "epoch": 24, "train_nll": 1.1906549447834658, "training_pool_validation_nll": 29.86203670533805}
+{"stage": "epoch_selection", "epoch": 25, "train_nll": 1.1776195092828945, "training_pool_validation_nll": 25.232634615411346}
+{"stage": "epoch_selection", "epoch": 26, "train_nll": 1.1700709220161056, "training_pool_validation_nll": 32.2816206707611}
+{"stage": "epoch_selection", "epoch": 27, "train_nll": 1.1573525771978748, "training_pool_validation_nll": 25.905547357498865}
+{"stage": "epoch_selection", "epoch": 28, "train_nll": 1.1462115010193779, "training_pool_validation_nll": 35.33777130155625}
+{"stage": "epoch_selection", "epoch": 29, "train_nll": 1.1351862330921987, "training_pool_validation_nll": 42.890161692788574}
+{"stage": "epoch_selection", "epoch": 30, "train_nll": 1.1280844166051458, "training_pool_validation_nll": 25.679614259064238}
+{"stage": "epoch_selection", "epoch": 31, "train_nll": 1.116213490364265, "training_pool_validation_nll": 34.77115604415827}
+{"stage": "epoch_selection", "epoch": 32, "train_nll": 1.1078416138079874, "training_pool_validation_nll": 57.77058363741814}
+{"stage": "epoch_selection", "epoch": 33, "train_nll": 1.0970694942211887, "training_pool_validation_nll": 52.484354292621575}
+{"stage": "epoch_selection", "epoch": 34, "train_nll": 1.0889423811438244, "training_pool_validation_nll": 32.722735109579574}
+{"stage": "epoch_selection", "epoch": 35, "train_nll": 1.0802748864053637, "training_pool_validation_nll": 32.77396724104801}
+{"stage": "epoch_selection", "epoch": 36, "train_nll": 1.0717858386136383, "training_pool_validation_nll": 60.403591385277124}
+{"stage": "epoch_selection", "epoch": 37, "train_nll": 1.0611319590001465, "training_pool_validation_nll": 52.39980823287039}
+{"stage": "epoch_selection", "epoch": 38, "train_nll": 1.0560072308947899, "training_pool_validation_nll": 74.44073886563218}
+{"stage": "epoch_selection", "epoch": 39, "train_nll": 1.0491290034733018, "training_pool_validation_nll": 30.845963839059564}
+{"stage": "epoch_selection", "epoch": 40, "train_nll": 1.0435338871092945, "training_pool_validation_nll": 36.83945959304945}
+{"stage": "epoch_selection", "epoch": 41, "train_nll": 1.030938271650099, "training_pool_validation_nll": 57.163299490363976}
+{"stage": "epoch_selection", "epoch": 42, "train_nll": 1.0240438431342427, "training_pool_validation_nll": 62.461004997225174}
+{"stage": "epoch_selection", "epoch": 43, "train_nll": 1.019303477774405, "training_pool_validation_nll": 51.01767871490583}
+{"stage": "epoch_selection", "epoch": 44, "train_nll": 1.011576574037445, "training_pool_validation_nll": 45.22679812987877}
+{"stage": "epoch_selection", "epoch": 45, "train_nll": 1.0014183315000784, "training_pool_validation_nll": 48.68795975757228}
+{"stage": "epoch_selection", "epoch": 46, "train_nll": 0.9917310687405534, "training_pool_validation_nll": 54.75518261848717}
+{"stage": "epoch_selection", "epoch": 47, "train_nll": 0.9862677222099898, "training_pool_validation_nll": 77.0754322375528}
+{"stage": "epoch_selection", "epoch": 48, "train_nll": 0.9786173965037187, "training_pool_validation_nll": 39.94019438638959}
+{"stage": "epoch_selection", "epoch": 49, "train_nll": 0.9721172202846656, "training_pool_validation_nll": 56.08994884942448}
+{"stage": "epoch_selection", "epoch": 50, "train_nll": 0.9687893534993627, "training_pool_validation_nll": 37.103057872454684}
+{"stage": "all_train_refit", "epoch": 1, "train_nll": 13.563497215795996}
+{"stage": "all_train_refit", "epoch": 2, "train_nll": 3.072442458660395}
+{"stage": "all_train_refit", "epoch": 3, "train_nll": 3.13512077336542}
+{"selected_epoch": 3, "training_pool_best_validation_nll": 2.3398938612577385, "frozen_calibration_nll": 14.21268641668991}

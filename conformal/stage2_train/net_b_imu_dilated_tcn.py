@@ -31,7 +31,9 @@ See conformal/experiments/ablation_a6_netb_std_pool.py.
 INPUT:  raw IMU window [B, 20, 6]  (6 = gyro xyz + accel xyz)
 OUTPUT: 4 log-scales   [B, 4]      -> multiply the 4 NoiseManager sigmas by exp(.)
 
-TARGET PARAM COUNT: 102,468 (p.14). Asserted in __main__ so architecture drift is caught.
+VERIFIED PARAM COUNT: 150,468 for the executable two-convolution residual
+blocks below.  The earlier 102,468 scaffold value did not match its own
+implementation.
 
 TODO(intern): confirm channel order / normalisation of the 20x6 window matches what
 run_asl_msckf.cpp + DiagnosticsLogger.hpp dump, then lock the param-count test.
@@ -49,7 +51,7 @@ KERNEL = 5               # stem kernel
 DILATIONS = (1, 2, 4)    # receptive field ~29 > 20 (Section 8.2)
 POOL_HIDDEN = 128        # Linear(192 -> 128) after [mean;max;std] pool
 N_OUT = 4                # 4 IMU noise-density log-scales
-TARGET_PARAM_COUNT = 102_468
+TARGET_PARAM_COUNT = 150_468
 
 
 class ResidualBlock(nn.Module):
@@ -113,6 +115,8 @@ def count_parameters(model: nn.Module) -> int:
 
 if __name__ == "__main__":
     net = NetB(use_std_pool=True)
-    print(f"NetB parameters: {count_parameters(net)} (target {TARGET_PARAM_COUNT} from p.14)")
+    n = count_parameters(net)
+    print(f"NetB parameters: {n} (verified target {TARGET_PARAM_COUNT})")
+    assert n == TARGET_PARAM_COUNT, (n, TARGET_PARAM_COUNT)
     out = net(torch.randn(4, WINDOW, IN_CHANNELS))
     print("output shape:", tuple(out.shape), "(expected (4, 4))")

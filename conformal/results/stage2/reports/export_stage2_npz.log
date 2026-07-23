@@ -1,0 +1,11 @@
+MH_01_easy: NetA frames=1378 features=6119; NetB intervals=2763
+MH_02_easy: NetA frames=1090 features=4715; NetB intervals=2237
+MH_03_medium: NetA frames=1513 features=6678; NetB intervals=2290
+MH_04_difficult: NetA frames=968 features=3886; NetB intervals=1593
+MH_05_difficult: NetA frames=333 features=621; NetB intervals=1828
+V1_01_easy: NetA frames=1876 features=10441; NetB intervals=2781
+V1_02_medium: NetA frames=1393 features=6734; NetB intervals=1593
+V1_03_difficult: NetA frames=1776 features=9688; NetB intervals=1987
+V2_01_easy: NetA frames=1499 features=6606; NetB intervals=2167
+V2_02_medium: NetA frames=1942 features=9029; NetB intervals=2253
+V2_03_difficult: NetA frames=1609 features=9586; NetB intervals=1799

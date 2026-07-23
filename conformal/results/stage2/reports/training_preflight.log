@@ -1,0 +1,6 @@
+PyTorch/container preflight
+torch 2.3.0a0+gitd2f9472 numpy 1.21.2 cuda False
+NetA parameters: 25793 (verified target 25793)
+output shape: (2, 150) (expected (2, 150))
+NetB parameters: 150468 (verified target 150468)
+output shape: (4, 4) (expected (4, 4))
