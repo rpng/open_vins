@@ -1,5 +1,11 @@
 # Experiment results downloaded from the remote server
 
+The consolidated comparison against published ORB-SLAM3, VINS-Fusion, and
+OKVIS2 EuRoC results is in
+[`comparisons/EUROC_POPULAR_METHODS_COMPARISON.md`](comparisons/EUROC_POPULAR_METHODS_COMPARISON.md),
+with machine-readable values in
+[`comparisons/euroc_ate_comparison.csv`](comparisons/euroc_ate_comparison.csv).
+
 ## Conformal Stage 1
 
 The complete validated EuRoC Stage-1 suite is in [`stage1/`](stage1/).
