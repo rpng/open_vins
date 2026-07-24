@@ -1,0 +1,13 @@
+[93mInitialized new /tmp/.evo/settings.json[39m
+APE w.r.t. translation part (m)
+(with SE(3) Umeyama alignment)
+
+       max	0.166965
+      mean	0.099366
+    median	0.097278
+       min	0.021781
+      rmse	0.103335
+       sse	19.156716
+       std	0.028365
+
+Plots saved to /results/V2_03_difficult/ape.pdf

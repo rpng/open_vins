@@ -43,9 +43,23 @@
 #include "update/UpdaterSLAM.h"
 #include "update/UpdaterZeroVelocity.h"
 
+#include <utility>
+
 using namespace ov_core;
 using namespace ov_type;
 using namespace ov_msckf;
+
+void VioManager::set_msckf_diagnostic_callback(MsckfDiagnosticCallback callback) {
+  updaterMSCKF->set_diagnostic_callback(std::move(callback));
+}
+
+void VioManager::set_msckf_sigma_provider(MsckfSigmaProvider provider) {
+  updaterMSCKF->set_sigma_provider(std::move(provider));
+}
+
+void VioManager::set_imu_noises(const NoiseManager &noises) {
+  propagator->set_noises(noises);
+}
 
 VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false), thread_init_success(false) {
 
@@ -279,6 +293,20 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
+  size_t current_conformal_tracked = 0;
+  for (const auto &camera_ids : trackFEATS->get_last_ids())
+    current_conformal_tracked += camera_ids.second.size();
+  const size_t conformal_lost =
+      previous_conformal_tracked > current_conformal_tracked
+          ? previous_conformal_tracked - current_conformal_tracked
+          : 0;
+  const double conformal_brightness =
+      message.images.empty() ? 0.0 : cv::mean(message.images.front())[0];
+  updaterMSCKF->set_live_frame_context(
+      static_cast<double>(current_conformal_tracked),
+      static_cast<double>(conformal_lost),
+      conformal_brightness);
+  previous_conformal_tracked = current_conformal_tracked;
 
   // If the aruco tracker is available, the also pass to it
   // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids

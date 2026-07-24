@@ -23,11 +23,14 @@
 #define OV_MSCKF_UPDATER_MSCKF_H
 
 #include <Eigen/Eigen>
+#include <array>
 #include <memory>
+#include <utility>
 
 #include "feat/FeatureInitializerOptions.h"
 
 #include "UpdaterOptions.h"
+#include "ConformalHooks.h"
 
 namespace ov_core {
 class Feature;
@@ -67,6 +70,12 @@ public:
    */
   void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
 
+  void set_sigma_provider(MsckfSigmaProvider provider) { sigma_provider = std::move(provider); }
+  void set_diagnostic_callback(MsckfDiagnosticCallback callback) { diagnostic_callback = std::move(callback); }
+  void set_live_frame_context(double num_tracked, double num_lost, double mean_brightness) {
+    live_frame_context = {num_tracked, num_lost, mean_brightness};
+  }
+
 protected:
   /// Options used during update
   UpdaterOptions _options;
@@ -76,6 +85,10 @@ protected:
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;
+
+  MsckfSigmaProvider sigma_provider;
+  MsckfDiagnosticCallback diagnostic_callback;
+  std::array<double, 3> live_frame_context{{0.0, 0.0, 0.0}};
 };
 
 } // namespace ov_msckf

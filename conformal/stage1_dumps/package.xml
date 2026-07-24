@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package format="3">
+  <name>conformal_stage1</name>
+  <version>0.1.0</version>
+  <description>ASL runner and HDF5 diagnostic extraction for conformal OpenVINS experiments.</description>
+  <maintainer email="maintainer@example.com">OpenVINS Conformal Experiments</maintainer>
+  <license>GPL-3.0-or-later</license>
+
+  <buildtool_depend condition="$ROS_VERSION == 1">catkin</buildtool_depend>
+  <depend condition="$ROS_VERSION == 1">ov_core</depend>
+  <depend condition="$ROS_VERSION == 1">ov_init</depend>
+  <depend condition="$ROS_VERSION == 1">ov_msckf</depend>
+  <depend>eigen</depend>
+  <depend>libopencv-dev</depend>
+  <depend>libhdf5-dev</depend>
+
+  <export>
+    <build_type condition="$ROS_VERSION == 1">catkin</build_type>
+  </export>
+</package>

@@ -95,6 +95,17 @@ public:
    */
   void invalidate_cache() { cache_imu_valid = false; }
 
+  /** Replace the continuous-time IMU noise parameters between experiments. */
+  void set_noises(const NoiseManager &noises) {
+    std::lock_guard<std::mutex> lock(imu_data_mtx);
+    _noises = noises;
+    _noises.sigma_w_2 = std::pow(_noises.sigma_w, 2);
+    _noises.sigma_a_2 = std::pow(_noises.sigma_a, 2);
+    _noises.sigma_wb_2 = std::pow(_noises.sigma_wb, 2);
+    _noises.sigma_ab_2 = std::pow(_noises.sigma_ab, 2);
+    cache_imu_valid = false;
+  }
+
   /**
    * @brief Propagate state up to given timestamp and then clone
    *

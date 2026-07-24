@@ -1,0 +1,8 @@
+[stage1-validate] PASS
+[stage1-validate] sequence=MH_04_difficult
+[stage1-validate] frames=1594
+[stage1-validate] features=3886
+[stage1-validate] gate_pass_rate=0.8185795162120433
+[stage1-validate] covariance_symmetry_max=1.4941661189565858e-18
+[stage1-validate] duration_s=79.65000009536743
+[stage1-validate] gt_reprojection_finite_fraction=1.0

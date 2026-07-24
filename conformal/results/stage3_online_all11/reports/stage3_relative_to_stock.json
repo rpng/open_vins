@@ -1,0 +1,233 @@
+[
+  {
+    "sequence": "MH_01_easy",
+    "split": "train",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "MH_01_easy",
+    "split": "train",
+    "arm": "learned",
+    "ate_ratio_to_stock": 3.2857136765764743,
+    "rpe_ratio_to_stock": 1.7967866240440082
+  },
+  {
+    "sequence": "MH_01_easy",
+    "split": "train",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 4.095093894475037,
+    "rpe_ratio_to_stock": 2.2373186530049973
+  },
+  {
+    "sequence": "MH_02_easy",
+    "split": "train",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "MH_02_easy",
+    "split": "train",
+    "arm": "learned",
+    "ate_ratio_to_stock": 3.441756415783608,
+    "rpe_ratio_to_stock": 2.505519387785713
+  },
+  {
+    "sequence": "MH_02_easy",
+    "split": "train",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 4.212045867026683,
+    "rpe_ratio_to_stock": 3.0239642773739215
+  },
+  {
+    "sequence": "MH_03_medium",
+    "split": "train",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "MH_03_medium",
+    "split": "train",
+    "arm": "learned",
+    "ate_ratio_to_stock": 1.813711738580503,
+    "rpe_ratio_to_stock": 1.8774905197905112
+  },
+  {
+    "sequence": "MH_03_medium",
+    "split": "train",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 2.024454450994188,
+    "rpe_ratio_to_stock": 1.786171005320434
+  },
+  {
+    "sequence": "MH_04_difficult",
+    "split": "calibration",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "MH_04_difficult",
+    "split": "calibration",
+    "arm": "learned",
+    "ate_ratio_to_stock": 3.726655188107681,
+    "rpe_ratio_to_stock": 2.0250832697420766
+  },
+  {
+    "sequence": "MH_04_difficult",
+    "split": "calibration",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 4.288821312475463,
+    "rpe_ratio_to_stock": 2.4374749137718696
+  },
+  {
+    "sequence": "MH_05_difficult",
+    "split": "test",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "MH_05_difficult",
+    "split": "test",
+    "arm": "learned",
+    "ate_ratio_to_stock": 3.0799805383462733,
+    "rpe_ratio_to_stock": 2.1548322240352826
+  },
+  {
+    "sequence": "MH_05_difficult",
+    "split": "test",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 3.2046002773451354,
+    "rpe_ratio_to_stock": 2.5450485572334416
+  },
+  {
+    "sequence": "V1_01_easy",
+    "split": "train",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "V1_01_easy",
+    "split": "train",
+    "arm": "learned",
+    "ate_ratio_to_stock": 1.4968702845495765,
+    "rpe_ratio_to_stock": 1.1102841556901242
+  },
+  {
+    "sequence": "V1_01_easy",
+    "split": "train",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 1.7035373376951228,
+    "rpe_ratio_to_stock": 1.3438097968647313
+  },
+  {
+    "sequence": "V1_02_medium",
+    "split": "train",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "V1_02_medium",
+    "split": "train",
+    "arm": "learned",
+    "ate_ratio_to_stock": 2.2253434990047856,
+    "rpe_ratio_to_stock": 2.6641899403805374
+  },
+  {
+    "sequence": "V1_02_medium",
+    "split": "train",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 2.2176402627925746,
+    "rpe_ratio_to_stock": 2.6002789483909434
+  },
+  {
+    "sequence": "V1_03_difficult",
+    "split": "calibration",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "V1_03_difficult",
+    "split": "calibration",
+    "arm": "learned",
+    "ate_ratio_to_stock": 1.377497290387476,
+    "rpe_ratio_to_stock": 1.3092162169680632
+  },
+  {
+    "sequence": "V1_03_difficult",
+    "split": "calibration",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 2.200924838279382,
+    "rpe_ratio_to_stock": 1.501114377018178
+  },
+  {
+    "sequence": "V2_01_easy",
+    "split": "train",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "V2_01_easy",
+    "split": "train",
+    "arm": "learned",
+    "ate_ratio_to_stock": 1.9936330861897396,
+    "rpe_ratio_to_stock": 1.2193890961289529
+  },
+  {
+    "sequence": "V2_01_easy",
+    "split": "train",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 2.3618047049575157,
+    "rpe_ratio_to_stock": 1.2765248912870717
+  },
+  {
+    "sequence": "V2_02_medium",
+    "split": "test",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "V2_02_medium",
+    "split": "test",
+    "arm": "learned",
+    "ate_ratio_to_stock": 2.147480645505407,
+    "rpe_ratio_to_stock": 1.225863521347063
+  },
+  {
+    "sequence": "V2_02_medium",
+    "split": "test",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 3.7518430626317594,
+    "rpe_ratio_to_stock": 1.37807992841008
+  },
+  {
+    "sequence": "V2_03_difficult",
+    "split": "test",
+    "arm": "stock",
+    "ate_ratio_to_stock": 1.0,
+    "rpe_ratio_to_stock": 1.0
+  },
+  {
+    "sequence": "V2_03_difficult",
+    "split": "test",
+    "arm": "learned",
+    "ate_ratio_to_stock": 1.1159395454066323,
+    "rpe_ratio_to_stock": 0.9141892498666414
+  },
+  {
+    "sequence": "V2_03_difficult",
+    "split": "test",
+    "arm": "conformalised",
+    "ate_ratio_to_stock": 1.3993248275064014,
+    "rpe_ratio_to_stock": 0.9744634339740195
+  }
+]

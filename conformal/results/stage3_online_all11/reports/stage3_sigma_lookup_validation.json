@@ -1,0 +1,6 @@
+{
+  "inference_mode": "causal live batch Net-A",
+  "minimum_hit_rate": null,
+  "passed": true,
+  "failures": []
+}

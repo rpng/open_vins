@@ -1,0 +1,29 @@
+FROM osrf/ros:noetic-desktop-full
+
+ARG DEBIAN_FRONTEND=noninteractive
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+      hdf5-tools \
+      libboost-all-dev \
+      libceres-dev \
+      libeigen3-dev \
+      libhdf5-dev \
+      python3-catkin-tools \
+      python3-h5py \
+      python3-numpy \
+      python3-osrf-pycommon \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /catkin_ws/src/open_vins
+COPY . .
+
+WORKDIR /catkin_ws
+RUN . /opt/ros/noetic/setup.sh \
+    && catkin config \
+         --extend /opt/ros/noetic \
+         --cmake-args -DCMAKE_BUILD_TYPE=Release -DDISABLE_MATPLOTLIB=ON -DCATKIN_ENABLE_TESTING=OFF \
+    && catkin build --no-status -j2 conformal_stage1
+
+COPY benchmark/docker_entrypoint.sh /openvins_entrypoint.sh
+ENTRYPOINT ["/openvins_entrypoint.sh"]
+CMD ["bash"]

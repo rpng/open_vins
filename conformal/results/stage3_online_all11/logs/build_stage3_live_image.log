@@ -1,0 +1,95 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.stage1.incremental
+#1 transferring dockerfile: 1.11kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/openvins-conformal:stage1
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 154B done
+#3 DONE 0.0s
+
+#4 [ 1/10] FROM docker.io/library/openvins-conformal:stage1
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 5.56kB done
+#5 DONE 0.0s
+
+#6 [ 2/10] COPY conformal/stage1_dumps/run_asl_msckf.cpp      /catkin_ws/src/open_vins/conformal/stage1_dumps/run_asl_msckf.cpp
+#6 CACHED
+
+#7 [ 3/10] COPY conformal/stage1_dumps/validate_dump.py      /catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py
+#7 DONE 0.1s
+
+#8 [ 4/10] COPY ov_msckf/src/update/ConformalHooks.h      /catkin_ws/src/open_vins/ov_msckf/src/update/ConformalHooks.h
+#8 DONE 0.1s
+
+#9 [ 5/10] COPY ov_msckf/src/update/UpdaterMSCKF.h      /catkin_ws/src/open_vins/ov_msckf/src/update/UpdaterMSCKF.h
+#9 DONE 0.1s
+
+#10 [ 6/10] COPY ov_msckf/src/update/UpdaterMSCKF.cpp      /catkin_ws/src/open_vins/ov_msckf/src/update/UpdaterMSCKF.cpp
+#10 DONE 0.1s
+
+#11 [ 7/10] COPY ov_msckf/src/core/VioManager.h      /catkin_ws/src/open_vins/ov_msckf/src/core/VioManager.h
+#11 DONE 0.1s
+
+#12 [ 8/10] COPY ov_msckf/src/core/VioManager.cpp      /catkin_ws/src/open_vins/ov_msckf/src/core/VioManager.cpp
+#12 DONE 0.1s
+
+#13 [ 9/10] WORKDIR /catkin_ws
+#13 DONE 0.1s
+
+#14 [10/10] RUN . /opt/ros/noetic/setup.sh     && catkin build --no-status -j2 ov_msckf conformal_stage1
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 Profile:                     default
+#14 193.1 Extending:        [explicit] /opt/ros/noetic
+#14 193.1 Workspace:                   /catkin_ws
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 Build Space:        [exists] /catkin_ws/build
+#14 193.1 Devel Space:        [exists] /catkin_ws/devel
+#14 193.1 Install Space:      [unused] /catkin_ws/install
+#14 193.1 Log Space:          [exists] /catkin_ws/logs
+#14 193.1 Source Space:       [exists] /catkin_ws/src
+#14 193.1 DESTDIR:            [unused] None
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 Devel Space Layout:          linked
+#14 193.1 Install Space Layout:        None
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 Additional CMake Args:       -DCMAKE_BUILD_TYPE=Release -DDISABLE_MATPLOTLIB=ON -DCATKIN_ENABLE_TESTING=OFF
+#14 193.1 Additional Make Args:        -j2
+#14 193.1 Additional catkin Make Args: None
+#14 193.1 Internal Make Job Server:    True
+#14 193.1 Cache Job Environments:      False
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 Buildlisted Packages:        None
+#14 193.1 Skiplisted Packages:         None
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 Workspace configuration appears valid.
+#14 193.1 --------------------------------------------------------------------------------
+#14 193.1 [build] Found 6 packages in 0.0 seconds.                                       
+#14 193.1 [build] Package table is up to date.                                           
+#14 193.1 Starting >>> ov_core                        
+#14 193.1 Finished <<< ov_core                         [ 0.4 seconds ]
+#14 193.1 Starting >>> ov_init                        
+#14 193.1 Finished <<< ov_init                         [ 0.4 seconds ]
+#14 193.1 Starting >>> ov_msckf                       
+#14 193.1 Finished <<< ov_msckf                        [ 2 minutes and 52.0 seconds ]
+#14 193.1 Starting >>> conformal_stage1               
+#14 193.1 Finished <<< conformal_stage1                [ 19.4 seconds ]
+#14 193.1 [build] Summary: All 4 packages succeeded!
+#14 193.1 [build] Ignored: 2 packages were skipped or are skiplisted.
+#14 193.1 [build] Warnings: None.
+#14 193.1 [build] Abandoned: No packages were abandoned.
+#14 193.1 [build] Failed: No packages failed.
+#14 193.1 [build] Runtime: 3 minutes and 12.2 seconds total.
+#14 DONE 193.4s
+
+#15 exporting to image
+#15 exporting layers
+#15 exporting layers 3.1s done
+#15 writing image sha256:5b4808cd2128880ba11a5a5304e28cf272cbdd5597048aeee7425218c06ae63b done
+#15 naming to docker.io/library/openvins-conformal:stage3-live done
+#15 DONE 3.2s

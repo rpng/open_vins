@@ -1,0 +1,8 @@
+[stage1-validate] PASS
+[stage1-validate] sequence=MH_02_easy
+[stage1-validate] frames=2238
+[stage1-validate] features=4375
+[stage1-validate] gate_pass_rate=0.9997714285714285
+[stage1-validate] covariance_symmetry_max=0.0
+[stage1-validate] duration_s=111.84999990463257
+[stage1-validate] gt_reprojection_finite_fraction=0.9908571428571429

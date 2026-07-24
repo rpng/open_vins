@@ -1,0 +1,25 @@
+OpenVINS EuRoC benchmark manifest
+completed_local_date=2026-07-21
+server=himkesh@10.24.36.121
+openvins_commit=69488123ed9362dd44b6f28e7f4680abbff1442b
+docker_image_tag=openvins-euroc:noetic
+docker_image_id=sha256:2dbb0b45ade1a7a932a58aa2ffaa0dda062ab48dfc3bf9517ccb3ecfb5752cd0
+dataset_root=/mnt/euro_mav
+results_root=/mnt/euro_mav/openvins_benchmark
+configuration=euroc_mav stereo-inertial, max_cameras=2, use_stereo=true
+alignment=SE(3) Umeyama
+association_max_difference_seconds=0.02
+ape_relation=translation
+rpe_relation=translation
+rpe_delta=1 meter
+sequences=11
+saved_poses=23376
+wall_runtime_seconds=2241
+mean_sequence_ape_rmse_m=0.103682
+mean_sequence_rpe_rmse_m=0.036564
+summary_sha256=1fab2fa5e1e8fb92e6f4822cf78d6bb4611e43fb876da9013fa87f49bd1e9457
+
+All required trajectory, timing, log, evo text, PDF, and ZIP artifacts were
+verified non-empty. The ROS image_transport class-loader exception present at
+the end of each log occurred during teardown after the estimate had passed the
+last available ground-truth timestamp.

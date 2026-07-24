@@ -1,0 +1,2 @@
+sequence,group,poses,runtime_s,ape_rmse_m,ape_mean_m,ape_median_m,ape_std_m,rpe_rmse_m
+MH_01_easy,machine_hall,2767,246,0.090810,0.081054,0.072930,0.040949,0.037079

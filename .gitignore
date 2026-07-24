@@ -8,3 +8,8 @@ doxgen_generated
 *.swo
 doc
 .vscode
+EuRoC_MAV/
+catkin_ws/
+__pycache__/
+*.py[cod]
+#openvins_benchmark/

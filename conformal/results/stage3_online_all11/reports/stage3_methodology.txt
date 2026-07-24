@@ -1,0 +1,8 @@
+inference=causal live batch Net-A inside MSCKF update
+visual_inputs=live pre-decision residual and hypothetical stock chi-square
+primary_split=MH_05_difficult,V2_02_medium,V2_03_difficult
+supplementary_splits=train,calibration
+arms=stock,learned,conformalised
+oracle_arm=excluded because ground-truth visual noise is noncausal
+visual_conformal_scale=1.1701864004
+inertial_model=accepted epoch-zero constant-Q correction

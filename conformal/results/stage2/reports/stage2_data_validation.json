@@ -1,0 +1,25 @@
+{
+  "status": "PASS",
+  "sequences_expected": 11,
+  "sequences_seen": 11,
+  "splits": {
+    "train": [
+      "MH_01_easy",
+      "MH_02_easy",
+      "MH_03_medium",
+      "V1_01_easy",
+      "V1_02_medium",
+      "V2_01_easy"
+    ],
+    "calibration": [
+      "MH_04_difficult",
+      "V1_03_difficult"
+    ],
+    "test": [
+      "MH_05_difficult",
+      "V2_02_medium",
+      "V2_03_difficult"
+    ]
+  },
+  "failures": []
+}

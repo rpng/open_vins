@@ -1,0 +1,14 @@
+[93mInitialized new /tmp/.evo/settings.json[39m
+RPE w.r.t. translation part (m)
+for delta = 1.0 (m) using consecutive pairs
+(with SE(3) Umeyama alignment)
+
+       max	0.091752
+      mean	0.028144
+    median	0.027461
+       min	0.004365
+      rmse	0.031505
+       sse	0.061538
+       std	0.014158
+
+Plots saved to /results/MH_02_easy/rpe.pdf

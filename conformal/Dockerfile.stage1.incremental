@@ -1,0 +1,22 @@
+# Fast remote rebuild after Stage-1-only source changes. Build the full
+# Dockerfile.stage1 first; this image retains its catkin build cache.
+FROM openvins-conformal:stage1
+
+COPY conformal/stage1_dumps/run_asl_msckf.cpp \
+     /catkin_ws/src/open_vins/conformal/stage1_dumps/run_asl_msckf.cpp
+COPY conformal/stage1_dumps/validate_dump.py \
+     /catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py
+COPY ov_msckf/src/update/ConformalHooks.h \
+     /catkin_ws/src/open_vins/ov_msckf/src/update/ConformalHooks.h
+COPY ov_msckf/src/update/UpdaterMSCKF.h \
+     /catkin_ws/src/open_vins/ov_msckf/src/update/UpdaterMSCKF.h
+COPY ov_msckf/src/update/UpdaterMSCKF.cpp \
+     /catkin_ws/src/open_vins/ov_msckf/src/update/UpdaterMSCKF.cpp
+COPY ov_msckf/src/core/VioManager.h \
+     /catkin_ws/src/open_vins/ov_msckf/src/core/VioManager.h
+COPY ov_msckf/src/core/VioManager.cpp \
+     /catkin_ws/src/open_vins/ov_msckf/src/core/VioManager.cpp
+
+WORKDIR /catkin_ws
+RUN . /opt/ros/noetic/setup.sh \
+    && catkin build --no-status -j2 ov_msckf conformal_stage1
