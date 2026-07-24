@@ -12,6 +12,12 @@ reported VINS-Fusion mean, but worse than OKVIS2 VIO, causal OKVIS2 SLAM, and
 ORB-SLAM3. The learned and conformalised arms are worse than every external
 method in this comparison.
 
+![EuRoC ATE comparison](euroc_ate_comparison.png)
+
+The figure is also available as a vector
+[`PDF`](euroc_ate_comparison.pdf). It is reproducible with
+[`plot_euroc_ate_comparison.py`](plot_euroc_ate_comparison.py).
+
 ## What each experimental stage established
 
 | Stage | Output | Main result | Trajectory comparison? |
