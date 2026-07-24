@@ -4,6 +4,8 @@ FROM openvins-conformal:stage1
 
 COPY conformal/stage1_dumps/run_asl_msckf.cpp \
      /catkin_ws/src/open_vins/conformal/stage1_dumps/run_asl_msckf.cpp
+COPY conformal/stage1_dumps/validate_dump.py \
+     /catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py
 COPY ov_msckf/src/update/ConformalHooks.h \
      /catkin_ws/src/open_vins/ov_msckf/src/update/ConformalHooks.h
 COPY ov_msckf/src/update/UpdaterMSCKF.h \

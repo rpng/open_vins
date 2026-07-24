@@ -1,0 +1,2 @@
+[stage3-stock-parity] reference_ate_rmse_m=0.078756554 candidate_ate_rmse_m=0.078756554 ate_ratio=1.000000000 symmetric_ate_ratio=1.000000000 frame_difference=0
+[stage3-stock-parity] PASS

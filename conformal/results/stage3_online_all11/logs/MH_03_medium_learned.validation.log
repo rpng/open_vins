@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py", line 101, in <module>
+    main()
+  File "/catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py", line 94, in main
+    summary = validate(args.dump, args.min_frames, args.min_gt_reprojection_fraction)
+  File "/catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py", line 65, in validate
+    raise ValueError(f"feature gate pass rate {pass_rate:.3f} does not contain both outcomes")
+ValueError: feature gate pass rate 1.000 does not contain both outcomes

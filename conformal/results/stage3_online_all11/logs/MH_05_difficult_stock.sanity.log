@@ -1,0 +1,2 @@
+[stage3-stock-sanity] frames=1829 features=4450 ate_rmse_m=0.277956296 rpe_global_1s_rmse_m=0.054961472
+[stage3-stock-sanity] PASS

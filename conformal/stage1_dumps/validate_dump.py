@@ -14,6 +14,7 @@ def validate(
     path: Path,
     min_frames: int = 100,
     min_gt_reprojection_fraction: float = 0.8,
+    require_mixed_gate: bool = True,
 ) -> dict[str, float | int | str]:
     required = {
         "/frames/timestamp": (None,),
@@ -61,7 +62,9 @@ def validate(
         if not np.all(np.isfinite(features[:, [0, 1, 2, 6, 8, 9, 10, 11]])):
             raise ValueError("required feature diagnostic columns contain non-finite values")
         pass_rate = float(np.mean(features[:, 11]))
-        if not 0.0 < pass_rate < 1.0:
+        if not 0.0 <= pass_rate <= 1.0:
+            raise ValueError(f"feature gate pass rate {pass_rate:.3f} is outside [0,1]")
+        if require_mixed_gate and not 0.0 < pass_rate < 1.0:
             raise ValueError(f"feature gate pass rate {pass_rate:.3f} does not contain both outcomes")
         gt_reprojection_fraction = float(np.mean(np.isfinite(features[:, 7])))
         if gt_reprojection_fraction < min_gt_reprojection_fraction:
@@ -90,8 +93,18 @@ def main() -> None:
     parser.add_argument("dump", type=Path)
     parser.add_argument("--min-frames", type=int, default=100)
     parser.add_argument("--min-gt-reprojection-fraction", type=float, default=0.8)
+    parser.add_argument(
+        "--allow-degenerate-gate",
+        action="store_true",
+        help="permit all-pass/all-reject learned arms while still reporting the rate",
+    )
     args = parser.parse_args()
-    summary = validate(args.dump, args.min_frames, args.min_gt_reprojection_fraction)
+    summary = validate(
+        args.dump,
+        args.min_frames,
+        args.min_gt_reprojection_fraction,
+        require_mixed_gate=not args.allow_degenerate_gate,
+    )
     print("[stage1-validate] PASS")
     for key, value in summary.items():
         print(f"[stage1-validate] {key}={value}")

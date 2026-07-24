@@ -1,0 +1,8 @@
+[stage1-validate] PASS
+[stage1-validate] sequence=V1_03_difficult
+[stage1-validate] frames=1988
+[stage1-validate] features=9765
+[stage1-validate] gate_pass_rate=0.9987711213517665
+[stage1-validate] covariance_symmetry_max=0.0
+[stage1-validate] duration_s=99.34999990463257
+[stage1-validate] gt_reprojection_finite_fraction=0.9979518689196109

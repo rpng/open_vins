@@ -24,12 +24,22 @@ The experiment foundation is implemented and verified:
 - `stage1_dumps/validate_dump.py` rejects incomplete or numerically invalid
   dumps, including dumps with insufficient finite GT reprojection targets.
 
-The Stage-2 HDF5 loaders, variable-feature collation, four-channel Net-B target
-derivation, sequence-disjoint validation loops, and reproducible checkpoints
-are implemented. Target sidecars and trained checkpoints still need to be
-materialized on the remote GPU server. The conformal calibration experiment
-and Stage 3 corruption sweeps remain the next implementation block. The two
-known theory/self-test discrepancies were intentionally left unchanged.
+Stages 1--3 have now been materialized and validated on the remote server.
+Stage 2 accepted a geometry-valid Net A and, as a negative result, only the
+epoch-zero constant-Q Net-B baseline. Fixed calibration on MH04 and V1_03 gave
+visual `q_alpha=1.170186` and inertial `q_alpha=1.237830`.
+
+The final Stage-3 benchmark uses causal live Net-A inference inside each MSCKF
+update; it does not reuse feature IDs or observations from a different filter
+trajectory. All 33 runs (11 sequences × stock/learned/conformalised) are
+downloaded under `results/stage3_online_all11/` and pass the supplied
+checksums. On the three held-out test sequences, mean ATE RMSE is 0.145 m for
+stock, 0.357 m for learned, and 0.400 m for conformalised. Mean relative ATE is
+therefore 2.11× and 2.79× stock. The learned noise makes the feature gate pass
+almost every candidate (99.96% versus 74.07% stock), so this is a clear
+negative result for the present target/model rather than evidence of improved
+robustness. The two known theory/self-test discrepancies remain intentionally
+unchanged and were not used as experiment gates.
 
 The optional hooks require small changes under `ov_msckf/`; therefore the old
 claim in `changes.md` that the OpenVINS core is byte-for-byte untouched is no
@@ -129,13 +139,13 @@ measurement. The threshold is geometry-derived and fixed before training.
 
 ## What to do next
 
-1. Generate and distribution-check all eleven Net-B target sidecars.
-2. Train Net A and Net B and inspect held-out calibration NLL.
-3. Fit one conformal quantile per modality without touching the test sequences.
-4. Implement the Stage-3 sigma sidecar reader using the existing
-   `set_msckf_sigma_provider()` and `set_imu_noises()` hooks.
-5. Run A3 first, then C0; do not run the full corruption suite until those two
-   de-risk experiments succeed.
+Do not tune the current Net A on MH05, V2_02, or V2_03: they are the held-out
+test set. The next defensible experiment is a new, predeclared visual-noise
+target/model design using only the training sequences, with MH04 and V1_03
+reserved for calibration/model selection. First diagnose the saturation
+visible in Stage 3 (`sigma_pix_max≈exp(7)` and near-100% gate acceptance), then
+retrain and repeat the causal live benchmark. Do not proceed to corruption
+sweeps with the currently rejected model.
 
 See `changes.md` for the original experiment map. Treat its remaining scaffold
 labels and the byte-for-byte-core claim as historical notes where they conflict

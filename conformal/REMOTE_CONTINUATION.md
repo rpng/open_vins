@@ -9,9 +9,7 @@
 - Remote data/results root: `/mnt/euro_mav/conformal_dumps`
 - Local results root: `conformal/results`
 
-The user authorized SSH/SCP. Codex remote operations are currently blocked by
-an internal approval-service error (`X-OpenAI-Internal-Codex-Responses-Lite`),
-not by the SSH key or server.
+The user authorized SSH/SCP. Remote access is working.
 
 ## Completed
 
@@ -24,9 +22,9 @@ not by the SSH key or server.
   failed exact lookup at 3.8%; ID and observation audits proved cross-run
   sidecars scientifically invalid.
 
-## Prepared replacement
+## Completed replacement
 
-`stage3_eval/run_remote_stage3_online_all11.sh` runs all 11 sequences in three
+`stage3_eval/run_remote_stage3_online_all11.sh` ran all 11 sequences in three
 arms: stock, learned, and conformalised. It:
 
 1. exports the accepted PyTorch Net-A checkpoint to self-verifying HDF5;
@@ -40,32 +38,16 @@ arms: stock, learned, and conformalised. It:
    `/mnt/euro_mav/conformal_dumps/stage3_online_all11`.
 
 Primary test sequences remain MH05, V2_02, and V2_03. The other eight are
-train/calibration diagnostics, not unbiased generalization evidence.
+train/calibration diagnostics, not unbiased generalization evidence. The
+remote job exited, its completion marker is present, and all remote checksums
+passed. The complete 146 MB directory was downloaded to
+`conformal/results/stage3_online_all11`; all 130 checksums also pass locally.
 
-## Files that must be uploaded
-
-- `conformal/stage1_dumps/run_asl_msckf.cpp`
-- `ov_msckf/src/update/ConformalHooks.h`
-- `ov_msckf/src/update/UpdaterMSCKF.h`
-- `ov_msckf/src/update/UpdaterMSCKF.cpp`
-- `ov_msckf/src/core/VioManager.h`
-- `ov_msckf/src/core/VioManager.cpp`
-- `conformal/Dockerfile.stage1.incremental`
-- all scripts in `conformal/stage3_eval/`, including
-  `run_remote_stage3_online_all11.sh`
-
-Then run:
-
-```bash
-bash /home/himkesh/open_vins_conformal/conformal/stage3_eval/run_remote_stage3_online_all11.sh
-```
-
-On success, download the entire remote `stage3_online_all11` directory to
-`conformal/results/stage3_online_all11` and verify:
-
-```bash
-sha256sum -c stage3_online_all11_checksums.sha256
-```
+Primary test mean ATE RMSE is 0.1453 m stock, 0.3571 m learned, and 0.4002 m
+conformalised. Mean ATE ratios are 2.11× and 2.79× stock. Net A saturates at
+very large sigma values and drives gate acceptance to nearly 100%, so both
+non-stock arms are rejected. Preserve these artifacts as the final negative
+result for the current model.
 
 Do not interpret or publish any non-stock trajectory unless the model parity,
 stock parity, structural validation, and live-inference reports all pass.

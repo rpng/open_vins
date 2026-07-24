@@ -39,6 +39,10 @@ arms=(learned conformalised)
 failures=()
 
 mkdir -p "${model_dir}" "${preflight_dir}" "${run_dir}" "${log_dir}" "${report_dir}"
+if [[ -f "${report_dir}/stage3_failures.txt" ]]; then
+  mv "${report_dir}/stage3_failures.txt" \
+    "${log_dir}/stage3_failures.before_resume.$(date +%s).txt"
+fi
 
 # Export the accepted checkpoint once. The HDF5 includes a reference forward
 # pass that the C++ implementation must reproduce before any trajectory runs.
@@ -138,6 +142,27 @@ run_live_filter() {
   fi
   local output="/data/conformal_dumps/stage3_online_all11/runs/${sequence}_${arm}.h5"
   local imu_sidecar="/data/conformal_dumps/stage3_all11/sidecars/${sequence}_${arm}_sigma.h5"
+  local host_output="${run_dir}/${sequence}_${arm}.h5"
+  local host_log="${log_dir}/${sequence}_${arm}.log"
+  if [[ "${RESUME_EXISTING:-1}" == 1 && -f "${host_output}" && -f "${host_log}" ]]; then
+    local existing_predictions
+    existing_predictions=$(
+      sed -n 's/^.*live Net-A batches=[0-9][0-9]* predictions=//p' \
+        "${host_log}" |
+        tail -n 1
+    )
+    if [[ -n "${existing_predictions}" && "${existing_predictions}" -gt 0 ]] &&
+       docker run --rm \
+         --user "$(id -u):$(id -g)" \
+         -v "${dataset_root}:/data" \
+         "${stage3_image}" \
+         python3 /catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py \
+           "${output}" --allow-degenerate-gate \
+         > "${log_dir}/${sequence}_${arm}.resume.validation.log" 2>&1; then
+      echo "SKIP ${sequence}_${arm}: validated existing live run predictions=${existing_predictions}"
+      return 0
+    fi
+  fi
   if ! docker run --rm \
     --user "$(id -u):$(id -g)" \
     -v "${dataset_root}:/data" \
@@ -157,7 +182,7 @@ run_live_filter() {
     -v "${dataset_root}:/data" \
     "${stage3_image}" \
     python3 /catkin_ws/src/open_vins/conformal/stage1_dumps/validate_dump.py \
-      "${output}" \
+      "${output}" --allow-degenerate-gate \
     2>&1 | tee "${log_dir}/${sequence}_${arm}.validation.log"; then
     failures+=("${sequence}_${arm}:validation")
     return 1

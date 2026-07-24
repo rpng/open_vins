@@ -71,6 +71,9 @@ def _metrics(path: Path) -> dict[str, float | int]:
         "rpe_global_1s_rmse_m": float(np.sqrt(np.mean(relative_array * relative_array))),
         "feature_candidates": len(features),
         "feature_gate_pass_rate": float(np.mean(features[:, 11] > 0.5)) if len(features) else float("nan"),
+        "sigma_pix_median": float(np.median(features[:, 10])) if len(features) else float("nan"),
+        "sigma_pix_p95": float(np.quantile(features[:, 10], 0.95)) if len(features) else float("nan"),
+        "sigma_pix_max": float(np.max(features[:, 10])) if len(features) else float("nan"),
         "finite_gt_feature_targets": int(finite_gt.sum()),
     }
 

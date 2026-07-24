@@ -97,6 +97,24 @@ excluded rather than mislabeled. The three untouched test sequences (MH05,
 V2_02, V2_03) remain the primary benchmark; the other eight results are labeled
 train/calibration diagnostics.
 
+The complete 146 MB replacement bundle is downloaded and all 130 entries in
+`stage3_online_all11_checksums.sha256` pass locally. It contains 33 HDF5 runs,
+the exported model, preflight output, validation/run logs, and six reports.
+Primary held-out-test means are:
+
+| arm | ATE RMSE (m) | RPE 1 s RMSE (m) | ATE ratio to stock | gate pass rate |
+|---|---:|---:|---:|---:|
+| stock | 0.1453 | 0.0405 | 1.00× | 74.07% |
+| learned | 0.3571 | 0.0620 | 2.11× | 99.96% |
+| conformalised | 0.4002 | 0.0712 | 2.79× | 100.00% |
+
+Thus the current learned and conformalised visual-noise arms are rejected.
+Net A frequently saturates at `sigma_pix≈exp(7)=1096.63`; conformal scaling
+raises the maximum to 1283.27. This nearly disables chi-squared rejection and
+degrades held-out trajectory accuracy. V2_03 learned is the only primary case
+with an RPE improvement (0.914× stock), but its ATE is still 1.116× stock and
+does not overturn the aggregate negative result.
+
 ## Validation gates
 
 See [`validation_gates.md`](validation_gates.md) for the final Gate 1 and Gate 2 results. The two
