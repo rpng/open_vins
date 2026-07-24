@@ -1,0 +1,3 @@
+MH_05_difficult {'frames': 1829, 'visual_frames': 382, 'features': 698, 'finite_gt_visual': 633}
+V2_02_medium {'frames': 2254, 'visual_frames': 1942, 'features': 9032, 'finite_gt_visual': 9032}
+V2_03_difficult {'frames': 1800, 'visual_frames': 1609, 'features': 9587, 'finite_gt_visual': 9587}

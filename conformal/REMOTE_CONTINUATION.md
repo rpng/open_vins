@@ -1,70 +1,71 @@
 # Remote continuation handoff
 
-Resume this work autonomously. Do not ask the user to copy/paste terminal
-commands. Use SSH/SCP yourself and report only results or genuine blockers.
-
 ## Workspace and remote
 
 - Local repository: `/home/himkesh/Downloads/OPEN_VINS`
 - Remote: `himkesh@10.24.36.121`
 - SSH key: `/home/himkesh/.ssh/id_ed25519`
 - Remote repository: `/home/himkesh/open_vins_conformal`
-- Remote Stage-2 results: `/mnt/euro_mav/conformal_dumps/stage2`
-- Local Stage-2 results: `conformal/results/stage2`
+- Remote data/results root: `/mnt/euro_mav/conformal_dumps`
+- Local results root: `conformal/results`
 
-The user has explicitly authorized SSH/SCP and requested that Codex perform all
-remote commands, monitoring, and downloads itself.
+The user authorized SSH/SCP. Codex remote operations are currently blocked by
+an internal approval-service error (`X-OpenAI-Internal-Codex-Responses-Lite`),
+not by the SSH key or server.
 
-## Completed and downloaded
+## Completed
 
-- All 11 Stage-1 HDF5 files and stock benchmarks.
-- All 11 Stage-2 Net-B target sidecars.
-- Portable Net-A and Net-B NPZ arrays.
-- Stage-2 array validation passes for all 11 sequences.
-- Aggregate checksums pass.
-- Geometry-valid Net A is accepted:
-  `checkpoints/netA_geomvalid_seed7_epoch50_lr3e-4.pt`
-  - training NLL: 1.04437
-  - frozen calibration NLL: 1.14010
+- Stage 1: all 11 EuRoC sequences validated and downloaded.
+- Stage 2: all 11 arrays, accepted Net A, epoch-zero constant-Q Net B, and
+  fixed calibration artifacts validated and downloaded.
+- The first Stage-3 test-only pilot is downloaded under `results/stage3/`, but
+  it is invalid for learned visual-noise comparison.
+- The corrected-offset all-11 stock pilots passed. Its first non-stock run
+  failed exact lookup at 3.8%; ID and observation audits proved cross-run
+  sidecars scientifically invalid.
 
-## Rejected audit checkpoints
+## Prepared replacement
 
-Retain these as audit artifacts but do not use them:
+`stage3_eval/run_remote_stage3_online_all11.sh` runs all 11 sequences in three
+arms: stock, learned, and conformalised. It:
 
-- `netA_seed7_epoch50.pt`: invalid extreme reprojection labels before the
-  image-diagonal geometry gate; calibration NLL was about 1.11e10.
-- `netB_seed7_epoch50.pt`: unstable optimization.
-- `netB_stable_seed7_epoch50_lr3e-4.pt`: sequence overfit; calibration NLL 233.
-- `netB_selected_seed7_maxepoch50_lr3e-4.pt`: epoch-count transfer/refit failed;
-  calibration NLL 14.21 versus a training-fit constant baseline around 3.14.
+1. exports the accepted PyTorch Net-A checkpoint to self-verifying HDF5;
+2. builds the causal live-inference runner;
+3. verifies C++/PyTorch model parity at load time;
+4. verifies that the refactored updater preserves MH01 stock behavior;
+5. reuses the eleven already-validated corrected-offset stock pilots;
+6. runs 22 causal non-stock trajectories;
+7. writes primary held-out-test and labeled all-11 supplementary tables; and
+8. writes SHA-256 checksums under
+   `/mnt/euro_mav/conformal_dumps/stage3_online_all11`.
 
-## Exact next action
+Primary test sequences remain MH05, V2_02, and V2_03. The other eight are
+train/calibration diagnostics, not unbiased generalization evidence.
 
-The final guarded Net-B code is local but has not been uploaded/run:
+## Files that must be uploaded
 
-- `conformal/stage2_train/train_heads.py`
-- `conformal/stage2_train/run_remote_train_netb_selected.sh`
+- `conformal/stage1_dumps/run_asl_msckf.cpp`
+- `ov_msckf/src/update/ConformalHooks.h`
+- `ov_msckf/src/update/UpdaterMSCKF.h`
+- `ov_msckf/src/update/UpdaterMSCKF.cpp`
+- `ov_msckf/src/core/VioManager.h`
+- `ov_msckf/src/core/VioManager.cpp`
+- `conformal/Dockerfile.stage1.incremental`
+- all scripts in `conformal/stage3_eval/`, including
+  `run_remote_stage3_online_all11.sh`
 
-Upload those two files to the remote repository's matching directory, run
-`run_remote_train_netb_selected.sh`, monitor until completion, download the
-entire remote Stage-2 result directory back into local
-`conformal/results/stage2`, and verify `stage2_all_checksums.sha256`.
+Then run:
 
-The guarded trainer:
+```bash
+bash /home/himkesh/open_vins_conformal/conformal/stage3_eval/run_remote_stage3_online_all11.sh
+```
 
-- fits on MH01, MH02, V101, V102;
-- validates on MH03, V201;
-- never uses conformal-calibration trajectories for model selection;
-- initializes at the fit-only optimal constant four-channel scale;
-- permits epoch zero to win;
-- retains the actual best validation-selected weights;
-- stops after ten non-improving epochs;
-- compares frozen calibration NLL with the fit-only constant baseline.
+On success, download the entire remote `stage3_online_all11` directory to
+`conformal/results/stage3_online_all11` and verify:
 
-Accept learned Net B only if the final audit supports it. If epoch zero wins,
-report that the experiment supports constant Q correction rather than a
-conditional TCN. Do not tune against calibration or test.
+```bash
+sha256sum -c stage3_online_all11_checksums.sha256
+```
 
-After Net B is resolved, clearly mark accepted/rejected checkpoints in the
-results README, then implement conformal quantile fitting without using test
-sequences.
+Do not interpret or publish any non-stock trajectory unless the model parity,
+stock parity, structural validation, and live-inference reports all pass.

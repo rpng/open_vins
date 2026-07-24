@@ -1,0 +1,12 @@
+MH_05_difficult_conformalised_sigma.h5 frames 1829 features 698 PASS
+MH_05_difficult_learned_sigma.h5 frames 1829 features 698 PASS
+MH_05_difficult_oracle_sigma.h5 frames 1829 features 698 PASS
+MH_05_difficult_stock_sigma.h5 frames 1829 features 698 PASS
+V2_02_medium_conformalised_sigma.h5 frames 2254 features 9032 PASS
+V2_02_medium_learned_sigma.h5 frames 2254 features 9032 PASS
+V2_02_medium_oracle_sigma.h5 frames 2254 features 9032 PASS
+V2_02_medium_stock_sigma.h5 frames 2254 features 9032 PASS
+V2_03_difficult_conformalised_sigma.h5 frames 1800 features 9587 PASS
+V2_03_difficult_learned_sigma.h5 frames 1800 features 9587 PASS
+V2_03_difficult_oracle_sigma.h5 frames 1800 features 9587 PASS
+V2_03_difficult_stock_sigma.h5 frames 1800 features 9587 PASS

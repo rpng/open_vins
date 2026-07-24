@@ -2,9 +2,11 @@
 #ifndef OV_MSCKF_CONFORMAL_HOOKS_H
 #define OV_MSCKF_CONFORMAL_HOOKS_H
 
+#include <array>
 #include <cstddef>
 #include <functional>
 #include <memory>
+#include <vector>
 
 namespace ov_core {
 class Feature;
@@ -25,7 +27,11 @@ struct MsckfFeatureDiagnostic {
 };
 
 using MsckfDiagnosticCallback = std::function<void(const MsckfFeatureDiagnostic &)>;
-using MsckfSigmaProvider = std::function<double(size_t feature_id, double timestamp)>;
+using MsckfVisualInput = std::array<double, 8>;
+using MsckfFrameContext = std::array<double, 6>;
+using MsckfSigmaProvider =
+    std::function<std::vector<double>(const std::vector<MsckfVisualInput> &features,
+                                      const MsckfFrameContext &frame_context)>;
 
 } // namespace ov_msckf
 

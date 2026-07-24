@@ -1,0 +1,76 @@
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile.stage1.incremental
+#1 transferring dockerfile: 457B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/openvins-conformal:stage1
+#2 DONE 0.0s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 154B done
+#3 DONE 0.0s
+
+#4 [internal] load build context
+#4 transferring context: 16.40kB done
+#4 DONE 0.0s
+
+#5 [1/4] FROM docker.io/library/openvins-conformal:stage1
+#5 DONE 0.2s
+
+#6 [2/4] COPY conformal/stage1_dumps/run_asl_msckf.cpp      /catkin_ws/src/open_vins/conformal/stage1_dumps/run_asl_msckf.cpp
+#6 DONE 0.1s
+
+#7 [3/4] WORKDIR /catkin_ws
+#7 DONE 0.1s
+
+#8 [4/4] RUN . /opt/ros/noetic/setup.sh     && catkin build --no-status -j2 conformal_stage1
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 Profile:                     default
+#8 19.79 Extending:        [explicit] /opt/ros/noetic
+#8 19.79 Workspace:                   /catkin_ws
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 Build Space:        [exists] /catkin_ws/build
+#8 19.79 Devel Space:        [exists] /catkin_ws/devel
+#8 19.79 Install Space:      [unused] /catkin_ws/install
+#8 19.79 Log Space:          [exists] /catkin_ws/logs
+#8 19.79 Source Space:       [exists] /catkin_ws/src
+#8 19.79 DESTDIR:            [unused] None
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 Devel Space Layout:          linked
+#8 19.79 Install Space Layout:        None
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 Additional CMake Args:       -DCMAKE_BUILD_TYPE=Release -DDISABLE_MATPLOTLIB=ON -DCATKIN_ENABLE_TESTING=OFF
+#8 19.79 Additional Make Args:        -j2
+#8 19.79 Additional catkin Make Args: None
+#8 19.79 Internal Make Job Server:    True
+#8 19.79 Cache Job Environments:      False
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 Buildlisted Packages:        None
+#8 19.79 Skiplisted Packages:         None
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 Workspace configuration appears valid.
+#8 19.79 --------------------------------------------------------------------------------
+#8 19.79 [build] Found 6 packages in 0.0 seconds.                                       
+#8 19.79 [build] Package table is up to date.                                           
+#8 19.79 Starting >>> ov_core                        
+#8 19.79 Finished <<< ov_core                         [ 0.4 seconds ]
+#8 19.79 Starting >>> ov_init                        
+#8 19.79 Finished <<< ov_init                         [ 0.3 seconds ]
+#8 19.79 Starting >>> ov_msckf                       
+#8 19.79 Finished <<< ov_msckf                        [ 0.4 seconds ]
+#8 19.79 Starting >>> conformal_stage1               
+#8 19.79 Finished <<< conformal_stage1                [ 17.7 seconds ]
+#8 19.79 [build] Summary: All 4 packages succeeded!
+#8 19.79 [build] Ignored: 2 packages were skipped or are skiplisted.
+#8 19.79 [build] Warnings: None.
+#8 19.79 [build] Abandoned: No packages were abandoned.
+#8 19.79 [build] Failed: No packages failed.
+#8 19.79 [build] Runtime: 18.9 seconds total.
+#8 DONE 19.9s
+
+#9 exporting to image
+#9 exporting layers 0.1s done
+#9 writing image sha256:14ed767ddd1d117f99cf2292b7d6bb61df8f7dac2d9034f24612b2b13a9687e9 done
+#9 naming to docker.io/library/openvins-conformal:stage3 0.0s done
+#9 DONE 0.1s

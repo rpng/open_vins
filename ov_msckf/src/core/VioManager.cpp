@@ -293,6 +293,20 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
 
   // Perform our feature tracking!
   trackFEATS->feed_new_camera(message);
+  size_t current_conformal_tracked = 0;
+  for (const auto &camera_ids : trackFEATS->get_last_ids())
+    current_conformal_tracked += camera_ids.second.size();
+  const size_t conformal_lost =
+      previous_conformal_tracked > current_conformal_tracked
+          ? previous_conformal_tracked - current_conformal_tracked
+          : 0;
+  const double conformal_brightness =
+      message.images.empty() ? 0.0 : cv::mean(message.images.front())[0];
+  updaterMSCKF->set_live_frame_context(
+      static_cast<double>(current_conformal_tracked),
+      static_cast<double>(conformal_lost),
+      conformal_brightness);
+  previous_conformal_tracked = current_conformal_tracked;
 
   // If the aruco tracker is available, the also pass to it
   // NOTE: binocular tracking for aruco doesn't make sense as we by default have the ids

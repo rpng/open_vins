@@ -1,0 +1,8 @@
+[stage1-validate] PASS
+[stage1-validate] sequence=V2_02_medium
+[stage1-validate] frames=2254
+[stage1-validate] features=9330
+[stage1-validate] gate_pass_rate=0.7894962486602358
+[stage1-validate] covariance_symmetry_max=0.0
+[stage1-validate] duration_s=112.64999985694885
+[stage1-validate] gt_reprojection_finite_fraction=0.9980707395498393

@@ -236,6 +236,10 @@ protected:
   bool did_zupt_update = false;
   bool has_moved_since_zupt = false;
 
+  // Live causal Net-A context. This mirrors the Stage-1 tracked/lost counts
+  // without relying on a separately replayed stock trajectory.
+  size_t previous_conformal_tracked = 0;
+
   // Good features that where used in the last update (used in visualization)
   std::vector<Eigen::Vector3d> good_features_MSCKF;
 

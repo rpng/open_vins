@@ -73,6 +73,30 @@ calibration, MH04 visual coverage is 88.73% and V1_03 inertial coverage is
 88.51%. The JSON explicitly records that MH05, V2_02, and V2_03 were not opened
 during fitting.
 
+## Conformal Stage 3
+
+The first three-sequence artifacts in `stage3/` are retained only as an invalid
+pilot. Their visual sidecar lookup rates were approximately 0.2--3.2%, so most
+visual updates silently used stock measurement noise. Do not use their
+trajectory comparisons as learned-noise results.
+
+The subsequent `stage3_all11/` attempt established valid stock baselines for
+all eleven sequences, but its first non-stock run also failed: exact
+`(timestamp_us, feature_id)` lookup reached only 3.8%. An audit showed only
+54.3% feature-ID overlap and only 7.5% sub-pixel observation matches. Feature
+identity and candidate timing change with the filter trajectory, so no relaxed
+cross-run lookup is scientifically defensible. Retain this directory as a
+negative audit, not as a learned-noise benchmark.
+
+The replacement is `stage3_online_all11/`. Net A runs causally inside each
+MSCKF update using the live feature batch, pre-decision residuals, and
+hypothetical stock chi-square values. The C++ forward pass must match an
+embedded PyTorch reference before execution, and the refactored updater must
+first reproduce the MH01 stock ATE within 20%. The noncausal GT-oracle arm is
+excluded rather than mislabeled. The three untouched test sequences (MH05,
+V2_02, V2_03) remain the primary benchmark; the other eight results are labeled
+train/calibration diagnostics.
+
 ## Validation gates
 
 See [`validation_gates.md`](validation_gates.md) for the final Gate 1 and Gate 2 results. The two

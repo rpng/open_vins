@@ -34,7 +34,9 @@
 
 #include <boost/date_time/posix_time/posix_time.hpp>
 #include <boost/math/distributions/chi_squared.hpp>
+#include <algorithm>
 #include <cmath>
+#include <limits>
 
 using namespace ov_core;
 using namespace ov_type;
@@ -167,137 +169,188 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
   size_t ct_meas = 0;
   const bool use_feature_sigmas = static_cast<bool>(sigma_provider);
 
-  // 4. Compute linear system for each feature, nullspace project, and reject
-  auto it2 = feature_vec.begin();
-  while (it2 != feature_vec.end()) {
+  struct PreparedCandidate {
+    std::shared_ptr<Feature> feature;
+    size_t feature_id = 0;
+    size_t track_measurements = 0;
+    Eigen::MatrixXd H_x;
+    Eigen::VectorXd residual;
+    std::vector<std::shared_ptr<Type>> Hx_order;
+    Eigen::MatrixXd innovation_without_measurement_noise;
+    double chi2_threshold = 0.0;
+    double stock_chi2 = 0.0;
+    MsckfVisualInput model_input{};
+  };
+  std::vector<PreparedCandidate> prepared;
+  prepared.reserve(feature_vec.size());
 
-    // Convert our feature into our current format
+  // 4a. Build all feature systems from causal pre-decision values. Net A runs
+  // on this complete set before learned noise changes any gate decision.
+  for (const auto &feature : feature_vec) {
     UpdaterHelper::UpdaterHelperFeature feat;
-    feat.featid = (*it2)->featid;
-    feat.uvs = (*it2)->uvs;
-    feat.uvs_norm = (*it2)->uvs_norm;
-    feat.timestamps = (*it2)->timestamps;
-
-    // If we are using single inverse depth, then it is equivalent to using the msckf inverse depth
+    feat.featid = feature->featid;
+    feat.uvs = feature->uvs;
+    feat.uvs_norm = feature->uvs_norm;
+    feat.timestamps = feature->timestamps;
     feat.feat_representation = state->_options.feat_rep_msckf;
-    if (state->_options.feat_rep_msckf == LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE) {
+    if (state->_options.feat_rep_msckf == LandmarkRepresentation::Representation::ANCHORED_INVERSE_DEPTH_SINGLE)
       feat.feat_representation = LandmarkRepresentation::Representation::ANCHORED_MSCKF_INVERSE_DEPTH;
-    }
-
-    // Save the position and its fej value
     if (LandmarkRepresentation::is_relative_representation(feat.feat_representation)) {
-      feat.anchor_cam_id = (*it2)->anchor_cam_id;
-      feat.anchor_clone_timestamp = (*it2)->anchor_clone_timestamp;
-      feat.p_FinA = (*it2)->p_FinA;
-      feat.p_FinA_fej = (*it2)->p_FinA;
+      feat.anchor_cam_id = feature->anchor_cam_id;
+      feat.anchor_clone_timestamp = feature->anchor_clone_timestamp;
+      feat.p_FinA = feature->p_FinA;
+      feat.p_FinA_fej = feature->p_FinA;
     } else {
-      feat.p_FinG = (*it2)->p_FinG;
-      feat.p_FinG_fej = (*it2)->p_FinG;
+      feat.p_FinG = feature->p_FinG;
+      feat.p_FinG_fej = feature->p_FinG;
     }
 
-    // Our return values (feature jacobian, state jacobian, residual, and order of state jacobian)
     Eigen::MatrixXd H_f;
     Eigen::MatrixXd H_x;
-    Eigen::VectorXd res;
+    Eigen::VectorXd residual;
     std::vector<std::shared_ptr<Type>> Hx_order;
+    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, residual, Hx_order);
+    UpdaterHelper::nullspace_project_inplace(H_f, H_x, residual);
 
-    // Get the Jacobian for this feature
-    UpdaterHelper::get_feature_jacobian_full(state, feat, H_f, H_x, res, Hx_order);
+    Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hx_order);
+    Eigen::MatrixXd innovation_without_noise = H_x * P_marg * H_x.transpose();
+    Eigen::MatrixXd stock_innovation = innovation_without_noise;
+    stock_innovation.diagonal() += _options.sigma_pix_sq * Eigen::VectorXd::Ones(stock_innovation.rows());
+    const double stock_chi2 = residual.dot(stock_innovation.llt().solve(residual));
 
-    // Nullspace project
-    UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);
+    double chi2_check;
+    if (residual.rows() < 500) {
+      chi2_check = chi_squared_table[residual.rows()];
+    } else {
+      boost::math::chi_squared chi_squared_dist(residual.rows());
+      chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
+      PRINT_WARNING(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)residual.rows());
+    }
+    const double chi2_threshold = _options.chi2_multipler * chi2_check;
 
-    // Use the stock scalar unless Stage 3 explicitly supplies a valid
-    // per-feature standard deviation.
-    double sigma_pix = _options.sigma_pix;
-    if (use_feature_sigmas) {
-      const double supplied = sigma_provider(feat.featid, state->_timestamp);
-      if (std::isfinite(supplied) && supplied > 0.0) {
-        sigma_pix = supplied;
-      } else {
-        PRINT_WARNING(YELLOW "[conformal] invalid sigma %.6f for feature %zu; using stock %.6f\n" RESET, supplied,
-                      feat.featid, _options.sigma_pix);
+    size_t track_measurements = 0;
+    double last_camera = -1.0;
+    double last_timestamp = -std::numeric_limits<double>::infinity();
+    double last_u = 0.0;
+    double last_v = 0.0;
+    for (const auto &camera_timestamps : feature->timestamps) {
+      track_measurements += camera_timestamps.second.size();
+      const auto uv_it = feature->uvs.find(camera_timestamps.first);
+      if (uv_it == feature->uvs.end())
+        continue;
+      const size_t count = std::min(camera_timestamps.second.size(), uv_it->second.size());
+      for (size_t index = 0; index < count; ++index) {
+        if (camera_timestamps.second[index] > last_timestamp) {
+          last_timestamp = camera_timestamps.second[index];
+          last_camera = static_cast<double>(camera_timestamps.first);
+          last_u = uv_it->second[index](0);
+          last_v = uv_it->second[index](1);
+        }
       }
     }
-    const double sigma_pix_sq = use_feature_sigmas ? sigma_pix * sigma_pix : _options.sigma_pix_sq;
-
-    /// Chi2 distance check
-    Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hx_order);
-    Eigen::MatrixXd S = H_x * P_marg * H_x.transpose();
-    S.diagonal() += sigma_pix_sq * Eigen::VectorXd::Ones(S.rows());
-    double chi2 = res.dot(S.llt().solve(res));
-
-    // Get our threshold (we precompute up to 500 but handle the case that it is more)
-    double chi2_check;
-    if (res.rows() < 500) {
-      chi2_check = chi_squared_table[res.rows()];
-    } else {
-      boost::math::chi_squared chi_squared_dist(res.rows());
-      chi2_check = boost::math::quantile(chi_squared_dist, 0.95);
-      PRINT_WARNING(YELLOW "chi2_check over the residual limit - %d\n" RESET, (int)res.rows());
+    MsckfVisualInput model_input{{
+        std::log1p(static_cast<double>(track_measurements)),
+        std::min(1.0, std::max(last_camera, 0.0)),
+        last_u / 752.0,
+        last_v / 480.0,
+        std::log1p(std::max(residual.norm(), 0.0)),
+        std::log1p(std::max(stock_chi2, 0.0)),
+        std::log1p(std::max(chi2_threshold, 0.0)),
+        _options.sigma_pix,
+    }};
+    for (double value : model_input) {
+      if (!std::isfinite(value))
+        throw std::runtime_error("non-finite live Net-A input");
     }
+    prepared.push_back(PreparedCandidate{
+        feature,
+        feat.featid,
+        track_measurements,
+        std::move(H_x),
+        std::move(residual),
+        std::move(Hx_order),
+        std::move(innovation_without_noise),
+        chi2_threshold,
+        stock_chi2,
+        model_input,
+    });
+  }
 
-    const double chi2_threshold = _options.chi2_multipler * chi2_check;
-    const bool passed_chi2_gate = chi2 <= chi2_threshold;
+  std::vector<double> feature_sigmas(prepared.size(), _options.sigma_pix);
+  if (use_feature_sigmas && !prepared.empty()) {
+    std::vector<MsckfVisualInput> model_inputs;
+    model_inputs.reserve(prepared.size());
+    size_t stock_gate_passes = 0;
+    for (const auto &candidate : prepared) {
+      model_inputs.push_back(candidate.model_input);
+      if (candidate.stock_chi2 <= candidate.chi2_threshold)
+        ++stock_gate_passes;
+    }
+    const MsckfFrameContext frame_context{{
+        std::log1p(std::max(live_frame_context[0], 0.0)),
+        std::log1p(std::max(live_frame_context[1], 0.0)),
+        live_frame_context[2] / 255.0,
+        static_cast<double>(state->max_covariance_size()) / 1000.0,
+        std::log1p(static_cast<double>(prepared.size())),
+        static_cast<double>(stock_gate_passes) / static_cast<double>(prepared.size()),
+    }};
+    feature_sigmas = sigma_provider(model_inputs, frame_context);
+    if (feature_sigmas.size() != prepared.size())
+      throw std::runtime_error("live Net-A returned the wrong number of feature sigmas");
+    for (double sigma : feature_sigmas) {
+      if (!std::isfinite(sigma) || sigma <= 0.0)
+        throw std::runtime_error("live Net-A returned an invalid feature sigma");
+    }
+  }
 
-    // Observe every candidate before rejection. This callback is absent from
-    // stock runs and cannot alter the feature or filter state.
+  // 4b. Apply the predicted sigmas to the actual gates and stacked update.
+  feature_vec.clear();
+  for (size_t candidate_index = 0; candidate_index < prepared.size(); ++candidate_index) {
+    auto &candidate = prepared[candidate_index];
+    const double sigma_pix = feature_sigmas[candidate_index];
+    Eigen::MatrixXd innovation = candidate.innovation_without_measurement_noise;
+    innovation.diagonal() += sigma_pix * sigma_pix * Eigen::VectorXd::Ones(innovation.rows());
+    const double chi2 = candidate.residual.dot(innovation.llt().solve(candidate.residual));
+    const bool passed_chi2_gate = chi2 <= candidate.chi2_threshold;
+
     if (diagnostic_callback) {
-      size_t track_measurements = 0;
-      for (const auto &camera_timestamps : (*it2)->timestamps)
-        track_measurements += camera_timestamps.second.size();
       MsckfFeatureDiagnostic diagnostic;
       diagnostic.timestamp = state->_timestamp;
-      diagnostic.feature_id = feat.featid;
-      diagnostic.track_measurements = track_measurements;
-      diagnostic.filter_residual_norm = res.norm();
+      diagnostic.feature_id = candidate.feature_id;
+      diagnostic.track_measurements = candidate.track_measurements;
+      diagnostic.filter_residual_norm = candidate.residual.norm();
       diagnostic.chi2 = chi2;
-      diagnostic.chi2_threshold = chi2_threshold;
+      diagnostic.chi2_threshold = candidate.chi2_threshold;
       diagnostic.sigma_pix = sigma_pix;
       diagnostic.passed_chi2_gate = passed_chi2_gate;
-      diagnostic.feature = *it2;
+      diagnostic.feature = candidate.feature;
       diagnostic_callback(diagnostic);
     }
 
-    // Check if we should delete or not
     if (!passed_chi2_gate) {
-      (*it2)->to_delete = true;
-      it2 = feature_vec.erase(it2);
-      // PRINT_DEBUG("featid = %d\n", feat.featid);
-      // PRINT_DEBUG("chi2 = %f > %f\n", chi2, _options.chi2_multipler*chi2_check);
-      // std::stringstream ss;
-      // ss << "res = " << std::endl << res.transpose() << std::endl;
-      // PRINT_DEBUG(ss.str().c_str());
+      candidate.feature->to_delete = true;
       continue;
     }
+    feature_vec.push_back(candidate.feature);
 
-    // Feature-dependent isotropic blocks are whitened before stacking. The
-    // existing compression can then operate with identity measurement noise.
     if (use_feature_sigmas) {
-      H_x /= sigma_pix;
-      res /= sigma_pix;
+      candidate.H_x /= sigma_pix;
+      candidate.residual /= sigma_pix;
     }
 
-    // We are good!!! Append to our large H vector
     size_t ct_hx = 0;
-    for (const auto &var : Hx_order) {
-
-      // Ensure that this variable is in our Jacobian
+    for (const auto &var : candidate.Hx_order) {
       if (Hx_mapping.find(var) == Hx_mapping.end()) {
         Hx_mapping.insert({var, ct_jacob});
         Hx_order_big.push_back(var);
         ct_jacob += var->size();
       }
-
-      // Append to our large Jacobian
-      Hx_big.block(ct_meas, Hx_mapping[var], H_x.rows(), var->size()) = H_x.block(0, ct_hx, H_x.rows(), var->size());
+      Hx_big.block(ct_meas, Hx_mapping[var], candidate.H_x.rows(), var->size()) =
+          candidate.H_x.block(0, ct_hx, candidate.H_x.rows(), var->size());
       ct_hx += var->size();
     }
-
-    // Append our residual and move forward
-    res_big.block(ct_meas, 0, res.rows(), 1) = res;
-    ct_meas += res.rows();
-    it2++;
+    res_big.block(ct_meas, 0, candidate.residual.rows(), 1) = candidate.residual;
+    ct_meas += candidate.residual.rows();
   }
   rT3 = boost::posix_time::microsec_clock::local_time();
 
