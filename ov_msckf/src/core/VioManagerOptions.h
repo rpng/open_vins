@@ -119,6 +119,12 @@ struct VioManagerOptions {
   /// For VIODE (baseline=5cm, fx=376px): depth 15m → 1.3px disparity (unreliable).
   double imu_residual_max_depth = 0.0;
 
+  /// Triangulation quality gate (pixels).  If the RMS reprojection error of p_FinG
+  /// across all sliding-window clones exceeds this threshold, nm is suppressed to 1.0.
+  /// Prevents false nm inflation when triangulation is unreliable (e.g. low-texture night).
+  /// 0 = disabled (default).
+  double imu_residual_max_tri_error = 0.0;
+
   /**
    * @brief This function will load print out all estimator settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -143,11 +149,12 @@ struct VioManagerOptions {
       parser->parse_config("imu_residual_sigma_px", imu_residual_sigma_px);
       parser->parse_config("use_residual_variance", use_residual_variance);
       parser->parse_config("imu_residual_max_depth", imu_residual_max_depth);
+      parser->parse_config("imu_residual_max_tri_error", imu_residual_max_tri_error);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
-    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f\n",
+    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f  max_tri_error=%.1f\n",
                 (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px,
-                (int)use_residual_variance, imu_residual_max_depth);
+                (int)use_residual_variance, imu_residual_max_depth, imu_residual_max_tri_error);
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);

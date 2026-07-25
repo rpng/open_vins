@@ -94,12 +94,14 @@ public:
    *                     Stereo disparity at max_depth ≈ baseline*fx/max_depth.
    */
   void set_imu_residual_params(bool use, double alpha, double sigma_px,
-                               bool use_variance = false, double max_depth = 0.0) {
+                               bool use_variance = false, double max_depth = 0.0,
+                               double max_tri_error = 0.0) {
     _use_imu_residual = use;
     _imu_residual_alpha = alpha;
     _imu_residual_sigma_px = sigma_px;
     _use_residual_variance = use_variance;
     _imu_residual_max_depth = max_depth;
+    _imu_residual_max_tri_error = max_tri_error;
   }
 
 protected:
@@ -116,8 +118,9 @@ protected:
   bool _use_imu_residual = false;
   double _imu_residual_alpha = 5.0;
   double _imu_residual_sigma_px = 5.0;
-  bool _use_residual_variance = false;   // use cross-clone residual std-dev instead of single-frame
-  double _imu_residual_max_depth = 0.0; // depth gate in metres (0 = disabled)
+  bool _use_residual_variance = false;        // use cross-clone residual std-dev instead of single-frame
+  double _imu_residual_max_depth = 0.0;      // depth gate in metres (0 = disabled)
+  double _imu_residual_max_tri_error = 0.0;  // triangulation quality gate: RMS reprojection px (0 = disabled)
 
 };
 

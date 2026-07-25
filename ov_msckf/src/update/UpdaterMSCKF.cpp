@@ -208,9 +208,12 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     // Nullspace project
     UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);
 
-    // Option C: per-feature nm using triangulated p_FinG (accurate depth, not raw disparity).
-    // Project p_FinG into cam0 at t_new using IMU-propagated pose; compare to actual observation.
-    // Dead-zone of 3*sigma_pix prevents noise-level residuals from inflating static features.
+    // Per-feature noise multiplier nm using triangulated p_FinG.
+    // Dynamic features receive nm > 1 → down-weighted in the EKF update, not hard-rejected.
+    // Three modular gates, each independently enabled via YAML (default: all disabled):
+    //   SoftGate nm:   IMU reprojection residual → continuous nm inflation  (use_imu_residual)
+    //   Depth gate:    suppress nm for far features with unreliable stereo   (imu_residual_max_depth)
+    //   Tri gate:      suppress nm when triangulation itself is poor          (imu_residual_max_tri_error)
     double nm = 1.0;
     if (_use_imu_residual &&
         !LandmarkRepresentation::is_relative_representation(feat.feat_representation) &&
@@ -225,20 +228,21 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
         Eigen::Matrix3d R_ItoC0 = state->_calib_IMUtoCAM.at(0)->Rot();
         Eigen::Vector3d p_C0inI = state->_calib_IMUtoCAM.at(0)->pos();
 
-        // Variance mode: std-dev of per-clone reprojection residuals.
-        // Triangulation error adds a constant bias c to every r_k → cancels in variance.
-        // A static feature has low std_r (consistent bias); a dynamic feature has high
-        // std_r (true position changes, p_FinG stays fixed → different residual each clone).
-        // Requires ≥3 valid clones; falls back to nm=1 for short tracks.
-        if (_use_imu_residual && _use_residual_variance) {
-          double sum_r = 0.0, sum_r2 = 0.0;
-          int n_var = 0;
+        // Triangulation quality gate.
+        // Computes RMS reprojection error of p_FinG across all window clones.
+        // High RMS means the triangulated position is unreliable (low-texture or
+        // degenerate geometry) → nm inflation would punish good features, not bad ones.
+        // Falls through (tri_gate_ok = true) when imu_residual_max_tri_error = 0 (default).
+        bool tri_gate_ok = true;
+        if (_imu_residual_max_tri_error > 0.0) {
+          double sum_r2_tri = 0.0;
+          int n_tri = 0;
           for (size_t k = 0; k < times0.size(); k++) {
             double t_k = times0[k];
             if (!state->_clones_IMU.count(t_k))
               continue;
-            Eigen::Matrix3d R_GtoI_k = state->_clones_IMU.at(t_k)->Rot();
-            Eigen::Vector3d p_IinG_k = state->_clones_IMU.at(t_k)->pos();
+            Eigen::Matrix3d R_GtoI_k  = state->_clones_IMU.at(t_k)->Rot();
+            Eigen::Vector3d p_IinG_k  = state->_clones_IMU.at(t_k)->pos();
             Eigen::Matrix3d R_GtoC0_k = R_ItoC0 * R_GtoI_k;
             Eigen::Vector3d p_C0inG_k = p_IinG_k - R_GtoC0_k.transpose() * p_C0inI;
             Eigen::Vector3d X_k       = R_GtoC0_k * (feat.p_FinG - p_C0inG_k);
@@ -249,50 +253,83 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
             double n_ax = static_cast<double>(norms0[k][0]);
             double n_ay = static_cast<double>(norms0[k][1]);
             double r_k  = fx * std::sqrt(std::pow(n_px - n_ax, 2) + std::pow(n_py - n_ay, 2));
-            sum_r  += r_k;
-            sum_r2 += r_k * r_k;
-            n_var++;
+            sum_r2_tri += r_k * r_k;
+            n_tri++;
           }
-          if (n_var >= 3) {
-            double mean_r = sum_r / n_var;
-            double var_r  = std::max(0.0, sum_r2 / n_var - mean_r * mean_r);
-            double std_r  = std::sqrt(var_r);
-            double s      = std::exp(-std_r / _imu_residual_sigma_px);
-            nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s));
-          }
-          // n_var < 3: nm stays 1.0 (too few observations, trust the feature)
+          if (n_tri >= 2 && std::sqrt(sum_r2_tri / n_tri) > _imu_residual_max_tri_error)
+            tri_gate_ok = false;
         }
 
-        // Single-frame residual at newest clone.
-        double t_new = times0.back();
-        if (state->_clones_IMU.count(t_new)) {
-          Eigen::Matrix3d R_GtoI_new = state->_clones_IMU.at(t_new)->Rot();
-          Eigen::Vector3d p_IinG_new = state->_clones_IMU.at(t_new)->pos();
-          Eigen::Matrix3d R_GtoC0_new = R_ItoC0 * R_GtoI_new;
-          Eigen::Vector3d p_C0inG_new = p_IinG_new - R_GtoC0_new.transpose() * p_C0inI;
-          Eigen::Vector3d X_Ct = R_GtoC0_new * (feat.p_FinG - p_C0inG_new);
-          if (X_Ct[2] > 0.1) {
-            double n_pred_x = X_Ct[0] / X_Ct[2];
-            double n_pred_y = X_Ct[1] / X_Ct[2];
-            double n_act_x = norms0.back()[0];
-            double n_act_y = norms0.back()[1];
-            double r_px = fx * std::sqrt(std::pow(n_pred_x - n_act_x, 2) + std::pow(n_pred_y - n_act_y, 2));
-
-            if (!_use_residual_variance) {
-              double noise_floor = 3.0 * _options.sigma_pix;
-              double effective_r = std::max(0.0, r_px - noise_floor);
-              double s_imu = std::exp(-effective_r / _imu_residual_sigma_px);
-              nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s_imu));
+        if (tri_gate_ok) {
+          // Variance mode: std-dev of per-clone reprojection residuals.
+          // Triangulation error adds a constant bias c to every r_k → cancels in variance.
+          // A static feature has low std_r (consistent bias); a dynamic feature has high
+          // std_r (true position changes, p_FinG stays fixed → different residual each clone).
+          // Requires ≥3 valid clones; falls back to nm=1 for short tracks.
+          if (_use_imu_residual && _use_residual_variance) {
+            double sum_r = 0.0, sum_r2 = 0.0;
+            int n_var = 0;
+            for (size_t k = 0; k < times0.size(); k++) {
+              double t_k = times0[k];
+              if (!state->_clones_IMU.count(t_k))
+                continue;
+              Eigen::Matrix3d R_GtoI_k  = state->_clones_IMU.at(t_k)->Rot();
+              Eigen::Vector3d p_IinG_k  = state->_clones_IMU.at(t_k)->pos();
+              Eigen::Matrix3d R_GtoC0_k = R_ItoC0 * R_GtoI_k;
+              Eigen::Vector3d p_C0inG_k = p_IinG_k - R_GtoC0_k.transpose() * p_C0inI;
+              Eigen::Vector3d X_k       = R_GtoC0_k * (feat.p_FinG - p_C0inG_k);
+              if (X_k[2] <= 0.1)
+                continue;
+              double n_px = X_k[0] / X_k[2];
+              double n_py = X_k[1] / X_k[2];
+              double n_ax = static_cast<double>(norms0[k][0]);
+              double n_ay = static_cast<double>(norms0[k][1]);
+              double r_k  = fx * std::sqrt(std::pow(n_px - n_ax, 2) + std::pow(n_py - n_ay, 2));
+              sum_r  += r_k;
+              sum_r2 += r_k * r_k;
+              n_var++;
             }
+            if (n_var >= 3) {
+              double mean_r = sum_r / n_var;
+              double var_r  = std::max(0.0, sum_r2 / n_var - mean_r * mean_r);
+              double std_r  = std::sqrt(var_r);
+              double s      = std::exp(-std_r / _imu_residual_sigma_px);
+              nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s));
+            }
+            // n_var < 3: nm stays 1.0 (too few observations, trust the feature)
+          }
 
-            // Depth gate: features beyond max_depth have low stereo disparity and
-            // unreliable p_FinG → suppress nm to avoid false inflation.
-            // Applies to both single-frame and variance modes (X_Ct is from newest clone).
-            if (nm > 1.0 && _imu_residual_max_depth > 0.0 && X_Ct[2] > _imu_residual_max_depth) {
-              nm = 1.0;
+          // Single-frame residual at newest clone.
+          double t_new = times0.back();
+          if (state->_clones_IMU.count(t_new)) {
+            Eigen::Matrix3d R_GtoI_new  = state->_clones_IMU.at(t_new)->Rot();
+            Eigen::Vector3d p_IinG_new  = state->_clones_IMU.at(t_new)->pos();
+            Eigen::Matrix3d R_GtoC0_new = R_ItoC0 * R_GtoI_new;
+            Eigen::Vector3d p_C0inG_new = p_IinG_new - R_GtoC0_new.transpose() * p_C0inI;
+            Eigen::Vector3d X_Ct        = R_GtoC0_new * (feat.p_FinG - p_C0inG_new);
+            if (X_Ct[2] > 0.1) {
+              double n_pred_x = X_Ct[0] / X_Ct[2];
+              double n_pred_y = X_Ct[1] / X_Ct[2];
+              double n_act_x  = norms0.back()[0];
+              double n_act_y  = norms0.back()[1];
+              double r_px     = fx * std::sqrt(std::pow(n_pred_x - n_act_x, 2) + std::pow(n_pred_y - n_act_y, 2));
+
+              if (!_use_residual_variance) {
+                double noise_floor = 3.0 * _options.sigma_pix;
+                double effective_r = std::max(0.0, r_px - noise_floor);
+                double s_imu       = std::exp(-effective_r / _imu_residual_sigma_px);
+                nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s_imu));
+              }
+
+              // Depth gate: features beyond max_depth have low stereo disparity and
+              // unreliable p_FinG → suppress nm to avoid false inflation.
+              // Applies to both single-frame and variance modes (X_Ct is from newest clone).
+              if (nm > 1.0 && _imu_residual_max_depth > 0.0 && X_Ct[2] > _imu_residual_max_depth) {
+                nm = 1.0;
+              }
             }
           }
-        }
+        } // tri_gate_ok
       }
     }
 
