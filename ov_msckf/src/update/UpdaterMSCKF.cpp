@@ -21,7 +21,10 @@
 
 #include "UpdaterMSCKF.h"
 
+#include <algorithm>
+#include <chrono>
 #include <cmath>
+#include <numeric>
 #include <unordered_map>
 
 #include "UpdaterHelper.h"
@@ -223,6 +226,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
       const auto &times0 = feat.timestamps.at(0);
       const auto &norms0 = feat.uvs_norm.at(0);
       if (times0.size() >= 2) {
+        auto _nm_t0 = std::chrono::high_resolution_clock::now();
         cv::Matx33d K0 = state->_cam_intrinsics_cameras.at(0)->get_K();
         double fx = K0(0, 0);
         Eigen::Matrix3d R_ItoC0 = state->_calib_IMUtoCAM.at(0)->Rot();
@@ -330,6 +334,30 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
             }
           }
         } // tri_gate_ok
+
+        // One-shot timing report: accumulate first 10 000 nm evaluations, then print once.
+        // Disabled when use_imu_residual=false (this block is never entered).
+        static std::vector<double> _nm_timings;
+        static bool _nm_timing_done = false;
+        if (!_nm_timing_done) {
+          double _nm_us = std::chrono::duration<double, std::micro>(
+              std::chrono::high_resolution_clock::now() - _nm_t0).count();
+          _nm_timings.push_back(_nm_us);
+          if (_nm_timings.size() >= 10000) {
+            _nm_timing_done = true;
+            std::sort(_nm_timings.begin(), _nm_timings.end());
+            double mean_us = std::accumulate(_nm_timings.begin(), _nm_timings.end(), 0.0)
+                             / static_cast<double>(_nm_timings.size());
+            double med_us  = _nm_timings[_nm_timings.size() / 2];
+            double p95_us  = _nm_timings[static_cast<size_t>(_nm_timings.size() * 0.95)];
+            PRINT_INFO("[SoftGate-nm timing] N=%zu  mean=%.2f µs  median=%.2f µs  p95=%.2f µs"
+                       "  =>  +%.2f ms/update at 600 features\n",
+                       _nm_timings.size(), mean_us, med_us, p95_us,
+                       mean_us * 600.0 / 1000.0);
+            _nm_timings.clear();
+            _nm_timings.shrink_to_fit();
+          }
+        }
       }
     }
 
