@@ -315,7 +315,7 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
               double r_px     = fx * std::sqrt(std::pow(n_pred_x - n_act_x, 2) + std::pow(n_pred_y - n_act_y, 2));
 
               if (!_use_residual_variance) {
-                double noise_floor = 3.0 * _options.sigma_pix;
+                double noise_floor = _imu_residual_dead_zone * _options.sigma_pix;
                 double effective_r = std::max(0.0, r_px - noise_floor);
                 double s_imu       = std::exp(-effective_r / _imu_residual_sigma_px);
                 nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s_imu));

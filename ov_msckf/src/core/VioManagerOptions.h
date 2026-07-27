@@ -125,6 +125,12 @@ struct VioManagerOptions {
   /// 0 = disabled (default).
   double imu_residual_max_tri_error = 0.0;
 
+  /// Dead-zone multiplier for the single-frame nm mode.
+  /// noise_floor = imu_residual_dead_zone * sigma_pix.  Residuals below this floor are
+  /// treated as zero so static features with small triangulation bias do not get inflated.
+  /// Default 3.0 (= 4.5 px for sigma_pix=1.5).  Set to 0.0 to disable the dead zone.
+  double imu_residual_dead_zone = 3.0;
+
   /**
    * @brief This function will load print out all estimator settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -150,11 +156,12 @@ struct VioManagerOptions {
       parser->parse_config("use_residual_variance", use_residual_variance);
       parser->parse_config("imu_residual_max_depth", imu_residual_max_depth);
       parser->parse_config("imu_residual_max_tri_error", imu_residual_max_tri_error);
+      parser->parse_config("imu_residual_dead_zone", imu_residual_dead_zone);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
-    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f  max_tri_error=%.1f\n",
+    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f  max_tri_error=%.1f  dead_zone=%.1f\n",
                 (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px,
-                (int)use_residual_variance, imu_residual_max_depth, imu_residual_max_tri_error);
+                (int)use_residual_variance, imu_residual_max_depth, imu_residual_max_tri_error, imu_residual_dead_zone);
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
