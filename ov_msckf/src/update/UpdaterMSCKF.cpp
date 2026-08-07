@@ -217,8 +217,15 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     //   SoftGate nm:   IMU reprojection residual → continuous nm inflation  (use_imu_residual)
     //   Depth gate:    suppress nm for far features with unreliable stereo   (imu_residual_max_depth)
     //   Tri gate:      suppress nm when triangulation itself is poor          (imu_residual_max_tri_error)
+    // Post-init delay: suppress nm while IMU biases are still converging.
+    // _nm_start_time is set on the first feature processed after init.
+    if (_imu_residual_init_delay > 0.0 && _nm_start_time < 0.0)
+      _nm_start_time = state->_timestamp;
+
     double nm = 1.0;
-    if (_use_imu_residual &&
+    const bool _nm_active = (_imu_residual_init_delay <= 0.0) ||
+                            (state->_timestamp - _nm_start_time >= _imu_residual_init_delay);
+    if (_nm_active && _use_imu_residual &&
         !LandmarkRepresentation::is_relative_representation(feat.feat_representation) &&
         feat.p_FinG.norm() > 0.01 &&
         state->_cam_intrinsics_cameras.count(0) && state->_calib_IMUtoCAM.count(0) &&

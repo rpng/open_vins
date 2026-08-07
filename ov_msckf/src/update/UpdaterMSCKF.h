@@ -95,7 +95,8 @@ public:
    */
   void set_imu_residual_params(bool use, double alpha, double sigma_px,
                                bool use_variance = false, double max_depth = 0.0,
-                               double max_tri_error = 0.0, double dead_zone = 3.0) {
+                               double max_tri_error = 0.0, double dead_zone = 3.0,
+                               double init_delay = 0.0) {
     _use_imu_residual = use;
     _imu_residual_alpha = alpha;
     _imu_residual_sigma_px = sigma_px;
@@ -103,6 +104,8 @@ public:
     _imu_residual_max_depth = max_depth;
     _imu_residual_max_tri_error = max_tri_error;
     _imu_residual_dead_zone = dead_zone;
+    _imu_residual_init_delay = init_delay;
+    _nm_start_time = -1.0;  // reset on every reconfigure
   }
 
 protected:
@@ -123,6 +126,8 @@ protected:
   double _imu_residual_max_depth = 0.0;      // depth gate in metres (0 = disabled)
   double _imu_residual_max_tri_error = 0.0;  // triangulation quality gate: RMS reprojection px (0 = disabled)
   double _imu_residual_dead_zone = 3.0;      // dead-zone multiplier: noise_floor = dead_zone * sigma_pix
+  double _imu_residual_init_delay = 0.0;     // seconds post-init before nm activates (0 = disabled)
+  double _nm_start_time = -1.0;              // timestamp of first update() call; set lazily
 
 };
 

@@ -131,4 +131,5 @@ use_residual_variance: false
 imu_residual_max_depth: 0.0
 imu_residual_max_tri_error: 0.0   # triangulation quality gate (px RMS); 0 = disabled
 imu_residual_dead_zone: 3.0       # dead-zone multiplier: noise_floor = dead_zone * sigma_pix; 0 = no dead zone
+imu_residual_init_delay: 0.0     # seconds post-init before nm activates; 0 = off (nm runs immediately)
 

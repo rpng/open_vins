@@ -131,6 +131,12 @@ struct VioManagerOptions {
   /// Default 3.0 (= 4.5 px for sigma_pix=1.5).  Set to 0.0 to disable the dead zone.
   double imu_residual_dead_zone = 3.0;
 
+  /// Seconds after initialization before nm activation begins.
+  /// During this window every feature receives nm=1 so that early IMU bias uncertainty
+  /// (ba/bg not yet converged) does not cause false noise inflation on static features.
+  /// 0.0 = disabled (nm active immediately, original behaviour).
+  double imu_residual_init_delay = 0.0;
+
   /**
    * @brief This function will load print out all estimator settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -157,11 +163,12 @@ struct VioManagerOptions {
       parser->parse_config("imu_residual_max_depth", imu_residual_max_depth);
       parser->parse_config("imu_residual_max_tri_error", imu_residual_max_tri_error);
       parser->parse_config("imu_residual_dead_zone", imu_residual_dead_zone);
+      parser->parse_config("imu_residual_init_delay", imu_residual_init_delay);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
-    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f  max_tri_error=%.1f  dead_zone=%.1f\n",
+    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f  max_tri_error=%.1f  dead_zone=%.1f  init_delay=%.1fs\n",
                 (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px,
-                (int)use_residual_variance, imu_residual_max_depth, imu_residual_max_tri_error, imu_residual_dead_zone);
+                (int)use_residual_variance, imu_residual_max_depth, imu_residual_max_tri_error, imu_residual_dead_zone, imu_residual_init_delay);
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);

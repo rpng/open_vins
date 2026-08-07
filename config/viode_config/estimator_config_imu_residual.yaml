@@ -126,8 +126,11 @@ dynamic_mask_topic1: "/cam1/masked"
 # Projection of p_FinG at t_new vs. actual observation: dynamic features get nm >> 1.
 # Dead-zone = 3 * sigma_pix prevents static-feature inflation from GN residual noise.
 use_imu_residual: true
-imu_residual_alpha: 3.0
-imu_residual_sigma_px: 5.0
+imu_residual_alpha: 1.5
+imu_residual_sigma_px: 10.0
 use_residual_variance: false
 imu_residual_max_depth: 0.0
+imu_residual_max_tri_error: 0.0   # triangulation quality gate (px RMS); 0 = disabled
+imu_residual_dead_zone: 3.0       # dead-zone multiplier: noise_floor = dead_zone * sigma_pix = 45px
+imu_residual_init_delay: 5.0     # seconds post-init before nm activates; skips stationary startup
 
