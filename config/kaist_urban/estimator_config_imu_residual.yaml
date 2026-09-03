@@ -1,10 +1,8 @@
 %YAML:1.0 # need to specify the file type at the top!
 
-# KAIST Complex Urban Dataset (urban38/urban39).
-# Point Grey Flea3 stereo (1280x560 @ ~10Hz, baseline ~0.48m) + Xsens MTi-300 IMU (100Hz).
-# Bags produced by convert_kaist_to_ros2bag.py — raw images (no pre-rectification).
-# Parameter values copied from config/kaist/ (official OpenVINS KAIST config),
-# adapted for our dynamic-mask evaluation setup.
+# KAIST Complex Urban — IMU-residual variant.
+# Identical to estimator_config.yaml (based on official kaist/ config values)
+# except use_imu_residual: true with VIODE-proven params (alpha=1.5, sigma=10, delay=5).
 
 verbosity: "INFO"
 
@@ -31,7 +29,6 @@ feat_rep_msckf: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
-# ZUPT: urban driving has stop lights — zero-velocity updates during stops reduce bias drift
 try_zupt: true
 zupt_chi2_multipler: 0.5
 zupt_max_velocity: 0.1
@@ -91,7 +88,7 @@ num_opencv_threads: 4
 histogram_method: "HISTOGRAM"
 
 fi_min_dist: 0.25
-fi_max_dist: 150.0        # urban features at 20-150m; was 10.0 (rejected almost everything)
+fi_max_dist: 150.0
 fi_max_baseline: 200
 fi_max_cond_number: 20000
 fi_triangulate_1d: false
@@ -115,13 +112,12 @@ use_mask: false
 relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "kalibr_imucam_chain.yaml"
 
-# Dynamic mask: always true — yolo_masker runs with force_empty for unmasked/imu_only.
-# Input topics are remapped to KAIST stereo topics at launch time.
 use_dynamic_mask: true
 dynamic_mask_topic0: "/cam0/masked"
 dynamic_mask_topic1: "/cam1/masked"
 
-use_imu_residual: false
+# IMU-residual active — same params as VIODE batch_7 best config
+use_imu_residual: true
 imu_residual_alpha: 1.5
 imu_residual_sigma_px: 10.0
 use_residual_variance: false

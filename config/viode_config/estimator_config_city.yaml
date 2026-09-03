@@ -78,11 +78,11 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true # if true we will use KLT, otherwise use a ORB descriptor + robust matching
-num_pts: 600 # number of points (per camera) we will extract and try to track
+num_pts: 1000 # city: more features for robustness against fast-motion occlusion (was 600)
 fast_threshold: 10 # threshold for fast extraction
 grid_x: 8 # extraction sub-grid count for horizontal direction (uniform tracking)
 grid_y: 6 # extraction sub-grid count for vertical direction (uniform tracking)
-min_px_dist: 10 # distance between features (features near each other provide less information)
+min_px_dist: 5 # city: denser packing in texture-rich scenes (was 10)
 knn_ratio: 0.90 # descriptor knn threshold for the top two descriptor matches
 track_frequency: 21.0 # frequency we will perform feature tracking at (in frames per second / hertz)
 downsample_cameras: false # will downsample image in half if true

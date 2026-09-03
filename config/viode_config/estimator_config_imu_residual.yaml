@@ -13,10 +13,10 @@ calib_cam_timeoffset: false # if timeoffset between camera and IMU should be opt
 calib_imu_intrinsics: false # if imu intrinsics should be calibrated (rotation and skew-scale matrix)
 calib_imu_g_sensitivity: false # if gyroscope gravity sensitivity (Tg) should be calibrated
 
-max_clones: 15 # how many clones in the sliding window
-max_slam: 50 # number of features in our state vector
+max_clones: 20 # how many clones in the sliding window — was 15
+max_slam: 75 # number of features in our state vector — was 50
 max_slam_in_update: 25 # update can be split into sequential updates of batches, how many in a batch
-max_msckf_in_update: 60 # how many MSCKF features to use in the update
+max_msckf_in_update: 100 # how many MSCKF features to use in the update — was 60
 dt_slam_delay: 1 # delay before initializing (helps with stability from bad initialization...)
 
 gravity_mag: 9.81007 # magnitude of gravity in this location
@@ -100,9 +100,9 @@ downsize_aruco: true
 
 # camera noises and chi-squared threshold multipliers
 up_msckf_sigma_px: 1.5
-up_msckf_chi2_multipler: 1
+up_msckf_chi2_multipler: 2 # was 1 → 3 → 2
 up_slam_sigma_px: 1
-up_slam_chi2_multipler: 1
+up_slam_chi2_multipler: 2 # was 1 → 3 → 2
 up_aruco_sigma_px: 1
 up_aruco_chi2_multipler: 1
 

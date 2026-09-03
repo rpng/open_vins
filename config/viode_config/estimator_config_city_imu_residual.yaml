@@ -13,8 +13,8 @@ calib_cam_timeoffset: false # if timeoffset between camera and IMU should be opt
 calib_imu_intrinsics: false # if imu intrinsics should be calibrated (rotation and skew-scale matrix)
 calib_imu_g_sensitivity: false # if gyroscope gravity sensitivity (Tg) should be calibrated
 
-max_clones: 20 # how many clones in the sliding window — was 15; longer window for city-scale motion
-max_slam: 75 # number of features in our state vector — was 50; more stable landmarks
+max_clones: 20 # how many clones in the sliding window — was 15
+max_slam: 75 # number of features in our state vector — was 50
 max_slam_in_update: 25 # update can be split into sequential updates of batches, how many in a batch
 max_msckf_in_update: 100 # how many MSCKF features to use in the update — was 60
 dt_slam_delay: 1 # delay before initializing (helps with stability from bad initialization...)
@@ -78,11 +78,11 @@ filepath_gt: "/tmp/ov_groundtruth.txt"
 # our front-end feature tracking parameters
 # we have a KLT and descriptor based (KLT is better implemented...)
 use_klt: true # if true we will use KLT, otherwise use a ORB descriptor + robust matching
-num_pts: 600 # number of points (per camera) we will extract and try to track
+num_pts: 1000 # city: more features for robustness against fast-motion occlusion (was 600)
 fast_threshold: 10 # threshold for fast extraction
 grid_x: 8 # extraction sub-grid count for horizontal direction (uniform tracking)
 grid_y: 6 # extraction sub-grid count for vertical direction (uniform tracking)
-min_px_dist: 10 # distance between features (features near each other provide less information)
+min_px_dist: 5 # city: denser packing in texture-rich scenes (was 10)
 knn_ratio: 0.90 # descriptor knn threshold for the top two descriptor matches
 track_frequency: 21.0 # frequency we will perform feature tracking at (in frames per second / hertz)
 downsample_cameras: false # will downsample image in half if true
@@ -100,7 +100,7 @@ downsize_aruco: true
 
 # camera noises and chi-squared threshold multipliers
 up_msckf_sigma_px: 1.5
-up_msckf_chi2_multipler: 2 # was 1 → 3 → 2; 3 over-expanded acceptance zone into YOLO mask boundaries
+up_msckf_chi2_multipler: 2 # was 1 → 3 → 2
 up_slam_sigma_px: 1
 up_slam_chi2_multipler: 2 # was 1 → 3 → 2
 up_aruco_sigma_px: 1
@@ -123,13 +123,14 @@ dynamic_mask_topic0: "/cam0/masked"
 dynamic_mask_topic1: "/cam1/masked"
 
 # Phase 1 Option C: IMU-residual per-feature noise inflation using triangulated depth.
-# Dead-zone = 3 * sigma_pix prevents static-feature inflation.
-use_imu_residual: false
-imu_residual_alpha: 5.0
-imu_residual_sigma_px: 5.0
+# Projection of p_FinG at t_new vs. actual observation: dynamic features get nm >> 1.
+# Dead-zone = 3 * sigma_pix prevents static-feature inflation from GN residual noise.
+use_imu_residual: true
+imu_residual_alpha: 1.5
+imu_residual_sigma_px: 10.0
 use_residual_variance: false
 imu_residual_max_depth: 0.0
 imu_residual_max_tri_error: 0.0   # triangulation quality gate (px RMS); 0 = disabled
-imu_residual_dead_zone: 3.0       # dead-zone multiplier: noise_floor = dead_zone * sigma_pix; 0 = no dead zone
-imu_residual_init_delay: 0.0     # seconds post-init before nm activates; 0 = off (nm runs immediately)
+imu_residual_dead_zone: 3.0       # dead-zone multiplier: noise_floor = dead_zone * sigma_pix = 45px
+imu_residual_init_delay: 5.0     # seconds post-init before nm activates; skips stationary startup
 

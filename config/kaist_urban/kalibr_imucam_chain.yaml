@@ -1,113 +1,29 @@
 %YAML:1.0 # need to specify the file type at the top!
 
-# KAIST Complex Urban Dataset (urban28/32/38/39 ...), Point Grey Flea3 stereo + Xsens MTi-300.
-# NOT the same hardware as config/kaist_vio (that one is a RealSense D435 + MAVROS testbed).
-#
-# Extrinsics derived from the dataset's calibration/Vehicle2Stereo.txt and Vehicle2IMU.txt.
-# IMPORTANT: those files describe sensor POSE *IN* the vehicle frame
-# (p_vehicle = R @ p_sensor + T), NOT a vehicle->sensor transform. So:
-#   R_ItoC = R_Vehicle2Stereo.T
-#   p_IinC = R_Vehicle2Stereo.T @ (T_Vehicle2IMU - T_Vehicle2Stereo)
-# Verified by cross-checking against rpng/kaist2bag's independently-calibrated
-# reference values for this exact rig (same camera model/resolution) — the
-# corrected formula matches to ~5 decimal places; the original (un-transposed)
-# version was off by a full rotation inversion and caused immediate EKF
-# divergence (position blew up to 100s of km within seconds of init).
-# Then rotated into the RECTIFIED camera frame (since convert_kaist_to_ros2bag.py
-# undistorts+rectifies images before writing them to the bag).
-# Intrinsics are the post-rectification projection_matrix values from left.yaml/right.yaml
-# (distortion is zero because images are already undistorted by the converter).
-# Values are identical between urban38-pankyo and urban39-pankyo (same calibration
-# session), so this single file covers both sequences.
-
 cam0:
-  T_cam_imu:
-    - - -0.01420717220
-      - -0.99989908800
-      - -0.00057390980
-      - 0.27163774000
-    - - -0.01360966850
-      - 0.00076729004
-      - -0.99990752700
-      - -0.09276405000
-    - - 0.99979698500
-      - -0.01419811180
-      - -0.01361915480
-      - -1.71010806000
-    - - 0.0
-      - 0.0
-      - 0.0
-      - 1.0
-  cam_overlaps:
-    - 1
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+    - [-0.00681,-0.01532,0.99987,1.71239]
+    - [-0.99998,0.00033,-0.00680,0.24740]
+    - [-0.00023,-0.99988,-0.01532,-0.11589]
+    - [0.0, 0.0, 0.0, 1.0]
+  cam_overlaps: [1]
   camera_model: pinhole
-  distortion_coeffs:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
+  distortion_coeffs: [-5.6143027800000002e-02,1.3952563200000001e-01,-1.2155906999999999e-03,-9.7281389999999998e-04]
   distortion_model: radtan
-  intrinsics:
-    - 781.35803072
-    - 781.35803072
-    - 617.96599579
-    - 263.54596138
-  resolution:
-    - 1280
-    - 560
-  rostopic: /stereo/left/image_rect
-  timeshift_cam_imu: 0.0
+  intrinsics: [8.1690378992770002e+02,8.1156803828490001e+02,6.0850726281690004e+02,2.6347599764440002e+02]
+  resolution: [1280, 560]
+  rostopic: /stereo/left/image_raw
+
 cam1:
-  T_cam_imu:
-    - - -0.01420717220
-      - -0.99989908800
-      - -0.00057390980
-      - -0.20989365000
-    - - -0.01360966850
-      - 0.00076729004
-      - -0.99990752700
-      - -0.09276405000
-    - - 0.99979698500
-      - -0.01419811180
-      - -0.01361915480
-      - -1.71010806000
-    - - 0.0
-      - 0.0
-      - 0.0
-      - 1.0
-  T_cn_cnm1:
-    - - 1.0
-      - 0.0
-      - 0.0
-      - -0.48153139391
-    - - 0.0
-      - 1.0
-      - 0.0
-      - 0.0
-    - - 0.0
-      - 0.0
-      - 1.0
-      - 0.0
-    - - 0.0
-      - 0.0
-      - 0.0
-      - 1.0
-  cam_overlaps:
-    - 0
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+    - [-0.01036,-0.01075,0.99990,1.70544]
+    - [-0.99994,-0.00178,-0.01038,-0.22770]
+    - [0.00189,-0.99994,-0.01073,-0.11611]
+    - [0.0, 0.0, 0.0, 1.0]
+  cam_overlaps: [0]
   camera_model: pinhole
-  distortion_coeffs:
-    - 0.0
-    - 0.0
-    - 0.0
-    - 0.0
+  distortion_coeffs: [-5.4921981799999998e-02,1.4243657430000001e-01,7.5412299999999996e-05,-6.7560530000000001e-04]
   distortion_model: radtan
-  intrinsics:
-    - 781.35803072
-    - 781.35803072
-    - 617.96599579
-    - 263.54596138
-  resolution:
-    - 1280
-    - 560
-  rostopic: /stereo/right/image_rect
-  timeshift_cam_imu: 0.0
+  intrinsics: [8.1378205539589999e+02,8.0852165574269998e+02,6.1386419539320002e+02,2.4941049348650000e+02]
+  resolution: [1280, 560]
+  rostopic: /stereo/right/image_raw
