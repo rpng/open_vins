@@ -12,7 +12,7 @@ imu0:
   gyroscope_random_walk: 1.0000e-05        # [ rad / s^2 / sqrt(Hz) ]
   rostopic: /imu0
   time_offset: 0.0
-  update_rate: 500.0
+  update_rate: 100.0  # Xsens MTi-300 actual publish rate (was 500.0 — incorrect)
   model: "kalibr"
   Tw:
     - [ 1.0, 0.0, 0.0 ]
