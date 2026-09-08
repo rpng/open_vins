@@ -133,4 +133,3 @@ imu_residual_max_tri_error: 0.0   # triangulation quality gate (px RMS); 0 = dis
 imu_residual_dead_zone: 3.0       # dead-zone multiplier: noise_floor = dead_zone * sigma_pix; 0 = no dead zone
 imu_residual_init_delay: 0.0     # seconds post-init before nm activates; 0 = off (nm runs immediately)
 
-multi_threading_pubs: false  # disable background image-pub thread (crashes on Jetson with sim_time)
