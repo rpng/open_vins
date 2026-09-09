@@ -371,8 +371,8 @@ bool DynamicInitializer::initialize(double &timestamp, Eigen::MatrixXd &covarian
         } else {
           H_i.block(0, size_feature * A_index_features.at(feat.first), 2, 3) = Y; // feat
         }
-        H_i.block(0, size_feature * num_features + 0, 2, 3) = -DT * Y;            // vel
-        H_i.block(0, size_feature * num_features + 3, 2, 3) = 0.5 * DT * DT * Y;  // grav
+        H_i.block(0, size_feature * num_features + 0, 2, 3) = -DT * Y;           // vel
+        H_i.block(0, size_feature * num_features + 3, 2, 3) = 0.5 * DT * DT * Y; // grav
 
         // Else lets append this to our system!
         A.block(index_meas, 0, 2, A.cols()) = H_i;

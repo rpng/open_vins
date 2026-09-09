@@ -1,0 +1,29 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+cam0:
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+    - [-0.00681,-0.01532,0.99987,1.71239]
+    - [-0.99998,0.00033,-0.00680,0.24740]
+    - [-0.00023,-0.99988,-0.01532,-0.11589]
+    - [0.0, 0.0, 0.0, 1.0]
+  cam_overlaps: [1]
+  camera_model: pinhole
+  distortion_coeffs: [-5.6143027800000002e-02,1.3952563200000001e-01,-1.2155906999999999e-03,-9.7281389999999998e-04]
+  distortion_model: radtan
+  intrinsics: [8.1690378992770002e+02,8.1156803828490001e+02,6.0850726281690004e+02,2.6347599764440002e+02]
+  resolution: [1280, 560]
+  rostopic: /stereo/left/image_raw
+
+cam1:
+  T_imu_cam: #rotation from camera to IMU R_CtoI, position of camera in IMU p_CinI
+    - [-0.01036,-0.01075,0.99990,1.70544]
+    - [-0.99994,-0.00178,-0.01038,-0.22770]
+    - [0.00189,-0.99994,-0.01073,-0.11611]
+    - [0.0, 0.0, 0.0, 1.0]
+  cam_overlaps: [0]
+  camera_model: pinhole
+  distortion_coeffs: [-5.4921981799999998e-02,1.4243657430000001e-01,7.5412299999999996e-05,-6.7560530000000001e-04]
+  distortion_model: radtan
+  intrinsics: [8.1378205539589999e+02,8.0852165574269998e+02,6.1386419539320002e+02,2.4941049348650000e+02]
+  resolution: [1280, 560]
+  rostopic: /stereo/right/image_raw

@@ -23,7 +23,12 @@
 #define OV_MSCKF_UPDATER_MSCKF_H
 
 #include <Eigen/Eigen>
+#include <fstream>
 #include <memory>
+#include <string>
+#include <unordered_map>
+
+#include <opencv2/core.hpp>
 
 #include "feat/FeatureInitializerOptions.h"
 
@@ -62,10 +67,46 @@ public:
   /**
    * @brief Given tracked features, this will try to use them to update the state.
    *
-   * @param state State of the filter
-   * @param feature_vec Features that can be used for update
+   * @param state        State of the filter
+   * @param feature_vec  Features that can be used for update
    */
   void update(std::shared_ptr<State> state, std::vector<std::shared_ptr<ov_core::Feature>> &feature_vec);
+
+  /**
+   * @brief Configure the IMU-residual per-feature noise inflation.
+   *
+   * Projects each feature's p_FinG into cam0 and computes a reprojection residual
+   * used to inflate MSCKF measurement noise for dynamic features (nm > 1).
+   *
+   * Two modes selectable via use_variance:
+   *   false (default) — single-frame: residual at the newest clone only.
+   *   true  (variance) — std-dev of residuals across all sliding-window clones.
+   *     Bias-invariant: triangulation error adds a constant to every r_k and
+   *     cancels in variance. Only features that actually moved show high std_r.
+   *     Falls back to nm=1 when fewer than 3 valid clone observations exist.
+   *
+   * @param use          Enable/disable
+   * @param alpha        Scale: nm = 1 + alpha*(1 - exp(-signal/sigma_px))
+   * @param sigma_px     Decay constant in pixels
+   * @param use_variance Use cross-clone residual std-dev instead of single-frame residual
+   * @param max_depth    Features beyond this depth (m) skip nm entirely (0 = disabled).
+   *                     Suppresses false inflation on poorly-triangulated far features.
+   *                     Stereo disparity at max_depth ≈ baseline*fx/max_depth.
+   */
+  void set_imu_residual_params(bool use, double alpha, double sigma_px,
+                               bool use_variance = false, double max_depth = 0.0,
+                               double max_tri_error = 0.0, double dead_zone = 3.0,
+                               double init_delay = 0.0) {
+    _use_imu_residual = use;
+    _imu_residual_alpha = alpha;
+    _imu_residual_sigma_px = sigma_px;
+    _use_residual_variance = use_variance;
+    _imu_residual_max_depth = max_depth;
+    _imu_residual_max_tri_error = max_tri_error;
+    _imu_residual_dead_zone = dead_zone;
+    _imu_residual_init_delay = init_delay;
+    _nm_start_time = -1.0;  // reset on every reconfigure
+  }
 
 protected:
   /// Options used during update
@@ -76,6 +117,18 @@ protected:
 
   /// Chi squared 95th percentile table (lookup would be size of residual)
   std::map<int, double> chi_squared_table;
+
+  // IMU-residual noise inflation parameters
+  bool _use_imu_residual = false;
+  double _imu_residual_alpha = 5.0;
+  double _imu_residual_sigma_px = 5.0;
+  bool _use_residual_variance = false;        // use cross-clone residual std-dev instead of single-frame
+  double _imu_residual_max_depth = 0.0;      // depth gate in metres (0 = disabled)
+  double _imu_residual_max_tri_error = 0.0;  // triangulation quality gate: RMS reprojection px (0 = disabled)
+  double _imu_residual_dead_zone = 3.0;      // dead-zone multiplier: noise_floor = dead_zone * sigma_pix
+  double _imu_residual_init_delay = 0.0;     // seconds post-init before nm activates (0 = disabled)
+  double _nm_start_time = -1.0;              // timestamp of first update() call; set lazily
+
 };
 
 } // namespace ov_msckf

@@ -1,0 +1,52 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+# IMU calibration for ZED X + Xsens (or ZED X internal IMU)
+#
+# TODO — set rostopic to match your IMU driver:
+#   Xsens MTi (bluespace_ai / xsens_mti_ros2_driver): /imu/data
+#   ZED X internal IMU (ZED ROS2 wrapper v4):          /zed/zed_node/imu/data
+#
+# TODO — fill noise parameters from your IMU's datasheet or Kalibr IMU calibration.
+#   Xsens MTi-300 (KAIST config reference values shown below).
+#   ZED X internal IMU is noisier — use Kalibr imu_utils to measure actual values.
+#
+# update_rate: set to actual IMU publish rate (Xsens MTi-300: 100 Hz, ZED X internal: 400 Hz).
+
+imu0:
+  T_i_b:
+    - [1.0, 0.0, 0.0, 0.0]
+    - [0.0, 1.0, 0.0, 0.0]
+    - [0.0, 0.0, 1.0, 0.0]
+    - [0.0, 0.0, 0.0, 1.0]
+
+  # TODO: replace with values from your IMU datasheet or Kalibr imu_utils calibration
+  accelerometer_noise_density: 5.8860e-03   # [ m / s^2 / sqrt(Hz) ]  (Xsens MTi-300 reference)
+  accelerometer_random_walk:   1.0000e-04   # [ m / s^3 / sqrt(Hz) ]
+  gyroscope_noise_density:     1.7453e-04   # [ rad / s / sqrt(Hz) ]  (Xsens MTi-300 reference)
+  gyroscope_random_walk:       1.0000e-05   # [ rad / s^2 / sqrt(Hz) ]
+
+  rostopic: /imu/data   # TODO: change to /zed/zed_node/imu/data if using ZED X internal IMU
+  time_offset: 0.0
+  update_rate: 100.0    # TODO: set to actual IMU rate (Xsens MTi-300: 100, ZED X: 400)
+  model: "kalibr"
+
+  Tw:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  R_IMUtoGYRO:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Ta:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  R_IMUtoACC:
+    - [ 1.0, 0.0, 0.0 ]
+    - [ 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0 ]
+  Tg:
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0 ]

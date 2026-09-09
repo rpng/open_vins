@@ -37,12 +37,12 @@ zupt_only_at_beginning: true
 # ==================================================================
 # ==================================================================
 
-init_window_time: 1.5 # make 2sec if using dynamic...
+init_window_time: 2.0 # make 2sec if using dynamic...
 init_imu_thresh: 0.45 # room1-5:0.45, room6:0.25
 init_max_disparity: 15.0
 init_max_features: 50
 
-init_dyn_use: false
+init_dyn_use: true
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05
@@ -113,6 +113,16 @@ mask1: "mask_tumvi1.png" #relative to current file
 # imu config should also have the correct noise values
 relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "kalibr_imucam_chain.yaml"
+
+# Dynamic mask — not used for TUM-VI (no segmentation masks available)
+use_dynamic_mask: false
+dynamic_mask_topic0: "/cam0/masked"
+dynamic_mask_topic1: "/cam1/masked"
+
+# Phase 1 IMU-residual noise inflation
+use_imu_residual: false
+imu_residual_alpha: 5.0
+imu_residual_sigma_px: 5.0
 
 
 

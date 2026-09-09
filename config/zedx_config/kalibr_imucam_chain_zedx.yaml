@@ -1,0 +1,49 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+# Stereo camera calibration for ZED X
+#
+# TODO — fill cam0 and cam1 from your Kalibr calibration output or the ZED SDK.
+#
+# Getting intrinsics from ZED SDK (no Kalibr needed):
+#   sl::Camera zed;
+#   auto cal = zed.getCameraInformation().camera_configuration.calibration_parameters;
+#   // cal.left_cam  → fx, fy, cx, cy, k1, k2, p1, p2
+#   // cal.right_cam → same
+#   // cal.T → translation vector cam0→cam1
+#
+# For rectified images (image_rect_gray), set distortion_coeffs to [0,0,0,0]
+# and use the rectified focal length (fx_rect = fy_rect) from ZED SDK.
+#
+# rostopic: must match the ZED ROS2 wrapper topic names for your configuration.
+# ZED ROS2 wrapper v4 defaults (namespace "zed", node_name "zed_node"):
+#   /zed/zed_node/left/image_rect_gray
+#   /zed/zed_node/right/image_rect_gray
+# If you changed camera_name/node_name in zed_camera.yaml, update accordingly.
+
+cam0:
+  T_imu_cam:   # R_CtoI | p_CinI  (rotation from cam0 to IMU, position of cam0 in IMU frame)
+    - [ 1.0, 0.0, 0.0, 0.0 ]   # TODO: fill from Kalibr or ZED SDK extrinsics
+    - [ 0.0, 1.0, 0.0, 0.0 ]
+    - [ 0.0, 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0, 1.0 ]
+  cam_overlaps: [1]
+  camera_model: pinhole
+  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]   # TODO: fill (use [0,0,0,0] for rectified images)
+  distortion_model: radtan
+  intrinsics: [700.0, 700.0, 640.0, 360.0]   # TODO: [fx, fy, cx, cy] in pixels
+  resolution: [1280, 720]                     # TODO: match ZED wrapper resolution setting
+  rostopic: /zed/zed_node/left/image_rect_gray  # TODO: verify — see note above
+
+cam1:
+  T_imu_cam:   # R_CtoI | p_CinI  (rotation from cam1 to IMU, position of cam1 in IMU frame)
+    - [ 1.0, 0.0, 0.0, 0.0 ]   # TODO: fill from Kalibr or ZED SDK extrinsics
+    - [ 0.0, 1.0, 0.0,-0.12 ]  # TODO: -0.12 is a placeholder for ~120mm baseline (replace)
+    - [ 0.0, 0.0, 1.0, 0.0 ]
+    - [ 0.0, 0.0, 0.0, 1.0 ]
+  cam_overlaps: [0]
+  camera_model: pinhole
+  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]   # TODO: fill
+  distortion_model: radtan
+  intrinsics: [700.0, 700.0, 640.0, 360.0]   # TODO: [fx, fy, cx, cy] in pixels
+  resolution: [1280, 720]                     # TODO: match ZED wrapper resolution setting
+  rostopic: /zed/zed_node/right/image_rect_gray  # TODO: verify — see note above

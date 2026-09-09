@@ -100,6 +100,43 @@ struct VioManagerOptions {
   /// The path to the file we will record the timing information into
   std::string record_timing_filepath = "ov_msckf_timing.txt";
 
+  /// If we should use IMU-residual per-feature noise inflation
+  bool use_imu_residual = false;
+
+  /// Noise inflation scale: nm = 1 + alpha * (1 - exp(-signal / sigma_px))
+  double imu_residual_alpha = 5.0;
+
+  /// Decay constant in pixels for the exponential nm formula
+  double imu_residual_sigma_px = 2.0;
+
+  /// Use cross-clone residual std-dev (variance mode) instead of single-frame residual.
+  /// Variance is bias-invariant: triangulation error offsets cancel, only moving features
+  /// show high std_r.  Requires ≥3 valid clone observations; falls back to nm=1 for short tracks.
+  bool use_residual_variance = false;
+
+  /// Depth gate for nm inflation (metres).  Features beyond this depth have low stereo
+  /// disparity → unreliable p_FinG → nm is suppressed to 1.0.  0 = disabled (default).
+  /// For VIODE (baseline=5cm, fx=376px): depth 15m → 1.3px disparity (unreliable).
+  double imu_residual_max_depth = 0.0;
+
+  /// Triangulation quality gate (pixels).  If the RMS reprojection error of p_FinG
+  /// across all sliding-window clones exceeds this threshold, nm is suppressed to 1.0.
+  /// Prevents false nm inflation when triangulation is unreliable (e.g. low-texture night).
+  /// 0 = disabled (default).
+  double imu_residual_max_tri_error = 0.0;
+
+  /// Dead-zone multiplier for the single-frame nm mode.
+  /// noise_floor = imu_residual_dead_zone * sigma_pix.  Residuals below this floor are
+  /// treated as zero so static features with small triangulation bias do not get inflated.
+  /// Default 3.0 (= 4.5 px for sigma_pix=1.5).  Set to 0.0 to disable the dead zone.
+  double imu_residual_dead_zone = 3.0;
+
+  /// Seconds after initialization before nm activation begins.
+  /// During this window every feature receives nm=1 so that early IMU bias uncertainty
+  /// (ba/bg not yet converged) does not cause false noise inflation on static features.
+  /// 0.0 = disabled (nm active immediately, original behaviour).
+  double imu_residual_init_delay = 0.0;
+
   /**
    * @brief This function will load print out all estimator settings loaded.
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -119,8 +156,19 @@ struct VioManagerOptions {
       parser->parse_config("zupt_only_at_beginning", zupt_only_at_beginning);
       parser->parse_config("record_timing_information", record_timing_information);
       parser->parse_config("record_timing_filepath", record_timing_filepath);
+      parser->parse_config("use_imu_residual", use_imu_residual);
+      parser->parse_config("imu_residual_alpha", imu_residual_alpha);
+      parser->parse_config("imu_residual_sigma_px", imu_residual_sigma_px);
+      parser->parse_config("use_residual_variance", use_residual_variance);
+      parser->parse_config("imu_residual_max_depth", imu_residual_max_depth);
+      parser->parse_config("imu_residual_max_tri_error", imu_residual_max_tri_error);
+      parser->parse_config("imu_residual_dead_zone", imu_residual_dead_zone);
+      parser->parse_config("imu_residual_init_delay", imu_residual_init_delay);
     }
     PRINT_DEBUG("  - dt_slam_delay: %.1f\n", dt_slam_delay);
+    PRINT_DEBUG("  - use_imu_residual: %d  alpha=%.1f  sigma_px=%.1f  variance=%d  max_depth=%.1f  max_tri_error=%.1f  dead_zone=%.1f  init_delay=%.1fs\n",
+                (int)use_imu_residual, imu_residual_alpha, imu_residual_sigma_px,
+                (int)use_residual_variance, imu_residual_max_depth, imu_residual_max_tri_error, imu_residual_dead_zone, imu_residual_init_delay);
     PRINT_DEBUG("  - zero_velocity_update: %d\n", try_zupt);
     PRINT_DEBUG("  - zupt_max_velocity: %.2f\n", zupt_max_velocity);
     PRINT_DEBUG("  - zupt_noise_multiplier: %.2f\n", zupt_noise_multiplier);
@@ -219,6 +267,15 @@ struct VioManagerOptions {
   /// Mask images for each camera
   std::map<size_t, cv::Mat> masks;
 
+  /// If we should use dynamic masks from ROS topics
+  bool use_dynamic_mask = false;
+
+  /// ROS topic for left camera mask
+  std::string dynamic_mask_topic0 = "/mask0";
+
+  /// ROS topic for right camera mask
+  std::string dynamic_mask_topic1 = "/mask1";
+
   /**
    * @brief This function will load and print all state parameters (e.g. sensor extrinsics)
    * This allows for visual checking that everything was loaded properly from ROS/CMD parsers.
@@ -279,6 +336,16 @@ struct VioManagerOptions {
         camera_extrinsics.insert({i, cam_eigen});
       }
       parser->parse_config("use_mask", use_mask);
+      parser->parse_config("use_dynamic_mask", use_dynamic_mask);
+      parser->parse_config("dynamic_mask_topic0", dynamic_mask_topic0);
+      parser->parse_config("dynamic_mask_topic1", dynamic_mask_topic1);
+
+      PRINT_DEBUG("  - dynamic masks?: %d\n", use_dynamic_mask);
+      if (use_dynamic_mask) {
+        PRINT_DEBUG("  - dynamic mask topic 0: %s\n", dynamic_mask_topic0.c_str());
+        PRINT_DEBUG("  - dynamic mask topic 1: %s\n", dynamic_mask_topic1.c_str());
+      }
+
       if (use_mask) {
         for (int i = 0; i < state_options.num_cameras; i++) {
           std::string mask_path;

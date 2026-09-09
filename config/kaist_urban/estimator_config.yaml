@@ -1,0 +1,131 @@
+%YAML:1.0 # need to specify the file type at the top!
+
+# KAIST Complex Urban Dataset (urban38/urban39).
+# Point Grey Flea3 stereo (1280x560 @ ~10Hz, baseline ~0.48m) + Xsens MTi-300 IMU (100Hz).
+# Bags produced by convert_kaist_to_ros2bag.py — raw images (no pre-rectification).
+# Parameter values copied from config/kaist/ (official OpenVINS KAIST config),
+# adapted for our dynamic-mask evaluation setup.
+
+verbosity: "INFO"
+
+use_fej: true
+integration: "rk4"
+use_stereo: true
+max_cameras: 2
+
+calib_cam_extrinsics: false
+calib_cam_intrinsics: true
+calib_cam_timeoffset: true
+calib_imu_intrinsics: false
+calib_imu_g_sensitivity: false
+
+max_clones: 11
+max_slam: 50
+max_slam_in_update: 25
+max_msckf_in_update: 50
+dt_slam_delay: 1
+
+gravity_mag: 9.81
+
+feat_rep_msckf: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_slam: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
+
+# ZUPT: urban driving has stop lights — zero-velocity updates during stops reduce bias drift
+try_zupt: true
+zupt_chi2_multipler: 0.5
+zupt_max_velocity: 0.1
+zupt_noise_multiplier: 1
+zupt_max_disparity: 0.4
+zupt_only_at_beginning: false
+
+# ==================================================================
+# ==================================================================
+
+init_window_time: 2.0
+init_imu_thresh: 0.5
+init_max_disparity: 1.5
+init_max_features: 50
+
+init_dyn_use: false
+init_dyn_mle_opt_calib: false
+init_dyn_mle_max_iter: 50
+init_dyn_mle_max_time: 0.05
+init_dyn_mle_max_threads: 6
+init_dyn_num_pose: 6
+init_dyn_min_deg: 5.0
+
+init_dyn_inflation_ori: 10
+init_dyn_inflation_vel: 100
+init_dyn_inflation_bg: 10
+init_dyn_inflation_ba: 100
+init_dyn_min_rec_cond: 1e-20
+
+init_dyn_bias_g: [0.0, 0.0, 0.0]
+init_dyn_bias_a: [0.0, 0.0, 0.0]
+
+# ==================================================================
+# ==================================================================
+
+record_timing_information: false
+record_timing_filepath: "/tmp/traj_timing.txt"
+
+save_total_state: false
+filepath_est: "/tmp/ov_estimate.txt"
+filepath_std: "/tmp/ov_estimate_std.txt"
+filepath_gt: "/tmp/ov_groundtruth.txt"
+
+# ==================================================================
+# ==================================================================
+
+use_klt: true
+num_pts: 200
+fast_threshold: 30
+grid_x: 5
+grid_y: 5
+min_px_dist: 20
+knn_ratio: 0.65
+track_frequency: 31.0
+downsample_cameras: false
+num_opencv_threads: 4
+histogram_method: "HISTOGRAM"
+
+fi_min_dist: 0.25
+fi_max_dist: 150.0        # urban features at 20-150m; was 10.0 (rejected almost everything)
+fi_max_baseline: 200
+fi_max_cond_number: 20000
+fi_triangulate_1d: false
+
+use_aruco: false
+num_aruco: 1024
+downsize_aruco: true
+
+# ==================================================================
+# ==================================================================
+
+up_msckf_sigma_px: 1.5
+up_msckf_chi2_multipler: 1
+up_slam_sigma_px: 1.5
+up_slam_chi2_multipler: 1
+up_aruco_sigma_px: 1
+up_aruco_chi2_multipler: 1
+
+use_mask: false
+
+relative_config_imu: "kalibr_imu_chain.yaml"
+relative_config_imucam: "kalibr_imucam_chain.yaml"
+
+# Dynamic mask: always true — yolo_masker runs with force_empty for unmasked/imu_only.
+# Input topics are remapped to KAIST stereo topics at launch time.
+use_dynamic_mask: true
+dynamic_mask_topic0: "/cam0/masked"
+dynamic_mask_topic1: "/cam1/masked"
+
+use_imu_residual: false
+imu_residual_alpha: 1.5
+imu_residual_sigma_px: 10.0
+use_residual_variance: false
+imu_residual_max_depth: 0.0
+imu_residual_max_tri_error: 0.0
+imu_residual_dead_zone: 3.0
+imu_residual_init_delay: 5.0
