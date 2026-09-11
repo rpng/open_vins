@@ -1,49 +1,32 @@
-%YAML:1.0 # need to specify the file type at the top!
-
-# Stereo camera calibration for ZED X
-#
-# TODO — fill cam0 and cam1 from your Kalibr calibration output or the ZED SDK.
-#
-# Getting intrinsics from ZED SDK (no Kalibr needed):
-#   sl::Camera zed;
-#   auto cal = zed.getCameraInformation().camera_configuration.calibration_parameters;
-#   // cal.left_cam  → fx, fy, cx, cy, k1, k2, p1, p2
-#   // cal.right_cam → same
-#   // cal.T → translation vector cam0→cam1
-#
-# For rectified images (image_rect_gray), set distortion_coeffs to [0,0,0,0]
-# and use the rectified focal length (fx_rect = fy_rect) from ZED SDK.
-#
-# rostopic: must match the ZED ROS2 wrapper topic names for your configuration.
-# ZED ROS2 wrapper v4 defaults (namespace "zed", node_name "zed_node"):
-#   /zed/zed_node/left/image_rect_gray
-#   /zed/zed_node/right/image_rect_gray
-# If you changed camera_name/node_name in zed_camera.yaml, update accordingly.
-
+%YAML:1.0
 cam0:
-  T_imu_cam:   # R_CtoI | p_CinI  (rotation from cam0 to IMU, position of cam0 in IMU frame)
-    - [ 1.0, 0.0, 0.0, 0.0 ]   # TODO: fill from Kalibr or ZED SDK extrinsics
-    - [ 0.0, 1.0, 0.0, 0.0 ]
-    - [ 0.0, 0.0, 1.0, 0.0 ]
-    - [ 0.0, 0.0, 0.0, 1.0 ]
+  T_cam_imu:
+   - [-0.011674661157609012, -0.999931123986279, -0.001203981059494763, -0.00014835410550347565]
+   - [0.01741542594974932, 0.001000547577798383, -0.9998478393453343, 0.00014593234041106008]
+   - [0.9997801784521654, -0.0116938525765109, 0.017402545390689805, 2.1434938433490372e-05]
+   - [0.0, 0.0, 0.0, 1.0]
   cam_overlaps: [1]
   camera_model: pinhole
-  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]   # TODO: fill (use [0,0,0,0] for rectified images)
+  distortion_coeffs: [-0.06251853509928401, -0.05426584023737791, 0.0008632831115167961, 0.00025792786451789783]
   distortion_model: radtan
-  intrinsics: [700.0, 700.0, 640.0, 360.0]   # TODO: [fx, fy, cx, cy] in pixels
-  resolution: [1280, 720]                     # TODO: match ZED wrapper resolution setting
-  rostopic: /zed/zed_node/left/image_rect_gray  # TODO: verify — see note above
+  intrinsics: [632.2848762802752, 633.6734380372021, 487.8577237618567, 301.94195991876137]
+  resolution: [960, 600]
+  # rostopic: /camera/left/image_noisy
+  rostopic: /zed/zed_node/left/gray/raw/image
 
 cam1:
-  T_imu_cam:   # R_CtoI | p_CinI  (rotation from cam1 to IMU, position of cam1 in IMU frame)
-    - [ 1.0, 0.0, 0.0, 0.0 ]   # TODO: fill from Kalibr or ZED SDK extrinsics
-    - [ 0.0, 1.0, 0.0,-0.12 ]  # TODO: -0.12 is a placeholder for ~120mm baseline (replace)
-    - [ 0.0, 0.0, 1.0, 0.0 ]
-    - [ 0.0, 0.0, 0.0, 1.0 ]
+  T_cam_imu:
+   - [-0.020470426736210717, -0.9997898114859157, -0.0011377513765937763, -0.1205167942747374]
+   - [0.015435294690889667, 0.000821821118821231, -0.9998805310075072, 0.0003669523723411408]
+   - [0.9996713026325419, -0.020485542682735336, 0.015415227340231014, -0.0009406128959597004]
+   - [0.0, 0.0, 0.0, 1.0]
+
   cam_overlaps: [0]
   camera_model: pinhole
-  distortion_coeffs: [0.0, 0.0, 0.0, 0.0]   # TODO: fill
+  distortion_coeffs: [-0.05890981901094296, -0.06187641650745329, 0.00016115882101762916, 4.5779643336755264e-05]
   distortion_model: radtan
-  intrinsics: [700.0, 700.0, 640.0, 360.0]   # TODO: [fx, fy, cx, cy] in pixels
-  resolution: [1280, 720]                     # TODO: match ZED wrapper resolution setting
-  rostopic: /zed/zed_node/right/image_rect_gray  # TODO: verify — see note above
+  intrinsics: [631.7051249537849, 633.0190184717917, 484.1170922700505, 312.4351123183269]
+  resolution: [960, 600]
+  # rostopic: /camera/right/image_noisy
+  rostopic: /zed/zed_node/right/gray/raw/image
+

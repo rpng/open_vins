@@ -2,6 +2,11 @@
 
 # SoftGate-VIO — ZED X stereo camera (live deployment config)
 #
+# 2026-09-11: retuned for HANDHELD WALKING. The previous values came from the
+# KAIST Complex Urban (vehicle) config and were collapsing walked trajectories
+# (hard ZUPT clamp + starved tracker + fragile static init). Every changed
+# line carries its previous value as "was: X". Full original: this file + ".orig".
+#
 # Based on KAIST Complex Urban config (real-hardware, non-simulation defaults).
 # Camera: Stereolabs ZED X stereo (1280×720 @ 30 Hz, rectified images)
 # IMU: Xsens MTi-300 (100 Hz) or ZED X internal IMU (400 Hz)
@@ -33,26 +38,28 @@ dt_slam_delay: 1
 
 gravity_mag: 9.81
 
-feat_rep_msckf: "ANCHORED_MSCKF_INVERSE_DEPTH"
+feat_rep_msckf: "GLOBAL_3D"                       # was: "ANCHORED_MSCKF_INVERSE_DEPTH" (GLOBAL_3D = OpenVINS default)
 feat_rep_slam:  "ANCHORED_MSCKF_INVERSE_DEPTH"
 feat_rep_aruco: "ANCHORED_MSCKF_INVERSE_DEPTH"
 
-# ZUPT: useful for vehicles that stop at traffic lights / intersections
+# ZUPT: a walking person never fully stops. With noise_multiplier 1 the update
+# was a hard clamp that reset velocity mid-stride; 100 makes it a soft nudge.
+# Note UpdaterZeroVelocity accepts unconditionally when disparity < zupt_max_disparity.
 try_zupt: true
-zupt_chi2_multipler: 0.5
+zupt_chi2_multipler: 0.2          # was: 0.5
 zupt_max_velocity: 0.1
-zupt_noise_multiplier: 1
+zupt_noise_multiplier: 100        # was: 1
 zupt_max_disparity: 0.4
 zupt_only_at_beginning: false
 
 # ==================================================================
 
-init_window_time: 2.0
-init_imu_thresh: 0.5
-init_max_disparity: 1.5
-init_max_features: 50
+init_window_time: 4.0             # was: 2.0
+init_imu_thresh: 1.0              # was: 0.5
+init_max_disparity: 5.0           # was: 1.5  (1.5 px rejected hand tremor as "not still")
+init_max_features: 75             # was: 50
 
-init_dyn_use: false               # static initializer — deterministic, no MLE divergence
+init_dyn_use: true                # was false. dynamic init needs no still period (handheld)
 init_dyn_mle_opt_calib: false
 init_dyn_mle_max_iter: 50
 init_dyn_mle_max_time: 0.05
@@ -64,7 +71,7 @@ init_dyn_inflation_ori: 10
 init_dyn_inflation_vel: 100
 init_dyn_inflation_bg: 10
 init_dyn_inflation_ba: 100
-init_dyn_min_rec_cond: 1e-20
+init_dyn_min_rec_cond: 1e-12      # was: 1e-20
 
 init_dyn_bias_g: [0.0, 0.0, 0.0]
 init_dyn_bias_a: [0.0, 0.0, 0.0]
@@ -82,21 +89,21 @@ filepath_gt:  "/tmp/ov_groundtruth.txt"
 # ==================================================================
 
 use_klt: true
-num_pts: 200                  # Jetson-safe budget; raise to 300 on Orin if CPU budget allows
-fast_threshold: 30
-grid_x: 5
-grid_y: 5
-min_px_dist: 20
+num_pts: 600                  # was: 200  (OpenVINS measured 7.7 ms/frame at 200 — ample headroom)
+fast_threshold: 10            # was: 30   (30 found too few corners indoors)
+grid_x: 15                    # was: 5
+grid_y: 10                    # was: 5
+min_px_dist: 15               # was: 20
 knn_ratio: 0.65
 track_frequency: 30.0         # TODO: match your ZED wrapper framerate (15/30/60 Hz)
 downsample_cameras: false
 num_opencv_threads: 4
 histogram_method: "HISTOGRAM"
 
-fi_min_dist: 0.25
-fi_max_dist: 100.0            # urban features typically < 100 m
-fi_max_baseline: 200
-fi_max_cond_number: 20000
+fi_min_dist: 0.10             # was: 0.25    (OpenVINS default)
+fi_max_dist: 60.0             # was: 100.0   (OpenVINS default; indoor features are close)
+fi_max_baseline: 40           # was: 200     (OpenVINS default)
+fi_max_cond_number: 10000     # was: 20000   (OpenVINS default)
 fi_triangulate_1d: false
 
 use_aruco: false
@@ -106,7 +113,7 @@ downsize_aruco: true
 # ==================================================================
 
 up_msckf_sigma_px: 1.5
-up_msckf_chi2_multipler: 1
+up_msckf_chi2_multipler: 1.5      # was: 1
 up_slam_sigma_px: 1.5
 up_slam_chi2_multipler: 1
 up_aruco_sigma_px: 1
@@ -125,7 +132,7 @@ dynamic_mask_topic1: "/cam1/masked"
 
 # SoftGate nm — IMU reprojection residual gate.
 # Set use_imu_residual: false for a clean baseline without SoftGate.
-use_imu_residual: true
+use_imu_residual: false           # was true. OFF for a plain-OpenVINS baseline
 imu_residual_alpha: 1.5
 imu_residual_sigma_px: 10.0
 use_residual_variance: false
