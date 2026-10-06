@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.3)
 project(ov_core)
 
+find_package(catkin QUIET COMPONENTS roscpp)
+find_package(ament_cmake QUIET)
+
 # Include libraries (if we don't have opencv 4, then fallback to opencv 3)
 # The OpenCV version needs to match the one used by cv_bridge otherwise you will get a segmentation fault!
 find_package(Eigen3 REQUIRED)
@@ -8,7 +11,7 @@ find_package(OpenCV 3 QUIET)
 if (NOT OpenCV_FOUND)
     find_package(OpenCV 4 REQUIRED)
 endif ()
-find_package(Boost REQUIRED COMPONENTS system filesystem thread date_time)
+find_package(Boost REQUIRED COMPONENTS filesystem thread date_time)
 message(STATUS "OPENCV: " ${OpenCV_VERSION} " | BOOST: " ${Boost_VERSION})
 
 # By default we build with ROS, but you can disable this and just build as a library
@@ -52,8 +55,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -g3 -Wall -Wuninitialized -Wmaybe-uninit
 # Find our ROS version!
 # NOTE: Default to using the ROS1 package if both are in our enviroment
 # NOTE: https://github.com/romainreignier/share_ros1_ros2_lib_demo
-find_package(catkin QUIET COMPONENTS roscpp)
-find_package(ament_cmake QUIET)
 if (catkin_FOUND AND ENABLE_ROS)
     message(STATUS "ROS *1* version found, building ROS1.cmake")
     include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/ROS1.cmake)
