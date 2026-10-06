@@ -453,7 +453,7 @@ void ROS1Visualizer::callback_inertial(const sensor_msgs::Imu::ConstPtr &msg) {
   if (thread_update_running)
     return;
   thread_update_running = true;
-  std::thread thread([&] {
+  std::thread thread([this, message] {
     // Lock on the queue (prevents new images from appending)
     std::lock_guard<std::mutex> lck(camera_queue_mtx);
 
