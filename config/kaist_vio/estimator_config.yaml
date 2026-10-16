@@ -118,6 +118,16 @@ use_mask: false
 relative_config_imu: "kalibr_imu_chain.yaml"
 relative_config_imucam: "kalibr_imucam_chain.yaml"
 
+# Dynamic mask — not used for KAIST (no segmentation masks available)
+use_dynamic_mask: false
+dynamic_mask_topic0: "/cam0/masked"
+dynamic_mask_topic1: "/cam1/masked"
+
+# Phase 1 IMU-residual noise inflation
+use_imu_residual: false
+imu_residual_alpha: 5.0
+imu_residual_sigma_px: 5.0
+
 
 
 

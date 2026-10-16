@@ -114,6 +114,10 @@ public:
   /// Callback for synchronized stereo camera information
   void callback_stereo(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1, int cam_id0, int cam_id1);
 
+  /// Callback for synchronized stereo camera information WITH dynamic masks
+  void callback_stereo_masks(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1,
+                             const sensor_msgs::ImageConstPtr &mask0, const sensor_msgs::ImageConstPtr &mask1, int cam_id0, int cam_id1);
+
 protected:
   /// Publish the current state
   void publish_state();
@@ -150,8 +154,15 @@ protected:
   ros::Subscriber sub_imu;
   std::vector<ros::Subscriber> subs_cam;
   typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image> sync_pol;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image, sensor_msgs::Image>
+      sync_pol_masks;
+  typedef message_filters::sync_policies::ApproximateTime<sensor_msgs::msg::Image, sensor_msgs::msg::Image> sync_pol_mono_mask;
   std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol>>> sync_cam;
+  std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol_masks>>> sync_cam_masks;
+  std::vector<std::shared_ptr<message_filters::Synchronizer<sync_pol_mono_mask>>> sync_cam_mono_masks;
   std::vector<std::shared_ptr<message_filters::Subscriber<sensor_msgs::Image>>> sync_subs_cam;
+  void callback_monocular_masks(const sensor_msgs::msg::Image::ConstSharedPtr msg, const sensor_msgs::msg::Image::ConstSharedPtr mask,
+                                int cam_id);
 
   // For path viz
   unsigned int poses_seq_imu = 0;

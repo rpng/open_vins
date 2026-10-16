@@ -169,27 +169,65 @@ void ROS1Visualizer::setup_subscribers(std::shared_ptr<ov_core::YamlParser> pars
     _nh->param<std::string>("topic_camera" + std::to_string(1), cam_topic1, "/cam" + std::to_string(1) + "/image_raw");
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(0), "rostopic", cam_topic0);
     parser->parse_external("relative_config_imucam", "cam" + std::to_string(1), "rostopic", cam_topic1);
-    // Create sync filter (they have unique pointers internally, so we have to use move logic here...)
+
+    // Create image subscribers
     auto image_sub0 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic0, 1);
     auto image_sub1 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic1, 1);
-    auto sync = std::make_shared<message_filters::Synchronizer<sync_pol>>(sync_pol(10), *image_sub0, *image_sub1);
-    sync->registerCallback(boost::bind(&ROS1Visualizer::callback_stereo, this, _1, _2, 0, 1));
-    // Append to our vector of subscribers
-    sync_cam.push_back(sync);
-    sync_subs_cam.push_back(image_sub0);
-    sync_subs_cam.push_back(image_sub1);
-    PRINT_INFO("subscribing to cam (stereo): %s\n", cam_topic0.c_str());
-    PRINT_INFO("subscribing to cam (stereo): %s\n", cam_topic1.c_str());
+
+    // NEW LOGIC FOR DYNAMIC MASKS
+    if (_app->get_params().use_dynamic_mask) {
+      std::string mask_topic0 = _app->get_params().dynamic_mask_topic0;
+      std::string mask_topic1 = _app->get_params().dynamic_mask_topic1;
+      PRINT_INFO("subscribing to stereo masks: 	- %s	- %s", mask_topic0.c_str(), mask_topic1.c_str());
+
+      auto mask_sub0 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, mask_topic0, 1);
+      auto mask_sub1 = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, mask_topic1, 1);
+
+      auto sync = std::make_shared<message_filters::Synchronizer<sync_pol_masks>>(sync_pol_masks(10), *image_sub0, *image_sub1, *mask_sub0,
+                                                                                  *mask_sub1);
+      sync->registerCallback(boost::bind(&ROS1Visualizer::callback_stereo_masks, this, _1, _2, _3, _4, 0, 1));
+
+      sync_cam_masks.push_back(sync);
+      sync_subs_cam.push_back(image_sub0);
+      sync_subs_cam.push_back(image_sub1);
+      sync_subs_cam.push_back(mask_sub0);
+      sync_subs_cam.push_back(mask_sub1);
+    } else {
+      // ORIGINAL LOGIC
+      auto sync = std::make_shared<message_filters::Synchronizer<sync_pol>>(sync_pol(10), *image_sub0, *image_sub1);
+      sync->registerCallback(boost::bind(&ROS1Visualizer::callback_stereo, this, _1, _2, 0, 1));
+      sync_cam.push_back(sync);
+      sync_subs_cam.push_back(image_sub0);
+      sync_subs_cam.push_back(image_sub1);
+    }
+    PRINT_INFO("subscribing to cam (stereo): %s", cam_topic0.c_str());
+    PRINT_INFO("subscribing to cam (stereo): %s", cam_topic1.c_str());
   } else {
     // Now we should add any non-stereo callbacks here
     for (int i = 0; i < _app->get_params().state_options.num_cameras; i++) {
-      // read in the topic
+      // Read in the camera topic
       std::string cam_topic;
-      _nh->param<std::string>("topic_camera" + std::to_string(i), cam_topic, "/cam" + std::to_string(i) + "/image_raw");
+      _node->declare_parameter<std::string>("topic_camera" + std::to_string(i), "/cam" + std::to_string(i) + "/image_raw");
+      _node->get_parameter("topic_camera" + std::to_string(i), cam_topic);
       parser->parse_external("relative_config_imucam", "cam" + std::to_string(i), "rostopic", cam_topic);
-      // create subscriber
-      subs_cam.push_back(_nh->subscribe<sensor_msgs::Image>(cam_topic, 10, boost::bind(&ROS1Visualizer::callback_monocular, this, _1, i)));
-      PRINT_INFO("subscribing to cam (mono): %s\n", cam_topic.c_str());
+
+      if (_app->get_params().use_dynamic_mask) {
+        std::string mask_topic = (i == 0) ? _app->get_params().dynamic_mask_topic0 : _app->get_params().dynamic_mask_topic1;
+        auto image_sub = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, cam_topic, 1);
+        auto mask_sub = std::make_shared<message_filters::Subscriber<sensor_msgs::Image>>(*_nh, mask_topic, 1);
+        auto sync = std::make_shared<message_filters::Synchronizer<sync_pol_mono_mask>>(sync_pol_mono_mask(10), *image_sub, *mask_sub);
+        sync->registerCallback(boost::bind(&ROS1Visualizer::callback_monocular_masks, this, _1, _2, i));
+        sync_cam_mono_masks.push_back(sync);
+        sync_subs_cam.push_back(image_sub);
+        sync_subs_cam.push_back(mask_sub);
+      } else {
+        // Original monocular logic
+        auto sub = _node->create_subscription<sensor_msgs::msg::Image>(
+            cam_topic, 10, [this, i](const sensor_msgs::msg::Image::SharedPtr msg0) { callback_monocular(msg0, i); });
+        subs_cam.push_back(sub);
+      }
+      PRINT_INFO("subscribing to cam (mono): %s
+", cam_topic.c_str());
     }
   }
 }
@@ -583,6 +621,137 @@ void ROS1Visualizer::callback_stereo(const sensor_msgs::ImageConstPtr &msg0, con
   }
 
   // append it to our queue of images
+  std::lock_guard<std::mutex> lck(camera_queue_mtx);
+  camera_queue.push_back(message);
+  std::sort(camera_queue.begin(), camera_queue.end());
+}
+
+void ROS1Visualizer::callback_stereo_masks(const sensor_msgs::ImageConstPtr &msg0, const sensor_msgs::ImageConstPtr &msg1,
+                                           const sensor_msgs::ImageConstPtr &mask0, const sensor_msgs::ImageConstPtr &mask1, int cam_id0,
+                                           int cam_id1) {
+
+  // Check if we should drop this image (throttling)
+  double timestamp = msg0->header.stamp.toSec();
+  double time_delta = 1.0 / _app->get_params().track_frequency;
+  if (camera_last_timestamp.find(cam_id0) != camera_last_timestamp.end() && timestamp < camera_last_timestamp.at(cam_id0) + time_delta) {
+    return;
+  }
+  camera_last_timestamp[cam_id0] = timestamp;
+
+  // Get the images and masks
+  cv_bridge::CvImageConstPtr cv_ptr0, cv_ptr1, cv_mask0, cv_mask1;
+  try {
+    cv_ptr0 = cv_bridge::toCvShare(msg0, sensor_msgs::image_encodings::MONO8);
+    cv_ptr1 = cv_bridge::toCvShare(msg1, sensor_msgs::image_encodings::MONO8);
+    cv_mask0 = cv_bridge::toCvShare(mask0, sensor_msgs::image_encodings::MONO8);
+    cv_mask1 = cv_bridge::toCvShare(mask1, sensor_msgs::image_encodings::MONO8);
+  } catch (cv_bridge::Exception &e) {
+    PRINT_ERROR("cv_bridge exception: %s
+", e.what());
+    return;
+  }
+
+  // Create the measurement
+  ov_core::CameraData message;
+  message.timestamp = cv_ptr0->header.stamp.toSec();
+  message.sensor_ids.push_back(cam_id0);
+  message.sensor_ids.push_back(cam_id1);
+  message.images.push_back(cv_ptr0->image.clone());
+  message.images.push_back(cv_ptr1->image.clone());
+
+  // === MASK COMBINATION LOGIC ===
+  // 1. Get the dynamic masks from ROS message
+  cv::Mat dyn_mask0 = cv_mask0->image;
+  cv::Mat dyn_mask1 = cv_mask1->image;
+
+  // 2. Get the static masks if enabled (from config)
+  cv::Mat final_mask0, final_mask1;
+
+  if (_app->get_params().use_mask) {
+    // Merge Static + Dynamic for Cam 0
+    cv::Mat static_mask0 = _app->get_params().masks.at(cam_id0);
+    if (!dyn_mask0.empty() && !static_mask0.empty()) {
+      cv::bitwise_or(dyn_mask0, static_mask0, final_mask0);
+    } else {
+      final_mask0 = dyn_mask0.empty() ? static_mask0 : dyn_mask0;
+    }
+
+    // Merge Static + Dynamic for Cam 1
+    cv::Mat static_mask1 = _app->get_params().masks.at(cam_id1);
+    if (!dyn_mask1.empty() && !static_mask1.empty()) {
+      cv::bitwise_or(dyn_mask1, static_mask1, final_mask1);
+    } else {
+      final_mask1 = dyn_mask1.empty() ? static_mask1 : dyn_mask1;
+    }
+  } else {
+    // Only use dynamic masks
+    final_mask0 = dyn_mask0.clone();
+    final_mask1 = dyn_mask1.clone();
+  }
+
+  // 3. Ensure we have valid masks (black if empty)
+  if (final_mask0.empty())
+    final_mask0 = cv::Mat::zeros(cv_ptr0->image.rows, cv_ptr0->image.cols, CV_8UC1);
+  if (final_mask1.empty())
+    final_mask1 = cv::Mat::zeros(cv_ptr1->image.rows, cv_ptr1->image.cols, CV_8UC1);
+
+  message.masks.push_back(final_mask0);
+  message.masks.push_back(final_mask1);
+  // ==============================
+
+  // Append to our queue of images
+  std::lock_guard<std::mutex> lck(camera_queue_mtx);
+  camera_queue.push_back(message);
+  std::sort(camera_queue.begin(), camera_queue.end());
+}
+
+void ROS1Visualizer::callback_monocular_masks(const sensor_msgs::msg::Image::ConstSharedPtr msg,
+                                              const sensor_msgs::msg::Image::ConstSharedPtr mask, int cam_id) {
+  // Throttling logic
+  double timestamp = msg->header.stamp.sec + msg->header.stamp.nanosec * 1e-9;
+  double time_delta = 1.0 / _app->get_params().track_frequency;
+  if (camera_last_timestamp.find(cam_id) != camera_last_timestamp.end() && timestamp < camera_last_timestamp.at(cam_id) + time_delta) {
+    return;
+  }
+  camera_last_timestamp[cam_id] = timestamp;
+
+  // Get image and mask
+  cv_bridge::CvImageConstPtr cv_ptr, cv_mask;
+  try {
+    cv_ptr = cv_bridge::toCvShare(msg, sensor_msgs::image_encodings::MONO8);
+    cv_mask = cv_bridge::toCvShare(mask, sensor_msgs::image_encodings::MONO8);
+  } catch (cv_bridge::Exception &e) {
+    PRINT_ERROR("cv_bridge exception: %s", e.what());
+    return;
+  }
+
+  // Create measurement
+  ov_core::CameraData message;
+  message.timestamp = timestamp;
+  message.sensor_ids.push_back(cam_id);
+  message.images.push_back(cv_ptr->image.clone());
+
+  // Merge static and dynamic masks
+  cv::Mat final_mask;
+  cv::Mat dyn_mask = cv_mask->image;
+  if (_app->get_params().use_mask) {
+    cv::Mat static_mask = _app->get_params().masks.at(cam_id);
+    if (!dyn_mask.empty() && !static_mask.empty()) {
+      if (dyn_mask.rows != static_mask.rows || dyn_mask.cols != static_mask.cols) {
+        PRINT_WARNING(YELLOW "Dynamic mask size mismatch for Cam! Resizing...\n" RESET);
+        cv::resize(dyn_mask, dyn_mask, static_mask.size(), 0, 0, cv::INTER_NEAREST);
+      }
+      cv::bitwise_or(dyn_mask, static_mask, final_mask);
+    } else {
+      final_mask = dyn_mask.empty() ? static_mask : dyn_mask;
+    }
+  } else {
+    final_mask = dyn_mask.clone();
+  }
+  if (final_mask.empty())
+    final_mask = cv::Mat::zeros(cv_ptr->image.rows, cv_ptr->image.cols, CV_8UC1);
+  message.masks.push_back(final_mask);
+
   std::lock_guard<std::mutex> lck(camera_queue_mtx);
   camera_queue.push_back(message);
   std::sort(camera_queue.begin(), camera_queue.end());

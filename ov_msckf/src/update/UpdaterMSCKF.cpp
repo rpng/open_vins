@@ -21,6 +21,12 @@
 
 #include "UpdaterMSCKF.h"
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
+#include <numeric>
+#include <unordered_map>
+
 #include "UpdaterHelper.h"
 
 #include "feat/Feature.h"
@@ -205,10 +211,169 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     // Nullspace project
     UpdaterHelper::nullspace_project_inplace(H_f, H_x, res);
 
-    /// Chi2 distance check
+    // Per-feature noise multiplier nm using triangulated p_FinG.
+    // Dynamic features receive nm > 1 → down-weighted in the EKF update, not hard-rejected.
+    // Three modular gates, each independently enabled via YAML (default: all disabled):
+    //   SoftGate nm:   IMU reprojection residual → continuous nm inflation  (use_imu_residual)
+    //   Depth gate:    suppress nm for far features with unreliable stereo   (imu_residual_max_depth)
+    //   Tri gate:      suppress nm when triangulation itself is poor          (imu_residual_max_tri_error)
+    // Post-init delay: suppress nm while IMU biases are still converging.
+    // _nm_start_time is set on the first feature processed after init.
+    if (_imu_residual_init_delay > 0.0 && _nm_start_time < 0.0)
+      _nm_start_time = state->_timestamp;
+
+    double nm = 1.0;
+    const bool _nm_active = (_imu_residual_init_delay <= 0.0) ||
+                            (state->_timestamp - _nm_start_time >= _imu_residual_init_delay);
+    if (_nm_active && _use_imu_residual &&
+        !LandmarkRepresentation::is_relative_representation(feat.feat_representation) &&
+        feat.p_FinG.norm() > 0.01 &&
+        state->_cam_intrinsics_cameras.count(0) && state->_calib_IMUtoCAM.count(0) &&
+        feat.timestamps.count(0) && feat.uvs_norm.count(0)) {
+      const auto &times0 = feat.timestamps.at(0);
+      const auto &norms0 = feat.uvs_norm.at(0);
+      if (times0.size() >= 2) {
+        auto _nm_t0 = std::chrono::high_resolution_clock::now();
+        cv::Matx33d K0 = state->_cam_intrinsics_cameras.at(0)->get_K();
+        double fx = K0(0, 0);
+        Eigen::Matrix3d R_ItoC0 = state->_calib_IMUtoCAM.at(0)->Rot();
+        Eigen::Vector3d p_C0inI = state->_calib_IMUtoCAM.at(0)->pos();
+
+        // Triangulation quality gate.
+        // Computes RMS reprojection error of p_FinG across all window clones.
+        // High RMS means the triangulated position is unreliable (low-texture or
+        // degenerate geometry) → nm inflation would punish good features, not bad ones.
+        // Falls through (tri_gate_ok = true) when imu_residual_max_tri_error = 0 (default).
+        bool tri_gate_ok = true;
+        if (_imu_residual_max_tri_error > 0.0) {
+          double sum_r2_tri = 0.0;
+          int n_tri = 0;
+          for (size_t k = 0; k < times0.size(); k++) {
+            double t_k = times0[k];
+            if (!state->_clones_IMU.count(t_k))
+              continue;
+            Eigen::Matrix3d R_GtoI_k  = state->_clones_IMU.at(t_k)->Rot();
+            Eigen::Vector3d p_IinG_k  = state->_clones_IMU.at(t_k)->pos();
+            Eigen::Matrix3d R_GtoC0_k = R_ItoC0 * R_GtoI_k;
+            Eigen::Vector3d p_C0inG_k = p_IinG_k - R_GtoC0_k.transpose() * p_C0inI;
+            Eigen::Vector3d X_k       = R_GtoC0_k * (feat.p_FinG - p_C0inG_k);
+            if (X_k[2] <= 0.1)
+              continue;
+            double n_px = X_k[0] / X_k[2];
+            double n_py = X_k[1] / X_k[2];
+            double n_ax = static_cast<double>(norms0[k][0]);
+            double n_ay = static_cast<double>(norms0[k][1]);
+            double r_k  = fx * std::sqrt(std::pow(n_px - n_ax, 2) + std::pow(n_py - n_ay, 2));
+            sum_r2_tri += r_k * r_k;
+            n_tri++;
+          }
+          if (n_tri >= 2 && std::sqrt(sum_r2_tri / n_tri) > _imu_residual_max_tri_error)
+            tri_gate_ok = false;
+        }
+
+        if (tri_gate_ok) {
+          // Variance mode: std-dev of per-clone reprojection residuals.
+          // Triangulation error adds a constant bias c to every r_k → cancels in variance.
+          // A static feature has low std_r (consistent bias); a dynamic feature has high
+          // std_r (true position changes, p_FinG stays fixed → different residual each clone).
+          // Requires ≥3 valid clones; falls back to nm=1 for short tracks.
+          if (_use_imu_residual && _use_residual_variance) {
+            double sum_r = 0.0, sum_r2 = 0.0;
+            int n_var = 0;
+            for (size_t k = 0; k < times0.size(); k++) {
+              double t_k = times0[k];
+              if (!state->_clones_IMU.count(t_k))
+                continue;
+              Eigen::Matrix3d R_GtoI_k  = state->_clones_IMU.at(t_k)->Rot();
+              Eigen::Vector3d p_IinG_k  = state->_clones_IMU.at(t_k)->pos();
+              Eigen::Matrix3d R_GtoC0_k = R_ItoC0 * R_GtoI_k;
+              Eigen::Vector3d p_C0inG_k = p_IinG_k - R_GtoC0_k.transpose() * p_C0inI;
+              Eigen::Vector3d X_k       = R_GtoC0_k * (feat.p_FinG - p_C0inG_k);
+              if (X_k[2] <= 0.1)
+                continue;
+              double n_px = X_k[0] / X_k[2];
+              double n_py = X_k[1] / X_k[2];
+              double n_ax = static_cast<double>(norms0[k][0]);
+              double n_ay = static_cast<double>(norms0[k][1]);
+              double r_k  = fx * std::sqrt(std::pow(n_px - n_ax, 2) + std::pow(n_py - n_ay, 2));
+              sum_r  += r_k;
+              sum_r2 += r_k * r_k;
+              n_var++;
+            }
+            if (n_var >= 3) {
+              double mean_r = sum_r / n_var;
+              double var_r  = std::max(0.0, sum_r2 / n_var - mean_r * mean_r);
+              double std_r  = std::sqrt(var_r);
+              double s      = std::exp(-std_r / _imu_residual_sigma_px);
+              nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s));
+            }
+            // n_var < 3: nm stays 1.0 (too few observations, trust the feature)
+          }
+
+          // Single-frame residual at newest clone.
+          double t_new = times0.back();
+          if (state->_clones_IMU.count(t_new)) {
+            Eigen::Matrix3d R_GtoI_new  = state->_clones_IMU.at(t_new)->Rot();
+            Eigen::Vector3d p_IinG_new  = state->_clones_IMU.at(t_new)->pos();
+            Eigen::Matrix3d R_GtoC0_new = R_ItoC0 * R_GtoI_new;
+            Eigen::Vector3d p_C0inG_new = p_IinG_new - R_GtoC0_new.transpose() * p_C0inI;
+            Eigen::Vector3d X_Ct        = R_GtoC0_new * (feat.p_FinG - p_C0inG_new);
+            if (X_Ct[2] > 0.1) {
+              double n_pred_x = X_Ct[0] / X_Ct[2];
+              double n_pred_y = X_Ct[1] / X_Ct[2];
+              double n_act_x  = norms0.back()[0];
+              double n_act_y  = norms0.back()[1];
+              double r_px     = fx * std::sqrt(std::pow(n_pred_x - n_act_x, 2) + std::pow(n_pred_y - n_act_y, 2));
+
+              if (!_use_residual_variance) {
+                double noise_floor = _imu_residual_dead_zone * _options.sigma_pix;
+                double effective_r = std::max(0.0, r_px - noise_floor);
+                double s_imu       = std::exp(-effective_r / _imu_residual_sigma_px);
+                nm = std::max(1.0, 1.0 + _imu_residual_alpha * (1.0 - s_imu));
+              }
+
+              // Depth gate: features beyond max_depth have low stereo disparity and
+              // unreliable p_FinG → suppress nm to avoid false inflation.
+              // Applies to both single-frame and variance modes (X_Ct is from newest clone).
+              if (nm > 1.0 && _imu_residual_max_depth > 0.0 && X_Ct[2] > _imu_residual_max_depth) {
+                nm = 1.0;
+              }
+            }
+          }
+        } // tri_gate_ok
+
+        // One-shot timing report: accumulate first 10 000 nm evaluations, then print once.
+        // Disabled when use_imu_residual=false (this block is never entered).
+        static std::vector<double> _nm_timings;
+        static bool _nm_timing_done = false;
+        if (!_nm_timing_done) {
+          double _nm_us = std::chrono::duration<double, std::micro>(
+              std::chrono::high_resolution_clock::now() - _nm_t0).count();
+          _nm_timings.push_back(_nm_us);
+          if (_nm_timings.size() >= 10000) {
+            _nm_timing_done = true;
+            std::sort(_nm_timings.begin(), _nm_timings.end());
+            double mean_us = std::accumulate(_nm_timings.begin(), _nm_timings.end(), 0.0)
+                             / static_cast<double>(_nm_timings.size());
+            double med_us  = _nm_timings[_nm_timings.size() / 2];
+            double p95_us  = _nm_timings[static_cast<size_t>(_nm_timings.size() * 0.95)];
+            PRINT_INFO("[SoftGate-nm timing] N=%zu  mean=%.2f µs  median=%.2f µs  p95=%.2f µs"
+                       "  =>  +%.2f ms/update at 600 features\n",
+                       _nm_timings.size(), mean_us, med_us, p95_us,
+                       mean_us * 600.0 / 1000.0);
+            _nm_timings.clear();
+            _nm_timings.shrink_to_fit();
+          }
+        }
+      }
+    }
+
+    // Chi2 distance check — use inflated noise nm*sigma_pix_sq as expected model.
+    // Dynamic features are gated at their actual expected noise level, not the
+    // static baseline (prevents hard-rejection of slow-moving dynamic features).
     Eigen::MatrixXd P_marg = StateHelper::get_marginal_covariance(state, Hx_order);
     Eigen::MatrixXd S = H_x * P_marg * H_x.transpose();
-    S.diagonal() += _options.sigma_pix_sq * Eigen::VectorXd::Ones(S.rows());
+    S.diagonal() += (nm * _options.sigma_pix_sq) * Eigen::VectorXd::Ones(S.rows());
     double chi2 = res.dot(S.llt().solve(res));
 
     // Get our threshold (we precompute up to 500 but handle the case that it is more)
@@ -225,12 +390,17 @@ void UpdaterMSCKF::update(std::shared_ptr<State> state, std::vector<std::shared_
     if (chi2 > _options.chi2_multipler * chi2_check) {
       (*it2)->to_delete = true;
       it2 = feature_vec.erase(it2);
-      // PRINT_DEBUG("featid = %d\n", feat.featid);
-      // PRINT_DEBUG("chi2 = %f > %f\n", chi2, _options.chi2_multipler*chi2_check);
-      // std::stringstream ss;
-      // ss << "res = " << std::endl << res.transpose() << std::endl;
-      // PRINT_DEBUG(ss.str().c_str());
       continue;
+    }
+
+    // Measurement whitening for per-feature noise: divide H_x and res by sqrt(nm).
+    // After this scaling the global R_big = sigma_pix_sq*I is the correct noise model,
+    // equivalent to nm*sigma_pix_sq per feature in the Kalman update.
+    // Dynamic features (nm >> 1) are down-weighted; static features (nm = 1.0) unchanged.
+    if (nm > 1.0) {
+      double inv_sqrt_nm = 1.0 / std::sqrt(nm);
+      H_x *= inv_sqrt_nm;
+      res *= inv_sqrt_nm;
     }
 
     // We are good!!! Append to our large H vector

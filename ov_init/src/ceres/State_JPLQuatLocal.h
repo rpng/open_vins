@@ -56,10 +56,10 @@ public:
   bool PlusJacobian(const double *x, double *jacobian) const override;
 
   // Inverse update: delta = Log(q2 ⊗ inv(q1))
-  bool Minus(const double* y, const double* x, double* delta) const override;
+  bool Minus(const double *y, const double *x, double *delta) const override;
 
   // Jacobian of Minus
-  bool MinusJacobian(const double* x, double* jacobian) const override;
+  bool MinusJacobian(const double *x, double *jacobian) const override;
 
   int AmbientSize() const override { return 4; }
   int TangentSize() const override { return 3; }
@@ -84,7 +84,6 @@ public:
   int LocalSize() const override { return 3; };
 
 #endif
-
 };
 
 } // namespace ov_init

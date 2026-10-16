@@ -257,18 +257,42 @@ inline bool annotate(std::string annotation, double x, double y) {
 
 #ifndef WITHOUT_NUMPY
 // Type selector for numpy array conversion
-template <typename T> struct select_npy_type { const static NPY_TYPES type = NPY_NOTYPE; }; // Default
-template <> struct select_npy_type<double> { const static NPY_TYPES type = NPY_DOUBLE; };
-template <> struct select_npy_type<float> { const static NPY_TYPES type = NPY_FLOAT; };
-template <> struct select_npy_type<bool> { const static NPY_TYPES type = NPY_BOOL; };
-template <> struct select_npy_type<int8_t> { const static NPY_TYPES type = NPY_INT8; };
-template <> struct select_npy_type<int16_t> { const static NPY_TYPES type = NPY_SHORT; };
-template <> struct select_npy_type<int32_t> { const static NPY_TYPES type = NPY_INT; };
-template <> struct select_npy_type<int64_t> { const static NPY_TYPES type = NPY_INT64; };
-template <> struct select_npy_type<uint8_t> { const static NPY_TYPES type = NPY_UINT8; };
-template <> struct select_npy_type<uint16_t> { const static NPY_TYPES type = NPY_USHORT; };
-template <> struct select_npy_type<uint32_t> { const static NPY_TYPES type = NPY_ULONG; };
-template <> struct select_npy_type<uint64_t> { const static NPY_TYPES type = NPY_UINT64; };
+template <typename T> struct select_npy_type {
+  const static NPY_TYPES type = NPY_NOTYPE;
+}; // Default
+template <> struct select_npy_type<double> {
+  const static NPY_TYPES type = NPY_DOUBLE;
+};
+template <> struct select_npy_type<float> {
+  const static NPY_TYPES type = NPY_FLOAT;
+};
+template <> struct select_npy_type<bool> {
+  const static NPY_TYPES type = NPY_BOOL;
+};
+template <> struct select_npy_type<int8_t> {
+  const static NPY_TYPES type = NPY_INT8;
+};
+template <> struct select_npy_type<int16_t> {
+  const static NPY_TYPES type = NPY_SHORT;
+};
+template <> struct select_npy_type<int32_t> {
+  const static NPY_TYPES type = NPY_INT;
+};
+template <> struct select_npy_type<int64_t> {
+  const static NPY_TYPES type = NPY_INT64;
+};
+template <> struct select_npy_type<uint8_t> {
+  const static NPY_TYPES type = NPY_UINT8;
+};
+template <> struct select_npy_type<uint16_t> {
+  const static NPY_TYPES type = NPY_USHORT;
+};
+template <> struct select_npy_type<uint32_t> {
+  const static NPY_TYPES type = NPY_ULONG;
+};
+template <> struct select_npy_type<uint64_t> {
+  const static NPY_TYPES type = NPY_UINT64;
+};
 
 template <typename Numeric> PyObject *get_array(const std::vector<Numeric> &v) {
   detail::_interpreter::get(); // interpreter needs to be initialized for the numpy commands to work
@@ -1659,7 +1683,9 @@ template <typename T> using is_function = typename std::is_function<std::remove_
 
 template <bool obj, typename T> struct is_callable_impl;
 
-template <typename T> struct is_callable_impl<false, T> { typedef is_function<T> type; }; // a non-object is callable iff it is a function
+template <typename T> struct is_callable_impl<false, T> {
+  typedef is_function<T> type;
+}; // a non-object is callable iff it is a function
 
 template <typename T> struct is_callable_impl<true, T> {
   struct Fallback {

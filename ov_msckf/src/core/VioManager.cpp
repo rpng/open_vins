@@ -153,6 +153,10 @@ VioManager::VioManager(VioManagerOptions &params_) : thread_init_running(false),
 
   // Make the updater!
   updaterMSCKF = std::make_shared<UpdaterMSCKF>(params.msckf_options, params.featinit_options);
+  updaterMSCKF->set_imu_residual_params(params.use_imu_residual, params.imu_residual_alpha, params.imu_residual_sigma_px,
+                                         params.use_residual_variance, params.imu_residual_max_depth,
+                                         params.imu_residual_max_tri_error, params.imu_residual_dead_zone,
+                                         params.imu_residual_init_delay);
   updaterSLAM = std::make_shared<UpdaterSLAM>(params.slam_options, params.aruco_options, params.featinit_options);
 
   // If we are using zero velocity updates, then create the updater
@@ -320,6 +324,12 @@ void VioManager::track_image_and_update(const ov_core::CameraData &message_const
   do_feature_propagate_update(message);
 }
 
+// ---------------------------------------------------------------------------
+// IMU residual: per-feature noise multiplier using stereo depth + clone poses
+// For each MSCKF feature, back-project from oldest clone using stereo depth,
+// propagate to newest clone using IMU-propagated camera poses, compare to
+// actual observation. High reprojection residual → dynamic feature → inflate noise.
+// ---------------------------------------------------------------------------
 void VioManager::do_feature_propagate_update(const ov_core::CameraData &message) {
 
   //===================================================================================
